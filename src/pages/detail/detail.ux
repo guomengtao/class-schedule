@@ -1,42 +1,46 @@
 <template>
   <div class="detail-page">
     <div class="back-header">
-      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" />
-      <text class="header-title" style="{{ titleStyle }}">编辑课程</text>
+      <input class="back-btn" type="button" value="Back" onclick="goBack" />
+      <text class="header-title" style="{{ titleStyle }}">Edit Course</text>
     </div>
 
     <div class="detail-content" if="{{ classDetail }}">
+      <div class="delete-top-section">
+        <input class="form-btn delete-btn" type="button" value="Delete This Course" onclick="deleteCourse" />
+      </div>
+
       <div class="form-section">
-        <text class="info-label" style="{{ labelStyle }}">课程名称</text>
+        <text class="info-label" style="{{ labelStyle }}">Course Name</text>
         <input class="field-input" type="text" value="{{ editName }}" onchange="onNameChange" />
 
-        <text class="info-label" style="{{ labelStyle }}">时间</text>
+        <text class="info-label" style="{{ labelStyle }}">Time</text>
         <input class="field-input" type="text" value="{{ editTime }}" onchange="onTimeChange" />
 
-        <text class="info-label" style="{{ labelStyle }}">老师</text>
+        <text class="info-label" style="{{ labelStyle }}">Teacher</text>
         <input class="field-input" type="text" value="{{ editTeacher }}" onchange="onTeacherChange" />
 
-        <text class="info-label" style="{{ labelStyle }}">地点</text>
+        <text class="info-label" style="{{ labelStyle }}">Location</text>
         <input class="field-input" type="text" value="{{ editLocation }}" onchange="onLocationChange" />
 
-        <text class="info-label" style="{{ labelStyle }}">备注</text>
+        <text class="info-label" style="{{ labelStyle }}">Notes</text>
         <input class="field-input" type="text" value="{{ editNotes }}" onchange="onNotesChange" />
       </div>
 
       <div class="button-group">
-        <input class="form-btn delete-btn" type="button" value="删除" onclick="deleteCourse" />
-        <input class="form-btn save-btn" type="button" value="保存" onclick="saveCourse" />
+        <input class="form-btn save-btn" type="button" value="Save" onclick="saveCourse" />
       </div>
     </div>
 
     <div class="not-found" if="{{ !classDetail }}">
-      <text class="not-found-text" style="{{ labelStyle }}">未找到课程</text>
+      <text class="not-found-text" style="{{ labelStyle }}">Course not found</text>
     </div>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
+var storage = require("@system.storage")
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 
@@ -56,42 +60,84 @@ export default {
   },
 
   onInit() {
+    console.log("[DETAIL] onInit: page loaded")
     var self = this
     store.getFontScale(function(scale) {
       self.applyFontScale(scale)
     })
     this.applyFontScale(1.0)
-    var params = this.$page.params || {}
-    this.day = params.day || ""
-    this.classId = params.classId || ""
 
-    if (params.schedule && params.classId) {
-      var schedule = JSON.parse(params.schedule)
+    storage.get({
+      key: "detail_classId",
+      success: function(data) {
+        self.classId = data || ""
+        console.log("[DETAIL] onInit: classId from storage=" + self.classId)
+        self.tryLoadCourse()
+      },
+      fail: function() {
+        console.log("[DETAIL] onInit: failed to read classId from storage")
+        self.classId = ""
+        self.tryLoadCourse()
+      }
+    })
+    storage.get({
+      key: "detail_day",
+      success: function(data) {
+        self.day = data || ""
+        console.log("[DETAIL] onInit: day from storage=" + self.day)
+        self.tryLoadCourse()
+      },
+      fail: function() {
+        console.log("[DETAIL] onInit: failed to read day from storage")
+        self.day = ""
+        self.tryLoadCourse()
+      }
+    })
+  },
+
+  tryLoadCourse() {
+    if (!this.classId || !this.day) {
+      return
+    }
+    if (this._loaded) {
+      return
+    }
+    this._loaded = true
+    console.log("[DETAIL] tryLoadCourse: classId=" + this.classId + ", day=" + this.day)
+    var self = this
+    database.getAllCourses(function(schedule) {
+      console.log("[DETAIL] tryLoadCourse: schedule has " + schedule.length + " days")
       var dayData = null
       for (var d = 0; d < schedule.length; d++) {
-        if (schedule[d].day === this.day) {
+        if (schedule[d].day === self.day) {
           dayData = schedule[d]
           break
         }
       }
       if (dayData) {
+        console.log("[DETAIL] tryLoadCourse: found day=" + self.day + " with " + dayData.classes.length + " classes")
         var found = null
         for (var c = 0; c < dayData.classes.length; c++) {
-          if (dayData.classes[c].id === params.classId) {
+          if (dayData.classes[c].id === self.classId) {
             found = dayData.classes[c]
             break
           }
         }
-        this.classDetail = found
-        if (this.classDetail) {
-          this.editName = this.classDetail.name
-          this.editTime = this.classDetail.time
-          this.editTeacher = this.classDetail.teacher
-          this.editLocation = this.classDetail.location
-          this.editNotes = this.classDetail.notes || ""
+        self.classDetail = found
+        if (self.classDetail) {
+          console.log("[DETAIL] tryLoadCourse: course found: " + self.classDetail.name + " (" + self.classDetail.id + ")")
+          self.editName = self.classDetail.name
+          self.editTime = self.classDetail.time
+          self.editTeacher = self.classDetail.teacher
+          self.editLocation = self.classDetail.location
+          self.editNotes = self.classDetail.notes || ""
+        } else {
+          console.log("[DETAIL] tryLoadCourse: course not found for id=" + self.classId)
         }
+      } else {
+        console.log("[DETAIL] tryLoadCourse: day " + self.day + " not found in schedule")
       }
-    }
+    })
   },
 
   applyFontScale(s) {
@@ -122,11 +168,14 @@ export default {
   },
 
   goBack() {
+    console.log("[DETAIL] goBack: navigating back")
     router.back()
   },
 
   saveCourse() {
+    console.log("[DETAIL] saveCourse: start, name=" + this.editName + ", time=" + this.editTime)
     if (!this.editName || !this.editTime) {
+      console.log("[DETAIL] saveCourse: validation failed - name or time is empty")
       return
     }
     var updatedCourse = {
@@ -138,17 +187,25 @@ export default {
       location: this.editLocation || "TBD",
       notes: this.editNotes || ""
     }
+    console.log("[DETAIL] saveCourse: updating course: " + JSON.stringify(updatedCourse))
     database.updateCourse(updatedCourse, function(success) {
       if (success) {
+        console.log("[DETAIL] saveCourse: update success, navigating back")
         router.back()
+      } else {
+        console.log("[DETAIL] saveCourse: update failed")
       }
     })
   },
 
   deleteCourse() {
+    console.log("[DETAIL] deleteCourse: deleting course id=" + this.classId + ", day=" + this.day + ", name=" + this.editName)
     database.deleteCourse(this.classId, this.day, function(success) {
       if (success) {
+        console.log("[DETAIL] deleteCourse: delete success, navigating back")
         router.back()
+      } else {
+        console.log("[DETAIL] deleteCourse: delete failed")
       }
     })
   }
@@ -214,30 +271,36 @@ export default {
   placeholder-color: #555566;
 }
 
+.delete-top-section {
+  margin-bottom: 12px;
+}
+
+.delete-btn {
+  width: 100%;
+  height: 42px;
+  border-radius: 8px;
+  background-color: #8b0000;
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffffff;
+  text-align: center;
+}
+
 .button-group {
   flex-direction: row;
-  justify-content: space-between;
   margin-top: 16px;
   padding-bottom: 8px;
 }
 
-.form-btn {
-  width: 100px;
+.save-btn {
+  width: 100%;
   height: 42px;
   border-radius: 8px;
+  background-color: #7ec8e3;
   font-size: 16px;
   font-weight: bold;
-  text-align: center;
-}
-
-.delete-btn {
-  background-color: #8b0000;
-  color: #ffffff;
-}
-
-.save-btn {
-  background-color: #7ec8e3;
   color: #1a1a2e;
+  text-align: center;
 }
 
 .not-found {

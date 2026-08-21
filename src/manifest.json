@@ -58,6 +58,9 @@
       },
       "pages/schedule-manager": {
         "component": "schedule-manager"
+      },
+      "pages/week-view": {
+        "component": "week-view"
       }
     }
   }

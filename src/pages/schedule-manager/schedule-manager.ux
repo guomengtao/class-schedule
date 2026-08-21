@@ -2,13 +2,26 @@
   <div class="manager-page">
     <div class="back-header">
       <input class="back-btn" type="button" value="Back" onclick="goBack" />
-      <text class="header-title">Schedules</text>
+      <text class="header-title">Schedule Manager</text>
+    </div>
+
+    <div class="rename-bar" if="{{ editingIndex >= 0 }}">
+      <input class="rename-input" type="text" value="{{ editName }}" onchange="onRenameChange" />
+      <input class="rename-ok-btn" type="button" value="OK" onclick="finishEdit" />
     </div>
 
     <div class="schedule-list">
-      <div for="{{ scheduleNames }}" class="schedule-item" onclick="selectSchedule($idx)">
-        <text class="schedule-name">{{ $item }}</text>
-        <text class="schedule-check" if="{{ $idx === currentIndex }}">&#10003;</text>
+      <div for="{{ scheduleList }}" class="schedule-item">
+        <div class="schedule-row" onclick="selectSchedule($idx)">
+          <text class="schedule-name">{{ $item.name }}</text>
+          <text class="schedule-check" if="{{ $idx === currentIndex }}">&#10003;</text>
+        </div>
+        <div class="schedule-actions">
+          <input class="action-btn edit-btn" type="button" value="&#9998;" onclick="startRename($idx)" />
+          <input class="action-btn copy-btn" type="button" value="&#9114;" onclick="copySchedule($idx)" />
+          <input class="action-btn week-btn" type="button" value="&#9638;" onclick="openWeekView($idx)" />
+          <input class="action-btn delete-btn" type="button" value="&#10005;" onclick="deleteSchedule($idx)" if="{{ scheduleList.length > 1 }}" />
+        </div>
       </div>
     </div>
 
@@ -25,14 +38,30 @@ const database = require("../../data/database.js")
 
 export default {
   private: {
-    scheduleNames: [],
-    currentIndex: 0
+    scheduleList: [],
+    currentIndex: 0,
+    editingIndex: -1,
+    editName: ""
   },
 
   onInit() {
+    this.loadData()
+  },
+
+  onShow() {
+    this.loadData()
+  },
+
+  loadData() {
+    console.log("[SCHEDULE-MGR] loadData")
     var self = this
     store.getScheduleNames(function(names) {
-      self.scheduleNames = names
+      console.log("[SCHEDULE-MGR] names loaded: " + JSON.stringify(names))
+      var list = []
+      for (var i = 0; i < names.length; i++) {
+        list.push({ name: names[i] })
+      }
+      self.scheduleList = list
     })
     store.getCurrentScheduleIndex(function(idx) {
       self.currentIndex = idx
@@ -40,10 +69,16 @@ export default {
   },
 
   goBack() {
+    if (this.editingIndex >= 0) {
+      this.finishEdit()
+    }
     router.back()
   },
 
   selectSchedule(index) {
+    if (this.editingIndex >= 0) {
+      return
+    }
     if (index === this.currentIndex) {
       router.back()
       return
@@ -57,15 +92,177 @@ export default {
     })
   },
 
-  addSchedule() {
+  startRename(index) {
+    console.log("[SCHEDULE-MGR] startRename: " + index)
+    this.editingIndex = index
+    this.editName = this.scheduleList[index].name
+  },
+
+  onRenameChange(e) {
+    this.editName = e.value || ""
+    console.log("[SCHEDULE-MGR] onRenameChange: " + this.editName)
+  },
+
+  finishEdit() {
+    console.log("[SCHEDULE-MGR] finishEdit, name=" + this.editName)
+    if (this.editName && this.editingIndex >= 0) {
+      this.scheduleList[this.editingIndex].name = this.editName
+    }
     var self = this
-    store.getScheduleNames(function(names) {
-      var newIndex = names.length
-      var newName = "Schedule " + (newIndex + 1)
+    var names = []
+    for (var i = 0; i < this.scheduleList.length; i++) {
+      names.push(this.scheduleList[i].name)
+    }
+    this.editingIndex = -1
+    this.editName = ""
+    store.setScheduleNames(names, function() {
+      console.log("[SCHEDULE-MGR] names saved: " + JSON.stringify(names))
+      self.loadData()
+    })
+  },
+
+  openWeekView(index) {
+    console.log("[SCHEDULE-MGR] openWeekView: " + index)
+    var storage = require("@system.storage")
+    storage.set({
+      key: "weekview_index",
+      value: String(index),
+      success: function() {
+        console.log("[SCHEDULE-MGR] weekview_index saved, navigating")
+        router.push({
+          uri: "/pages/week-view"
+        })
+      },
+      fail: function() {
+        console.log("[SCHEDULE-MGR] storage set failed, still navigating")
+        router.push({
+          uri: "/pages/week-view"
+        })
+      }
+    })
+  },
+
+  addSchedule() {
+    console.log("[SCHEDULE-MGR] addSchedule")
+    var self = this
+    var names = []
+    for (var i = 0; i < this.scheduleList.length; i++) {
+      names.push(this.scheduleList[i].name)
+    }
+    var newName = "课程表" + (names.length + 1)
+    var counter = 1
+    while (names.indexOf(newName) !== -1) {
+      newName = "课程表" + (names.length + 1) + "(" + counter + ")"
+      counter++
+    }
+    names.push(newName)
+    store.setScheduleNames(names, function() {
+      self.loadData()
+    })
+  },
+
+  copySchedule(index) {
+    console.log("[SCHEDULE-MGR] copySchedule: " + index)
+    var self = this
+    var sourceName = this.scheduleList[index].name
+    var newName = sourceName + " (copy)"
+    var newIndex = this.scheduleList.length
+
+    database.getAllCoursesWithIndex(index, function(sourceData) {
+      console.log("[SCHEDULE-MGR] copySchedule: sourceData has " + (sourceData ? sourceData.length : 0) + " days")
+      if (!sourceData || sourceData.length === 0) {
+        var names = []
+        for (var i = 0; i < self.scheduleList.length; i++) {
+          names.push(self.scheduleList[i].name)
+        }
+        names.push(newName)
+        store.setScheduleNames(names, function() {
+          self.loadData()
+        })
+        return
+      }
+
+      var names = []
+      for (var i = 0; i < self.scheduleList.length; i++) {
+        names.push(self.scheduleList[i].name)
+      }
       names.push(newName)
       store.setScheduleNames(names, function() {
-        self.scheduleNames = names
+        database.setScheduleIndex(newIndex, function() {
+          var totalCourses = 0
+          for (var d = 0; d < sourceData.length; d++) {
+            totalCourses += sourceData[d].classes.length
+          }
+          console.log("[SCHEDULE-MGR] copySchedule: inserting " + totalCourses + " courses")
+
+          if (totalCourses === 0) {
+            self.loadData()
+            return
+          }
+
+          var inserted = 0
+          for (var d = 0; d < sourceData.length; d++) {
+            var dayData = sourceData[d]
+            for (var c = 0; c < dayData.classes.length; c++) {
+              var course = dayData.classes[c]
+              var newCourse = {
+                id: course.id + "_c" + newIndex,
+                day: course.day,
+                name: course.name,
+                time: course.time,
+                teacher: course.teacher,
+                location: course.location,
+                notes: course.notes || ""
+              }
+              database.insertCourse(newCourse, function() {
+                inserted++
+                if (inserted === totalCourses) {
+                  console.log("[SCHEDULE-MGR] copySchedule: all " + totalCourses + " courses copied")
+                  database.setScheduleIndex(self.currentIndex, function() {
+                    self.loadData()
+                  })
+                }
+              })
+            }
+          }
+        })
       })
+    })
+  },
+
+  deleteSchedule(index) {
+    console.log("[SCHEDULE-MGR] deleteSchedule: " + index)
+    if (this.scheduleList.length <= 1) {
+      return
+    }
+    var self = this
+    var needSwitch = (index === this.currentIndex)
+
+    var names = []
+    for (var i = 0; i < this.scheduleList.length; i++) {
+      names.push(this.scheduleList[i].name)
+    }
+    names.splice(index, 1)
+
+    store.setScheduleNames(names, function() {
+      if (needSwitch) {
+        store.setCurrentScheduleIndex(0, function() {
+          database.setScheduleIndex(0, function() {
+            self.currentIndex = 0
+            self.loadData()
+          })
+        })
+      } else if (index < self.currentIndex) {
+        var newIdx = self.currentIndex - 1
+        store.setCurrentScheduleIndex(newIdx, function() {
+          database.setScheduleIndex(newIdx, function() {
+            self.currentIndex = newIdx
+            self.loadData()
+          })
+        })
+      } else {
+        self.loadData()
+      }
     })
   }
 }
@@ -82,7 +279,7 @@ export default {
 .back-header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   padding: 8px 0;
 }
 
@@ -103,30 +300,102 @@ export default {
   margin-left: 8px;
 }
 
+.rename-bar {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 6px;
+  background-color: #0f3460;
+  border-radius: 8px;
+}
+
+.rename-input {
+  flex: 1;
+  height: 36px;
+  border-radius: 6px;
+  background-color: #16213e;
+  font-size: 15px;
+  color: #ffffff;
+  padding: 0 10px;
+}
+
+.rename-ok-btn {
+  width: 44px;
+  height: 36px;
+  border-radius: 6px;
+  background-color: #7ec8e3;
+  font-size: 14px;
+  font-weight: bold;
+  color: #1a1a2e;
+  text-align: center;
+  margin-left: 8px;
+}
+
 .schedule-list {
   flex: 1;
   flex-direction: column;
 }
 
 .schedule-item {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   background-color: #16213e;
   border-radius: 10px;
-  padding: 14px;
+  padding: 10px 12px;
   margin-bottom: 8px;
+}
+
+.schedule-row {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 6px;
 }
 
 .schedule-name {
   font-size: 16px;
   color: #ffffff;
+  flex: 1;
 }
 
 .schedule-check {
   font-size: 18px;
   color: #7ec8e3;
   font-weight: bold;
+  margin-left: 8px;
+}
+
+.schedule-actions {
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.action-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+  margin-right: 6px;
+  padding: 0;
+}
+
+.edit-btn {
+  background-color: #2d6a8f;
+  color: #ffffff;
+}
+
+.copy-btn {
+  background-color: #3a7d44;
+  color: #ffffff;
+}
+
+.week-btn {
+  background-color: #6a4c8f;
+  color: #ffffff;
+}
+
+.delete-btn {
+  background-color: #8b0000;
+  color: #ffffff;
 }
 
 .add-section {

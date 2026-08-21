@@ -29,16 +29,17 @@ function getStorageKey() {
 }
 
 function migrateOldData(callback) {
+  var targetKey = STORAGE_KEY + "_0"
   storage.get({
     key: STORAGE_KEY,
     success: function(val) {
       if (val) {
         storage.get({
-          key: getStorageKey(),
+          key: targetKey,
           success: function(existing) {
             if (!existing) {
               storage.set({
-                key: getStorageKey(),
+                key: targetKey,
                 value: val,
                 success: function() { callback() },
                 fail: function() { callback() }
@@ -49,7 +50,7 @@ function migrateOldData(callback) {
           },
           fail: function() {
             storage.set({
-              key: getStorageKey(),
+              key: targetKey,
               value: val,
               success: function() { callback() },
               fail: function() { callback() }
@@ -504,46 +505,55 @@ module.exports = {
   },
 
   getAllCourses: function(callback) {
-    log("getAllCourses called, useSqlite=" + useSqlite)
+    log("getAllCourses called, useSqlite=" + useSqlite + ", currentIndex=" + currentScheduleIndex)
     ensureReady(function() {
-      if (useSqlite) {
-        getAllCoursesSqlite(callback)
-      } else {
-        getAllCoursesStorage(callback)
-      }
+      loadScheduleIndex(function() {
+        log("getAllCourses after loadScheduleIndex: currentIndex=" + currentScheduleIndex)
+        if (useSqlite) {
+          getAllCoursesSqlite(callback)
+        } else {
+          getAllCoursesStorage(callback)
+        }
+      })
     })
   },
 
   insertCourse: function(course, callback) {
     log("insertCourse called: " + JSON.stringify(course))
     ensureReady(function() {
-      if (useSqlite) {
-        insertCourseSqlite(course, callback)
-      } else {
-        insertCourseStorage(course, callback)
-      }
+      loadScheduleIndex(function() {
+        if (useSqlite) {
+          insertCourseSqlite(course, callback)
+        } else {
+          insertCourseStorage(course, callback)
+        }
+      })
     })
   },
 
   updateCourse: function(course, callback) {
     log("updateCourse called: " + JSON.stringify(course))
     ensureReady(function() {
-      if (useSqlite) {
-        updateCourseSqlite(course, callback)
-      } else {
-        updateCourseStorage(course, callback)
-      }
+      loadScheduleIndex(function() {
+        if (useSqlite) {
+          updateCourseSqlite(course, callback)
+        } else {
+          updateCourseStorage(course, callback)
+        }
+      })
     })
   },
 
   deleteCourse: function(id, day, callback) {
     log("deleteCourse called: " + id + " " + day)
     ensureReady(function() {
-      if (useSqlite) {
-        deleteCourseSqlite(id, day, callback)
-      } else {
-        deleteCourseStorage(id, day, callback)
-      }
+      loadScheduleIndex(function() {
+        if (useSqlite) {
+          deleteCourseSqlite(id, day, callback)
+        } else {
+          deleteCourseStorage(id, day, callback)
+        }
+      })
     })
   },
 
@@ -565,5 +575,18 @@ module.exports = {
 
   getScheduleIndex: function() {
     return currentScheduleIndex
+  },
+
+  getAllCoursesWithIndex: function(index, callback) {
+    log("getAllCoursesWithIndex: " + index)
+    ensureReady(function() {
+      var oldIndex = currentScheduleIndex
+      currentScheduleIndex = index
+      getAllCoursesStorage(function(data) {
+        currentScheduleIndex = oldIndex
+        log("getAllCoursesWithIndex: restored index to " + oldIndex)
+        callback(data)
+      })
+    })
   }
 }

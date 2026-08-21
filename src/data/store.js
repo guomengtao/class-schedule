@@ -1,6 +1,6 @@
 var storage = require("@system.storage")
 
-var DEFAULT_NAMES = ["Schedule 1"]
+var DEFAULT_NAMES = ["课程表1"]
 
 module.exports = {
   setFontScale: function(scale, callback) {

@@ -1,10 +1,39 @@
 <template>
   <div class="schedule-page">
 
+    <div class="status-bar" onclick="goToCurrentClass">
+      <div class="status-current" if="{{ currentClass }}">
+        <text class="status-icon">&#128218;</text>
+        <text class="status-text">
+          Now: {{ currentClass.name }}
+          <text class="status-time" if="{{ currentClass.remaining > 0 }}">
+            {{ currentClass.remaining }}min left
+          </text>
+          <text class="status-time" if="{{ currentClass.remaining <= 0 }}">ending</text>
+        </text>
+      </div>
+      <div class="status-next" if="{{ nextClass }}">
+        <text class="status-icon">&#9654;</text>
+        <text class="status-text">Next: {{ nextClass.name }} {{ nextClass.startTime }}</text>
+      </div>
+      <div class="status-break" if="{{ !currentClass && nextClass }}">
+        <text class="status-icon">&#9200;</text>
+        <text class="status-text">{{ nextClass.waitMin }}min to next class</text>
+      </div>
+      <div class="status-free" if="{{ !currentClass && !nextClass && currentClasses.length > 0 }}">
+        <text class="status-icon">&#9989;</text>
+        <text class="status-text">All done for today</text>
+      </div>
+      <div class="status-free" if="{{ !currentClass && !nextClass && currentClasses.length === 0 }}">
+        <text class="status-icon">&#127881;</text>
+        <text class="status-text">No classes today</text>
+      </div>
+    </div>
+
     <div class="header">
-      <input class="nav-btn" type="button" value="◀" onclick="prevDay" />
+      <input class="nav-btn" type="button" value="&#9664;" onclick="prevDay" />
       <text class="day-title" style="{{ dayTitleStyle }}">{{ currentDay }}</text>
-      <input class="nav-btn" type="button" value="▶" onclick="nextDay" />
+      <input class="nav-btn" type="button" value="&#9654;" onclick="nextDay" />
     </div>
 
     <div class="quick-add">
@@ -43,7 +72,7 @@
     </div>
 
     <div class="week-indicator" onclick="openScheduleManager">
-      <text class="week-text" style="{{ weekTextStyle }}">Schedule {{ currentWeek }}</text>
+      <text class="week-text" style="{{ weekTextStyle }}">课程表{{ currentWeek }}</text>
     </div>
   </div>
 </template>
@@ -54,6 +83,13 @@ const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 
 const dayNames = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+
+function parseTime(timeStr) {
+  var parts = timeStr.split(":")
+  var hours = parseInt(parts[0]) || 0
+  var minutes = parseInt(parts[1]) || 0
+  return hours * 60 + minutes
+}
 
 export default {
   private: {
@@ -70,7 +106,11 @@ export default {
     btnTextStyle: "",
     swipedId: "",
     touchStartX: 0,
-    touchStartY: 0
+    touchStartY: 0,
+    isActive: true,
+    currentClass: null,
+    nextClass: null,
+    statusTimer: null
   },
 
   onInit() {
@@ -82,6 +122,8 @@ export default {
         console.log("[INDEX] onInit getAllCourses: " + schedule.length + " days")
         self.schedule = schedule
         self.loadDayClasses()
+        self.updateStatus()
+        self.startStatusTimer()
       })
     })
     var dayIndex = new Date().getDay()
@@ -104,6 +146,7 @@ export default {
 
   onShow() {
     console.log("[INDEX] onShow triggered")
+    this.isActive = true
     var self = this
     store.getFontScale(function(scale) {
       self.fontScale = scale
@@ -117,7 +160,20 @@ export default {
       console.log("[INDEX] onShow getAllCourses: " + schedule.length + " days")
       self.schedule = schedule
       self.loadDayClasses()
+      self.updateStatus()
+      self.startStatusTimer()
     })
+  },
+
+  onHide() {
+    console.log("[INDEX] onHide: page hidden, disabling touch events")
+    this.isActive = false
+    this.stopStatusTimer()
+  },
+
+  onDestroy() {
+    console.log("[INDEX] onDestroy: page destroyed")
+    this.stopStatusTimer()
   },
 
   applyFontScale() {
@@ -146,6 +202,7 @@ export default {
       console.log("[INDEX]   class[" + i + "]: " + this.currentClasses[i].id + " " + this.currentClasses[i].name)
     }
     console.log("[INDEX] loadDayClasses END")
+    this.updateStatus()
   },
 
   prevDay() {
@@ -169,13 +226,18 @@ export default {
   },
 
   openDetail(classId) {
+    console.log("[INDEX] openDetail: classId=" + classId + ", day=" + this.currentDay)
+    var storage = require("@system.storage")
+    storage.set({
+      key: "detail_classId",
+      value: String(classId)
+    })
+    storage.set({
+      key: "detail_day",
+      value: this.currentDay
+    })
     router.push({
-      uri: "/pages/detail",
-      params: {
-        classId: classId,
-        day: this.currentDay,
-        schedule: JSON.stringify(this.schedule)
-      }
+      uri: "/pages/detail"
     })
   },
 
@@ -238,12 +300,18 @@ export default {
     this.makeCourse("科学", "10:00 - 10:45", "吴老师", "实验室B")
   },
 
-  handleTouchStart(e, id) {
+  handleTouchStart(e) {
+    if (!this.isActive || !e || !e.touches || e.touches.length === 0) {
+      return
+    }
     this.touchStartX = e.touches[0].clientX
     this.touchStartY = e.touches[0].clientY
   },
 
   handleTouchEnd(e, id) {
+    if (!this.isActive || !e || !e.changedTouches || e.changedTouches.length === 0) {
+      return
+    }
     var endX = e.changedTouches[0].clientX
     var endY = e.changedTouches[0].clientY
     var dx = endX - this.touchStartX
@@ -274,6 +342,112 @@ export default {
         self.loadDayClasses()
       })
     })
+  },
+
+  startStatusTimer() {
+    this.stopStatusTimer()
+    var self = this
+    this.statusTimer = setInterval(function() {
+      self.updateStatus()
+    }, 60000)
+  },
+
+  stopStatusTimer() {
+    if (this.statusTimer) {
+      clearInterval(this.statusTimer)
+      this.statusTimer = null
+    }
+  },
+
+  updateStatus() {
+    var todayClasses = this.currentClasses
+    if (!todayClasses || todayClasses.length === 0) {
+      this.currentClass = null
+      this.nextClass = null
+      return
+    }
+
+    var now = new Date()
+    var nowMinutes = now.getHours() * 60 + now.getMinutes()
+
+    var parsed = []
+    for (var i = 0; i < todayClasses.length; i++) {
+      var cls = todayClasses[i]
+      var timeParts = cls.time.split("-")
+      if (timeParts.length < 2) continue
+      var startMin = parseTime(timeParts[0].trim())
+      var endMin = parseTime(timeParts[1].trim())
+      parsed.push({
+        id: cls.id,
+        name: cls.name,
+        time: cls.time,
+        startMin: startMin,
+        endMin: endMin,
+        startTime: timeParts[0].trim()
+      })
+    }
+
+    parsed.sort(function(a, b) {
+      return a.startMin - b.startMin
+    })
+
+    var current = null
+    var next = null
+
+    for (var i = 0; i < parsed.length; i++) {
+      var cls = parsed[i]
+      if (nowMinutes >= cls.startMin && nowMinutes <= cls.endMin) {
+        current = {
+          name: cls.name,
+          remaining: Math.round((cls.endMin - nowMinutes) / 60 * 10) / 10,
+          id: cls.id
+        }
+        if (i + 1 < parsed.length) {
+          var nextCls = parsed[i + 1]
+          next = {
+            name: nextCls.name,
+            startTime: nextCls.startTime,
+            waitMin: Math.round((nextCls.startMin - nowMinutes) / 60 * 10) / 10,
+            id: nextCls.id
+          }
+        }
+        break
+      }
+      if (nowMinutes < cls.startMin) {
+        if (!next || cls.startMin < next.startMin) {
+          next = {
+            name: cls.name,
+            startTime: cls.startTime,
+            waitMin: Math.round((cls.startMin - nowMinutes) / 60 * 10) / 10,
+            id: cls.id
+          }
+        }
+      }
+    }
+
+    this.currentClass = current
+    this.nextClass = next
+  },
+
+  goToCurrentClass() {
+    var target = this.currentClass || this.nextClass
+    if (!target) {
+      console.log("[INDEX] goToCurrentClass: no class to jump to")
+      return
+    }
+    console.log("[INDEX] goToCurrentClass: " + target.name + " (id=" + target.id + ")")
+    var storage = require("@system.storage")
+    storage.set({
+      key: "detail_classId",
+      value: String(target.id)
+    })
+    storage.set({
+      key: "detail_day",
+      value: this.currentDay
+    })
+    router.push({
+      uri: "/pages/detail"
+    })
   }
 }
 </script>
@@ -284,6 +458,59 @@ export default {
   background-color: #1a1a2e;
   padding: 8px;
   height: 100%;
+}
+
+.status-bar {
+  flex-direction: column;
+  background-color: #0f3460;
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-left-width: 4px;
+  border-left-color: #7ec8e3;
+  border-left-style: solid;
+}
+
+.status-current {
+  flex-direction: row;
+  align-items: center;
+}
+
+.status-next {
+  flex-direction: row;
+  align-items: center;
+  margin-top: 4px;
+  border-top-width: 1px;
+  border-top-color: #1a2a4e;
+  border-top-style: solid;
+  padding-top: 4px;
+}
+
+.status-break {
+  flex-direction: row;
+  align-items: center;
+}
+
+.status-free {
+  flex-direction: row;
+  align-items: center;
+}
+
+.status-icon {
+  font-size: 16px;
+  margin-right: 6px;
+}
+
+.status-text {
+  font-size: 14px;
+  color: #ffffff;
+  flex: 1;
+}
+
+.status-time {
+  font-size: 13px;
+  color: #7ec8e3;
+  font-weight: bold;
 }
 
 .header {

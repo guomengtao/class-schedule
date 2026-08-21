@@ -1,0 +1,328 @@
+<template>
+  <div class="week-view-page">
+    <div class="header">
+      <input class="back-btn" type="button" value="Back" onclick="goBack" />
+      <text class="header-title">Overview</text>
+    </div>
+
+    <text class="schedule-name">{{ scheduleName }}</text>
+
+    <div class="week-header">
+      <text class="week-day" for="{{ weekDays }}">{{ $item }}</text>
+    </div>
+
+    <scroll class="grid-scroll">
+      <div class="grid-container">
+        <div for="{{ timeSlots }}" class="time-row">
+          <text class="time-label">{{ $item.time }}</text>
+          <div class="course-row">
+            <div for="{{ $item.cells }}" class="course-cell" onclick="showDetail($item.day, $item.course)">
+              <text class="course-char" if="{{ $item.course }}">{{ $item.course.char }}</text>
+              <text class="course-empty" if="{{ !$item.course }}">.</text>
+            </div>
+          </div>
+        </div>
+      </div>
+    </scroll>
+
+    <div class="footer">
+      <text class="footer-text">Total: {{ totalCourses }} courses</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+const database = require("../../data/database.js")
+
+var fullDayNames = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+
+export default {
+  private: {
+    weekDays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    scheduleName: "",
+    timeSlots: [],
+    totalCourses: 0,
+    viewIndex: 0,
+    _initDone: false
+  },
+
+  onInit() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.get({
+      key: "weekview_index",
+      success: function(data) {
+        if (data) {
+          self.viewIndex = parseInt(data) || 0
+        }
+        console.log("[WEEK-VIEW] onInit: viewIndex=" + self.viewIndex)
+        self._initDone = true
+        self.loadData()
+      },
+      fail: function() {
+        self._initDone = true
+        self.loadData()
+      }
+    })
+  },
+
+  onShow() {
+    if (this._initDone) {
+      this.loadData()
+    }
+  },
+
+  loadData() {
+    var self = this
+
+    store.getScheduleNames(function(names) {
+      store.getCurrentScheduleIndex(function(idx) {
+        if (names && names.length > self.viewIndex) {
+          self.scheduleName = names[self.viewIndex]
+        }
+      })
+    })
+
+    database.getAllCoursesWithIndex(this.viewIndex, function(schedule) {
+      console.log("[WEEK-VIEW] schedule days: " + (schedule ? schedule.length : 0))
+      if (!schedule) {
+        return
+      }
+
+      var allCourses = {}
+      for (var d = 0; d < schedule.length; d++) {
+        var dayData = schedule[d]
+        if (dayData && dayData.day) {
+          allCourses[dayData.day] = dayData.classes || []
+        }
+      }
+
+      self.buildTimeSlots(allCourses)
+
+      var total = 0
+      for (var key in allCourses) {
+        if (allCourses.hasOwnProperty(key)) {
+          total += allCourses[key].length
+        }
+      }
+      self.totalCourses = total
+    })
+  },
+
+  buildTimeSlots(allCourses) {
+    var self = this
+    var timeSet = {}
+    var dayList = fullDayNames
+
+    for (var d = 0; d < dayList.length; d++) {
+      var day = dayList[d]
+      var courses = allCourses[day] || []
+      for (var c = 0; c < courses.length; c++) {
+        var time = courses[c].time
+        if (time && !timeSet[time]) {
+          timeSet[time] = true
+        }
+      }
+    }
+
+    var timeKeys = Object.keys(timeSet)
+    timeKeys.sort(function(a, b) {
+      var aStart = a.split("-")[0].trim()
+      var bStart = b.split("-")[0].trim()
+      if (aStart < bStart) return -1
+      if (aStart > bStart) return 1
+      return 0
+    })
+
+    var timeSlots = []
+    for (var t = 0; t < timeKeys.length; t++) {
+      var time = timeKeys[t]
+      var cells = []
+      for (var d = 0; d < dayList.length; d++) {
+        var day = dayList[d]
+        var courses = allCourses[day] || []
+        var matched = null
+        for (var c = 0; c < courses.length; c++) {
+          if (courses[c].time === time) {
+            matched = courses[c]
+            break
+          }
+        }
+        if (matched) {
+          cells.push({
+            day: day,
+            course: {
+              id: matched.id,
+              name: matched.name,
+              char: self.getFirstChar(matched.name),
+              time: matched.time,
+              teacher: matched.teacher,
+              location: matched.location
+            }
+          })
+        } else {
+          cells.push({
+            day: day,
+            course: null
+          })
+        }
+      }
+      timeSlots.push({
+        time: time,
+        cells: cells
+      })
+    }
+
+    this.timeSlots = timeSlots
+    console.log("[WEEK-VIEW] built " + timeSlots.length + " time slots")
+  },
+
+  getFirstChar(name) {
+    if (!name) return "?"
+    return name.charAt(0)
+  },
+
+  showDetail(day, course) {
+    if (!course) return
+    console.log("[WEEK-VIEW] showDetail: " + course.name + " (" + day + ")")
+    var storage = require("@system.storage")
+    storage.set({
+      key: "detail_classId",
+      value: String(course.id)
+    })
+    storage.set({
+      key: "detail_day",
+      value: day
+    })
+    router.push({
+      uri: "/pages/detail"
+    })
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.week-view-page {
+  flex-direction: column;
+  background-color: #1a1a2e;
+  padding: 8px;
+  height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.back-btn {
+  width: 60px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: #16213e;
+  font-size: 14px;
+  color: #7ec8e3;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  flex: 1;
+  text-align: center;
+  margin-right: 60px;
+}
+
+.schedule-name {
+  font-size: 13px;
+  color: #7ec8e3;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.week-header {
+  flex-direction: row;
+  background-color: #0f3460;
+  border-radius: 6px;
+  padding: 4px 0;
+  margin-bottom: 4px;
+}
+
+.week-day {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: #7ec8e3;
+}
+
+.grid-scroll {
+  flex: 1;
+  flex-direction: column;
+}
+
+.grid-container {
+  flex-direction: column;
+}
+
+.time-row {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 2px;
+  min-height: 32px;
+}
+
+.time-label {
+  width: 50px;
+  font-size: 10px;
+  color: #888899;
+  text-align: right;
+  padding-right: 6px;
+}
+
+.course-row {
+  flex: 1;
+  flex-direction: row;
+}
+
+.course-cell {
+  flex: 1;
+  height: 30px;
+  margin: 1px;
+  border-radius: 4px;
+  justify-content: center;
+  align-items: center;
+  background-color: #16213e;
+}
+
+.course-char {
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffffff;
+  text-align: center;
+}
+
+.course-empty {
+  font-size: 14px;
+  color: #333355;
+  text-align: center;
+}
+
+.footer {
+  padding: 6px 0;
+  align-items: center;
+}
+
+.footer-text {
+  font-size: 11px;
+  color: #555566;
+  text-align: center;
+}
+</style>
