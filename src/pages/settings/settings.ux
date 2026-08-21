@@ -1,0 +1,396 @@
+<template>
+  <div class="settings-page">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" />
+      <text class="header-title">字体大小设置</text>
+    </div>
+
+    <div class="scale-section">
+      <text class="section-label">课程名称字体：{{ displaySize }}px</text>
+
+      <div class="scale-control">
+        <input class="scale-btn" type="button" value="−" onclick="decreaseFont" />
+        <text class="scale-value">{{ displaySize }}px</text>
+        <input class="scale-btn" type="button" value="+" onclick="increaseFont" />
+      </div>
+
+      <div class="quick-scales">
+        <input class="quick-scale-btn {{ displaySize === 28 ? 'active' : '' }}" type="button" value="28px" onclick="set28" />
+        <input class="quick-scale-btn {{ displaySize === 36 ? 'active' : '' }}" type="button" value="36px" onclick="set36" />
+        <input class="quick-scale-btn {{ displaySize === 48 ? 'active' : '' }}" type="button" value="48px" onclick="set48" />
+        <input class="quick-scale-btn {{ displaySize === 62 ? 'active' : '' }}" type="button" value="62px" onclick="set62" />
+        <input class="quick-scale-btn {{ displaySize === 76 ? 'active' : '' }}" type="button" value="76px" onclick="set76" />
+      </div>
+    </div>
+
+    <div class="preview-section">
+      <text class="preview-title">文字预览</text>
+
+      <div class="preview-card">
+        <text class="preview-label">课程名称（{{ previewClassSize }}px）</text>
+        <text class="preview-card-name" style="{{ previewClassStyle }}">数学</text>
+
+        <text class="preview-label">上课时间（{{ previewClassSize }}px）</text>
+        <text class="preview-card-time" style="{{ previewClassStyle }}">08:00 - 08:45</text>
+
+        <text class="preview-label">上课地点（{{ previewClassSize }}px）</text>
+        <text class="preview-card-location" style="{{ previewClassStyle }}">301教室</text>
+      </div>
+
+      <div class="preview-card">
+        <text class="preview-label">标题（{{ previewTitleSize }}px）</text>
+        <text class="preview-card-title" style="{{ previewTitleStyle }}">星期一</text>
+
+        <text class="preview-label">正文（{{ previewBodySize }}px）</text>
+        <text class="preview-card-body" style="{{ previewBodyStyle }}">第1周</text>
+
+        <text class="preview-label">小字（{{ previewSmallSize }}px）</text>
+        <text class="preview-card-small" style="{{ previewSmallStyle }}">快速添加</text>
+      </div>
+
+      <text class="preview-title">Button Preview</text>
+
+      <div class="preview-card">
+        <text class="preview-label">快速添加按钮</text>
+        <div class="btn-preview-row">
+          <input class="preview-quick-btn" type="button" value="数学" style="{{ previewSmallStyle }}" />
+          <input class="preview-quick-btn" type="button" value="英语" style="{{ previewSmallStyle }}" />
+          <input class="preview-quick-btn" type="button" value="科学" style="{{ previewSmallStyle }}" />
+        </div>
+
+        <text class="preview-label">操作按钮</text>
+        <div class="btn-preview-row">
+          <input class="preview-action-btn" type="button" value="+ 添加课程" style="{{ previewBodyStyle }}" />
+          <input class="preview-action-btn" type="button" value="设置" style="{{ previewBodyStyle }}" />
+        </div>
+
+        <text class="preview-label">导航按钮</text>
+        <div class="btn-preview-row">
+          <input class="preview-nav-btn" type="button" value="◀" style="{{ previewBodyStyle }}" />
+          <input class="preview-nav-btn" type="button" value="▶" style="{{ previewBodyStyle }}" />
+        </div>
+      </div>
+    </div>
+
+    <div class="save-section">
+      <input class="save-settings-btn" type="button" value="保存设置" onclick="saveSettings" />
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+const sizeLevels = [28, 36, 48, 62, 76]
+
+export default {
+  private: {
+    scale: 1.0,
+    displaySize: 48,
+    previewClassSize: 48,
+    previewTitleSize: 20,
+    previewBodySize: 14,
+    previewSmallSize: 12,
+    previewClassStyle: "",
+    previewTitleStyle: "",
+    previewBodyStyle: "",
+    previewSmallStyle: ""
+  },
+
+  onInit() {
+    var self = this
+    store.getFontScale(function(scale) {
+      if (!scale || scale < 0.5) { scale = 1.0 }
+      self.scale = scale
+      self.displaySize = Math.round(48 * scale)
+      self.updatePreviews()
+    })
+  },
+
+  onShow() {
+    var self = this
+    store.getFontScale(function(scale) {
+      if (!scale || scale < 0.5) { scale = 1.0 }
+      self.scale = scale
+      self.displaySize = Math.round(48 * scale)
+      self.updatePreviews()
+    })
+  },
+
+  updatePreviews() {
+    this.previewClassSize = Math.round(48 * this.scale)
+    this.previewTitleSize = Math.round(20 * this.scale)
+    this.previewBodySize = Math.round(14 * this.scale)
+    this.previewSmallSize = Math.round(12 * this.scale)
+    this.previewClassStyle = "font-size: " + this.previewClassSize + "px"
+    this.previewTitleStyle = "font-size: " + this.previewTitleSize + "px"
+    this.previewBodyStyle = "font-size: " + this.previewBodySize + "px"
+    this.previewSmallStyle = "font-size: " + this.previewSmallSize + "px"
+  },
+
+  setSize(size) {
+    this.displaySize = size
+    this.scale = size / 48
+    store.setFontScale(this.scale)
+    this.updatePreviews()
+  },
+
+  set28() {
+    this.setSize(28)
+  },
+
+  set36() {
+    this.setSize(36)
+  },
+
+  set48() {
+    this.setSize(48)
+  },
+
+  set62() {
+    this.setSize(62)
+  },
+
+  set76() {
+    this.setSize(76)
+  },
+
+  decreaseFont() {
+    for (var i = sizeLevels.length - 1; i >= 0; i--) {
+      if (sizeLevels[i] < this.displaySize) {
+        this.setSize(sizeLevels[i])
+        return
+      }
+    }
+  },
+
+  increaseFont() {
+    for (var i = 0; i < sizeLevels.length; i++) {
+      if (sizeLevels[i] > this.displaySize) {
+        this.setSize(sizeLevels[i])
+        return
+      }
+    }
+  },
+
+  saveSettings() {
+    router.back()
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.settings-page {
+  flex-direction: column;
+  background-color: #1a1a2e;
+  padding: 8px;
+  min-height: 100%;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 6px 0;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: #16213e;
+  font-size: 14px;
+  color: #7ec8e3;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-left: 8px;
+}
+
+.scale-section {
+  flex-direction: column;
+  align-items: center;
+  background-color: #16213e;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.section-label {
+  font-size: 14px;
+  color: #a0a0b0;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.scale-control {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.scale-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background-color: #0f3460;
+  font-size: 24px;
+  font-weight: bold;
+  color: #ffffff;
+  text-align: center;
+}
+
+.scale-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #7ec8e3;
+  text-align: center;
+  width: 100px;
+}
+
+.quick-scales {
+  flex-direction: row;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.quick-scale-btn {
+  width: 54px;
+  height: 32px;
+  border-radius: 6px;
+  background-color: #0f3460;
+  font-size: 12px;
+  color: #a0a0b0;
+  text-align: center;
+}
+
+.quick-scale-btn.active {
+  background-color: #7ec8e3;
+  color: #1a1a2e;
+  font-weight: bold;
+}
+
+.preview-section {
+  flex-direction: column;
+  flex: 1;
+}
+
+.preview-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #7ec8e3;
+  margin-bottom: 6px;
+  margin-top: 4px;
+  text-align: center;
+}
+
+.preview-card {
+  flex-direction: column;
+  background-color: #16213e;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 6px;
+  border-left-width: 4px;
+  border-left-color: #7ec8e3;
+  border-left-style: solid;
+}
+
+.preview-label {
+  font-size: 11px;
+  color: #555566;
+  margin-bottom: 1px;
+  margin-top: 4px;
+}
+
+.preview-card-name {
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.preview-card-time {
+  color: #a0a0b0;
+}
+
+.preview-card-location {
+  color: #7ec8e3;
+}
+
+.preview-card-body {
+  color: #e0e0e0;
+}
+
+.preview-card-small {
+  color: #888899;
+}
+
+.preview-card-title {
+  font-weight: bold;
+  color: #ffcc00;
+}
+
+.btn-preview-row {
+  flex-direction: row;
+  align-items: center;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.preview-quick-btn {
+  width: 60px;
+  height: 30px;
+  border-radius: 6px;
+  background-color: #0f3460;
+  color: #ffffff;
+  text-align: center;
+  margin-right: 6px;
+}
+
+.preview-action-btn {
+  width: 80px;
+  height: 34px;
+  border-radius: 8px;
+  background-color: #7ec8e3;
+  color: #1a1a2e;
+  font-weight: bold;
+  text-align: center;
+  margin-right: 6px;
+}
+
+.preview-nav-btn {
+  width: 40px;
+  height: 30px;
+  border-radius: 8px;
+  background-color: #16213e;
+  color: #7ec8e3;
+  text-align: center;
+  margin-right: 6px;
+}
+
+.save-section {
+  flex-direction: row;
+  justify-content: center;
+  padding: 12px 0;
+  margin-top: 8px;
+}
+
+.save-settings-btn {
+  width: 200px;
+  height: 56px;
+  border-radius: 12px;
+  background-color: #7ec8e3;
+  color: #1a1a2e;
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+}
+</style>

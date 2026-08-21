@@ -1,0 +1,64 @@
+{
+  "package": "com.application.watch.classschedule",
+  "name": "ClassSchedule",
+  "versionName": "1.0.0",
+  "versionCode": 1,
+  "minPlatformVersion": 1000,
+  "icon": "/common/logo.png",
+  "deviceTypeList": [
+    "watch"
+  ],
+  "features": [
+    {
+      "name": "system.router"
+    },
+    {
+      "name": "system.storage"
+    },
+    {
+      "name": "system.sqlite"
+    }
+  ],
+  "config": {
+    "logLevel": "log",
+    "designWidth": "device-width"
+  },
+  "router": {
+    "entry": "pages/index",
+    "pages": {
+      "pages/index": {
+        "component": "index"
+      },
+      "pages/detail": {
+        "component": "detail"
+      },
+      "pages/add-course": {
+        "component": "add-course"
+      },
+      "pages/add-course-step1": {
+        "component": "add-course-step1"
+      },
+      "pages/add-course-step2": {
+        "component": "add-course-step2"
+      },
+      "pages/add-course-step3": {
+        "component": "add-course-step3"
+      },
+      "pages/add-course-step4": {
+        "component": "add-course-step4"
+      },
+      "pages/add-course-step5": {
+        "component": "add-course-step5"
+      },
+      "pages/style-demo": {
+        "component": "style-demo"
+      },
+      "pages/settings": {
+        "component": "settings"
+      },
+      "pages/schedule-manager": {
+        "component": "schedule-manager"
+      }
+    }
+  }
+}

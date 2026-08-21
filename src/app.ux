@@ -1,0 +1,17 @@
+<script>
+var store = require("./data/store.js")
+var database = require("./data/database.js")
+
+export default {
+  onCreate() {
+    database.init()
+    store.getFontScale(function(scale) {
+      if (!scale || scale < 0.5) {
+        store.setFontScale(1.0)
+      }
+    })
+  },
+  onDestroy() {
+  }
+}
+</script>

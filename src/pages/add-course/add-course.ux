@@ -1,0 +1,436 @@
+<template>
+  <div class="add-course-page">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" />
+      <text class="header-title" style="{{ titleStyle }}">添加课程</text>
+    </div>
+
+    <div class="step-indicator">
+      <text class="step-dot {{ step >= 1 ? 'active' : '' }}"></text>
+      <text class="step-line {{ step >= 2 ? 'active' : '' }}"></text>
+      <text class="step-dot {{ step >= 2 ? 'active' : '' }}"></text>
+      <text class="step-line {{ step >= 3 ? 'active' : '' }}"></text>
+      <text class="step-dot {{ step >= 3 ? 'active' : '' }}"></text>
+      <text class="step-line {{ step >= 4 ? 'active' : '' }}"></text>
+      <text class="step-dot {{ step >= 4 ? 'active' : '' }}"></text>
+    </div>
+
+    <div class="form-section" if="{{ step === 1 }}">
+      <text class="step-title" style="{{ labelStyle }}">第一步：选择课程</text>
+      <text class="step-hint" style="{{ hintStyle }}">滑动选择</text>
+
+      <div class="swiper-wrapper">
+        <input class="swipe-arrow" type="button" value="◀" onclick="swipePrev" style="{{ btnStyle }}" />
+        <div class="course-card" onclick="swipeNext">
+          <text class="card-course-name" style="{{ inputStyle }}">{{ presetCourses[courseIndex].name }}</text>
+          <text class="card-course-time" style="{{ hintStyle }}">{{ presetCourses[courseIndex].time }}</text>
+          <text class="card-course-location" style="{{ hintStyle }}">{{ presetCourses[courseIndex].location }}</text>
+        </div>
+        <input class="swipe-arrow" type="button" value="▶" onclick="swipeNext" style="{{ btnStyle }}" />
+      </div>
+
+      <div class="card-dots">
+        <text class="dot {{ courseIndex === 0 ? 'active' : '' }}"></text>
+        <text class="dot {{ courseIndex === 1 ? 'active' : '' }}"></text>
+        <text class="dot {{ courseIndex === 2 ? 'active' : '' }}"></text>
+        <text class="dot {{ courseIndex === 3 ? 'active' : '' }}"></text>
+      </div>
+
+      <div class="step-nav">
+        <input class="next-btn" type="button" value="下一步 ▶" onclick="nextStep" style="{{ btnStyle }}; height: {{ btnHeight }}px" />
+      </div>
+    </div>
+
+    <div class="form-section" if="{{ step === 2 }}">
+      <text class="step-title" style="{{ labelStyle }}">第二步：时间</text>
+      <text class="step-hint" style="{{ hintStyle }}">课程：{{ courseName }}</text>
+      <input class="field-input" type="text" placeholder="08:00 - 09:30" value="{{ courseTime }}" onchange="onTimeChange" style="{{ inputStyle }}; height: {{ inputHeight }}px" />
+      <div class="step-nav">
+        <input class="prev-btn" type="button" value="◀ 上一步" onclick="prevStep" style="{{ btnStyle }}; height: {{ btnHeight }}px" />
+        <input class="next-btn" type="button" value="下一步 ▶" onclick="nextStep" style="{{ btnStyle }}; height: {{ btnHeight }}px" />
+      </div>
+    </div>
+
+    <div class="form-section" if="{{ step === 3 }}">
+      <text class="step-title" style="{{ labelStyle }}">第三步：地点</text>
+      <text class="step-hint" style="{{ hintStyle }}">课程：{{ courseName }}  |  时间：{{ courseTime }}</text>
+      <input class="field-input" type="text" placeholder="301教室" value="{{ courseLocation }}" onchange="onLocationChange" style="{{ inputStyle }}; height: {{ inputHeight }}px" />
+      <div class="step-nav">
+        <input class="prev-btn" type="button" value="◀ 上一步" onclick="prevStep" style="{{ btnStyle }}; height: {{ btnHeight }}px" />
+        <input class="next-btn" type="button" value="下一步 ▶" onclick="nextStep" style="{{ btnStyle }}; height: {{ btnHeight }}px" />
+      </div>
+    </div>
+
+    <div class="form-section" if="{{ step === 4 }}">
+      <text class="step-title" style="{{ labelStyle }}">第四步：确认</text>
+      <div class="confirm-card">
+        <text class="confirm-label" style="{{ labelStyle }}">课程</text>
+        <text class="confirm-value" style="{{ inputStyle }}">{{ courseName }}</text>
+        <text class="confirm-label" style="{{ labelStyle }}">时间</text>
+        <text class="confirm-value" style="{{ inputStyle }}">{{ courseTime }}</text>
+        <text class="confirm-label" style="{{ labelStyle }}">地点</text>
+        <text class="confirm-value" style="{{ inputStyle }}">{{ courseLocation }}</text>
+      </div>
+      <div class="step-nav">
+        <input class="prev-btn" type="button" value="◀ 上一步" onclick="prevStep" style="{{ btnStyle }}; height: {{ btnHeight }}px" />
+        <input class="save-btn" type="button" value="保存" onclick="saveCourse" style="{{ btnStyle }}; height: {{ btnHeight }}px" />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+const database = require("../../data/database.js")
+
+var presetCourses = [
+  {
+    name: "数学",
+    time: "08:00 - 08:45",
+    teacher: "王老师",
+    location: "301教室"
+  },
+  {
+    name: "英语",
+    time: "08:55 - 09:40",
+    teacher: "李老师",
+    location: "205教室"
+  },
+  {
+    name: "科学",
+    time: "10:00 - 10:45",
+    teacher: "吴老师",
+    location: "实验室B"
+  },
+  {
+    name: "历史",
+    time: "11:00 - 11:45",
+    teacher: "刘老师",
+    location: "102教室"
+  }
+]
+
+export default {
+  private: {
+    courseName: "",
+    courseTime: "",
+    courseLocation: "",
+    courseTeacher: "",
+    day: "",
+    nextId: 100,
+    step: 1,
+    courseIndex: 0,
+    presetCourses: presetCourses,
+    titleStyle: "",
+    labelStyle: "",
+    hintStyle: "",
+    inputStyle: "",
+    inputHeight: 80,
+    btnStyle: "",
+    btnHeight: 72
+  },
+
+  onInit() {
+    var self = this
+    store.getFontScale(function(scale) {
+      self.applyFontScale(scale)
+    })
+    this.applyFontScale(1.0)
+    var params = this.$page.params || {}
+    this.day = params.day || ""
+    this.nextId = params.nextId || 100
+    this.selectCourse(0)
+  },
+
+  applyFontScale(s) {
+    if (!s || s < 0.5) { s = 1.0 }
+    this.titleStyle = "font-size: " + Math.round(28 * s) + "px"
+    this.labelStyle = "font-size: " + Math.round(24 * s) + "px"
+    this.hintStyle = "font-size: " + Math.round(20 * s) + "px"
+    this.inputStyle = "font-size: " + Math.round(26 * s) + "px"
+    this.inputHeight = Math.round(80 * s)
+    this.btnStyle = "font-size: " + Math.round(28 * s) + "px"
+    this.btnHeight = Math.round(72 * s)
+  },
+
+  selectCourse(index) {
+    this.courseIndex = index
+    var c = this.presetCourses[index]
+    this.courseName = c.name
+    this.courseTime = c.time
+    this.courseTeacher = c.teacher
+    this.courseLocation = c.location
+  },
+
+  swipePrev() {
+    if (this.courseIndex > 0) {
+      this.selectCourse(this.courseIndex - 1)
+    }
+  },
+
+  swipeNext() {
+    if (this.courseIndex < this.presetCourses.length - 1) {
+      this.selectCourse(this.courseIndex + 1)
+    }
+  },
+
+  onTimeChange(e) {
+    this.courseTime = e.value || ""
+  },
+
+  onLocationChange(e) {
+    this.courseLocation = e.value || ""
+  },
+
+  nextStep() {
+    if (this.step < 4) {
+      this.step = this.step + 1
+    }
+  },
+
+  prevStep() {
+    if (this.step > 1) {
+      this.step = this.step - 1
+    }
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  saveCourse() {
+    if (!this.courseName || !this.courseTime) {
+      return
+    }
+    var newCourse = {
+      id: String(this.nextId),
+      day: this.day,
+      name: this.courseName,
+      time: this.courseTime,
+      teacher: this.courseTeacher || "TBD",
+      location: this.courseLocation || "TBD",
+      notes: ""
+    }
+    database.insertCourse(newCourse, function(success) {
+      if (success) {
+        router.back()
+      }
+    })
+  }
+}
+</script>
+
+<style>
+.add-course-page {
+  flex-direction: column;
+  background-color: #1a1a2e;
+  padding: 16px;
+  height: 100%;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 0;
+}
+
+.back-btn {
+  width: 90px;
+  height: 50px;
+  border-radius: 10px;
+  background-color: #16213e;
+  font-size: 18px;
+  color: #7ec8e3;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-left: 12px;
+}
+
+.step-indicator {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.step-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background-color: #333355;
+}
+
+.step-dot.active {
+  background-color: #7ec8e3;
+}
+
+.step-line {
+  width: 40px;
+  height: 4px;
+  background-color: #333355;
+  margin: 0 4px;
+}
+
+.step-line.active {
+  background-color: #7ec8e3;
+}
+
+.form-section {
+  flex-direction: column;
+  flex: 1;
+}
+
+.step-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #7ec8e3;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.step-hint {
+  font-size: 20px;
+  color: #555566;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.swiper-wrapper {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.swipe-arrow {
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+  background-color: #0f3460;
+  color: #ffffff;
+  font-weight: bold;
+  text-align: center;
+}
+
+.course-card {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #16213e;
+  border-radius: 14px;
+  padding: 24px;
+  margin: 0 12px;
+  border: 3px solid #7ec8e3;
+  width: 200px;
+  height: 180px;
+}
+
+.card-course-name {
+  font-size: 26px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.card-course-time {
+  font-size: 20px;
+  color: #a0a0b0;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.card-course-location {
+  font-size: 20px;
+  color: #7ec8e3;
+  text-align: center;
+}
+
+.card-dots {
+  flex-direction: row;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 6px;
+  background-color: #333355;
+  margin: 0 6px;
+}
+
+.dot.active {
+  background-color: #7ec8e3;
+}
+
+.field-input {
+  border-radius: 12px;
+  background-color: #16213e;
+  color: #ffffff;
+  padding: 0 16px;
+  placeholder-color: #555566;
+  margin-bottom: 24px;
+}
+
+.step-nav {
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.prev-btn {
+  width: 120px;
+  border-radius: 12px;
+  background-color: #333355;
+  color: #a0a0b0;
+  font-weight: bold;
+  text-align: center;
+}
+
+.next-btn {
+  width: 120px;
+  border-radius: 12px;
+  background-color: #0f3460;
+  color: #ffffff;
+  font-weight: bold;
+  text-align: center;
+}
+
+.save-btn {
+  width: 120px;
+  border-radius: 12px;
+  background-color: #7ec8e3;
+  color: #1a1a2e;
+  font-weight: bold;
+  text-align: center;
+}
+
+.confirm-card {
+  flex-direction: column;
+  background-color: #16213e;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.confirm-label {
+  font-size: 24px;
+  font-weight: bold;
+  color: #7ec8e3;
+  margin-top: 12px;
+  margin-bottom: 4px;
+}
+
+.confirm-value {
+  font-size: 26px;
+  color: #ffffff;
+}
+</style>

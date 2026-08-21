@@ -1,0 +1,146 @@
+<template>
+  <div class="style-demo-page">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀ Back" onclick="goBack" />
+      <text class="header-title">Text Style Demo</text>
+    </div>
+
+    <text class="demo-label">font-size: 48</text>
+    <div class="demo-block">
+      <text class="text-48">样式文字大小</text>
+    </div>
+
+    <text class="demo-label">font-size: 48 (bold)</text>
+    <div class="demo-block">
+      <text class="text-48-bold">样式文字大小</text>
+    </div>
+
+    <text class="demo-label">font-size: 42</text>
+    <div class="demo-block">
+      <text class="text-42">样式文字大小</text>
+    </div>
+
+    <text class="demo-label">font-size: 36</text>
+    <div class="demo-block">
+      <text class="text-36">样式文字大小</text>
+    </div>
+
+    <text class="demo-label">font-size: 30</text>
+    <div class="demo-block">
+      <text class="text-30">样式文字大小</text>
+    </div>
+
+    <text class="demo-label">font-size: 24</text>
+    <div class="demo-block">
+      <text class="text-24">样式文字大小</text>
+    </div>
+
+    <text class="demo-label">font-size: 18</text>
+    <div class="demo-block">
+      <text class="text-18">样式文字大小</text>
+    </div>
+
+    <text class="demo-label">font-size: 12</text>
+    <div class="demo-block">
+      <text class="text-12">样式文字大小</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+
+export default {
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.style-demo-page {
+  flex-direction: column;
+  background-color: #1a1a2e;
+  padding: 8px;
+  min-height: 100%;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 0;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: #16213e;
+  font-size: 14px;
+  color: #7ec8e3;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-left: 8px;
+}
+
+.demo-label {
+  font-size: 12px;
+  color: #7ec8e3;
+  margin-top: 10px;
+  margin-bottom: 4px;
+}
+
+.demo-block {
+  background-color: #16213e;
+  border-radius: 6px;
+  padding: 6px;
+  align-items: center;
+}
+
+.text-48 {
+  font-size: 48px;
+  color: #ffffff;
+}
+
+.text-48-bold {
+  font-size: 48px;
+  font-weight: bold;
+  color: #ffcc00;
+}
+
+.text-42 {
+  font-size: 42px;
+  color: #e0e0e0;
+}
+
+.text-36 {
+  font-size: 36px;
+  color: #7ec8e3;
+}
+
+.text-30 {
+  font-size: 30px;
+  color: #a0e0a0;
+}
+
+.text-24 {
+  font-size: 24px;
+  color: #e0a0a0;
+}
+
+.text-18 {
+  font-size: 18px;
+  color: #a0a0e0;
+}
+
+.text-12 {
+  font-size: 12px;
+  color: #888899;
+}
+</style>

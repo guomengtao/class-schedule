@@ -1,0 +1,139 @@
+<template>
+  <div class="step-page">
+    <text class="step-indicator">Step 2/5</text>
+    <text class="step-title">Time</text>
+
+    <text class="step-label">Start Time</text>
+    <input class="step-input" type="text" placeholder="08:00" value="{{ startTime }}" onchange="onStartChange" />
+
+    <text class="step-label">End Time</text>
+    <input class="step-input" type="text" placeholder="08:45" value="{{ endTime }}" onchange="onEndChange" />
+
+    <div class="nav-buttons">
+      <input class="nav-btn back-btn" type="button" value="Back" onclick="goPrev" />
+      <input class="nav-btn next-btn" type="button" value="Next" onclick="goNext" />
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+
+export default {
+  private: {
+    startTime: "",
+    endTime: "",
+    day: "",
+    nextId: 100
+  },
+
+  onInit() {
+    const params = this.$page.params || {}
+    this.day = params.day || ""
+    this.nextId = parseInt(params.nextId) || 100
+    const course = this.$app.$data.newCourse || {}
+    if (course.time) {
+      const parts = course.time.split(" - ")
+      this.startTime = parts[0] || ""
+      this.endTime = parts[1] || ""
+    }
+  },
+
+  onStartChange(e) {
+    this.startTime = e.value || ""
+  },
+
+  onEndChange(e) {
+    this.endTime = e.value || ""
+  },
+
+  goPrev() {
+    router.back()
+  },
+
+  goNext() {
+    if (!this.startTime || !this.endTime) {
+      return
+    }
+    this.$app.$data.newCourse.time = this.startTime + " - " + this.endTime
+    router.push({
+      uri: "/pages/add-course-step3",
+      params: {
+        day: this.day,
+        nextId: this.nextId
+      }
+    })
+  }
+}
+</script>
+
+<style>
+.step-page {
+  flex-direction: column;
+  background-color: #1a1a2e;
+  padding: 12px;
+  min-height: 100%;
+  align-items: center;
+}
+
+.step-indicator {
+  font-size: 48px;
+  color: #7ec8e3;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.step-title {
+  font-size: 48px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.step-label {
+  font-size: 48px;
+  color: #7ec8e3;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.step-input {
+  width: 100%;
+  height: 60px;
+  border-radius: 10px;
+  background-color: #16213e;
+  font-size: 48px;
+  color: #ffffff;
+  padding: 0 14px;
+  placeholder-color: #555566;
+  text-align: center;
+}
+
+.nav-buttons {
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.nav-btn {
+  width: 120px;
+  height: 54px;
+  border-radius: 10px;
+  font-size: 48px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.back-btn {
+  background-color: #333355;
+  color: #a0a0b0;
+}
+
+.next-btn {
+  background-color: #7ec8e3;
+  color: #1a1a2e;
+}
+</style>

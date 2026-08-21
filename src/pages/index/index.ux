@@ -1,0 +1,462 @@
+<template>
+  <div class="schedule-page">
+
+    <div class="header">
+      <input class="nav-btn" type="button" value="◀" onclick="prevDay" />
+      <text class="day-title" style="{{ dayTitleStyle }}">{{ currentDay }}</text>
+      <input class="nav-btn" type="button" value="▶" onclick="nextDay" />
+    </div>
+
+    <div class="quick-add">
+      <text class="quick-add-title" style="{{ weekTextStyle }}">快速添加</text>
+      <div class="quick-add-buttons">
+        <input class="quick-btn" type="button" value="数学" onclick="quickAddMath" style="{{ btnTextStyle }}" />
+        <input class="quick-btn" type="button" value="英语" onclick="quickAddEnglish" style="{{ btnTextStyle }}" />
+        <input class="quick-btn" type="button" value="科学" onclick="quickAddScience" style="{{ btnTextStyle }}" />
+      </div>
+    </div>
+
+    <div class="class-list">
+      <div for="{{ currentClasses }}" class="class-card-wrapper">
+        <div class="class-card" ontouchstart="handleTouchStart($event, $item.id)" ontouchend="handleTouchEnd($event, $item.id)" onclick="openDetail($item.id)">
+          <div class="class-time">
+            <text class="class-name" style="{{ nameStyle }}">{{ $item.name }}</text>
+            <text class="class-time-text" style="{{ nameStyle }}">{{ $item.time }}</text>
+          </div>
+          <div class="class-info">
+            <text class="class-location" style="{{ nameStyle }}">{{ $item.location }}</text>
+          </div>
+        </div>
+        <div if="{{ swipedId === $item.id }}" class="delete-btn" onclick="deleteCourse($item.id)">
+          <text class="delete-btn-text">删除</text>
+        </div>
+      </div>
+
+      <div if="{{ currentClasses.length === 0 }}" class="empty-card">
+        <text class="empty-text" style="{{ nameStyle }}">今天没有课</text>
+      </div>
+    </div>
+
+    <div class="bottom-buttons">
+      <input class="add-btn" type="button" value="+ 添加课程" onclick="openAddCoursePage" />
+      <input class="style-btn" type="button" value="设置" onclick="openSettings" />
+    </div>
+
+    <div class="week-indicator" onclick="openScheduleManager">
+      <text class="week-text" style="{{ weekTextStyle }}">Schedule {{ currentWeek }}</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+const database = require("../../data/database.js")
+
+const dayNames = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+
+export default {
+  private: {
+    currentDay: "星期一",
+    currentWeek: 1,
+    currentDayIndex: 0,
+    currentClasses: [],
+    schedule: [],
+    nextId: 50,
+    fontScale: 1.0,
+    dayTitleStyle: "",
+    weekTextStyle: "",
+    nameStyle: "",
+    btnTextStyle: "",
+    swipedId: "",
+    touchStartX: 0,
+    touchStartY: 0
+  },
+
+  onInit() {
+    console.log("[INDEX] onInit, currentDay=" + this.currentDay)
+    var self = this
+    database.init(function() {
+      console.log("[INDEX] onInit database ready")
+      database.getAllCourses(function(schedule) {
+        console.log("[INDEX] onInit getAllCourses: " + schedule.length + " days")
+        self.schedule = schedule
+        self.loadDayClasses()
+      })
+    })
+    var dayIndex = new Date().getDay()
+    if (dayIndex >= 1 && dayIndex <= 5) {
+      this.currentDayIndex = dayIndex - 1
+      this.currentDay = dayNames[dayIndex - 1]
+    } else {
+      this.currentDayIndex = 0
+      this.currentDay = dayNames[0]
+    }
+    store.getFontScale(function(scale) {
+      self.fontScale = scale
+      self.applyFontScale()
+    })
+    store.getCurrentScheduleIndex(function(idx) {
+      self.currentWeek = idx + 1
+    })
+    this.applyFontScale()
+  },
+
+  onShow() {
+    console.log("[INDEX] onShow triggered")
+    var self = this
+    store.getFontScale(function(scale) {
+      self.fontScale = scale
+      self.applyFontScale()
+    })
+    store.getCurrentScheduleIndex(function(idx) {
+      self.currentWeek = idx + 1
+    })
+    this.applyFontScale()
+    database.getAllCourses(function(schedule) {
+      console.log("[INDEX] onShow getAllCourses: " + schedule.length + " days")
+      self.schedule = schedule
+      self.loadDayClasses()
+    })
+  },
+
+  applyFontScale() {
+    var s = this.fontScale
+    if (!s || s < 0.5) { s = 1.0 }
+    this.dayTitleStyle = "font-size: " + Math.round(20 * s) + "px"
+    this.weekTextStyle = "font-size: " + Math.round(14 * s) + "px"
+    this.nameStyle = "font-size: " + Math.round(28 * s) + "px"
+    this.btnTextStyle = "font-size: " + Math.round(14 * s) + "px"
+  },
+
+  loadDayClasses() {
+    console.log("[INDEX] loadDayClasses START: day=" + this.currentDay + ", scheduleDays=" + this.schedule.length)
+    var dayData = null
+    for (var i = 0; i < this.schedule.length; i++) {
+      if (this.schedule[i].day === this.currentDay) {
+        dayData = this.schedule[i]
+        break
+      }
+    }
+    this.currentClasses = []
+    var newClasses = dayData ? dayData.classes : []
+    this.currentClasses = newClasses
+    console.log("[INDEX] loadDayClasses: day=" + this.currentDay + ", scheduleDays=" + this.schedule.length + ", matched=" + (dayData ? "yes(" + dayData.classes.length + ")" : "no") + ", currentClasses=" + this.currentClasses.length)
+    for (var i = 0; i < this.currentClasses.length; i++) {
+      console.log("[INDEX]   class[" + i + "]: " + this.currentClasses[i].id + " " + this.currentClasses[i].name)
+    }
+    console.log("[INDEX] loadDayClasses END")
+  },
+
+  prevDay() {
+    if (this.currentDayIndex > 0) {
+      this.currentDayIndex--
+    } else {
+      this.currentDayIndex = dayNames.length - 1
+    }
+    this.currentDay = dayNames[this.currentDayIndex]
+    this.loadDayClasses()
+  },
+
+  nextDay() {
+    if (this.currentDayIndex < dayNames.length - 1) {
+      this.currentDayIndex++
+    } else {
+      this.currentDayIndex = 0
+    }
+    this.currentDay = dayNames[this.currentDayIndex]
+    this.loadDayClasses()
+  },
+
+  openDetail(classId) {
+    router.push({
+      uri: "/pages/detail",
+      params: {
+        classId: classId,
+        day: this.currentDay,
+        schedule: JSON.stringify(this.schedule)
+      }
+    })
+  },
+
+  openAddCoursePage() {
+    router.push({
+      uri: "/pages/add-course",
+      params: {
+        day: this.currentDay,
+        nextId: this.nextId
+      }
+    })
+  },
+
+  openSettings() {
+    router.push({
+      uri: "/pages/settings"
+    })
+  },
+
+  openScheduleManager() {
+    router.push({
+      uri: "/pages/schedule-manager"
+    })
+  },
+
+  makeCourse(name, time, teacher, location) {
+    var self = this
+    var newCourse = {
+      id: String(this.nextId),
+      day: this.currentDay,
+      name: name,
+      time: time,
+      teacher: teacher,
+      location: location,
+      notes: ""
+    }
+    console.log("[INDEX] makeCourse: " + JSON.stringify(newCourse))
+    this.nextId++
+    database.insertCourse(newCourse, function(success) {
+      console.log("[INDEX] insertCourse callback success=" + success)
+      database.getAllCourses(function(schedule) {
+        console.log("[INDEX] getAllCourses after insert: " + schedule.length + " days")
+        self.schedule = schedule
+        self.loadDayClasses()
+      })
+    })
+  },
+
+  quickAddMath() {
+    console.log("[INDEX] quickAddMath")
+    this.makeCourse("数学", "08:00 - 08:45", "王老师", "301教室")
+  },
+
+  quickAddEnglish() {
+    console.log("[INDEX] quickAddEnglish")
+    this.makeCourse("英语", "08:55 - 09:40", "李老师", "205教室")
+  },
+
+  quickAddScience() {
+    this.makeCourse("科学", "10:00 - 10:45", "吴老师", "实验室B")
+  },
+
+  handleTouchStart(e, id) {
+    this.touchStartX = e.touches[0].clientX
+    this.touchStartY = e.touches[0].clientY
+  },
+
+  handleTouchEnd(e, id) {
+    var endX = e.changedTouches[0].clientX
+    var endY = e.changedTouches[0].clientY
+    var dx = endX - this.touchStartX
+    var dy = endY - this.touchStartY
+    var absDx = dx < 0 ? -dx : dx
+    var absDy = dy < 0 ? -dy : dy
+    if (absDx > 30 && absDx > absDy) {
+      if (dx < 0) {
+        this.swipedId = id
+      } else {
+        this.swipedId = ""
+      }
+    } else {
+      this.swipedId = ""
+    }
+  },
+
+  deleteCourse(id) {
+    console.log("[INDEX] deleteCourse: " + id)
+    var self = this
+    var day = this.currentDay
+    database.deleteCourse(id, day, function(success) {
+      console.log("[INDEX] deleteCourse callback success=" + success)
+      self.swipedId = ""
+      database.getAllCourses(function(schedule) {
+        console.log("[INDEX] getAllCourses after delete: " + schedule.length + " days")
+        self.schedule = schedule
+        self.loadDayClasses()
+      })
+    })
+  }
+}
+</script>
+
+<style>
+.schedule-page {
+  flex-direction: column;
+  background-color: #1a1a2e;
+  padding: 8px;
+  height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 4px;
+  margin-bottom: 4px;
+}
+
+.day-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #e0e0e0;
+  text-align: center;
+  flex: 1;
+}
+
+.nav-btn {
+  width: 44px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: #16213e;
+  font-size: 14px;
+  color: #7ec8e3;
+  text-align: center;
+}
+
+.week-indicator {
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.week-text {
+  font-size: 14px;
+  color: #7ec8e3;
+}
+
+.quick-add {
+  flex-direction: column;
+  background-color: #16213e;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+
+.quick-add-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #7ec8e3;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.quick-add-buttons {
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.quick-btn {
+  width: 65px;
+  height: 32px;
+  border-radius: 6px;
+  background-color: #0f3460;
+  font-size: 14px;
+  color: #ffffff;
+  text-align: center;
+}
+
+.class-list {
+  flex: 1;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.class-card-wrapper {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.class-card {
+  flex-direction: column;
+  background-color: #16213e;
+  border-radius: 10px;
+  padding: 14px;
+  flex: 1;
+  border-left-width: 4px;
+  border-left-color: #7ec8e3;
+  border-left-style: solid;
+}
+
+.class-time {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.class-name {
+  font-size: 28px;
+  font-weight: bold;
+  color: #ffffff;
+  max-width: 140px;
+}
+
+.class-time-text {
+  font-size: 28px;
+  color: #a0a0b0;
+}
+
+.class-info {
+  flex-direction: row;
+  align-items: center;
+}
+
+.class-location {
+  font-size: 28px;
+  color: #7ec8e3;
+}
+
+.empty-card {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.empty-text {
+  font-size: 28px;
+  color: #555566;
+}
+
+.delete-btn {
+  width: 60px;
+  height: 50px;
+  background-color: #e74c3c;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  margin-left: 6px;
+}
+
+.delete-btn-text {
+  font-size: 14px;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.bottom-buttons {
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.add-btn {
+  width: 100px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: #7ec8e3;
+  font-size: 14px;
+  font-weight: bold;
+  color: #1a1a2e;
+  text-align: center;
+}
+
+.style-btn {
+  width: 100px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: #0f3460;
+  font-size: 14px;
+  font-weight: bold;
+  color: #ffffff;
+  text-align: center;
+}
+</style>

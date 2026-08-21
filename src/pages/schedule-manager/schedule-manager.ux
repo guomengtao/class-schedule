@@ -1,0 +1,146 @@
+<template>
+  <div class="manager-page">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="Back" onclick="goBack" />
+      <text class="header-title">Schedules</text>
+    </div>
+
+    <div class="schedule-list">
+      <div for="{{ scheduleNames }}" class="schedule-item" onclick="selectSchedule($idx)">
+        <text class="schedule-name">{{ $item }}</text>
+        <text class="schedule-check" if="{{ $idx === currentIndex }}">&#10003;</text>
+      </div>
+    </div>
+
+    <div class="add-section">
+      <input class="add-btn" type="button" value="+ Add Schedule" onclick="addSchedule" />
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+const database = require("../../data/database.js")
+
+export default {
+  private: {
+    scheduleNames: [],
+    currentIndex: 0
+  },
+
+  onInit() {
+    var self = this
+    store.getScheduleNames(function(names) {
+      self.scheduleNames = names
+    })
+    store.getCurrentScheduleIndex(function(idx) {
+      self.currentIndex = idx
+    })
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  selectSchedule(index) {
+    if (index === this.currentIndex) {
+      router.back()
+      return
+    }
+    var self = this
+    database.setScheduleIndex(index, function() {
+      store.setCurrentScheduleIndex(index, function() {
+        self.currentIndex = index
+        router.back()
+      })
+    })
+  },
+
+  addSchedule() {
+    var self = this
+    store.getScheduleNames(function(names) {
+      var newIndex = names.length
+      var newName = "Schedule " + (newIndex + 1)
+      names.push(newName)
+      store.setScheduleNames(names, function() {
+        self.scheduleNames = names
+      })
+    })
+  }
+}
+</script>
+
+<style>
+.manager-page {
+  flex-direction: column;
+  background-color: #1a1a2e;
+  padding: 8px;
+  min-height: 100%;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 0;
+}
+
+.back-btn {
+  width: 60px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: #16213e;
+  font-size: 14px;
+  color: #7ec8e3;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-left: 8px;
+}
+
+.schedule-list {
+  flex: 1;
+  flex-direction: column;
+}
+
+.schedule-item {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #16213e;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 8px;
+}
+
+.schedule-name {
+  font-size: 16px;
+  color: #ffffff;
+}
+
+.schedule-check {
+  font-size: 18px;
+  color: #7ec8e3;
+  font-weight: bold;
+}
+
+.add-section {
+  margin-top: 8px;
+}
+
+.add-btn {
+  width: 100%;
+  height: 42px;
+  border-radius: 8px;
+  background-color: #7ec8e3;
+  font-size: 16px;
+  font-weight: bold;
+  color: #1a1a2e;
+  text-align: center;
+}
+</style>

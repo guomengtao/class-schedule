@@ -1,0 +1,254 @@
+<template>
+  <div class="detail-page">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" />
+      <text class="header-title" style="{{ titleStyle }}">编辑课程</text>
+    </div>
+
+    <div class="detail-content" if="{{ classDetail }}">
+      <div class="form-section">
+        <text class="info-label" style="{{ labelStyle }}">课程名称</text>
+        <input class="field-input" type="text" value="{{ editName }}" onchange="onNameChange" />
+
+        <text class="info-label" style="{{ labelStyle }}">时间</text>
+        <input class="field-input" type="text" value="{{ editTime }}" onchange="onTimeChange" />
+
+        <text class="info-label" style="{{ labelStyle }}">老师</text>
+        <input class="field-input" type="text" value="{{ editTeacher }}" onchange="onTeacherChange" />
+
+        <text class="info-label" style="{{ labelStyle }}">地点</text>
+        <input class="field-input" type="text" value="{{ editLocation }}" onchange="onLocationChange" />
+
+        <text class="info-label" style="{{ labelStyle }}">备注</text>
+        <input class="field-input" type="text" value="{{ editNotes }}" onchange="onNotesChange" />
+      </div>
+
+      <div class="button-group">
+        <input class="form-btn delete-btn" type="button" value="删除" onclick="deleteCourse" />
+        <input class="form-btn save-btn" type="button" value="保存" onclick="saveCourse" />
+      </div>
+    </div>
+
+    <div class="not-found" if="{{ !classDetail }}">
+      <text class="not-found-text" style="{{ labelStyle }}">未找到课程</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+const database = require("../../data/database.js")
+
+export default {
+  private: {
+    classDetail: null,
+    day: "",
+    classId: "",
+    editName: "",
+    editTime: "",
+    editTeacher: "",
+    editLocation: "",
+    editNotes: "",
+    fontScale: 1.0,
+    titleStyle: "",
+    labelStyle: ""
+  },
+
+  onInit() {
+    var self = this
+    store.getFontScale(function(scale) {
+      self.applyFontScale(scale)
+    })
+    this.applyFontScale(1.0)
+    var params = this.$page.params || {}
+    this.day = params.day || ""
+    this.classId = params.classId || ""
+
+    if (params.schedule && params.classId) {
+      var schedule = JSON.parse(params.schedule)
+      var dayData = null
+      for (var d = 0; d < schedule.length; d++) {
+        if (schedule[d].day === this.day) {
+          dayData = schedule[d]
+          break
+        }
+      }
+      if (dayData) {
+        var found = null
+        for (var c = 0; c < dayData.classes.length; c++) {
+          if (dayData.classes[c].id === params.classId) {
+            found = dayData.classes[c]
+            break
+          }
+        }
+        this.classDetail = found
+        if (this.classDetail) {
+          this.editName = this.classDetail.name
+          this.editTime = this.classDetail.time
+          this.editTeacher = this.classDetail.teacher
+          this.editLocation = this.classDetail.location
+          this.editNotes = this.classDetail.notes || ""
+        }
+      }
+    }
+  },
+
+  applyFontScale(s) {
+    if (!s || s < 0.5) { s = 1.0 }
+    this.fontScale = s
+    this.titleStyle = "font-size: " + Math.round(18 * s) + "px"
+    this.labelStyle = "font-size: " + Math.round(16 * s) + "px"
+  },
+
+  onNameChange(e) {
+    this.editName = e.value || ""
+  },
+
+  onTimeChange(e) {
+    this.editTime = e.value || ""
+  },
+
+  onTeacherChange(e) {
+    this.editTeacher = e.value || ""
+  },
+
+  onLocationChange(e) {
+    this.editLocation = e.value || ""
+  },
+
+  onNotesChange(e) {
+    this.editNotes = e.value || ""
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  saveCourse() {
+    if (!this.editName || !this.editTime) {
+      return
+    }
+    var updatedCourse = {
+      id: this.classId,
+      day: this.day,
+      name: this.editName,
+      time: this.editTime,
+      teacher: this.editTeacher || "TBD",
+      location: this.editLocation || "TBD",
+      notes: this.editNotes || ""
+    }
+    database.updateCourse(updatedCourse, function(success) {
+      if (success) {
+        router.back()
+      }
+    })
+  },
+
+  deleteCourse() {
+    database.deleteCourse(this.classId, this.day, function(success) {
+      if (success) {
+        router.back()
+      }
+    })
+  }
+}
+</script>
+
+<style>
+.detail-page {
+  flex-direction: column;
+  background-color: #1a1a2e;
+  padding: 8px;
+  min-height: 100%;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 0;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: #16213e;
+  font-size: 14px;
+  color: #7ec8e3;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-left: 8px;
+}
+
+.detail-content {
+  flex-direction: column;
+}
+
+.form-section {
+  flex-direction: column;
+  flex: 1;
+}
+
+.info-label {
+  font-size: 16px;
+  font-weight: bold;
+  color: #7ec8e3;
+  margin-bottom: 4px;
+  margin-top: 10px;
+}
+
+.field-input {
+  height: 42px;
+  border-radius: 8px;
+  background-color: #16213e;
+  font-size: 16px;
+  color: #ffffff;
+  padding: 0 10px;
+  placeholder-color: #555566;
+}
+
+.button-group {
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-bottom: 8px;
+}
+
+.form-btn {
+  width: 100px;
+  height: 42px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.delete-btn {
+  background-color: #8b0000;
+  color: #ffffff;
+}
+
+.save-btn {
+  background-color: #7ec8e3;
+  color: #1a1a2e;
+}
+
+.not-found {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.not-found-text {
+  font-size: 16px;
+  color: #555566;
+}
+</style>
