@@ -1,32 +1,33 @@
 <template>
-  <div class="manager-page">
+  <div class="manager-page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <input class="back-btn" type="button" value="Back" onclick="goBack" />
-      <text class="header-title">Schedule Manager</text>
+      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="color: {{ theme.text }}">课程表管理</text>
     </div>
 
-    <div class="rename-bar" if="{{ editingIndex >= 0 }}">
-      <input class="rename-input" type="text" value="{{ editName }}" onchange="onRenameChange" />
-      <input class="rename-ok-btn" type="button" value="OK" onclick="finishEdit" />
+    <div class="rename-bar" if="{{ editingIndex >= 0 }}" style="background-color: {{ theme.card }}">
+      <input class="rename-input" type="text" value="{{ editName }}" onchange="onRenameChange" placeholder="输入新名称" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+      <input class="rename-ok-btn" type="button" value="保存" onclick="finishEdit" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="rename-cancel-btn" type="button" value="取消" onclick="cancelEdit" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
     </div>
 
     <div class="schedule-list">
-      <div for="{{ scheduleList }}" class="schedule-item">
-        <div class="schedule-row" onclick="selectSchedule($idx)">
-          <text class="schedule-name">{{ $item.name }}</text>
-          <text class="schedule-check" if="{{ $idx === currentIndex }}">&#10003;</text>
+      <div for="{{ scheduleList }}" class="schedule-item {{ $idx === currentIndex ? 'active' : '' }}" style="background-color: {{ theme.card }}; border-left-color: {{ $idx === currentIndex ? theme.accent : 'transparent' }}">
+        <div class="item-left" onclick="selectSchedule($idx)">
+          <text class="schedule-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+          <text class="badge" if="{{ $idx === currentIndex }}" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">使用中</text>
         </div>
-        <div class="schedule-actions">
-          <input class="action-btn edit-btn" type="button" value="&#9998;" onclick="startRename($idx)" />
-          <input class="action-btn copy-btn" type="button" value="&#9114;" onclick="copySchedule($idx)" />
-          <input class="action-btn week-btn" type="button" value="&#9638;" onclick="openWeekView($idx)" />
-          <input class="action-btn delete-btn" type="button" value="&#10005;" onclick="deleteSchedule($idx)" if="{{ scheduleList.length > 1 }}" />
+        <div class="item-right">
+          <text class="link" onclick="startRename($idx)" style="color: {{ theme.accent }}">重命名</text>
+          <text class="link" onclick="copySchedule($idx)" style="color: {{ theme.accent }}">复制</text>
+          <text class="link" onclick="openWeekView($idx)" style="color: {{ theme.accent }}">总览</text>
+          <text class="link delete-link" if="{{ scheduleList.length > 1 }}" onclick="deleteSchedule($idx)" style="color: {{ theme.deleteText }}">删除</text>
         </div>
       </div>
     </div>
 
     <div class="add-section">
-      <input class="add-btn" type="button" value="+ Add Schedule" onclick="addSchedule" />
+      <input class="add-btn" type="button" value="+ 新增课程表" onclick="addSchedule" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
   </div>
 </template>
@@ -41,22 +42,29 @@ export default {
     scheduleList: [],
     currentIndex: 0,
     editingIndex: -1,
-    editName: ""
+    editName: "",
+    theme: {}
   },
 
   onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
     this.loadData()
   },
 
   onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
     this.loadData()
   },
 
   loadData() {
-    console.log("[SCHEDULE-MGR] loadData")
     var self = this
     store.getScheduleNames(function(names) {
-      console.log("[SCHEDULE-MGR] names loaded: " + JSON.stringify(names))
       var list = []
       for (var i = 0; i < names.length; i++) {
         list.push({ name: names[i] })
@@ -70,7 +78,8 @@ export default {
 
   goBack() {
     if (this.editingIndex >= 0) {
-      this.finishEdit()
+      this.cancelEdit()
+      return
     }
     router.back()
   },
@@ -93,57 +102,67 @@ export default {
   },
 
   startRename(index) {
-    console.log("[SCHEDULE-MGR] startRename: " + index)
     this.editingIndex = index
     this.editName = this.scheduleList[index].name
   },
 
   onRenameChange(e) {
     this.editName = e.value || ""
-    console.log("[SCHEDULE-MGR] onRenameChange: " + this.editName)
   },
 
   finishEdit() {
-    console.log("[SCHEDULE-MGR] finishEdit, name=" + this.editName)
-    if (this.editName && this.editingIndex >= 0) {
-      this.scheduleList[this.editingIndex].name = this.editName
+    if (!this.editName || this.editName.trim() === "") {
+      return
     }
-    var self = this
+
+    var newName = this.editName.trim()
+    var exists = false
+    for (var i = 0; i < this.scheduleList.length; i++) {
+      if (i !== this.editingIndex && this.scheduleList[i].name === newName) {
+        exists = true
+        break
+      }
+    }
+
+    if (exists) {
+      return
+    }
+
+    this.scheduleList[this.editingIndex].name = newName
+
     var names = []
     for (var i = 0; i < this.scheduleList.length; i++) {
       names.push(this.scheduleList[i].name)
     }
-    this.editingIndex = -1
-    this.editName = ""
+
+    var self = this
     store.setScheduleNames(names, function() {
-      console.log("[SCHEDULE-MGR] names saved: " + JSON.stringify(names))
+      self.editingIndex = -1
+      self.editName = ""
       self.loadData()
     })
   },
 
+  cancelEdit() {
+    this.editingIndex = -1
+    this.editName = ""
+  },
+
   openWeekView(index) {
-    console.log("[SCHEDULE-MGR] openWeekView: " + index)
     var storage = require("@system.storage")
     storage.set({
       key: "weekview_index",
       value: String(index),
       success: function() {
-        console.log("[SCHEDULE-MGR] weekview_index saved, navigating")
-        router.push({
-          uri: "/pages/week-view"
-        })
+        router.push({ uri: "/pages/week-view" })
       },
       fail: function() {
-        console.log("[SCHEDULE-MGR] storage set failed, still navigating")
-        router.push({
-          uri: "/pages/week-view"
-        })
+        router.push({ uri: "/pages/week-view" })
       }
     })
   },
 
   addSchedule() {
-    console.log("[SCHEDULE-MGR] addSchedule")
     var self = this
     var names = []
     for (var i = 0; i < this.scheduleList.length; i++) {
@@ -162,38 +181,40 @@ export default {
   },
 
   copySchedule(index) {
-    console.log("[SCHEDULE-MGR] copySchedule: " + index)
     var self = this
     var sourceName = this.scheduleList[index].name
-    var newName = sourceName + " (copy)"
+    var newName = sourceName + " (副本)"
     var newIndex = this.scheduleList.length
 
-    database.getAllCoursesWithIndex(index, function(sourceData) {
-      console.log("[SCHEDULE-MGR] copySchedule: sourceData has " + (sourceData ? sourceData.length : 0) + " days")
-      if (!sourceData || sourceData.length === 0) {
-        var names = []
-        for (var i = 0; i < self.scheduleList.length; i++) {
-          names.push(self.scheduleList[i].name)
-        }
-        names.push(newName)
-        store.setScheduleNames(names, function() {
-          self.loadData()
-        })
-        return
+    var exists = false
+    for (var i = 0; i < this.scheduleList.length; i++) {
+      if (this.scheduleList[i].name === newName) {
+        exists = true
+        break
       }
+    }
+    if (exists) {
+      newName = sourceName + " (副本" + newIndex + ")"
+    }
 
+    database.getAllCoursesWithIndex(index, function(sourceData) {
       var names = []
       for (var i = 0; i < self.scheduleList.length; i++) {
         names.push(self.scheduleList[i].name)
       }
       names.push(newName)
+
       store.setScheduleNames(names, function() {
         database.setScheduleIndex(newIndex, function() {
+          if (!sourceData || sourceData.length === 0) {
+            self.loadData()
+            return
+          }
+
           var totalCourses = 0
           for (var d = 0; d < sourceData.length; d++) {
             totalCourses += sourceData[d].classes.length
           }
-          console.log("[SCHEDULE-MGR] copySchedule: inserting " + totalCourses + " courses")
 
           if (totalCourses === 0) {
             self.loadData()
@@ -217,7 +238,6 @@ export default {
               database.insertCourse(newCourse, function() {
                 inserted++
                 if (inserted === totalCourses) {
-                  console.log("[SCHEDULE-MGR] copySchedule: all " + totalCourses + " courses copied")
                   database.setScheduleIndex(self.currentIndex, function() {
                     self.loadData()
                   })
@@ -231,7 +251,6 @@ export default {
   },
 
   deleteSchedule(index) {
-    console.log("[SCHEDULE-MGR] deleteSchedule: " + index)
     if (this.scheduleList.length <= 1) {
       return
     }
@@ -272,63 +291,78 @@ export default {
 .manager-page {
   flex-direction: column;
   background-color: #1a1a2e;
-  padding: 8px;
+  padding: 12px;
   min-height: 100%;
 }
 
 .back-header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
   padding: 8px 0;
 }
 
 .back-btn {
-  width: 60px;
-  height: 36px;
-  border-radius: 8px;
+  width: 54px;
+  height: 40px;
+  border-radius: 10px;
   background-color: #16213e;
-  font-size: 14px;
+  font-size: 20px;
   color: #7ec8e3;
   text-align: center;
 }
 
 .header-title {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: bold;
   color: #ffffff;
-  margin-left: 8px;
+  margin-left: 12px;
+  flex: 1;
 }
 
 .rename-bar {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 8px;
-  padding: 6px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
   background-color: #0f3460;
-  border-radius: 8px;
+  border-radius: 10px;
+  border-left-width: 3px;
+  border-left-color: #7ec8e3;
+  border-left-style: solid;
 }
 
 .rename-input {
   flex: 1;
-  height: 36px;
-  border-radius: 6px;
+  height: 40px;
+  border-radius: 8px;
   background-color: #16213e;
-  font-size: 15px;
+  font-size: 18px;
   color: #ffffff;
-  padding: 0 10px;
+  padding: 0 12px;
 }
 
 .rename-ok-btn {
-  width: 44px;
+  width: 56px;
   height: 36px;
-  border-radius: 6px;
+  border-radius: 8px;
   background-color: #7ec8e3;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: bold;
   color: #1a1a2e;
   text-align: center;
   margin-left: 8px;
+}
+
+.rename-cancel-btn {
+  width: 56px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: #555577;
+  font-size: 16px;
+  color: #ffffff;
+  text-align: center;
+  margin-left: 6px;
 }
 
 .schedule-list {
@@ -339,75 +373,71 @@ export default {
 .schedule-item {
   flex-direction: column;
   background-color: #16213e;
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
+  border-radius: 12px;
+  padding: 40px 30px;
+  margin-bottom: 20px;
 }
 
-.schedule-row {
+.schedule-item.active {
+  background-color: #0f3460;
+  border-left-width: 4px;
+  border-left-color: #7ec8e3;
+  border-left-style: solid;
+}
+
+.item-left {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 6px;
+  padding-bottom: 24px;
+  border-bottom-width: 1px;
+  border-bottom-color: #1a2a4e;
+  border-bottom-style: solid;
 }
 
 .schedule-name {
-  font-size: 16px;
-  color: #ffffff;
-  flex: 1;
-}
-
-.schedule-check {
-  font-size: 18px;
-  color: #7ec8e3;
+  font-size: 28px;
   font-weight: bold;
-  margin-left: 8px;
+  color: #ffffff;
 }
 
-.schedule-actions {
+.badge {
+  font-size: 16px;
+  color: #1a1a2e;
+  background-color: #7ec8e3;
+  padding: 4px 14px;
+  border-radius: 10px;
+  font-weight: bold;
+  margin-left: 14px;
+}
+
+.item-right {
   flex-direction: row;
   justify-content: flex-start;
+  padding-top: 24px;
 }
 
-.action-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 6px;
-  font-size: 14px;
-  text-align: center;
-  margin-right: 6px;
-  padding: 0;
+.link {
+  font-size: 22px;
+  color: #7ec8e3;
+  margin-right: 30px;
+  padding: 8px 0;
 }
 
-.edit-btn {
-  background-color: #2d6a8f;
-  color: #ffffff;
-}
-
-.copy-btn {
-  background-color: #3a7d44;
-  color: #ffffff;
-}
-
-.week-btn {
-  background-color: #6a4c8f;
-  color: #ffffff;
-}
-
-.delete-btn {
-  background-color: #8b0000;
-  color: #ffffff;
+.link.delete-link {
+  color: #e74c3c;
 }
 
 .add-section {
-  margin-top: 8px;
+  margin-top: 12px;
+  padding-bottom: 4px;
 }
 
 .add-btn {
   width: 100%;
-  height: 42px;
-  border-radius: 8px;
+  height: 44px;
+  border-radius: 10px;
   background-color: #7ec8e3;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: bold;
   color: #1a1a2e;
   text-align: center;

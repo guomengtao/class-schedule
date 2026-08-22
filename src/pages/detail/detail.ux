@@ -1,39 +1,66 @@
 <template>
-  <div class="detail-page">
+  <div class="detail-page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <input class="back-btn" type="button" value="Back" onclick="goBack" />
-      <text class="header-title" style="{{ titleStyle }}">Edit Course</text>
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="{{ titleStyle }}; color: {{ theme.text }}">编辑课程</text>
     </div>
 
     <div class="detail-content" if="{{ classDetail }}">
       <div class="delete-top-section">
-        <input class="form-btn delete-btn" type="button" value="Delete This Course" onclick="deleteCourse" />
+        <input class="form-btn delete-btn" type="button" value="删除课程" onclick="deleteCourse" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}" />
       </div>
 
       <div class="form-section">
-        <text class="info-label" style="{{ labelStyle }}">Course Name</text>
-        <input class="field-input" type="text" value="{{ editName }}" onchange="onNameChange" />
+        <text class="info-label" style="{{ labelStyle }}; color: {{ theme.accent }}">课程名称</text>
+        <input class="field-input" type="text" value="{{ editName }}" onchange="onNameChange" style="background-color: {{ theme.card }}; color: {{ theme.text }}" />
 
-        <text class="info-label" style="{{ labelStyle }}">Time</text>
-        <input class="field-input" type="text" value="{{ editTime }}" onchange="onTimeChange" />
+        <text class="info-label" style="{{ labelStyle }}; color: {{ theme.accent }}">开始时间</text>
+        <div class="time-picker">
+          <div class="picker-column">
+            <input class="picker-arrow" type="button" value="▲" onclick="startHourUp" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+            <text class="picker-value" style="color: {{ theme.text }}">{{ padZero(startHour) }}</text>
+            <input class="picker-arrow" type="button" value="▼" onclick="startHourDown" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+          </div>
+          <text class="picker-separator" style="color: {{ theme.accent }}">:</text>
+          <div class="picker-column">
+            <input class="picker-arrow" type="button" value="▲" onclick="startMinUp" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+            <text class="picker-value" style="color: {{ theme.text }}">{{ padZero(startMin) }}</text>
+            <input class="picker-arrow" type="button" value="▼" onclick="startMinDown" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+          </div>
+        </div>
 
-        <text class="info-label" style="{{ labelStyle }}">Teacher</text>
-        <input class="field-input" type="text" value="{{ editTeacher }}" onchange="onTeacherChange" />
+        <text class="info-label" style="{{ labelStyle }}; color: {{ theme.accent }}">结束时间</text>
+        <div class="time-picker">
+          <div class="picker-column">
+            <input class="picker-arrow" type="button" value="▲" onclick="endHourUp" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+            <text class="picker-value" style="color: {{ theme.text }}">{{ padZero(endHour) }}</text>
+            <input class="picker-arrow" type="button" value="▼" onclick="endHourDown" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+          </div>
+          <text class="picker-separator" style="color: {{ theme.accent }}">:</text>
+          <div class="picker-column">
+            <input class="picker-arrow" type="button" value="▲" onclick="endMinUp" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+            <text class="picker-value" style="color: {{ theme.text }}">{{ padZero(endMin) }}</text>
+            <input class="picker-arrow" type="button" value="▼" onclick="endMinDown" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+          </div>
+        </div>
 
-        <text class="info-label" style="{{ labelStyle }}">Location</text>
-        <input class="field-input" type="text" value="{{ editLocation }}" onchange="onLocationChange" />
+        <text class="info-label" style="{{ labelStyle }}; color: {{ theme.accent }}">老师</text>
+        <input class="field-input" type="text" value="{{ editTeacher }}" onchange="onTeacherChange" style="background-color: {{ theme.card }}; color: {{ theme.text }}" />
 
-        <text class="info-label" style="{{ labelStyle }}">Notes</text>
-        <input class="field-input" type="text" value="{{ editNotes }}" onchange="onNotesChange" />
+        <text class="info-label" style="{{ labelStyle }}; color: {{ theme.accent }}">位置 (可选)</text>
+        <input class="field-input" type="text" placeholder="可以为空" value="{{ editLocation }}" onchange="onLocationChange" style="background-color: {{ theme.card }}; color: {{ theme.text }}" />
+
+        <text class="info-label" style="{{ labelStyle }}; color: {{ theme.accent }}">备注</text>
+        <input class="field-input" type="text" value="{{ editNotes }}" onchange="onNotesChange" style="background-color: {{ theme.card }}; color: {{ theme.text }}" />
       </div>
 
       <div class="button-group">
-        <input class="form-btn save-btn" type="button" value="Save" onclick="saveCourse" />
+        <input class="form-btn save-btn" type="button" value="保存" onclick="saveCourse" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
     </div>
 
     <div class="not-found" if="{{ !classDetail }}">
-      <text class="not-found-text" style="{{ labelStyle }}">Course not found</text>
+      <text class="not-found-text" style="{{ labelStyle }}; color: {{ theme.textMuted }}">课程未找到</text>
     </div>
   </div>
 </template>
@@ -43,6 +70,25 @@ import router from "@system.router"
 var storage = require("@system.storage")
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
+
+function padZero(n) {
+  return n < 10 ? "0" + n : String(n)
+}
+
+function parseTimeParts(timeStr) {
+  var parts = timeStr.split("-")
+  if (parts.length < 2) return { startH: 8, startM: 0, endH: 8, endM: 45 }
+  var start = parts[0].trim()
+  var end = parts[1].trim()
+  var sParts = start.split(":")
+  var eParts = end.split(":")
+  return {
+    startH: parseInt(sParts[0]) || 8,
+    startM: parseInt(sParts[1]) || 0,
+    endH: parseInt(eParts[0]) || 8,
+    endM: parseInt(eParts[1]) || 45
+  }
+}
 
 export default {
   private: {
@@ -54,14 +100,22 @@ export default {
     editTeacher: "",
     editLocation: "",
     editNotes: "",
+    startHour: 8,
+    startMin: 0,
+    endHour: 8,
+    endMin: 45,
     fontScale: 1.0,
     titleStyle: "",
-    labelStyle: ""
+    labelStyle: "",
+    theme: {}
   },
 
   onInit() {
     console.log("[DETAIL] onInit: page loaded")
     var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
     store.getFontScale(function(scale) {
       self.applyFontScale(scale)
     })
@@ -131,6 +185,11 @@ export default {
           self.editTeacher = self.classDetail.teacher
           self.editLocation = self.classDetail.location
           self.editNotes = self.classDetail.notes || ""
+          var tp = parseTimeParts(self.classDetail.time)
+          self.startHour = tp.startH
+          self.startMin = tp.startM
+          self.endHour = tp.endH
+          self.endMin = tp.endM
         } else {
           console.log("[DETAIL] tryLoadCourse: course not found for id=" + self.classId)
         }
@@ -147,12 +206,49 @@ export default {
     this.labelStyle = "font-size: " + Math.round(16 * s) + "px"
   },
 
-  onNameChange(e) {
-    this.editName = e.value || ""
+  padZero(n) {
+    return padZero(n)
   },
 
-  onTimeChange(e) {
-    this.editTime = e.value || ""
+  updateTimeString() {
+    this.editTime = padZero(this.startHour) + ":" + padZero(this.startMin) + " - " + padZero(this.endHour) + ":" + padZero(this.endMin)
+  },
+
+  startHourUp() {
+    this.startHour = (this.startHour + 1) % 24
+    this.updateTimeString()
+  },
+  startHourDown() {
+    this.startHour = (this.startHour - 1 + 24) % 24
+    this.updateTimeString()
+  },
+  startMinUp() {
+    this.startMin = (this.startMin + 5) % 60
+    this.updateTimeString()
+  },
+  startMinDown() {
+    this.startMin = (this.startMin - 5 + 60) % 60
+    this.updateTimeString()
+  },
+  endHourUp() {
+    this.endHour = (this.endHour + 1) % 24
+    this.updateTimeString()
+  },
+  endHourDown() {
+    this.endHour = (this.endHour - 1 + 24) % 24
+    this.updateTimeString()
+  },
+  endMinUp() {
+    this.endMin = (this.endMin + 5) % 60
+    this.updateTimeString()
+  },
+  endMinDown() {
+    this.endMin = (this.endMin - 5 + 60) % 60
+    this.updateTimeString()
+  },
+
+  onNameChange(e) {
+    this.editName = e.value || ""
   },
 
   onTeacherChange(e) {
@@ -184,7 +280,7 @@ export default {
       name: this.editName,
       time: this.editTime,
       teacher: this.editTeacher || "TBD",
-      location: this.editLocation || "TBD",
+      location: this.editLocation || "",
       notes: this.editNotes || ""
     }
     console.log("[DETAIL] saveCourse: updating course: " + JSON.stringify(updatedCourse))
@@ -269,6 +365,46 @@ export default {
   color: #ffffff;
   padding: 0 10px;
   placeholder-color: #555566;
+}
+
+.time-picker {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.picker-column {
+  flex-direction: column;
+  align-items: center;
+}
+
+.picker-arrow {
+  width: 44px;
+  height: 30px;
+  border-radius: 6px;
+  background-color: #0f3460;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+}
+
+.picker-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #ffffff;
+  text-align: center;
+  width: 56px;
+  margin: 2px 0;
+}
+
+.picker-separator {
+  font-size: 28px;
+  font-weight: bold;
+  color: #7ec8e3;
+  margin: 0 6px;
 }
 
 .delete-top-section {

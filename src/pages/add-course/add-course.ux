@@ -1,79 +1,121 @@
+<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
+
 <template>
-  <div class="add-course-page">
+  <div class="add-course-page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" />
-      <text class="header-title" style="{{ titleStyle }}">添加课程</text>
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="{{ titleStyle }}; color: {{ theme.text }}">添加课程</text>
     </div>
 
     <div class="step-indicator">
-      <text class="step-dot {{ step >= 1 ? 'active' : '' }}"></text>
-      <text class="step-line {{ step >= 2 ? 'active' : '' }}"></text>
-      <text class="step-dot {{ step >= 2 ? 'active' : '' }}"></text>
-      <text class="step-line {{ step >= 3 ? 'active' : '' }}"></text>
-      <text class="step-dot {{ step >= 3 ? 'active' : '' }}"></text>
-      <text class="step-line {{ step >= 4 ? 'active' : '' }}"></text>
-      <text class="step-dot {{ step >= 4 ? 'active' : '' }}"></text>
+      <text class="step-dot {{ step >= 1 ? 'active' : '' }}" style="background-color: {{ step >= 1 ? theme.accent : theme.border }}"></text>
+      <text class="step-line {{ step >= 2 ? 'active' : '' }}" style="background-color: {{ step >= 2 ? theme.accent : theme.border }}"></text>
+      <text class="step-dot {{ step >= 2 ? 'active' : '' }}" style="background-color: {{ step >= 2 ? theme.accent : theme.border }}"></text>
+      <text class="step-line {{ step >= 3 ? 'active' : '' }}" style="background-color: {{ step >= 3 ? theme.accent : theme.border }}"></text>
+      <text class="step-dot {{ step >= 3 ? 'active' : '' }}" style="background-color: {{ step >= 3 ? theme.accent : theme.border }}"></text>
+      <text class="step-line {{ step >= 4 ? 'active' : '' }}" style="background-color: {{ step >= 4 ? theme.accent : theme.border }}"></text>
+      <text class="step-dot {{ step >= 4 ? 'active' : '' }}" style="background-color: {{ step >= 4 ? theme.accent : theme.border }}"></text>
     </div>
 
     <div class="form-section" if="{{ step === 1 }}">
-      <text class="step-title" style="{{ labelStyle }}">第一步：选择课程</text>
-      <text class="step-hint" style="{{ hintStyle }}">滑动选择</text>
+      <text class="step-title" style="{{ labelStyle }}; color: {{ theme.text }}">第1步: 选择课程</text>
+      <text class="step-hint" style="{{ hintStyle }}; color: {{ theme.textSecondary }}">滑动选择，共{{ presetCourses.length }}门</text>
 
       <div class="swiper-wrapper">
-        <input class="swipe-arrow" type="button" value="◀" onclick="swipePrev" style="{{ btnStyle }}" />
-        <div class="course-card" onclick="swipeNext">
-          <text class="card-course-name" style="{{ inputStyle }}">{{ presetCourses[courseIndex].name }}</text>
-          <text class="card-course-time" style="{{ hintStyle }}">{{ presetCourses[courseIndex].time }}</text>
-          <text class="card-course-location" style="{{ hintStyle }}">{{ presetCourses[courseIndex].location }}</text>
+        <input class="swipe-arrow" type="button" value="◀" onclick="swipePrev" style="{{ btnStyle }}; background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+        <div class="course-card" onclick="swipeNext" style="background-color: {{ theme.card }}">
+          <text class="card-course-name" style="{{ inputStyle }}; color: {{ theme.text }}">{{ presetCourses[courseIndex].name }}</text>
         </div>
-        <input class="swipe-arrow" type="button" value="▶" onclick="swipeNext" style="{{ btnStyle }}" />
+        <input class="swipe-arrow" type="button" value="▶" onclick="swipeNext" style="{{ btnStyle }}; background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
       </div>
 
-      <div class="card-dots">
-        <text class="dot {{ courseIndex === 0 ? 'active' : '' }}"></text>
-        <text class="dot {{ courseIndex === 1 ? 'active' : '' }}"></text>
-        <text class="dot {{ courseIndex === 2 ? 'active' : '' }}"></text>
-        <text class="dot {{ courseIndex === 3 ? 'active' : '' }}"></text>
-      </div>
+      <text class="course-index-hint" style="{{ hintStyle }}; color: {{ theme.textMuted }}">{{ courseIndex + 1 }} / {{ presetCourses.length }}</text>
 
       <div class="step-nav">
-        <input class="next-btn" type="button" value="下一步 ▶" onclick="nextStep" style="{{ btnStyle }}; height: {{ btnHeight }}px" />
+        <input class="manage-btn" type="button" value="管理课程" onclick="openCourseManager" style="{{ btnStyle }}; height: {{ btnHeight }}px; background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+        <input class="next-btn" type="button" value="下一步 ▶" onclick="nextStep" style="{{ btnStyle }}; height: {{ btnHeight }}px; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
     </div>
 
     <div class="form-section" if="{{ step === 2 }}">
-      <text class="step-title" style="{{ labelStyle }}">第二步：时间</text>
-      <text class="step-hint" style="{{ hintStyle }}">课程：{{ courseName }}</text>
-      <input class="field-input" type="text" placeholder="08:00 - 09:30" value="{{ courseTime }}" onchange="onTimeChange" style="{{ inputStyle }}; height: {{ inputHeight }}px" />
+      <text class="step-title" style="{{ labelStyle }}; color: {{ theme.text }}">第2步: 时间</text>
+      <text class="step-hint" style="{{ hintStyle }}; color: {{ theme.textSecondary }}">课程: {{ courseName }}</text>
+
+      <text class="picker-label" style="{{ labelStyle }}; color: {{ theme.text }}">开始时间</text>
+      <div class="time-picker">
+        <div class="picker-column">
+          <input class="picker-arrow" type="button" value="▲" onclick="startHourUp" style="{{ btnStyle }}; background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+          <text class="picker-value" style="{{ pickerValueStyle }}; color: {{ theme.text }}">{{ padZero(startHour) }}</text>
+          <input class="picker-arrow" type="button" value="▼" onclick="startHourDown" style="{{ btnStyle }}; background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+        </div>
+        <text class="picker-separator" style="{{ pickerValueStyle }}; color: {{ theme.accent }}">:</text>
+        <div class="picker-column">
+          <input class="picker-arrow" type="button" value="▲" onclick="startMinUp" style="{{ btnStyle }}; background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+          <text class="picker-value" style="{{ pickerValueStyle }}; color: {{ theme.text }}">{{ padZero(startMin) }}</text>
+          <input class="picker-arrow" type="button" value="▼" onclick="startMinDown" style="{{ btnStyle }}; background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+        </div>
+      </div>
+
+      <text class="picker-label" style="{{ labelStyle }}; color: {{ theme.text }}">结束时间</text>
+      <div class="time-picker">
+        <div class="picker-column">
+          <input class="picker-arrow" type="button" value="▲" onclick="endHourUp" style="{{ btnStyle }}; background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+          <text class="picker-value" style="{{ pickerValueStyle }}; color: {{ theme.text }}">{{ padZero(endHour) }}</text>
+          <input class="picker-arrow" type="button" value="▼" onclick="endHourDown" style="{{ btnStyle }}; background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+        </div>
+        <text class="picker-separator" style="{{ pickerValueStyle }}; color: {{ theme.accent }}">:</text>
+        <div class="picker-column">
+          <input class="picker-arrow" type="button" value="▲" onclick="endMinUp" style="{{ btnStyle }}; background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+          <text class="picker-value" style="{{ pickerValueStyle }}; color: {{ theme.text }}">{{ padZero(endMin) }}</text>
+          <input class="picker-arrow" type="button" value="▼" onclick="endMinDown" style="{{ btnStyle }}; background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+        </div>
+      </div>
+
       <div class="step-nav">
-        <input class="prev-btn" type="button" value="◀ 上一步" onclick="prevStep" style="{{ btnStyle }}; height: {{ btnHeight }}px" />
-        <input class="next-btn" type="button" value="下一步 ▶" onclick="nextStep" style="{{ btnStyle }}; height: {{ btnHeight }}px" />
+        <input class="prev-btn" type="button" value="◀ 上一步" onclick="prevStep" style="{{ btnStyle }}; height: {{ btnHeight }}px; background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+        <input class="next-btn" type="button" value="下一步 ▶" onclick="nextStep" style="{{ btnStyle }}; height: {{ btnHeight }}px; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
     </div>
 
     <div class="form-section" if="{{ step === 3 }}">
-      <text class="step-title" style="{{ labelStyle }}">第三步：地点</text>
-      <text class="step-hint" style="{{ hintStyle }}">课程：{{ courseName }}  |  时间：{{ courseTime }}</text>
-      <input class="field-input" type="text" placeholder="301教室" value="{{ courseLocation }}" onchange="onLocationChange" style="{{ inputStyle }}; height: {{ inputHeight }}px" />
+      <text class="step-title" style="{{ labelStyle }}; color: {{ theme.text }}">第3步: 位置</text>
+      <text class="step-hint" style="{{ hintStyle }}; color: {{ theme.textSecondary }}">课程: {{ courseName }}  |  时间: {{ courseTime }}</text>
+      <div class="location-display" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+        <text class="location-text" style="color: {{ theme.text }}">{{ courseLocation || '点击输入位置, 例如: 301教室' }}</text>
+        <text class="location-cursor" show="{{ showCursor }}">_</text>
+      </div>
+      <text class="optional-hint" style="{{ hintStyle }}; color: {{ theme.textMuted }}">可以为空</text>
       <div class="step-nav">
-        <input class="prev-btn" type="button" value="◀ 上一步" onclick="prevStep" style="{{ btnStyle }}; height: {{ btnHeight }}px" />
-        <input class="next-btn" type="button" value="下一步 ▶" onclick="nextStep" style="{{ btnStyle }}; height: {{ btnHeight }}px" />
+        <input class="prev-btn" type="button" value="◀ 上一步" onclick="prevStep" style="{{ btnStyle }}; height: {{ btnHeight }}px; background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+        <input class="next-btn" type="button" value="下一步 ▶" onclick="nextStep" style="{{ btnStyle }}; height: {{ btnHeight }}px; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
     </div>
 
+    <input-method
+      hide="{{ hideKeyboard }}"
+      keyboardtype="QWERTY"
+      maxlength="10"
+      vibratemode="short"
+      screentype="rect"
+      @visibility-change="onVisibilityChange"
+      @key-down="onKeyDown"
+      @delete="onDelete"
+      @complete="onComplete"
+    ></input-method>
+
     <div class="form-section" if="{{ step === 4 }}">
-      <text class="step-title" style="{{ labelStyle }}">第四步：确认</text>
-      <div class="confirm-card">
-        <text class="confirm-label" style="{{ labelStyle }}">课程</text>
-        <text class="confirm-value" style="{{ inputStyle }}">{{ courseName }}</text>
-        <text class="confirm-label" style="{{ labelStyle }}">时间</text>
-        <text class="confirm-value" style="{{ inputStyle }}">{{ courseTime }}</text>
-        <text class="confirm-label" style="{{ labelStyle }}">地点</text>
-        <text class="confirm-value" style="{{ inputStyle }}">{{ courseLocation }}</text>
+      <text class="step-title" style="{{ labelStyle }}; color: {{ theme.text }}">第4步: 确认</text>
+      <div class="confirm-card" style="background-color: {{ theme.card }}">
+        <text class="confirm-label" style="{{ labelStyle }}; color: {{ theme.accent }}">课程</text>
+        <text class="confirm-value" style="{{ inputStyle }}; color: {{ theme.text }}">{{ courseName }}</text>
+        <text class="confirm-label" style="{{ labelStyle }}; color: {{ theme.accent }}">时间</text>
+        <text class="confirm-value" style="{{ inputStyle }}; color: {{ theme.text }}">{{ courseTime }}</text>
+        <text class="confirm-label" style="{{ labelStyle }}; color: {{ theme.accent }}">位置</text>
+        <text class="confirm-value" style="{{ inputStyle }}; color: {{ theme.text }}">{{ courseLocation || '(无)' }}</text>
       </div>
       <div class="step-nav">
-        <input class="prev-btn" type="button" value="◀ 上一步" onclick="prevStep" style="{{ btnStyle }}; height: {{ btnHeight }}px" />
-        <input class="save-btn" type="button" value="保存" onclick="saveCourse" style="{{ btnStyle }}; height: {{ btnHeight }}px" />
+        <input class="prev-btn" type="button" value="◀ 上一步" onclick="prevStep" style="{{ btnStyle }}; height: {{ btnHeight }}px; background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+        <input class="save-btn" type="button" value="保存" onclick="saveCourse" style="{{ btnStyle }}; height: {{ btnHeight }}px; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
     </div>
   </div>
@@ -84,32 +126,41 @@ import router from "@system.router"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 
-var presetCourses = [
-  {
-    name: "数学",
-    time: "08:00 - 08:45",
-    teacher: "王老师",
-    location: "301教室"
-  },
-  {
-    name: "英语",
-    time: "08:55 - 09:40",
-    teacher: "李老师",
-    location: "205教室"
-  },
-  {
-    name: "科学",
-    time: "10:00 - 10:45",
-    teacher: "吴老师",
-    location: "实验室B"
-  },
-  {
-    name: "历史",
-    time: "11:00 - 11:45",
-    teacher: "刘老师",
-    location: "102教室"
-  }
+var COURSE_LIST_KEY = "course_preset_list"
+
+var defaultCourses = [
+  { name: "语文", time: "08:00 - 08:45", teacher: "老师", location: "" },
+  { name: "数学", time: "08:55 - 09:40", teacher: "老师", location: "" },
+  { name: "英语", time: "10:00 - 10:45", teacher: "老师", location: "" },
+  { name: "物理", time: "10:55 - 11:40", teacher: "老师", location: "" },
+  { name: "化学", time: "13:00 - 13:45", teacher: "老师", location: "" },
+  { name: "政治", time: "13:55 - 14:40", teacher: "老师", location: "" },
+  { name: "音乐", time: "15:00 - 15:45", teacher: "老师", location: "" },
+  { name: "体育", time: "15:55 - 16:40", teacher: "老师", location: "" },
+  { name: "美术", time: "08:00 - 08:45", teacher: "老师", location: "" },
+  { name: "历史", time: "08:55 - 09:40", teacher: "老师", location: "" },
+  { name: "地理", time: "10:00 - 10:45", teacher: "老师", location: "" },
+  { name: "生物", time: "10:55 - 11:40", teacher: "老师", location: "" }
 ]
+
+function padZero(n) {
+  return n < 10 ? "0" + n : String(n)
+}
+
+function parseTimeParts(timeStr) {
+  var parts = timeStr.split("-")
+  if (parts.length < 2) return { startH: 8, startM: 0, endH: 8, endM: 45 }
+  var start = parts[0].trim()
+  var end = parts[1].trim()
+  var sParts = start.split(":")
+  var eParts = end.split(":")
+  return {
+    startH: parseInt(sParts[0]) || 8,
+    startM: parseInt(sParts[1]) || 0,
+    endH: parseInt(eParts[0]) || 8,
+    endM: parseInt(eParts[1]) || 45
+  }
+}
 
 export default {
   private: {
@@ -121,26 +172,71 @@ export default {
     nextId: 100,
     step: 1,
     courseIndex: 0,
-    presetCourses: presetCourses,
+    presetCourses: [],
+    startHour: 8,
+    startMin: 0,
+    endHour: 8,
+    endMin: 45,
     titleStyle: "",
     labelStyle: "",
     hintStyle: "",
     inputStyle: "",
     inputHeight: 80,
     btnStyle: "",
-    btnHeight: 72
+    btnHeight: 72,
+    pickerValueStyle: "",
+    theme: {},
+    hideKeyboard: true,
+    showCursor: false
   },
 
   onInit() {
     var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
     store.getFontScale(function(scale) {
       self.applyFontScale(scale)
     })
     this.applyFontScale(1.0)
-    var params = this.$page.params || {}
-    this.day = params.day || ""
-    this.nextId = params.nextId || 100
-    this.selectCourse(0)
+
+    this.loadCourses()
+
+    var storage = require("@system.storage")
+    storage.get({
+      key: "add_course_day",
+      success: function(val) {
+        self.day = val || ""
+        if (!self.day) { self.setDefaultDay() }
+      },
+      fail: function() {
+        self.day = ""
+        self.setDefaultDay()
+      }
+    })
+    storage.get({
+      key: "add_course_nextId",
+      success: function(val) {
+        self.nextId = parseInt(val) || 100
+      },
+      fail: function() {
+        self.nextId = 100
+      }
+    })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    this.loadCourses()
+  },
+
+  setDefaultDay() {
+    var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+    var now = new Date()
+    this.day = dayNames[now.getDay()]
   },
 
   applyFontScale(s) {
@@ -152,15 +248,58 @@ export default {
     this.inputHeight = Math.round(80 * s)
     this.btnStyle = "font-size: " + Math.round(28 * s) + "px"
     this.btnHeight = Math.round(72 * s)
+    this.pickerValueStyle = "font-size: " + Math.round(36 * s) + "px"
+  },
+
+  loadCourses() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.get({
+      key: COURSE_LIST_KEY,
+      success: function(data) {
+        if (data) {
+          try {
+            var list = JSON.parse(data)
+            if (list && list.length > 0) {
+              self.presetCourses = list
+            } else {
+              self.presetCourses = defaultCourses.slice()
+            }
+          } catch (e) {
+            self.presetCourses = defaultCourses.slice()
+          }
+        } else {
+          self.presetCourses = defaultCourses.slice()
+        }
+        self.selectCourse(self.courseIndex)
+      },
+      fail: function() {
+        self.presetCourses = defaultCourses.slice()
+        self.selectCourse(self.courseIndex)
+      }
+    })
+  },
+
+  openCourseManager() {
+    router.push({ uri: "/pages/course-manager" })
+  },
+
+  padZero(n) {
+    return padZero(n)
   },
 
   selectCourse(index) {
     this.courseIndex = index
     var c = this.presetCourses[index]
     this.courseName = c.name
-    this.courseTime = c.time
     this.courseTeacher = c.teacher
     this.courseLocation = c.location
+    var tp = parseTimeParts(c.time)
+    this.startHour = tp.startH
+    this.startMin = tp.startM
+    this.endHour = tp.endH
+    this.endMin = tp.endM
+    this.courseTime = c.time
   },
 
   swipePrev() {
@@ -175,12 +314,64 @@ export default {
     }
   },
 
-  onTimeChange(e) {
-    this.courseTime = e.value || ""
+  updateTimeString() {
+    this.courseTime = padZero(this.startHour) + ":" + padZero(this.startMin) + " - " + padZero(this.endHour) + ":" + padZero(this.endMin)
   },
 
-  onLocationChange(e) {
-    this.courseLocation = e.value || ""
+  startHourUp() {
+    this.startHour = (this.startHour + 1) % 24
+    this.updateTimeString()
+  },
+  startHourDown() {
+    this.startHour = (this.startHour - 1 + 24) % 24
+    this.updateTimeString()
+  },
+  startMinUp() {
+    this.startMin = (this.startMin + 5) % 60
+    this.updateTimeString()
+  },
+  startMinDown() {
+    this.startMin = (this.startMin - 5 + 60) % 60
+    this.updateTimeString()
+  },
+  endHourUp() {
+    this.endHour = (this.endHour + 1) % 24
+    this.updateTimeString()
+  },
+  endHourDown() {
+    this.endHour = (this.endHour - 1 + 24) % 24
+    this.updateTimeString()
+  },
+  endMinUp() {
+    this.endMin = (this.endMin + 5) % 60
+    this.updateTimeString()
+  },
+  endMinDown() {
+    this.endMin = (this.endMin - 5 + 60) % 60
+    this.updateTimeString()
+  },
+
+  showKeyboard() {
+    this.hideKeyboard = false
+    this.showCursor = true
+  },
+
+  onVisibilityChange(evt) {
+    if (evt.detail && evt.detail.visible === false) {
+      this.showCursor = false
+    }
+  },
+
+  onKeyDown(evt) {
+    console.log("keyDown:" + JSON.stringify(evt))
+  },
+
+  onDelete() {
+    this.courseLocation = this.courseLocation.slice(0, -1)
+  },
+
+  onComplete(evt) {
+    this.courseLocation += evt.detail.content
   },
 
   nextStep() {
@@ -190,13 +381,23 @@ export default {
   },
 
   prevStep() {
+    if (!this.hideKeyboard) {
+      this.hideKeyboard = true
+      this.showCursor = false
+      return
+    }
     if (this.step > 1) {
       this.step = this.step - 1
     }
   },
 
   goBack() {
-    router.back()
+    if (!this.hideKeyboard) {
+      this.hideKeyboard = true
+      this.showCursor = false
+    } else {
+      router.back()
+    }
   },
 
   saveCourse() {
@@ -209,13 +410,11 @@ export default {
       name: this.courseName,
       time: this.courseTime,
       teacher: this.courseTeacher || "TBD",
-      location: this.courseLocation || "TBD",
+      location: this.courseLocation || "",
       notes: ""
     }
-    database.insertCourse(newCourse, function(success) {
-      if (success) {
-        router.back()
-      }
+    database.insertCourse(newCourse, function() {
+      router.back()
     })
   }
 }
@@ -329,27 +528,13 @@ export default {
   margin: 0 12px;
   border: 3px solid #7ec8e3;
   width: 200px;
-  height: 180px;
+  height: 120px;
 }
 
 .card-course-name {
   font-size: 26px;
   font-weight: bold;
   color: #ffffff;
-  margin-bottom: 10px;
-  text-align: center;
-}
-
-.card-course-time {
-  font-size: 20px;
-  color: #a0a0b0;
-  margin-bottom: 6px;
-  text-align: center;
-}
-
-.card-course-location {
-  font-size: 20px;
-  color: #7ec8e3;
   text-align: center;
 }
 
@@ -371,13 +556,89 @@ export default {
   background-color: #7ec8e3;
 }
 
+.picker-label {
+  font-size: 24px;
+  font-weight: bold;
+  color: #7ec8e3;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.time-picker {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.picker-column {
+  flex-direction: column;
+  align-items: center;
+}
+
+.picker-arrow {
+  width: 50px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: #0f3460;
+  color: #ffffff;
+  font-weight: bold;
+  text-align: center;
+}
+
+.picker-value {
+  font-size: 36px;
+  font-weight: bold;
+  color: #ffffff;
+  text-align: center;
+  width: 70px;
+  margin: 4px 0;
+}
+
+.picker-separator {
+  font-size: 36px;
+  font-weight: bold;
+  color: #7ec8e3;
+  margin: 0 8px;
+}
+
 .field-input {
   border-radius: 12px;
   background-color: #16213e;
   color: #ffffff;
   padding: 0 16px;
   placeholder-color: #555566;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
+}
+
+.optional-hint {
+  font-size: 20px;
+  color: #555566;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.location-display {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  border-width: 2px;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  padding: 0 14px;
+  margin-bottom: 8px;
+}
+
+.location-text {
+  font-size: 20px;
+}
+
+.location-cursor {
+  font-size: 20px;
+  color: #7ec8e3;
+  margin-left: 2px;
 }
 
 .step-nav {
@@ -409,6 +670,22 @@ export default {
   border-radius: 12px;
   background-color: #7ec8e3;
   color: #1a1a2e;
+  font-weight: bold;
+  text-align: center;
+}
+
+.course-index-hint {
+  font-size: 20px;
+  color: #555566;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.manage-btn {
+  width: 120px;
+  border-radius: 12px;
+  background-color: #0f3460;
+  color: #7ec8e3;
   font-weight: bold;
   text-align: center;
 }

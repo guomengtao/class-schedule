@@ -1,0 +1,198 @@
+<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
+
+<template>
+  <div class="edit-page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="color: {{ theme.text }}">编辑昵称</text>
+    </div>
+
+    <div class="edit-content">
+      <text class="input-label" style="color: {{ theme.textSecondary }}">请输入昵称</text>
+      <div class="nickname-display" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+        <text class="nickname-text" style="color: {{ theme.text }}">{{ currentName || '点击输入昵称' }}</text>
+        <text class="cursor" show="{{ showCursor }}">_</text>
+      </div>
+
+      <div class="button-row">
+        <input class="cancel-btn" type="button" value="取消" onclick="goBack" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+        <input class="save-btn" type="button" value="保存" onclick="saveNickname" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      </div>
+    </div>
+
+    <input-method
+      hide="{{ hideKeyboard }}"
+      keyboardtype="QWERTY"
+      maxlength="5"
+      vibratemode="short"
+      screentype="rect"
+      @visibility-change="onVisibilityChange"
+      @key-down="onKeyDown"
+      @delete="onDelete"
+      @complete="onComplete"
+    ></input-method>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+export default {
+  private: {
+    currentName: "",
+    savedName: "",
+    theme: {},
+    hideKeyboard: true,
+    showCursor: false
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    store.getNickname(function(name) {
+      self.savedName = name || ""
+      self.currentName = self.savedName
+    })
+  },
+
+  showKeyboard() {
+    this.hideKeyboard = false
+    this.showCursor = true
+  },
+
+  onVisibilityChange(evt) {
+    if (evt.detail && evt.detail.visible === false) {
+      this.showCursor = false
+    }
+  },
+
+  onKeyDown(evt) {
+    console.log("keyDown:" + JSON.stringify(evt))
+  },
+
+  onDelete() {
+    this.currentName = this.currentName.slice(0, -1)
+  },
+
+  onComplete(evt) {
+    this.currentName += evt.detail.content
+  },
+
+  onNicknameChange(e) {
+    this.currentName = e.value || ""
+  },
+
+  saveNickname() {
+    var newName = this.currentName.trim()
+    if (!newName) {
+      return
+    }
+    var self = this
+    store.setNickname(newName, function() {
+      self.savedName = newName
+      router.back()
+    })
+  },
+
+  goBack() {
+    if (!this.hideKeyboard) {
+      this.hideKeyboard = true
+      this.showCursor = false
+    } else {
+      router.back()
+    }
+  }
+}
+</script>
+
+<style>
+.edit-page {
+  flex-direction: column;
+  padding: 10px;
+  padding-top: 16px;
+  height: 100%;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 4px 0;
+}
+
+.back-btn {
+  width: 54px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 20px;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-left: 12px;
+}
+
+.edit-content {
+  flex-direction: column;
+  align-items: center;
+  padding: 6px;
+  flex-shrink: 0;
+}
+
+.input-label {
+  font-size: 14px;
+  margin-bottom: 6px;
+  align-self: flex-start;
+  margin-left: 4px;
+}
+
+.nickname-display {
+  width: 100%;
+  height: 48px;
+  border-radius: 10px;
+  border-width: 2px;
+  font-size: 20px;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+}
+
+.nickname-text {
+  font-size: 20px;
+}
+
+.cursor {
+  font-size: 20px;
+  color: #7ec8e3;
+}
+
+.button-row {
+  flex-direction: row;
+  justify-content: space-around;
+  margin-top: 16px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.cancel-btn {
+  width: 100px;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 16px;
+  text-align: center;
+}
+
+.save-btn {
+  width: 100px;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+}
+</style>

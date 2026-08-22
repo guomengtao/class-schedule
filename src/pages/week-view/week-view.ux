@@ -1,32 +1,32 @@
 <template>
-  <div class="week-view-page">
+  <div class="week-view-page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="Back" onclick="goBack" />
-      <text class="header-title">Overview</text>
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="color: {{ theme.text }}">课程总览</text>
     </div>
 
-    <text class="schedule-name">{{ scheduleName }}</text>
+    <text class="schedule-name" style="color: {{ theme.accent }}">{{ scheduleName }}</text>
 
     <div class="week-header">
-      <text class="week-day" for="{{ weekDays }}">{{ $item }}</text>
+      <text class="week-day" for="{{ weekDays }}" style="color: {{ theme.textSecondary }}">{{ $item }}</text>
     </div>
 
     <scroll class="grid-scroll">
       <div class="grid-container">
         <div for="{{ timeSlots }}" class="time-row">
-          <text class="time-label">{{ $item.time }}</text>
+          <text class="time-label" style="color: {{ theme.textSecondary }}">{{ $item.time }}</text>
           <div class="course-row">
-            <div for="{{ $item.cells }}" class="course-cell" onclick="showDetail($item.day, $item.course)">
-              <text class="course-char" if="{{ $item.course }}">{{ $item.course.char }}</text>
-              <text class="course-empty" if="{{ !$item.course }}">.</text>
+            <div for="{{ $item.cells }}" class="course-cell" onclick="showDetail($item.day, $item.course)" style="background-color: {{ $item.course ? theme.cardLight : 'transparent' }}">
+              <text class="course-char" if="{{ $item.course }}" style="color: {{ theme.accent }}">{{ $item.course.char }}</text>
+              <text class="course-empty" if="{{ !$item.course }}" style="color: {{ theme.textMuted }}">·</text>
             </div>
           </div>
         </div>
       </div>
     </scroll>
 
-    <div class="footer">
-      <text class="footer-text">Total: {{ totalCourses }} courses</text>
+    <div class="footer" style="background-color: {{ theme.card }}">
+      <text class="footer-text" style="color: {{ theme.textSecondary }}">共 {{ totalCourses }} 门课程</text>
     </div>
   </div>
 </template>
@@ -45,11 +45,15 @@ export default {
     timeSlots: [],
     totalCourses: 0,
     viewIndex: 0,
-    _initDone: false
+    _initDone: false,
+    theme: {}
   },
 
   onInit() {
     var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
     var storage = require("@system.storage")
     storage.get({
       key: "weekview_index",
@@ -69,6 +73,10 @@ export default {
   },
 
   onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
     if (this._initDone) {
       this.loadData()
     }

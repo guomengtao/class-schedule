@@ -1,84 +1,84 @@
 <template>
-  <div class="schedule-page">
+  <div class="schedule-page" style="background-color: {{ theme.bg }}">
+    <div class="upper-half" ontouchstart="handleUpperTouchStart" ontouchend="handleUpperTouchEnd">
+      <div class="header">
+        <input class="nav-btn" type="button" value="&#9664;" onclick="prevDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+        <text class="day-title" style="{{ dayTitleStyle }}; color: {{ theme.text }}">{{ currentDay }}</text>
+        <input class="nav-btn" type="button" value="&#9654;" onclick="nextDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      </div>
 
-    <div class="status-bar" onclick="goToCurrentClass">
-      <div class="status-current" if="{{ currentClass }}">
-        <text class="status-icon">&#128218;</text>
-        <text class="status-text">
-          Now: {{ currentClass.name }}
-          <text class="status-time" if="{{ currentClass.remaining > 0 }}">
-            {{ currentClass.remaining }}min left
+      <div class="status-bar" onclick="goToStatusDay" style="background-color: {{ theme.cardLight }}; border-left-color: {{ theme.accent }}">
+        <div class="status-current" if="{{ currentClass }}">
+          <text class="status-icon">&#128218;</text>
+          <text class="status-text" style="color: {{ theme.text }}">
+            正在上课: {{ currentClass.name }}
+            <text class="status-time" if="{{ currentClass.remaining > 0 }}" style="color: {{ theme.accent }}">
+              还剩{{ currentClass.remaining }}分钟
+            </text>
+            <text class="status-time" if="{{ currentClass.remaining <= 0 }}" style="color: {{ theme.accent }}">即将结束</text>
           </text>
-          <text class="status-time" if="{{ currentClass.remaining <= 0 }}">ending</text>
-        </text>
-      </div>
-      <div class="status-next" if="{{ nextClass }}">
-        <text class="status-icon">&#9654;</text>
-        <text class="status-text">Next: {{ nextClass.name }} {{ nextClass.startTime }}</text>
-      </div>
-      <div class="status-break" if="{{ !currentClass && nextClass }}">
-        <text class="status-icon">&#9200;</text>
-        <text class="status-text">{{ nextClass.waitMin }}min to next class</text>
-      </div>
-      <div class="status-free" if="{{ !currentClass && !nextClass && currentClasses.length > 0 }}">
-        <text class="status-icon">&#9989;</text>
-        <text class="status-text">All done for today</text>
-      </div>
-      <div class="status-free" if="{{ !currentClass && !nextClass && currentClasses.length === 0 }}">
-        <text class="status-icon">&#127881;</text>
-        <text class="status-text">No classes today</text>
-      </div>
-    </div>
-
-    <div class="header">
-      <input class="nav-btn" type="button" value="&#9664;" onclick="prevDay" />
-      <text class="day-title" style="{{ dayTitleStyle }}">{{ currentDay }}</text>
-      <input class="nav-btn" type="button" value="&#9654;" onclick="nextDay" />
-    </div>
-
-    <div class="quick-add">
-      <text class="quick-add-title" style="{{ weekTextStyle }}">快速添加</text>
-      <div class="quick-add-buttons">
-        <input class="quick-btn" type="button" value="数学" onclick="quickAddMath" style="{{ btnTextStyle }}" />
-        <input class="quick-btn" type="button" value="英语" onclick="quickAddEnglish" style="{{ btnTextStyle }}" />
-        <input class="quick-btn" type="button" value="科学" onclick="quickAddScience" style="{{ btnTextStyle }}" />
-      </div>
-    </div>
-
-    <div class="class-list">
-      <div for="{{ currentClasses }}" class="class-card-wrapper">
-        <div class="class-card" ontouchstart="handleTouchStart($event, $item.id)" ontouchend="handleTouchEnd($event, $item.id)" onclick="openDetail($item.id)">
-          <div class="class-time">
-            <text class="class-name" style="{{ nameStyle }}">{{ $item.name }}</text>
-            <text class="class-time-text" style="{{ nameStyle }}">{{ $item.time }}</text>
-          </div>
-          <div class="class-info">
-            <text class="class-location" style="{{ nameStyle }}">{{ $item.location }}</text>
-          </div>
         </div>
-        <div if="{{ swipedId === $item.id }}" class="delete-btn" onclick="deleteCourse($item.id)">
-          <text class="delete-btn-text">删除</text>
+        <div class="status-next" if="{{ nextClass }}">
+          <text class="status-icon">&#9200;</text>
+          <text class="status-text" style="color: {{ theme.text }}">{{ nextClass.waitMin }}分钟后 {{ nextClass.name }}</text>
+        </div>
+        <div class="status-free" if="{{ !currentClass && !nextClass && upcomingClass }}">
+          <text class="status-icon">&#128197;</text>
+          <text class="status-text" style="color: {{ theme.text }}">{{ upcomingClass.day }} {{ upcomingClass.name }} {{ upcomingClass.time }}</text>
+        </div>
+        <div class="status-free" if="{{ !currentClass && !nextClass && !upcomingClass }}">
+          <text class="status-icon">&#127881;</text>
+          <text class="status-text" style="color: {{ theme.text }}">暂无课程</text>
         </div>
       </div>
 
-      <div if="{{ currentClasses.length === 0 }}" class="empty-card">
-        <text class="empty-text" style="{{ nameStyle }}">今天没有课</text>
+      <div class="class-list">
+        <div for="{{ currentClasses }}" class="class-card-wrapper">
+          <div class="class-card" ontouchstart="handleCardTouchStart($event, $item.id)" ontouchend="handleCardTouchEnd($event, $item.id)" onclick="openDetail($item.id)" style="background-color: {{ theme.card }}; border-left-color: {{ theme.accent }}">
+            <div class="class-time">
+              <text class="class-name" style="{{ nameStyle }}; color: {{ theme.text }}">{{ $item.name }}</text>
+              <text class="class-time-text" style="{{ nameStyle }}; color: {{ theme.textSecondary }}">{{ $item.time }}</text>
+            </div>
+            <div class="class-info">
+              <text class="class-location" style="{{ nameStyle }}; color: {{ theme.accent }}">{{ $item.location }}</text>
+            </div>
+          </div>
+          <div if="{{ swipedId === $item.id }}" class="delete-btn" onclick="deleteCourse($item.id)" style="background-color: {{ theme.deleteText }}">
+            <text class="delete-btn-text">删除</text>
+          </div>
+        </div>
+
+        <div if="{{ currentClasses.length === 0 }}" class="empty-card">
+          <text class="empty-text" style="{{ nameStyle }}; color: {{ theme.textMuted }}">今天没有课</text>
+        </div>
       </div>
     </div>
 
-    <div class="bottom-buttons">
-      <input class="add-btn" type="button" value="+ 添加课程" onclick="openAddCoursePage" />
-      <input class="style-btn" type="button" value="设置" onclick="openSettings" />
-    </div>
+    <div class="lower-half">
+      <div class="quick-add" style="background-color: {{ theme.card }}">
+        <text class="quick-add-title" style="{{ weekTextStyle }}; color: {{ theme.accent }}">快速添加</text>
+        <div class="quick-add-buttons">
+          <input class="quick-btn" type="button" value="数学" onclick="quickAddMath" style="{{ btnTextStyle }}; background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+          <input class="quick-btn" type="button" value="英语" onclick="quickAddEnglish" style="{{ btnTextStyle }}; background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+          <input class="quick-btn" type="button" value="科学" onclick="quickAddScience" style="{{ btnTextStyle }}; background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+        </div>
+      </div>
 
-    <div class="week-indicator" onclick="openScheduleManager">
-      <text class="week-text" style="{{ weekTextStyle }}">课程表{{ currentWeek }}</text>
+      <div class="bottom-buttons">
+        <input class="add-btn" type="button" value="+ 添加课程" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+      </div>
+
+      <div class="week-indicator" onclick="openScheduleManager">
+        <text class="week-text" style="{{ weekTextStyle }}; color: {{ theme.accent }}">课程表{{ currentWeek }}</text>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
+import vibrator from "@system.vibrator"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 
@@ -91,9 +91,15 @@ function parseTime(timeStr) {
   return hours * 60 + minutes
 }
 
+function getRealTodayIndex() {
+  var d = new Date().getDay()
+  if (d >= 1 && d <= 5) return d - 1
+  return 0
+}
+
 export default {
   private: {
-    currentDay: "星期一",
+    currentDay: "Mon",
     currentWeek: 1,
     currentDayIndex: 0,
     currentClasses: [],
@@ -105,49 +111,56 @@ export default {
     nameStyle: "",
     btnTextStyle: "",
     swipedId: "",
-    touchStartX: 0,
-    touchStartY: 0,
+    cardTouchStartX: 0,
+    cardTouchStartY: 0,
+    upperTouchStartX: 0,
+    upperTouchStartY: 0,
     isActive: true,
     currentClass: null,
     nextClass: null,
-    statusTimer: null
+    upcomingClass: null,
+    upcomingClassDay: "",
+    statusTimer: null,
+    _lastRemindedId: null,
+    remindSettings: { enabled: true, minutes: 5 },
+    theme: {}
   },
 
   onInit() {
     console.log("[INDEX] onInit, currentDay=" + this.currentDay)
     var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
     database.init(function() {
-      console.log("[INDEX] onInit database ready")
       database.getAllCourses(function(schedule) {
-        console.log("[INDEX] onInit getAllCourses: " + schedule.length + " days")
         self.schedule = schedule
         self.loadDayClasses()
         self.updateStatus()
         self.startStatusTimer()
       })
     })
-    var dayIndex = new Date().getDay()
-    if (dayIndex >= 1 && dayIndex <= 5) {
-      this.currentDayIndex = dayIndex - 1
-      this.currentDay = dayNames[dayIndex - 1]
-    } else {
-      this.currentDayIndex = 0
-      this.currentDay = dayNames[0]
-    }
+    this.currentDayIndex = getRealTodayIndex()
+    this.currentDay = dayNames[this.currentDayIndex]
     store.getFontScale(function(scale) {
       self.fontScale = scale
       self.applyFontScale()
     })
     store.getCurrentScheduleIndex(function(idx) {
       self.currentWeek = idx + 1
+    })
+    store.getRemindSettings(function(settings) {
+      self.remindSettings = settings
     })
     this.applyFontScale()
   },
 
   onShow() {
-    console.log("[INDEX] onShow triggered")
     this.isActive = true
     var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
     store.getFontScale(function(scale) {
       self.fontScale = scale
       self.applyFontScale()
@@ -155,9 +168,11 @@ export default {
     store.getCurrentScheduleIndex(function(idx) {
       self.currentWeek = idx + 1
     })
+    store.getRemindSettings(function(settings) {
+      self.remindSettings = settings
+    })
     this.applyFontScale()
     database.getAllCourses(function(schedule) {
-      console.log("[INDEX] onShow getAllCourses: " + schedule.length + " days")
       self.schedule = schedule
       self.loadDayClasses()
       self.updateStatus()
@@ -166,13 +181,11 @@ export default {
   },
 
   onHide() {
-    console.log("[INDEX] onHide: page hidden, disabling touch events")
     this.isActive = false
     this.stopStatusTimer()
   },
 
   onDestroy() {
-    console.log("[INDEX] onDestroy: page destroyed")
     this.stopStatusTimer()
   },
 
@@ -186,7 +199,6 @@ export default {
   },
 
   loadDayClasses() {
-    console.log("[INDEX] loadDayClasses START: day=" + this.currentDay + ", scheduleDays=" + this.schedule.length)
     var dayData = null
     for (var i = 0; i < this.schedule.length; i++) {
       if (this.schedule[i].day === this.currentDay) {
@@ -194,14 +206,7 @@ export default {
         break
       }
     }
-    this.currentClasses = []
-    var newClasses = dayData ? dayData.classes : []
-    this.currentClasses = newClasses
-    console.log("[INDEX] loadDayClasses: day=" + this.currentDay + ", scheduleDays=" + this.schedule.length + ", matched=" + (dayData ? "yes(" + dayData.classes.length + ")" : "no") + ", currentClasses=" + this.currentClasses.length)
-    for (var i = 0; i < this.currentClasses.length; i++) {
-      console.log("[INDEX]   class[" + i + "]: " + this.currentClasses[i].id + " " + this.currentClasses[i].name)
-    }
-    console.log("[INDEX] loadDayClasses END")
+    this.currentClasses = dayData ? dayData.classes : []
     this.updateStatus()
   },
 
@@ -225,42 +230,102 @@ export default {
     this.loadDayClasses()
   },
 
+  handleUpperTouchStart(e) {
+    if (!this.isActive || !e || !e.touches || e.touches.length === 0) return
+    this.upperTouchStartX = e.touches[0].clientX
+    this.upperTouchStartY = e.touches[0].clientY
+  },
+
+  handleUpperTouchEnd(e) {
+    if (!this.isActive || !e || !e.changedTouches || e.changedTouches.length === 0) return
+    var endX = e.changedTouches[0].clientX
+    var endY = e.changedTouches[0].clientY
+    var dx = endX - this.upperTouchStartX
+    var dy = endY - this.upperTouchStartY
+    var absDx = dx < 0 ? -dx : dx
+    var absDy = dy < 0 ? -dy : dy
+    if (absDx > 60 && absDx > absDy * 1.5) {
+      if (dx > 0) {
+        this.prevDay()
+      } else {
+        this.nextDay()
+      }
+    }
+  },
+
+  goToStatusDay() {
+    if (this.upcomingClass && this.upcomingClassDay) {
+      this.currentDay = this.upcomingClassDay
+      for (var i = 0; i < dayNames.length; i++) {
+        if (dayNames[i] === this.upcomingClassDay) {
+          this.currentDayIndex = i
+          break
+        }
+      }
+      this.loadDayClasses()
+      return
+    }
+    var todayIdx = getRealTodayIndex()
+    this.currentDayIndex = todayIdx
+    this.currentDay = dayNames[todayIdx]
+    this.loadDayClasses()
+  },
+
+  playVibration(style) {
+    try {
+      switch (style) {
+        case "single_short":
+          vibrator.vibrate({ mode: "short" })
+          break
+        case "single_long":
+          vibrator.vibrate({ mode: "long" })
+          break
+        case "double_short":
+          vibrator.vibrate({ mode: "short" })
+          setTimeout(function() { vibrator.vibrate({ mode: "short" }) }, 250)
+          break
+        case "short_long":
+          vibrator.vibrate({ mode: "short" })
+          setTimeout(function() { vibrator.vibrate({ mode: "long" }) }, 300)
+          break
+        case "long_short_long":
+          vibrator.vibrate({ mode: "long" })
+          setTimeout(function() { vibrator.vibrate({ mode: "short" }) }, 350)
+          setTimeout(function() { vibrator.vibrate({ mode: "long" }) }, 600)
+          break
+        case "triple_short":
+          vibrator.vibrate({ mode: "short" })
+          setTimeout(function() { vibrator.vibrate({ mode: "short" }) }, 200)
+          setTimeout(function() { vibrator.vibrate({ mode: "short" }) }, 400)
+          break
+        default:
+          vibrator.vibrate({ mode: "short" })
+      }
+    } catch (e) {
+      console.log("[INDEX] vibration error: " + e)
+    }
+  },
+
   openDetail(classId) {
-    console.log("[INDEX] openDetail: classId=" + classId + ", day=" + this.currentDay)
     var storage = require("@system.storage")
-    storage.set({
-      key: "detail_classId",
-      value: String(classId)
-    })
-    storage.set({
-      key: "detail_day",
-      value: this.currentDay
-    })
-    router.push({
-      uri: "/pages/detail"
-    })
+    storage.set({ key: "detail_classId", value: String(classId) })
+    storage.set({ key: "detail_day", value: this.currentDay })
+    router.push({ uri: "/pages/detail" })
   },
 
   openAddCoursePage() {
-    router.push({
-      uri: "/pages/add-course",
-      params: {
-        day: this.currentDay,
-        nextId: this.nextId
-      }
-    })
+    var storage = require("@system.storage")
+    storage.set({ key: "add_course_day", value: this.currentDay })
+    storage.set({ key: "add_course_nextId", value: String(this.nextId) })
+    router.push({ uri: "/pages/add-course" })
   },
 
   openSettings() {
-    router.push({
-      uri: "/pages/settings"
-    })
+    router.push({ uri: "/pages/settings" })
   },
 
   openScheduleManager() {
-    router.push({
-      uri: "/pages/schedule-manager"
-    })
+    router.push({ uri: "/pages/schedule-manager" })
   },
 
   makeCourse(name, time, teacher, location) {
@@ -274,12 +339,9 @@ export default {
       location: location,
       notes: ""
     }
-    console.log("[INDEX] makeCourse: " + JSON.stringify(newCourse))
     this.nextId++
-    database.insertCourse(newCourse, function(success) {
-      console.log("[INDEX] insertCourse callback success=" + success)
+    database.insertCourse(newCourse, function() {
       database.getAllCourses(function(schedule) {
-        console.log("[INDEX] getAllCourses after insert: " + schedule.length + " days")
         self.schedule = schedule
         self.loadDayClasses()
       })
@@ -287,12 +349,10 @@ export default {
   },
 
   quickAddMath() {
-    console.log("[INDEX] quickAddMath")
     this.makeCourse("数学", "08:00 - 08:45", "王老师", "301教室")
   },
 
   quickAddEnglish() {
-    console.log("[INDEX] quickAddEnglish")
     this.makeCourse("英语", "08:55 - 09:40", "李老师", "205教室")
   },
 
@@ -300,22 +360,18 @@ export default {
     this.makeCourse("科学", "10:00 - 10:45", "吴老师", "实验室B")
   },
 
-  handleTouchStart(e) {
-    if (!this.isActive || !e || !e.touches || e.touches.length === 0) {
-      return
-    }
-    this.touchStartX = e.touches[0].clientX
-    this.touchStartY = e.touches[0].clientY
+  handleCardTouchStart(e) {
+    if (!this.isActive || !e || !e.touches || e.touches.length === 0) return
+    this.cardTouchStartX = e.touches[0].clientX
+    this.cardTouchStartY = e.touches[0].clientY
   },
 
-  handleTouchEnd(e, id) {
-    if (!this.isActive || !e || !e.changedTouches || e.changedTouches.length === 0) {
-      return
-    }
+  handleCardTouchEnd(e, id) {
+    if (!this.isActive || !e || !e.changedTouches || e.changedTouches.length === 0) return
     var endX = e.changedTouches[0].clientX
     var endY = e.changedTouches[0].clientY
-    var dx = endX - this.touchStartX
-    var dy = endY - this.touchStartY
+    var dx = endX - this.cardTouchStartX
+    var dy = endY - this.cardTouchStartY
     var absDx = dx < 0 ? -dx : dx
     var absDy = dy < 0 ? -dy : dy
     if (absDx > 30 && absDx > absDy) {
@@ -330,14 +386,11 @@ export default {
   },
 
   deleteCourse(id) {
-    console.log("[INDEX] deleteCourse: " + id)
     var self = this
     var day = this.currentDay
-    database.deleteCourse(id, day, function(success) {
-      console.log("[INDEX] deleteCourse callback success=" + success)
+    database.deleteCourse(id, day, function() {
       self.swipedId = ""
       database.getAllCourses(function(schedule) {
-        console.log("[INDEX] getAllCourses after delete: " + schedule.length + " days")
         self.schedule = schedule
         self.loadDayClasses()
       })
@@ -360,15 +413,27 @@ export default {
   },
 
   updateStatus() {
-    var todayClasses = this.currentClasses
-    if (!todayClasses || todayClasses.length === 0) {
-      this.currentClass = null
-      this.nextClass = null
-      return
-    }
+    this.currentClass = null
+    this.nextClass = null
+    this.upcomingClass = null
+    this.upcomingClassDay = ""
 
     var now = new Date()
     var nowMinutes = now.getHours() * 60 + now.getMinutes()
+    var realTodayIdx = getRealTodayIndex()
+
+    if (this.currentDayIndex === realTodayIdx) {
+      this.computeTodayStatus(nowMinutes)
+    }
+
+    if (!this.currentClass && !this.nextClass) {
+      this.findUpcomingClass(realTodayIdx)
+    }
+  },
+
+  computeTodayStatus(nowMinutes) {
+    var todayClasses = this.currentClasses
+    if (!todayClasses || todayClasses.length === 0) return
 
     var parsed = []
     for (var i = 0; i < todayClasses.length; i++) {
@@ -380,16 +445,13 @@ export default {
       parsed.push({
         id: cls.id,
         name: cls.name,
-        time: cls.time,
         startMin: startMin,
         endMin: endMin,
         startTime: timeParts[0].trim()
       })
     }
 
-    parsed.sort(function(a, b) {
-      return a.startMin - b.startMin
-    })
+    parsed.sort(function(a, b) { return a.startMin - b.startMin })
 
     var current = null
     var next = null
@@ -403,51 +465,121 @@ export default {
           id: cls.id
         }
         if (i + 1 < parsed.length) {
-          var nextCls = parsed[i + 1]
+          var nxt = parsed[i + 1]
           next = {
-            name: nextCls.name,
-            startTime: nextCls.startTime,
-            waitMin: Math.round((nextCls.startMin - nowMinutes) / 60 * 10) / 10,
-            id: nextCls.id
+            name: nxt.name,
+            startTime: nxt.startTime,
+            waitMin: Math.round((nxt.startMin - nowMinutes) / 60 * 10) / 10,
+            id: nxt.id
           }
         }
         break
       }
-      if (nowMinutes < cls.startMin) {
-        if (!next || cls.startMin < next.startMin) {
-          next = {
-            name: cls.name,
-            startTime: cls.startTime,
-            waitMin: Math.round((cls.startMin - nowMinutes) / 60 * 10) / 10,
-            id: cls.id
-          }
+      if (nowMinutes < cls.startMin && (!next || cls.startMin < next.startMin)) {
+        next = {
+          name: cls.name,
+          startTime: cls.startTime,
+          waitMin: Math.round((cls.startMin - nowMinutes) / 60 * 10) / 10,
+          id: cls.id
         }
       }
     }
 
     this.currentClass = current
     this.nextClass = next
+
+    if (next && this.remindSettings.enabled) {
+      var remindMinutes = this.remindSettings.minutes || 5
+      if (next.waitMin <= remindMinutes && next.waitMin > 0) {
+        var remindKey = next.id + "_" + this.currentDay
+        if (this._lastRemindedId !== remindKey) {
+          this._lastRemindedId = remindKey
+          var self = this
+          store.getVibrationStyle(function(style) {
+            self.playVibration(style)
+          })
+        }
+      }
+    }
   },
 
-  goToCurrentClass() {
-    var target = this.currentClass || this.nextClass
-    if (!target) {
-      console.log("[INDEX] goToCurrentClass: no class to jump to")
-      return
+  findUpcomingClass(realTodayIdx) {
+    if (!this.schedule || this.schedule.length === 0) return
+
+    var now = new Date()
+    var nowMinutes = now.getHours() * 60 + now.getMinutes()
+
+    for (var offset = 0; offset < 7; offset++) {
+      var checkIdx = (realTodayIdx + offset) % 7
+      var checkDay = dayNames[checkIdx]
+
+      var dayData = null
+      for (var d = 0; d < this.schedule.length; d++) {
+        if (this.schedule[d].day === checkDay) { dayData = this.schedule[d]; break }
+      }
+      if (!dayData || !dayData.classes || dayData.classes.length === 0) continue
+
+      var parsed = []
+      for (var i = 0; i < dayData.classes.length; i++) {
+        var cls = dayData.classes[i]
+        var timeParts = cls.time.split("-")
+        if (timeParts.length < 2) continue
+        var startTimeStr = timeParts[0].trim()
+        var endTimeStr = timeParts[1].trim()
+        parsed.push({
+          name: cls.name,
+          time: cls.time,
+          startTime: startTimeStr,
+          endTime: endTimeStr,
+          startMin: parseTime(startTimeStr),
+          endMin: parseTime(endTimeStr),
+          id: cls.id
+        })
+      }
+      parsed.sort(function(a, b) { return a.startMin - b.startMin })
+
+      if (offset === 0) {
+        for (var j = 0; j < parsed.length; j++) {
+          if (parsed[j].endMin > nowMinutes) {
+            if (nowMinutes >= parsed[j].startMin) {
+              this.currentClass = {
+                name: parsed[j].name,
+                remaining: Math.round((parsed[j].endMin - nowMinutes) / 60 * 10) / 10,
+                id: parsed[j].id
+              }
+              if (j + 1 < parsed.length) {
+                this.nextClass = {
+                  name: parsed[j + 1].name,
+                  startTime: parsed[j + 1].startTime,
+                  waitMin: Math.round((parsed[j + 1].startMin - nowMinutes) / 60 * 10) / 10,
+                  id: parsed[j + 1].id
+                }
+              }
+              return
+            }
+            this.nextClass = {
+              name: parsed[j].name,
+              startTime: parsed[j].startTime,
+              waitMin: Math.round((parsed[j].startMin - nowMinutes) / 60 * 10) / 10,
+              id: parsed[j].id
+            }
+            return
+          }
+        }
+        continue
+      }
+
+      if (parsed.length > 0) {
+        this.upcomingClass = {
+          day: checkDay,
+          name: parsed[0].name,
+          time: parsed[0].time,
+          startTime: parsed[0].startTime
+        }
+        this.upcomingClassDay = checkDay
+        return
+      }
     }
-    console.log("[INDEX] goToCurrentClass: " + target.name + " (id=" + target.id + ")")
-    var storage = require("@system.storage")
-    storage.set({
-      key: "detail_classId",
-      value: String(target.id)
-    })
-    storage.set({
-      key: "detail_day",
-      value: this.currentDay
-    })
-    router.push({
-      uri: "/pages/detail"
-    })
   }
 }
 </script>
@@ -460,57 +592,13 @@ export default {
   height: 100%;
 }
 
-.status-bar {
-  flex-direction: column;
-  background-color: #0f3460;
-  border-radius: 10px;
-  padding: 8px 12px;
-  margin-bottom: 8px;
-  border-left-width: 4px;
-  border-left-color: #7ec8e3;
-  border-left-style: solid;
-}
-
-.status-current {
-  flex-direction: row;
-  align-items: center;
-}
-
-.status-next {
-  flex-direction: row;
-  align-items: center;
-  margin-top: 4px;
-  border-top-width: 1px;
-  border-top-color: #1a2a4e;
-  border-top-style: solid;
-  padding-top: 4px;
-}
-
-.status-break {
-  flex-direction: row;
-  align-items: center;
-}
-
-.status-free {
-  flex-direction: row;
-  align-items: center;
-}
-
-.status-icon {
-  font-size: 16px;
-  margin-right: 6px;
-}
-
-.status-text {
-  font-size: 14px;
-  color: #ffffff;
+.upper-half {
   flex: 1;
+  flex-direction: column;
 }
 
-.status-time {
-  font-size: 13px;
-  color: #7ec8e3;
-  font-weight: bold;
+.lower-half {
+  flex-direction: column;
 }
 
 .header {
@@ -539,45 +627,47 @@ export default {
   text-align: center;
 }
 
-.week-indicator {
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.week-text {
-  font-size: 14px;
-  color: #7ec8e3;
-}
-
-.quick-add {
+.status-bar {
   flex-direction: column;
-  background-color: #16213e;
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 8px;
-}
-
-.quick-add-title {
-  font-size: 14px;
-  font-weight: bold;
-  color: #7ec8e3;
-  margin-bottom: 6px;
-  text-align: center;
-}
-
-.quick-add-buttons {
-  flex-direction: row;
-  justify-content: space-around;
-}
-
-.quick-btn {
-  width: 65px;
-  height: 32px;
-  border-radius: 6px;
   background-color: #0f3460;
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-left-width: 4px;
+  border-left-color: #7ec8e3;
+  border-left-style: solid;
+}
+
+.status-current {
+  flex-direction: row;
+  align-items: center;
+}
+
+.status-next {
+  flex-direction: row;
+  align-items: center;
+}
+
+.status-free {
+  flex-direction: row;
+  align-items: center;
+}
+
+.status-icon {
+  font-size: 16px;
+  margin-right: 6px;
+}
+
+.status-text {
   font-size: 14px;
   color: #ffffff;
-  text-align: center;
+  flex: 1;
+}
+
+.status-time {
+  font-size: 13px;
+  color: #7ec8e3;
+  font-weight: bold;
 }
 
 .class-list {
@@ -660,6 +750,37 @@ export default {
   font-weight: bold;
 }
 
+.quick-add {
+  flex-direction: column;
+  background-color: #16213e;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+
+.quick-add-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #7ec8e3;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.quick-add-buttons {
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.quick-btn {
+  width: 65px;
+  height: 32px;
+  border-radius: 6px;
+  background-color: #0f3460;
+  font-size: 14px;
+  color: #ffffff;
+  text-align: center;
+}
+
 .bottom-buttons {
   flex-direction: row;
   justify-content: space-between;
@@ -684,6 +805,18 @@ export default {
   font-size: 14px;
   font-weight: bold;
   color: #ffffff;
+  text-align: center;
+}
+
+.week-indicator {
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.week-text {
+  font-size: 14px;
+  color: #7ec8e3;
   text-align: center;
 }
 </style>

@@ -1,0 +1,426 @@
+<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
+
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">管理课程</text>
+    </div>
+
+    <div class="add-row" show="{{ renameIdx === -1 }}">
+      <div class="add-input-display" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+        <text class="add-input-text" style="color: {{ theme.text }}">{{ newName || '点击输入课程名称' }}</text>
+        <text class="add-input-cursor" show="{{ showCursor }}">_</text>
+      </div>
+      <input class="add-btn" type="button" value="添加" onclick="addCourse" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+
+    <div class="rename-row" show="{{ renameIdx !== -1 }}" style="background-color: {{ theme.card }}">
+      <text class="rename-label" style="color: {{ theme.textSecondary }}">重命名：</text>
+      <div class="rename-input-display" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+        <text class="rename-input-text" style="color: {{ theme.text }}">{{ renameValue || '输入新名称' }}</text>
+        <text class="rename-input-cursor" show="{{ showCursor }}">_</text>
+      </div>
+      <div class="rename-btns">
+        <input class="rename-save-btn" type="button" value="保存" onclick="saveRename" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="rename-cancel-btn" type="button" value="取消" onclick="cancelRename" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+      </div>
+    </div>
+
+    <div class="course-list">
+      <div for="{{ courseList }}" class="course-card" onclick="showCourseMenu($idx)" 
+           style="background-color: {{ theme.card }}; border-left-color: {{ theme.accent }}">
+        <text class="course-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+        <text class="course-arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+    </div>
+
+    <input-method
+      hide="{{ hideKeyboard }}"
+      keyboardtype="QWERTY"
+      maxlength="10"
+      vibratemode="short"
+      screentype="rect"
+      @visibility-change="onVisibilityChange"
+      @key-down="onKeyDown"
+      @delete="onDelete"
+      @complete="onComplete"
+    ></input-method>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import prompt from "@system.prompt"
+const store = require("../../data/store.js")
+
+var COURSE_KEY = "course_preset_list"
+
+var defaultCourses = [
+  { name: "语文", time: "08:00 - 08:45", teacher: "老师", location: "" },
+  { name: "数学", time: "08:55 - 09:40", teacher: "老师", location: "" },
+  { name: "英语", time: "10:00 - 10:45", teacher: "老师", location: "" },
+  { name: "物理", time: "10:55 - 11:40", teacher: "老师", location: "" },
+  { name: "化学", time: "13:00 - 13:45", teacher: "老师", location: "" },
+  { name: "政治", time: "13:55 - 14:40", teacher: "老师", location: "" },
+  { name: "音乐", time: "15:00 - 15:45", teacher: "老师", location: "" },
+  { name: "体育", time: "15:55 - 16:40", teacher: "老师", location: "" },
+  { name: "美术", time: "08:00 - 08:45", teacher: "老师", location: "" },
+  { name: "历史", time: "08:55 - 09:40", teacher: "老师", location: "" },
+  { name: "地理", time: "10:00 - 10:45", teacher: "老师", location: "" },
+  { name: "生物", time: "10:55 - 11:40", teacher: "老师", location: "" }
+]
+
+export default {
+  private: {
+    theme: {},
+    courseList: [],
+    newName: "",
+    hideKeyboard: true,
+    showCursor: false,
+    renameIdx: -1,
+    renameValue: "",
+    inputMode: "add"
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    this.loadCourses()
+  },
+
+  loadCourses() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.get({
+      key: COURSE_KEY,
+      success: function(data) {
+        if (data) {
+          try {
+            var list = JSON.parse(data)
+            if (list && list.length > 0) {
+              self.courseList = list
+            } else {
+              self.courseList = defaultCourses.slice()
+            }
+          } catch (e) {
+            self.courseList = defaultCourses.slice()
+          }
+        } else {
+          self.courseList = defaultCourses.slice()
+        }
+      },
+      fail: function() {
+        self.courseList = defaultCourses.slice()
+      }
+    })
+  },
+
+  saveCourses() {
+    var storage = require("@system.storage")
+    storage.set({
+      key: COURSE_KEY,
+      value: JSON.stringify(this.courseList)
+    })
+  },
+
+  showKeyboard() {
+    this.hideKeyboard = false
+    this.showCursor = true
+    if (this.renameIdx !== -1) {
+      this.inputMode = "rename"
+    } else {
+      this.inputMode = "add"
+    }
+  },
+
+  onVisibilityChange(evt) {
+    if (evt.detail && evt.detail.visible === false) {
+      this.showCursor = false
+    }
+  },
+
+  onKeyDown() {},
+
+  onDelete() {
+    if (this.inputMode === "rename") {
+      this.renameValue = this.renameValue.slice(0, -1)
+    } else {
+      this.newName = this.newName.slice(0, -1)
+    }
+  },
+
+  onComplete(evt) {
+    if (this.inputMode === "rename") {
+      this.renameValue += evt.detail.content
+    } else {
+      this.newName += evt.detail.content
+    }
+  },
+
+  addCourse() {
+    var name = this.newName.trim()
+    if (!name) {
+      prompt.showToast({ message: "请输入课程名称", duration: 300 })
+      return
+    }
+    for (var i = 0; i < this.courseList.length; i++) {
+      if (this.courseList[i].name === name) {
+        prompt.showToast({ message: "课程已存在", duration: 300 })
+        return
+      }
+    }
+    this.courseList.push({
+      name: name,
+      time: "08:00 - 08:45",
+      teacher: "老师",
+      location: ""
+    })
+    this.saveCourses()
+    this.newName = ""
+    prompt.showToast({ message: "已添加", duration: 300 })
+  },
+
+  showCourseMenu(idx) {
+    var self = this
+    var item = this.courseList[idx]
+    if (!item) return
+
+    prompt.showDialog({
+      title: "📚 " + item.name,
+      message: "选择操作",
+      buttons: [
+        {
+          text: "✏️ 重命名",
+          color: "#7ec8e3",
+          onclick: function() {
+            self.renameIdx = idx
+            self.renameValue = item.name
+            self.showKeyboard()
+          }
+        },
+        {
+          text: "🗑 删除",
+          color: "#e74c3c",
+          onclick: function() {
+            self.deleteCourse(idx)
+          }
+        },
+        {
+          text: "取消",
+          color: "#888899"
+        }
+      ]
+    })
+  },
+
+  saveRename() {
+    var newName = this.renameValue.trim()
+    var idx = this.renameIdx
+    if (!newName || idx < 0 || idx >= this.courseList.length) return
+    var item = this.courseList[idx]
+    if (newName === item.name) {
+      this.cancelRename()
+      return
+    }
+    for (var i = 0; i < this.courseList.length; i++) {
+      if (i !== idx && this.courseList[i].name === newName) {
+        prompt.showToast({ message: "名称已存在", duration: 300 })
+        return
+      }
+    }
+    this.courseList[idx].name = newName
+    this.saveCourses()
+    this.cancelRename()
+    prompt.showToast({ message: "已更新", duration: 300 })
+  },
+
+  cancelRename() {
+    this.renameIdx = -1
+    this.renameValue = ""
+    this.inputMode = "add"
+    this.hideKeyboard = true
+    this.showCursor = false
+  },
+
+  deleteCourse(idx) {
+    var self = this
+    var item = this.courseList[idx]
+    prompt.showDialog({
+      title: "🗑 删除课程",
+      message: '确定要删除 "' + item.name + '" 吗？',
+      buttons: [
+        { text: "取消", color: "#888899" },
+        {
+          text: "确定删除",
+          color: "#e74c3c",
+          onclick: function() {
+            self.courseList.splice(idx, 1)
+            self.saveCourses()
+            prompt.showToast({ message: "已删除", duration: 300 })
+          }
+        }
+      ]
+    })
+  },
+
+  goBack() {
+    if (!this.hideKeyboard) {
+      this.hideKeyboard = true
+      this.showCursor = false
+    } else {
+      router.back()
+    }
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 12px;
+  height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 6px 0;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 12px;
+}
+
+.add-row {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.add-input-display {
+  flex: 1;
+  height: 36px;
+  border-radius: 10px;
+  border-width: 2px;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  padding: 0 12px;
+  margin-right: 8px;
+}
+
+.add-input-text {
+  font-size: 14px;
+}
+
+.add-input-cursor {
+  font-size: 14px;
+  color: #7ec8e3;
+  margin-left: 2px;
+}
+
+.add-btn {
+  width: 50px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.rename-row {
+  flex-direction: column;
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 10px;
+}
+
+.rename-label {
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.rename-input-display {
+  width: 100%;
+  height: 36px;
+  border-radius: 10px;
+  border-width: 2px;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  padding: 0 12px;
+  margin-bottom: 8px;
+}
+
+.rename-input-text {
+  font-size: 14px;
+}
+
+.rename-input-cursor {
+  font-size: 14px;
+  color: #7ec8e3;
+  margin-left: 2px;
+}
+
+.rename-btns {
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.rename-save-btn {
+  width: 50px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+  margin-right: 8px;
+}
+
+.rename-cancel-btn {
+  width: 50px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.course-list {
+  flex: 1;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.course-card {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 6px;
+  border-left-width: 3px;
+  border-left-style: solid;
+}
+
+.course-name {
+  font-size: 15px;
+}
+
+.course-arrow {
+  font-size: 14px;
+  color: #555566;
+}
+</style>
