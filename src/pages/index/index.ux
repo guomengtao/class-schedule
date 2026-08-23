@@ -5,6 +5,9 @@
         <input class="nav-btn" type="button" value="&#9664;" onclick="prevDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
         <text class="day-title" style="{{ dayTitleStyle }}; color: {{ theme.text }}">{{ currentDay }}</text>
         <div class="day-nav-btns">
+          <div class="day-nav-circle" onclick="goToWeekView" style="background-color: {{ theme.cardLight }}">
+            <text class="day-nav-text" style="font-size: 20px; color: {{ theme.accent }}">总</text>
+          </div>
           <div class="day-nav-circle" onclick="goToToday" style="background-color: {{ theme.cardLight }}">
             <text class="day-nav-text" style="font-size: 20px; color: {{ theme.accent }}">今</text>
           </div>
@@ -15,29 +18,39 @@
         <input class="nav-btn" type="button" value="&#9654;" onclick="nextDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       </div>
 
-      <div class="status-bar" if="{{ isToday }}" onclick="goToStatusDay" style="background-color: {{ theme.cardLight }}; border-left-color: {{ theme.accent }}">
-        <div class="status-current" if="{{ currentClass }}">
-          <text class="status-text" style="color: {{ theme.text }}" if="{{ currentClass.remaining > 0 }}">
+      <div class="status-bar" if="{{ isToday }}" style="background-color: {{ theme.cardLight }}; border-left-color: {{ theme.accent }}">
+        <div class="status-current" if="{{ currentClass }}" ontouchstart="onStatusBarTouch" onclick="scrollToCurrentClass">
+          <text class="status-text" style="color: {{ theme.text }}" if="{{ statusSimple }}">
+            正在上课: {{ currentClass.name }}
+          </text>
+          <text class="status-text" style="color: {{ theme.text }}" if="{{ !statusSimple && currentClass.remaining > 0 }}">
             正在上课: {{ currentClass.name }} 还剩{{ currentClass.remaining }}分钟
           </text>
-          <text class="status-text" style="color: {{ theme.text }}" if="{{ currentClass.remaining <= 0 }}">
+          <text class="status-text" style="color: {{ theme.text }}" if="{{ !statusSimple && currentClass.remaining <= 0 }}">
             正在上课: {{ currentClass.name }} 即将结束
           </text>
+          <div class="status-toggle" ontouchstart="onStatusBarTouch" onclick="toggleStatusMode">
+            <text class="status-toggle-text" style="color: {{ theme.accent }}">{{ statusSimple ? '详' : '简' }}</text>
+          </div>
         </div>
-        <div class="status-next" if="{{ nextClass }}">
-          <text class="status-text" style="color: {{ theme.text }}">下一节: {{ nextClass.waitMin }}分钟后 {{ nextClass.name }}</text>
+        <div class="status-next" if="{{ nextClass }}" ontouchstart="onStatusBarTouch" onclick="scrollToNextClass">
+          <text class="status-text" style="color: {{ theme.text }}" if="{{ statusSimple }}">下一节: {{ nextClass.name }}</text>
+          <text class="status-text" style="color: {{ theme.text }}" if="{{ !statusSimple }}">下一节: {{ nextClass.waitMin }}分钟后 {{ nextClass.name }}</text>
         </div>
-        <div class="status-free" if="{{ !currentClass && !nextClass && upcomingClass }}">
+        <div class="status-free" if="{{ !currentClass && !nextClass && upcomingClass }}" onclick="goToStatusDay">
           <text class="status-text" style="color: {{ theme.text }}">即将: {{ upcomingClass.day }} {{ upcomingClass.name }} {{ upcomingClass.time }}</text>
         </div>
-        <div class="status-free" if="{{ !currentClass && !nextClass && !upcomingClass }}">
+        <div class="status-free" if="{{ !currentClass && !nextClass && !upcomingClass }}" onclick="goToStatusDay">
           <text class="status-text" style="color: {{ theme.text }}">暂无课程</text>
         </div>
       </div>
 
-      <div class="class-list">
+      <scroll class="class-list" scroll-y="{{true}}" scroll-top="{{ scrollListTop }}" ontouchstart="dismissSwipe">
         <div for="{{ currentClasses }}" class="class-card-wrapper">
-          <div class="class-card" ontouchstart="handleCardTouchStart($event, $item.id)" ontouchend="handleCardTouchEnd($event, $item.id)" onclick="openDetail($item.id)" style="background-color: {{ theme.card }}; border-left-color: {{ theme.accent }}">
+          <div class="delete-btn" onclick="deleteCourse($item.id)" style="background-color: {{ theme.deleteText }}">
+            <text class="delete-btn-icon">&#128465;</text>
+          </div>
+          <div class="class-card {{ swipedId === $item.id ? 'class-card-swiped' : '' }}" ontouchstart="handleCardTouchStart($event, $item.id)" ontouchend="handleCardTouchEnd($event, $item.id)" onclick="openDetail($item.id)" style="background-color: {{ theme.card }}; border-left-color: {{ theme.accent }}">
             <div class="progress-bg" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
             <div class="class-content">
               <div class="class-time">
@@ -51,15 +64,12 @@
               </div>
             </div>
           </div>
-          <div if="{{ swipedId === $item.id }}" class="delete-btn" onclick="deleteCourse($item.id)" style="background-color: {{ theme.deleteText }}">
-            <text class="delete-btn-text">删除</text>
-          </div>
         </div>
 
         <div if="{{ currentClasses.length === 0 }}" class="empty-card">
           <text class="empty-text" style="{{ nameStyle }}; color: {{ theme.textMuted }}">今天没有课</text>
         </div>
-      </div>
+      </scroll>
     </div>
 
     <div class="lower-half">
@@ -123,6 +133,7 @@ export default {
     nameStyle: "",
     btnTextStyle: "",
     swipedId: "",
+    scrollListTop: 0,
     cardTouchStartX: 0,
     cardTouchStartY: 0,
     upperTouchStartX: 0,
@@ -141,7 +152,21 @@ export default {
     quickAddTime: "",
     quickAddExpanded: false,
     isToday: true,
+    statusSimple: false,
     presetCourses: []
+  },
+
+  sortByTime: function(list) {
+    if (!list || list.length === 0) return list
+    var sorted = list.slice()
+    sorted.sort(function(a, b) {
+      var ta = a.time ? a.time.split(' - ')[0] : '00:00'
+      var tb = b.time ? b.time.split(' - ')[0] : '00:00'
+      var taParts = ta.split(':')
+      var tbParts = tb.split(':')
+      return (parseInt(taParts[0]) * 60 + parseInt(taParts[1])) - (parseInt(tbParts[0]) * 60 + parseInt(tbParts[1]))
+    })
+    return sorted
   },
 
   onInit() {
@@ -170,6 +195,7 @@ export default {
     store.getRemindSettings(function(settings) {
       self.remindSettings = settings
     })
+    this.loadStatusSimpleMode()
     this.applyFontScale()
   },
 
@@ -242,8 +268,9 @@ export default {
         progressColor: "transparent"
       })
     }
-    this.currentClasses = classes
+    this.currentClasses = this.sortByTime(classes)
     this.isToday = (this.currentDayIndex === getRealTodayIndex())
+    this.scrollListTop = 0
     this.updateClassProgress()
     this.updateStatus()
     this.refreshQuickAdd()
@@ -327,10 +354,55 @@ export default {
     this.loadDayClasses()
   },
 
+  goToWeekView() {
+    var self = this
+    var storage = require("@system.storage")
+    store.getCurrentScheduleIndex(function(idx) {
+      storage.set({
+        key: "weekview_index",
+        value: String(idx),
+        success: function() {
+          router.push({ uri: "/pages/week-view" })
+        },
+        fail: function() {
+          router.push({ uri: "/pages/week-view" })
+        }
+      })
+    })
+  },
+
   handleUpperTouchStart(e) {
     if (!this.isActive || !e || !e.touches || e.touches.length === 0) return
     this.upperTouchStartX = e.touches[0].clientX
     this.upperTouchStartY = e.touches[0].clientY
+  },
+
+  onStatusBarTouch() {
+  },
+
+  toggleStatusMode() {
+    this.statusSimple = !this.statusSimple
+    var storage = require("@system.storage")
+    storage.set({
+      key: "status_simple_mode",
+      value: String(this.statusSimple),
+      success: function() {},
+      fail: function() {}
+    })
+  },
+
+  loadStatusSimpleMode() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.get({
+      key: "status_simple_mode",
+      success: function(data) {
+        if (data === "true") {
+          self.statusSimple = true
+        }
+      },
+      fail: function() {}
+    })
   },
 
   handleUpperTouchEnd(e) {
@@ -366,6 +438,28 @@ export default {
     this.currentDayIndex = todayIdx
     this.currentDay = dayNames[todayIdx]
     this.loadDayClasses()
+  },
+
+  scrollToCurrentClass() {
+    if (!this.currentClass) return
+    this.scrollToClassById(this.currentClass.id)
+    this.playVibration("single_short")
+  },
+
+  scrollToNextClass() {
+    if (!this.nextClass) return
+    this.scrollToClassById(this.nextClass.id)
+    this.playVibration("single_short")
+  },
+
+  scrollToClassById(id) {
+    var classes = this.currentClasses
+    for (var i = 0; i < classes.length; i++) {
+      if (classes[i].id === id) {
+        this.scrollListTop = i * 110
+        return
+      }
+    }
   },
 
   playVibration(style) {
@@ -482,7 +576,7 @@ export default {
             try {
               var list = JSON.parse(data)
               if (list && list.length > 0) {
-                self.presetCourses = list
+                self.presetCourses = self.sortByTime(list)
               } else {
                 self.presetCourses = []
               }
@@ -543,8 +637,13 @@ export default {
 
   handleCardTouchStart(e) {
     if (!this.isActive || !e || !e.touches || e.touches.length === 0) return
+    this.dismissSwipe()
     this.cardTouchStartX = e.touches[0].clientX
     this.cardTouchStartY = e.touches[0].clientY
+  },
+
+  dismissSwipe() {
+    this.swipedId = ""
   },
 
   handleCardTouchEnd(e, id) {
@@ -870,6 +969,23 @@ export default {
   text-overflow: ellipsis;
 }
 
+.status-toggle {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: #1a3a4a;
+  justify-content: center;
+  align-items: center;
+  margin-left: 8px;
+  flex-shrink: 0;
+  flex-direction: row;
+}
+
+.status-toggle-text {
+  font-size: 18px;
+  font-weight: bold;
+}
+
 .status-time {
   font-size: 28px;
   color: #7ec8e3;
@@ -883,8 +999,9 @@ export default {
 }
 
 .class-card-wrapper {
-  flex-direction: row;
-  align-items: center;
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
   margin-bottom: 8px;
 }
 
@@ -898,6 +1015,10 @@ export default {
   border-left-color: #7ec8e3;
   border-left-style: solid;
   overflow: hidden;
+}
+
+.class-card-swiped {
+  transform: translateX(-60px);
 }
 
 .progress-bg {
@@ -963,13 +1084,20 @@ export default {
 }
 
 .delete-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
   width: 60px;
-  height: 50px;
+  height: 100%;
   background-color: #e74c3c;
-  border-radius: 8px;
+  border-radius: 0 10px 10px 0;
   justify-content: center;
   align-items: center;
-  margin-left: 6px;
+}
+
+.delete-btn-icon {
+  font-size: 28px;
+  color: #ffffff;
 }
 
 .delete-btn-text {

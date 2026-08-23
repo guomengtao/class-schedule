@@ -22,6 +22,14 @@
       </div>
     </div>
 
+    <div class="nickname-section" onclick="openDemoList" style="background-color: {{ theme.card }}">
+      <text class="nickname-label" style="color: {{ theme.text }}">列表Demo</text>
+      <div class="nickname-value-row">
+        <text class="nickname-placeholder" style="color: {{ theme.textMuted }}">13种列表删除风格</text>
+        <text class="nickname-arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+    </div>
+
     <div class="theme-section" style="background-color: {{ theme.card }}">
       <text class="section-label" style="color: {{ theme.text }}">主题配色</text>
       <div class="theme-grid">
@@ -88,6 +96,8 @@
     <div class="save-section">
       <input class="save-settings-btn" type="button" value="保存设置" onclick="saveSettings" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
+
+    <text class="version-text" style="color: {{ theme.textMuted }}">{{ versionText }}</text>
   </div>
 </template>
 
@@ -95,6 +105,7 @@
 import router from "@system.router"
 import vibrator from "@system.vibrator"
 const store = require("../../data/store.js")
+const version = require("../../data/version.js")
 
 function safeVibrate(mode) {
   if (!vibrator) {
@@ -136,7 +147,8 @@ export default {
     vibrationStyles: [],
     theme: {},
     currentThemeKey: "blue",
-    themes: []
+    themes: [],
+    versionText: ""
   },
 
   onInit() {
@@ -158,6 +170,7 @@ export default {
     this.loadRemindSettings()
     this.loadNickname()
     this.loadVibrationStyle()
+    this.versionText = "v" + version.versionName
   },
 
   onShow() {
@@ -232,7 +245,11 @@ export default {
   },
 
   openTestReminder() {
-    router.push({ uri: "/pages/test-reminder" })
+    router.push({ uri: "pages/demo-reminder" })
+  },
+
+  openDemoList() {
+    router.push({ uri: "pages/demo-list" })
   },
 
   toggleRemind() {
@@ -601,5 +618,12 @@ export default {
   font-size: 18px;
   font-weight: bold;
   text-align: center;
+}
+
+.version-text {
+  font-size: 12px;
+  text-align: center;
+  padding-top: 8px;
+  padding-bottom: 12px;
 }
 </style>

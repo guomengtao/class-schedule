@@ -1,0 +1,230 @@
+<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
+
+<template>
+  <div class="input-page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="&#9664;" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">{{ title }}</text>
+    </div>
+
+    <div class="content">
+      <text class="hint" style="color: {{ theme.textSecondary }}">输入内容（最多{{ maxlen }}个字）</text>
+
+      <div class="display-box" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+        <text class="display-text" style="color: {{ theme.text }}">{{ inputValue || placeholder }}</text>
+        <text class="cursor" show="{{ showCursor }}" style="color: {{ theme.accent }}">_</text>
+      </div>
+
+      <div class="button-row">
+        <input class="cancel-btn" type="button" value="取消" onclick="goBack" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+        <input class="done-btn" type="button" value="完成" onclick="onDone" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      </div>
+    </div>
+
+    <input-method
+      hide="{{ hideKeyboard }}"
+      keyboardtype="QWERTY"
+      maxlength="{{ maxlen }}"
+      vibratemode="short"
+      screentype="rect"
+      @visibility-change="onVisibilityChange"
+      @key-down="onKeyDown"
+      @delete="onDelete"
+      @complete="onComplete"
+    ></input-method>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+export default {
+  private: {
+    title: "输入",
+    placeholder: "点击输入",
+    inputValue: "",
+    maxlen: 5,
+    theme: {},
+    hideKeyboard: true,
+    showCursor: false,
+    returnKey: ""
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+
+    var storage = require("@system.storage")
+    storage.get({
+      key: "chinese_input_title",
+      success: function(data) {
+        if (data) self.title = data
+      }
+    })
+    storage.get({
+      key: "chinese_input_placeholder",
+      success: function(data) {
+        if (data) self.placeholder = data
+      }
+    })
+    storage.get({
+      key: "chinese_input_value",
+      success: function(data) {
+        if (data) self.inputValue = data
+      }
+    })
+    storage.get({
+      key: "chinese_input_maxlen",
+      success: function(data) {
+        if (data) self.maxlen = parseInt(data) || 5
+      }
+    })
+    storage.get({
+      key: "chinese_input_return_key",
+      success: function(data) {
+        if (data) self.returnKey = data
+      }
+    })
+  },
+
+  showKeyboard() {
+    this.hideKeyboard = false
+    this.showCursor = true
+  },
+
+  onVisibilityChange(evt) {
+    if (evt.detail && evt.detail.visible === false) {
+      this.showCursor = false
+    }
+  },
+
+  onKeyDown(_evt) {
+  },
+
+  onDelete() {
+    this.inputValue = this.inputValue.slice(0, -1)
+  },
+
+  onComplete(evt) {
+    this.inputValue += evt.detail.content
+  },
+
+  onDone() {
+    var result = this.inputValue.trim()
+    var storage = require("@system.storage")
+    storage.set({
+      key: this.returnKey || "chinese_input_result",
+      value: result,
+      success: function() {
+        router.back()
+      }
+    })
+  },
+
+  goBack() {
+    if (!this.hideKeyboard) {
+      this.hideKeyboard = true
+      this.showCursor = false
+    } else {
+      router.back()
+    }
+  }
+}
+</script>
+
+<style>
+.input-page {
+  flex-direction: column;
+  padding: 8px 12px;
+  height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  height: 32px;
+  margin-bottom: 8px;
+}
+
+.back-btn {
+  width: 32px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.content {
+  flex-direction: column;
+  align-items: center;
+  padding: 6px;
+  flex-shrink: 0;
+}
+
+.hint {
+  font-size: 14px;
+  margin-bottom: 6px;
+  align-self: flex-start;
+  margin-left: 4px;
+}
+
+.display-box {
+  width: 100%;
+  height: 42px;
+  border-radius: 8px;
+  border-width: 2px;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+}
+
+.display-text {
+  font-size: 18px;
+}
+
+.cursor {
+  font-size: 18px;
+  margin-left: 2px;
+}
+
+.button-row {
+  flex-direction: row;
+  justify-content: space-around;
+  margin-top: 16px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.cancel-btn {
+  width: 100px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.done-btn {
+  width: 120px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+}
+</style>

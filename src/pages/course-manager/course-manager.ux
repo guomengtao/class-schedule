@@ -1,39 +1,41 @@
 <import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
 
 <template>
-  <div class="page" style="background-color: {{ theme.bg }}">
-    <div class="header">
-      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="title" style="color: {{ theme.text }}">管理课程</text>
+  <div class="manager-page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="color: {{ theme.text }}">课程管理</text>
     </div>
 
-    <div class="add-row" show="{{ renameIdx === -1 }}">
-      <div class="add-input-display" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
-        <text class="add-input-text" style="color: {{ theme.text }}">{{ newName || '点击输入课程名称' }}</text>
-        <text class="add-input-cursor" show="{{ showCursor }}">_</text>
+    <div class="rename-bar" show="{{ editingIndex >= 0 }}" style="background-color: {{ theme.card }}">
+      <div class="rename-display" onclick="showKeyboard" style="background-color: {{ theme.cardLight }}; border-color: {{ theme.accent }}">
+        <text class="rename-text" style="color: {{ theme.text }}">{{ editName || '输入新名称' }}</text>
+        <text class="rename-cursor" show="{{ showCursor }}">_</text>
       </div>
-      <input class="add-btn" type="button" value="添加" onclick="addCourse" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="rename-ok-btn" type="button" value="保存" onclick="finishEdit" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="rename-cancel-btn" type="button" value="取消" onclick="cancelEdit" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
     </div>
 
-    <div class="rename-row" show="{{ renameIdx !== -1 }}" style="background-color: {{ theme.card }}">
-      <text class="rename-label" style="color: {{ theme.textSecondary }}">重命名：</text>
-      <div class="rename-input-display" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
-        <text class="rename-input-text" style="color: {{ theme.text }}">{{ renameValue || '输入新名称' }}</text>
-        <text class="rename-input-cursor" show="{{ showCursor }}">_</text>
+    <div class="add-bar" style="background-color: {{ theme.card }}">
+      <div class="add-display" onclick="startAdd" style="background-color: {{ theme.cardLight }}; border-color: {{ theme.accent }}">
+        <text class="add-text" style="color: {{ theme.text }}">{{ newCourseName || '输入新课程名称' }}</text>
+        <text class="add-cursor" show="{{ showCursor && isAdding }}">_</text>
       </div>
-      <div class="rename-btns">
-        <input class="rename-save-btn" type="button" value="保存" onclick="saveRename" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        <input class="rename-cancel-btn" type="button" value="取消" onclick="cancelRename" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
-      </div>
+      <input class="add-ok-btn" type="button" value="添加" onclick="confirmAddCourse" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="add-cancel-btn" type="button" value="取消" onclick="cancelAdd" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
     </div>
 
-    <div class="course-list">
-      <div for="{{ courseList }}" class="course-card" onclick="showCourseMenu($idx)" 
-           style="background-color: {{ theme.card }}; border-left-color: {{ theme.accent }}">
-        <text class="course-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-        <text class="course-arrow" style="color: {{ theme.textMuted }}">›</text>
+    <scroll class="course-list-scroll" scroll-y="{{true}}">
+      <div for="{{ courseList }}" class="course-item" style="background-color: {{ theme.card }}; border-left-color: {{ theme.accent }}">
+        <div class="item-left">
+          <text class="course-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+        </div>
+        <div class="item-right">
+          <input class="link-btn" type="button" value="重命名" onclick="startRename($idx)" style="background-color: transparent; color: {{ theme.accent }}" />
+          <input class="link-btn delete-btn" type="button" value="删除" onclick="deleteCourse($idx)" style="background-color: transparent; color: {{ theme.deleteText }}" />
+        </div>
       </div>
-    </div>
+    </scroll>
 
     <input-method
       hide="{{ hideKeyboard }}"
@@ -75,12 +77,25 @@ export default {
   private: {
     theme: {},
     courseList: [],
-    newName: "",
+    editingIndex: -1,
+    editName: "",
+    isAdding: false,
+    newCourseName: "",
     hideKeyboard: true,
-    showCursor: false,
-    renameIdx: -1,
-    renameValue: "",
-    inputMode: "add"
+    showCursor: false
+  },
+
+  sortByTime: function(list) {
+    if (!list || list.length === 0) return list
+    var sorted = list.slice()
+    sorted.sort(function(a, b) {
+      var ta = a.time ? a.time.split(' - ')[0] : '00:00'
+      var tb = b.time ? b.time.split(' - ')[0] : '00:00'
+      var taParts = ta.split(':')
+      var tbParts = tb.split(':')
+      return (parseInt(taParts[0]) * 60 + parseInt(taParts[1])) - (parseInt(tbParts[0]) * 60 + parseInt(tbParts[1]))
+    })
+    return sorted
   },
 
   onInit() {
@@ -89,6 +104,13 @@ export default {
       self.theme = t
     })
     this.loadCourses()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
   },
 
   loadCourses() {
@@ -101,19 +123,19 @@ export default {
           try {
             var list = JSON.parse(data)
             if (list && list.length > 0) {
-              self.courseList = list
+              self.courseList = self.sortByTime(list)
             } else {
-              self.courseList = defaultCourses.slice()
+              self.courseList = self.sortByTime(defaultCourses.slice())
             }
           } catch (e) {
-            self.courseList = defaultCourses.slice()
+            self.courseList = self.sortByTime(defaultCourses.slice())
           }
         } else {
-          self.courseList = defaultCourses.slice()
+          self.courseList = self.sortByTime(defaultCourses.slice())
         }
       },
       fail: function() {
-        self.courseList = defaultCourses.slice()
+        self.courseList = self.sortByTime(defaultCourses.slice())
       }
     })
   },
@@ -129,11 +151,6 @@ export default {
   showKeyboard() {
     this.hideKeyboard = false
     this.showCursor = true
-    if (this.renameIdx !== -1) {
-      this.inputMode = "rename"
-    } else {
-      this.inputMode = "add"
-    }
   },
 
   onVisibilityChange(evt) {
@@ -145,84 +162,39 @@ export default {
   onKeyDown() {},
 
   onDelete() {
-    if (this.inputMode === "rename") {
-      this.renameValue = this.renameValue.slice(0, -1)
-    } else {
-      this.newName = this.newName.slice(0, -1)
+    if (this.editingIndex >= 0) {
+      this.editName = this.editName.slice(0, -1)
+    } else if (this.isAdding) {
+      this.newCourseName = this.newCourseName.slice(0, -1)
     }
   },
 
   onComplete(evt) {
-    if (this.inputMode === "rename") {
-      this.renameValue += evt.detail.content
-    } else {
-      this.newName += evt.detail.content
+    if (this.editingIndex >= 0) {
+      this.editName += evt.detail.content
+    } else if (this.isAdding) {
+      this.newCourseName += evt.detail.content
     }
   },
 
-  addCourse() {
-    var name = this.newName.trim()
-    if (!name) {
-      prompt.showToast({ message: "请输入课程名称", duration: 300 })
-      return
-    }
-    for (var i = 0; i < this.courseList.length; i++) {
-      if (this.courseList[i].name === name) {
-        prompt.showToast({ message: "课程已存在", duration: 300 })
-        return
-      }
-    }
-    this.courseList.push({
-      name: name,
-      time: "08:00 - 08:45",
-      teacher: "老师",
-      location: ""
-    })
-    this.saveCourses()
-    this.newName = ""
-    prompt.showToast({ message: "已添加", duration: 300 })
-  },
-
-  showCourseMenu(idx) {
-    var self = this
+  startRename(idx) {
     var item = this.courseList[idx]
     if (!item) return
-
-    prompt.showDialog({
-      title: "📚 " + item.name,
-      message: "选择操作",
-      buttons: [
-        {
-          text: "✏️ 重命名",
-          color: "#7ec8e3",
-          onclick: function() {
-            self.renameIdx = idx
-            self.renameValue = item.name
-            self.showKeyboard()
-          }
-        },
-        {
-          text: "🗑 删除",
-          color: "#e74c3c",
-          onclick: function() {
-            self.deleteCourse(idx)
-          }
-        },
-        {
-          text: "取消",
-          color: "#888899"
-        }
-      ]
-    })
+    this.editingIndex = idx
+    this.editName = item.name
+    this.showKeyboard()
   },
 
-  saveRename() {
-    var newName = this.renameValue.trim()
-    var idx = this.renameIdx
-    if (!newName || idx < 0 || idx >= this.courseList.length) return
+  finishEdit() {
+    var newName = this.editName.trim()
+    var idx = this.editingIndex
+    if (!newName || idx < 0 || idx >= this.courseList.length) {
+      this.cancelEdit()
+      return
+    }
     var item = this.courseList[idx]
     if (newName === item.name) {
-      this.cancelRename()
+      this.cancelEdit()
       return
     }
     for (var i = 0; i < this.courseList.length; i++) {
@@ -233,41 +205,65 @@ export default {
     }
     this.courseList[idx].name = newName
     this.saveCourses()
-    this.cancelRename()
+    this.cancelEdit()
     prompt.showToast({ message: "已更新", duration: 300 })
   },
 
-  cancelRename() {
-    this.renameIdx = -1
-    this.renameValue = ""
-    this.inputMode = "add"
+  cancelEdit() {
+    this.editingIndex = -1
+    this.editName = ""
+    this.hideKeyboard = true
+    this.showCursor = false
+  },
+
+  startAdd() {
+    this.isAdding = true
+    this.newCourseName = ""
+    this.showKeyboard()
+  },
+
+  confirmAddCourse() {
+    var newName = this.newCourseName.trim()
+    if (!newName) {
+      return
+    }
+    for (var i = 0; i < this.courseList.length; i++) {
+      if (this.courseList[i].name === newName) {
+        prompt.showToast({ message: "名称已存在", duration: 300 })
+        return
+      }
+    }
+    this.courseList.push({
+      name: newName,
+      time: "08:00 - 08:45",
+      teacher: "老师",
+      location: ""
+    })
+    this.courseList = this.sortByTime(this.courseList)
+    this.saveCourses()
+    this.cancelAdd()
+    prompt.showToast({ message: "已添加", duration: 300 })
+  },
+
+  cancelAdd() {
+    this.isAdding = false
+    this.newCourseName = ""
     this.hideKeyboard = true
     this.showCursor = false
   },
 
   deleteCourse(idx) {
-    var self = this
-    var item = this.courseList[idx]
-    prompt.showDialog({
-      title: "🗑 删除课程",
-      message: '确定要删除 "' + item.name + '" 吗？',
-      buttons: [
-        { text: "取消", color: "#888899" },
-        {
-          text: "确定删除",
-          color: "#e74c3c",
-          onclick: function() {
-            self.courseList.splice(idx, 1)
-            self.saveCourses()
-            prompt.showToast({ message: "已删除", duration: 300 })
-          }
-        }
-      ]
-    })
+    if (idx < 0 || idx >= this.courseList.length) return
+    this.courseList.splice(idx, 1)
+    this.saveCourses()
   },
 
   goBack() {
-    if (!this.hideKeyboard) {
+    if (this.isAdding) {
+      this.cancelAdd()
+    } else if (this.editingIndex >= 0) {
+      this.cancelEdit()
+    } else if (!this.hideKeyboard) {
       this.hideKeyboard = true
       this.showCursor = false
     } else {
@@ -278,84 +274,45 @@ export default {
 </script>
 
 <style>
-.page {
+.manager-page {
   flex-direction: column;
   padding: 12px;
   height: 100%;
 }
 
-.header {
+.back-header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 12px;
-  padding: 6px 0;
+  margin-bottom: 10px;
+  flex-shrink: 0;
 }
 
 .back-btn {
-  width: 70px;
+  width: 44px;
   height: 36px;
   border-radius: 8px;
   font-size: 14px;
   text-align: center;
+  flex-shrink: 0;
 }
 
-.title {
+.header-title {
   font-size: 18px;
   font-weight: bold;
-  margin-left: 12px;
+  margin-left: 10px;
 }
 
-.add-row {
+.rename-bar {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 8px;
-}
-
-.add-input-display {
-  flex: 1;
-  height: 36px;
-  border-radius: 10px;
-  border-width: 2px;
-  justify-content: center;
-  align-items: center;
-  flex-direction: row;
-  padding: 0 12px;
-  margin-right: 8px;
-}
-
-.add-input-text {
-  font-size: 14px;
-}
-
-.add-input-cursor {
-  font-size: 14px;
-  color: #7ec8e3;
-  margin-left: 2px;
-}
-
-.add-btn {
-  width: 50px;
-  height: 36px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.rename-row {
-  flex-direction: column;
   margin-bottom: 8px;
   padding: 8px;
   border-radius: 10px;
+  flex-shrink: 0;
 }
 
-.rename-label {
-  font-size: 13px;
-  margin-bottom: 6px;
-}
-
-.rename-input-display {
-  width: 100%;
+.rename-display {
+  flex: 1;
   height: 36px;
   border-radius: 10px;
   border-width: 2px;
@@ -363,64 +320,131 @@ export default {
   align-items: center;
   flex-direction: row;
   padding: 0 12px;
-  margin-bottom: 8px;
+  margin-right: 8px;
 }
 
-.rename-input-text {
+.rename-text {
   font-size: 14px;
 }
 
-.rename-input-cursor {
+.rename-cursor {
   font-size: 14px;
   color: #7ec8e3;
   margin-left: 2px;
 }
 
-.rename-btns {
-  flex-direction: row;
-  justify-content: flex-end;
-}
-
-.rename-save-btn {
-  width: 50px;
-  height: 32px;
+.rename-ok-btn {
+  width: 44px;
+  height: 36px;
   border-radius: 8px;
   font-size: 13px;
   text-align: center;
-  margin-right: 8px;
+  margin-right: 6px;
+  flex-shrink: 0;
 }
 
 .rename-cancel-btn {
-  width: 50px;
-  height: 32px;
+  width: 44px;
+  height: 36px;
   border-radius: 8px;
   font-size: 13px;
   text-align: center;
+  flex-shrink: 0;
 }
 
-.course-list {
+.add-bar {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.add-display {
   flex: 1;
-  flex-direction: column;
-  overflow: auto;
+  height: 36px;
+  border-radius: 10px;
+  border-width: 2px;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  padding: 0 12px;
+  margin-right: 8px;
 }
 
-.course-card {
+.add-text {
+  font-size: 14px;
+}
+
+.add-cursor {
+  font-size: 14px;
+  color: #7ec8e3;
+  margin-left: 2px;
+}
+
+.add-ok-btn {
+  width: 44px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.add-cancel-btn {
+  width: 44px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.course-list-scroll {
+  flex: 1;
+  height: 100%;
+  flex-direction: column;
+}
+
+.course-item {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
   border-radius: 8px;
-  padding: 10px 14px;
-  margin-bottom: 6px;
+  padding: 6px 4px 6px 12px;
+  margin-bottom: 4px;
   border-left-width: 3px;
   border-left-style: solid;
 }
 
-.course-name {
-  font-size: 15px;
+.item-left {
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  margin-right: 4px;
 }
 
-.course-arrow {
-  font-size: 14px;
-  color: #555566;
+.course-name {
+  font-size: 15px;
+  lines: 1;
+}
+
+.item-right {
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.link-btn {
+  font-size: 11px;
+  padding: 1px 2px;
+  border: none;
+  background-color: transparent;
+}
+
+.delete-btn {
+  color: #e74c3c;
 }
 </style>

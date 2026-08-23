@@ -1,17 +1,23 @@
+<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
+
 <template>
   <div class="manager-page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
       <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="header-title" style="color: {{ theme.text }}">课程表管理</text>
+      <input class="stats-btn" type="button" value="统计" ontouchstart="onStatsTouch" onclick="openStatistics" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
     </div>
 
-    <div class="rename-bar" if="{{ editingIndex >= 0 }}" style="background-color: {{ theme.card }}">
-      <input class="rename-input" type="text" value="{{ editName }}" onchange="onRenameChange" placeholder="输入新名称" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+    <div class="rename-bar" show="{{ editingIndex >= 0 }}" style="background-color: {{ theme.card }}">
+      <div class="rename-display" onclick="showKeyboard" style="background-color: {{ theme.cardLight }}; border-color: {{ theme.accent }}">
+        <text class="rename-text" style="color: {{ theme.text }}">{{ editName || '输入新名称' }}</text>
+        <text class="rename-cursor" show="{{ showCursor }}">_</text>
+      </div>
       <input class="rename-ok-btn" type="button" value="保存" onclick="finishEdit" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       <input class="rename-cancel-btn" type="button" value="取消" onclick="cancelEdit" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
     </div>
 
-    <div class="schedule-list">
+    <div class="schedule-list-scroll">
       <div for="{{ scheduleList }}" class="schedule-item {{ $idx === currentIndex ? 'active' : '' }}" style="background-color: {{ theme.card }}; border-left-color: {{ $idx === currentIndex ? theme.accent : 'transparent' }}">
         <div class="item-left" onclick="selectSchedule($idx)">
           <text class="schedule-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
@@ -21,6 +27,7 @@
           <text class="link" onclick="startRename($idx)" style="color: {{ theme.accent }}">重命名</text>
           <text class="link" onclick="copySchedule($idx)" style="color: {{ theme.accent }}">复制</text>
           <text class="link" onclick="openWeekView($idx)" style="color: {{ theme.accent }}">总览</text>
+          <text class="link" onclick="openScheduleStats($idx)" style="color: {{ theme.accent }}">统计</text>
           <text class="link delete-link" if="{{ scheduleList.length > 1 }}" onclick="deleteSchedule($idx)" style="color: {{ theme.deleteText }}">删除</text>
         </div>
       </div>
@@ -29,6 +36,18 @@
     <div class="add-section">
       <input class="add-btn" type="button" value="+ 新增课程表" onclick="addSchedule" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
+
+    <input-method
+      hide="{{ hideKeyboard }}"
+      keyboardtype="QWERTY"
+      maxlength="10"
+      vibratemode="short"
+      screentype="rect"
+      @visibility-change="onVisibilityChange"
+      @key-down="onKeyDown"
+      @delete="onDelete"
+      @complete="onComplete"
+    ></input-method>
   </div>
 </template>
 
@@ -43,7 +62,9 @@ export default {
     currentIndex: 0,
     editingIndex: -1,
     editName: "",
-    theme: {}
+    theme: {},
+    hideKeyboard: true,
+    showCursor: false
   },
 
   onInit() {
@@ -77,11 +98,47 @@ export default {
   },
 
   goBack() {
+    if (!this.hideKeyboard) {
+      this.hideKeyboard = true
+      this.showCursor = false
+      return
+    }
     if (this.editingIndex >= 0) {
       this.cancelEdit()
       return
     }
     router.back()
+  },
+
+  openStatistics() {
+    var storage = require("@system.storage")
+    storage.set({
+      key: "statistics_index",
+      value: "-1",
+      success: function() {
+        router.push({ uri: "/pages/statistics" })
+      },
+      fail: function() {
+        router.push({ uri: "/pages/statistics" })
+      }
+    })
+  },
+
+  openScheduleStats(index) {
+    var storage = require("@system.storage")
+    storage.set({
+      key: "statistics_index",
+      value: String(index),
+      success: function() {
+        router.push({ uri: "/pages/statistics" })
+      },
+      fail: function() {
+        router.push({ uri: "/pages/statistics" })
+      }
+    })
+  },
+
+  onStatsTouch() {
   },
 
   selectSchedule(index) {
@@ -104,10 +161,31 @@ export default {
   startRename(index) {
     this.editingIndex = index
     this.editName = this.scheduleList[index].name
+    var self = this
+    setTimeout(function() {
+      self.showKeyboard()
+    }, 100)
   },
 
-  onRenameChange(e) {
-    this.editName = e.value || ""
+  showKeyboard() {
+    this.hideKeyboard = false
+    this.showCursor = true
+  },
+
+  onVisibilityChange(evt) {
+    if (evt.detail && evt.detail.visible === false) {
+      this.showCursor = false
+    }
+  },
+
+  onKeyDown() {},
+
+  onDelete() {
+    this.editName = this.editName.slice(0, -1)
+  },
+
+  onComplete(evt) {
+    this.editName += evt.detail.content
   },
 
   finishEdit() {
@@ -146,6 +224,8 @@ export default {
   cancelEdit() {
     this.editingIndex = -1
     this.editName = ""
+    this.hideKeyboard = true
+    this.showCursor = false
   },
 
   openWeekView(index) {
@@ -292,7 +372,8 @@ export default {
   flex-direction: column;
   background-color: #1a1a2e;
   padding: 12px;
-  min-height: 100%;
+  height: 100%;
+  position: relative;
 }
 
 .back-header {
@@ -310,6 +391,18 @@ export default {
   font-size: 20px;
   color: #7ec8e3;
   text-align: center;
+  flex-shrink: 0;
+}
+
+.stats-btn {
+  width: 54px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: #16213e;
+  font-size: 18px;
+  color: #7ec8e3;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .header-title {
@@ -332,14 +425,24 @@ export default {
   border-left-style: solid;
 }
 
-.rename-input {
+.rename-display {
   flex: 1;
   height: 40px;
   border-radius: 8px;
-  background-color: #16213e;
+  border-width: 2px;
   font-size: 18px;
-  color: #ffffff;
   padding: 0 12px;
+  flex-direction: row;
+  align-items: center;
+}
+
+.rename-text {
+  font-size: 18px;
+}
+
+.rename-cursor {
+  font-size: 18px;
+  color: #7ec8e3;
 }
 
 .rename-ok-btn {
@@ -365,17 +468,18 @@ export default {
   margin-left: 6px;
 }
 
-.schedule-list {
+.schedule-list-scroll {
   flex: 1;
   flex-direction: column;
+  overflow: auto;
 }
 
 .schedule-item {
   flex-direction: column;
   background-color: #16213e;
   border-radius: 12px;
-  padding: 40px 30px;
-  margin-bottom: 20px;
+  padding: 16px 20px;
+  margin-bottom: 10px;
 }
 
 .schedule-item.active {
@@ -388,7 +492,7 @@ export default {
 .item-left {
   flex-direction: row;
   align-items: center;
-  padding-bottom: 24px;
+  padding-bottom: 10px;
   border-bottom-width: 1px;
   border-bottom-color: #1a2a4e;
   border-bottom-style: solid;
@@ -413,14 +517,14 @@ export default {
 .item-right {
   flex-direction: row;
   justify-content: flex-start;
-  padding-top: 24px;
+  padding-top: 10px;
 }
 
 .link {
-  font-size: 22px;
+  font-size: 18px;
   color: #7ec8e3;
-  margin-right: 30px;
-  padding: 8px 0;
+  margin-right: 18px;
+  padding: 6px 0;
 }
 
 .link.delete-link {

@@ -269,6 +269,33 @@ function getAllCoursesSqlite(callback) {
   })
 }
 
+function combineAllSchedules(allSchedules) {
+  var dayMap = {}
+  for (var s = 0; s < allSchedules.length; s++) {
+    var days = allSchedules[s]
+    for (var d = 0; d < days.length; d++) {
+      var dayData = days[d]
+      var day = dayData.day
+      if (!dayMap[day]) {
+        dayMap[day] = []
+      }
+      var classes = dayData.classes || []
+      for (var c = 0; c < classes.length; c++) {
+        dayMap[day].push(classes[c])
+      }
+    }
+  }
+  var result = []
+  var dayOrder = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+  for (var i = 0; i < dayOrder.length; i++) {
+    var d = dayOrder[i]
+    if (dayMap[d]) {
+      result.push({ day: d, classes: dayMap[d] })
+    }
+  }
+  return result
+}
+
 function getAllCoursesStorage(callback) {
   log("getAllCoursesStorage, key=" + getStorageKey())
   storage.get({
@@ -582,10 +609,59 @@ module.exports = {
     ensureReady(function() {
       var oldIndex = currentScheduleIndex
       currentScheduleIndex = index
-      getAllCoursesStorage(function(data) {
-        currentScheduleIndex = oldIndex
-        log("getAllCoursesWithIndex: restored index to " + oldIndex)
-        callback(data)
+      if (useSqlite) {
+        getAllCoursesSqlite(function(data) {
+          currentScheduleIndex = oldIndex
+          log("getAllCoursesWithIndex: restored index to " + oldIndex)
+          callback(data)
+        })
+      } else {
+        getAllCoursesStorage(function(data) {
+          currentScheduleIndex = oldIndex
+          log("getAllCoursesWithIndex: restored index to " + oldIndex)
+          callback(data)
+        })
+      }
+    })
+  },
+
+  getAllCoursesCombined: function(callback) {
+    log("getAllCoursesCombined")
+    ensureReady(function() {
+      var storage = require("@system.storage")
+      storage.get({
+        key: "scheduleNames",
+        success: function(raw) {
+          var names = []
+          try { names = JSON.parse(raw || "[]") } catch (e) { names = [] }
+          log("getAllCoursesCombined: found " + names.length + " schedules")
+          if (names.length === 0) {
+            callback([])
+            return
+          }
+          var allSchedules = []
+          var loaded = 0
+          var oldIndex = currentScheduleIndex
+          function loadOne(index) {
+            if (index >= names.length) {
+              currentScheduleIndex = oldIndex
+              var combined = combineAllSchedules(allSchedules)
+              log("getAllCoursesCombined: combined " + combined.length + " days")
+              callback(combined)
+              return
+            }
+            currentScheduleIndex = index
+            getAllCoursesStorage(function(data) {
+              allSchedules.push(data || [])
+              loaded++
+              loadOne(index + 1)
+            })
+          }
+          loadOne(0)
+        },
+        fail: function() {
+          callback([])
+        }
       })
     })
   }

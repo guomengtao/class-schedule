@@ -1,0 +1,169 @@
+<template>
+  <div class="demo-page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="&#9664;" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">{{ pageTitle }}</text>
+    </div>
+    <div class="add-row">
+      <input class="add-btn" type="button" value="+ 添加" onclick="showAddDialog" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+    <scroll class="h-scroll" scroll-x="{{true}}">
+      <div for="{{ listData }}" class="h-card" style="background-color: {{ theme.card }}; border: 2px solid #e67e22">
+        <div class="h-icon" style="background-color: #e67e22"><text class="h-icon-text" style="font-size: 36px; font-weight: bold; color: #ffffff">{{ $item.charAt(0) }}</text></div>
+        <text class="h-name" style="font-size: 26px; font-weight: bold; color: {{ theme.text }}; text-align: center">{{ $item }}</text>
+        <text class="h-idx" style="font-size: 18px; color: #e67e22; text-align: center">#{{ $idx + 1 }}</text>
+        <div class="music-del-btn" onclick="confirmDelete($idx)"><text class="music-del-icon">&#10005;</text></div>
+      </div>
+    </scroll>
+    <div class="footer" style="border-top: 1px solid {{ theme.border }}">
+      <text class="footer-text" style="color: {{ theme.textMuted }}">共 {{ listData.length }} 个</text>
+    </div>
+  </div>
+</template>
+<script>
+import router from "@system.router"
+import prompt from "@system.prompt"
+var storage = require("@system.storage")
+var store = require("../../data/store.js")
+var STORAGE_KEY = "demo_demo-music"
+var DEFAULT_DATA = ["钢琴","吉他","小提琴","大提琴","长笛","萨克斯","架子鼓","二胡","古筝","琵琶"]
+
+export default {
+  private: {
+    theme: {},
+    listData: [],
+    swipedIdx: -1,
+    touchStartX: 0
+    ,pageTitle: "乐器列表"
+  },
+  onInit: function() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+    this.loadData()
+  },
+  onShow: function() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+    this.loadData()
+  },
+  loadData: function() {
+    var self = this
+    storage.get({
+      key: STORAGE_KEY,
+      success: function(data) {
+        if (data) {
+          try { var list = JSON.parse(data); self.listData = (list && list.length > 0) ? list : DEFAULT_DATA.slice() }
+          catch (e) { self.listData = DEFAULT_DATA.slice() }
+        } else { self.listData = DEFAULT_DATA.slice() }
+        self.swipedIdx = -1
+      },
+      fail: function() { self.listData = DEFAULT_DATA.slice(); self.swipedIdx = -1 }
+    })
+  },
+  saveData: function() {
+    storage.set({ key: STORAGE_KEY, value: JSON.stringify(this.listData) })
+  },
+  showAddDialog: function() {
+    var self = this
+    prompt.showDialog({
+      title: "添加", message: "输入名称", edittype: "text", value: "",
+      buttons: [
+        { text: "取消", color: "#888899" },
+        { text: "确定", color: "#7ec8e3", onclick: function(_err, d) {
+          if (d && d.value) {
+            var name = d.value.trim()
+            if (!name) return
+            for (var i = 0; i < self.listData.length; i++) {
+              if (self.listData[i] === name) { prompt.showToast({ message: "已存在", duration: 300 }); return }
+            }
+            self.listData.push(name); self.saveData()
+            prompt.showToast({ message: "已添加", duration: 300 })
+          }
+        }}
+      ]
+    })
+  },
+  onItemClick: function(idx) {
+    if (this.swipedIdx !== -1) { this.swipedIdx = -1; return }
+    this.showMenu(idx)
+  },
+  showMenu: function(idx) {
+    var self = this; var item = this.listData[idx]; if (!item) return
+    prompt.showDialog({
+      title: item, message: "选择操作",
+      buttons: [
+        { text: "编辑", color: "#7ec8e3", onclick: function() { self.startEdit(idx) } },
+        { text: "复制", color: "#7ec8e3", onclick: function() { self.copyItem(idx) } },
+        { text: "删除", color: "#e74c3c", onclick: function() { self.confirmDelete(idx) } },
+        { text: "取消", color: "#888899" }
+      ]
+    })
+  },
+  startEdit: function(idx) {
+    var self = this; var item = this.listData[idx]
+    prompt.showDialog({
+      title: "编辑", message: "输入新名称", edittype: "text", value: item,
+      buttons: [
+        { text: "取消", color: "#888899" },
+        { text: "保存", color: "#7ec8e3", onclick: function(_err, d) {
+          if (d && d.value) {
+            var nn = d.value.trim()
+            if (nn && nn !== item) {
+              for (var i = 0; i < self.listData.length; i++) {
+                if (i !== idx && self.listData[i] === nn) { prompt.showToast({ message: "名称已存在", duration: 300 }); return }
+              }
+              self.listData[idx] = nn; self.saveData()
+              prompt.showToast({ message: "已更新", duration: 300 })
+            }
+          }
+        }}
+      ]
+    })
+  },
+  copyItem: function(idx) {
+    var item = this.listData[idx]; var nn = item + " (副本)"; var ex = false
+    for (var i = 0; i < this.listData.length; i++) { if (this.listData[i] === nn) { ex = true; break } }
+    if (ex) {
+      var c = 1
+      while (true) {
+        var tn = item + " (副本" + c + ")"; var fd = false
+        for (var i = 0; i < this.listData.length; i++) { if (this.listData[i] === tn) { fd = true; break } }
+        if (!fd) { nn = tn; break }
+        c++
+      }
+    }
+    this.listData.push(nn); this.saveData()
+    prompt.showToast({ message: "已复制", duration: 300 })
+  },
+  confirmDelete: function(idx) {
+    var self = this; var item = this.listData[idx]
+    prompt.showDialog({
+      title: "删除", message: '删除 "' + item + '" ?',
+      buttons: [
+        { text: "取消", color: "#888899" },
+        { text: "确定", color: "#e74c3c", onclick: function() {
+          self.listData.splice(idx, 1); self.swipedIdx = -1; self.saveData()
+          prompt.showToast({ message: "已删除", duration: 300 })
+        }}
+      ]
+    })
+  },
+  goBack: function() { router.back() },
+}
+</script>
+<style>
+  .demo-page{flex-direction:column;padding:16px;height:100%}
+  .header{flex-direction:row;align-items:center;padding:12px 4px;margin-bottom:8px}
+  .back-btn{width:56px;height:44px;border-radius:10px;font-size:18px;text-align:center}
+  .title{font-size:28px;font-weight:bold;margin-left:10px;flex:1}
+  .add-row{flex-direction:row;align-items:center;padding:8px 0;margin-bottom:12px}
+  .add-btn{flex:1;height:48px;border-radius:12px;font-size:20px;font-weight:bold;text-align:center}
+  .list{flex:1;flex-direction:column}
+  .footer{padding:8px 0;border-top:1px solid;margin-top:8px;align-items:center}
+  .footer-text{font-size:16px}
+  .h-scroll{flex:1;flex-direction:row;height:216px}
+  .h-card{width:160px;height:196px;border-radius:18px;flex-direction:column;justify-content:center;align-items:center;margin-right:14px;flex-shrink:0;position:relative}
+  .h-icon{width:64px;height:64px;border-radius:32px;justify-content:center;align-items:center;margin-bottom:12px}
+  .music-del-btn{position:absolute;top:4px;right:4px;width:32px;height:32px;background-color:#e74c3c;border-radius:16px;justify-content:center;align-items:center}
+  .music-del-icon{font-size:14px;color:#ffffff}
+</style>

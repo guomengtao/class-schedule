@@ -1,0 +1,342 @@
+<template>
+  <div class="stats-page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀" onclick="goBack"
+             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="color: {{ theme.text }}">课程统计</text>
+    </div>
+
+    <scroll class="stats-scroll" scroll-y="{{true}}">
+      <div class="overview" style="background-color: {{ theme.card }}">
+        <div class="overview-row">
+          <div class="overview-item">
+            <text class="overview-number" style="color: {{ theme.accent }}">{{ totalCourses }}</text>
+            <text class="overview-label" style="color: {{ theme.textMuted }}">总课程</text>
+          </div>
+          <div class="overview-item">
+            <text class="overview-number" style="color: {{ theme.accent }}">{{ weeklyCourses }}</text>
+            <text class="overview-label" style="color: {{ theme.textMuted }}">本周</text>
+          </div>
+          <div class="overview-item">
+            <text class="overview-number" style="color: {{ theme.accent }}">{{ busiestDay }}</text>
+            <text class="overview-label" style="color: {{ theme.textMuted }}">最忙日</text>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" style="background-color: {{ theme.card }}">
+        <text class="section-title" style="color: {{ theme.accent }}">各科数量排行</text>
+        <div for="{{ subjectRank }}" class="rank-item">
+          <text class="rank-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+          <div class="rank-bar-wrap">
+            <div class="rank-bar" style="width: {{ $item.percent }}%; background-color: {{ theme.accent }}; opacity: 0.8;"></div>
+          </div>
+          <text class="rank-count" style="color: {{ theme.textMuted }}">{{ $item.count }}</text>
+        </div>
+        <text if="{{ subjectRank.length === 0 }}" class="empty-text" style="color: {{ theme.textMuted }}">暂无课程数据</text>
+      </div>
+
+      <div class="section" style="background-color: {{ theme.card }}">
+        <text class="section-title" style="color: {{ theme.accent }}">每日课程分布</text>
+        <div for="{{ dayDistribution }}" class="rank-item">
+          <text class="rank-name" style="color: {{ theme.text }}">{{ $item.day }}</text>
+          <div class="rank-bar-wrap">
+            <div class="rank-bar" style="width: {{ $item.percent }}%; background-color: {{ $item.percent > 0 ? theme.accent : 'transparent' }}; opacity: 0.6;"></div>
+          </div>
+          <text class="rank-count" style="color: {{ theme.textMuted }}">{{ $item.count }}</text>
+        </div>
+      </div>
+
+      <div class="section" style="background-color: {{ theme.card }}">
+        <text class="section-title" style="color: {{ theme.accent }}">时间段分布</text>
+        <div for="{{ timeDistribution }}" class="rank-item">
+          <text class="rank-name" style="color: {{ theme.text }}">{{ $item.label }}</text>
+          <div class="rank-bar-wrap">
+            <div class="rank-bar" style="width: {{ $item.percent }}%; background-color: {{ theme.accent }}; opacity: 0.5;"></div>
+          </div>
+          <text class="rank-count" style="color: {{ theme.textMuted }}">{{ $item.count }}</text>
+        </div>
+      </div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+const database = require("../../data/database.js")
+
+var dayNames = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+
+export default {
+  private: {
+    theme: {},
+    totalCourses: 0,
+    weeklyCourses: 0,
+    busiestDay: "-",
+    subjectRank: [],
+    dayDistribution: [],
+    timeDistribution: []
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    this.loadStatistics()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    this.loadStatistics()
+  },
+
+  loadStatistics() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.get({
+      key: "statistics_index",
+      success: function(data) {
+        var idx = parseInt(data)
+        if (!isNaN(idx) && idx >= 0) {
+          database.getAllCoursesWithIndex(idx, function(schedule) {
+            self.processData(schedule)
+          })
+        } else {
+          database.getAllCoursesCombined(function(schedule) {
+            self.processData(schedule)
+          })
+        }
+      },
+      fail: function() {
+        database.getAllCoursesCombined(function(schedule) {
+          self.processData(schedule)
+        })
+      }
+    })
+  },
+
+  processData(schedule) {
+    var self = this
+    if (!schedule) {
+      return
+    }
+
+    var allCourses = []
+    var dayMap = {}
+    var subjectMap = {}
+
+    for (var d = 0; d < schedule.length; d++) {
+      var dayData = schedule[d]
+      var day = dayData.day
+      var classes = dayData.classes || []
+
+      dayMap[day] = (dayMap[day] || 0) + classes.length
+
+      for (var c = 0; c < classes.length; c++) {
+        var course = classes[c]
+        allCourses.push(course)
+        var name = course.name || "未命名"
+        subjectMap[name] = (subjectMap[name] || 0) + 1
+      }
+    }
+
+    self.totalCourses = allCourses.length
+
+    var weekCount = 0
+    for (var d = 0; d < 5; d++) {
+      weekCount += dayMap[dayNames[d]] || 0
+    }
+    self.weeklyCourses = weekCount
+
+    var maxDay = "-"
+    var maxCount = 0
+    for (var d = 0; d < dayNames.length; d++) {
+      var count = dayMap[dayNames[d]] || 0
+      if (count > maxCount) {
+        maxCount = count
+        maxDay = dayNames[d] + " (" + count + "节)"
+      }
+    }
+    self.busiestDay = maxDay
+
+    var subjectList = []
+    for (var key in subjectMap) {
+      if (subjectMap.hasOwnProperty(key)) {
+        subjectList.push({ name: key, count: subjectMap[key] })
+      }
+    }
+    subjectList.sort(function(a, b) { return b.count - a.count })
+    if (subjectList.length > 8) {
+      subjectList = subjectList.slice(0, 8)
+    }
+    var maxSubjectCount = subjectList.length > 0 ? subjectList[0].count : 1
+    for (var i = 0; i < subjectList.length; i++) {
+      subjectList[i].percent = Math.round((subjectList[i].count / maxSubjectCount) * 100)
+    }
+    self.subjectRank = subjectList
+
+    var dayList = []
+    var maxDayCount = 1
+    for (var d = 0; d < dayNames.length; d++) {
+      var count = dayMap[dayNames[d]] || 0
+      dayList.push({ day: dayNames[d], count: count })
+      if (count > maxDayCount) maxDayCount = count
+    }
+    for (var i = 0; i < dayList.length; i++) {
+      dayList[i].percent = Math.round((dayList[i].count / maxDayCount) * 100)
+    }
+    self.dayDistribution = dayList
+
+    var timeMap = { morning: 0, afternoon: 0, evening: 0 }
+    for (var c = 0; c < allCourses.length; c++) {
+      var time = allCourses[c].time
+      if (!time) continue
+      var parts = time.split("-")
+      if (parts.length < 2) continue
+      var startStr = parts[0].trim()
+      var hour = parseInt(startStr.split(":")[0]) || 0
+      if (hour < 12) {
+        timeMap.morning++
+      } else if (hour < 18) {
+        timeMap.afternoon++
+      } else {
+        timeMap.evening++
+      }
+    }
+
+    var timeList = [
+      { label: "上午", key: "morning", count: timeMap.morning },
+      { label: "下午", key: "afternoon", count: timeMap.afternoon },
+      { label: "晚上", key: "evening", count: timeMap.evening }
+    ]
+    var maxTimeCount = 1
+    for (var i = 0; i < timeList.length; i++) {
+      if (timeList[i].count > maxTimeCount) maxTimeCount = timeList[i].count
+    }
+    for (var i = 0; i < timeList.length; i++) {
+      timeList[i].percent = Math.round((timeList[i].count / maxTimeCount) * 100)
+    }
+    self.timeDistribution = timeList
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.stats-page {
+  flex-direction: column;
+  padding: 8px 12px;
+  height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  height: 36px;
+  margin-bottom: 8px;
+}
+
+.back-btn {
+  width: 32px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.stats-scroll {
+  flex: 1;
+  flex-direction: column;
+}
+
+.overview {
+  flex-direction: row;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.overview-row {
+  flex-direction: row;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.overview-item {
+  flex-direction: column;
+  align-items: center;
+}
+
+.overview-number {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.overview-label {
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.section {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.rank-item {
+  flex-direction: row;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.rank-name {
+  font-size: 13px;
+  width: 60px;
+}
+
+.rank-bar-wrap {
+  flex: 1;
+  height: 14px;
+  background-color: rgba(255, 255, 255, 0.06);
+  border-radius: 7px;
+  margin: 0 8px;
+}
+
+.rank-bar {
+  height: 100%;
+  border-radius: 7px;
+}
+
+.rank-count {
+  font-size: 12px;
+  width: 24px;
+  text-align: right;
+}
+
+.empty-text {
+  font-size: 13px;
+  text-align: center;
+  padding: 12px 0;
+}
+</style>
