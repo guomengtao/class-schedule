@@ -1,0 +1,1 @@
+module.exports = { versionName: "1.2.0", versionCode: 43 }

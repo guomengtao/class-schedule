@@ -1,10 +1,10 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.1.0",
-  "versionCode": 2,
+  "versionName": "1.2.0",
+  "versionCode": 43,
   "minPlatformVersion": 1000,
-  "icon": "/common/logo.png",
+  "icon": "logo.png",
   "deviceTypeList": [
     "watch"
   ],
@@ -28,18 +28,17 @@
       "name": "system.device"
     },
     {
-      "name": "system.alarm"
+      "name": "system.alarm",
+      "permissionDesc": "用于在课程开始时震动提醒您"
     },
     {
-      "name": "system.calendar"
+      "name": "system.calendar",
+      "permissionDesc": "用于将课程信息同步到系统日历"
     }
   ],
   "config": {
     "logLevel": "log",
     "designWidth": "device-width"
-  },
-  "extension": {
-    "input-method": {}
   },
   "router": {
     "entry": "pages/index",
@@ -52,24 +51,6 @@
       },
       "pages/add-course": {
         "component": "add-course"
-      },
-      "pages/add-course-step1": {
-        "component": "add-course-step1"
-      },
-      "pages/add-course-step2": {
-        "component": "add-course-step2"
-      },
-      "pages/add-course-step3": {
-        "component": "add-course-step3"
-      },
-      "pages/add-course-step4": {
-        "component": "add-course-step4"
-      },
-      "pages/add-course-step5": {
-        "component": "add-course-step5"
-      },
-      "pages/style-demo": {
-        "component": "style-demo"
       },
       "pages/settings": {
         "component": "settings"
@@ -86,8 +67,56 @@
       "pages/course-manager": {
         "component": "course-manager"
       },
+      "pages/chinese-input": {
+        "component": "chinese-input"
+      },
       "pages/test-reminder": {
         "component": "test-reminder"
+      },
+      "pages/demo-list": {
+        "component": "demo-list"
+      },
+      "pages/demo-animal": {
+        "component": "demo-animal"
+      },
+      "pages/demo-phone": {
+        "component": "demo-phone"
+      },
+      "pages/demo-car": {
+        "component": "demo-car"
+      },
+      "pages/demo-fruit": {
+        "component": "demo-fruit"
+      },
+      "pages/demo-color": {
+        "component": "demo-color"
+      },
+      "pages/demo-city": {
+        "component": "demo-city"
+      },
+      "pages/demo-music": {
+        "component": "demo-music"
+      },
+      "pages/demo-sport": {
+        "component": "demo-sport"
+      },
+      "pages/demo-book": {
+        "component": "demo-book"
+      },
+      "pages/demo-movie": {
+        "component": "demo-movie"
+      },
+      "pages/demo-star": {
+        "component": "demo-star"
+      },
+      "pages/demo-lang": {
+        "component": "demo-lang"
+      },
+      "pages/demo-furniture": {
+        "component": "demo-furniture"
+      },
+      "pages/demo-reminder": {
+        "component": "demo-reminder"
       }
     }
   }

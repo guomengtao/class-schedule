@@ -20,7 +20,9 @@ var THEMES = {
     btnSecondaryText: '#a0a0b0',
     deleteBg: '#2a1a3e',
     deleteText: '#e08080',
-    icon: '🔵'
+    icon: '🔵',
+    progressOngoing: 'rgba(126,200,227,0.2)',
+    progressDone: 'rgba(74,138,154,0.25)'
   },
   green: {
     name: '翡翠绿',
@@ -39,7 +41,9 @@ var THEMES = {
     btnSecondaryText: '#a0b0a0',
     deleteBg: '#2a2e1a',
     deleteText: '#e0c880',
-    icon: '🟢'
+    icon: '🟢',
+    progressOngoing: 'rgba(126,200,160,0.2)',
+    progressDone: 'rgba(74,138,106,0.25)'
   },
   red: {
     name: '珊瑚红',
@@ -58,7 +62,9 @@ var THEMES = {
     btnSecondaryText: '#b0a0a0',
     deleteBg: '#3a1a2a',
     deleteText: '#e38080',
-    icon: '🔴'
+    icon: '🔴',
+    progressOngoing: 'rgba(227,126,126,0.2)',
+    progressDone: 'rgba(154,74,74,0.25)'
   },
   dark: {
     name: '暗夜黑',
@@ -77,7 +83,9 @@ var THEMES = {
     btnSecondaryText: '#888888',
     deleteBg: '#1a0a0a',
     deleteText: '#aa6666',
-    icon: '⚫'
+    icon: '⚫',
+    progressOngoing: 'rgba(102,102,102,0.2)',
+    progressDone: 'rgba(68,68,68,0.25)'
   },
   gray: {
     name: '深空灰',
@@ -96,7 +104,9 @@ var THEMES = {
     btnSecondaryText: '#999999',
     deleteBg: '#2a1a1a',
     deleteText: '#cc8888',
-    icon: '⬛'
+    icon: '⬛',
+    progressOngoing: 'rgba(136,136,153,0.2)',
+    progressDone: 'rgba(85,85,102,0.25)'
   },
   purple: {
     name: '暗紫魅影',
@@ -115,7 +125,9 @@ var THEMES = {
     btnSecondaryText: '#b0a0c0',
     deleteBg: '#3a1a2a',
     deleteText: '#e080c0',
-    icon: '🟣'
+    icon: '🟣',
+    progressOngoing: 'rgba(176,126,200,0.2)',
+    progressDone: 'rgba(106,74,122,0.25)'
   },
   light: {
     name: '晨光白',
@@ -134,7 +146,9 @@ var THEMES = {
     btnSecondaryText: '#666666',
     deleteBg: '#f0e0e0',
     deleteText: '#cc6666',
-    icon: '⬜'
+    icon: '⬜',
+    progressOngoing: 'rgba(74,144,217,0.2)',
+    progressDone: 'rgba(42,90,138,0.25)'
   },
   warm: {
     name: '暖阳米',
@@ -153,7 +167,9 @@ var THEMES = {
     btnSecondaryText: '#887766',
     deleteBg: '#f0e0d8',
     deleteText: '#cc8866',
-    icon: '🟡'
+    icon: '🟡',
+    progressOngoing: 'rgba(196,168,130,0.2)',
+    progressDone: 'rgba(138,106,74,0.25)'
   },
   forest: {
     name: '墨绿护眼',
@@ -172,7 +188,9 @@ var THEMES = {
     btnSecondaryText: '#8a9a8a',
     deleteBg: '#1a2a1a',
     deleteText: '#aa8866',
-    icon: '🌲'
+    icon: '🌲',
+    progressOngoing: 'rgba(106,154,106,0.2)',
+    progressDone: 'rgba(58,90,58,0.25)'
   },
   amber: {
     name: '琥珀金',
@@ -191,7 +209,9 @@ var THEMES = {
     btnSecondaryText: '#b0a090',
     deleteBg: '#3a2a1a',
     deleteText: '#e0a060',
-    icon: '🟠'
+    icon: '🟠',
+    progressOngoing: 'rgba(212,160,96,0.2)',
+    progressDone: 'rgba(138,106,58,0.25)'
   }
 }
 
