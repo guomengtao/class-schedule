@@ -115,7 +115,7 @@ function initSqlite(callback) {
       log("sqlite.openDatabase success")
       sqlite.executeSql({
         name: DB_NAME,
-        sql: "CREATE TABLE IF NOT EXISTS courses (id TEXT, day TEXT, name TEXT, time TEXT, teacher TEXT, location TEXT, notes TEXT, PRIMARY KEY (id, day))",
+        sql: "CREATE TABLE IF NOT EXISTS courses (id TEXT, day TEXT, name TEXT, time TEXT, teacher TEXT, location TEXT, notes TEXT, schedule_index TEXT DEFAULT '0', PRIMARY KEY (id, day, schedule_index))",
         success: function() {
           log("CREATE TABLE success")
           ready = true
@@ -215,7 +215,7 @@ function insertDayCoursesSqlite(day, classes, index, callback) {
   var c = classes[index]
   sqlite.executeSql({
     name: DB_NAME,
-    sql: "INSERT OR REPLACE INTO courses (id, day, name, time, teacher, location, notes) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    sql: "INSERT OR REPLACE INTO courses (id, day, name, time, teacher, location, notes, schedule_index) VALUES (?, ?, ?, ?, ?, ?, ?, '0')",
     args: [c.id, day, c.name, c.time, c.teacher, c.location, c.notes || ""],
     success: function() {
       insertDayCoursesSqlite(day, classes, index + 1, callback)
@@ -253,10 +253,11 @@ function saveToStorage(schedule) {
 }
 
 function getAllCoursesSqlite(callback) {
-  log("getAllCoursesSqlite")
+  log("getAllCoursesSqlite, scheduleIndex=" + currentScheduleIndex)
   sqlite.executeSql({
     name: DB_NAME,
-    sql: "SELECT * FROM courses ORDER BY day, id",
+    sql: "SELECT * FROM courses WHERE schedule_index = ? ORDER BY day, id",
+    args: [String(currentScheduleIndex)],
     success: function(result) {
       var rows = (result && result.data) ? result.data : []
       log("getAllCoursesSqlite: " + rows.length + " rows")
@@ -264,6 +265,24 @@ function getAllCoursesSqlite(callback) {
     },
     fail: function(e) {
       logErr("getAllCoursesSqlite failed: " + JSON.stringify(e))
+      callback([])
+    }
+  })
+}
+
+function getAllCoursesSqliteWithIndex(index, callback) {
+  log("getAllCoursesSqliteWithIndex: " + index)
+  sqlite.executeSql({
+    name: DB_NAME,
+    sql: "SELECT * FROM courses WHERE schedule_index = ? ORDER BY day, id",
+    args: [String(index)],
+    success: function(result) {
+      var rows = (result && result.data) ? result.data : []
+      log("getAllCoursesSqliteWithIndex: " + rows.length + " rows")
+      callback(rowsToSchedule(rows))
+    },
+    fail: function(e) {
+      logErr("getAllCoursesSqliteWithIndex failed: " + JSON.stringify(e))
       callback([])
     }
   })
@@ -296,27 +315,28 @@ function combineAllSchedules(allSchedules) {
   return result
 }
 
-function getAllCoursesStorage(callback) {
-  log("getAllCoursesStorage, key=" + getStorageKey())
+function getAllCoursesStorageWithIndex(index, callback) {
+  var key = STORAGE_KEY + "_" + index
+  log("getAllCoursesStorageWithIndex, key=" + key)
   storage.get({
-    key: getStorageKey(),
+    key: key,
     success: function(val) {
-      log("getAllCoursesStorage: got data, len=" + (val ? val.length : 0))
+      log("getAllCoursesStorageWithIndex: got data, len=" + (val ? val.length : 0))
       if (val) {
         try {
           var data = JSON.parse(val)
           for (var d = 0; d < data.length; d++) {
-            log("getAllCoursesStorage: day[" + d + "]=" + data[d].day + " classes=" + data[d].classes.length)
+            log("getAllCoursesStorageWithIndex: day[" + d + "]=" + data[d].day + " classes=" + data[d].classes.length)
           }
           callback(data)
         } catch (e) {
-          logErr("getAllCoursesStorage parse failed: " + e)
+          logErr("getAllCoursesStorageWithIndex parse failed: " + e)
           callback([])
         }
       } else {
-        if (currentScheduleIndex === 0) {
+        if (index === 0) {
           var seed = JSON.parse(JSON.stringify(scheduleData.schedule))
-          saveToStorage(seed)
+          saveToStorageWithIndex(0, seed)
           callback(seed)
         } else {
           callback([])
@@ -324,16 +344,27 @@ function getAllCoursesStorage(callback) {
       }
     },
     fail: function(e) {
-      logErr("getAllCoursesStorage get failed: " + JSON.stringify(e))
-      if (currentScheduleIndex === 0) {
+      logErr("getAllCoursesStorageWithIndex get failed: " + JSON.stringify(e))
+      if (index === 0) {
         var seed = JSON.parse(JSON.stringify(scheduleData.schedule))
-        saveToStorage(seed)
+        saveToStorageWithIndex(0, seed)
         callback(seed)
       } else {
         callback([])
       }
     }
   })
+}
+
+function saveToStorageWithIndex(index, schedule) {
+  storage.set({
+    key: STORAGE_KEY + "_" + index,
+    value: JSON.stringify(schedule)
+  })
+}
+
+function getAllCoursesStorage(callback) {
+  getAllCoursesStorageWithIndex(currentScheduleIndex, callback)
 }
 
 function rowsToSchedule(rows) {
@@ -358,11 +389,11 @@ function rowsToSchedule(rows) {
 }
 
 function insertCourseSqlite(course, callback) {
-  log("insertCourseSqlite: " + course.id + " " + course.name)
+  log("insertCourseSqlite: " + course.id + " " + course.name + " scheduleIndex=" + currentScheduleIndex)
   sqlite.executeSql({
     name: DB_NAME,
-    sql: "INSERT OR REPLACE INTO courses (id, day, name, time, teacher, location, notes) VALUES (?, ?, ?, ?, ?, ?, ?)",
-    args: [course.id, course.day, course.name, course.time, course.teacher, course.location, course.notes || ""],
+    sql: "INSERT OR REPLACE INTO courses (id, day, name, time, teacher, location, notes, schedule_index) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    args: [course.id, course.day, course.name, course.time, course.teacher, course.location, course.notes || "", String(currentScheduleIndex)],
     success: function() {
       log("insertCourseSqlite success")
       callback(true)
@@ -427,8 +458,8 @@ function updateCourseSqlite(course, callback) {
   log("updateCourseSqlite: " + course.id)
   sqlite.executeSql({
     name: DB_NAME,
-    sql: "UPDATE courses SET name = ?, time = ?, teacher = ?, location = ?, notes = ? WHERE id = ? AND day = ?",
-    args: [course.name, course.time, course.teacher, course.location, course.notes || "", course.id, course.day],
+    sql: "UPDATE courses SET name = ?, time = ?, teacher = ?, location = ?, notes = ? WHERE id = ? AND day = ? AND schedule_index = ?",
+    args: [course.name, course.time, course.teacher, course.location, course.notes || "", course.id, course.day, String(currentScheduleIndex)],
     success: function() {
       log("updateCourseSqlite success")
       callback(true)
@@ -480,8 +511,8 @@ function deleteCourseSqlite(id, day, callback) {
   log("deleteCourseSqlite: " + id + " " + day)
   sqlite.executeSql({
     name: DB_NAME,
-    sql: "DELETE FROM courses WHERE id = ? AND day = ?",
-    args: [id, day],
+    sql: "DELETE FROM courses WHERE id = ? AND day = ? AND schedule_index = ?",
+    args: [id, day, String(currentScheduleIndex)],
     success: function() {
       log("deleteCourseSqlite success")
       callback(true)
@@ -607,18 +638,12 @@ module.exports = {
   getAllCoursesWithIndex: function(index, callback) {
     log("getAllCoursesWithIndex: " + index)
     ensureReady(function() {
-      var oldIndex = currentScheduleIndex
-      currentScheduleIndex = index
       if (useSqlite) {
-        getAllCoursesSqlite(function(data) {
-          currentScheduleIndex = oldIndex
-          log("getAllCoursesWithIndex: restored index to " + oldIndex)
+        getAllCoursesSqliteWithIndex(index, function(data) {
           callback(data)
         })
       } else {
-        getAllCoursesStorage(function(data) {
-          currentScheduleIndex = oldIndex
-          log("getAllCoursesWithIndex: restored index to " + oldIndex)
+        getAllCoursesStorageWithIndex(index, function(data) {
           callback(data)
         })
       }
@@ -641,17 +666,14 @@ module.exports = {
           }
           var allSchedules = []
           var loaded = 0
-          var oldIndex = currentScheduleIndex
           function loadOne(index) {
             if (index >= names.length) {
-              currentScheduleIndex = oldIndex
               var combined = combineAllSchedules(allSchedules)
               log("getAllCoursesCombined: combined " + combined.length + " days")
               callback(combined)
               return
             }
-            currentScheduleIndex = index
-            getAllCoursesStorage(function(data) {
+            getAllCoursesStorageWithIndex(index, function(data) {
               allSchedules.push(data || [])
               loaded++
               loadOne(index + 1)

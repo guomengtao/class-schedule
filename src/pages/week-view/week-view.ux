@@ -1,15 +1,15 @@
 <template>
   <div class="week-view-page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <input class="back-btn" type="button" value="返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="header-title" style="color: {{ theme.text }}">课程总览</text>
-      <input class="rotate-toggle" type="button" value="{{ isLandscape ? '竖' : '横' }}" onclick="toggleLandscape" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
     </div>
 
     <text class="schedule-name" style="color: {{ theme.accent }}">{{ scheduleName }}</text>
 
-    <div class="grid-wrapper" if="{{ !isLandscape }}">
+    <div class="grid-wrapper">
       <div class="week-header">
+        <text class="week-header-spacer"></text>
         <text class="week-day {{ $idx === todayIndex ? 'today-day' : '' }}" for="{{ weekDays }}" style="color: {{ $idx === todayIndex ? theme.accent : theme.textSecondary }}">{{ $item }}</text>
       </div>
 
@@ -21,25 +21,6 @@
               <div for="{{ $item.cells }}" class="course-cell {{ $item.isCurrent ? 'current-course' : '' }}" onclick="showDetail($item.day, $item.course)" style="background-color: {{ $item.course ? theme.cardLight : 'transparent' }}">
                 <text class="course-char" if="{{ $item.course }}" style="color: {{ theme.accent }}">{{ $item.course.char }}</text>
                 <text class="course-empty" if="{{ !$item.course }}" style="color: {{ theme.textMuted }}">·</text>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="grid-wrapper landscape-mode" if="{{ isLandscape }}">
-      <div class="landscape-header">
-        <text class="landscape-time-header" for="{{ timeHeaders }}" style="color: {{ theme.textSecondary }}">{{ $item }}</text>
-      </div>
-      <div class="landscape-scroll">
-        <div class="landscape-container">
-          <div for="{{ landscapeDays }}" class="landscape-day-row">
-            <text class="landscape-day-label {{ $item.isToday ? 'today-day' : '' }}" style="color: {{ $item.isToday ? theme.accent : theme.textSecondary }}">{{ $item.dayShort }}</text>
-            <div class="landscape-course-row">
-              <div for="{{ $item.cells }}" class="landscape-cell {{ $item.isCurrent ? 'current-course' : '' }}" onclick="showDetail($item.day, $item.course)" style="background-color: {{ $item.course ? theme.cardLight : 'transparent' }}">
-                <text class="landscape-char" if="{{ $item.course }}" style="color: {{ theme.accent }}">{{ $item.course.char }}</text>
-                <text class="landscape-empty" if="{{ !$item.course }}" style="color: {{ theme.textMuted }}">·</text>
               </div>
             </div>
           </div>
@@ -60,27 +41,24 @@ const database = require("../../data/database.js")
 const scheduleSeed = require("../../data/schedule.js")
 
 var fullDayNames = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
-var dayShortNames = ["一", "二", "三", "四", "五", "六", "日"]
 
 export default {
   private: {
-    weekDays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    weekDays: ["一", "二", "三", "四", "五", "六", "日"],
     scheduleName: "",
     timeSlots: [],
-    landscapeDays: [],
-    timeHeaders: [],
     totalCourses: 0,
     viewIndex: 0,
     todayIndex: 0,
     currentCourseDay: "",
     currentCourseTime: "",
-    isLandscape: false,
     _initDone: false,
     theme: {}
   },
 
   onInit() {
     var self = this
+    self._firstLoad = true
     var now = new Date()
     var dayIdx = now.getDay()
     self.todayIndex = dayIdx === 0 ? 6 : dayIdx - 1
@@ -89,21 +67,11 @@ export default {
     })
     var storage = require("@system.storage")
     storage.get({
-      key: "weekview_landscape",
-      success: function(data) {
-        if (data === "true") {
-          self.isLandscape = true
-        }
-      },
-      fail: function() {}
-    })
-    storage.get({
       key: "weekview_index",
       success: function(data) {
         if (data) {
           self.viewIndex = parseInt(data) || 0
         }
-        console.log("[WEEK-VIEW] onInit: viewIndex=" + self.viewIndex)
         self._initDone = true
         self.loadData()
       },
@@ -114,7 +82,6 @@ export default {
     })
     setTimeout(function() {
       if (!self._initDone) {
-        console.log("[WEEK-VIEW] onInit fallback: storage.get did not fire, loading anyway")
         self._initDone = true
         self.loadData()
       }
@@ -126,7 +93,23 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-    self.loadData()
+    if (self._firstLoad) {
+      self._firstLoad = false
+      return
+    }
+    var storage = require("@system.storage")
+    storage.get({
+      key: "weekview_index",
+      success: function(data) {
+        if (data) {
+          self.viewIndex = parseInt(data) || 0
+        }
+        self.loadData()
+      },
+      fail: function() {
+        self.loadData()
+      }
+    })
   },
 
   loadData() {
@@ -140,16 +123,11 @@ export default {
       })
     })
 
-    console.log("[WEEK-VIEW] loadData: viewIndex=" + this.viewIndex)
     var dataLoaded = false
     database.getAllCoursesWithIndex(this.viewIndex, function(schedule) {
       if (dataLoaded) return
       dataLoaded = true
-      console.log("[WEEK-VIEW] schedule received: " + JSON.stringify(schedule ? schedule.length : "null") + " days")
-      if (!schedule) {
-        console.log("[WEEK-VIEW] schedule is null/undefined, returning")
-        return
-      }
+      if (!schedule) return
 
       var allCourses = {}
       for (var d = 0; d < schedule.length; d++) {
@@ -165,10 +143,8 @@ export default {
           totalCourses += allCourses[key].length
         }
       }
-      console.log("[WEEK-VIEW] totalCourses from schedule: " + totalCourses)
 
       if (totalCourses === 0) {
-        console.log("[WEEK-VIEW] no courses found, loading default seed data")
         var seedData = scheduleSeed.schedule
         allCourses = {}
         for (var sd = 0; sd < seedData.length; sd++) {
@@ -189,12 +165,10 @@ export default {
         }
       }
       self.totalCourses = total
-      console.log("[WEEK-VIEW] buildTimeSlots done, totalCourses=" + self.totalCourses + ", timeSlots=" + self.timeSlots.length)
     })
 
     setTimeout(function() {
       if (!dataLoaded) {
-        console.log("[WEEK-VIEW] loadData fallback: database callback did not fire, loading seed data")
         dataLoaded = true
         var seedData = scheduleSeed.schedule
         var allCourses = {}
@@ -213,7 +187,6 @@ export default {
           }
         }
         self.totalCourses = total
-        console.log("[WEEK-VIEW] loadData fallback done, totalCourses=" + self.totalCourses)
       }
     }, 1500)
   },
@@ -285,64 +258,6 @@ export default {
     }
 
     this.timeSlots = timeSlots
-    console.log("[WEEK-VIEW] built " + timeSlots.length + " time slots")
-    this.buildLandscapeData(allCourses, timeKeys)
-  },
-
-  buildLandscapeData(allCourses, timeKeys) {
-    var self = this
-    var dayList = fullDayNames
-    var todayName = dayList[self.todayIndex]
-
-    this.timeHeaders = timeKeys
-
-    var landscapeDays = []
-    for (var d = 0; d < dayList.length; d++) {
-      var day = dayList[d]
-      var courses = allCourses[day] || []
-      var cells = []
-      for (var t = 0; t < timeKeys.length; t++) {
-        var time = timeKeys[t]
-        var matched = null
-        for (var c = 0; c < courses.length; c++) {
-          if (courses[c].time === time) {
-            matched = courses[c]
-            break
-          }
-        }
-        if (matched) {
-          cells.push({
-            day: day,
-            time: time,
-            isCurrent: day === self.currentCourseDay && time === self.currentCourseTime,
-            course: {
-              id: matched.id,
-              name: matched.name,
-              char: self.getFirstChar(matched.name),
-              time: matched.time,
-              teacher: matched.teacher,
-              location: matched.location
-            }
-          })
-        } else {
-          cells.push({
-            day: day,
-            time: time,
-            isCurrent: false,
-            course: null
-          })
-        }
-      }
-      landscapeDays.push({
-        day: day,
-        dayShort: dayShortNames[d],
-        isToday: day === todayName,
-        isCurrentDay: day === self.currentCourseDay,
-        cells: cells
-      })
-    }
-    this.landscapeDays = landscapeDays
-    console.log("[WEEK-VIEW] built " + landscapeDays.length + " landscape day rows")
   },
 
   getFirstChar(name) {
@@ -381,7 +296,6 @@ export default {
 
   showDetail(day, course) {
     if (!course) return
-    console.log("[WEEK-VIEW] showDetail: " + course.name + " (" + day + ")")
     var storage = require("@system.storage")
     storage.set({
       key: "detail_classId",
@@ -398,18 +312,6 @@ export default {
 
   goBack() {
     router.back()
-  },
-
-  toggleLandscape() {
-    console.log("[WEEK-VIEW] toggleLandscape: " + this.isLandscape + " -> " + !this.isLandscape)
-    this.isLandscape = !this.isLandscape
-    var storage = require("@system.storage")
-    storage.set({
-      key: "weekview_landscape",
-      value: String(this.isLandscape),
-      success: function() {},
-      fail: function() {}
-    })
   }
 }
 </script>
@@ -425,12 +327,16 @@ export default {
 .header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 4px;
+  justify-content: center;
+  margin-bottom: 6px;
+  position: relative;
 }
 
 .back-btn {
-  width: 60px;
-  height: 36px;
+  position: absolute;
+  left: 0;
+  width: 56px;
+  height: 34px;
   border-radius: 8px;
   background-color: #16213e;
   font-size: 14px;
@@ -442,17 +348,6 @@ export default {
   font-size: 18px;
   font-weight: bold;
   color: #ffffff;
-  flex: 1;
-  text-align: center;
-}
-
-.rotate-toggle {
-  width: 40px;
-  height: 32px;
-  border-radius: 8px;
-  background-color: #16213e;
-  font-size: 14px;
-  color: #7ec8e3;
   text-align: center;
 }
 
@@ -460,28 +355,7 @@ export default {
   font-size: 13px;
   color: #7ec8e3;
   text-align: center;
-  margin-bottom: 4px;
-}
-
-.week-header {
-  flex-direction: row;
-  background-color: #0f3460;
-  border-radius: 6px;
-  padding: 4px 0;
-  margin-bottom: 4px;
-}
-
-.week-day {
-  flex: 1;
-  text-align: center;
-  font-size: 12px;
-  font-weight: bold;
-  color: #7ec8e3;
-}
-
-.week-day.today-day {
-  font-size: 14px;
-  text-decoration: underline;
+  margin-bottom: 6px;
 }
 
 .grid-wrapper {
@@ -489,88 +363,27 @@ export default {
   flex-direction: column;
 }
 
-.grid-wrapper.landscape-mode {
-  flex-direction: column;
-}
-
-.landscape-header {
+.week-header {
   flex-direction: row;
-  background-color: #0f3460;
-  border-radius: 6px;
-  padding: 4px 0;
   margin-bottom: 4px;
 }
 
-.landscape-time-header {
+.week-header-spacer {
+  width: 50px;
+}
+
+.week-day {
   flex: 1;
   text-align: center;
-  font-size: 10px;
-  font-weight: bold;
-  color: #7ec8e3;
-}
-
-.landscape-scroll {
-  flex: 1;
-  flex-direction: column;
-  overflow: auto;
-}
-
-.landscape-container {
-  flex-direction: column;
-}
-
-.landscape-day-row {
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 2px;
-  min-height: 32px;
-}
-
-.landscape-day-label {
-  width: 20px;
   font-size: 12px;
   font-weight: bold;
-  color: #7ec8e3;
-  text-align: center;
-  padding-right: 4px;
+  color: #5577aa;
 }
 
-.landscape-day-label.today-day {
+.week-day.today-day {
   font-size: 14px;
+  color: #7ec8e3;
   text-decoration: underline;
-}
-
-.landscape-course-row {
-  flex: 1;
-  flex-direction: row;
-}
-
-.landscape-cell {
-  flex: 1;
-  height: 30px;
-  margin: 1px;
-  border-radius: 4px;
-  justify-content: center;
-  align-items: center;
-  background-color: #16213e;
-}
-
-.landscape-cell.current-course {
-  border: 2px solid #7ec8e3;
-  margin: 0;
-}
-
-.landscape-char {
-  font-size: 14px;
-  font-weight: bold;
-  color: #ffffff;
-  text-align: center;
-}
-
-.landscape-empty {
-  font-size: 12px;
-  color: #333355;
-  text-align: center;
 }
 
 .grid-scroll {
@@ -586,14 +399,14 @@ export default {
 .time-row {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 2px;
-  min-height: 32px;
+  margin-bottom: 1px;
+  min-height: 34px;
 }
 
 .time-label {
   width: 50px;
-  font-size: 10px;
-  color: #888899;
+  font-size: 9px;
+  color: #445566;
   text-align: right;
   padding-right: 6px;
 }
@@ -605,29 +418,29 @@ export default {
 
 .course-cell {
   flex: 1;
-  height: 30px;
+  height: 32px;
   margin: 1px;
-  border-radius: 4px;
+  border-radius: 6px;
   justify-content: center;
   align-items: center;
-  background-color: #16213e;
+  background-color: transparent;
 }
 
 .course-cell.current-course {
-  border: 2px solid #7ec8e3;
-  margin: 0;
+  background-color: rgba(126, 200, 227, 0.12);
+  margin: 1px;
 }
 
 .course-char {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: bold;
-  color: #ffffff;
+  color: #7ec8e3;
   text-align: center;
 }
 
 .course-empty {
-  font-size: 14px;
-  color: #333355;
+  font-size: 10px;
+  color: #1a2030;
   text-align: center;
 }
 
