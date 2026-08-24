@@ -355,7 +355,6 @@ export default {
   },
 
   goToWeekView() {
-    var self = this
     var storage = require("@system.storage")
     store.getCurrentScheduleIndex(function(idx) {
       storage.set({
@@ -924,13 +923,13 @@ export default {
 }
 
 .nav-btn {
-  width: 44px;
+  width: 32px;
   height: 32px;
-  border-radius: 8px;
-  background-color: #16213e;
+  border-radius: 16px;
   font-size: 14px;
-  color: #7ec8e3;
   text-align: center;
+  justify-content: center;
+  align-items: center;
 }
 
 .status-bar {

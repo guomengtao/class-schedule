@@ -1,5 +1,3 @@
-<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
-
 <template>
   <div class="edit-course-page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
@@ -98,18 +96,6 @@
       </div>
     </div>
 
-    <input-method
-      hide="{{ hideKeyboard }}"
-      keyboardtype="QWERTY"
-      maxlength="10"
-      vibratemode="short"
-      screentype="rect"
-      @visibility-change="onVisibilityChange"
-      @key-down="onKeyDown"
-      @delete="onDelete"
-      @complete="onComplete"
-    ></input-method>
-
     <div class="form-section" if="{{ step === 4 }}">
       <text class="step-title" style="{{ labelStyle }}; color: {{ theme.text }}">第4步: 确认</text>
       <div class="confirm-card" style="background-color: {{ theme.card }}">
@@ -199,9 +185,7 @@ export default {
     btnStyle: "",
     btnHeight: 72,
     pickerValueStyle: "",
-    theme: {},
-    hideKeyboard: true,
-    showCursor: false
+    theme: {}
   },
 
   sortByTime: function(list) {
@@ -273,6 +257,17 @@ export default {
       self.theme = t
     })
     this.loadCoursesWithData()
+
+    var storage = require("@system.storage")
+    storage.get({
+      key: "chinese_input_result",
+      success: function(data) {
+        if (data !== undefined && data !== null && data !== "") {
+          self.courseLocation = data
+          storage.delete({ key: "chinese_input_result" })
+        }
+      }
+    })
   },
 
   setDefaultDay() {
@@ -483,30 +478,13 @@ export default {
   },
 
   showKeyboard() {
-    this.hideKeyboard = false
-    this.showCursor = true
-  },
-
-  onVisibilityChange(evt) {
-    if (evt.detail && evt.detail.visibility === true) {
-      this.showCursor = true
-    }
-  },
-
-  onKeyDown(evt) {
-    if (evt.detail && evt.detail.content) {
-      this.courseLocation += evt.detail.content
-    }
-  },
-
-  onDelete(evt) {
-    if (this.courseLocation.length > 0) {
-      this.courseLocation = this.courseLocation.substring(0, this.courseLocation.length - 1)
-    }
-  },
-
-  onComplete(evt) {
-    this.courseLocation += evt.detail.content
+    var storage = require("@system.storage")
+    storage.set({ key: "chinese_input_title", value: "输入位置" })
+    storage.set({ key: "chinese_input_placeholder", value: "点击输入位置, 例如: 301教室" })
+    storage.set({ key: "chinese_input_value", value: this.courseLocation || "" })
+    storage.set({ key: "chinese_input_maxlen", value: "10" })
+    storage.set({ key: "chinese_input_return_key", value: "chinese_input_result" })
+    router.push({ uri: "/pages/chinese-input" })
   },
 
   nextStep() {
@@ -516,23 +494,13 @@ export default {
   },
 
   prevStep() {
-    if (!this.hideKeyboard) {
-      this.hideKeyboard = true
-      this.showCursor = false
-      return
-    }
     if (this.step > 1) {
       this.step = this.step - 1
     }
   },
 
   goBack() {
-    if (!this.hideKeyboard) {
-      this.hideKeyboard = true
-      this.showCursor = false
-    } else {
-      router.back()
-    }
+    router.back()
   },
 
   updateCourse() {

@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.2.5",
-  "versionCode": 48,
+  "versionName": "1.2.28",
+  "versionCode": 71,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -69,57 +69,6 @@
       },
       "pages/chinese-input": {
         "component": "chinese-input"
-      },
-      "pages/test-reminder": {
-        "component": "test-reminder"
-      },
-      "pages/demo-list": {
-        "component": "demo-list"
-      },
-      "pages/demo-animal": {
-        "component": "demo-animal"
-      },
-      "pages/demo-phone": {
-        "component": "demo-phone"
-      },
-      "pages/demo-car": {
-        "component": "demo-car"
-      },
-      "pages/demo-fruit": {
-        "component": "demo-fruit"
-      },
-      "pages/demo-color": {
-        "component": "demo-color"
-      },
-      "pages/demo-city": {
-        "component": "demo-city"
-      },
-      "pages/demo-music": {
-        "component": "demo-music"
-      },
-      "pages/demo-sport": {
-        "component": "demo-sport"
-      },
-      "pages/demo-book": {
-        "component": "demo-book"
-      },
-      "pages/demo-movie": {
-        "component": "demo-movie"
-      },
-      "pages/demo-star": {
-        "component": "demo-star"
-      },
-      "pages/demo-lang": {
-        "component": "demo-lang"
-      },
-      "pages/demo-furniture": {
-        "component": "demo-furniture"
-      },
-      "pages/demo-reminder": {
-        "component": "demo-reminder"
-      },
-      "pages/demo-swipe-delete": {
-        "component": "demo-swipe-delete"
       },
       "pages/statistics": {
         "component": "statistics"

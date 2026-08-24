@@ -1,43 +1,70 @@
-<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
-
 <template>
   <div class="input-page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="&#9664;" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <input class="back-btn" type="button" value="&#9664; 返回" onclick="onCancel" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">{{ title }}</text>
+      <input class="confirm-btn" type="button" value="确认" onclick="onConfirm" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
-    <div class="content">
-      <text class="hint" style="color: {{ theme.textSecondary }}">输入内容（最多{{ maxlen }}个字）</text>
-
-      <div class="display-box" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
-        <text class="display-text" style="color: {{ theme.text }}">{{ inputValue || placeholder }}</text>
-        <text class="cursor" show="{{ showCursor }}" style="color: {{ theme.accent }}">_</text>
-      </div>
-
-      <div class="button-row">
-        <input class="cancel-btn" type="button" value="取消" onclick="goBack" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
-        <input class="done-btn" type="button" value="完成" onclick="onDone" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      </div>
+    <div class="display-area" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+      <text class="display-text" style="color: {{ theme.text }}">{{ inputValue || placeholder }}</text>
+      <text class="cursor" show="{{ showCursor }}" style="color: {{ theme.accent }}">_</text>
     </div>
 
-    <input-method
-      hide="{{ hideKeyboard }}"
-      keyboardtype="QWERTY"
-      maxlength="{{ maxlen }}"
-      vibratemode="short"
-      screentype="rect"
-      @visibility-change="onVisibilityChange"
-      @key-down="onKeyDown"
-      @delete="onDelete"
-      @complete="onComplete"
-    ></input-method>
+    <div class="pinyin-row" show="{{ !hideKeyboard && cval }}">
+      <text class="pinyin-text" style="color: {{ theme.accent }}">{{ cvalDisplay }}</text>
+    </div>
+
+    <scroll class="candidate-row" show="{{ !hideKeyboard && resultRow0.length > 0 }}" scroll-x="{{true}}">
+      <text for="{{ item in resultRow0 }}" class="candidate-item" onclick="onSelectCandidate(item)" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+    </scroll>
+
+    <div class="keyboard" show="{{ !hideKeyboard }}">
+      <div class="key-row" show="{{ !numFlag }}">
+        <text for="{{ item in keys.full[0] }}" class="key-btn" onclick="onKeyPress(item)" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+      </div>
+      <div class="key-row" show="{{ !numFlag }}">
+        <text for="{{ item in keys.full[1] }}" class="key-btn" onclick="onKeyPress(item)" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+      </div>
+      <div class="key-row" show="{{ !numFlag }}">
+        <text for="{{ item in keys.full[2] }}" class="key-btn" onclick="onKeyPress(item)" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+        <text class="key-btn key-del" onclick="onDeleteKey" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}">Del</text>
+      </div>
+
+      <div class="key-row" show="{{ numFlag }}">
+        <text for="{{ item in keys.sign[0] }}" class="key-btn" onclick="onKeyPress(item)" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+      </div>
+      <div class="key-row" show="{{ numFlag }}">
+        <text for="{{ item in keys.sign[1] }}" class="key-btn" onclick="onKeyPress(item)" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+      </div>
+      <div class="key-row" show="{{ numFlag }}">
+        <text for="{{ item in keys.sign[2] }}" class="key-btn" onclick="onKeyPress(item)" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+        <text class="key-btn key-del" onclick="onDeleteKey" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}">Del</text>
+      </div>
+
+      <div class="key-row key-bottom">
+        <text class="key-btn key-func" onclick="toggleNumMode" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ numFlag ? 'ABC' : '123' }}</text>
+        <text class="key-btn key-space" onclick="onSpace" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ lang === 'cn' ? '空格' : 'Space' }}</text>
+        <text class="key-btn key-func" onclick="toggleLang" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ lang === 'cn' ? 'EN' : '中' }}</text>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
+import vibrator from "@system.vibrator"
 const store = require("../../data/store.js")
+import { SimpleInputMethod } from "../../components/InputMethod/assets/dicUtil.js"
+
+var dictReady = false
+
+function ensureDict() {
+  if (!dictReady) {
+    dictReady = true
+    SimpleInputMethod.initDict()
+  }
+}
 
 export default {
   private: {
@@ -48,7 +75,24 @@ export default {
     theme: {},
     hideKeyboard: true,
     showCursor: false,
-    returnKey: ""
+    returnKey: "chinese_input_result",
+    cval: "",
+    cvalDisplay: "",
+    lang: "cn",
+    numFlag: false,
+    resultRow0: [],
+    keys: {
+      full: [
+        ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+        ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+        ["Z", "X", "C", "V", "B", "N", "M"]
+      ],
+      sign: [
+        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
+        ["-", "/", ":", ";", "(", ")", "$", "&", "@", "\""],
+        [".", ",", "?", "!", "'"]
+      ]
+    }
   },
 
   onInit() {
@@ -67,77 +111,195 @@ export default {
     var storage = require("@system.storage")
     storage.get({
       key: "chinese_input_title",
-      success: function(data) {
-        if (data) self.title = data
-      }
+      success: function(data) { if (data) self.title = data }
     })
     storage.get({
       key: "chinese_input_placeholder",
-      success: function(data) {
-        if (data) self.placeholder = data
-      }
+      success: function(data) { if (data) self.placeholder = data }
     })
     storage.get({
       key: "chinese_input_value",
       success: function(data) {
-        if (data) self.inputValue = data
+        if (data !== undefined && data !== null) self.inputValue = data
       }
     })
     storage.get({
       key: "chinese_input_maxlen",
-      success: function(data) {
-        if (data) self.maxlen = parseInt(data) || 5
-      }
+      success: function(data) { if (data) self.maxlen = parseInt(data) || 5 }
     })
     storage.get({
       key: "chinese_input_return_key",
-      success: function(data) {
-        if (data) self.returnKey = data
-      }
+      success: function(data) { if (data) self.returnKey = data }
     })
+
+    setTimeout(function() {
+      self.showKeyboard()
+    }, 300)
   },
 
   showKeyboard() {
     this.hideKeyboard = false
     this.showCursor = true
+    ensureDict()
   },
 
-  onVisibilityChange(evt) {
-    if (evt.detail && evt.detail.visible === false) {
-      this.showCursor = false
+  doVibrate() {
+    vibrator.vibrate({ mode: "short" })
+  },
+
+  onKeyPress(item) {
+    if (!item) return
+    this.doVibrate()
+
+    if (this.lang === "cn" && !this.numFlag) {
+      this.cval += item.toLowerCase()
+      this.updateCandidates()
+    } else {
+      if (this.inputValue.length >= this.maxlen) return
+      this.inputValue += item
     }
   },
 
-  onKeyDown(_evt) {
+  onDeleteKey() {
+    this.doVibrate()
+    if (this.cval.length > 0) {
+      this.cval = this.cval.slice(0, -1)
+      this.updateCandidates()
+    } else {
+      this.inputValue = this.inputValue.slice(0, -1)
+    }
   },
 
-  onDelete() {
-    this.inputValue = this.inputValue.slice(0, -1)
+  onSpace() {
+    this.doVibrate()
+    if (this.inputValue.length >= this.maxlen) return
+    this.inputValue += " "
   },
 
-  onComplete(evt) {
-    this.inputValue += evt.detail.content
-  },
+  onSelectCandidate(item) {
+    if (!item) return
+    this.doVibrate()
 
-  onDone() {
-    var result = this.inputValue.trim()
-    var storage = require("@system.storage")
-    storage.set({
-      key: this.returnKey || "chinese_input_result",
-      value: result,
-      success: function() {
-        router.back()
+    if (this.inputValue.length >= this.maxlen) return
+
+    var consumed = false
+    if (item.length === 1 && this._sylTopChars && this._sylTopChars.length > 0 && this.cval.length > 0) {
+      for (var si = 0; si < this._sylTopChars.length; si++) {
+        var sc = this._sylTopChars[si]
+        if (sc.char === item && sc.offset > 0 && sc.offset <= this.cval.length) {
+          this.cval = this.cval.slice(sc.offset)
+          this.inputValue += item
+          consumed = true
+          break
+        }
       }
-    })
+    }
+
+    if (!consumed && this._matchedLen > 0 && this.cval.length > this._matchedLen) {
+      this.cval = this.cval.slice(this._matchedLen)
+      this.inputValue += item
+      consumed = true
+    }
+
+    if (!consumed) {
+      this.cval = ""
+      this.inputValue += item
+    }
+
+    this.updateCandidates()
   },
 
-  goBack() {
+  updateCandidates() {
+    var self = this
+    this.cvalDisplay = SimpleInputMethod.getSegmentedDisplay(this.cval)
+
+    if (!this.cval || this.lang !== "cn") {
+      this.resultRow0 = []
+      this._sylTopChars = []
+      this._matchedLen = 0
+      return
+    }
+
+    var result = SimpleInputMethod.getHanzi(this.cval, "cn")
+    var chars = result.chars || []
+    this._matchedLen = result.matched ? result.matched.length : 0
+
+    var multi = result.multi || { words: [], composed: "", sylTopChars: [] }
+    var words = (multi.words || []).slice()
+    if (words.length === 0 && multi.composed && multi.composed.length >= 2) {
+      words = [multi.composed]
+    } else if (multi.composed && multi.composed.length >= 2 && words.indexOf(multi.composed) === -1) {
+      words.push(multi.composed)
+    }
+
+    var sylTopChars = (multi.sylTopChars || []).filter(function(sc) { return sc.char && sc.offset > 0 })
+    self._sylTopChars = sylTopChars
+
+    var sylOnlyChars = sylTopChars.map(function(sc) { return sc.char })
+    var seen = {}
+    var uniqueSylChars = []
+    for (var si = 0; si < sylOnlyChars.length; si++) {
+      if (!seen[sylOnlyChars[si]]) { seen[sylOnlyChars[si]] = 1; uniqueSylChars.push(sylOnlyChars[si]) }
+    }
+    for (var sj = 0; sj < uniqueSylChars.length; sj++) {
+      if (words.indexOf(uniqueSylChars[sj]) === -1) { words.push(uniqueSylChars[sj]) }
+    }
+
+    var row0 = []
+    var cap = parseInt(this.maxlen) || 5
+    for (var i = 0; i < words.length && row0.length < cap; i++) {
+      row0.push(words[i])
+    }
+    for (var j = 0; j < chars.length && row0.length < cap; j++) {
+      if (words.indexOf(chars[j]) === -1) {
+        row0.push(chars[j])
+      }
+    }
+    this.resultRow0 = row0
+  },
+
+  toggleNumMode() {
+    this.doVibrate()
+    this.numFlag = !this.numFlag
+    this.cval = ""
+    this.resultRow0 = []
+    this.cvalDisplay = ""
+  },
+
+  toggleLang() {
+    this.doVibrate()
+    this.lang = this.lang === "cn" ? "en" : "cn"
+    this.cval = ""
+    this.resultRow0 = []
+    this.cvalDisplay = ""
+  },
+
+  onConfirm() {
+    var result = this.inputValue.trim()
+    this.returnResult(result)
+  },
+
+  onCancel() {
     if (!this.hideKeyboard) {
       this.hideKeyboard = true
       this.showCursor = false
     } else {
-      router.back()
+      this.returnResult(null)
     }
+  },
+
+  returnResult(result) {
+    var storage = require("@system.storage")
+    storage.set({
+      key: this.returnKey || "chinese_input_result",
+      value: result !== null ? result : "",
+      success: function() { router.back() },
+      fail: function() { router.back() }
+    })
+  },
+
+  goBack() {
+    this.onCancel()
   }
 }
 </script>
@@ -145,21 +307,22 @@ export default {
 <style>
 .input-page {
   flex-direction: column;
-  padding: 8px 12px;
+  padding: 4px 8px;
   height: 100%;
 }
 
 .header {
   flex-direction: row;
+  justify-content: space-between;
   align-items: center;
-  height: 32px;
-  margin-bottom: 8px;
+  height: 36px;
+  margin-bottom: 6px;
 }
 
 .back-btn {
-  width: 32px;
-  height: 28px;
-  border-radius: 6px;
+  width: 64px;
+  height: 30px;
+  border-radius: 8px;
   font-size: 13px;
   text-align: center;
 }
@@ -167,64 +330,107 @@ export default {
 .title {
   font-size: 16px;
   font-weight: bold;
-  margin-left: 8px;
+  flex: 1;
+  text-align: center;
 }
 
-.content {
-  flex-direction: column;
-  align-items: center;
-  padding: 6px;
-  flex-shrink: 0;
-}
-
-.hint {
-  font-size: 14px;
-  margin-bottom: 6px;
-  align-self: flex-start;
-  margin-left: 4px;
-}
-
-.display-box {
-  width: 100%;
-  height: 42px;
+.confirm-btn {
+  width: 64px;
+  height: 30px;
   border-radius: 8px;
-  border-width: 2px;
-  justify-content: center;
-  align-items: center;
+  font-size: 13px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.display-area {
   flex-direction: row;
+  align-items: center;
+  border-radius: 10px;
+  border-width: 2px;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  min-height: 40px;
 }
 
 .display-text {
-  font-size: 18px;
+  font-size: 17px;
+  flex: 1;
 }
 
 .cursor {
-  font-size: 18px;
+  font-size: 17px;
   margin-left: 2px;
 }
 
-.button-row {
-  flex-direction: row;
-  justify-content: space-around;
-  margin-top: 16px;
-  width: 100%;
-  flex-shrink: 0;
+.pinyin-row {
+  height: 22px;
+  margin-bottom: 2px;
+  padding-left: 8px;
 }
 
-.cancel-btn {
-  width: 100px;
-  height: 36px;
-  border-radius: 8px;
-  font-size: 14px;
-  text-align: center;
-}
-
-.done-btn {
-  width: 120px;
-  height: 36px;
-  border-radius: 8px;
+.pinyin-text {
   font-size: 14px;
   font-weight: bold;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.candidate-row {
+  height: 36px;
+  margin-bottom: 4px;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.candidate-item {
+  font-size: 16px;
+  padding: 4px 10px;
+  margin-right: 4px;
+  border-radius: 6px;
   text-align: center;
+}
+
+.keyboard {
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+.key-row {
+  flex-direction: row;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.key-btn {
+  width: 30px;
+  height: 36px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+.key-del {
+  width: 36px;
+  font-size: 11px;
+}
+
+.key-func {
+  width: 42px;
+  font-size: 12px;
+}
+
+.key-space {
+  flex: 1;
+  font-size: 13px;
+  margin-left: 6px;
+  margin-right: 6px;
+}
+
+.key-bottom {
+  margin-bottom: 0;
 }
 </style>

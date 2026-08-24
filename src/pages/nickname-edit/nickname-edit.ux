@@ -1,5 +1,3 @@
-<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
-
 <template>
   <div class="edit-page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
@@ -11,32 +9,12 @@
       <text class="input-label" style="color: {{ theme.textSecondary }}">请输入昵称</text>
       <div class="nickname-display" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
         <text class="nickname-text" style="color: {{ theme.text }}">{{ currentName || '点击输入昵称' }}</text>
-        <text class="cursor" show="{{ showCursor }}">_</text>
       </div>
 
       <div class="button-row">
         <input class="cancel-btn" type="button" value="取消" onclick="goBack" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
         <input class="save-btn" type="button" value="保存" onclick="saveNickname" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
-
-      <div class="demo-link" onclick="openSwipeDeleteDemo" style="background-color: {{ theme.card }}">
-        <text class="demo-link-text" style="color: {{ theme.text }}">滑动删除Demo</text>
-        <text class="demo-link-desc" style="color: {{ theme.textMuted }}">恐龙列表 · 左滑删除</text>
-        <text class="demo-link-arrow" style="color: {{ theme.textMuted }}">›</text>
-      </div>
-    </div>
-
-    <input-method
-      hide="{{ hideKeyboard }}"
-      keyboardtype="QWERTY"
-      maxlength="5"
-      vibratemode="short"
-      screentype="rect"
-      @visibility-change="onVisibilityChange"
-      @key-down="onKeyDown"
-      @delete="onDelete"
-      @complete="onComplete"
-    ></input-method>
   </div>
 </template>
 
@@ -48,9 +26,7 @@ export default {
   private: {
     currentName: "",
     savedName: "",
-    theme: {},
-    hideKeyboard: true,
-    showCursor: false
+    theme: {}
   },
 
   onInit() {
@@ -64,31 +40,32 @@ export default {
     })
   },
 
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+
+    var storage = require("@system.storage")
+    storage.get({
+      key: "chinese_input_result",
+      success: function(data) {
+        if (data !== undefined && data !== null) {
+          self.currentName = data
+          storage.delete({ key: "chinese_input_result" })
+        }
+      }
+    })
+  },
+
   showKeyboard() {
-    this.hideKeyboard = false
-    this.showCursor = true
-  },
-
-  onVisibilityChange(evt) {
-    if (evt.detail && evt.detail.visible === false) {
-      this.showCursor = false
-    }
-  },
-
-  onKeyDown(evt) {
-    console.log("keyDown:" + JSON.stringify(evt))
-  },
-
-  onDelete() {
-    this.currentName = this.currentName.slice(0, -1)
-  },
-
-  onComplete(evt) {
-    this.currentName += evt.detail.content
-  },
-
-  onNicknameChange(e) {
-    this.currentName = e.value || ""
+    var storage = require("@system.storage")
+    storage.set({ key: "chinese_input_title", value: "编辑昵称" })
+    storage.set({ key: "chinese_input_placeholder", value: "点击输入昵称" })
+    storage.set({ key: "chinese_input_value", value: this.currentName || "" })
+    storage.set({ key: "chinese_input_maxlen", value: "5" })
+    storage.set({ key: "chinese_input_return_key", value: "chinese_input_result" })
+    router.push({ uri: "/pages/chinese-input" })
   },
 
   saveNickname() {
@@ -103,17 +80,8 @@ export default {
     })
   },
 
-  openSwipeDeleteDemo() {
-    router.push({ uri: "/pages/demo-swipe-delete" })
-  },
-
   goBack() {
-    if (!this.hideKeyboard) {
-      this.hideKeyboard = true
-      this.showCursor = false
-    } else {
-      router.back()
-    }
+    router.back()
   }
 }
 </script>
@@ -205,28 +173,4 @@ export default {
   text-align: center;
 }
 
-.demo-link {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 10px;
-  padding: 14px 12px;
-  margin-top: 16px;
-  width: 100%;
-}
-
-.demo-link-text {
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.demo-link-desc {
-  font-size: 13px;
-  flex: 1;
-  margin-left: 8px;
-}
-
-.demo-link-arrow {
-  font-size: 20px;
-}
 </style>

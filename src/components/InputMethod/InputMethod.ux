@@ -16,7 +16,7 @@
       <div if="{{screentype==='circle'}}" style="width: 480px;height: 321px;">
         <!-- 全键盘 -->
 		<!-- 这里是480px圆表屏幕的键盘 -->
-        <div id="full-keyboard" if="{{keyboardtype!='T9'}}" style="width: 480px;height: 321px;">
+        <div id="full-keyboard" style="width: 480px;height: 321px;">
           <img src="./assets/full/back2.png" style="position: absolute;top:38px;left:7px;width:466px;height:52px;" @click="onBtnClick('switchCn')" show="{{numFlag}}" />
           <img src="./assets/full/123.png" style="position: absolute;top:266px;left:119px;width:120px;height:48px;" @click="onBtnClick('switchNum')" show="{{downFlag==='' && !numFlag && lang==='cn'}}" />
           <img src="./assets/full/123.png" style="position: absolute;top:266px;left:119px;width:120px;height:48px;" @click="onBtnClick('switchNum_jp')" show="{{downFlag==='' && !numFlag && lang==='jp'}}" />
@@ -90,101 +90,11 @@
           <img src="./assets/full/4-1.png" style="position: absolute;top:266px;left:119px;width:120px;height:48px;" @click="onSelect('、')" show="{{numFlag_jp}}" />
           <img style="position: absolute;top:204px;left:78px;" src="./assets/full/up.png" @click="onBtnClick('down')" show="{{downFlag==='down'}}" />
         </div>
-        <!-- 九键 -->
-        <div else style="width: 480px;height: 321px;">
-          <img src="./assets/t9/back2.png" style="position: absolute;top:35px;left:31px;width: 60px;height: 60px;" @click="onBtnClick('switchCn')" show="{{numFlag}}" />
-          <img src="./assets/t9/123.png" style="position: absolute;top:99px;left:31px;width: 60px;height: 60px;" @click="onBtnClick('switchNum')" show="{{downFlag==='' && !numFlag && lang==='cn'}}" />
-          <img src="./assets/t9/bigA.png" style="position: absolute;top:99px;left:31px;width: 60px;height: 60px;" @click="onBtnClick('switchLow')" show="{{downFlag==='' && !numFlag && upperFlag && lang==='en'}}" />
-          <img src="./assets/t9/a.png" style="position: absolute;top:99px;left:31px;width: 60px;height: 60px;" @click="onBtnClick('switchUpper')" show="{{downFlag==='' && !numFlag && !upperFlag && lang==='en'}}" />
-          <div style="position: absolute;top:35px;left:95px;width:290px;height:60px;background-color:rgb(38,38,38);border-radius: 999px;border: 3px solid #333333" show="{{downFlag===''&& !numFlag}}"></div>
-          <img show="{{resultRow0.length > 0}}" style="position: absolute;top:44px;left:338px;" src="./assets/full/down.png" @click="onBtnClick('down')" />
-          <!-- 带变量的相对路径在 aiot-tookit 2.0.4 中修复 -->
-          <img src="./assets/t9/{{lang}}.png" style="position: absolute;top:35px;left:31px;width: 60px;height: 60px;" @click="onBtnClick('lang')" if="{{downFlag==='' && !numFlag}}" />
-          <div show="{{downFlag==='' && !numFlag}}" style="position: absolute;top:-4px;left:240px;width:145px;height:40px;justify-content:flex-end">
-            <text for="{{waitingList}}" class="waiting-keys" style="color:{{$idx===waitingIndex ? 'rgb(13,132,255)' : 'white'}};" @click="onSelectWaiting($idx)">{{waitingList[$idx]}}</text>
-          </div>
-          <!-- 拼音小字行：circle 屏在键盘内部绝对定位（对齐参考工程），浮于候选行上方，不占键盘高度；左止于 waiting 列表前 -->
-          <div style="position: absolute;top:-4px;left:95px;width:145px;height:40px;" show="{{(lang==='cn' || lang==='jp') && downFlag==='' && !numFlag && cval}}">
-            <text class="caltext" style="width:145px;">{{cvalDisplay}}_</text>
-          </div>
-          <!-- 候选横滚行：整词在前、单字随后，宽度自适应防长词拥挤（对齐 rect/pill 屏方案），容器止于右侧 down 箭头前。
-               注意：容器必须给 height（scroll 在无高度容器内不渲染内容，T9 候选曾因此空白） -->
-          <div style="position: absolute;top:39px;left:105px;width:233px;height:52px;" show="{{(lang === 'cn' || lang === 'jp') && !numFlag}}">
-            <scroll scroll-x="{{true}}" style="position:absolute;left:0px;width:100%;height:42px;">
-              <div style="position: absolute;left: 0px;height: 42px;padding-left:20px;padding-right:20px">
-                <text for="{{resultRow0}}" show="{{resultRow0.length > $idx}}" class="calbtn02" style="padding-right:10px" @click="onRsSelect(resultRow0[$idx])">{{resultRow0[$idx]}}</text>
-              </div>
-            </scroll>
-          </div>
-          <div style="position: absolute;top:35px;left:95px;width:290px;height:60px;align-content: center;align-items: center;justify-content: center" show="{{downFlag==='' && !numFlag && lang==='en'}}" @click="onBtnClick('switchNum')" >
-            <img src="./assets/full/123_boardless.png" />
-          </div>
-          <!-- 这里使用show会导致每次输入都会加载全部候选列表，很卡 -->
-          <list class="list3" if="{{downFlag==='down'}}">
-            <list-item type="waitingRows62full" class="item3" for="{{itemArray in resultList2}}">
-              <div class="item column center" style="height:52px;" for="{{item in itemArray}}">
-                <text class="calbtn-down-text" @click="onRsSelect(item)">{{item}}</text>
-              </div>
-            </list-item>
-          </list>
-          <div style="position: absolute;top:99px;left:95px;width:294px;height:60px;" show="{{downFlag===''&&!numFlag}}">
-            <text class="calbtnt9" @click="onSelect('select')">选择</text>
-            <text class="calbtnt9" for="{{item in keys['t9'][0]}}" @click="onSelect(item)">{{item.toUpperCase()}}</text>
-          </div>
-          <div style="position: absolute;top:163px;left:95px;width:294px;height:60px;" show="{{downFlag===''&&!numFlag}}">
-            <text class="calbtnt9" for="{{item in keys['t9'][1]}}" @click="onSelect(item)">{{item.toUpperCase()}}</text>
-          </div>
-          <div style="position: absolute;top:227px;left:95px;width:294px;height:60px;" show="{{downFlag===''&&!numFlag}}">
-            <text class="calbtnt9" for="{{item in keys['t9'][2]}}" @click="onSelect(item)">{{item.toUpperCase()}}</text>
-          </div>
-          <div style="position: absolute;top:35px;left:95px;width:294px;height:60px;" show="{{numFlag}}">
-            <text class="calbtnt9" @click="onSelect('7')">7</text>
-            <text class="calbtnt9" @click="onSelect('8')">8</text>
-            <text class="calbtnt9" @click="onSelect('9')">9</text>
-          </div>
-          <div style="position: absolute;top:99px;left:95px;width:294px;height:60px;" show="{{numFlag}}">
-            <text class="calbtnt9" @click="onSelect('4')">4</text>
-            <text class="calbtnt9" @click="onSelect('5')">5</text>
-            <text class="calbtnt9" @click="onSelect('6')">6</text>
-          </div>
-          <div style="position: absolute;top:163px;left:95px;width:294px;height:60px;" show="{{numFlag}}">
-            <text class="calbtnt9" @click="onSelect('1')">1</text>
-            <text class="calbtnt9" @click="onSelect('2')">2</text>
-            <text class="calbtnt9" @click="onSelect('3')">3</text>
-          </div>
-          <div style="position: absolute;top:227px;left:95px;width:294px;height:60px;" show="{{numFlag}}">
-            <text class="calbtnt9" @click="onSelect('，')">，</text>
-            <text class="calbtnt9" @click="onSelect('0')">0</text>
-            <text class="calbtnt9" @click="onSelect('。')">。</text>
-          </div>
-          <img src="./assets/t9/del.png" style="position: absolute;top:35px;left:389px;width: 60px;height: 60px;" @click="onBtnClick('D')" show="{{downFlag==='' }}" />
-          <img src="./assets/t9/space.png" style="position: absolute;top:99px;left:389px;width: 60px;height: 60px;" @click="onBtnClick('space')" show="{{downFlag==='' && !numFlag }}" />
-          <img style="position: absolute;top:204px;left:78px;" src="./assets/full/up.png" @click="onBtnClick('down')" show="{{downFlag==='down'}}" />
-        </div>
+        
       </div>
       <!-- 方屏67 -->
       <div if="{{screentype==='rect'}}" style="width: 100%;height: 255px;flex-direction: column">
-        <!-- 九键中文 -->
-        <div if="{{keyboardtype=='T9' && !numFlag}}" style="position:absolute;top:-11px;width:100%;height:276px;justify-content: center;">
-          <div style="top:77px;height:189px;width:100%;align-items: stretch;justify-content: space-between;flex-direction: column;padding:6px 3px">
-            <div class="keyboard-rows-rect-t9">
-              <text class="calbtnt9 calbtnt9-rect" @click="onSelect('select')">
-                选择
-                <span if="{{waitingList.length != 0}}" class="waiting-keys" style="color:rgb(13,132,255);" @click="onSelectWaiting(waitingIndex)">
-                  {{waitingList[waitingIndex].toUpperCase()}}
-                </span>
-              </text>
-              <text class="calbtnt9 calbtnt9-rect" for="{{item in keys['t9'][0]}}" @click="onSelect(item)">{{item.toUpperCase()}}</text>
-            </div>
-            <div class="keyboard-rows-rect-t9">
-              <text class="calbtnt9 calbtnt9-rect" for="{{item in keys['t9'][1]}}" @click="onSelect(item)">{{item.toUpperCase()}}</text>
-            </div>
-            <div class="keyboard-rows-rect-t9">
-              <text class="calbtnt9 calbtnt9-rect" for="{{item in keys['t9'][2]}}" @click="onSelect(item)">{{item.toUpperCase()}}</text>
-            </div>
-          </div>
-        </div>
-        <div else style="position:absolute;top:-11px;width:100%;height:276px;justify-content: center">
+        <div style="position:absolute;top:-11px;width:100%;height:276px;justify-content: center">
           <progress percent="{{percent67}}" style="position:absolute;bottom: 12px;width:80px;color:#ffffff;stroke-width:6px;layer-color:#262626;"></progress>
           <scroll id="keyboard67" scroll-x="{{true}}" onscroll="handelScroll">
             <div if="{{!numFlag}}" style="left: 6px; flex-direction: column;">
@@ -362,9 +272,6 @@ export default {
     hide: {
       default: true,
     },
-    keyboardtype: {
-      default: "QWERTY",
-    },
     maxlength: {
       default: 5,
     },
@@ -425,11 +332,6 @@ export default {
         ["S", "D", "F", "G", "H", "J", "K"],
         ["X", "C", "V", "B", "N"],
       ],
-      t9: [
-        ["abc", "def"],
-        ["ghi", "jkl", "mno"],
-        ["pqrs", "tuv", "wxyz"],
-      ],
     },
   },
   onInit() {
@@ -455,7 +357,6 @@ export default {
     }
     this.$watch("hide", "watchHidePropsChange");
     this.$watch("maxlength", "watchMaxLengthPropsChange");
-    this.$watch("keyboardtype", "watchKeyboardTypePropsChange");
   },
   addAllTxt(txt) {
     this.$emit("complete", { content: txt });
@@ -686,10 +587,6 @@ export default {
   },
   onSelect(num) {
     this.$emit("keyDown", { content: num });
-    if (this.keyboardtype === "T9" && this.screentype !== "pill-shaped") {
-      this.onBtnClick(num);
-      return;
-    }
     this.onVibrate();
     if (this.lang === 'cn' && !this.numFlag) {
       this.cval += num.toLowerCase();
@@ -740,14 +637,6 @@ export default {
         tempCvalList.push(i);
       }
       this.cvalList = tempCvalList;
-    }
-  },
-  watchKeyboardTypePropsChange(newV, oldV) {
-    if (newV === "T9") {
-      this.lang = "cn";
-      this.cval = "";
-      this.clearWaiting();
-      this.resetResultList();
     }
   },
   onVibrate() {
@@ -833,18 +722,6 @@ export default {
 	margin-right:4px;
 	height:52px;
 	width:40px;
-	text-align:center;
-	border:3px solid rgba(255,255,255,0.06)
-}
-.calbtnt9 {
-	color:#fff;
-	font-size:25px;
-	font-weight:bold;
-	background-color:#262626;
-	border-radius:999px;
-	margin-right:4px;
-	width:94px;
-	height:60px;
 	text-align:center;
 	border:3px solid rgba(255,255,255,0.06)
 }
@@ -958,22 +835,6 @@ export default {
 	width:36px;
 	height:40px;
 	text-align: center;
-}
-
-.keyboard-rows-rect-t9 {
-  align-items: center;
-  justify-content: space-between;
-  flex-direction: row;
-  flex-shrink: 0;
-  height: 55px;
-  width: 100%;
-}
-
-.calbtnt9-rect {
-  flex:1;
-  height:55px;
-  margin:0 3px;
-  width:unset;
 }
 
 @media (min-width: 230) and (max-width: 235) and (shape: circle) {

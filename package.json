@@ -9,7 +9,8 @@
     "start": "aiot start --watch",
     "bump": "node scripts/bump-version.js",
     "prebuild": "node scripts/bump-version.js",
-    "build": "aiot build",
+    "build": "node scripts/build.js",
+    "build:dev": "aiot build",
     "prerelease": "node scripts/bump-version.js",
     "release": "aiot release",
     "lint": "eslint --format codeframe --fix --ext .ux,.js src/"

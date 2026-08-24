@@ -14,22 +14,6 @@
       </div>
     </div>
 
-    <div class="nickname-section" onclick="openTestReminder" style="background-color: {{ theme.card }}">
-      <text class="nickname-label" style="color: {{ theme.text }}">提醒功能测试</text>
-      <div class="nickname-value-row">
-        <text class="nickname-placeholder" style="color: {{ theme.textMuted }}">测试闹钟/日历</text>
-        <text class="nickname-arrow" style="color: {{ theme.textMuted }}">›</text>
-      </div>
-    </div>
-
-    <div class="nickname-section" onclick="openDemoList" style="background-color: {{ theme.card }}">
-      <text class="nickname-label" style="color: {{ theme.text }}">列表Demo</text>
-      <div class="nickname-value-row">
-        <text class="nickname-placeholder" style="color: {{ theme.textMuted }}">13种列表删除风格</text>
-        <text class="nickname-arrow" style="color: {{ theme.textMuted }}">›</text>
-      </div>
-    </div>
-
     <div class="theme-section" style="background-color: {{ theme.card }}">
       <text class="section-label" style="color: {{ theme.text }}">主题配色</text>
       <div class="theme-grid">
@@ -242,14 +226,6 @@ export default {
 
   openNicknameEdit() {
     router.push({ uri: "/pages/nickname-edit" })
-  },
-
-  openTestReminder() {
-    router.push({ uri: "pages/demo-reminder" })
-  },
-
-  openDemoList() {
-    router.push({ uri: "pages/demo-list" })
   },
 
   toggleRemind() {

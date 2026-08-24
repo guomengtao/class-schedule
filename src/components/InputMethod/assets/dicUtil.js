@@ -1,7 +1,4 @@
 import { getDict } from './dic.js'
-// Japanese dictionary removed
-import { getWords } from './dic_words.js'
-import { getInitialsIndex } from './dic_words_initials.js'
 import { syllables } from './pinyin_syllables.js'
 
 // 辅助：从词库取值（支持单值和数组），去重推入 wordHits
@@ -28,7 +25,6 @@ SimpleInputMethod.initDict = function() {
   this.dict.py2hz = getDict()
   this.dict.py2hz2 = {}
   this.dict.py2hz2['i'] = 'i' // 特殊处理
-  // Japanese romaji2kanji removed
 
   // 合法音节集合 + 首字母索引：一次遍历 dic.js
   this.dict.syllableSet = new Set(syllables)
@@ -38,14 +34,23 @@ SimpleInputMethod.initDict = function() {
     this.dict.syllableSet.add(key)
   }
 
-  // 整词词库（惰性创建）
-  this.dict.words = getWords()
+  // 整词词库：异步动态 import，避免词库被 webpack 内联到每个页面造成重复打包
+  this._loadWordDict()
+}
 
-  // 简拼索引：预计算倒排索引直接赋值（生成脚本产出，init 不再逐词切分）
-  this.dict.initialsIndex = getInitialsIndex()
-  // forwardIndex 分片构建：每片 200 词，剩余排 setTimeout(0) 继续。
-  // 一次性遍历 3000 词是长任务，会占住主线程可感卡顿；分片后首片立即返回，后续零碎完成。
-  this._buildForwardIndex()
+SimpleInputMethod._loadWordDict = function() {
+  if (this._wordDictLoading) return
+  this._wordDictLoading = true
+  Promise.all([
+    import('./dic_words.js'),
+    import('./dic_words_initials.js')
+  ]).then(function(modules) {
+    this.dict.words = modules[0].getWords()
+    this.dict.initialsIndex = modules[1].getInitialsIndex()
+    this._buildForwardIndex()
+  }.bind(this)).catch(function() {
+    this._wordDictLoading = false
+  }.bind(this))
 }
 
 // 前向索引(首2字母 → 词键列表)分片构建。构建完成前 getMultiHanzi 的 forward 匹配短暂空转，
