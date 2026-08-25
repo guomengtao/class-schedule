@@ -1,6 +1,11 @@
 <template>
   <div class="schedule-page" style="background-color: {{ theme.bg }}">
     <div class="upper-half" ontouchstart="handleUpperTouchStart" ontouchend="handleUpperTouchEnd">
+      <div class="clock-row">
+        <div class="clock-box">
+          <text class="clock-text" style="color: {{ theme.textSecondary }}">{{ currentTime }}</text>
+        </div>
+      </div>
       <div class="header">
         <input class="nav-btn" type="button" value="&#9664;" onclick="prevDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
         <text class="day-title" style="{{ dayTitleStyle }}; color: {{ theme.text }}">{{ currentDay }}</text>
@@ -19,30 +24,8 @@
       </div>
 
       <div class="status-bar" if="{{ isToday }}" style="background-color: {{ theme.cardLight }}; border-left-color: {{ theme.accent }}">
-        <div class="status-current" if="{{ currentClass }}" ontouchstart="onStatusBarTouch" onclick="scrollToCurrentClass">
-          <text class="status-text" style="color: {{ theme.text }}" if="{{ statusSimple }}">
-            正在上课: {{ currentClass.name }}
-          </text>
-          <text class="status-text" style="color: {{ theme.text }}" if="{{ !statusSimple && currentClass.remaining > 0 }}">
-            正在上课: {{ currentClass.name }} 还剩{{ currentClass.remaining }}分钟
-          </text>
-          <text class="status-text" style="color: {{ theme.text }}" if="{{ !statusSimple && currentClass.remaining <= 0 }}">
-            正在上课: {{ currentClass.name }} 即将结束
-          </text>
-          <div class="status-toggle" ontouchstart="onStatusBarTouch" onclick="toggleStatusMode">
-            <text class="status-toggle-text" style="color: {{ theme.accent }}">{{ statusSimple ? '详' : '简' }}</text>
-          </div>
-        </div>
-        <div class="status-next" if="{{ nextClass }}" ontouchstart="onStatusBarTouch" onclick="scrollToNextClass">
-          <text class="status-text" style="color: {{ theme.text }}" if="{{ statusSimple }}">下一节: {{ nextClass.name }}</text>
-          <text class="status-text" style="color: {{ theme.text }}" if="{{ !statusSimple }}">下一节: {{ nextClass.waitMin }}分钟后 {{ nextClass.name }}</text>
-        </div>
-        <div class="status-free" if="{{ !currentClass && !nextClass && upcomingClass }}" onclick="goToStatusDay">
-          <text class="status-text" style="color: {{ theme.text }}">即将: {{ upcomingClass.day }} {{ upcomingClass.name }} {{ upcomingClass.time }}</text>
-        </div>
-        <div class="status-free" if="{{ !currentClass && !nextClass && !upcomingClass }}" onclick="goToStatusDay">
-          <text class="status-text" style="color: {{ theme.text }}">暂无课程</text>
-        </div>
+        <marquee class="status-text" scrollamount="3" loop="-1" direction="left" style="color: {{ theme.text }}" if="{{ statusLineText }}">{{ statusLineText }}</marquee>
+        <text class="status-text" style="color: {{ theme.text }}" if="{{ !statusLineText }}">暂无课程</text>
       </div>
 
       <scroll class="class-list" scroll-y="{{true}}" scroll-top="{{ scrollListTop }}">
@@ -139,6 +122,8 @@ export default {
     upcomingClassDay: "",
     statusTimer: null,
     progressTimer: null,
+    clockTimer: null,
+    currentTime: "",
     _lastRemindedId: null,
     remindSettings: { enabled: true, minutes: 5 },
     theme: {},
@@ -147,6 +132,7 @@ export default {
     quickAddExpanded: false,
     isToday: true,
     statusSimple: false,
+    statusLineText: "",
     presetCourses: []
   },
 
@@ -191,10 +177,12 @@ export default {
     })
     this.loadStatusSimpleMode()
     this.applyFontScale()
+    this.startClockTimer()
   },
 
   onShow() {
     this.isActive = true
+    this.startClockTimer()
     var self = this
     store.getTheme(function(t) {
       self.theme = t
@@ -226,10 +214,12 @@ export default {
   onHide() {
     this.isActive = false
     this.stopStatusTimer()
+    this.stopClockTimer()
   },
 
   onDestroy() {
     this.stopStatusTimer()
+    this.stopClockTimer()
   },
 
   applyFontScale() {
@@ -650,6 +640,29 @@ export default {
     }
   },
 
+  updateClock() {
+    var now = new Date()
+    var h = now.getHours()
+    var m = now.getMinutes()
+    var s = now.getSeconds()
+    this.currentTime = (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s
+  },
+
+  startClockTimer() {
+    var self = this
+    self.updateClock()
+    this.clockTimer = setInterval(function() {
+      self.updateClock()
+    }, 1000)
+  },
+
+  stopClockTimer() {
+    if (this.clockTimer) {
+      clearInterval(this.clockTimer)
+      this.clockTimer = null
+    }
+  },
+
   updateStatus() {
     this.currentClass = null
     this.nextClass = null
@@ -666,6 +679,23 @@ export default {
 
     if (!this.currentClass && !this.nextClass) {
       this.findUpcomingClass(realTodayIdx)
+    }
+
+    this.updateStatusLine()
+  },
+
+  updateStatusLine() {
+    if (this.currentClass) {
+      var remaining = this.currentClass.remaining > 0
+        ? "还剩" + this.currentClass.remaining + "分钟"
+        : "即将结束"
+      this.statusLineText = "正在上课: " + this.currentClass.name + " " + remaining
+    } else if (this.nextClass) {
+      this.statusLineText = "下一节: " + this.nextClass.waitMin + "分钟后 " + this.nextClass.name
+    } else if (this.upcomingClass) {
+      this.statusLineText = "下一节: " + this.upcomingClass.day + " " + this.upcomingClass.name + " " + this.upcomingClass.time
+    } else {
+      this.statusLineText = ""
     }
   },
 
@@ -847,6 +877,22 @@ export default {
   margin-bottom: 4px;
 }
 
+.clock-row {
+  justify-content: center;
+  align-items: center;
+  padding: 2px 4px;
+  margin-bottom: 2px;
+}
+
+.clock-box {
+  width: 110px;
+}
+
+.clock-text {
+  font-size: 18px;
+  font-weight: normal;
+}
+
 .day-title {
   font-size: 20px;
   font-weight: bold;
@@ -875,66 +921,30 @@ export default {
 }
 
 .nav-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 16px;
-  font-size: 14px;
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  font-size: 20px;
   text-align: center;
   justify-content: center;
   align-items: center;
 }
 
 .status-bar {
-  flex-direction: column;
-  background-color: #0f3460;
+  flex-direction: row;
+  align-items: center;
   border-radius: 14px;
-  padding: 24px 36px;
+  padding: 8px 16px;
   margin-bottom: 8px;
   border-left-width: 6px;
-  border-left-color: #7ec8e3;
   border-left-style: solid;
-}
-
-.status-current {
-  flex-direction: row;
-  align-items: center;
-  width: 100%;
-}
-
-.status-next {
-  flex-direction: row;
-  align-items: center;
-  width: 100%;
-}
-
-.status-free {
-  flex-direction: row;
-  align-items: center;
-  width: 100%;
 }
 
 .status-text {
   font-size: 20px;
   color: #ffffff;
-  flex: 1;
   text-overflow: ellipsis;
-}
-
-.status-toggle {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background-color: #1a3a4a;
-  justify-content: center;
-  align-items: center;
-  margin-left: 8px;
-  flex-shrink: 0;
-  flex-direction: row;
-}
-
-.status-toggle-text {
-  font-size: 18px;
-  font-weight: bold;
+  max-lines: 1;
 }
 
 .status-time {
