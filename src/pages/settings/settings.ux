@@ -81,6 +81,14 @@
       <input class="save-settings-btn" type="button" value="保存设置" onclick="saveSettings" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
+    <div class="reset-section" onclick="openResetData" style="background-color: {{ theme.card }}">
+      <text class="reset-label" style="color: {{ theme.deleteText }}">恢复默认数据</text>
+      <div class="reset-value-row">
+        <text class="reset-desc" style="color: {{ theme.textMuted }}">重置所有课程为 Demo 数据</text>
+        <text class="reset-arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+    </div>
+
     <text class="version-text" style="color: {{ theme.textMuted }}">{{ versionText }}</text>
   </div>
 </template>
@@ -306,6 +314,10 @@ export default {
 
   saveSettings() {
     router.back()
+  },
+
+  openResetData() {
+    router.push({ uri: "/pages/reset-data" })
   },
 
   goBack() {
@@ -594,6 +606,34 @@ export default {
   font-size: 18px;
   font-weight: bold;
   text-align: center;
+}
+
+.reset-section {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+}
+
+.reset-label {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.reset-value-row {
+  flex-direction: row;
+  align-items: center;
+}
+
+.reset-desc {
+  font-size: 13px;
+  margin-right: 6px;
+}
+
+.reset-arrow {
+  font-size: 20px;
 }
 
 .version-text {

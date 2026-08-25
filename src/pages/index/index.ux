@@ -45,12 +45,9 @@
         </div>
       </div>
 
-      <scroll class="class-list" scroll-y="{{true}}" scroll-top="{{ scrollListTop }}" ontouchstart="dismissSwipe">
+      <scroll class="class-list" scroll-y="{{true}}" scroll-top="{{ scrollListTop }}">
         <div for="{{ currentClasses }}" class="class-card-wrapper">
-          <div class="delete-btn" onclick="deleteCourse($item.id)" style="background-color: {{ theme.deleteText }}">
-            <text class="delete-btn-icon">&#128465;</text>
-          </div>
-          <div class="class-card {{ swipedId === $item.id ? 'class-card-swiped' : '' }}" ontouchstart="handleCardTouchStart($event, $item.id)" ontouchend="handleCardTouchEnd($event, $item.id)" onclick="openDetail($item.id)" style="background-color: {{ theme.card }}; border-left-color: {{ theme.accent }}">
+          <div class="class-card" onclick="openDetail($item.id)" style="background-color: {{ theme.card }}; border-left-color: {{ theme.accent }}">
             <div class="progress-bg" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
             <div class="class-content">
               <div class="class-time">
@@ -132,10 +129,7 @@ export default {
     weekTextStyle: "",
     nameStyle: "",
     btnTextStyle: "",
-    swipedId: "",
     scrollListTop: 0,
-    cardTouchStartX: 0,
-    cardTouchStartY: 0,
     upperTouchStartX: 0,
     upperTouchStartY: 0,
     isActive: true,
@@ -634,48 +628,6 @@ export default {
     return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m
   },
 
-  handleCardTouchStart(e) {
-    if (!this.isActive || !e || !e.touches || e.touches.length === 0) return
-    this.dismissSwipe()
-    this.cardTouchStartX = e.touches[0].clientX
-    this.cardTouchStartY = e.touches[0].clientY
-  },
-
-  dismissSwipe() {
-    this.swipedId = ""
-  },
-
-  handleCardTouchEnd(e, id) {
-    if (!this.isActive || !e || !e.changedTouches || e.changedTouches.length === 0) return
-    var endX = e.changedTouches[0].clientX
-    var endY = e.changedTouches[0].clientY
-    var dx = endX - this.cardTouchStartX
-    var dy = endY - this.cardTouchStartY
-    var absDx = dx < 0 ? -dx : dx
-    var absDy = dy < 0 ? -dy : dy
-    if (absDx > 30 && absDx > absDy) {
-      if (dx < 0) {
-        this.swipedId = id
-      } else {
-        this.swipedId = ""
-      }
-    } else {
-      this.swipedId = ""
-    }
-  },
-
-  deleteCourse(id) {
-    var self = this
-    var day = this.currentDay
-    database.deleteCourse(id, day, function() {
-      self.swipedId = ""
-      database.getAllCourses(function(schedule) {
-        self.schedule = schedule
-        self.loadDayClasses()
-      })
-    })
-  },
-
   startStatusTimer() {
     this.stopStatusTimer()
     var self = this
@@ -1016,10 +968,6 @@ export default {
   overflow: hidden;
 }
 
-.class-card-swiped {
-  transform: translateX(-60px);
-}
-
 .progress-bg {
   position: absolute;
   left: 0;
@@ -1080,29 +1028,6 @@ export default {
 .empty-text {
   font-size: 28px;
   color: #555566;
-}
-
-.delete-btn {
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 60px;
-  height: 100%;
-  background-color: #e74c3c;
-  border-radius: 0 10px 10px 0;
-  justify-content: center;
-  align-items: center;
-}
-
-.delete-btn-icon {
-  font-size: 28px;
-  color: #ffffff;
-}
-
-.delete-btn-text {
-  font-size: 14px;
-  color: #ffffff;
-  font-weight: bold;
 }
 
 .quick-add {

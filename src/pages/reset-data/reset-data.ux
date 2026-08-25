@@ -1,0 +1,207 @@
+<template>
+  <div class="reset-page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="color: {{ theme.text }}">恢复默认数据</text>
+    </div>
+
+    <div class="warning-section" style="background-color: {{ theme.card }}">
+      <text class="warning-icon">⚠️</text>
+      <text class="warning-title" style="color: {{ theme.accent }}">重要提示</text>
+      <text class="warning-text" style="color: {{ theme.textSecondary }}">此操作将把所有课程数据恢复为默认 Demo 数据。</text>
+      <text class="warning-text" style="color: {{ theme.textSecondary }}">您自己添加、修改的所有课程都将丢失。</text>
+      <text class="warning-text" style="color: {{ theme.deleteText }}">此操作不可撤销，请谨慎操作！</text>
+    </div>
+
+    <div class="info-section" style="background-color: {{ theme.card }}">
+      <text class="info-title" style="color: {{ theme.text }}">默认数据说明</text>
+      <text class="info-text" style="color: {{ theme.textSecondary }}">恢复后将包含 2 张课程表：</text>
+      <text class="info-text" style="color: {{ theme.textSecondary }}">课程表1：周一至周五，每天 8 节课（上午4节 + 下午4节）</text>
+      <text class="info-text" style="color: {{ theme.textSecondary }}">课程表2：随机课程安排</text>
+      <text class="info-text" style="color: {{ theme.textSecondary }}">共 12 门课程随机分配</text>
+    </div>
+
+    <div class="action-section">
+      <input class="reset-btn {{ confirmState ? 'danger' : '' }}" type="button"
+             value="{{ confirmState ? '⚠ 再次点击确认重置' : '恢复默认数据' }}"
+             onclick="handleReset"
+             style="background-color: {{ confirmState ? theme.deleteText : theme.accent }}; color: {{ confirmState ? '#ffffff' : theme.bg }}" />
+
+      <text class="reset-hint" if="{{ confirmState }}" style="color: {{ theme.deleteText }}">请再次点击按钮确认重置操作</text>
+      <text class="reset-hint" if="{{ !confirmState }}" style="color: {{ theme.textMuted }}">点击按钮后需要二次确认才会执行</text>
+    </div>
+
+    <text class="result-text" if="{{ resetDone }}" style="color: {{ theme.accent }}">数据已恢复为默认值，请返回首页查看。</text>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+const database = require("../../data/database.js")
+
+var confirmTimer = null
+
+export default {
+  private: {
+    theme: {},
+    confirmState: false,
+    resetDone: false
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+  },
+
+  handleReset() {
+    if (!this.confirmState) {
+      this.confirmState = true
+      var self = this
+      confirmTimer = setTimeout(function() {
+        self.confirmState = false
+      }, 5000)
+      return
+    }
+
+    if (confirmTimer) {
+      clearTimeout(confirmTimer)
+      confirmTimer = null
+    }
+
+    var self = this
+    database.resetToDemoData(function(success) {
+      self.confirmState = false
+      self.resetDone = true
+      if (success) {
+        console.log("[RESET] Demo data restored successfully")
+      }
+    })
+  },
+
+  goBack() {
+    if (confirmTimer) {
+      clearTimeout(confirmTimer)
+      confirmTimer = null
+    }
+    router.back()
+  }
+}
+</script>
+
+<style>
+.reset-page {
+  flex-direction: column;
+  padding: 8px;
+  min-height: 100%;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 6px 0;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.warning-section {
+  flex-direction: column;
+  align-items: center;
+  border-radius: 12px;
+  padding: 20px 16px;
+  margin-bottom: 12px;
+}
+
+.warning-icon {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+.warning-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.warning-text {
+  font-size: 16px;
+  text-align: center;
+  margin-bottom: 6px;
+  line-height: 22px;
+}
+
+.info-section {
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.info-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.info-text {
+  font-size: 15px;
+  margin-bottom: 4px;
+  line-height: 20px;
+}
+
+.action-section {
+  flex-direction: column;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.reset-btn {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.reset-btn.danger {
+  animation-name: pulse;
+  animation-duration: 800ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.reset-hint {
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.result-text {
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 20px;
+}
+</style>

@@ -686,5 +686,170 @@ module.exports = {
         }
       })
     })
+  },
+
+  resetToDemoData: function(callback) {
+    log("resetToDemoData: starting full reset")
+    var self = this
+    ensureReady(function() {
+      self._doResetToDemoData(callback)
+    })
+  },
+
+  _doResetToDemoData: function(callback) {
+
+    var coursePool = [
+      { name: "数学", teacher: "王老师", location: "301教室" },
+      { name: "语文", teacher: "周老师", location: "205教室" },
+      { name: "英语", teacher: "李老师", location: "205教室" },
+      { name: "物理", teacher: "吴老师", location: "实验室B" },
+      { name: "化学", teacher: "郑老师", location: "实验室A" },
+      { name: "生物", teacher: "黄老师", location: "实验室C" },
+      { name: "历史", teacher: "刘老师", location: "102教室" },
+      { name: "地理", teacher: "张老师", location: "103教室" },
+      { name: "政治", teacher: "杨老师", location: "104教室" },
+      { name: "计算机", teacher: "赵老师", location: "机房1" },
+      { name: "音乐", teacher: "孙老师", location: "音乐室" },
+      { name: "美术", teacher: "陈老师", location: "美术室" }
+    ]
+
+    var morningTimes = ["08:00 - 08:45", "08:55 - 09:40", "10:00 - 10:45", "10:55 - 11:40"]
+    var afternoonTimes = ["14:00 - 14:45", "14:55 - 15:40", "16:00 - 16:45", "16:55 - 17:40"]
+    var allTimes = morningTimes.concat(afternoonTimes)
+    var days = ["星期一", "星期二", "星期三", "星期四", "星期五"]
+
+    function shuffle(arr) {
+      var a = arr.slice()
+      for (var i = a.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1))
+        var tmp = a[i]
+        a[i] = a[j]
+        a[j] = tmp
+      }
+      return a
+    }
+
+    function generateSchedule() {
+      var schedule = []
+      var idCounter = 1
+      for (var d = 0; d < days.length; d++) {
+        var dayCourses = []
+        var shuffled = shuffle(coursePool)
+        for (var t = 0; t < allTimes.length; t++) {
+          var course = shuffled[t % shuffled.length]
+          dayCourses.push({
+            id: String(idCounter),
+            name: course.name,
+            time: allTimes[t],
+            teacher: course.teacher,
+            location: course.location,
+            notes: ""
+          })
+          idCounter++
+        }
+        schedule.push({ day: days[d], classes: dayCourses })
+      }
+      return schedule
+    }
+
+    var schedule1 = generateSchedule()
+    var schedule2 = generateSchedule()
+
+    var names = ["课程表1", "课程表2"]
+
+    function saveAll() {
+      if (useSqlite) {
+        sqlite.executeSql({
+          name: DB_NAME,
+          sql: "DELETE FROM courses",
+          success: function() {
+            insertScheduleToSqlite(0, schedule1, function() {
+              insertScheduleToSqlite(1, schedule2, function() {
+                finalizeReset()
+              })
+            })
+          },
+          fail: function() {
+            insertScheduleToSqlite(0, schedule1, function() {
+              insertScheduleToSqlite(1, schedule2, function() {
+                finalizeReset()
+              })
+            })
+          }
+        })
+      } else {
+        saveToStorageWithIndex(0, schedule1)
+        saveToStorageWithIndex(1, schedule2)
+        finalizeReset()
+      }
+    }
+
+    function insertScheduleToSqlite(scheduleIndex, schedule, cb) {
+      var allCourses = []
+      for (var d = 0; d < schedule.length; d++) {
+        var day = schedule[d].day
+        var classes = schedule[d].classes
+        for (var c = 0; c < classes.length; c++) {
+          var course = classes[c]
+          allCourses.push({
+            id: course.id,
+            day: day,
+            name: course.name,
+            time: course.time,
+            teacher: course.teacher,
+            location: course.location,
+            notes: course.notes || "",
+            scheduleIndex: String(scheduleIndex)
+          })
+        }
+      }
+      insertBatchSqlite(allCourses, 0, cb)
+    }
+
+    function insertBatchSqlite(courses, index, cb) {
+      if (index >= courses.length) {
+        cb()
+        return
+      }
+      var c = courses[index]
+      sqlite.executeSql({
+        name: DB_NAME,
+        sql: "INSERT OR REPLACE INTO courses (id, day, name, time, teacher, location, notes, schedule_index) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        args: [c.id, c.day, c.name, c.time, c.teacher, c.location, c.notes, c.scheduleIndex],
+        success: function() {
+          insertBatchSqlite(courses, index + 1, cb)
+        },
+        fail: function(e) {
+          logErr("reset insert failed: " + JSON.stringify(e))
+          insertBatchSqlite(courses, index + 1, cb)
+        }
+      })
+    }
+
+    function finalizeReset() {
+      storage.set({
+        key: "scheduleNames",
+        value: JSON.stringify(names),
+        success: function() {
+          currentScheduleIndex = 0
+          storage.set({
+            key: "currentScheduleIndex",
+            value: "0",
+            success: function() {
+              log("resetToDemoData: complete")
+              if (callback) callback(true)
+            },
+            fail: function() {
+              if (callback) callback(true)
+            }
+          })
+        },
+        fail: function() {
+          if (callback) callback(true)
+        }
+      })
+    }
+
+    saveAll()
   }
 }

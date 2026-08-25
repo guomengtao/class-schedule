@@ -39,7 +39,8 @@
       <text class="step-title" style="{{ labelStyle }}; color: {{ theme.text }}">第2步: 时间</text>
       <text class="step-hint" style="{{ hintStyle }}; color: {{ theme.textSecondary }}">课程: {{ courseName }}</text>
 
-      <text class="picker-label" style="{{ labelStyle }}; color: {{ theme.text }}">开始时间</text>
+      <scroll class="step2-scroll" scroll-y="true">
+        <text class="picker-label" style="{{ labelStyle }}; color: {{ theme.text }}">开始时间</text>
         <div class="stepper-time" style="background-color: {{ theme.card }}">
           <div class="stepper-row">
             <text class="stepper-label" style="color: {{ theme.text }}">小时</text>
@@ -55,10 +56,8 @@
           </div>
         </div>
 
-        <div class="time-divider" style="background-color: {{ theme.accent }}"></div>
-
-        <text class="picker-label end-label" style="{{ labelStyle }}; color: {{ theme.accent }}">结束时间</text>
-        <div class="stepper-time stepper-time-end" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+        <text class="picker-label" style="{{ labelStyle }}; color: {{ theme.text }}">结束时间</text>
+        <div class="stepper-time" style="background-color: {{ theme.card }}">
           <div class="stepper-row">
             <text class="stepper-label" style="color: {{ theme.text }}">小时</text>
             <input class="stepper-btn" type="button" value="-" onclick="decreaseEndHour" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
@@ -72,6 +71,7 @@
             <input class="stepper-btn" type="button" value="+" onclick="increaseEndMin" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
           </div>
         </div>
+      </scroll>
 
       <div class="step-nav">
         <input class="prev-btn" type="button" value="◀ 上一步" onclick="prevStep" style="{{ btnStyle }}; height: {{ btnHeight }}px; background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
@@ -581,40 +581,28 @@ export default {
   flex-direction: column;
   align-items: center;
   border-radius: 14px;
-  padding: 10px;
-  margin-bottom: 6px;
+  padding: 16px;
+  margin-bottom: 14px;
 }
 
-.stepper-time-end {
-  border-width: 2px;
-  border-style: solid;
+.step2-scroll {
+  flex: 1;
+  flex-direction: column;
 }
-
-
 
 .picker-label {
   font-size: 24px;
   font-weight: bold;
-  margin-top: 8px;
-  margin-bottom: 4px;
+  margin-top: 14px;
+  margin-bottom: 8px;
   text-align: center;
-}
-
-.end-label {
-  margin-top: 4px;
-}
-
-.time-divider {
-  height: 2px;
-  margin: 8px 20px;
-  border-radius: 1px;
 }
 
 .stepper-row {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  margin-bottom: 4px;
+  margin-bottom: 10px;
 }
 
 .stepper-label {
@@ -623,16 +611,16 @@ export default {
 }
 
 .stepper-btn {
-  width: 48px;
-  height: 40px;
+  width: 44px;
+  height: 36px;
   border-radius: 10px;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: bold;
   text-align: center;
 }
 
 .stepper-val {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: bold;
   width: 50px;
   text-align: center;
