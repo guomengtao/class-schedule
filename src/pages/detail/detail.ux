@@ -4,7 +4,7 @@
       <input class="back-btn" type="button" value="◀ 取消" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="header-title" style="{{ titleStyle }}; color: {{ theme.text }}">编辑课程</text>
       <div class="header-trash-btn" onclick="deleteCourse" style="background-color: {{ theme.deleteBg }}">
-        <text class="header-trash-icon">&#10005;</text>
+        <image class="header-trash-icon" src="../../common/delete.png"></image>
       </div>
     </div>
 
@@ -557,9 +557,8 @@ export default {
 }
 
 .header-trash-icon {
-  font-size: 22px;
-  color: #e74c3c;
-  text-align: center;
+  width: 24px;
+  height: 24px;
 }
 
 .back-btn {

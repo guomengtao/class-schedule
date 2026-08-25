@@ -851,5 +851,36 @@ module.exports = {
     }
 
     saveAll()
+  },
+
+  resetCoursePresets: function(callback) {
+    log("resetCoursePresets: starting")
+    var defaultCoursePreset = [
+      { name: "语文", time: "08:00 - 08:45", teacher: "老师", location: "" },
+      { name: "数学", time: "08:55 - 09:40", teacher: "老师", location: "" },
+      { name: "英语", time: "10:00 - 10:45", teacher: "老师", location: "" },
+      { name: "物理", time: "10:55 - 11:40", teacher: "老师", location: "" },
+      { name: "化学", time: "13:00 - 13:45", teacher: "老师", location: "" },
+      { name: "政治", time: "13:55 - 14:40", teacher: "老师", location: "" },
+      { name: "音乐", time: "15:00 - 15:45", teacher: "老师", location: "" },
+      { name: "体育", time: "15:55 - 16:40", teacher: "老师", location: "" },
+      { name: "美术", time: "08:00 - 08:45", teacher: "老师", location: "" },
+      { name: "历史", time: "08:55 - 09:40", teacher: "老师", location: "" },
+      { name: "地理", time: "10:00 - 10:45", teacher: "老师", location: "" },
+      { name: "生物", time: "10:55 - 11:40", teacher: "老师", location: "" }
+    ]
+    var storage = require("@system.storage")
+    storage.set({
+      key: "course_preset_list",
+      value: JSON.stringify(defaultCoursePreset),
+      success: function() {
+        log("resetCoursePresets: complete")
+        if (callback) callback(true)
+      },
+      fail: function() {
+        logErr("resetCoursePresets: failed")
+        if (callback) callback(false)
+      }
+    })
   }
 }
