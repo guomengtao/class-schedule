@@ -39,8 +39,7 @@
     </div>
 
     <div class="form-section" if="{{ step === 2 }}">
-      <text class="step-title" style="{{ labelStyle }}; color: {{ theme.text }}">第2步: 时间</text>
-      <text class="step-hint" style="{{ hintStyle }}; color: {{ theme.textSecondary }}">课程: {{ courseName }}</text>
+      <text class="step-title" style="{{ labelStyle }}; color: {{ theme.text }}">第2步: 时间 · {{ courseName }}</text>
 
       <scroll class="step2-scroll" scroll-y="true">
         <text class="picker-label" style="{{ labelStyle }}; color: {{ theme.text }}">开始时间</text>
@@ -686,8 +685,8 @@ export default {
   flex-direction: column;
   align-items: center;
   border-radius: 14px;
-  padding: 16px;
-  margin-bottom: 14px;
+  padding: 10px;
+  margin-bottom: 8px;
 }
 
 .step2-scroll {
@@ -698,8 +697,8 @@ export default {
 .picker-label {
   font-size: 24px;
   font-weight: bold;
-  margin-top: 14px;
-  margin-bottom: 8px;
+  margin-top: 8px;
+  margin-bottom: 6px;
   text-align: center;
 }
 
@@ -707,7 +706,7 @@ export default {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 .stepper-label {

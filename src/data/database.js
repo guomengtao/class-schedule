@@ -708,7 +708,7 @@ module.exports = {
       { name: "历史", teacher: "刘老师", location: "102教室" },
       { name: "地理", teacher: "张老师", location: "103教室" },
       { name: "政治", teacher: "杨老师", location: "104教室" },
-      { name: "计算机", teacher: "赵老师", location: "机房1" },
+      { name: "体育", teacher: "赵老师", location: "操场" },
       { name: "音乐", teacher: "孙老师", location: "音乐室" },
       { name: "美术", teacher: "陈老师", location: "美术室" }
     ]

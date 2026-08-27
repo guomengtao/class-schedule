@@ -125,11 +125,13 @@ export default {
 
     var self = this
     database.resetToDemoData(function(success) {
-      self.fullConfirm = false
-      self.fullDone = true
-      if (success) {
-        console.log("[RESET] Full demo data restored successfully")
-      }
+      database.resetCoursePresets(function(presetSuccess) {
+        self.fullConfirm = false
+        self.fullDone = true
+        if (success && presetSuccess) {
+          console.log("[RESET] Full demo data restored successfully")
+        }
+      })
     })
   },
 

@@ -55,14 +55,15 @@
     <div class="lower-half">
       <div class="quick-add" style="background-color: {{ theme.card }}">
         <text class="quick-add-title" onclick="toggleQuickAdd" style="{{ weekTextStyle }}; color: {{ theme.accent }}">快速添加 {{ quickAddExpanded ? '▲' : '▼' }}</text>
-        <scroll class="quick-add-scroll" scroll-x="{{true}}" if="{{ quickAddExpanded && quickCourseNames.length > 0 }}">
+        <scroll class="quick-add-scroll" scroll-x="{{true}}" if="{{ quickAddExpanded && quickCourseNames.length > 0 && !quickAddDisabled }}">
           <div class="quick-add-list">
             <div for="{{ quickCourseNames }}" class="quick-add-item" onclick="quickAddCourse($item)" style="background-color: {{ theme.cardLight }}">
               <text class="quick-add-name" style="font-size: 24px; color: {{ theme.text }}">{{ $item }}</text>
             </div>
           </div>
         </scroll>
-        <text class="quick-add-empty" if="{{ quickAddExpanded && quickCourseNames.length === 0 }}" style="font-size: 20px; color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
+        <text class="quick-add-empty" if="{{ quickAddExpanded && quickAddDisabled }}" style="font-size: 20px; color: {{ theme.textMuted }}">今天课程已排满</text>
+        <text class="quick-add-empty" if="{{ quickAddExpanded && !quickAddDisabled && quickCourseNames.length === 0 }}" style="font-size: 20px; color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
       </div>
 
       <div class="bottom-buttons">
@@ -130,6 +131,7 @@ export default {
     quickCourseNames: [],
     quickAddTime: "",
     quickAddExpanded: false,
+    quickAddDisabled: false,
     isToday: true,
     statusSimple: false,
     statusLineText: "",
@@ -608,7 +610,20 @@ export default {
     if (startMin < nowMinutes) {
       startMin = nowMinutes + 5
     }
+
+    var DAY_END = 24 * 60
+
+    if (startMin >= DAY_END) {
+      this.quickAddDisabled = true
+      return "今天课程已排满"
+    }
+
     var endMin = startMin + 45
+    if (endMin > DAY_END) {
+      endMin = DAY_END
+    }
+
+    this.quickAddDisabled = false
     return this.formatTime(startMin) + " - " + this.formatTime(endMin)
   },
 
@@ -886,11 +901,14 @@ export default {
 
 .clock-box {
   width: 110px;
+  justify-content: center;
+  align-items: center;
 }
 
 .clock-text {
   font-size: 18px;
   font-weight: normal;
+  text-align: center;
 }
 
 .day-title {
