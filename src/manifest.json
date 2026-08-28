@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.2.41",
-  "versionCode": 84,
+  "versionName": "1.2.71",
+  "versionCode": 114,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -35,11 +35,29 @@
     {
       "name": "system.calendar",
       "permissionDesc": "用于将课程信息同步到系统日历"
+    },
+    {
+      "name": "system.request"
+    },
+    {
+      "name": "system.resident",
+      "permissionDesc": "用于保持应用在后台继续运行"
+    }
+  ],
+  "permissions": [
+    {
+      "name": "hapjs.permission.DEVICE_INFO"
     }
   ],
   "config": {
     "logLevel": "log",
-    "designWidth": "device-width"
+    "designWidth": "device-width",
+    "background": {
+      "features": [
+        "system.request",
+        "system.resident"
+      ]
+    }
   },
   "router": {
     "entry": "pages/index",
@@ -76,6 +94,27 @@
       },
       "pages/reset-data": {
         "component": "reset-data"
+      },
+      "pages/device-info": {
+        "component": "device-info"
+      },
+      "pages/vibration-lab": {
+        "component": "vibration-lab"
+      },
+      "pages/qrcode-generator": {
+        "component": "qrcode-generator"
+      },
+      "pages/schedule-qrcode": {
+        "component": "schedule-qrcode"
+      },
+      "pages/qrcode-test": {
+        "component": "qrcode-test"
+      },
+      "pages/prompt-demo": {
+        "component": "prompt-demo"
+      },
+      "pages/background-running": {
+        "component": "background-running"
       }
     }
   }

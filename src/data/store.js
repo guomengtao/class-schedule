@@ -419,5 +419,110 @@ module.exports = {
         callback("single_short")
       }
     })
+  },
+
+  getVibrationPresets: function(callback) {
+    storage.get({
+      key: "vibration_presets",
+      success: function(data) {
+        if (data) {
+          try {
+            var presets = JSON.parse(data)
+            callback(presets)
+          } catch (e) {
+            callback([])
+          }
+        } else {
+          callback([])
+        }
+      },
+      fail: function() {
+        callback([])
+      }
+    })
+  },
+
+  setVibrationPresets: function(presets, callback) {
+    storage.set({
+      key: "vibration_presets",
+      value: JSON.stringify(presets),
+      success: function() { if (callback) callback() },
+      fail: function() { if (callback) callback() }
+    })
+  },
+
+  setQrcodeText: function(text, callback) {
+    storage.set({
+      key: "qrcode_text",
+      value: text || "",
+      success: function() { if (callback) callback() },
+      fail: function() { if (callback) callback() }
+    })
+  },
+
+  getQrcodeText: function(callback) {
+    storage.get({
+      key: "qrcode_text",
+      success: function(data) { callback(data || "") },
+      fail: function() { callback("") }
+    })
+  },
+
+  setBackgroundRunningConfig: function(config, callback) {
+    storage.set({
+      key: "background_running_config",
+      value: JSON.stringify(config),
+      success: function() { if (callback) callback() },
+      fail: function() { if (callback) callback() }
+    })
+  },
+
+  getBackgroundRunningConfig: function(callback) {
+    storage.get({
+      key: "background_running_config",
+      success: function(data) {
+        if (data) {
+          try {
+            callback(JSON.parse(data))
+          } catch (e) {
+            callback({ enabled: false })
+          }
+        } else {
+          callback({ enabled: false })
+        }
+      },
+      fail: function() {
+        callback({ enabled: false })
+      }
+    })
+  },
+
+  getBackgroundRunningLogs: function(callback) {
+    storage.get({
+      key: "background_running_logs",
+      success: function(data) {
+        if (data) {
+          try {
+            callback(JSON.parse(data))
+          } catch (e) {
+            callback([])
+          }
+        } else {
+          callback([])
+        }
+      },
+      fail: function() {
+        callback([])
+      }
+    })
+  },
+
+  setBackgroundRunningLogs: function(logs, callback) {
+    storage.set({
+      key: "background_running_logs",
+      value: JSON.stringify(logs),
+      success: function() { if (callback) callback() },
+      fail: function() { if (callback) callback() }
+    })
   }
 }

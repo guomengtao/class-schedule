@@ -1,0 +1,214 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">二维码生成</text>
+    </div>
+
+    <div class="input-section" onclick="openInput" style="background-color: {{ theme.card }}">
+      <text class="input-label" style="color: {{ theme.textSecondary }}">点击输入文字</text>
+      <text class="input-text" if="{{ inputText }}" style="color: {{ theme.text }}">{{ inputText }}</text>
+      <text class="input-hint" if="{{ !inputText }}" style="color: {{ theme.textMuted }}">输入要转换为二维码的文字</text>
+    </div>
+
+    <div class="qr-container" if="{{ inputText }}">
+      <div class="qr-wrapper" style="background-color: #ffffff">
+        <qrcode value="{{ inputText }}" style="color: #000000; background-color: #ffffff; width: 180px; height: 180px;"></qrcode>
+      </div>
+      <text class="qr-hint" style="color: {{ theme.textSecondary }}">请用手机扫描二维码</text>
+    </div>
+
+    <div class="empty-state" if="{{ !inputText }}">
+      <text class="empty-icon">📱</text>
+      <text class="empty-text" style="color: {{ theme.textMuted }}">输入文字或选择快捷内容</text>
+    </div>
+
+    <div class="presets-section">
+      <text class="presets-label" style="color: {{ theme.textSecondary }}">快捷内容</text>
+      <div class="presets-grid">
+        <div class="preset-row">
+          <input class="preset-btn" type="button" value="Hello World" onclick="usePreset(0)" style="background-color: {{ theme.card }}; color: {{ theme.text }}" />
+          <input class="preset-btn" type="button" value="网址示例" onclick="usePreset(1)" style="background-color: {{ theme.card }}; color: {{ theme.text }}" />
+        </div>
+        <div class="preset-row">
+          <input class="preset-btn" type="button" value="手机号码" onclick="usePreset(2)" style="background-color: {{ theme.card }}; color: {{ theme.text }}" />
+          <input class="preset-btn" type="button" value="WiFi信息" onclick="usePreset(3)" style="background-color: {{ theme.card }}; color: {{ theme.text }}" />
+        </div>
+        <div class="preset-row">
+          <input class="preset-btn" type="button" value="邮箱地址" onclick="usePreset(4)" style="background-color: {{ theme.card }}; color: {{ theme.text }}" />
+          <input class="preset-btn" type="button" value="纯数字" onclick="usePreset(5)" style="background-color: {{ theme.card }}; color: {{ theme.text }}" />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+var PRESETS = [
+  "Hello World",
+  "https://www.example.com",
+  "13800138000",
+  "WIFI:S:MyWiFi;T:WPA;P:12345678;;",
+  "user@example.com",
+  "1234567890"
+]
+
+export default {
+  private: {
+    theme: {},
+    inputText: ""
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+  },
+
+  onShow() {
+    this.loadInputText()
+  },
+
+  loadInputText() {
+    var self = this
+    store.getQrcodeText(function(text) {
+      if (text) {
+        self.inputText = text
+      }
+    })
+  },
+
+  openInput() {
+    var storage = require("@system.storage")
+    storage.set({ key: "chinese_input_return_key", value: "qrcode_text" })
+    router.push({ uri: "/pages/chinese-input" })
+  },
+
+  usePreset(index) {
+    var text = PRESETS[index]
+    if (text) {
+      this.inputText = text
+      store.setQrcodeText(text)
+    }
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  padding: 8px;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  padding: 6px 0 8px 0;
+}
+
+.back-btn {
+  width: 60px;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+  margin-right: 8px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.input-section {
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.input-label {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.input-text {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.input-hint {
+  font-size: 14px;
+}
+
+.qr-container {
+  flex-direction: column;
+  align-items: center;
+}
+
+.qr-wrapper {
+  padding: 8px;
+  border-radius: 12px;
+  margin-top: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-hint {
+  font-size: 13px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.empty-state {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 16px 0;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.empty-text {
+  font-size: 14px;
+  text-align: center;
+}
+
+.presets-section {
+  flex: 1;
+  flex-direction: column;
+  padding-top: 12px;
+}
+
+.presets-label {
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.presets-grid {
+  flex-direction: column;
+}
+
+.preset-row {
+  flex-direction: row;
+  margin-bottom: 6px;
+}
+
+.preset-btn {
+  flex: 1;
+  height: 38px;
+  border-radius: 10px;
+  font-size: 14px;
+  text-align: center;
+}
+</style>

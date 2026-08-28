@@ -1,6 +1,50 @@
 <script>
 var store = require("./data/store.js")
 var database = require("./data/database.js")
+var resident = null
+
+try {
+  resident = require("@system.resident")
+} catch (e) {
+  console.warn("[BACKGROUND] resident not available: " + e)
+}
+
+function startResident() {
+  if (!resident) {
+    return
+  }
+  try {
+    resident.start({
+      message: "课程表后台运行中",
+      success: function() {
+        console.log("[BACKGROUND] resident started")
+      },
+      fail: function(data, code) {
+        console.warn("[BACKGROUND] resident start fail: " + code)
+      }
+    })
+  } catch (e) {
+    console.warn("[BACKGROUND] resident error: " + e)
+  }
+}
+
+function stopResident() {
+  if (!resident) {
+    return
+  }
+  try {
+    resident.stop({
+      success: function() {
+        console.log("[BACKGROUND] resident stopped")
+      },
+      fail: function(data, code) {
+        console.warn("[BACKGROUND] resident stop fail: " + code)
+      }
+    })
+  } catch (e) {
+    console.warn("[BACKGROUND] resident error: " + e)
+  }
+}
 
 export default {
   onCreate() {
@@ -10,8 +54,20 @@ export default {
         store.setFontScale(1.0)
       }
     })
+    this.initBackgroundRunning()
   },
+
+  initBackgroundRunning() {
+    var self = this
+    store.getBackgroundRunningConfig(function(config) {
+      if (config && config.running) {
+        startResident()
+      }
+    })
+  },
+
   onDestroy() {
+    stopResident()
   }
 }
 </script>

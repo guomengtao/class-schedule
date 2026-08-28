@@ -1,7 +1,7 @@
 from PIL import Image, ImageDraw
 
 SIZE = 512
-OUTPUT = "src/common/logo.png"
+OUTPUT = "src/logo.png"
 
 img = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
 draw = ImageDraw.Draw(img)
@@ -10,11 +10,20 @@ cx, cy = SIZE / 2, SIZE / 2
 R = SIZE / 2 - 4
 
 draw.ellipse([cx - R, cy - R, cx + R, cy + R], fill="#1a1a2e")
-draw.ellipse([cx - R, cy - R, cx + R, cy + R],
-             outline="#7ec8e3", width=6)
 
-card_w = 0.80 * R
-card_h = 0.82 * R
+dash_count = 36
+dash_ratio = 0.6
+segment_angle = 360.0 / dash_count
+dash_angle = segment_angle * dash_ratio
+for i in range(dash_count):
+    start_angle = i * segment_angle
+    end_angle = start_angle + dash_angle
+    draw.arc([cx - R, cy - R, cx + R, cy + R],
+             start=start_angle, end=end_angle,
+             fill="#7ec8e3", width=12)
+
+card_w = 1.20 * R
+card_h = 1.23 * R
 card_left = cx - card_w / 2
 card_top = cy - card_h / 2
 card_right = card_left + card_w

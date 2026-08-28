@@ -6,11 +6,12 @@
     "node": ">=8.10"
   },
   "scripts": {
-    "start": "aiot start --watch",
+    "clean": "rm -rf build dist ../.temp_class",
+    "start": "npm run clean && aiot start --watch",
     "bump": "node scripts/bump-version.js",
-    "prebuild": "node scripts/bump-version.js",
+    "prebuild": "npm run clean && node scripts/bump-version.js",
     "build": "node scripts/build.js",
-    "build:dev": "aiot build",
+    "build:dev": "npm run clean && aiot build",
     "prerelease": "node scripts/bump-version.js",
     "release": "aiot release",
     "lint": "eslint --format codeframe --fix --ext .ux,.js src/"

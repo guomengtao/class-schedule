@@ -1,0 +1,323 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack"
+        style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="color: {{ theme.text }}">后台运行</text>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">后台运行控制</text>
+      <div class="toggle-row">
+        <text class="toggle-label" style="color: {{ theme.text }}">后台运行</text>
+        <input class="toggle-btn" type="button"
+          value="{{ running ? 'ON' : 'OFF' }}"
+          onclick="toggleRunning"
+          style="background-color: {{ running ? theme.accent : theme.border }};
+                 color: {{ running ? theme.bg : theme.textSecondary }}" />
+      </div>
+      <text class="status-text" style="color: {{ running ? theme.accent : theme.textMuted }}">
+        {{ running ? '状态: 运行中' : '状态: 已停止' }}
+      </text>
+      <text class="hint-text" style="color: {{ theme.textMuted }}">
+        {{ running ? '每 5 秒发布一条数据，熄屏后回来查看是否新增' : '开启后每 5 秒自动发布一条测试数据' }}
+      </text>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">数据记录</text>
+      <div class="data-header">
+        <text class="data-count" style="color: {{ theme.textSecondary }}">共 {{ logList.length }} 条</text>
+        <input class="clear-btn" type="button" value="清空" onclick="clearLogs"
+          style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}" />
+      </div>
+      <list class="log-list">
+        <list-item class="log-item" for="{{ logList }}" type="log-item">
+          <text class="log-index" style="color: {{ theme.textMuted }}">#{{ $idx + 1 }}</text>
+          <text class="log-time" style="color: {{ theme.text }}">{{ $item }}</text>
+        </list-item>
+      </list>
+      <text class="empty-text" if="{{ logList.length === 0 }}" style="color: {{ theme.textMuted }}">
+        暂无数据，开启开关后自动生成
+      </text>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">测试方法</text>
+      <div class="instruction-list">
+        <text class="instruction-item" style="color: {{ theme.textSecondary }}">1. 开启"后台运行"开关</text>
+        <text class="instruction-item" style="color: {{ theme.textSecondary }}">2. 等待几秒，看到数据在增加</text>
+        <text class="instruction-item" style="color: {{ theme.textSecondary }}">3. 按返回键退到桌面，然后熄屏</text>
+        <text class="instruction-item" style="color: {{ theme.textSecondary }}">4. 等待 30 秒以上</text>
+        <text class="instruction-item" style="color: {{ theme.textSecondary }}">5. 重新打开此页面，查看数据是否新增</text>
+        <text class="instruction-item" style="color: {{ theme.textSecondary }}">6. 如果熄屏期间有新增数据，说明后台运行正常</text>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+var resident = null
+const store = require("../../data/store.js")
+
+try {
+  resident = require("@system.resident")
+} catch (e) {
+  console.warn("[BACKGROUND] resident not available: " + e)
+}
+
+var publishTimer = null
+
+export default {
+  private: {
+    theme: {},
+    running: false,
+    logList: []
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    this.loadLogs()
+    this.loadConfig()
+  },
+
+  onDestroy() {
+  },
+
+  loadConfig() {
+    var self = this
+    store.getBackgroundRunningConfig(function(config) {
+      if (config && config.running) {
+        self.running = true
+        self.startPublish()
+      }
+    })
+  },
+
+  loadLogs() {
+    var self = this
+    store.getBackgroundRunningLogs(function(logs) {
+      self.logList = logs || []
+    })
+  },
+
+  toggleRunning() {
+    this.running = !this.running
+    if (this.running) {
+      this.startResident()
+      this.startPublish()
+    } else {
+      this.stopPublish()
+      this.stopResident()
+    }
+    store.setBackgroundRunningConfig({ running: this.running })
+  },
+
+  startPublish() {
+    var self = this
+    if (publishTimer) {
+      return
+    }
+    publishTimer = setInterval(function() {
+      var now = new Date()
+      var h = now.getHours()
+      var m = now.getMinutes()
+      var s = now.getSeconds()
+      var timeStr = (h < 10 ? "0" : "") + h + ":" +
+        (m < 10 ? "0" : "") + m + ":" +
+        (s < 10 ? "0" : "") + s
+      self.addLog(timeStr)
+    }, 5000)
+  },
+
+  stopPublish() {
+    if (publishTimer) {
+      clearInterval(publishTimer)
+      publishTimer = null
+    }
+  },
+
+  addLog(timeStr) {
+    this.logList.push(timeStr)
+    store.setBackgroundRunningLogs(this.logList)
+  },
+
+  clearLogs() {
+    this.logList = []
+    store.setBackgroundRunningLogs([])
+  },
+
+  startResident() {
+    if (!resident) {
+      return
+    }
+    try {
+      resident.start({
+        message: "课程表后台运行中",
+        success: function() {
+          console.log("[BACKGROUND] resident started")
+        },
+        fail: function(data, code) {
+          console.warn("[BACKGROUND] resident start fail: " + code)
+        }
+      })
+    } catch (e) {
+      console.warn("[BACKGROUND] resident error: " + e)
+    }
+  },
+
+  stopResident() {
+    if (!resident) {
+      return
+    }
+    try {
+      resident.stop({
+        success: function() {
+          console.log("[BACKGROUND] resident stopped")
+        },
+        fail: function(data, code) {
+          console.warn("[BACKGROUND] resident stop fail: " + code)
+        }
+      })
+    } catch (e) {
+      console.warn("[BACKGROUND] resident error: " + e)
+    }
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 8px;
+  min-height: 100%;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 6px 0;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.section {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.toggle-row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.toggle-label {
+  font-size: 16px;
+}
+
+.toggle-btn {
+  width: 56px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.status-text {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.hint-text {
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.data-header {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.data-count {
+  font-size: 14px;
+}
+
+.clear-btn {
+  width: 52px;
+  height: 30px;
+  border-radius: 6px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.log-list {
+  max-height: 260px;
+  flex-direction: column;
+}
+
+.log-item {
+  flex-direction: row;
+  padding: 4px 0;
+  border-bottom-width: 1px;
+  border-bottom-color: #eeeeee;
+}
+
+.log-index {
+  width: 36px;
+  font-size: 13px;
+}
+
+.log-time {
+  font-size: 14px;
+}
+
+.empty-text {
+  font-size: 14px;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.instruction-list {
+  flex-direction: column;
+}
+
+.instruction-item {
+  font-size: 13px;
+  line-height: 1.8;
+}
+</style>

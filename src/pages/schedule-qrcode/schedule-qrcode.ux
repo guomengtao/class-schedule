@@ -1,0 +1,324 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">导出课程表</text>
+    </div>
+
+    <div class="subtitle-section" style="background-color: {{ theme.card }}">
+      <text class="subtitle-text" style="color: {{ theme.textSecondary }}">通过二维码方式导出课程表，手机扫码即可获取完整课程信息并可复制保留</text>
+    </div>
+
+    <scroll class="content-scroll" scroll-y="{{true}}">
+      <div class="schedule-name-section" style="background-color: {{ theme.card }}">
+        <text class="schedule-name-label" style="color: {{ theme.textSecondary }}">正在导出：</text>
+        <text class="schedule-name-value" style="color: {{ theme.accent }}">{{ scheduleName }}</text>
+      </div>
+
+      <div class="qr-section">
+        <div class="qr-wrapper" style="background-color: #ffffff">
+          <qrcode value="{{ qrText }}" style="color: #000000; background-color: #ffffff; width: 200px; height: 200px;"></qrcode>
+        </div>
+        <text class="qr-hint" style="color: {{ theme.textSecondary }}">请用手机扫描上方二维码</text>
+      </div>
+
+      <div class="instructions-section" style="background-color: {{ theme.card }}">
+        <text class="instructions-title" style="color: {{ theme.text }}">扫码导出说明</text>
+        <text class="instructions-text" style="color: {{ theme.textSecondary }}">1. 打开手机相机或任意扫码应用</text>
+        <text class="instructions-text" style="color: {{ theme.textSecondary }}">2. 对准手环屏幕上的二维码扫描</text>
+        <text class="instructions-text" style="color: {{ theme.textSecondary }}">3. 手机将显示完整的课程表文字信息</text>
+        <text class="instructions-text" style="color: {{ theme.textSecondary }}">4. 在手机上可长按文字选择复制，粘贴到备忘录或微信保存</text>
+      </div>
+
+      <div class="preview-section" style="background-color: {{ theme.card }}">
+        <text class="preview-title" style="color: {{ theme.text }}">已编码内容预览</text>
+        <text class="preview-text" style="color: {{ theme.textSecondary }}">简洁模式：课程取首字，按天按时间顺序排列，控制在100字以内</text>
+        <div class="preview-content" style="background-color: {{ theme.cardLight }}">
+          <text class="preview-code" style="color: {{ theme.text }}">{{ qrText }}</text>
+        </div>
+      </div>
+
+      <div class="loading-section" if="{{ !qrText }}" style="background-color: {{ theme.card }}">
+        <text class="loading-text" style="color: {{ theme.textMuted }}">正在加载课程数据...</text>
+      </div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+const database = require("../../data/database.js")
+
+export default {
+  private: {
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566'
+    },
+    scheduleName: "",
+    qrText: "",
+    scheduleIndex: 0
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    this.loadData()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    this.loadData()
+  },
+
+  loadData() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.get({
+      key: "schedule_qrcode_index",
+      success: function(data) {
+        var index = 0
+        if (data !== undefined && data !== null && data !== "") {
+          index = parseInt(data) || 0
+        }
+        self.scheduleIndex = index
+
+        store.getScheduleNames(function(names) {
+          if (names && index < names.length) {
+            self.scheduleName = names[index]
+          } else {
+            self.scheduleName = "课程表" + (index + 1)
+          }
+
+          database.getAllCoursesWithIndex(index, function(courseData) {
+            var text = self.formatScheduleText(self.scheduleName, courseData)
+            self.qrText = text
+          })
+        })
+      },
+      fail: function() {
+        self.scheduleName = "课程表1"
+        self.qrText = "课程表1\n暂无课程数据"
+      }
+    })
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  formatScheduleText(name, scheduleData) {
+    var lines = []
+    lines.push(this.sanitize(name))
+
+    var dayOrder = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+
+    for (var di = 0; di < dayOrder.length; di++) {
+      var dayName = dayOrder[di]
+      var dayData = null
+      for (var s = 0; s < scheduleData.length; s++) {
+        if (scheduleData[s].day === dayName) {
+          dayData = scheduleData[s]
+          break
+        }
+      }
+      if (!dayData || !dayData.classes || dayData.classes.length === 0) {
+        continue
+      }
+
+      var classes = dayData.classes.slice()
+      classes.sort(function(a, b) {
+        var ta = a.time ? a.time.split(' - ')[0] : '00:00'
+        var tb = b.time ? b.time.split(' - ')[0] : '00:00'
+        return ta.localeCompare(tb)
+      })
+
+      var courseChars = ""
+      for (var c = 0; c < classes.length; c++) {
+        var name = this.sanitize(classes[c].name || "")
+        if (name.length > 0) {
+          courseChars = courseChars + name.charAt(0)
+        }
+      }
+      if (courseChars.length > 0) {
+        lines.push(dayName + ":" + courseChars)
+      }
+    }
+
+    return lines.join("\n")
+  },
+
+  sanitize(str) {
+    if (!str) return ""
+    var result = ""
+    for (var i = 0; i < str.length; i++) {
+      var code = str.charCodeAt(i)
+      if (code === 0x20) {
+        result += " "
+      } else if (code >= 0x21 && code <= 0x7E) {
+        result += str.charAt(i)
+      } else if (code >= 0x4E00 && code <= 0x9FFF) {
+        result += str.charAt(i)
+      } else if (code >= 0x3400 && code <= 0x4DBF) {
+        result += str.charAt(i)
+      } else if (code >= 0x3000 && code <= 0x303F) {
+        result += str.charAt(i)
+      } else if (code >= 0xFF00 && code <= 0xFFEF) {
+        result += str.charAt(i)
+      }
+    }
+    return result.trim()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 12px;
+  height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 6px 0;
+}
+
+.back-btn {
+  width: 80px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-left: 12px;
+  flex: 1;
+}
+
+.subtitle-section {
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin-bottom: 10px;
+}
+
+.subtitle-text {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.content-scroll {
+  flex-grow: 1;
+  flex-direction: column;
+}
+
+.schedule-name-section {
+  flex-direction: row;
+  align-items: center;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+
+.schedule-name-label {
+  font-size: 16px;
+  margin-right: 6px;
+}
+
+.schedule-name-value {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.qr-section {
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.qr-wrapper {
+  padding: 14px;
+  border-radius: 14px;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-hint {
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.instructions-section {
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.instructions-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.instructions-text {
+  font-size: 15px;
+  line-height: 24px;
+}
+
+.preview-section {
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.preview-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.preview-text {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.preview-content {
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.preview-code {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.loading-section {
+  flex-direction: column;
+  align-items: center;
+  border-radius: 12px;
+  padding: 24px 16px;
+}
+
+.loading-text {
+  font-size: 16px;
+}
+</style>

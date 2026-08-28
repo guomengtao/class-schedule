@@ -1,0 +1,284 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">设备信息</text>
+    </div>
+
+    <div class="loading" if="{{ loading }}" style="background-color: {{ theme.card }}">
+      <text class="loading-icon">⬡</text>
+      <text class="loading-text" style="color: {{ theme.textMuted }}">正在获取设备信息...</text>
+    </div>
+
+    <div class="error" if="{{ errorMsg }}" style="background-color: {{ theme.card }}">
+      <text class="error-icon">⚠</text>
+      <text class="error-text" style="color: #e74c3c">{{ errorMsg }}</text>
+      <input class="retry-btn" type="button" value="重试" onclick="fetchDeviceInfo" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+
+    <div class="list" if="{{ !loading }}" style="background-color: {{ theme.card }}">
+      <div class="hero">
+        <text class="hero-icon">{{ deviceIcon }}</text>
+        <text class="hero-model" style="color: {{ theme.text }}">{{ deviceModel }}</text>
+        <text class="hero-sub" style="color: {{ theme.textSecondary }}">{{ deviceBrand }}</text>
+      </div>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" for="{{ infoList }}">
+        <text class="label" style="color: {{ theme.textSecondary }}">{{ $item.label }}</text>
+        <text class="value" style="color: {{ theme.text }}">{{ $item.value || '未知' }}</text>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import device from "@system.device"
+const store = require("../../data/store.js")
+
+var screenShapeMap = {
+  "rect": "方形屏",
+  "circle": "圆形屏",
+  "pill-shaped": "胶囊形屏"
+}
+
+var deviceTypeMap = {
+  "watch": "手表",
+  "band": "手环",
+  "smartspeaker": "智能音箱"
+}
+
+var deviceIconMap = {
+  "watch": "⌚",
+  "band": "⌚",
+  "smartspeaker": "🔊"
+}
+
+function formatStorage(bytes) {
+  if (bytes == null) return "未知"
+  if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(2) + " GB"
+  if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + " MB"
+  if (bytes >= 1024) return (bytes / 1024).toFixed(2) + " KB"
+  return bytes + " B"
+}
+
+var title = ""
+
+export default {
+  private: {
+    theme: {},
+    loading: true,
+    errorMsg: "",
+    deviceIcon: "⌚",
+    deviceModel: "",
+    deviceBrand: "",
+    infoList: []
+  },
+
+  onInit() {
+    var self = this
+    title = "设备信息"
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    this.fetchDeviceInfo()
+  },
+
+  fetchDeviceInfo() {
+    var self = this
+    self.loading = true
+    self.errorMsg = ""
+
+    device.getInfo({
+      success: function(ret) {
+        title = ret.model || "设备信息"
+        self.deviceIcon = deviceIconMap[ret.deviceType] || "⌚"
+        self.deviceModel = ret.model || "未知设备"
+        self.deviceBrand = (ret.brand || "") + " · " + (deviceTypeMap[ret.deviceType] || "")
+
+        self.infoList = [
+          { label: "制造商", value: ret.manufacturer },
+          { label: "操作系统", value: ret.osType },
+          { label: "系统版本", value: ret.osVersionName },
+          { label: "平台版本", value: ret.platformVersionName },
+          { label: "API Level", value: ret.APILevel },
+          { label: "屏幕宽度", value: ret.screenWidth ? ret.screenWidth + "px" : "" },
+          { label: "屏幕高度", value: ret.screenHeight ? ret.screenHeight + "px" : "" },
+          { label: "屏幕密度", value: ret.screenDensity },
+          { label: "屏幕形状", value: screenShapeMap[ret.screenShape] || ret.screenShape },
+          { label: "系统语言", value: ret.language },
+          { label: "系统地区", value: ret.region }
+        ]
+        self.loading = false
+      },
+      fail: function(data, code) {
+        self.errorMsg = "获取设备信息失败，错误码：" + code
+        self.loading = false
+      }
+    })
+
+    device.getDeviceId({
+      success: function(data) {
+        self.infoList.push({ label: "设备ID", value: data.deviceId })
+      },
+      fail: function(data, code) {
+        self.infoList.push({ label: "设备ID", value: "获取失败(" + code + ")" })
+      }
+    })
+
+    device.getSerial({
+      success: function(data) {
+        self.infoList.push({ label: "序列号", value: data.serial })
+      },
+      fail: function(data, code) {
+        self.infoList.push({ label: "序列号", value: "获取失败(" + code + ")" })
+      }
+    })
+
+    device.getTotalStorage({
+      success: function(data) {
+        self.infoList.push({ label: "总存储空间", value: formatStorage(data.totalStorage) })
+      },
+      fail: function() {
+        self.infoList.push({ label: "总存储空间", value: "获取失败" })
+      }
+    })
+
+    device.getAvailableStorage({
+      success: function(data) {
+        self.infoList.push({ label: "可用存储空间", value: formatStorage(data.availableStorage) })
+      },
+      fail: function() {
+        self.infoList.push({ label: "可用存储空间", value: "获取失败" })
+      }
+    })
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 8px;
+  min-height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 6px 0;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.list {
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.hero {
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0 14px;
+}
+
+.hero-icon {
+  font-size: 32px;
+  margin-bottom: 6px;
+}
+
+.hero-model {
+  font-size: 17px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.hero-sub {
+  font-size: 13px;
+  margin-top: 4px;
+  text-align: center;
+}
+
+.divider {
+  height: 1px;
+  margin-bottom: 6px;
+}
+
+.row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+}
+
+.label {
+  font-size: 14px;
+}
+
+.value {
+  font-size: 14px;
+  text-align: right;
+  margin-left: 12px;
+}
+
+.loading {
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 50px 16px;
+  align-items: center;
+}
+
+.loading-icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.loading-text {
+  font-size: 15px;
+}
+
+.error {
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 20px 16px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.error-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.error-text {
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.retry-btn {
+  width: 80px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+</style>

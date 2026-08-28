@@ -81,6 +81,54 @@
       <input class="save-settings-btn" type="button" value="保存设置" onclick="saveSettings" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
+    <div class="info-section" onclick="openDeviceInfo" style="background-color: {{ theme.card }}">
+      <text class="info-label" style="color: {{ theme.text }}">设备信息</text>
+      <div class="info-value-row">
+        <text class="info-placeholder" style="color: {{ theme.textMuted }}">查看详情</text>
+        <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+    </div>
+
+    <div class="info-section" onclick="openVibrationLab" style="background-color: {{ theme.card }}">
+      <text class="info-label" style="color: {{ theme.text }}">震动自定义</text>
+      <div class="info-value-row">
+        <text class="info-placeholder" style="color: {{ theme.textMuted }}">自定义震动效果</text>
+        <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+    </div>
+
+    <div class="info-section" onclick="openQrcodeGenerator" style="background-color: {{ theme.card }}">
+      <text class="info-label" style="color: {{ theme.text }}">文字转二维码</text>
+      <div class="info-value-row">
+        <text class="info-placeholder" style="color: {{ theme.textMuted }}">生成二维码</text>
+        <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+    </div>
+
+    <div class="info-section" onclick="openPromptDemo" style="background-color: {{ theme.card }}">
+      <text class="info-label" style="color: {{ theme.text }}">弹窗演示</text>
+      <div class="info-value-row">
+        <text class="info-placeholder" style="color: {{ theme.textMuted }}">Toast 弹窗效果体验</text>
+        <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+    </div>
+
+    <div class="info-section" onclick="openQrcodeTest" style="background-color: {{ theme.card }}">
+      <text class="info-label" style="color: {{ theme.text }}">二维码容量检测</text>
+      <div class="info-value-row">
+        <text class="info-placeholder" style="color: {{ theme.textMuted }}">检测官方组件文字上限</text>
+        <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+    </div>
+
+    <div class="info-section" onclick="openBackgroundRunning" style="background-color: {{ theme.card }}">
+      <text class="info-label" style="color: {{ theme.text }}">后台运行</text>
+      <div class="info-value-row">
+        <text class="info-placeholder" style="color: {{ theme.textMuted }}">测试后台运行功能</text>
+        <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+    </div>
+
     <div class="reset-section" onclick="openResetData" style="background-color: {{ theme.card }}">
       <text class="reset-label" style="color: {{ theme.deleteText }}">恢复默认数据</text>
       <div class="reset-value-row">
@@ -234,6 +282,30 @@ export default {
 
   openNicknameEdit() {
     router.push({ uri: "/pages/nickname-edit" })
+  },
+
+  openDeviceInfo() {
+    router.push({ uri: "/pages/device-info" })
+  },
+
+  openVibrationLab() {
+    router.push({ uri: "/pages/vibration-lab" })
+  },
+
+  openQrcodeGenerator() {
+    router.push({ uri: "/pages/qrcode-generator" })
+  },
+
+  openPromptDemo() {
+    router.push({ uri: "/pages/prompt-demo" })
+  },
+
+  openQrcodeTest() {
+    router.push({ uri: "/pages/qrcode-test" })
+  },
+
+  openBackgroundRunning() {
+    router.push({ uri: "/pages/background-running" })
   },
 
   toggleRemind() {
@@ -608,12 +680,39 @@ export default {
   text-align: center;
 }
 
+.info-section {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.info-label {
+  font-size: 16px;
+}
+
+.info-value-row {
+  flex-direction: row;
+  align-items: center;
+}
+
+.info-placeholder {
+  font-size: 14px;
+  margin-right: 6px;
+}
+
+.info-arrow {
+  font-size: 20px;
+}
+
 .reset-section {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
   border-radius: 10px;
-  padding: 14px 16px;
+  padding: 12px;
   margin-bottom: 8px;
 }
 

@@ -1,0 +1,232 @@
+<template>
+  <div class="prompt-demo-page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="color: {{ theme.text }}">弹窗演示</text>
+    </div>
+
+    <div class="demo-section" style="background-color: {{ theme.card }}">
+      <text class="section-label" style="color: {{ theme.text }}">Toast 基础演示</text>
+      <div class="btn-grid">
+        <input class="demo-btn" type="button" value="显示默认 Toast" onclick="showDefaultToast" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="demo-btn" type="button" value="显示短 Toast" onclick="showShortToast" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="demo-btn" type="button" value="显示长 Toast" onclick="showLongToast" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="demo-btn" type="button" value="显示超长 Toast" onclick="showExtraLongToast" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      </div>
+    </div>
+
+    <div class="demo-section" style="background-color: {{ theme.card }}">
+      <text class="section-label" style="color: {{ theme.text }}">自定义 Toast</text>
+      <text class="custom-label" style="color: {{ theme.textSecondary }}">消息内容</text>
+      <div class="quick-grid">
+        <input class="quick-btn" type="button" value="操作成功" onclick="showCustomToast(0)" style="background-color: {{ theme.card }}; color: {{ theme.text }}; border-color: {{ theme.border }}" />
+        <input class="quick-btn" type="button" value="保存成功" onclick="showCustomToast(1)" style="background-color: {{ theme.card }}; color: {{ theme.text }}; border-color: {{ theme.border }}" />
+        <input class="quick-btn" type="button" value="删除成功" onclick="showCustomToast(2)" style="background-color: {{ theme.card }}; color: {{ theme.text }}; border-color: {{ theme.border }}" />
+        <input class="quick-btn" type="button" value="网络错误" onclick="showCustomToast(3)" style="background-color: {{ theme.card }}; color: {{ theme.text }}; border-color: {{ theme.border }}" />
+        <input class="quick-btn" type="button" value="请稍后再试" onclick="showCustomToast(4)" style="background-color: {{ theme.card }}; color: {{ theme.text }}; border-color: {{ theme.border }}" />
+        <input class="quick-btn" type="button" value="数据已同步" onclick="showCustomToast(5)" style="background-color: {{ theme.card }}; color: {{ theme.text }}; border-color: {{ theme.border }}" />
+      </div>
+      <text class="custom-label" style="color: {{ theme.textSecondary }}; margin-top: 10px;">显示时长</text>
+      <div class="duration-grid">
+        <input class="duration-btn {{ selectedDuration === 1500 ? 'active' : '' }}" type="button" value="1500ms" onclick="selectDuration(1500)" style="background-color: {{ selectedDuration === 1500 ? theme.accent : theme.border }}; color: {{ selectedDuration === 1500 ? theme.bg : theme.textSecondary }}" />
+        <input class="duration-btn {{ selectedDuration === 2000 ? 'active' : '' }}" type="button" value="2000ms" onclick="selectDuration(2000)" style="background-color: {{ selectedDuration === 2000 ? theme.accent : theme.border }}; color: {{ selectedDuration === 2000 ? theme.bg : theme.textSecondary }}" />
+        <input class="duration-btn {{ selectedDuration === 3000 ? 'active' : '' }}" type="button" value="3000ms" onclick="selectDuration(3000)" style="background-color: {{ selectedDuration === 3000 ? theme.accent : theme.border }}; color: {{ selectedDuration === 3000 ? theme.bg : theme.textSecondary }}" />
+        <input class="duration-btn {{ selectedDuration === 5000 ? 'active' : '' }}" type="button" value="5000ms" onclick="selectDuration(5000)" style="background-color: {{ selectedDuration === 5000 ? theme.accent : theme.border }}; color: {{ selectedDuration === 5000 ? theme.bg : theme.textSecondary }}" />
+      </div>
+    </div>
+
+    <div class="demo-section" style="background-color: {{ theme.card }}">
+      <text class="section-label" style="color: {{ theme.text }}">更多场景演示</text>
+      <div class="quick-grid">
+        <input class="quick-btn" type="button" value="加载中..." onclick="showMoreToast(0)" style="background-color: {{ theme.card }}; color: {{ theme.text }}; border-color: {{ theme.border }}" />
+        <input class="quick-btn" type="button" value="已复制到剪贴板" onclick="showMoreToast(1)" style="background-color: {{ theme.card }}; color: {{ theme.text }}; border-color: {{ theme.border }}" />
+        <input class="quick-btn" type="button" value="请输入内容" onclick="showMoreToast(2)" style="background-color: {{ theme.card }}; color: {{ theme.text }}; border-color: {{ theme.border }}" />
+        <input class="quick-btn" type="button" value="密码错误" onclick="showMoreToast(3)" style="background-color: {{ theme.card }}; color: {{ theme.text }}; border-color: {{ theme.border }}" />
+        <input class="quick-btn" type="button" value="更新成功" onclick="showMoreToast(4)" style="background-color: {{ theme.card }}; color: {{ theme.text }}; border-color: {{ theme.border }}" />
+        <input class="quick-btn" type="button" value="连接超时" onclick="showMoreToast(5)" style="background-color: {{ theme.card }}; color: {{ theme.text }}; border-color: {{ theme.border }}" />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import prompt from "@system.prompt"
+const store = require("../../data/store.js")
+
+var CUSTOM_MESSAGES = [
+  "操作成功",
+  "保存成功",
+  "删除失败",
+  "网络错误，请检查网络连接",
+  "请稍后再试",
+  "数据已同步"
+]
+
+var MORE_MESSAGES = [
+  "加载中...",
+  "已复制到剪贴板",
+  "请输入内容",
+  "密码错误",
+  "更新成功",
+  "连接超时"
+]
+
+export default {
+  private: {
+    theme: {},
+    selectedDuration: 2000
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  selectDuration(duration) {
+    this.selectedDuration = duration
+  },
+
+  showDefaultToast() {
+    prompt.showToast({
+      message: "这是一条默认 Toast 提示（1500ms）",
+      duration: 1500
+    })
+  },
+
+  showShortToast() {
+    prompt.showToast({
+      message: "短 Toast 提示（1000ms）",
+      duration: 1000
+    })
+  },
+
+  showLongToast() {
+    prompt.showToast({
+      message: "长 Toast 提示（3000ms）",
+      duration: 3000
+    })
+  },
+
+  showExtraLongToast() {
+    prompt.showToast({
+      message: "超长 Toast 提示（5000ms）",
+      duration: 5000
+    })
+  },
+
+  showCustomToast(index) {
+    var msg = CUSTOM_MESSAGES[index] || "未知消息"
+    prompt.showToast({
+      message: msg,
+      duration: this.selectedDuration
+    })
+  },
+
+  showMoreToast(index) {
+    var msg = MORE_MESSAGES[index] || "未知消息"
+    prompt.showToast({
+      message: msg,
+      duration: 2000
+    })
+  }
+}
+</script>
+
+<style>
+.prompt-demo-page {
+  flex-direction: column;
+  padding: 8px;
+  min-height: 100%;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 6px 0;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.demo-section {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.section-label {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.btn-grid {
+  flex-direction: column;
+}
+
+.demo-btn {
+  height: 40px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.custom-label {
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.duration-grid {
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  margin-top: 6px;
+}
+
+.duration-btn {
+  width: 70px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 12px;
+  text-align: center;
+  margin-right: 6px;
+  margin-bottom: 6px;
+}
+
+.quick-grid {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.quick-btn {
+  height: 36px;
+  border-radius: 8px;
+  border-width: 1px;
+  font-size: 13px;
+  text-align: center;
+  padding: 0 12px;
+  margin-right: 6px;
+  margin-bottom: 6px;
+}
+</style>

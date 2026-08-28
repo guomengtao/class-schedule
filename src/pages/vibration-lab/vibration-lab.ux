@@ -1,0 +1,531 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">震动实验室</text>
+    </div>
+
+    <div class="hero" style="background-color: {{ theme.card }}">
+      <text class="hero-icon">📳</text>
+      <text class="hero-name" style="color: {{ theme.text }}">{{ currentName }}</text>
+      <text class="hero-desc" style="color: {{ theme.textSecondary }}">强度 {{ duration }}ms · 间隔 {{ interval }}ms · {{ count }}次</text>
+      <div class="hero-btns">
+        <input class="play-btn" type="button" value="▶ 试听" onclick="preview" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="stop-btn" if="{{ isPlaying }}" type="button" value="■ 停止" onclick="stopVibration" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}" />
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">震动强度</text>
+      <div class="stepper-row">
+        <input class="step-btn" type="button" value="−" onclick="decreaseDuration" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
+        <text class="step-value" style="color: {{ theme.accent }}">{{ duration }}ms</text>
+        <input class="step-btn" type="button" value="+" onclick="increaseDuration" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
+      </div>
+      <div class="quick-row">
+        <input class="quick-btn {{ duration === 100 ? 'active' : '' }}" type="button" value="100" onclick="setDuration100" style="background-color: {{ duration === 100 ? theme.accent : theme.border }}; color: {{ duration === 100 ? theme.bg : theme.textSecondary }}" />
+        <input class="quick-btn {{ duration === 300 ? 'active' : '' }}" type="button" value="300" onclick="setDuration300" style="background-color: {{ duration === 300 ? theme.accent : theme.border }}; color: {{ duration === 300 ? theme.bg : theme.textSecondary }}" />
+        <input class="quick-btn {{ duration === 500 ? 'active' : '' }}" type="button" value="500" onclick="setDuration500" style="background-color: {{ duration === 500 ? theme.accent : theme.border }}; color: {{ duration === 500 ? theme.bg : theme.textSecondary }}" />
+        <input class="quick-btn {{ duration === 800 ? 'active' : '' }}" type="button" value="800" onclick="setDuration800" style="background-color: {{ duration === 800 ? theme.accent : theme.border }}; color: {{ duration === 800 ? theme.bg : theme.textSecondary }}" />
+        <input class="quick-btn {{ duration === 1000 ? 'active' : '' }}" type="button" value="1000" onclick="setDuration1000" style="background-color: {{ duration === 1000 ? theme.accent : theme.border }}; color: {{ duration === 1000 ? theme.bg : theme.textSecondary }}" />
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">间隔时间</text>
+      <div class="stepper-row">
+        <input class="step-btn" type="button" value="−" onclick="decreaseInterval" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
+        <text class="step-value" style="color: {{ theme.accent }}">{{ interval }}ms</text>
+        <input class="step-btn" type="button" value="+" onclick="increaseInterval" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
+      </div>
+      <div class="quick-row">
+        <input class="quick-btn {{ interval === 100 ? 'active' : '' }}" type="button" value="100" onclick="setInterval100" style="background-color: {{ interval === 100 ? theme.accent : theme.border }}; color: {{ interval === 100 ? theme.bg : theme.textSecondary }}" />
+        <input class="quick-btn {{ interval === 200 ? 'active' : '' }}" type="button" value="200" onclick="setInterval200" style="background-color: {{ interval === 200 ? theme.accent : theme.border }}; color: {{ interval === 200 ? theme.bg : theme.textSecondary }}" />
+        <input class="quick-btn {{ interval === 500 ? 'active' : '' }}" type="button" value="500" onclick="setInterval500" style="background-color: {{ interval === 500 ? theme.accent : theme.border }}; color: {{ interval === 500 ? theme.bg : theme.textSecondary }}" />
+        <input class="quick-btn {{ interval === 800 ? 'active' : '' }}" type="button" value="800" onclick="setInterval800" style="background-color: {{ interval === 800 ? theme.accent : theme.border }}; color: {{ interval === 800 ? theme.bg : theme.textSecondary }}" />
+        <input class="quick-btn {{ interval === 1000 ? 'active' : '' }}" type="button" value="1000" onclick="setInterval1000" style="background-color: {{ interval === 1000 ? theme.accent : theme.border }}; color: {{ interval === 1000 ? theme.bg : theme.textSecondary }}" />
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">震动次数</text>
+      <div class="stepper-row">
+        <input class="step-btn" type="button" value="−" onclick="decreaseCount" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
+        <text class="step-value" style="color: {{ theme.accent }}">{{ count }}</text>
+        <input class="step-btn" type="button" value="+" onclick="increaseCount" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
+      </div>
+      <div class="quick-row">
+        <input class="quick-btn {{ count === 1 ? 'active' : '' }}" type="button" value="1" onclick="setCount1" style="background-color: {{ count === 1 ? theme.accent : theme.border }}; color: {{ count === 1 ? theme.bg : theme.textSecondary }}" />
+        <input class="quick-btn {{ count === 2 ? 'active' : '' }}" type="button" value="2" onclick="setCount2" style="background-color: {{ count === 2 ? theme.accent : theme.border }}; color: {{ count === 2 ? theme.bg : theme.textSecondary }}" />
+        <input class="quick-btn {{ count === 3 ? 'active' : '' }}" type="button" value="3" onclick="setCount3" style="background-color: {{ count === 3 ? theme.accent : theme.border }}; color: {{ count === 3 ? theme.bg : theme.textSecondary }}" />
+        <input class="quick-btn {{ count === 5 ? 'active' : '' }}" type="button" value="5" onclick="setCount5" style="background-color: {{ count === 5 ? theme.accent : theme.border }}; color: {{ count === 5 ? theme.bg : theme.textSecondary }}" />
+        <input class="quick-btn {{ count === 10 ? 'active' : '' }}" type="button" value="10" onclick="setCount10" style="background-color: {{ count === 10 ? theme.accent : theme.border }}; color: {{ count === 10 ? theme.bg : theme.textSecondary }}" />
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">快捷预设</text>
+      <div class="preset-grid">
+        <div class="preset-item" for="{{ presets }}" onclick="applyPreset($item.key)" style="background-color: {{ theme.border }}">
+          <text class="preset-name" style="color: {{ theme.text }}">{{ $item.label }}</text>
+          <text class="preset-info" style="color: {{ theme.textSecondary }}">{{ $item.duration }}ms × {{ $item.count }}</text>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">我的方案</text>
+      <div class="empty-hint" if="{{ savedPresets.length === 0 }}">
+        <text class="empty-text" style="color: {{ theme.textMuted }}">暂无保存的方案，点击下方按钮保存</text>
+      </div>
+      <div class="saved-item" for="{{ savedPresets }}" onclick="loadPreset($idx)" style="background-color: {{ theme.border }}">
+        <text class="saved-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+        <text class="saved-info" style="color: {{ theme.textSecondary }}">{{ $item.duration }}ms / {{ $item.interval }}ms / {{ $item.count }}次</text>
+        <input class="delete-btn" type="button" value="✕" onclick="deletePreset($idx)" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}" />
+      </div>
+    </div>
+
+    <div class="save-section">
+      <input class="save-btn" type="button" value="💾 保存当前为方案" onclick="savePreset" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import vibrator from "@system.vibrator"
+const store = require("../../data/store.js")
+
+var presetMap = {
+  short:       { label: "短震",   duration: 100,  interval: 200, count: 1 },
+  long:        { label: "长震",   duration: 800,  interval: 200, count: 1 },
+  doubleShort: { label: "双短震", duration: 100,  interval: 200, count: 2 },
+  tripleShort: { label: "三连震", duration: 100,  interval: 200, count: 3 },
+  sos:         { label: "SOS",    duration: 200,  interval: 200, count: 3 },
+  heartbeat:   { label: "心跳",   duration: 80,   interval: 100, count: 8 }
+}
+
+var presetKeys = Object.keys(presetMap)
+
+var currentTaskId = 0
+var fallbackTimer = null
+
+export default {
+  private: {
+    theme: {},
+    duration: 500,
+    interval: 800,
+    count: 5,
+    currentName: "标准震动",
+    isPlaying: false,
+    presets: [],
+    savedPresets: []
+  },
+
+  onInit() {
+    var self = this
+    this.presets = presetKeys.map(function(key) {
+      return {
+        key: key,
+        label: presetMap[key].label,
+        duration: presetMap[key].duration,
+        count: presetMap[key].count
+      }
+    })
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    this.loadPresets()
+  },
+
+  loadPresets() {
+    var self = this
+    store.getVibrationPresets(function(presets) {
+      self.savedPresets = presets || []
+    })
+  },
+
+  onDurationChange(evt) {
+    var val = parseInt(evt.value)
+    if (val > 0) {
+      this.duration = val
+      this.currentName = "自定义"
+    }
+  },
+
+  onIntervalChange(evt) {
+    var val = parseInt(evt.value)
+    if (val > 0) {
+      this.interval = val
+      this.currentName = "自定义"
+    }
+  },
+
+  increaseDuration() {
+    if (this.duration < 2000) {
+      this.duration = Math.min(2000, this.duration + 50)
+      this.currentName = "自定义"
+    }
+  },
+
+  decreaseDuration() {
+    if (this.duration > 50) {
+      this.duration = Math.max(50, this.duration - 50)
+      this.currentName = "自定义"
+    }
+  },
+
+  setDuration100() { this.duration = 100; this.currentName = "自定义" },
+  setDuration300() { this.duration = 300; this.currentName = "自定义" },
+  setDuration500() { this.duration = 500; this.currentName = "自定义" },
+  setDuration800() { this.duration = 800; this.currentName = "自定义" },
+  setDuration1000() { this.duration = 1000; this.currentName = "自定义" },
+
+  increaseInterval() {
+    if (this.interval < 2000) {
+      this.interval = Math.min(2000, this.interval + 50)
+      this.currentName = "自定义"
+    }
+  },
+
+  decreaseInterval() {
+    if (this.interval > 50) {
+      this.interval = Math.max(50, this.interval - 50)
+      this.currentName = "自定义"
+    }
+  },
+
+  setInterval100() { this.interval = 100; this.currentName = "自定义" },
+  setInterval200() { this.interval = 200; this.currentName = "自定义" },
+  setInterval500() { this.interval = 500; this.currentName = "自定义" },
+  setInterval800() { this.interval = 800; this.currentName = "自定义" },
+  setInterval1000() { this.interval = 1000; this.currentName = "自定义" },
+
+  increaseCount() {
+    if (this.count < 20) {
+      this.count++
+      this.currentName = "自定义"
+    }
+  },
+
+  decreaseCount() {
+    if (this.count > 1) {
+      this.count--
+      this.currentName = "自定义"
+    }
+  },
+
+  setCount1() { this.count = 1; this.currentName = "自定义" },
+  setCount2() { this.count = 2; this.currentName = "自定义" },
+  setCount3() { this.count = 3; this.currentName = "自定义" },
+  setCount5() { this.count = 5; this.currentName = "自定义" },
+  setCount10() { this.count = 10; this.currentName = "自定义" },
+
+  applyPreset(key) {
+    var p = presetMap[key]
+    if (!p) return
+    this.duration = p.duration
+    this.interval = p.interval
+    this.count = p.count
+    this.currentName = p.label
+    this.preview()
+  },
+
+  preview() {
+    this.stopVibration()
+    var self = this
+    self.isPlaying = true
+
+    vibrator.start({
+      duration: self.duration,
+      interval: self.interval,
+      count: self.count,
+      success: function(data) {
+        currentTaskId = data.id
+      },
+      fail: function(data, code) {
+        console.warn("[VIBRATION] start fail, code=" + code + ", fallback to vibrate")
+        self.fallbackVibrate()
+      }
+    })
+  },
+
+  fallbackVibrate() {
+    var self = this
+    var i = 0
+    function loop() {
+      if (i >= self.count || !self.isPlaying) {
+        self.isPlaying = false
+        return
+      }
+      var mode = self.duration > 300 ? "long" : "short"
+      vibrator.vibrate({ mode: mode })
+      i++
+      if (i < self.count && self.isPlaying) {
+        fallbackTimer = setTimeout(loop, self.interval + self.duration)
+      } else {
+        self.isPlaying = false
+      }
+    }
+    loop()
+  },
+
+  stopVibration() {
+    if (currentTaskId) {
+      vibrator.stop(currentTaskId)
+      currentTaskId = 0
+    }
+    if (fallbackTimer) {
+      clearTimeout(fallbackTimer)
+      fallbackTimer = null
+    }
+    this.isPlaying = false
+  },
+
+  savePreset() {
+    var name = "方案" + (this.savedPresets.length + 1)
+    var preset = {
+      name: name,
+      duration: this.duration,
+      interval: this.interval,
+      count: this.count
+    }
+    this.savedPresets.push(preset)
+    store.setVibrationPresets(this.savedPresets)
+    this.currentName = name
+  },
+
+  loadPreset(idx) {
+    var p = this.savedPresets[idx]
+    if (!p) return
+    this.duration = p.duration
+    this.interval = p.interval
+    this.count = p.count
+    this.currentName = p.name
+    this.preview()
+  },
+
+  deletePreset(idx) {
+    this.savedPresets.splice(idx, 1)
+    store.setVibrationPresets(this.savedPresets)
+  },
+
+  goBack() {
+    this.stopVibration()
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 8px;
+  min-height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 6px 0;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.hero {
+  flex-direction: column;
+  align-items: center;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 8px;
+}
+
+.hero-icon {
+  font-size: 36px;
+  margin-bottom: 6px;
+}
+
+.hero-name {
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.hero-desc {
+  font-size: 13px;
+  margin-top: 4px;
+  text-align: center;
+}
+
+.hero-btns {
+  flex-direction: row;
+  margin-top: 10px;
+}
+
+.play-btn {
+  width: 100px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+  margin-right: 8px;
+}
+
+.stop-btn {
+  width: 80px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.section {
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.stepper-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.step-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.step-value {
+  font-size: 22px;
+  font-weight: bold;
+  width: 90px;
+  text-align: center;
+}
+
+.quick-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.quick-btn {
+  width: 52px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 13px;
+  text-align: center;
+  margin: 2px;
+}
+
+.quick-btn.active {
+  font-weight: bold;
+}
+
+.preset-grid {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.preset-item {
+  flex-direction: column;
+  width: 31%;
+  padding: 10px 6px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  align-items: center;
+}
+
+.preset-name {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.preset-info {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.empty-hint {
+  padding: 12px;
+  align-items: center;
+}
+
+.empty-text {
+  font-size: 13px;
+  text-align: center;
+}
+
+.saved-item {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 6px;
+}
+
+.saved-name {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.saved-info {
+  font-size: 12px;
+  flex: 1;
+  margin-left: 8px;
+  margin-right: 6px;
+}
+
+.delete-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.save-section {
+  flex-direction: row;
+  justify-content: center;
+  margin-top: 8px;
+  padding-bottom: 16px;
+}
+
+.save-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+}
+</style>
