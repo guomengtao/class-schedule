@@ -233,7 +233,7 @@ export default {
 <style>
 .stats-page {
   flex-direction: column;
-  padding: 8px 12px;
+  padding: 44px 12px 8px 12px;
   height: 100%;
 }
 
@@ -338,5 +338,136 @@ export default {
   font-size: 13px;
   text-align: center;
   padding: 12px 0;
+}
+
+@media (shape: capsule) {
+  .stats-page {
+    padding: 44px 8px 16px 8px;
+  }
+  .header {
+    height: 30px;
+    margin-bottom: 4px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 28px;
+    height: 24px;
+    font-size: 11px;
+  }
+  .header-title {
+    font-size: 13px;
+    margin-left: 6px;
+  }
+  .overview {
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+  .overview-number {
+    font-size: 20px;
+  }
+  .overview-label {
+    font-size: 10px;
+  }
+  .section {
+    padding: 8px 10px;
+    margin-bottom: 4px;
+  }
+  .section-title {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  .rank-item {
+    padding: 4px 0;
+  }
+  .rank-name {
+    font-size: 11px;
+    width: 48px;
+  }
+  .rank-bar-wrap {
+    height: 10px;
+    margin: 0 6px;
+  }
+  .rank-count {
+    font-size: 10px;
+    width: 20px;
+  }
+  .empty-text {
+    font-size: 11px;
+    padding: 8px 0;
+  }
+}
+
+@media (shape: rect) {
+  .stats-page {
+    padding: 44px 8px 6px 8px;
+  }
+  .header {
+    height: 28px;
+    margin-bottom: 4px;
+  }
+  .back-btn {
+    width: 28px;
+    height: 24px;
+    font-size: 11px;
+  }
+  .header-title {
+    font-size: 13px;
+    margin-left: 6px;
+  }
+  .overview {
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+  .overview-number {
+    font-size: 18px;
+  }
+  .overview-label {
+    font-size: 10px;
+  }
+  .section {
+    padding: 8px 10px;
+    margin-bottom: 4px;
+  }
+  .section-title {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  .rank-item {
+    padding: 4px 0;
+  }
+  .rank-name {
+    font-size: 11px;
+    width: 48px;
+  }
+  .rank-bar-wrap {
+    height: 10px;
+    margin: 0 6px;
+  }
+  .rank-count {
+    font-size: 10px;
+    width: 20px;
+  }
+  .empty-text {
+    font-size: 11px;
+    padding: 8px 0;
+  }
+}
+
+@media (shape: circle) {
+  .stats-page {
+    padding: 44px 36px 44px 36px;
+  }
+  .header {
+    padding: 0 20px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 44px;
+    height: 28px;
+    font-size: 13px;
+  }
+  .header-title {
+    font-size: 16px;
+  }
 }
 </style>

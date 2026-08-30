@@ -197,7 +197,7 @@ export default {
 <style>
 .page {
   flex-direction: column;
-  padding: 8px;
+  padding: 44px 8px 8px 8px;
   min-height: 100%;
 }
 
@@ -319,5 +319,158 @@ export default {
 .instruction-item {
   font-size: 13px;
   line-height: 1.8;
+}
+
+@media (shape: capsule) {
+  .page {
+    padding: 44px 8px 16px 8px;
+  }
+  .back-header {
+    padding: 4px 4px;
+    margin-bottom: 6px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 52px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .header-title {
+    font-size: 14px;
+    margin-left: 6px;
+  }
+  .section {
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+  .section-title {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .toggle-row {
+    margin-bottom: 4px;
+  }
+  .toggle-label {
+    font-size: 13px;
+  }
+  .toggle-btn {
+    width: 46px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .status-text {
+    font-size: 13px;
+  }
+  .hint-text {
+    font-size: 12px;
+  }
+  .data-header {
+    margin-bottom: 4px;
+  }
+  .data-count {
+    font-size: 12px;
+  }
+  .clear-btn {
+    width: 46px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .log-item {
+    padding: 2px 0;
+  }
+  .log-index {
+    width: 30px;
+    font-size: 11px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 6px 6px 6px;
+  }
+  .back-header {
+    padding: 4px 0;
+    margin-bottom: 6px;
+  }
+  .back-btn {
+    width: 50px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .header-title {
+    font-size: 14px;
+    margin-left: 6px;
+  }
+  .section {
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+  .section-title {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .toggle-row {
+    margin-bottom: 4px;
+  }
+  .toggle-label {
+    font-size: 13px;
+  }
+  .toggle-btn {
+    width: 44px;
+    height: 26px;
+    font-size: 11px;
+  }
+  .status-text {
+    font-size: 12px;
+  }
+  .hint-text {
+    font-size: 11px;
+  }
+  .data-header {
+    margin-bottom: 4px;
+  }
+  .data-count {
+    font-size: 12px;
+  }
+  .clear-btn {
+    width: 44px;
+    height: 26px;
+    font-size: 11px;
+  }
+  .log-item {
+    padding: 2px 0;
+  }
+  .log-index {
+    width: 28px;
+    font-size: 11px;
+  }
+  .log-time {
+    font-size: 12px;
+  }
+  .empty-text {
+    font-size: 12px;
+    padding: 12px 0;
+  }
+  .instruction-item {
+    font-size: 11px;
+  }
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-header {
+    padding: 0 20px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 56px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .header-title {
+    font-size: 16px;
+  }
 }
 </style>

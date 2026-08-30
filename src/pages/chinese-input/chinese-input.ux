@@ -307,7 +307,7 @@ export default {
 <style>
 .input-page {
   flex-direction: column;
-  padding: 4px 8px;
+  padding: 44px 8px 4px 8px;
   height: 100%;
 }
 
@@ -432,5 +432,167 @@ export default {
 
 .key-bottom {
   margin-bottom: 0;
+}
+
+@media (shape: capsule) {
+  .input-page {
+    padding: 44px 6px 8px 6px;
+  }
+  .header {
+    height: 30px;
+    margin-bottom: 4px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 46px;
+    height: 26px;
+    font-size: 12px;
+  }
+  .title {
+    font-size: 13px;
+  }
+  .confirm-btn {
+    width: 46px;
+    height: 26px;
+    font-size: 12px;
+  }
+  .display-area {
+    padding: 6px 8px;
+    margin-bottom: 2px;
+    min-height: 34px;
+  }
+  .display-text {
+    font-size: 14px;
+  }
+  .cursor {
+    font-size: 14px;
+  }
+  .pinyin-row {
+    height: 20px;
+    margin-bottom: 2px;
+  }
+  .pinyin-text {
+    font-size: 12px;
+  }
+  .candidate-row {
+    height: 32px;
+    margin-bottom: 2px;
+  }
+  .candidate-item {
+    font-size: 13px;
+    padding: 2px 8px;
+    margin-right: 2px;
+  }
+  .keyboard {
+    margin-top: 2px;
+  }
+  .key-row {
+    margin-bottom: 2px;
+  }
+  .key-btn {
+    width: 26px;
+    height: 30px;
+    font-size: 12px;
+    margin-left: 1px;
+    margin-right: 1px;
+  }
+}
+
+@media (shape: rect) {
+  .input-page {
+    padding: 44px 6px 4px 6px;
+  }
+  .header {
+    height: 28px;
+    margin-bottom: 4px;
+  }
+  .back-btn {
+    width: 44px;
+    height: 24px;
+    font-size: 11px;
+  }
+  .title {
+    font-size: 13px;
+  }
+  .confirm-btn {
+    width: 44px;
+    height: 24px;
+    font-size: 11px;
+  }
+  .display-area {
+    padding: 6px 8px;
+    margin-bottom: 2px;
+    min-height: 32px;
+  }
+  .display-text {
+    font-size: 14px;
+  }
+  .cursor {
+    font-size: 14px;
+  }
+  .pinyin-row {
+    height: 18px;
+    margin-bottom: 2px;
+  }
+  .pinyin-text {
+    font-size: 12px;
+  }
+  .candidate-row {
+    height: 30px;
+    margin-bottom: 2px;
+  }
+  .candidate-item {
+    font-size: 13px;
+    padding: 2px 8px;
+    margin-right: 2px;
+  }
+  .keyboard {
+    margin-top: 2px;
+  }
+  .key-row {
+    margin-bottom: 2px;
+  }
+  .key-btn {
+    width: 24px;
+    height: 28px;
+    font-size: 12px;
+    margin-left: 1px;
+    margin-right: 1px;
+  }
+  .key-del {
+    width: 28px;
+    font-size: 10px;
+  }
+  .key-func {
+    width: 34px;
+    font-size: 10px;
+  }
+  .key-space {
+    font-size: 11px;
+    margin-left: 4px;
+    margin-right: 4px;
+  }
+}
+
+@media (shape: circle) {
+  .input-page {
+    padding: 44px 36px 44px 36px;
+  }
+  .header {
+    padding: 0 20px;
+  }
+  .back-btn {
+    width: 56px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .confirm-btn {
+    width: 44px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .title {
+    font-size: 16px;
+  }
 }
 </style>

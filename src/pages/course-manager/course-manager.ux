@@ -2,8 +2,7 @@
   <div class="manager-page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
       <input class="back-btn" type="button" value="&#9664;" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="header-title" style="color: {{ theme.text }}">课程管理</text>
-      <text class="header-count" style="color: {{ theme.textMuted }}">{{ courseList.length }}门</text>
+      <text class="header-title" style="color: {{ theme.text }}">课程管理 ({{ courseList.length }}门)</text>
       <input class="add-btn" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
@@ -200,6 +199,7 @@ export default {
     if (idx < 0 || idx >= this.courseList.length) return
     this.courseList.splice(idx, 1)
     this.saveCourses()
+    prompt.showToast({ message: "课程已删除" })
   },
 
   goBack() {
@@ -211,7 +211,7 @@ export default {
 <style>
 .manager-page {
   flex-direction: column;
-  padding: 10px;
+  padding: 44px 10px 10px 10px;
   height: 100%;
 }
 
@@ -234,13 +234,8 @@ export default {
 .header-title {
   font-size: 18px;
   font-weight: bold;
-  margin-left: 8px;
   flex: 1;
-}
-
-.header-count {
-  font-size: 13px;
-  margin-right: 8px;
+  text-align: center;
 }
 
 .add-btn {
@@ -312,5 +307,151 @@ export default {
   text-align: center;
   flex-shrink: 0;
   margin-left: 4px;
+}
+
+@media (shape: circle) {
+  .manager-page {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-header {
+    margin-bottom: 8px;
+    padding: 0 20px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 36px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .header-title {
+    font-size: 16px;
+  }
+  .add-btn {
+    width: 56px;
+    height: 30px;
+    font-size: 12px;
+  }
+  .course-item {
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+  .item-index {
+    width: 26px;
+    height: 26px;
+    border-radius: 13px;
+    margin-right: 8px;
+  }
+  .index-text {
+    font-size: 12px;
+  }
+  .course-name {
+    font-size: 14px;
+  }
+  .edit-btn {
+    width: 40px;
+    height: 28px;
+    font-size: 11px;
+  }
+  .delete-btn {
+    width: 40px;
+    height: 28px;
+    font-size: 11px;
+  }
+}
+
+@media (shape: rect) {
+  .manager-page {
+    padding: 44px 6px 6px 6px;
+  }
+  .back-header {
+    margin-bottom: 6px;
+  }
+  .back-btn {
+    width: 32px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .header-title {
+    font-size: 13px;
+  }
+  .add-btn {
+    width: 52px;
+    height: 28px;
+    font-size: 11px;
+  }
+  .course-item {
+    padding: 6px;
+    margin-bottom: 4px;
+  }
+  .item-index {
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    margin-right: 6px;
+  }
+  .index-text {
+    font-size: 11px;
+  }
+  .course-name {
+    font-size: 13px;
+  }
+  .edit-btn {
+    width: 36px;
+    height: 26px;
+    font-size: 10px;
+  }
+  .delete-btn {
+    width: 36px;
+    height: 26px;
+    font-size: 10px;
+  }
+}
+
+@media (shape: capsule) {
+  .manager-page {
+    padding: 44px 8px 16px 8px;
+  }
+  .back-header {
+    margin-bottom: 8px;
+  }
+  .back-btn {
+    width: 34px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .header-title {
+    font-size: 14px;
+  }
+  .add-btn {
+    width: 54px;
+    height: 28px;
+    font-size: 11px;
+  }
+  .course-item {
+    padding: 7px;
+    margin-bottom: 4px;
+  }
+  .item-index {
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    margin-right: 6px;
+  }
+  .index-text {
+    font-size: 11px;
+  }
+  .course-name {
+    font-size: 14px;
+  }
+  .edit-btn {
+    width: 38px;
+    height: 26px;
+    font-size: 10px;
+  }
+  .delete-btn {
+    width: 38px;
+    height: 26px;
+    font-size: 10px;
+  }
 }
 </style>

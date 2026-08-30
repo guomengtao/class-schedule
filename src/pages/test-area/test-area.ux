@@ -1,0 +1,195 @@
+<template>
+  <div class="test-area-page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="color: {{ theme.text }}">功能实验室</text>
+    </div>
+
+    <text class="section-desc" style="color: {{ theme.textSecondary }}">这里是正在开发中的新功能，欢迎体验并反馈建议，你的意见对我们很重要。</text>
+
+    <div class="menu-section">
+      <div class="menu-item" onclick="openPromptDemo" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">弹窗演示</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">Toast 弹窗效果体验</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+
+      <div class="menu-item" onclick="openQrcodeTest" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">二维码容量检测</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">检测组件文字上限</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+
+      <div class="menu-item" onclick="openQrcodeGenerator" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">文字转二维码</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">将文字生成二维码</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+
+      <div class="menu-item" onclick="openBackgroundRunning" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">后台运行</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">测试后台保活功能</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+
+      <div class="menu-item" onclick="openActivation" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">软件授权</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">爱发电购买兑换码激活</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+    </div>
+
+    <text class="secret-text" onclick="onSecretTap" style="color: {{ theme.textMuted }}">这里是正在开发中的新功能</text>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+export default {
+  private: {
+    theme: {},
+    secretTapCount: 0,
+    secretTapTimer: null
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+  },
+
+  openPromptDemo() {
+    router.push({ uri: "/pages/prompt-demo" })
+  },
+
+  openQrcodeTest() {
+    router.push({ uri: "/pages/qrcode-test" })
+  },
+
+  openQrcodeGenerator() {
+    router.push({ uri: "/pages/qrcode-generator" })
+  },
+
+  openBackgroundRunning() {
+    router.push({ uri: "/pages/background-running" })
+  },
+
+  openActivation() {
+    router.push({ uri: "/pages/activation" })
+  },
+
+  onSecretTap() {
+    var self = this
+    self.secretTapCount = self.secretTapCount + 1
+    if (self.secretTapTimer) {
+      clearTimeout(self.secretTapTimer)
+    }
+    if (self.secretTapCount >= 3) {
+      self.secretTapCount = 0
+      router.push({ uri: "/pages/activation-lab" })
+      return
+    }
+    self.secretTapTimer = setTimeout(function() {
+      self.secretTapCount = 0
+    }, 2000)
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.test-area-page {
+  flex-direction: column;
+  padding: 44px 8px 8px 8px;
+  min-height: 100%;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 0;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.section-desc {
+  font-size: 13px;
+  margin-bottom: 12px;
+  padding: 0 4px;
+  line-height: 1.4;
+}
+
+.menu-section {
+  flex-direction: column;
+}
+
+.menu-item {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 10px;
+  padding: 14px 12px;
+  margin-bottom: 8px;
+}
+
+.menu-label {
+  font-size: 15px;
+}
+
+.menu-right {
+  flex-direction: row;
+  align-items: center;
+}
+
+.menu-desc {
+  font-size: 11px;
+  margin-right: 6px;
+}
+
+.menu-arrow {
+  font-size: 20px;
+}
+
+.secret-text {
+  font-size: 11px;
+  text-align: center;
+  margin-top: 16px;
+  padding: 8px;
+}
+</style>

@@ -163,7 +163,7 @@ export default {
 <style>
 .page {
   flex-direction: column;
-  padding: 8px;
+  padding: 44px 8px 8px 8px;
   min-height: 100%;
 }
 
@@ -280,5 +280,155 @@ export default {
   border-radius: 8px;
   font-size: 14px;
   text-align: center;
+}
+
+@media (shape: capsule) {
+  .page {
+    padding: 44px 8px 16px 8px;
+  }
+  .header {
+    padding: 4px 4px;
+    margin-bottom: 6px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 52px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .title {
+    font-size: 14px;
+    margin-left: 6px;
+  }
+  .list {
+    padding: 10px;
+  }
+  .hero {
+    padding: 6px 0 10px;
+  }
+  .hero-icon {
+    font-size: 26px;
+    margin-bottom: 4px;
+  }
+  .hero-model {
+    font-size: 15px;
+  }
+  .hero-sub {
+    font-size: 12px;
+  }
+  .row {
+    padding: 5px 0;
+  }
+  .label {
+    font-size: 12px;
+  }
+  .value {
+    font-size: 12px;
+    margin-left: 8px;
+  }
+  .loading {
+    padding: 30px 12px;
+  }
+  .loading-icon {
+    font-size: 22px;
+  }
+  .loading-text {
+    font-size: 13px;
+  }
+  .error {
+    padding: 14px 12px;
+  }
+  .error-icon {
+    font-size: 22px;
+  }
+  .error-text {
+    font-size: 12px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 6px 6px 6px;
+  }
+  .header {
+    padding: 4px 0;
+    margin-bottom: 6px;
+  }
+  .back-btn {
+    width: 50px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .title {
+    font-size: 14px;
+    margin-left: 6px;
+  }
+  .list {
+    padding: 10px;
+  }
+  .hero {
+    padding: 6px 0 10px;
+  }
+  .hero-icon {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+  .hero-model {
+    font-size: 14px;
+  }
+  .hero-sub {
+    font-size: 11px;
+  }
+  .row {
+    padding: 5px 0;
+  }
+  .label {
+    font-size: 12px;
+  }
+  .value {
+    font-size: 12px;
+    margin-left: 8px;
+  }
+  .loading {
+    padding: 30px 12px;
+  }
+  .loading-icon {
+    font-size: 22px;
+  }
+  .loading-text {
+    font-size: 13px;
+  }
+  .error {
+    padding: 14px 12px;
+  }
+  .error-icon {
+    font-size: 22px;
+  }
+  .error-text {
+    font-size: 12px;
+  }
+  .retry-btn {
+    width: 60px;
+    height: 28px;
+    font-size: 12px;
+  }
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+  .header {
+    padding: 0 20px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 56px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .title {
+    font-size: 16px;
+  }
 }
 </style>

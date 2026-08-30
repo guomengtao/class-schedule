@@ -11,12 +11,12 @@ R = SIZE / 2 - 4
 
 draw.ellipse([cx - R, cy - R, cx + R, cy + R], fill="#1a1a2e")
 
-dash_count = 36
-dash_ratio = 0.6
+dash_count = 8
+dash_ratio = 0.7
 segment_angle = 360.0 / dash_count
 dash_angle = segment_angle * dash_ratio
 for i in range(dash_count):
-    start_angle = i * segment_angle
+    start_angle = i * segment_angle - dash_angle / 2
     end_angle = start_angle + dash_angle
     draw.arc([cx - R, cy - R, cx + R, cy + R],
              start=start_angle, end=end_angle,

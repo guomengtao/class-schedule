@@ -320,7 +320,7 @@ export default {
 .week-view-page {
   flex-direction: column;
   background-color: #1a1a2e;
-  padding: 8px;
+  padding: 44px 8px 8px 8px;
   height: 100%;
 }
 
@@ -333,8 +333,6 @@ export default {
 }
 
 .back-btn {
-  position: absolute;
-  left: 0;
   width: 56px;
   height: 34px;
   border-radius: 8px;
@@ -453,5 +451,161 @@ export default {
   font-size: 11px;
   color: #555566;
   text-align: center;
+}
+
+@media (shape: circle) {
+  .week-view-page {
+    padding: 44px 36px 44px 36px;
+  }
+  .header {
+    margin-bottom: 4px;
+    padding: 0 20px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 44px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .header-title {
+    font-size: 16px;
+  }
+  .schedule-name {
+    font-size: 12px;
+  }
+  .week-header-spacer {
+    width: 42px;
+  }
+  .week-day {
+    font-size: 11px;
+  }
+  .week-day.today-day {
+    font-size: 12px;
+  }
+  .time-row {
+    min-height: 28px;
+  }
+  .time-label {
+    width: 42px;
+    font-size: 8px;
+  }
+  .course-cell {
+    height: 28px;
+  }
+  .course-char {
+    font-size: 16px;
+  }
+  .course-empty {
+    font-size: 9px;
+  }
+  .footer {
+    padding: 4px 0;
+  }
+  .footer-text {
+    font-size: 10px;
+  }
+}
+
+@media (shape: capsule) {
+  .week-view-page {
+    padding: 44px 8px 16px 8px;
+  }
+  .header {
+    margin-bottom: 6px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 44px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .header-title {
+    font-size: 15px;
+  }
+  .schedule-name {
+    font-size: 11px;
+  }
+  .week-header-spacer {
+    width: 40px;
+  }
+  .week-day {
+    font-size: 10px;
+  }
+  .week-day.today-day {
+    font-size: 11px;
+  }
+  .time-row {
+    min-height: 28px;
+  }
+  .time-label {
+    width: 40px;
+    font-size: 9px;
+  }
+  .course-cell {
+    height: 26px;
+  }
+  .course-char {
+    font-size: 14px;
+  }
+  .course-empty {
+    font-size: 9px;
+  }
+  .footer {
+    padding: 4px 0;
+  }
+  .footer-text {
+    font-size: 10px;
+  }
+}
+
+@media (shape: rect) {
+  .week-view-page {
+    padding: 44px 4px 4px 4px;
+  }
+  .header {
+    margin-bottom: 4px;
+  }
+  .back-btn {
+    width: 40px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .header-title {
+    font-size: 15px;
+  }
+  .schedule-name {
+    font-size: 11px;
+  }
+  .week-header-spacer {
+    width: 36px;
+  }
+  .week-day {
+    font-size: 10px;
+  }
+  .week-day.today-day {
+    font-size: 11px;
+  }
+  .time-row {
+    min-height: 26px;
+  }
+  .time-label {
+    width: 36px;
+    font-size: 8px;
+  }
+  .course-cell {
+    height: 24px;
+  }
+  .course-char {
+    font-size: 14px;
+  }
+  .course-empty {
+    font-size: 8px;
+  }
+  .footer {
+    padding: 4px 0;
+  }
+  .footer-text {
+    font-size: 9px;
+  }
 }
 </style>

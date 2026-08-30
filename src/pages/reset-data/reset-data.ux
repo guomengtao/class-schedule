@@ -57,6 +57,7 @@
 
 <script>
 import router from "@system.router"
+import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 
@@ -103,7 +104,10 @@ export default {
       self.presetConfirm = false
       self.presetDone = true
       if (success) {
+        prompt.showToast({ message: "默认课程已恢复" })
         console.log("[RESET] Course presets restored successfully")
+      } else {
+        prompt.showToast({ message: "恢复失败，请重试" })
       }
     })
   },
@@ -129,7 +133,10 @@ export default {
         self.fullConfirm = false
         self.fullDone = true
         if (success && presetSuccess) {
+          prompt.showToast({ message: "全部数据已重置" })
           console.log("[RESET] Full demo data restored successfully")
+        } else {
+          prompt.showToast({ message: "重置失败，请重试" })
         }
       })
     })
@@ -152,7 +159,7 @@ export default {
 <style>
 .reset-page {
   flex-direction: column;
-  padding: 8px;
+  padding: 44px 8px 8px 8px;
   min-height: 100%;
 }
 
@@ -298,5 +305,183 @@ export default {
   font-weight: bold;
   text-align: center;
   margin-top: 12px;
+}
+
+@media (shape: circle) {
+  .reset-page {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-header {
+    margin-bottom: 8px;
+    padding: 4px 20px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 56px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .header-title {
+    font-size: 16px;
+    margin-left: 6px;
+  }
+  .warning-section {
+    padding: 16px 12px;
+    margin-bottom: 8px;
+  }
+  .warning-title {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+  .warning-text {
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .preview-section {
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+  .course-tag-name {
+    font-size: 13px;
+  }
+  .action-section {
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  .action-desc {
+    font-size: 13px;
+  }
+  .action-warn {
+    font-size: 13px;
+  }
+  .action-btn {
+    height: 40px;
+    font-size: 16px;
+  }
+  .reset-hint {
+    font-size: 13px;
+  }
+  .result-text {
+    font-size: 14px;
+  }
+}
+
+@media (shape: capsule) {
+  .reset-page {
+    padding: 44px 8px 16px 8px;
+  }
+  .back-header {
+    margin-bottom: 8px;
+    padding: 4px 4px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 52px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .header-title {
+    font-size: 15px;
+    margin-left: 6px;
+  }
+  .warning-section {
+    padding: 14px 10px;
+    margin-bottom: 8px;
+  }
+  .warning-title {
+    font-size: 17px;
+    margin-bottom: 8px;
+  }
+  .warning-text {
+    font-size: 13px;
+    line-height: 18px;
+  }
+  .preview-section {
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+  .course-tag-name {
+    font-size: 12px;
+  }
+  .action-section {
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+  .action-desc {
+    font-size: 12px;
+  }
+  .action-warn {
+    font-size: 12px;
+  }
+}
+
+@media (shape: rect) {
+  .reset-page {
+    padding: 44px 6px 6px 6px;
+  }
+  .back-header {
+    margin-bottom: 6px;
+    padding: 4px 0;
+  }
+  .back-btn {
+    width: 50px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .header-title {
+    font-size: 15px;
+    margin-left: 6px;
+  }
+  .warning-section {
+    padding: 14px 10px;
+    margin-bottom: 8px;
+  }
+  .warning-title {
+    font-size: 17px;
+    margin-bottom: 8px;
+  }
+  .warning-text {
+    font-size: 13px;
+    line-height: 18px;
+  }
+  .preview-section {
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+  .course-tag-name {
+    font-size: 12px;
+  }
+  .action-section {
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+  .action-desc {
+    font-size: 12px;
+  }
+  .action-warn {
+    font-size: 12px;
+  }
+  .action-btn {
+    height: 38px;
+    font-size: 15px;
+  }
+  .reset-hint {
+    font-size: 12px;
+  }
+  .result-text {
+    font-size: 13px;
+  }
 }
 </style>

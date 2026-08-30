@@ -142,7 +142,7 @@ export default {
 <style>
 .prompt-demo-page {
   flex-direction: column;
-  padding: 8px;
+  padding: 44px 8px 8px 8px;
   min-height: 100%;
 }
 
@@ -228,5 +228,122 @@ export default {
   padding: 0 12px;
   margin-right: 6px;
   margin-bottom: 6px;
+}
+
+@media (shape: capsule) {
+  .prompt-demo-page {
+    padding: 44px 8px 16px 8px;
+  }
+  .back-header {
+    padding: 4px 4px;
+    margin-bottom: 6px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 52px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .header-title {
+    font-size: 14px;
+    margin-left: 6px;
+  }
+  .demo-section {
+    padding: 8px;
+    margin-bottom: 6px;
+  }
+  .section-label {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  .demo-btn {
+    height: 34px;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .custom-label {
+    font-size: 12px;
+  }
+  .duration-btn {
+    width: 54px;
+    height: 28px;
+    font-size: 11px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+  .quick-btn {
+    height: 30px;
+    font-size: 12px;
+    padding: 0 8px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+}
+
+@media (shape: rect) {
+  .prompt-demo-page {
+    padding: 44px 6px 6px 6px;
+  }
+  .back-header {
+    padding: 4px 0;
+    margin-bottom: 6px;
+  }
+  .back-btn {
+    width: 50px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .header-title {
+    font-size: 14px;
+    margin-left: 6px;
+  }
+  .demo-section {
+    padding: 8px;
+    margin-bottom: 6px;
+  }
+  .section-label {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  .demo-btn {
+    height: 32px;
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  .custom-label {
+    font-size: 11px;
+  }
+  .duration-btn {
+    width: 52px;
+    height: 26px;
+    font-size: 10px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+  .quick-btn {
+    height: 28px;
+    font-size: 11px;
+    padding: 0 8px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+}
+
+@media (shape: circle) {
+  .prompt-demo-page {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-header {
+    padding: 0 20px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 56px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .header-title {
+    font-size: 16px;
+  }
 }
 </style>

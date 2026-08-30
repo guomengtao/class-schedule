@@ -118,6 +118,7 @@
 
 <script>
 import router from "@system.router"
+import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 
@@ -516,6 +517,7 @@ export default {
       notes: ""
     }
     database.updateCourse(updatedCourse, function() {
+      prompt.showToast({ message: "课程已更新" })
       router.back()
     })
   },
@@ -523,6 +525,7 @@ export default {
   deleteCourse() {
     var self = this
     database.deleteCourse(self.classId, self.day, function() {
+      prompt.showToast({ message: "课程已删除" })
       router.back()
     })
   }
@@ -533,7 +536,7 @@ export default {
 .edit-course-page {
   flex-direction: column;
   background-color: #1a1a2e;
-  padding: 16px;
+  padding: 44px 16px 16px 16px;
   height: 100%;
 }
 
@@ -852,5 +855,175 @@ export default {
   font-size: 20px;
   font-weight: bold;
   text-align: center;
+}
+
+@media (shape: circle) {
+  .edit-course-page {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-header {
+    margin-bottom: 12px;
+    padding: 8px 20px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 60px;
+    height: 40px;
+    font-size: 15px;
+  }
+  .header-title {
+    font-size: 22px;
+  }
+  .step-indicator {
+    margin-bottom: 12px;
+  }
+  .step-title {
+    font-size: 20px;
+  }
+  .course-card {
+    width: 160px;
+    height: 100px;
+    padding: 18px;
+  }
+  .card-course-name {
+    font-size: 22px;
+  }
+  .picker-label {
+    font-size: 20px;
+  }
+  .stepper-btn {
+    width: 40px;
+    height: 36px;
+    font-size: 18px;
+  }
+  .stepper-val {
+    font-size: 24px;
+  }
+  .field-input {
+    font-size: 18px;
+  }
+}
+
+@media (shape: capsule) {
+  .edit-course-page {
+    padding: 44px 8px 16px 8px;
+  }
+  .back-header {
+    margin-bottom: 10px;
+    padding: 6px 4px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 58px;
+    height: 38px;
+    font-size: 15px;
+  }
+  .header-title {
+    font-size: 20px;
+  }
+  .step-indicator {
+    margin-bottom: 10px;
+  }
+  .step-dot {
+    width: 14px;
+    height: 14px;
+  }
+  .step-line {
+    width: 24px;
+  }
+  .step-title {
+    font-size: 18px;
+  }
+  .step-hint {
+    font-size: 16px;
+  }
+  .course-card {
+    width: 150px;
+    height: 95px;
+    padding: 16px;
+  }
+  .card-course-name {
+    font-size: 20px;
+  }
+  .picker-label {
+    font-size: 18px;
+  }
+  .stepper-label {
+    font-size: 18px;
+  }
+  .stepper-btn {
+    width: 36px;
+    height: 32px;
+    font-size: 18px;
+  }
+  .stepper-val {
+    font-size: 24px;
+  }
+  .field-input {
+    font-size: 16px;
+  }
+}
+
+@media (shape: rect) {
+  .edit-course-page {
+    padding: 44px 10px 10px 10px;
+  }
+  .back-header {
+    margin-bottom: 8px;
+    padding: 6px 0;
+  }
+  .back-btn {
+    width: 60px;
+    height: 36px;
+    font-size: 14px;
+  }
+  .header-title {
+    font-size: 20px;
+    margin-left: 8px;
+  }
+  .step-dot {
+    width: 14px;
+    height: 14px;
+  }
+  .step-line {
+    width: 24px;
+  }
+  .step-title {
+    font-size: 18px;
+  }
+  .step-hint {
+    font-size: 15px;
+  }
+  .course-card {
+    width: 140px;
+    height: 90px;
+    padding: 16px;
+  }
+  .card-course-name {
+    font-size: 20px;
+  }
+  .picker-label {
+    font-size: 18px;
+  }
+  .stepper-label {
+    font-size: 16px;
+    width: 48px;
+  }
+  .stepper-btn {
+    width: 36px;
+    height: 32px;
+    font-size: 18px;
+  }
+  .stepper-val {
+    font-size: 22px;
+    width: 40px;
+  }
+  .field-input {
+    font-size: 16px;
+    padding: 0 10px;
+  }
+  .optional-hint {
+    font-size: 15px;
+  }
 }
 </style>

@@ -1,6 +1,7 @@
 <script>
 var store = require("./data/store.js")
 var database = require("./data/database.js")
+var authStore = require("./data/auth-store.js")
 var resident = null
 
 try {
@@ -49,6 +50,7 @@ function stopResident() {
 export default {
   onCreate() {
     database.init()
+    authStore.initAuth()
     store.getFontScale(function(scale) {
       if (!scale || scale < 0.5) {
         store.setFontScale(1.0)

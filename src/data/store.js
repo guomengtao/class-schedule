@@ -391,19 +391,19 @@ module.exports = {
 
   getVibrationStyles: function() {
     return [
-      { key: "single_short", label: "短震", desc: "轻点一下" },
-      { key: "single_long", label: "长震", desc: "持续震动" },
-      { key: "double_short", label: "双短震", desc: "轻点两下" },
-      { key: "short_long", label: "短+长", desc: "先短后长" },
-      { key: "long_short_long", label: "长+短+长", desc: "长-短-长" },
-      { key: "triple_short", label: "三连震", desc: "连续三下" }
+      { key: "short", label: "短震", desc: "轻点一下", duration: 100, interval: 200, count: 1 },
+      { key: "long", label: "长震", desc: "持续震动", duration: 800, interval: 200, count: 1 },
+      { key: "doubleShort", label: "双短震", desc: "轻点两下", duration: 100, interval: 200, count: 2 },
+      { key: "tripleShort", label: "三连震", desc: "连续三下", duration: 100, interval: 200, count: 3 },
+      { key: "sos", label: "SOS", desc: "三短求救", duration: 200, interval: 200, count: 3 },
+      { key: "heartbeat", label: "心跳", desc: "心跳节奏", duration: 80, interval: 100, count: 8 }
     ]
   },
 
   setVibrationStyle: function(style, callback) {
     storage.set({
       key: "vibrationStyle",
-      value: style || "single_short",
+      value: style || "short",
       success: function() { if (callback) callback(true) },
       fail: function() { if (callback) callback(false) }
     })
@@ -413,10 +413,10 @@ module.exports = {
     storage.get({
       key: "vibrationStyle",
       success: function(data) {
-        callback(data || "single_short")
+        callback(data || "short")
       },
       fail: function() {
-        callback("single_short")
+        callback("short")
       }
     })
   },

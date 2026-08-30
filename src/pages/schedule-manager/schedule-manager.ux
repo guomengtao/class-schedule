@@ -56,6 +56,7 @@
 
 <script>
 import router from "@system.router"
+import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 
@@ -215,6 +216,7 @@ export default {
 
     var self = this
     store.setScheduleNames(names, function() {
+      prompt.showToast({ message: "已重命名" })
       self.editingIndex = -1
       self.editName = ""
       self.loadData()
@@ -254,6 +256,7 @@ export default {
     }
     names.push(newName)
     store.setScheduleNames(names, function() {
+      prompt.showToast({ message: "课程表已添加" })
       self.loadData()
     })
   },
@@ -317,6 +320,7 @@ export default {
                 inserted++
                 if (inserted === totalCourses) {
                   database.setScheduleIndex(self.currentIndex, function() {
+                    prompt.showToast({ message: "课程表已复制" })
                     self.loadData()
                   })
                 }
@@ -342,6 +346,7 @@ export default {
     names.splice(index, 1)
 
     store.setScheduleNames(names, function() {
+      prompt.showToast({ message: "课程表已删除" })
       if (needSwitch) {
         store.setCurrentScheduleIndex(0, function() {
           database.setScheduleIndex(0, function() {
@@ -382,7 +387,7 @@ export default {
 <style>
 .manager-page {
   flex-direction: column;
-  padding: 12px;
+  padding: 44px 12px 12px 12px;
   height: 100%;
 }
 
@@ -533,5 +538,209 @@ export default {
   font-size: 17px;
   font-weight: bold;
   text-align: center;
+}
+
+@media (shape: circle) {
+  .manager-page {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-header {
+    margin-bottom: 8px;
+    padding: 4px 20px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 44px;
+    height: 32px;
+    font-size: 16px;
+  }
+  .stats-btn {
+    width: 44px;
+    height: 32px;
+    font-size: 13px;
+  }
+  .header-title {
+    font-size: 18px;
+    margin-left: 8px;
+  }
+  .rename-bar {
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    justify-content: center;
+  }
+  .rename-display {
+    height: 34px;
+    font-size: 15px;
+    padding: 0 8px;
+  }
+  .rename-text {
+    font-size: 15px;
+  }
+  .rename-ok-btn {
+    width: 48px;
+    height: 30px;
+    font-size: 14px;
+  }
+  .rename-cancel-btn {
+    width: 48px;
+    height: 30px;
+    font-size: 14px;
+  }
+  .schedule-item {
+    padding: 12px 14px;
+    margin-bottom: 6px;
+  }
+  .schedule-name {
+    font-size: 18px;
+  }
+  .badge {
+    font-size: 12px;
+    padding: 2px 10px;
+  }
+  .action-btn {
+    height: 30px;
+  }
+  .action-btn-text {
+    font-size: 13px;
+  }
+  .add-btn {
+    height: 40px;
+    font-size: 15px;
+  }
+}
+
+@media (shape: capsule) {
+  .manager-page {
+    padding: 44px 8px 16px 8px;
+  }
+  .back-header {
+    margin-bottom: 8px;
+    padding: 4px 4px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 42px;
+    height: 32px;
+    font-size: 16px;
+  }
+  .stats-btn {
+    width: 42px;
+    height: 32px;
+    font-size: 13px;
+  }
+  .header-title {
+    font-size: 17px;
+    margin-left: 8px;
+  }
+  .rename-bar {
+    padding: 6px 8px;
+    margin-bottom: 8px;
+  }
+  .rename-display {
+    height: 32px;
+    font-size: 14px;
+    padding: 0 8px;
+  }
+  .rename-text {
+    font-size: 14px;
+  }
+  .rename-ok-btn {
+    width: 46px;
+    height: 30px;
+    font-size: 14px;
+  }
+  .rename-cancel-btn {
+    width: 46px;
+    height: 30px;
+    font-size: 14px;
+  }
+  .schedule-item {
+    padding: 10px 12px;
+    margin-bottom: 6px;
+  }
+  .schedule-name {
+    font-size: 17px;
+  }
+  .badge {
+    font-size: 11px;
+    padding: 2px 8px;
+  }
+  .action-btn {
+    height: 30px;
+  }
+  .action-btn-text {
+    font-size: 13px;
+  }
+  .add-btn {
+    height: 40px;
+    font-size: 15px;
+  }
+}
+
+@media (shape: rect) {
+  .manager-page {
+    padding: 44px 8px 8px 8px;
+  }
+  .back-header {
+    margin-bottom: 6px;
+    padding: 4px 0;
+  }
+  .back-btn {
+    width: 40px;
+    height: 30px;
+    font-size: 16px;
+  }
+  .stats-btn {
+    width: 40px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .header-title {
+    font-size: 17px;
+    margin-left: 8px;
+  }
+  .rename-bar {
+    padding: 6px 8px;
+    margin-bottom: 8px;
+  }
+  .rename-display {
+    height: 32px;
+    font-size: 14px;
+    padding: 0 8px;
+  }
+  .rename-text {
+    font-size: 14px;
+  }
+  .rename-ok-btn {
+    width: 44px;
+    height: 28px;
+    font-size: 13px;
+  }
+  .rename-cancel-btn {
+    width: 44px;
+    height: 28px;
+    font-size: 13px;
+  }
+  .schedule-item {
+    padding: 10px 12px;
+    margin-bottom: 6px;
+  }
+  .schedule-name {
+    font-size: 17px;
+  }
+  .badge {
+    font-size: 11px;
+    padding: 2px 8px;
+  }
+  .action-btn {
+    height: 28px;
+  }
+  .action-btn-text {
+    font-size: 12px;
+  }
+  .add-btn {
+    height: 36px;
+    font-size: 14px;
+  }
 }
 </style>

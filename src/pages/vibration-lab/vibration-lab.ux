@@ -94,6 +94,7 @@
 <script>
 import router from "@system.router"
 import vibrator from "@system.vibrator"
+import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 
 var presetMap = {
@@ -293,6 +294,7 @@ export default {
     this.savedPresets.push(preset)
     store.setVibrationPresets(this.savedPresets)
     this.currentName = name
+    prompt.showToast({ message: "方案已保存" })
   },
 
   loadPreset(idx) {
@@ -308,6 +310,7 @@ export default {
   deletePreset(idx) {
     this.savedPresets.splice(idx, 1)
     store.setVibrationPresets(this.savedPresets)
+    prompt.showToast({ message: "方案已删除" })
   },
 
   goBack() {
@@ -320,7 +323,7 @@ export default {
 <style>
 .page {
   flex-direction: column;
-  padding: 8px;
+  padding: 44px 8px 8px 8px;
   min-height: 100%;
 }
 
@@ -527,5 +530,250 @@ export default {
   font-size: 16px;
   font-weight: bold;
   text-align: center;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+  .header {
+    margin-bottom: 8px;
+    padding: 4px 20px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 56px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .title {
+    font-size: 16px;
+    margin-left: 6px;
+  }
+  .hero {
+    padding: 12px;
+    margin-bottom: 6px;
+  }
+  .hero-icon {
+    font-size: 30px;
+  }
+  .hero-name {
+    font-size: 16px;
+  }
+  .hero-desc {
+    font-size: 12px;
+  }
+  .play-btn {
+    width: 88px;
+    height: 32px;
+    font-size: 14px;
+  }
+  .stop-btn {
+    width: 68px;
+    height: 32px;
+    font-size: 14px;
+  }
+  .section {
+    padding: 10px;
+    margin-bottom: 6px;
+  }
+  .section-title {
+    font-size: 14px;
+  }
+  .step-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+  .step-value {
+    font-size: 20px;
+    width: 80px;
+  }
+  .quick-btn {
+    width: 46px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .preset-item {
+    padding: 8px 4px;
+  }
+  .preset-name {
+    font-size: 13px;
+  }
+  .preset-info {
+    font-size: 10px;
+  }
+  .saved-item {
+    padding: 8px;
+  }
+  .saved-name {
+    font-size: 13px;
+  }
+  .saved-info {
+    font-size: 11px;
+  }
+  .delete-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+  .save-btn {
+    height: 40px;
+    font-size: 15px;
+  }
+}
+
+@media (shape: capsule) {
+  .page {
+    padding: 44px 8px 16px 8px;
+  }
+  .header {
+    margin-bottom: 8px;
+    padding: 4px 4px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 52px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .title {
+    font-size: 15px;
+    margin-left: 6px;
+  }
+  .hero {
+    padding: 10px;
+    margin-bottom: 6px;
+  }
+  .hero-icon {
+    font-size: 28px;
+  }
+  .hero-name {
+    font-size: 16px;
+  }
+  .hero-desc {
+    font-size: 12px;
+  }
+  .play-btn {
+    width: 80px;
+    height: 32px;
+    font-size: 13px;
+  }
+  .stop-btn {
+    width: 60px;
+    height: 32px;
+    font-size: 13px;
+  }
+  .section {
+    padding: 8px;
+    margin-bottom: 6px;
+  }
+  .section-title {
+    font-size: 13px;
+  }
+  .step-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+  .step-value {
+    font-size: 18px;
+    width: 70px;
+  }
+  .quick-btn {
+    width: 44px;
+    height: 28px;
+    font-size: 11px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 6px 6px 6px;
+  }
+  .header {
+    margin-bottom: 6px;
+    padding: 4px 0;
+  }
+  .back-btn {
+    width: 50px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .title {
+    font-size: 15px;
+    margin-left: 6px;
+  }
+  .hero {
+    padding: 10px;
+    margin-bottom: 6px;
+  }
+  .hero-icon {
+    font-size: 28px;
+  }
+  .hero-name {
+    font-size: 15px;
+  }
+  .hero-desc {
+    font-size: 11px;
+  }
+  .play-btn {
+    width: 80px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .stop-btn {
+    width: 60px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .section {
+    padding: 8px;
+    margin-bottom: 6px;
+  }
+  .section-title {
+    font-size: 13px;
+  }
+  .step-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+  .step-value {
+    font-size: 18px;
+    width: 70px;
+  }
+  .quick-btn {
+    width: 42px;
+    height: 26px;
+    font-size: 11px;
+  }
+  .preset-item {
+    padding: 8px 4px;
+  }
+  .preset-name {
+    font-size: 12px;
+  }
+  .preset-info {
+    font-size: 9px;
+  }
+  .saved-item {
+    padding: 8px;
+  }
+  .saved-name {
+    font-size: 12px;
+  }
+  .saved-info {
+    font-size: 10px;
+  }
+  .delete-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 12px;
+  }
+  .save-btn {
+    height: 36px;
+    font-size: 14px;
+  }
 }
 </style>

@@ -97,34 +97,10 @@
       </div>
     </div>
 
-    <div class="info-section" onclick="openQrcodeGenerator" style="background-color: {{ theme.card }}">
-      <text class="info-label" style="color: {{ theme.text }}">文字转二维码</text>
+    <div class="info-section" onclick="openTestArea" style="background-color: {{ theme.card }}">
+      <text class="info-label" style="color: {{ theme.text }}">功能实验室</text>
       <div class="info-value-row">
-        <text class="info-placeholder" style="color: {{ theme.textMuted }}">生成二维码</text>
-        <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
-      </div>
-    </div>
-
-    <div class="info-section" onclick="openPromptDemo" style="background-color: {{ theme.card }}">
-      <text class="info-label" style="color: {{ theme.text }}">弹窗演示</text>
-      <div class="info-value-row">
-        <text class="info-placeholder" style="color: {{ theme.textMuted }}">Toast 弹窗效果体验</text>
-        <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
-      </div>
-    </div>
-
-    <div class="info-section" onclick="openQrcodeTest" style="background-color: {{ theme.card }}">
-      <text class="info-label" style="color: {{ theme.text }}">二维码容量检测</text>
-      <div class="info-value-row">
-        <text class="info-placeholder" style="color: {{ theme.textMuted }}">检测官方组件文字上限</text>
-        <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
-      </div>
-    </div>
-
-    <div class="info-section" onclick="openBackgroundRunning" style="background-color: {{ theme.card }}">
-      <text class="info-label" style="color: {{ theme.text }}">后台运行</text>
-      <div class="info-value-row">
-        <text class="info-placeholder" style="color: {{ theme.textMuted }}">测试后台运行功能</text>
+        <text class="info-placeholder" style="color: {{ theme.textMuted }}">实验性功能尝鲜</text>
         <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
     </div>
@@ -144,6 +120,7 @@
 <script>
 import router from "@system.router"
 import vibrator from "@system.vibrator"
+import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 const version = require("../../data/version.js")
 
@@ -183,7 +160,7 @@ export default {
     previewClassStyle: "",
     remindEnabled: true,
     remindMinutes: 5,
-    vibrationStyle: "single_short",
+    vibrationStyle: "short",
     vibrationStyles: [],
     theme: {},
     currentThemeKey: "blue",
@@ -308,6 +285,10 @@ export default {
     router.push({ uri: "/pages/background-running" })
   },
 
+  openTestArea() {
+    router.push({ uri: "/pages/test-area" })
+  },
+
   toggleRemind() {
     this.remindEnabled = !this.remindEnabled
     this.saveRemindSettings()
@@ -337,7 +318,7 @@ export default {
   loadVibrationStyle() {
     var self = this
     store.getVibrationStyle(function(style) {
-      self.vibrationStyle = style || "single_short"
+      self.vibrationStyle = style || "short"
     })
   },
 
@@ -348,43 +329,43 @@ export default {
   },
 
   previewVibration(style) {
-    switch (style) {
-      case "single_short":
-        safeVibrate("short")
+    var pattern = null
+    var styles = this.vibrationStyles
+    for (var i = 0; i < styles.length; i++) {
+      if (styles[i].key === style) {
+        pattern = styles[i]
         break
-
-      case "single_long":
-        safeVibrate("long")
-        break
-
-      case "double_short":
-        safeVibrate("short")
-        setTimeout(function() { safeVibrate("short") }, 350)
-        break
-
-      case "short_long":
-        safeVibrate("short")
-        setTimeout(function() { safeVibrate("long") }, 350)
-        break
-
-      case "long_short_long":
-        safeVibrate("long")
-        setTimeout(function() { safeVibrate("short") }, 1250)
-        setTimeout(function() { safeVibrate("long") }, 1600)
-        break
-
-      case "triple_short":
-        safeVibrate("short")
-        setTimeout(function() { safeVibrate("short") }, 350)
-        setTimeout(function() { safeVibrate("short") }, 700)
-        break
-
-      default:
-        safeVibrate("short")
+      }
     }
+    if (!pattern) {
+      safeVibrate("short")
+      return
+    }
+
+    vibrator.start({
+      duration: pattern.duration,
+      interval: pattern.interval,
+      count: pattern.count,
+      success: function(data) {},
+      fail: function(data, code) {
+        console.warn("[SETTINGS] vibrator.start fail, code=" + code + ", fallback to vibrate")
+        var idx = 0
+        function loop() {
+          if (idx >= pattern.count) return
+          var mode = pattern.duration > 300 ? "long" : "short"
+          vibrator.vibrate({ mode: mode })
+          idx++
+          if (idx < pattern.count) {
+            setTimeout(loop, pattern.interval + pattern.duration)
+          }
+        }
+        loop()
+      }
+    })
   },
 
   saveSettings() {
+    prompt.showToast({ message: "设置已保存" })
     router.back()
   },
 
@@ -401,7 +382,7 @@ export default {
 <style>
 .settings-page {
   flex-direction: column;
-  padding: 8px;
+  padding: 44px 8px 8px 8px;
   min-height: 100%;
 }
 
@@ -409,7 +390,7 @@ export default {
   flex-direction: row;
   align-items: center;
   margin-bottom: 10px;
-  padding: 6px 0;
+  padding: 0;
 }
 
 .back-btn {
@@ -740,5 +721,236 @@ export default {
   text-align: center;
   padding-top: 8px;
   padding-bottom: 12px;
+}
+
+@media (shape: circle) {
+  .settings-page {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-header {
+    margin-bottom: 8px;
+    padding: 0 20px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 56px;
+    height: 32px;
+    font-size: 13px;
+  }
+  .header-title {
+    font-size: 16px;
+  }
+  .nickname-section {
+    padding: 10px;
+    margin-bottom: 6px;
+  }
+  .nickname-label {
+    font-size: 14px;
+  }
+  .theme-section {
+    padding: 10px;
+    margin-bottom: 6px;
+  }
+  .section-label {
+    font-size: 14px;
+  }
+  .theme-dot {
+    width: 22px;
+    height: 22px;
+  }
+  .theme-name {
+    font-size: 9px;
+  }
+  .scale-section {
+    padding: 10px;
+    margin-bottom: 6px;
+  }
+  .scale-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
+  }
+  .scale-value {
+    font-size: 14px;
+  }
+  .quick-scale-btn {
+    width: 44px;
+    height: 28px;
+    font-size: 11px;
+  }
+  .preview-section {
+    padding: 8px;
+    margin-bottom: 6px;
+  }
+  .remind-section {
+    padding: 10px;
+    margin-bottom: 6px;
+  }
+  .remind-label {
+    font-size: 13px;
+  }
+  .toggle-btn {
+    width: 52px;
+    height: 28px;
+    font-size: 12px;
+  }
+}
+
+@media (shape: capsule) {
+  .settings-page {
+    padding: 44px 8px 12px 8px;
+  }
+  .back-header {
+    margin-bottom: 8px;
+    padding: 0 4px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 52px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .header-title {
+    font-size: 15px;
+  }
+  .nickname-section {
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+  .nickname-label {
+    font-size: 13px;
+  }
+  .theme-section {
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+  .section-label {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .theme-dot {
+    width: 20px;
+    height: 20px;
+  }
+  .theme-name {
+    font-size: 9px;
+  }
+  .scale-section {
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+  .scale-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+  .scale-value {
+    font-size: 13px;
+  }
+  .quick-scale-btn {
+    width: 42px;
+    height: 28px;
+    font-size: 11px;
+  }
+  .preview-section {
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+  .remind-section {
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+  .remind-label {
+    font-size: 13px;
+  }
+  .toggle-btn {
+    width: 52px;
+    height: 28px;
+    font-size: 12px;
+  }
+}
+
+@media (shape: rect) {
+  .settings-page {
+    padding: 44px 6px 6px 6px;
+  }
+  .back-header {
+    margin-bottom: 6px;
+    padding: 0;
+  }
+  .back-btn {
+    width: 50px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .header-title {
+    font-size: 15px;
+    margin-left: 6px;
+  }
+  .nickname-section {
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+  .nickname-label {
+    font-size: 13px;
+  }
+  .nickname-value {
+    font-size: 12px;
+  }
+  .nickname-placeholder {
+    font-size: 11px;
+  }
+  .theme-section {
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+  .section-label {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .theme-dot {
+    width: 20px;
+    height: 20px;
+  }
+  .theme-name {
+    font-size: 9px;
+  }
+  .scale-section {
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+  .scale-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+  .scale-value {
+    font-size: 13px;
+    width: 48px;
+  }
+  .quick-scale-btn {
+    width: 40px;
+    height: 26px;
+    font-size: 10px;
+  }
+  .preview-section {
+    padding: 6px;
+    margin-bottom: 4px;
+  }
+  .preview-label {
+    font-size: 11px;
+  }
+  .remind-section {
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+  .remind-label {
+    font-size: 12px;
+  }
+  .toggle-btn {
+    width: 48px;
+    height: 28px;
+    font-size: 11px;
+  }
 }
 </style>
