@@ -6,6 +6,11 @@
       <input class="add-btn" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
+    <div class="clear-bar" if="{{ courseList.length > 0 }}">
+      <text class="clear-hint" style="color: {{ theme.deleteText }}">{{ clearAllConfirm ? '再次点击确认' : '清除所有课程' }}</text>
+      <input class="clear-btn" type="button" value="{{ clearAllConfirm ? '确认' : '一键清除' }}" onclick="clearAllCourses" style="background-color: {{ clearAllConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ clearAllConfirm ? '#ffffff' : theme.deleteText }}" />
+    </div>
+
     <scroll class="course-list-scroll" scroll-y="{{true}}">
       <div for="{{ courseList }}" class="course-item" style="background-color: {{ theme.card }}">
         <div class="item-index" style="background-color: {{ theme.accent }}">
@@ -13,7 +18,7 @@
         </div>
         <text class="course-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
         <input class="edit-btn" type="button" value="编辑" onclick="startRename($idx)" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        <input class="delete-btn" type="button" value="删除" onclick="deleteCourse($idx)" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}" />
+        <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}" onclick="deleteCourse($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === $idx ? '#ffffff' : theme.deleteText }}" />
       </div>
     </scroll>
   </div>
@@ -65,7 +70,9 @@ export default {
     },
     courseList: [],
     editingIndex: -1,
-    isAdding: false
+    isAdding: false,
+    clearAllConfirm: false,
+    deleteConfirmIndex: -1
   },
 
   sortByTime: function(list) {
@@ -216,9 +223,41 @@ export default {
 
   deleteCourse(idx) {
     if (idx < 0 || idx >= this.courseList.length) return
+    if (this.deleteConfirmIndex !== idx) {
+      this.deleteConfirmIndex = idx
+      var self = this
+      this.deleteTimer = setTimeout(function() {
+        self.deleteConfirmIndex = -1
+      }, 5000)
+      return
+    }
+    if (this.deleteTimer) {
+      clearTimeout(this.deleteTimer)
+      this.deleteTimer = null
+    }
     this.courseList.splice(idx, 1)
+    this.deleteConfirmIndex = -1
     this.saveCourses()
     prompt.showToast({ message: "课程已删除" })
+  },
+
+  clearAllCourses() {
+    if (!this.clearAllConfirm) {
+      this.clearAllConfirm = true
+      var self = this
+      this.clearTimer = setTimeout(function() {
+        self.clearAllConfirm = false
+      }, 5000)
+      return
+    }
+    if (this.clearTimer) {
+      clearTimeout(this.clearTimer)
+      this.clearTimer = null
+    }
+    this.courseList = []
+    this.saveCourses()
+    this.clearAllConfirm = false
+    prompt.showToast({ message: "所有课程已清除" })
   },
 
   goBack() {
@@ -265,6 +304,32 @@ export default {
   font-weight: bold;
   text-align: center;
   flex-shrink: 0;
+}
+
+.clear-bar {
+  flex-direction: row;
+  align-items: center;
+  padding: 6px 0;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+
+.clear-hint {
+  font-size: 13px;
+  flex: 1;
+  max-lines: 1;
+  text-overflow: ellipsis;
+}
+
+.clear-btn {
+  width: 80px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+  flex-shrink: 0;
+  margin-left: 8px;
 }
 
 .course-list-scroll {

@@ -3,7 +3,7 @@
     <div class="back-header">
       <input class="back-btn" type="button" value="◀ 取消" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="header-title" style="{{ titleStyle }}; color: {{ theme.text }}">编辑课程</text>
-      <div class="header-trash-btn" onclick="deleteCourse" style="background-color: {{ theme.deleteBg }}">
+      <div class="header-trash-btn" onclick="deleteCourse" style="background-color: {{ deleteConfirm ? theme.deleteText : theme.deleteBg }}">
         <image class="header-trash-icon" src="../../common/delete.png"></image>
       </div>
     </div>
@@ -110,7 +110,7 @@
         <input class="save-btn" type="button" value="更新" onclick="updateCourse" style="{{ btnStyle }}; height: {{ btnHeight }}px; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
       <div class="delete-section">
-        <input class="delete-btn" type="button" value="删除课程" onclick="deleteCourse" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}" />
+        <input class="delete-btn" type="button" value="{{ deleteConfirm ? '确认删除' : '删除课程' }}" onclick="deleteCourse" style="background-color: {{ deleteConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirm ? '#ffffff' : theme.deleteText }}" />
       </div>
     </div>
   </div>
@@ -172,6 +172,7 @@ export default {
     classId: "",
     step: 1,
     courseIndex: 0,
+    deleteConfirm: false,
     presetCourses: [],
     startHour: 8,
     startMin: 0,
@@ -221,6 +222,7 @@ export default {
   },
 
   onInit() {
+    this.deleteConfirm = false
     var self = this
     store.getTheme(function(t) {
       self.theme = t
@@ -542,6 +544,18 @@ export default {
   },
 
   deleteCourse() {
+    if (!this.deleteConfirm) {
+      this.deleteConfirm = true
+      var self = this
+      this.deleteTimer = setTimeout(function() {
+        self.deleteConfirm = false
+      }, 5000)
+      return
+    }
+    if (this.deleteTimer) {
+      clearTimeout(this.deleteTimer)
+      this.deleteTimer = null
+    }
     var self = this
     database.deleteCourse(self.classId, self.day, function() {
       prompt.showToast({ message: "课程已删除" })

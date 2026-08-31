@@ -29,7 +29,7 @@
         <text class="step-desc" style="color: {{ theme.textSecondary }}">使用手机扫描下方二维码，或在浏览器中访问爱发电网址，购买软件授权兑换码</text>
         <div class="qr-section">
           <div class="qr-wrapper" style="background-color: #ffffff">
-            <qrcode value="{{ afdianUrl }}" style="color: #000000; background-color: #ffffff; width: 140px; height: 140px;"></qrcode>
+            <qrcode value="{{ afdianUrl }}" style="color: #000000; background-color: #ffffff; width: 120px; height: 120px;"></qrcode>
           </div>
           <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码打开爱发电</text>
         </div>
@@ -38,7 +38,7 @@
         </div>
       </div>
 
-      <div class="step-arrow" style="color: {{ theme.textMuted }}">▼</div>
+      <div class="step-arrow" style="color: {{ theme.textMuted }}"><text>▼</text></div>
 
       <div class="step-card" style="background-color: {{ theme.card }}">
         <div class="step-header">
@@ -54,7 +54,7 @@
         </div>
         <div class="qr-section" if="{{ qrText }}">
           <div class="qr-wrapper" style="background-color: #ffffff">
-            <qrcode value="{{ qrText }}" style="color: #000000; background-color: #ffffff; width: 140px; height: 140px;"></qrcode>
+            <qrcode value="{{ qrText }}" style="color: #000000; background-color: #ffffff; width: 120px; height: 120px;"></qrcode>
           </div>
           <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码兑换激活码</text>
         </div>
@@ -66,7 +66,7 @@
         </div>
       </div>
 
-      <div class="step-arrow" style="color: {{ theme.textMuted }}">▼</div>
+      <div class="step-arrow" style="color: {{ theme.textMuted }}"><text>▼</text></div>
 
       <div class="step-card" style="background-color: {{ theme.card }}">
         <div class="step-header">
@@ -265,7 +265,9 @@ export default {
       accent: '#7ec8e3',
       text: '#ffffff',
       textSecondary: '#888899',
-      textMuted: '#555566'
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a'
     },
     statusText: '加载中...',
     statusColor: '#888899',
@@ -476,29 +478,42 @@ export default {
         return
       }
 
-      if (decrypted.deviceId !== deviceId) {
+      var deviceIdLast4 = deviceId.substring(deviceId.length - 4)
+      if (decrypted.deviceId !== deviceIdLast4) {
         self.verifySuccess = false
         self.verifyResult = '设备ID不匹配'
-        self.verifyDetail = '激活码设备ID: ' + decrypted.deviceId + ' | 本机设备ID: ' + deviceId
+        self.verifyDetail = '激活码设备ID: ' + decrypted.deviceId + ' | 本机设备ID后4位: ' + deviceIdLast4
         prompt.showToast({ message: '设备ID不匹配' })
         return
       }
 
-      var productIdIndex = decrypted.productIdIndex
-      var productId4 = productIdIndex.padStart(4, '0')
-      var months = parseInt(decrypted.months, 10)
-      var productName = PRODUCTS[productId4] ? PRODUCTS[productId4].name : '产品' + productIdIndex
-
-      self.verifySuccess = true
-      self.verifyResult = '验证通过 - ' + months + ' 个月'
-      self.verifyDetail = '产品: ' + productName + ' | 设备ID: ' + decrypted.deviceId + ' | 月份: ' + months + '个月'
-
-      authStore.markActivated(months * 30, function(success) {
-        if (success) {
-          prompt.showToast({ message: '激活成功，有效期延长 ' + months + ' 个月' })
-          self.loadStatus()
-          self.loadHistory()
+      authStore.loadUsedRedeemCodes(function(usedRedeemList) {
+        if (usedRedeemList.indexOf(decrypted.redeemCode) !== -1) {
+          self.verifySuccess = false
+          self.verifyResult = '兑换码已被使用'
+          self.verifyDetail = '兑换码 ' + decrypted.redeemCode + ' 已被使用过，每个兑换码只能兑换一次'
+          prompt.showToast({ message: '该兑换码已被使用' })
+          return
         }
+
+        var productIdIndex = decrypted.productIdIndex
+        var productId4 = productIdIndex.padStart(4, '0')
+        var months = parseInt(decrypted.months, 10)
+        var productName = PRODUCTS[productId4] ? PRODUCTS[productId4].name : '产品' + productIdIndex
+
+        self.verifySuccess = true
+        self.verifyResult = '验证通过 - ' + months + ' 个月'
+        self.verifyDetail = '产品: ' + productName + ' | 设备ID: ' + decrypted.deviceId + ' | 月份: ' + months + '个月'
+
+        authStore.markActivated(months * 30, function(success) {
+          if (success) {
+            authStore.saveUsedCode(code)
+            authStore.saveUsedRedeemCode(decrypted.redeemCode)
+            prompt.showToast({ message: '激活成功，有效期延长 ' + months + ' 个月' })
+            self.loadStatus()
+            self.loadHistory()
+          }
+        })
       })
     })
   }

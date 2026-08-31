@@ -52,6 +52,21 @@
       <text class="reset-hint" if="{{ !fullConfirm }}" style="color: {{ theme.textMuted }}">点击按钮后需要二次确认才会执行</text>
       <text class="result-text" if="{{ fullDone }}" style="color: {{ theme.accent }}">全部数据已重置成功！请返回首页查看。</text>
     </div>
+
+    <div class="action-section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">操作三：重置为空</text>
+      <text class="action-desc" style="color: {{ theme.textSecondary }}">清除所有数据，恢复为空白状态。不包含任何默认课程和课程表，方便从零开始自定义。</text>
+      <text class="action-warn" style="color: {{ theme.deleteText }}">!! 所有课程安排、课程表名称、课程名称列表都将被清空，此操作不可撤销！</text>
+
+      <input class="action-btn {{ emptyConfirm ? 'danger' : '' }}" type="button"
+             value="{{ emptyConfirm ? '!! 再次点击确认重置为空' : '重置为空' }}"
+             onclick="handleResetEmpty"
+             style="background-color: {{ emptyConfirm ? theme.deleteText : theme.accent }}; color: {{ emptyConfirm ? '#ffffff' : theme.bg }}" />
+
+      <text class="reset-hint" if="{{ emptyConfirm }}" style="color: {{ theme.deleteText }}">请再次点击按钮确认重置为空</text>
+      <text class="reset-hint" if="{{ !emptyConfirm }}" style="color: {{ theme.textMuted }}">点击按钮后需要二次确认才会执行</text>
+      <text class="result-text" if="{{ emptyDone }}" style="color: {{ theme.accent }}">已重置为空！请返回首页开始自定义。</text>
+    </div>
   </div>
 </template>
 
@@ -63,6 +78,7 @@ const database = require("../../data/database.js")
 
 var presetTimer = null
 var fullTimer = null
+var emptyTimer = null
 
 export default {
   private: {
@@ -74,7 +90,9 @@ export default {
     presetConfirm: false,
     presetDone: false,
     fullConfirm: false,
-    fullDone: false
+    fullDone: false,
+    emptyConfirm: false,
+    emptyDone: false
   },
 
   onInit() {
@@ -142,6 +160,34 @@ export default {
     })
   },
 
+  handleResetEmpty() {
+    if (!this.emptyConfirm) {
+      this.emptyConfirm = true
+      var self = this
+      emptyTimer = setTimeout(function() {
+        self.emptyConfirm = false
+      }, 5000)
+      return
+    }
+
+    if (emptyTimer) {
+      clearTimeout(emptyTimer)
+      emptyTimer = null
+    }
+
+    var self = this
+    database.resetToEmpty(function(success) {
+      self.emptyConfirm = false
+      self.emptyDone = true
+      if (success) {
+        prompt.showToast({ message: "已重置为空" })
+        console.log("[RESET] Empty reset completed successfully")
+      } else {
+        prompt.showToast({ message: "重置失败，请重试" })
+      }
+    })
+  },
+
   goBack() {
     if (presetTimer) {
       clearTimeout(presetTimer)
@@ -150,6 +196,10 @@ export default {
     if (fullTimer) {
       clearTimeout(fullTimer)
       fullTimer = null
+    }
+    if (emptyTimer) {
+      clearTimeout(emptyTimer)
+      emptyTimer = null
     }
     router.back()
   }

@@ -1,65 +1,88 @@
 <template>
   <div class="schedule-page" style="background-color: {{ theme.bg }}">
-    <div class="clock-row" if="{{ !isCapsule && !isNarrowScreen }}">
-      <div class="clock-box" onclick="onClockClick">
-        <text class="clock-text" style="color: {{ theme.textSecondary }}">{{ currentTime }}</text>
-      </div>
-    </div>
-
-    <div class="header">
-      <input class="nav-btn" type="button" value="&#9664;" onclick="prevDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="day-title" style="{{ dayTitleStyle }}; color: {{ theme.text }}">{{ currentDay }}</text>
-      <div class="day-nav-btns" if="{{ !isCapsule && !isNarrowScreen }}">
-        <div class="day-nav-circle" onclick="goToWeekView" style="background-color: {{ theme.cardLight }}">
-          <text class="day-nav-text" style="font-size: 20px; color: {{ theme.accent }}">总</text>
-        </div>
-        <div class="day-nav-circle" onclick="goToToday" style="background-color: {{ theme.cardLight }}">
-          <text class="day-nav-text" style="font-size: 20px; color: {{ theme.accent }}">今</text>
-        </div>
-        <div class="day-nav-circle" onclick="goToTomorrow" style="background-color: {{ theme.cardLight }}">
-          <text class="day-nav-text" style="font-size: 20px; color: {{ theme.accent }}">明</text>
+    <div class="upper-half">
+      <div class="clock-row" if="{{ !isCapsule && !isNarrowScreen }}">
+        <div class="clock-box" onclick="onClockClick">
+          <text class="clock-text" style="color: {{ theme.textSecondary }}">{{ currentTime }}</text>
         </div>
       </div>
-      <input class="nav-btn" type="button" value="&#9654;" onclick="nextDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-    </div>
 
-    <div class="status-bar" if="{{ isToday }}" style="background-color: {{ theme.cardLight }}; border-left-color: {{ theme.accent }}" onclick="goToStatusClass">
-      <text class="status-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
-      <text class="status-middle" style="color: {{ theme.text }}">{{ statusMainText }}</text>
-      <text class="status-right" if="{{ !isCapsule && !isNarrowScreen }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
-    </div>
+      <div class="remind-banner" if="{{ !isActivated && showBanner }}" style="background-color: {{ bannerBg }}">
+        <text class="remind-banner-text" style="color: {{ bannerText }}">{{ bannerTextContent }}</text>
+        <input class="remind-banner-btn" type="button" value="去激活" onclick="goToActivation" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}; z-index: 1" />
+        <input class="remind-banner-close" type="button" value="关闭" onclick="closeRemindBanner" style="color: {{ bannerText }}; z-index: 1" />
+      </div>
 
-    <scroll class="class-list" scroll-y="{{true}}" scroll-top="{{ scrollListTop }}">
-      <div for="{{ currentClasses }}" class="class-card-wrapper">
-        <div class="class-card" onclick="openDetail($item.id)" style="background-color: {{ theme.card }}; border-left-color: {{ theme.accent }}">
-          <div class="progress-bg" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
-          <div class="class-content">
-            <div class="class-time">
-              <text class="class-name" style="{{ nameStyle }}; color: {{ theme.text }}">{{ $item.name }}</text>
-              <text class="class-time-text" style="{{ nameStyle }}; color: {{ theme.textSecondary }}">{{ $item.time }}</text>
-            </div>
-            <div class="class-info">
-              <text class="class-location" if="{{ !isCapsule && !isNarrowScreen }}" style="{{ nameStyle }}; color: {{ theme.accent }}">{{ $item.location }}</text>
-              <text class="class-progress class-ended" if="{{ $item.progress >= 100 && !isCapsule && !isNarrowScreen }}" style="font-size: 24px; color: {{ theme.textMuted }}">已结束</text>
-              <text class="class-progress" if="{{ $item.progress > 0 && $item.progress < 100 }}" style="font-size: 24px; color: {{ theme.textMuted }}">{{ $item.progress }}%</text>
+      <div class="header">
+        <input class="nav-btn" type="button" value="&#9664;" onclick="prevDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+        <text class="day-title" style="{{ dayTitleStyle }}; color: {{ theme.text }}">{{ currentDay }}</text>
+        <div class="day-nav-btns" if="{{ !isCapsule && !isNarrowScreen }}">
+          <div class="day-nav-circle" onclick="goToWeekView" style="background-color: {{ theme.cardLight }}">
+            <text class="day-nav-text" style="font-size: 20px; color: {{ theme.accent }}">总</text>
+          </div>
+          <div class="day-nav-circle" onclick="goToToday" style="background-color: {{ theme.cardLight }}">
+            <text class="day-nav-text" style="font-size: 20px; color: {{ theme.accent }}">今</text>
+          </div>
+          <div class="day-nav-circle" onclick="goToTomorrow" style="background-color: {{ theme.cardLight }}">
+            <text class="day-nav-text" style="font-size: 20px; color: {{ theme.accent }}">明</text>
+          </div>
+        </div>
+        <input class="nav-btn" type="button" value="&#9654;" onclick="nextDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      </div>
+
+      <div class="status-bar" if="{{ isToday }}" style="background-color: {{ theme.cardLight }}; border-left-color: {{ theme.accent }}" onclick="goToStatusClass">
+        <text class="status-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
+        <text class="status-middle" style="color: {{ theme.text }}">{{ statusMainText }}</text>
+        <text class="status-right" if="{{ !isCapsule && !isNarrowScreen }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
+      </div>
+
+      <scroll class="class-list" scroll-y="{{true}}" scroll-top="{{ scrollListTop }}" ontouchstart="handleUpperTouchStart" ontouchend="handleUpperTouchEnd">
+        <div for="{{ currentClasses }}" class="class-card-wrapper">
+          <div class="class-card" onclick="openDetail($item.id)" style="background-color: {{ theme.card }}; border-left-color: {{ theme.accent }}">
+            <div class="progress-bg" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
+            <div class="class-content">
+              <div class="class-time">
+                <text class="class-name" style="{{ nameStyle }}; color: {{ theme.text }}">{{ $item.name }}</text>
+                <text class="class-time-text" style="{{ nameStyle }}; color: {{ theme.textSecondary }}">{{ $item.time }}</text>
+              </div>
+              <div class="class-info">
+                <text class="class-location" if="{{ !isCapsule && !isNarrowScreen }}" style="{{ nameStyle }}; color: {{ theme.accent }}">{{ $item.location }}</text>
+                <text class="class-progress class-ended" if="{{ $item.progress >= 100 && !isCapsule && !isNarrowScreen }}" style="font-size: 24px; color: {{ theme.textMuted }}">已结束</text>
+                <text class="class-progress" if="{{ $item.progress > 0 && $item.progress < 100 }}" style="font-size: 24px; color: {{ theme.textMuted }}">{{ $item.progress }}%</text>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div if="{{ currentClasses.length === 0 }}" class="empty-card">
-        <text class="empty-text" style="{{ nameStyle }}; color: {{ theme.textMuted }}">今天没有课</text>
-      </div>
-    </scroll>
-
-    <div class="bottom-buttons">
-      <input class="add-btn" type="button" value="+ 添加课程" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
-      <input class="style-btn" type="button" value="去激活" onclick="goToActivation" if="{{ !isActivated }}" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <div if="{{ currentClasses.length === 0 }}" class="empty-card">
+          <text class="empty-text" style="{{ nameStyle }}; color: {{ theme.textMuted }}">今天没有课</text>
+        </div>
+      </scroll>
     </div>
 
-    <div class="week-indicator" onclick="openScheduleManager">
-      <text class="week-text" style="{{ weekTextStyle }}; color: {{ theme.accent }}">⇄ {{ currentScheduleName }}</text>
+    <div class="lower-half">
+      <div class="quick-add" style="background-color: {{ theme.card }}">
+        <text class="quick-add-title" onclick="toggleQuickAdd" style="{{ weekTextStyle }}; color: {{ theme.accent }}">快速添加 {{ quickAddExpanded ? '▲' : '▼' }}</text>
+        <scroll class="quick-add-scroll" scroll-x="{{true}}" if="{{ quickAddExpanded && quickCourseNames.length > 0 && !quickAddDisabled }}">
+          <div class="quick-add-list">
+            <div for="{{ quickCourseNames }}" class="quick-add-item" onclick="quickAddCourse($item)" style="background-color: {{ theme.cardLight }}">
+              <text class="quick-add-name" style="font-size: 24px; color: {{ theme.text }}">{{ $item }}</text>
+            </div>
+          </div>
+        </scroll>
+        <text class="quick-add-empty" if="{{ quickAddExpanded && quickAddDisabled }}" style="font-size: 20px; color: {{ theme.textMuted }}">今天课程已排满</text>
+        <text class="quick-add-empty" if="{{ quickAddExpanded && !quickAddDisabled && quickCourseNames.length === 0 }}" style="font-size: 20px; color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
+      </div>
+
+      <div class="bottom-buttons">
+        <input class="add-btn" type="button" value="+ 添加课程" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+        <input class="style-btn" type="button" value="去激活" onclick="goToActivation" if="{{ !isActivated }}" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      </div>
+
+      <div class="week-indicator" onclick="openScheduleManager">
+        <text class="week-text" style="{{ weekTextStyle }}; color: {{ theme.accent }}">⇄ {{ currentScheduleName }}</text>
+      </div>
     </div>
 
     <div class="dialog-overlay" if="{{ showRemindDialog }}" style="background-color: rgba(0,0,0,0.6)">
@@ -211,6 +234,7 @@ export default {
     })
     this.applyFontScale()
     this.startClockTimer()
+
     this.detectScreen()
   },
 
@@ -223,6 +247,7 @@ export default {
           var width = ret.screenWidth || 0
           self.isCapsule = (shape === "pill-shaped")
           self.isNarrowScreen = (width > 0 && width < 240)
+          console.log("[INDEX] screen shape=" + shape + ", width=" + width + ", isCapsule=" + self.isCapsule + ", isNarrow=" + self.isNarrowScreen)
         },
         fail: function(data, code) {
           console.warn("[INDEX] device.getInfo failed, code=" + code)
@@ -292,7 +317,7 @@ export default {
     try {
       authStore.checkStatus(function(status) {
         self.isActivated = status.isActivated
-        if (!status.isActivated && (status.isExpired || status.isExpiring)) {
+        if (status.isExpired || status.isExpiring) {
           self.showBanner = true
           self.bannerTextContent = status.text
           if (status.color === 'red') {
@@ -534,6 +559,46 @@ export default {
     }
   },
 
+  goToStatusDay() {
+    if (this.upcomingClass && this.upcomingClassDay) {
+      this.currentDay = this.upcomingClassDay
+      for (var i = 0; i < dayNames.length; i++) {
+        if (dayNames[i] === this.upcomingClassDay) {
+          this.currentDayIndex = i
+          break
+        }
+      }
+      this.loadDayClasses()
+      return
+    }
+    var todayIdx = getRealTodayIndex()
+    this.currentDayIndex = todayIdx
+    this.currentDay = dayNames[todayIdx]
+    this.loadDayClasses()
+  },
+
+  scrollToCurrentClass() {
+    if (!this.currentClass) return
+    this.scrollToClassById(this.currentClass.id)
+    this.playVibration("single_short")
+  },
+
+  scrollToNextClass() {
+    if (!this.nextClass) return
+    this.scrollToClassById(this.nextClass.id)
+    this.playVibration("single_short")
+  },
+
+  scrollToClassById(id) {
+    var classes = this.currentClasses
+    for (var i = 0; i < classes.length; i++) {
+      if (classes[i].id === id) {
+        this.scrollListTop = i * 110
+        return
+      }
+    }
+  },
+
   playVibration(style) {
     try {
       switch (style) {
@@ -698,15 +763,19 @@ export default {
     if (startMin < nowMinutes) {
       startMin = nowMinutes + 5
     }
+
     var DAY_END = 24 * 60
+
     if (startMin >= DAY_END) {
       this.quickAddDisabled = true
       return "今天课程已排满"
     }
+
     var endMin = startMin + 45
     if (endMin > DAY_END) {
       endMin = DAY_END
     }
+
     this.quickAddDisabled = false
     return this.formatTime(startMin) + " - " + this.formatTime(endMin)
   },
@@ -767,15 +836,19 @@ export default {
     this.nextClass = null
     this.upcomingClass = null
     this.upcomingClassDay = ""
+
     var now = new Date()
     var nowMinutes = now.getHours() * 60 + now.getMinutes()
     var realTodayIdx = getRealTodayIndex()
+
     if (this.currentDayIndex === realTodayIdx) {
       this.computeTodayStatus(nowMinutes)
     }
+
     if (!this.currentClass && !this.nextClass) {
       this.findUpcomingClass(realTodayIdx)
     }
+
     this.updateStatusLine()
   },
 
@@ -805,6 +878,7 @@ export default {
   computeTodayStatus(nowMinutes) {
     var todayClasses = this.currentClasses
     if (!todayClasses || todayClasses.length === 0) return
+
     var parsed = []
     for (var i = 0; i < todayClasses.length; i++) {
       var cls = todayClasses[i]
@@ -820,9 +894,12 @@ export default {
         startTime: timeParts[0].trim()
       })
     }
+
     parsed.sort(function(a, b) { return a.startMin - b.startMin })
+
     var current = null
     var next = null
+
     for (var i = 0; i < parsed.length; i++) {
       var cls = parsed[i]
       if (nowMinutes >= cls.startMin && nowMinutes <= cls.endMin) {
@@ -851,8 +928,10 @@ export default {
         }
       }
     }
+
     this.currentClass = current
     this.nextClass = next
+
     if (next && this.remindSettings.enabled) {
       var remindMinutes = this.remindSettings.minutes || 5
       if (next.waitMin <= remindMinutes && next.waitMin > 0) {
@@ -870,16 +949,20 @@ export default {
 
   findUpcomingClass(realTodayIdx) {
     if (!this.schedule || this.schedule.length === 0) return
+
     var now = new Date()
     var nowMinutes = now.getHours() * 60 + now.getMinutes()
+
     for (var offset = 0; offset < 7; offset++) {
       var checkIdx = (realTodayIdx + offset) % 7
       var checkDay = dayNames[checkIdx]
+
       var dayData = null
       for (var d = 0; d < this.schedule.length; d++) {
         if (this.schedule[d].day === checkDay) { dayData = this.schedule[d]; break }
       }
       if (!dayData || !dayData.classes || dayData.classes.length === 0) continue
+
       var parsed = []
       for (var i = 0; i < dayData.classes.length; i++) {
         var cls = dayData.classes[i]
@@ -898,6 +981,7 @@ export default {
         })
       }
       parsed.sort(function(a, b) { return a.startMin - b.startMin })
+
       if (offset === 0) {
         for (var j = 0; j < parsed.length; j++) {
           if (parsed[j].endMin > nowMinutes) {
@@ -928,6 +1012,7 @@ export default {
         }
         continue
       }
+
       if (parsed.length > 0) {
         this.upcomingClass = {
           day: checkDay,
@@ -1407,6 +1492,7 @@ export default {
   .schedule-page {
     padding: 44px 4px 10px 4px;
   }
+
   .header {
     padding: 2px 0;
     margin-bottom: 2px;
@@ -1423,6 +1509,7 @@ export default {
     font-weight: bold;
     margin: 0 2px;
   }
+
   .status-bar {
     padding: 2px 6px;
     height: 26px;
@@ -1442,6 +1529,7 @@ export default {
     text-overflow: ellipsis;
     overflow: hidden;
   }
+
   .class-card-wrapper {
     margin-bottom: 2px;
   }
@@ -1482,6 +1570,7 @@ export default {
     min-width: 24px;
     text-align: right;
   }
+
   .quick-add {
     padding: 2px 4px;
     margin-bottom: 2px;
@@ -1497,6 +1586,7 @@ export default {
   .quick-add-name {
     font-size: 11px;
   }
+
   .bottom-buttons {
     justify-content: space-around;
   }

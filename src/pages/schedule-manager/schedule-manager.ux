@@ -40,8 +40,8 @@
             <div class="action-btn" onclick="openScheduleStats($idx)" style="background-color: {{ theme.cardLight }}">
               <text class="action-btn-text" style="color: {{ theme.text }}">统计</text>
             </div>
-            <div class="action-btn delete-btn" if="{{ scheduleList.length > 1 }}" onclick="deleteSchedule($idx)" style="background-color: {{ theme.deleteBg }}">
-              <text class="action-btn-text" style="color: {{ theme.deleteText }}">删除</text>
+            <div class="action-btn delete-btn" if="{{ scheduleList.length > 1 }}" onclick="deleteSchedule($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}">
+              <text class="action-btn-text" style="color: {{ deleteConfirmIndex === $idx ? '#ffffff' : theme.deleteText }}">{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}</text>
             </div>
           </div>
         </div>
@@ -66,6 +66,7 @@ export default {
     currentIndex: 0,
     editingIndex: -1,
     editName: "",
+    deleteConfirmIndex: -1,
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -336,6 +337,19 @@ export default {
     if (this.scheduleList.length <= 1) {
       return
     }
+    if (this.deleteConfirmIndex !== index) {
+      this.deleteConfirmIndex = index
+      var self = this
+      this.deleteTimer = setTimeout(function() {
+        self.deleteConfirmIndex = -1
+      }, 5000)
+      return
+    }
+    if (this.deleteTimer) {
+      clearTimeout(this.deleteTimer)
+      this.deleteTimer = null
+    }
+    this.deleteConfirmIndex = -1
     var self = this
     var needSwitch = (index === this.currentIndex)
 

@@ -246,6 +246,59 @@ function parseInput12(input) {
   };
 }
 
+function strAdd(a, b) {
+  var result = '';
+  var carry = 0;
+  var i = a.length - 1;
+  var j = b.length - 1;
+  while (i >= 0 || j >= 0 || carry > 0) {
+    var da = i >= 0 ? parseInt(a.charAt(i), 10) : 0;
+    var db = j >= 0 ? parseInt(b.charAt(j), 10) : 0;
+    var sum = da + db + carry;
+    result = String(sum % 10) + result;
+    carry = Math.floor(sum / 10);
+    i--;
+    j--;
+  }
+  return result;
+}
+
+function strMul(a, b) {
+  if (a === '0' || b === '0') return '0';
+  var result = '0';
+  for (var i = b.length - 1; i >= 0; i--) {
+    var digit = parseInt(b.charAt(i), 10);
+    if (digit === 0) continue;
+    var zeros = b.length - 1 - i;
+    var temp = '';
+    var carry = 0;
+    for (var j = a.length - 1; j >= 0; j--) {
+      var prod = parseInt(a.charAt(j), 10) * digit + carry;
+      temp = String(prod % 10) + temp;
+      carry = Math.floor(prod / 10);
+    }
+    if (carry > 0) temp = String(carry) + temp;
+    for (var k = 0; k < zeros; k++) temp += '0';
+    result = strAdd(result, temp);
+  }
+  return result;
+}
+
+function strDivMod(a, b) {
+  var quotient = '';
+  var remainder = 0;
+  for (var i = 0; i < a.length; i++) {
+    remainder = remainder * 10 + parseInt(a.charAt(i), 10);
+    var q = Math.floor(remainder / b);
+    remainder = remainder % b;
+    if (quotient.length > 0 || q > 0) {
+      quotient += String(q);
+    }
+  }
+  if (quotient === '') quotient = '0';
+  return { quotient: quotient, remainder: remainder };
+}
+
 function generateActivationCode(input12) {
   var parsed = parseInput12(input12);
   if (!parsed) {
@@ -265,16 +318,22 @@ function generateActivationCode(input12) {
   var productIdNum = parseInt(parsed.productIdIndex, 10);
   var monthsNum = parseInt(parsed.months, 10);
 
-  var REDEEM_RANGE = 1679616n;
-  var MONTHS_RANGE = 100n;
-  var DEVICE_RANGE = 14776336n;
+  var REDEEM_RANGE = "1679616";
+  var MONTHS_RANGE = "100";
+  var DEVICE_RANGE = "14776336";
+  var MONTH_DEVICE = strMul(MONTHS_RANGE, DEVICE_RANGE);
+  var REDEEM_MONTH_DEVICE = strMul(REDEEM_RANGE, MONTH_DEVICE);
 
-  var combined = BigInt(productIdNum) * REDEEM_RANGE * MONTHS_RANGE * DEVICE_RANGE
-    + BigInt(redeemNum) * MONTHS_RANGE * DEVICE_RANGE
-    + BigInt(monthsNum) * DEVICE_RANGE
-    + BigInt(deviceNum);
+  var term1 = strMul(String(productIdNum), REDEEM_MONTH_DEVICE);
+  var term2 = strMul(String(redeemNum), MONTH_DEVICE);
+  var term3 = strMul(String(monthsNum), DEVICE_RANGE);
+  var term4 = String(deviceNum);
 
-  return combined.toString().padStart(18, "0");
+  var combined = strAdd(strAdd(strAdd(term1, term2), term3), term4);
+  while (combined.length < 18) {
+    combined = '0' + combined;
+  }
+  return combined;
 }
 
 function decryptActivationCode(code) {
@@ -299,22 +358,23 @@ function decryptActivationCode(code) {
     };
   }
 
-  var REDEEM_RANGE = 1679616n;
-  var MONTHS_RANGE = 100n;
-  var DEVICE_RANGE = 14776336n;
+  var DEVICE_RANGE = 14776336;
+  var MONTHS_RANGE = 100;
+  var REDEEM_RANGE = 1679616;
 
-  var combined = BigInt(code);
+  var combined = code;
 
-  var deviceNum = Number(combined % DEVICE_RANGE);
-  combined = combined / DEVICE_RANGE;
+  var dm = strDivMod(combined, DEVICE_RANGE);
+  var deviceNum = dm.remainder;
+  combined = dm.quotient;
 
-  var monthsNum = Number(combined % MONTHS_RANGE);
-  combined = combined / MONTHS_RANGE;
+  dm = strDivMod(combined, MONTHS_RANGE);
+  var monthsNum = dm.remainder;
+  combined = dm.quotient;
 
-  var redeemNum = Number(combined % REDEEM_RANGE);
-  combined = combined / REDEEM_RANGE;
-
-  var productIdNum = Number(combined);
+  dm = strDivMod(combined, REDEEM_RANGE);
+  var redeemNum = dm.remainder;
+  var productIdNum = parseInt(dm.quotient, 10);
 
   var productIdIndex = String(productIdNum).padStart(2, "0");
   var months = String(monthsNum).padStart(2, "0");

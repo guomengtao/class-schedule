@@ -81,7 +81,7 @@
       <div class="saved-item" for="{{ savedPresets }}" onclick="loadPreset($idx)" style="background-color: {{ theme.border }}">
         <text class="saved-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
         <text class="saved-info" style="color: {{ theme.textSecondary }}">{{ $item.duration }}ms / {{ $item.interval }}ms / {{ $item.count }}次</text>
-        <input class="delete-btn" type="button" value="✕" onclick="deletePreset($idx)" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}" />
+        <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '✕' }}" onclick="deletePreset($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === $idx ? '#ffffff' : theme.deleteText }}" />
       </div>
     </div>
 
@@ -139,7 +139,8 @@ export default {
     currentName: "标准震动",
     isPlaying: false,
     presets: [],
-    savedPresets: []
+    savedPresets: [],
+    deleteConfirmIndex: -1
   },
 
   onInit() {
@@ -327,7 +328,20 @@ export default {
   },
 
   deletePreset(idx) {
+    if (this.deleteConfirmIndex !== idx) {
+      this.deleteConfirmIndex = idx
+      var self = this
+      this.deleteTimer = setTimeout(function() {
+        self.deleteConfirmIndex = -1
+      }, 5000)
+      return
+    }
+    if (this.deleteTimer) {
+      clearTimeout(this.deleteTimer)
+      this.deleteTimer = null
+    }
     this.savedPresets.splice(idx, 1)
+    this.deleteConfirmIndex = -1
     store.setVibrationPresets(this.savedPresets)
     prompt.showToast({ message: "方案已删除" })
   },

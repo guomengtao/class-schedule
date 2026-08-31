@@ -882,5 +882,63 @@ module.exports = {
         if (callback) callback(false)
       }
     })
+  },
+
+  resetToEmpty: function(callback) {
+    log("resetToEmpty: starting")
+    ensureReady(function() {
+      if (useSqlite) {
+        sqlite.executeSql({
+          name: DB_NAME,
+          sql: "DELETE FROM courses",
+          success: function() {
+            finalizeEmpty(callback)
+          },
+          fail: function() {
+            finalizeEmpty(callback)
+          }
+        })
+      } else {
+        for (var i = 0; i < 10; i++) {
+          storage.delete({ key: STORAGE_KEY + "_" + i })
+        }
+        finalizeEmpty(callback)
+      }
+    })
+
+    function finalizeEmpty(cb) {
+      var names = ["课程表1"]
+      storage.set({
+        key: "scheduleNames",
+        value: JSON.stringify(names),
+        success: function() {
+          storage.set({
+            key: "currentScheduleIndex",
+            value: "0",
+            success: function() {
+              log("resetToEmpty: schedule names reset")
+              var emptyPreset = []
+              storage.set({
+                key: "course_preset_list",
+                value: JSON.stringify(emptyPreset),
+                success: function() {
+                  log("resetToEmpty: complete")
+                  if (cb) cb(true)
+                },
+                fail: function() {
+                  if (cb) cb(true)
+                }
+              })
+            },
+            fail: function() {
+              if (cb) cb(true)
+            }
+          })
+        },
+        fail: function() {
+          if (cb) cb(true)
+        }
+      })
+    }
   }
 }

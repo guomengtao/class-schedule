@@ -2,6 +2,8 @@ var storage = require("@system.storage")
 
 var AUTH_KEY = "auth_data"
 var MASTER_USAGE_KEY = "master_usage"
+var USED_CODES_KEY = "used_codes"
+var USED_REDEEM_KEY = "used_redeem"
 var DEFAULT_TRIAL_DAYS = 7
 
 var MASTER_CODE = {
@@ -62,6 +64,70 @@ function setAuthData(data, callback) {
     value: JSON.stringify(data),
     success: function() { if (callback) callback(true) },
     fail: function() { if (callback) callback(false) }
+  })
+}
+
+function loadUsedCodes(callback) {
+  storage.get({
+    key: USED_CODES_KEY,
+    success: function(data) {
+      if (data) {
+        try {
+          callback(JSON.parse(data))
+        } catch (e) {
+          callback([])
+        }
+      } else {
+        callback([])
+      }
+    },
+    fail: function() { callback([]) }
+  })
+}
+
+function saveUsedCode(code, callback) {
+  loadUsedCodes(function(list) {
+    if (list.indexOf(code) === -1) {
+      list.push(code)
+    }
+    storage.set({
+      key: USED_CODES_KEY,
+      value: JSON.stringify(list),
+      success: function() { if (callback) callback(true) },
+      fail: function() { if (callback) callback(false) }
+    })
+  })
+}
+
+function loadUsedRedeemCodes(callback) {
+  storage.get({
+    key: USED_REDEEM_KEY,
+    success: function(data) {
+      if (data) {
+        try {
+          callback(JSON.parse(data))
+        } catch (e) {
+          callback([])
+        }
+      } else {
+        callback([])
+      }
+    },
+    fail: function() { callback([]) }
+  })
+}
+
+function saveUsedRedeemCode(redeemCode, callback) {
+  loadUsedRedeemCodes(function(list) {
+    if (list.indexOf(redeemCode) === -1) {
+      list.push(redeemCode)
+    }
+    storage.set({
+      key: USED_REDEEM_KEY,
+      value: JSON.stringify(list),
+      success: function() { if (callback) callback(true) },
+      fail: function() { if (callback) callback(false) }
+    })
   })
 }
 
@@ -291,8 +357,10 @@ function markActivatedV2(days, productId, callback) {
       }
     }
     var now = Date.now()
+    if (!data.activatedAt) {
+      data.activatedAt = now
+    }
     data.isActivated = true
-    data.activatedAt = now
     data.productId = pid
 
     var durationText
@@ -304,7 +372,12 @@ function markActivatedV2(days, productId, callback) {
       codeType = 'permanent'
     } else {
       data.isPermanent = false
-      data.expireAt = now + days * 24 * 60 * 60 * 1000
+      var extraMs = days * 24 * 60 * 60 * 1000
+      if (data.expireAt && data.expireAt > now) {
+        data.expireAt = data.expireAt + extraMs
+      } else {
+        data.expireAt = now + extraMs
+      }
       durationText = days + '天'
       codeType = (days === 7) ? 'trial' : 'standard'
     }
@@ -356,7 +429,7 @@ function needsDailyRemind(callback) {
 
 function shouldRemindToday(data) {
   var status = buildStatus(data)
-  if (status.status === 'active' || status.status === 'permanent') {
+  if (status.status === 'active' || status.status === 'permanent' || status.isActivated) {
     return { shouldRemind: false, status: status }
   }
   var today = getTodayDate()
@@ -378,6 +451,7 @@ function getRemindDialogContent(status) {
   if (status.isTrial && status.isExpired) {
     return {
       title: '试用已结束',
+      icon: '⏰',
       message: '您的7天免费试用已结束，请激活后继续使用全部功能',
       buttonText: '我知道了',
       actionText: '去激活'
@@ -386,6 +460,7 @@ function getRemindDialogContent(status) {
   if (status.isTrial && status.isExpiring) {
     return {
       title: '免费试用即将到期',
+      icon: '⚠️',
       message: '您的7天免费试用还剩' + status.remainingDays + '天，请及时激活以免影响使用',
       buttonText: '我知道了',
       actionText: '去激活'
@@ -394,6 +469,7 @@ function getRemindDialogContent(status) {
   if (status.isTrial) {
     return {
       title: '免费试用中',
+      icon: '🎁',
       message: '您正在使用免费试用版，剩余' + status.remainingDays + '天。激活后可解锁全部功能',
       buttonText: '我知道了',
       actionText: '去激活'
@@ -402,6 +478,7 @@ function getRemindDialogContent(status) {
   if (status.isExpired) {
     return {
       title: '授权已过期',
+      icon: '🔒',
       message: '您的授权已过期' + (status.expiredDays || 0) + '天，请续费后继续使用',
       buttonText: '我知道了',
       actionText: '去续费'
@@ -410,6 +487,7 @@ function getRemindDialogContent(status) {
   if (status.isExpiring) {
     return {
       title: '授权即将到期',
+      icon: '⏳',
       message: '您的授权还剩' + status.remainingDays + '天，到期后将无法使用，请及时续费',
       buttonText: '我知道了',
       actionText: '去续费'
@@ -417,6 +495,7 @@ function getRemindDialogContent(status) {
   }
   return {
     title: '软件授权',
+    icon: '📱',
     message: '请激活软件授权以继续使用',
     buttonText: '我知道了',
     actionText: '去激活'
@@ -539,5 +618,9 @@ module.exports = {
   markRemindedToday: markRemindedToday,
   getRemindDialogContent: getRemindDialogContent,
   getTodayDate: getTodayDate,
-  verifyMasterCode: verifyMasterCode
+  verifyMasterCode: verifyMasterCode,
+  loadUsedCodes: loadUsedCodes,
+  saveUsedCode: saveUsedCode,
+  loadUsedRedeemCodes: loadUsedRedeemCodes,
+  saveUsedRedeemCode: saveUsedRedeemCode
 }
