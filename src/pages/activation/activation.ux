@@ -75,7 +75,7 @@
           </div>
           <text class="step-title" style="color: {{ theme.text }}">输入激活码</text>
         </div>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">将从网页获取的激活码逐位点选输入，4行5列共20位数字</text>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">将从网页获取的激活码逐位点选输入，3行6列共18位数字</text>
 
         <div class="cells-grid" style="background-color: {{ theme.card }}">
           <div class="cells-row">
@@ -94,11 +94,11 @@
             <div class="cell {{ cursor === 4 ? 'cell-active' : '' }}" onclick="onCellClick(4)" style="background-color: {{ cursor === 4 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
               <text class="cell-text" style="color: {{ cursor === 4 ? theme.bg : theme.text }}">{{ cell4 !== null ? cell4 : '-' }}</text>
             </div>
-          </div>
-          <div class="cells-row">
             <div class="cell {{ cursor === 5 ? 'cell-active' : '' }}" onclick="onCellClick(5)" style="background-color: {{ cursor === 5 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
               <text class="cell-text" style="color: {{ cursor === 5 ? theme.bg : theme.text }}">{{ cell5 !== null ? cell5 : '-' }}</text>
             </div>
+          </div>
+          <div class="cells-row">
             <div class="cell {{ cursor === 6 ? 'cell-active' : '' }}" onclick="onCellClick(6)" style="background-color: {{ cursor === 6 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
               <text class="cell-text" style="color: {{ cursor === 6 ? theme.bg : theme.text }}">{{ cell6 !== null ? cell6 : '-' }}</text>
             </div>
@@ -111,14 +111,14 @@
             <div class="cell {{ cursor === 9 ? 'cell-active' : '' }}" onclick="onCellClick(9)" style="background-color: {{ cursor === 9 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
               <text class="cell-text" style="color: {{ cursor === 9 ? theme.bg : theme.text }}">{{ cell9 !== null ? cell9 : '-' }}</text>
             </div>
-          </div>
-          <div class="cells-row">
             <div class="cell {{ cursor === 10 ? 'cell-active' : '' }}" onclick="onCellClick(10)" style="background-color: {{ cursor === 10 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
               <text class="cell-text" style="color: {{ cursor === 10 ? theme.bg : theme.text }}">{{ cell10 !== null ? cell10 : '-' }}</text>
             </div>
             <div class="cell {{ cursor === 11 ? 'cell-active' : '' }}" onclick="onCellClick(11)" style="background-color: {{ cursor === 11 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
               <text class="cell-text" style="color: {{ cursor === 11 ? theme.bg : theme.text }}">{{ cell11 !== null ? cell11 : '-' }}</text>
             </div>
+          </div>
+          <div class="cells-row">
             <div class="cell {{ cursor === 12 ? 'cell-active' : '' }}" onclick="onCellClick(12)" style="background-color: {{ cursor === 12 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
               <text class="cell-text" style="color: {{ cursor === 12 ? theme.bg : theme.text }}">{{ cell12 !== null ? cell12 : '-' }}</text>
             </div>
@@ -128,8 +128,6 @@
             <div class="cell {{ cursor === 14 ? 'cell-active' : '' }}" onclick="onCellClick(14)" style="background-color: {{ cursor === 14 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
               <text class="cell-text" style="color: {{ cursor === 14 ? theme.bg : theme.text }}">{{ cell14 !== null ? cell14 : '-' }}</text>
             </div>
-          </div>
-          <div class="cells-row">
             <div class="cell {{ cursor === 15 ? 'cell-active' : '' }}" onclick="onCellClick(15)" style="background-color: {{ cursor === 15 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
               <text class="cell-text" style="color: {{ cursor === 15 ? theme.bg : theme.text }}">{{ cell15 !== null ? cell15 : '-' }}</text>
             </div>
@@ -138,12 +136,6 @@
             </div>
             <div class="cell {{ cursor === 17 ? 'cell-active' : '' }}" onclick="onCellClick(17)" style="background-color: {{ cursor === 17 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
               <text class="cell-text" style="color: {{ cursor === 17 ? theme.bg : theme.text }}">{{ cell17 !== null ? cell17 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 18 ? 'cell-active' : '' }}" onclick="onCellClick(18)" style="background-color: {{ cursor === 18 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 18 ? theme.bg : theme.text }}">{{ cell18 !== null ? cell18 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 19 ? 'cell-active' : '' }}" onclick="onCellClick(19)" style="background-color: {{ cursor === 19 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 19 ? theme.bg : theme.text }}">{{ cell19 !== null ? cell19 : '-' }}</text>
             </div>
           </div>
         </div>
@@ -247,72 +239,11 @@ import router from "@system.router"
 import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 const authStore = require("../../data/auth-store.js")
+const crypto = require("../../lib/crypto.js")
 const PRODUCTS = require("../../data/products.js").PRODUCTS
 
 var ACTIVATION_URL = "https://app-auth.gudq.com/activate.html?deviceId="
 var AFDIAN_URL = "https://www.ifdian.net/item/54100fe4a1e011f1a3f452540025c377"
-
-function encode4(n) {
-  return (Math.abs(n) % 10000).toString().padStart(4, '0')
-}
-
-function deviceIdToHashV2(id) {
-  var hash = 0
-  for (var i = 0; i < id.length; i++) {
-    hash = ((hash << 5) - hash) + id.charCodeAt(i)
-    hash = hash & hash
-  }
-  return encode4(Math.abs(hash))
-}
-
-function checksumV2(str) {
-  var hash = 0
-  for (var i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash) + str.charCodeAt(i)
-    hash = hash & hash
-  }
-  return encode4(Math.abs(hash))
-}
-
-function decryptV2(encrypted) {
-  if (!/^\d{20}$/.test(encrypted)) return null
-
-  var productId = encrypted.substring(0, 4)
-  var idHash = encrypted.substring(4, 8)
-  var daysPart = encrypted.substring(8, 12)
-  var code = encrypted.substring(12, 16)
-
-  var plain = productId + idHash + daysPart
-  if (checksumV2(plain) !== code) return null
-
-  var days = parseInt(daysPart, 10)
-
-  return {
-    productId: productId,
-    productName: PRODUCTS[productId] ? PRODUCTS[productId].name : '未知产品',
-    idHash: idHash,
-    days: days === 9999 ? -1 : days,
-    isPermanent: days === 9999
-  }
-}
-
-function verifyActivationV2(encrypted, myDeviceId) {
-  var result = decryptV2(encrypted)
-  if (!result) return { success: false, reason: '无效的激活码' }
-
-  var myHash = deviceIdToHashV2(myDeviceId)
-  if (result.idHash !== myHash) {
-    return { success: false, reason: '设备ID不匹配' }
-  }
-
-  return {
-    success: true,
-    productId: result.productId,
-    productName: result.productName,
-    days: result.days,
-    isPermanent: result.isPermanent
-  }
-}
 
 function formatDate(ts) {
   if (!ts) return ''
@@ -349,7 +280,7 @@ export default {
     cell4: null, cell5: null, cell6: null, cell7: null,
     cell8: null, cell9: null, cell10: null, cell11: null,
     cell12: null, cell13: null, cell14: null, cell15: null,
-    cell16: null, cell17: null, cell18: null, cell19: null,
+    cell16: null, cell17: null,
     cursor: 0,
     verifyResult: '',
     verifyDetail: '',
@@ -452,7 +383,7 @@ export default {
   onKeyPress(digit) {
     var idx = this.cursor
     this['cell' + idx] = digit
-    if (this.cursor < 19) {
+    if (this.cursor < 17) {
       this.cursor = this.cursor + 1
     }
   },
@@ -472,7 +403,7 @@ export default {
   },
 
   onClear() {
-    for (var i = 0; i < 20; i++) {
+    for (var i = 0; i < 18; i++) {
       this['cell' + i] = null
     }
     this.cursor = 0
@@ -480,13 +411,13 @@ export default {
 
   doVerify() {
     var code = ''
-    for (var i = 0; i < 20; i++) {
+    for (var i = 0; i < 18; i++) {
       var val = this['cell' + i]
       if (val === null || val === undefined) {
         this.verifySuccess = false
-        this.verifyResult = '请输入完整的20位激活码'
+        this.verifyResult = '请输入完整的18位激活码'
         this.verifyDetail = ''
-        prompt.showToast({ message: '请输入完整的20位激活码' })
+        prompt.showToast({ message: '请输入完整的18位激活码' })
         return
       }
       code += val
@@ -536,31 +467,39 @@ export default {
         return
       }
 
-      var codeChecksum = code.substring(12, 16)
-      var result = verifyActivationV2(code, deviceId)
-      if (result.success) {
-        self.verifySuccess = true
-        var myHash = deviceIdToHashV2(deviceId)
-        self.verifyDetail = '产品: ' + result.productName + ' | 设备哈希: ' + myHash + ' | 天数: ' + (result.isPermanent ? '永久' : result.days + '天') + ' | 校验码: ' + codeChecksum
-        if (result.isPermanent) {
-          self.verifyResult = '验证通过 - 永久激活'
-        } else {
-          self.verifyResult = '验证通过 - ' + result.days + ' 天'
-        }
-
-        authStore.markActivated(result.isPermanent ? -1 : result.days, function(success) {
-          if (success) {
-            prompt.showToast({ message: '激活成功' })
-            self.loadStatus()
-            self.loadHistory()
-          }
-        })
-      } else {
+      var decrypted = crypto.decryptActivationCode(code)
+      if (!decrypted || !decrypted.valid) {
         self.verifySuccess = false
-        self.verifyResult = result.reason || '验证失败'
+        self.verifyResult = decrypted ? decrypted.reason : '无效的激活码'
         self.verifyDetail = ''
-        prompt.showToast({ message: result.reason || '验证失败' })
+        prompt.showToast({ message: '无效的激活码' })
+        return
       }
+
+      if (decrypted.deviceId !== deviceId) {
+        self.verifySuccess = false
+        self.verifyResult = '设备ID不匹配'
+        self.verifyDetail = '激活码设备ID: ' + decrypted.deviceId + ' | 本机设备ID: ' + deviceId
+        prompt.showToast({ message: '设备ID不匹配' })
+        return
+      }
+
+      var productIdIndex = decrypted.productIdIndex
+      var productId4 = productIdIndex.padStart(4, '0')
+      var months = parseInt(decrypted.months, 10)
+      var productName = PRODUCTS[productId4] ? PRODUCTS[productId4].name : '产品' + productIdIndex
+
+      self.verifySuccess = true
+      self.verifyResult = '验证通过 - ' + months + ' 个月'
+      self.verifyDetail = '产品: ' + productName + ' | 设备ID: ' + decrypted.deviceId + ' | 月份: ' + months + '个月'
+
+      authStore.markActivated(months * 30, function(success) {
+        if (success) {
+          prompt.showToast({ message: '激活成功，有效期延长 ' + months + ' 个月' })
+          self.loadStatus()
+          self.loadHistory()
+        }
+      })
     })
   }
 }
@@ -835,7 +774,7 @@ export default {
 }
 
 .cell {
-  width: 34px;
+  width: 28px;
   height: 30px;
   border-radius: 6px;
   border-width: 1px;
