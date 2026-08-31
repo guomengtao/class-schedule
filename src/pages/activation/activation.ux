@@ -15,42 +15,6 @@
         <div class="status-details" if="{{ statusDetail }}">
           <text class="status-detail-line" style="color: {{ theme.textSecondary }}">{{ statusDetail }}</text>
         </div>
-        <div class="status-actions" if="{{ showRenewButton }}">
-          <input class="renew-btn" type="button" value="去续费" onclick="goToRenew" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        </div>
-      </div>
-
-      <text class="section-title" style="color: {{ theme.text }}">激活历史</text>
-      <div class="history-list" style="background-color: {{ theme.card }}">
-        <div for="{{ historyList }}" class="history-item">
-          <div class="history-left">
-            <text class="history-date" style="color: {{ theme.textSecondary }}">{{ $item.date }}</text>
-            <text class="history-type" style="color: {{ theme.text }}">{{ $item.type }}</text>
-          </div>
-          <div class="history-right">
-            <text class="history-duration" style="color: {{ theme.accent }}">{{ $item.duration }}</text>
-            <text class="history-status" style="color: {{ $item.status === '成功' ? '#27ae60' : '#e74c3c' }}">{{ $item.status }}</text>
-          </div>
-        </div>
-        <div class="history-empty" if="{{ historyList.length === 0 }}">
-          <text class="history-empty-text" style="color: {{ theme.textMuted }}">暂无激活记录</text>
-        </div>
-      </div>
-
-      <text class="section-title" style="color: {{ theme.text }}">设备信息</text>
-      <div class="device-card" style="background-color: {{ theme.card }}">
-        <div class="device-info-row">
-          <text class="device-info-label" style="color: {{ theme.textSecondary }}">设备ID</text>
-          <text class="device-info-value" style="color: {{ theme.accent }}">{{ deviceId || '获取中...' }}</text>
-        </div>
-        <div class="device-info-row">
-          <text class="device-info-label" style="color: {{ theme.textSecondary }}">首次安装</text>
-          <text class="device-info-value" style="color: {{ theme.text }}">{{ installTimeText }}</text>
-        </div>
-        <div class="device-info-row" if="{{ expireTimeText }}">
-          <text class="device-info-label" style="color: {{ theme.textSecondary }}">到期时间</text>
-          <text class="device-info-value" style="color: {{ theme.text }}">{{ expireTimeText }}</text>
-        </div>
       </div>
 
       <text class="section-title" style="color: {{ theme.text }}">激活软件</text>
@@ -111,59 +75,123 @@
           </div>
           <text class="step-title" style="color: {{ theme.text }}">输入激活码</text>
         </div>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">将从网页获取的12位激活码输入下方，前4位+后4位含字母，中间4位纯数字</text>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">将从网页获取的激活码逐位点选输入，4行5列共20位数字</text>
 
-        <div class="stepper-panel" style="background-color: {{ theme.bg }}">
-          <div class="stepper-row">
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseDigit(0)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ d0 }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseDigit(0)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-gap"></text>
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseDigit(1)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ d1 }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseDigit(1)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-gap"></text>
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseDigit(2)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ d2 }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseDigit(2)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-gap"></text>
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseDigit(3)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ d3 }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseDigit(3)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+        <div class="cells-grid" style="background-color: {{ theme.card }}">
+          <div class="cells-row">
+            <div class="cell {{ cursor === 0 ? 'cell-active' : '' }}" onclick="onCellClick(0)" style="background-color: {{ cursor === 0 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 0 ? theme.bg : theme.text }}">{{ cell0 !== null ? cell0 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 1 ? 'cell-active' : '' }}" onclick="onCellClick(1)" style="background-color: {{ cursor === 1 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 1 ? theme.bg : theme.text }}">{{ cell1 !== null ? cell1 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 2 ? 'cell-active' : '' }}" onclick="onCellClick(2)" style="background-color: {{ cursor === 2 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 2 ? theme.bg : theme.text }}">{{ cell2 !== null ? cell2 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 3 ? 'cell-active' : '' }}" onclick="onCellClick(3)" style="background-color: {{ cursor === 3 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 3 ? theme.bg : theme.text }}">{{ cell3 !== null ? cell3 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 4 ? 'cell-active' : '' }}" onclick="onCellClick(4)" style="background-color: {{ cursor === 4 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 4 ? theme.bg : theme.text }}">{{ cell4 !== null ? cell4 : '-' }}</text>
+            </div>
           </div>
-          <div class="stepper-row">
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseDigit(4)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ d4 }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseDigit(4)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-gap"></text>
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseDigit(5)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ d5 }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseDigit(5)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-gap"></text>
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseDigit(6)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ d6 }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseDigit(6)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-gap"></text>
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseDigit(7)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ d7 }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseDigit(7)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+          <div class="cells-row">
+            <div class="cell {{ cursor === 5 ? 'cell-active' : '' }}" onclick="onCellClick(5)" style="background-color: {{ cursor === 5 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 5 ? theme.bg : theme.text }}">{{ cell5 !== null ? cell5 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 6 ? 'cell-active' : '' }}" onclick="onCellClick(6)" style="background-color: {{ cursor === 6 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 6 ? theme.bg : theme.text }}">{{ cell6 !== null ? cell6 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 7 ? 'cell-active' : '' }}" onclick="onCellClick(7)" style="background-color: {{ cursor === 7 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 7 ? theme.bg : theme.text }}">{{ cell7 !== null ? cell7 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 8 ? 'cell-active' : '' }}" onclick="onCellClick(8)" style="background-color: {{ cursor === 8 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 8 ? theme.bg : theme.text }}">{{ cell8 !== null ? cell8 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 9 ? 'cell-active' : '' }}" onclick="onCellClick(9)" style="background-color: {{ cursor === 9 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 9 ? theme.bg : theme.text }}">{{ cell9 !== null ? cell9 : '-' }}</text>
+            </div>
           </div>
-          <div class="stepper-row">
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseDigit(8)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ d8 }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseDigit(8)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-gap"></text>
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseDigit(9)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ d9 }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseDigit(9)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-gap"></text>
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseDigit(10)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ d10 }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseDigit(10)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-gap"></text>
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseDigit(11)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ d11 }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseDigit(11)" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+          <div class="cells-row">
+            <div class="cell {{ cursor === 10 ? 'cell-active' : '' }}" onclick="onCellClick(10)" style="background-color: {{ cursor === 10 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 10 ? theme.bg : theme.text }}">{{ cell10 !== null ? cell10 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 11 ? 'cell-active' : '' }}" onclick="onCellClick(11)" style="background-color: {{ cursor === 11 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 11 ? theme.bg : theme.text }}">{{ cell11 !== null ? cell11 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 12 ? 'cell-active' : '' }}" onclick="onCellClick(12)" style="background-color: {{ cursor === 12 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 12 ? theme.bg : theme.text }}">{{ cell12 !== null ? cell12 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 13 ? 'cell-active' : '' }}" onclick="onCellClick(13)" style="background-color: {{ cursor === 13 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 13 ? theme.bg : theme.text }}">{{ cell13 !== null ? cell13 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 14 ? 'cell-active' : '' }}" onclick="onCellClick(14)" style="background-color: {{ cursor === 14 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 14 ? theme.bg : theme.text }}">{{ cell14 !== null ? cell14 : '-' }}</text>
+            </div>
+          </div>
+          <div class="cells-row">
+            <div class="cell {{ cursor === 15 ? 'cell-active' : '' }}" onclick="onCellClick(15)" style="background-color: {{ cursor === 15 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 15 ? theme.bg : theme.text }}">{{ cell15 !== null ? cell15 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 16 ? 'cell-active' : '' }}" onclick="onCellClick(16)" style="background-color: {{ cursor === 16 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 16 ? theme.bg : theme.text }}">{{ cell16 !== null ? cell16 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 17 ? 'cell-active' : '' }}" onclick="onCellClick(17)" style="background-color: {{ cursor === 17 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 17 ? theme.bg : theme.text }}">{{ cell17 !== null ? cell17 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 18 ? 'cell-active' : '' }}" onclick="onCellClick(18)" style="background-color: {{ cursor === 18 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 18 ? theme.bg : theme.text }}">{{ cell18 !== null ? cell18 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 19 ? 'cell-active' : '' }}" onclick="onCellClick(19)" style="background-color: {{ cursor === 19 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 19 ? theme.bg : theme.text }}">{{ cell19 !== null ? cell19 : '-' }}</text>
+            </div>
+          </div>
+        </div>
+
+        <div class="keypad" style="background-color: {{ theme.card }}">
+          <div class="keypad-row">
+            <div class="keypad-btn" onclick="onKeyPress(1)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">1</text>
+            </div>
+            <div class="keypad-btn" onclick="onKeyPress(2)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">2</text>
+            </div>
+            <div class="keypad-btn" onclick="onKeyPress(3)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">3</text>
+            </div>
+          </div>
+          <div class="keypad-row">
+            <div class="keypad-btn" onclick="onKeyPress(4)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">4</text>
+            </div>
+            <div class="keypad-btn" onclick="onKeyPress(5)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">5</text>
+            </div>
+            <div class="keypad-btn" onclick="onKeyPress(6)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">6</text>
+            </div>
+          </div>
+          <div class="keypad-row">
+            <div class="keypad-btn" onclick="onKeyPress(7)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">7</text>
+            </div>
+            <div class="keypad-btn" onclick="onKeyPress(8)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">8</text>
+            </div>
+            <div class="keypad-btn" onclick="onKeyPress(9)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">9</text>
+            </div>
+          </div>
+          <div class="keypad-row">
+            <div class="keypad-btn keypad-clear" onclick="onClear" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: #e74c3c">C</text>
+            </div>
+            <div class="keypad-btn" onclick="onKeyPress(0)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">0</text>
+            </div>
+            <div class="keypad-btn keypad-delete" onclick="onDelete" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: #e74c3c">←</text>
+            </div>
           </div>
         </div>
 
@@ -173,6 +201,39 @@
           <text class="result-label" style="color: {{ theme.textSecondary }}">验证结果</text>
           <text class="result-code" style="color: {{ verifySuccess ? theme.accent : '#e74c3c' }}">{{ verifyResult }}</text>
           <text class="result-detail" show="{{ verifyDetail }}" style="color: {{ theme.textSecondary }}">{{ verifyDetail }}</text>
+        </div>
+      </div>
+
+      <text class="section-title" style="color: {{ theme.text }}">激活历史</text>
+      <div class="history-list" style="background-color: {{ theme.card }}">
+        <div for="{{ historyList }}" class="history-item">
+          <div class="history-left">
+            <text class="history-date" style="color: {{ theme.textSecondary }}">{{ $item.date }}</text>
+            <text class="history-type" style="color: {{ theme.text }}">{{ $item.type }}</text>
+          </div>
+          <div class="history-right">
+            <text class="history-duration" style="color: {{ theme.accent }}">{{ $item.duration }}</text>
+            <text class="history-status" style="color: {{ $item.status === '成功' ? '#27ae60' : '#e74c3c' }}">{{ $item.status }}</text>
+          </div>
+        </div>
+        <div class="history-empty" if="{{ historyList.length === 0 }}">
+          <text class="history-empty-text" style="color: {{ theme.textMuted }}">暂无激活记录</text>
+        </div>
+      </div>
+
+      <text class="section-title" style="color: {{ theme.text }}">设备信息</text>
+      <div class="device-card" style="background-color: {{ theme.card }}">
+        <div class="device-info-row">
+          <text class="device-info-label" style="color: {{ theme.textSecondary }}">设备ID</text>
+          <text class="device-info-value" style="color: {{ theme.accent }}">{{ deviceId || '获取中...' }}</text>
+        </div>
+        <div class="device-info-row">
+          <text class="device-info-label" style="color: {{ theme.textSecondary }}">首次安装</text>
+          <text class="device-info-value" style="color: {{ theme.text }}">{{ installTimeText }}</text>
+        </div>
+        <div class="device-info-row" if="{{ expireTimeText }}">
+          <text class="device-info-label" style="color: {{ theme.textSecondary }}">到期时间</text>
+          <text class="device-info-value" style="color: {{ theme.text }}">{{ expireTimeText }}</text>
         </div>
       </div>
 
@@ -186,67 +247,68 @@ import router from "@system.router"
 import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 const authStore = require("../../data/auth-store.js")
+const PRODUCTS = require("../../data/products.js").PRODUCTS
 
-var CHARSET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-var DIGITS = "0123456789"
-var BASE = 62
-
-var ACTIVATION_URL = "https://activate.example.com/activate?device="
-var AFDIAN_URL = "https://afdian.com/a/your-creator"
+var ACTIVATION_URL = "https://app-auth.gudq.com/activate.html?deviceId="
+var AFDIAN_URL = "https://www.ifdian.net/item/54100fe4a1e011f1a3f452540025c377"
 
 function encode4(n) {
-  var result = ''
-  var v = n
-  for (var i = 0; i < 4; i++) {
-    result = CHARSET[v % BASE] + result
-    v = Math.floor(v / BASE)
-  }
-  return result
+  return (Math.abs(n) % 10000).toString().padStart(4, '0')
 }
 
-function deviceIdToHash(id) {
+function deviceIdToHashV2(id) {
   var hash = 0
   for (var i = 0; i < id.length; i++) {
     hash = ((hash << 5) - hash) + id.charCodeAt(i)
     hash = hash & hash
   }
-  return encode4(Math.abs(hash) % 10000)
+  return encode4(Math.abs(hash))
 }
 
-function checksum(str) {
+function checksumV2(str) {
   var hash = 0
   for (var i = 0; i < str.length; i++) {
     hash = ((hash << 5) - hash) + str.charCodeAt(i)
     hash = hash & hash
   }
-  return encode4(Math.abs(hash) % 10000)
+  return encode4(Math.abs(hash))
 }
 
-function decrypt(encrypted) {
-  if (encrypted.length !== 12) return null
-  var idPart = encrypted.substring(0, 4)
-  var daysPart = encrypted.substring(4, 8)
-  var code = encrypted.substring(8, 12)
-  if (!/^\d{4}$/.test(daysPart)) return null
-  var plain = idPart + daysPart
-  if (checksum(plain) !== code) return null
+function decryptV2(encrypted) {
+  if (!/^\d{20}$/.test(encrypted)) return null
+
+  var productId = encrypted.substring(0, 4)
+  var idHash = encrypted.substring(4, 8)
+  var daysPart = encrypted.substring(8, 12)
+  var code = encrypted.substring(12, 16)
+
+  var plain = productId + idHash + daysPart
+  if (checksumV2(plain) !== code) return null
+
   var days = parseInt(daysPart, 10)
+
   return {
-    idHash: idPart,
+    productId: productId,
+    productName: PRODUCTS[productId] ? PRODUCTS[productId].name : '未知产品',
+    idHash: idHash,
     days: days === 9999 ? -1 : days,
     isPermanent: days === 9999
   }
 }
 
-function verifyActivation(encrypted, myDeviceId) {
-  var result = decrypt(encrypted)
-  if (!result) return { success: false, reason: '激活码无效' }
-  var myHash = deviceIdToHash(myDeviceId)
+function verifyActivationV2(encrypted, myDeviceId) {
+  var result = decryptV2(encrypted)
+  if (!result) return { success: false, reason: '无效的激活码' }
+
+  var myHash = deviceIdToHashV2(myDeviceId)
   if (result.idHash !== myHash) {
     return { success: false, reason: '设备ID不匹配' }
   }
+
   return {
     success: true,
+    productId: result.productId,
+    productName: result.productName,
     days: result.days,
     isPermanent: result.isPermanent
   }
@@ -277,16 +339,18 @@ export default {
     statusText: '加载中...',
     statusColor: '#888899',
     statusDetail: '',
-    showRenewButton: false,
     historyList: [],
     installTimeText: '',
     expireTimeText: '',
     afdianUrl: AFDIAN_URL,
     deviceId: '',
     qrText: '',
-    d0: '0', d1: '0', d2: '0', d3: '0',
-    d4: '0', d5: '0', d6: '0', d7: '0',
-    d8: '0', d9: '0', d10: '0', d11: '0',
+    cell0: null, cell1: null, cell2: null, cell3: null,
+    cell4: null, cell5: null, cell6: null, cell7: null,
+    cell8: null, cell9: null, cell10: null, cell11: null,
+    cell12: null, cell13: null, cell14: null, cell15: null,
+    cell16: null, cell17: null, cell18: null, cell19: null,
+    cursor: 0,
     verifyResult: '',
     verifyDetail: '',
     verifySuccess: false
@@ -307,8 +371,6 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-    self.loadStatus()
-    self.loadHistory()
   },
 
   loadStatus() {
@@ -319,20 +381,15 @@ export default {
         self.statusColor = status.color
 
         if (status.isPermanent) {
-          self.statusText = '已永久激活 ' + (status.displayStatus || '')
-          self.showRenewButton = false
+          self.statusText = '已永久激活'
         } else if (status.isExpired) {
-          self.statusText = '已过期 ' + (status.displayStatus || '')
-          self.showRenewButton = true
+          self.statusText = '已过期'
         } else if (status.isExpiring) {
-          self.statusText = '即将到期 ' + (status.displayStatus || '')
-          self.showRenewButton = true
+          self.statusText = '即将到期'
         } else if (status.isActivated) {
-          self.statusText = '已激活 ' + (status.displayStatus || '')
-          self.showRenewButton = false
+          self.statusText = '已激活'
         } else if (status.isTrial) {
-          self.statusText = '免费试用中 ' + (status.displayStatus || '')
-          self.showRenewButton = false
+          self.statusText = '免费试用中'
         }
 
         self.statusDetail = status.expireText || ''
@@ -388,40 +445,51 @@ export default {
     router.back()
   },
 
-  goToRenew() {
-    router.push({ uri: "/pages/activation" })
+  onCellClick(index) {
+    this.cursor = index
   },
 
-  increaseDigit(index) {
-    var charset = (index >= 4 && index <= 7) ? DIGITS : CHARSET
-    var current = this['d' + index]
-    var pos = charset.indexOf(current)
-    if (pos < 0) pos = 0
-    if (pos < charset.length - 1) {
-      pos++
-    } else {
-      pos = 0
+  onKeyPress(digit) {
+    var idx = this.cursor
+    this['cell' + idx] = digit
+    if (this.cursor < 19) {
+      this.cursor = this.cursor + 1
     }
-    this['d' + index] = charset[pos]
   },
 
-  decreaseDigit(index) {
-    var charset = (index >= 4 && index <= 7) ? DIGITS : CHARSET
-    var current = this['d' + index]
-    var pos = charset.indexOf(current)
-    if (pos < 0) pos = 0
-    if (pos > 0) {
-      pos--
-    } else {
-      pos = charset.length - 1
+  onDelete() {
+    var idx = this.cursor
+    if (this['cell' + idx] === null || this['cell' + idx] === undefined) {
+      if (this.cursor > 0) {
+        this.cursor = this.cursor - 1
+        idx = this.cursor
+      }
     }
-    this['d' + index] = charset[pos]
+    this['cell' + idx] = null
+    if (this.cursor > 0) {
+      this.cursor = this.cursor - 1
+    }
+  },
+
+  onClear() {
+    for (var i = 0; i < 20; i++) {
+      this['cell' + i] = null
+    }
+    this.cursor = 0
   },
 
   doVerify() {
     var code = ''
-    for (var i = 0; i < 12; i++) {
-      code += this['d' + i] || '0'
+    for (var i = 0; i < 20; i++) {
+      var val = this['cell' + i]
+      if (val === null || val === undefined) {
+        this.verifySuccess = false
+        this.verifyResult = '请输入完整的20位激活码'
+        this.verifyDetail = ''
+        prompt.showToast({ message: '请输入完整的20位激活码' })
+        return
+      }
+      code += val
     }
 
     var deviceId = this.deviceId
@@ -430,6 +498,7 @@ export default {
       this.verifySuccess = false
       this.verifyResult = '无法获取设备ID'
       this.verifyDetail = ''
+      prompt.showToast({ message: '无法获取设备ID' })
       return
     }
 
@@ -455,6 +524,7 @@ export default {
         self.verifySuccess = false
         self.verifyResult = masterResult.reason
         self.verifyDetail = '您的授权仍在有效期内，无需使用万能码'
+        prompt.showToast({ message: masterResult.reason })
         return
       }
 
@@ -462,15 +532,16 @@ export default {
         self.verifySuccess = false
         self.verifyResult = masterResult.reason
         self.verifyDetail = ''
+        prompt.showToast({ message: masterResult.reason })
         return
       }
 
-      var codeChecksum = code.substring(8, 12)
-      var result = verifyActivation(code, deviceId)
+      var codeChecksum = code.substring(12, 16)
+      var result = verifyActivationV2(code, deviceId)
       if (result.success) {
         self.verifySuccess = true
-        var myHash = deviceIdToHash(deviceId)
-        self.verifyDetail = '设备ID哈希: ' + myHash + ' | 天数: ' + (result.isPermanent ? '永久' : result.days + '天') + ' | 校验码: ' + codeChecksum
+        var myHash = deviceIdToHashV2(deviceId)
+        self.verifyDetail = '产品: ' + result.productName + ' | 设备哈希: ' + myHash + ' | 天数: ' + (result.isPermanent ? '永久' : result.days + '天') + ' | 校验码: ' + codeChecksum
         if (result.isPermanent) {
           self.verifyResult = '验证通过 - 永久激活'
         } else {
@@ -488,6 +559,7 @@ export default {
         self.verifySuccess = false
         self.verifyResult = result.reason || '验证失败'
         self.verifyDetail = ''
+        prompt.showToast({ message: result.reason || '验证失败' })
       }
     })
   }
@@ -750,45 +822,75 @@ export default {
   word-break: break-all;
 }
 
-.stepper-panel {
+.cells-grid {
   flex-direction: column;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 8px;
   margin-bottom: 8px;
 }
 
-.stepper-row {
+.cells-row {
   flex-direction: row;
+  justify-content: center;
+}
+
+.cell {
+  width: 34px;
+  height: 30px;
+  border-radius: 6px;
+  border-width: 1px;
+  margin: 2px;
+  justify-content: center;
   align-items: center;
+}
+
+.cell-active {
+  border-width: 2px;
+  border-color: #ff8c00;
+}
+
+.cell-text {
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.keypad {
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+
+.keypad-row {
+  flex-direction: row;
   justify-content: center;
   margin-bottom: 4px;
 }
 
-.stepper-btn {
-  width: 36px;
+.keypad-btn {
+  width: 52px;
   height: 36px;
   border-radius: 8px;
+  border-width: 1px;
+  border-style: solid;
+  justify-content: center;
+  align-items: center;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+.keypad-text {
   font-size: 18px;
   font-weight: bold;
-  text-align: center;
-}
-
-.stepper-val {
-  width: 32px;
-  font-size: 22px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.stepper-gap {
-  width: 10px;
 }
 
 .verify-btn {
+  width: 100%;
   height: 40px;
   border-radius: 8px;
   font-size: 15px;
   text-align: center;
+  align-self: center;
 }
 
 .result-box {

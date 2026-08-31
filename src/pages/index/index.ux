@@ -7,13 +7,8 @@
         </div>
       </div>
 
-      <div class="auth-bar" if="{{ authStatusShow }}" onclick="goToActivation" style="background-color: {{ authBarBg }}; border-left-color: {{ authBarBorder }}">
-        <text class="auth-bar-text" style="color: {{ authBarText }}">{{ authStatusText }}</text>
-        <text class="auth-bar-arrow" style="color: {{ authBarText }}">›</text>
-      </div>
-
-      <div class="remind-banner" if="{{ showBanner }}" style="background-color: {{ bannerBg }}" onclick="onBannerClick">
-        <text class="remind-banner-text" style="color: {{ bannerText }}">{{ bannerTextContent }}</text>
+      <div class="remind-banner" if="{{ showBanner }}" style="background-color: {{ bannerBg }}">
+        <text class="remind-banner-text" style="color: {{ bannerText }}" onclick="onBannerClick">{{ bannerTextContent }}</text>
         <input class="remind-banner-btn" type="button" value="去激活" onclick="goToActivation" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
         <input class="remind-banner-close" type="button" value="关闭" onclick="closeRemindBanner" style="color: {{ bannerText }}" />
       </div>
@@ -153,7 +148,26 @@ export default {
     currentTime: "",
     _lastRemindedId: null,
     remindSettings: { enabled: true, minutes: 5 },
-    theme: {},
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a',
+      keyBg: '#1a1a3e',
+      keyBorder: '#2a2a5a',
+      btnSecondary: '#333355',
+      btnSecondaryText: '#a0a0b0',
+      deleteBg: '#2a1a3e',
+      deleteText: '#e08080',
+      icon: '🔵',
+      progressOngoing: 'rgba(126,200,227,0.2)',
+      progressDone: 'rgba(74,138,154,0.25)'
+    },
     quickCourseNames: [],
     quickAddTime: "",
     quickAddExpanded: false,
@@ -165,12 +179,6 @@ export default {
     presetCourses: [],
     isCapsule: false,
     isNarrowScreen: false,
-    authStatusText: '',
-    authStatusColor: 'gray',
-    authStatusShow: false,
-    authBarBg: '#16213e',
-    authBarBorder: '#7ec8e3',
-    authBarText: '#ffffff',
     showBanner: false,
     bannerTextContent: '',
     bannerBg: '#3a2a1a',
@@ -224,7 +232,6 @@ export default {
     this.startClockTimer()
 
     this.detectScreen()
-    this.updateAuthStatus()
   },
 
   detectScreen() {
@@ -276,43 +283,7 @@ export default {
       self.updateStatus()
       self.startStatusTimer()
     })
-    this.updateAuthStatus()
     this.checkDailyRemind()
-  },
-
-  updateAuthStatus() {
-    var self = this
-    try {
-      authStore.checkStatus(function(status) {
-        self.authStatusText = status.text
-        self.authStatusShow = true
-
-        var color = status.color
-        if (color === 'red') {
-          self.authBarBg = '#3a1a1a'
-          self.authBarBorder = '#e74c3c'
-          self.authBarText = '#e74c3c'
-        } else if (color === 'orange') {
-          self.authBarBg = '#3a2a1a'
-          self.authBarBorder = '#e67e22'
-          self.authBarText = '#e67e22'
-        } else if (color === 'yellow') {
-          self.authBarBg = '#2a2a1a'
-          self.authBarBorder = '#f1c40f'
-          self.authBarText = '#f1c40f'
-        } else if (color === 'green') {
-          self.authBarBg = '#16213e'
-          self.authBarBorder = '#27ae60'
-          self.authBarText = '#27ae60'
-        } else if (color === 'gray') {
-          self.authBarBg = '#16213e'
-          self.authBarBorder = '#7ec8e3'
-          self.authBarText = '#888899'
-        }
-      })
-    } catch (e) {
-      console.warn('[INDEX] updateAuthStatus error: ' + e)
-    }
   },
 
   goToActivation() {
@@ -346,7 +317,7 @@ export default {
           if (status.color === 'red') {
             self.bannerBg = '#3a1a1a'
             self.bannerText = '#e74c3c'
-          } else if (status.color === 'orange') {
+          } else if (status.color === '#e67e22') {
             self.bannerBg = '#3a2a1a'
             self.bannerText = '#e67e22'
           } else {
@@ -390,9 +361,9 @@ export default {
   },
 
   goToActivationFromRemind() {
-    this.showRemindDialog = false
     authStore.markRemindedToday()
     router.push({ uri: "/pages/activation" })
+    this.showRemindDialog = false
   },
 
   onHide() {
@@ -1094,31 +1065,6 @@ export default {
   font-size: 18px;
   font-weight: normal;
   text-align: center;
-}
-
-.auth-bar {
-  flex-direction: row;
-  align-items: center;
-  border-radius: 10px;
-  padding: 6px 12px;
-  margin-bottom: 6px;
-  border-left-width: 4px;
-  border-left-style: solid;
-  height: 36px;
-}
-
-.auth-bar-text {
-  flex: 1;
-  font-size: 14px;
-  font-weight: bold;
-  max-lines: 1;
-  text-overflow: ellipsis;
-}
-
-.auth-bar-arrow {
-  font-size: 18px;
-  font-weight: bold;
-  margin-left: 6px;
 }
 
 .remind-banner {

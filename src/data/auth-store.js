@@ -82,6 +82,7 @@ function initAuth(callback) {
         lastRemindDate: '',
         remindEnabled: true,
         trialDays: DEFAULT_TRIAL_DAYS,
+        productId: '0001',
         history: []
       }
       setAuthData(newData, function() {
@@ -151,7 +152,7 @@ function buildStatus(data) {
         priority: 2,
         status: 'auth_expiring_critical',
         displayStatus: '即将到期',
-        color: 'orange',
+        color: '#e67e22',
         text: '授权即将到期，剩余 1 天',
         remainingDays: 1,
         expireText: '剩余 1 天',
@@ -168,7 +169,7 @@ function buildStatus(data) {
         priority: 2,
         status: 'auth_expiring_soon',
         displayStatus: '即将到期',
-        color: 'yellow',
+        color: '#d4a017',
         text: '授权剩余 ' + remainingDays + ' 天，请及时续费',
         remainingDays: remainingDays,
         expireText: '剩余 ' + remainingDays + ' 天',
@@ -223,7 +224,7 @@ function buildStatus(data) {
       priority: 2,
       status: 'trial_expiring',
       displayStatus: '即将到期',
-      color: 'orange',
+      color: '#e67e22',
       text: '免费试用即将到期',
       remainingDays: remainingDays,
       expireText: '免费试用剩余 ' + remainingDays + ' 天',
@@ -269,10 +270,16 @@ function buildFullStatus(data) {
   status.installTime = data.installTime
   status.activatedAt = data.activatedAt
   status.deviceId = data.deviceId || ''
+  status.productId = data.productId || '0001'
   return status
 }
 
 function markActivated(days, callback) {
+  markActivatedV2(days, '0001', callback)
+}
+
+function markActivatedV2(days, productId, callback) {
+  var pid = productId || '0001'
   getAuthData(function(data) {
     if (!data) {
       data = {
@@ -286,6 +293,7 @@ function markActivated(days, callback) {
     var now = Date.now()
     data.isActivated = true
     data.activatedAt = now
+    data.productId = pid
 
     var durationText
     var codeType
@@ -525,6 +533,7 @@ module.exports = {
   checkStatus: checkStatus,
   getFullStatus: getFullStatus,
   markActivated: markActivated,
+  markActivatedV2: markActivatedV2,
   getHistory: getHistory,
   needsDailyRemind: needsDailyRemind,
   markRemindedToday: markRemindedToday,

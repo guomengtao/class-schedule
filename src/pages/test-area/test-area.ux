@@ -40,10 +40,34 @@
         </div>
       </div>
 
+      <div class="menu-item" onclick="openVibrationLab" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">震动自定义</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">自定义震动效果</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+
+      <div class="menu-item" onclick="openDeviceInfo" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">设备信息</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">查看详情</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+
       <div class="menu-item" onclick="openActivation" style="background-color: {{ theme.card }}">
         <text class="menu-label" style="color: {{ theme.text }}">软件授权</text>
         <div class="menu-right">
           <text class="menu-desc" style="color: {{ theme.textMuted }}">爱发电购买兑换码激活</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+
+      <div class="menu-item" onclick="openNumpadInput" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">数字输入</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">4x4 格子 + 数字键盘</text>
           <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
@@ -59,7 +83,26 @@ const store = require("../../data/store.js")
 
 export default {
   private: {
-    theme: {},
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a',
+      keyBg: '#1a1a3e',
+      keyBorder: '#2a2a5a',
+      btnSecondary: '#333355',
+      btnSecondaryText: '#a0a0b0',
+      deleteBg: '#2a1a3e',
+      deleteText: '#e08080',
+      icon: '🔵',
+      progressOngoing: 'rgba(126,200,227,0.2)',
+      progressDone: 'rgba(74,138,154,0.25)'
+    },
     secretTapCount: 0,
     secretTapTimer: null
   },
@@ -94,8 +137,20 @@ export default {
     router.push({ uri: "/pages/background-running" })
   },
 
+  openVibrationLab() {
+    router.push({ uri: "/pages/vibration-lab" })
+  },
+
+  openDeviceInfo() {
+    router.push({ uri: "/pages/device-info" })
+  },
+
   openActivation() {
     router.push({ uri: "/pages/activation" })
+  },
+
+  openNumpadInput() {
+    router.push({ uri: "/pages/numpad-input" })
   },
 
   onSecretTap() {
@@ -106,7 +161,7 @@ export default {
     }
     if (self.secretTapCount >= 3) {
       self.secretTapCount = 0
-      router.push({ uri: "/pages/activation-lab" })
+      router.push({ uri: "/pages/activation-lab-demo" })
       return
     }
     self.secretTapTimer = setTimeout(function() {

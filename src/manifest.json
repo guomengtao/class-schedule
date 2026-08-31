@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.3.0",
-  "versionCode": 130,
+  "versionName": "1.3.77",
+  "versionCode": 207,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -122,8 +122,14 @@
       "pages/activation-lab": {
         "component": "activation-lab"
       },
+      "pages/activation-lab-demo": {
+        "component": "activation-lab-demo"
+      },
       "pages/activation": {
         "component": "activation"
+      },
+      "pages/numpad-input": {
+        "component": "numpad-input"
       }
     }
   }
