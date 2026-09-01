@@ -252,7 +252,7 @@ export default {
 <style>
 .stats-page {
   flex-direction: column;
-  padding: 44px 12px 8px 12px;
+  padding: 44px 8px 8px 8px;
   height: 100%;
 }
 
@@ -361,7 +361,7 @@ export default {
 
 @media (shape: capsule) {
   .stats-page {
-    padding: 44px 8px 16px 8px;
+    padding: 44px 8px 12px 8px;
   }
   .header {
     height: 30px;
@@ -418,7 +418,7 @@ export default {
 
 @media (shape: rect) {
   .stats-page {
-    padding: 44px 8px 6px 8px;
+    padding: 44px 6px 6px 6px;
   }
   .header {
     height: 28px;

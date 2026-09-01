@@ -465,7 +465,7 @@ export default {
 .add-course-page {
   flex-direction: column;
   background-color: #1a1a2e;
-  padding: 44px 16px 16px 16px;
+  padding: 44px 8px 8px 8px;
   height: 100%;
 }
 
@@ -802,7 +802,7 @@ export default {
 
 @media (shape: capsule) {
   .add-course-page {
-    padding: 44px 8px 16px 8px;
+    padding: 44px 8px 12px 8px;
   }
   .back-header {
     padding: 8px 4px;
@@ -855,7 +855,7 @@ export default {
 
 @media (shape: rect) {
   .add-course-page {
-    padding: 44px 10px 10px 10px;
+    padding: 44px 6px 6px 6px;
   }
   .back-header {
     padding: 8px 0;

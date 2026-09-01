@@ -135,7 +135,7 @@ export default {
     var self = this
 
     store.getScheduleNames(function(names) {
-      store.getCurrentScheduleIndex(function(idx) {
+      store.getCurrentScheduleIndex(function() {
         if (names && names.length > self.viewIndex) {
           self.scheduleName = names[self.viewIndex]
         }
@@ -527,7 +527,7 @@ export default {
 
 @media (shape: capsule) {
   .week-view-page {
-    padding: 44px 8px 16px 8px;
+    padding: 44px 8px 12px 8px;
   }
   .header {
     margin-bottom: 6px;
@@ -579,7 +579,7 @@ export default {
 
 @media (shape: rect) {
   .week-view-page {
-    padding: 44px 4px 4px 4px;
+    padding: 44px 6px 6px 6px;
   }
   .header {
     margin-bottom: 4px;

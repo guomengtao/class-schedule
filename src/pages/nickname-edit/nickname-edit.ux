@@ -110,7 +110,7 @@ export default {
 <style>
 .edit-page {
   flex-direction: column;
-  padding: 44px 10px 10px 10px;
+  padding: 44px 8px 8px 8px;
   min-height: 100%;
 }
 
@@ -241,7 +241,7 @@ export default {
 
 @media (shape: capsule) {
   .edit-page {
-    padding: 44px 8px 16px 8px;
+    padding: 44px 8px 12px 8px;
   }
   .back-header {
     margin-bottom: 8px;
@@ -286,7 +286,7 @@ export default {
 
 @media (shape: rect) {
   .edit-page {
-    padding: 44px 6px 10px 6px;
+    padding: 44px 6px 6px 6px;
   }
   .back-header {
     margin-bottom: 6px;

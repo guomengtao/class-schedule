@@ -7,43 +7,44 @@
     </div>
 
     <div class="display-area" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
-      <text class="display-text" style="color: {{ theme.text }}">{{ inputValue || placeholder }}</text>
-      <text class="cursor" show="{{ showCursor }}" style="color: {{ theme.accent }}">_</text>
+      <text class="display-text" style="{{ displayStyle }}; color: {{ theme.text }}">{{ inputValue || placeholder }}</text>
+      <text class="cursor" show="{{ showCursor }}" style="{{ displayStyle }}; color: {{ theme.accent }}">_</text>
     </div>
 
     <div class="pinyin-row" show="{{ !hideKeyboard && cval }}">
-      <text class="pinyin-text" style="color: {{ theme.accent }}">{{ cvalDisplay }}</text>
+      <text class="pinyin-text" style="{{ pinyinStyle }}; color: {{ theme.accent }}">{{ cvalDisplay }}</text>
     </div>
 
     <scroll class="candidate-row" show="{{ !hideKeyboard && resultRow0.length > 0 }}" scroll-x="{{true}}">
-      <text for="{{ item in resultRow0 }}" class="candidate-item" onclick="onSelectCandidate(item)" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+      <text for="{{ item in resultRow0 }}" class="candidate-item" onclick="onSelectCandidate(item)" style="{{ candidateStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
     </scroll>
 
     <div class="keyboard" show="{{ !hideKeyboard }}">
       <div class="key-row" show="{{ !numFlag }}">
-        <text for="{{ item in keys.full[0] }}" class="key-btn" onclick="onKeyPress(item)" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+        <text for="{{ item in keys.full[0] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
       </div>
       <div class="key-row" show="{{ !numFlag }}">
-        <text for="{{ item in keys.full[1] }}" class="key-btn" onclick="onKeyPress(item)" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+        <text for="{{ item in keys.full[1] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
       </div>
       <div class="key-row" show="{{ !numFlag }}">
-        <text for="{{ item in keys.full[2] }}" class="key-btn" onclick="onKeyPress(item)" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+        <text for="{{ item in keys.full[2] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
         <text class="key-btn key-del" onclick="onDeleteKey" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}">Del</text>
       </div>
 
       <div class="key-row" show="{{ numFlag }}">
-        <text for="{{ item in keys.sign[0] }}" class="key-btn" onclick="onKeyPress(item)" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+        <text for="{{ item in keys.sign[0] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
       </div>
       <div class="key-row" show="{{ numFlag }}">
-        <text for="{{ item in keys.sign[1] }}" class="key-btn" onclick="onKeyPress(item)" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+        <text for="{{ item in keys.sign[1] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
       </div>
       <div class="key-row" show="{{ numFlag }}">
-        <text for="{{ item in keys.sign[2] }}" class="key-btn" onclick="onKeyPress(item)" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+        <text for="{{ item in keys.sign[2] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
         <text class="key-btn key-del" onclick="onDeleteKey" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}">Del</text>
       </div>
 
       <div class="key-row key-bottom">
-        <text class="key-btn key-func" onclick="toggleNumMode" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ numFlag ? 'ABC' : '123' }}</text>
+        <text class="key-btn key-func" onclick="toggleNumMode" show="{{ lang === 'cn' || numFlag }}" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ numFlag ? 'ABC' : '123' }}</text>
+        <text class="key-btn key-func" onclick="toggleShift" show="{{ lang === 'en' && !numFlag }}" style="background-color: {{ shiftFlag ? theme.accent : theme.card }}; color: {{ shiftFlag ? theme.bg : theme.accent }}">Shift</text>
         <text class="key-btn key-space" onclick="onSpace" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ lang === 'cn' ? '空格' : 'Space' }}</text>
         <text class="key-btn key-func" onclick="toggleLang" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ lang === 'cn' ? 'EN' : '中' }}</text>
       </div>
@@ -95,10 +96,16 @@ export default {
     hideKeyboard: true,
     showCursor: false,
     returnKey: "chinese_input_result",
+    fontScale: 1.0,
+    displayStyle: "",
+    candidateStyle: "",
+    pinyinStyle: "",
+    keyStyle: "",
     cval: "",
     cvalDisplay: "",
     lang: "cn",
     numFlag: false,
+    shiftFlag: false,
     resultRow0: [],
     keys: {
       full: [
@@ -119,12 +126,20 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
+    store.getScaleSafe(function(scale) {
+      self.fontScale = scale
+      self.applyFontScale()
+    })
   },
 
   onShow() {
     var self = this
     store.getTheme(function(t) {
       self.theme = t
+    })
+    store.getScaleSafe(function(scale) {
+      self.fontScale = scale
+      self.applyFontScale()
     })
 
     var storage = require("@system.storage")
@@ -156,6 +171,21 @@ export default {
     }, 300)
   },
 
+  applyFontScale() {
+    var s = this.fontScale
+    if (!s || s < 0.5) { s = 1.0 }
+    var styles = store.buildFontStyles(s, {
+      displayStyle: 17,
+      candidateStyle: 16,
+      pinyinStyle: 14,
+      keyStyle: 15
+    })
+    this.displayStyle = styles.displayStyle
+    this.candidateStyle = styles.candidateStyle
+    this.pinyinStyle = styles.pinyinStyle
+    this.keyStyle = styles.keyStyle
+  },
+
   showKeyboard() {
     this.hideKeyboard = false
     this.showCursor = true
@@ -175,7 +205,11 @@ export default {
       this.updateCandidates()
     } else {
       if (this.inputValue.length >= this.maxlen) return
-      this.inputValue += item
+      var char = item
+      if (this.lang === "en" && !this.numFlag && !this.shiftFlag) {
+        char = item.toLowerCase()
+      }
+      this.inputValue += char
     }
   },
 
@@ -291,6 +325,12 @@ export default {
     this.cval = ""
     this.resultRow0 = []
     this.cvalDisplay = ""
+    this.shiftFlag = false
+  },
+
+  toggleShift() {
+    this.doVibrate()
+    this.shiftFlag = !this.shiftFlag
   },
 
   onConfirm() {
@@ -309,10 +349,38 @@ export default {
 
   returnResult(result) {
     var storage = require("@system.storage")
+    var returnKey = this.returnKey || "chinese_input_result"
+    var value = result !== null ? result : ""
+
     storage.set({
-      key: this.returnKey || "chinese_input_result",
-      value: result !== null ? result : "",
-      success: function() { router.back() },
+      key: returnKey,
+      value: value,
+      success: function() {
+        if (returnKey === "chinese_input_result") {
+          storage.get({
+            key: "homepage_settings",
+            success: function(data) {
+              var settings = { showQuickAdd: true, showCustomContent: false, customContent: "", showTime: true, showStatusBar: true, timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: true } }
+              if (data) {
+                try { settings = JSON.parse(data) } catch (e) {}
+              }
+              settings.customContent = value
+              if (value && value.length > 0) {
+                settings.showCustomContent = true
+              }
+              storage.set({
+                key: "homepage_settings",
+                value: JSON.stringify(settings),
+                success: function() { router.back() },
+                fail: function() { router.back() }
+              })
+            },
+            fail: function() { router.back() }
+          })
+        } else {
+          router.back()
+        }
+      },
       fail: function() { router.back() }
     })
   },
@@ -326,7 +394,7 @@ export default {
 <style>
 .input-page {
   flex-direction: column;
-  padding: 44px 8px 4px 8px;
+  padding: 44px 8px 8px 8px;
   height: 100%;
 }
 
@@ -455,7 +523,7 @@ export default {
 
 @media (shape: capsule) {
   .input-page {
-    padding: 44px 6px 8px 6px;
+    padding: 44px 8px 12px 8px;
   }
   .header {
     height: 30px;
@@ -519,7 +587,7 @@ export default {
 
 @media (shape: rect) {
   .input-page {
-    padding: 44px 6px 4px 6px;
+    padding: 44px 6px 6px 6px;
   }
   .header {
     height: 28px;
@@ -599,6 +667,7 @@ export default {
   }
   .header {
     padding: 0 20px;
+    justify-content: center;
   }
   .back-btn {
     width: 56px;

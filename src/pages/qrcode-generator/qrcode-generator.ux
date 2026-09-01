@@ -5,6 +5,8 @@
       <text class="title" style="color: {{ theme.text }}">二维码生成</text>
     </div>
 
+    <text class="section-title" style="color: {{ theme.textSecondary }}">自定义文字</text>
+
     <div class="input-section" onclick="openInput" style="background-color: {{ theme.card }}">
       <text class="input-label" style="color: {{ theme.textSecondary }}">点击输入文字</text>
       <text class="input-text" if="{{ inputText }}" style="color: {{ theme.text }}">{{ inputText }}</text>
@@ -147,6 +149,14 @@ export default {
   font-weight: bold;
 }
 
+.section-title {
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  padding: 0 4px;
+}
+
 .input-section {
   padding: 12px;
   border-radius: 12px;
@@ -231,119 +241,6 @@ export default {
   text-align: center;
 }
 
-@media (shape: capsule) {
-  .page {
-    padding: 44px 8px 16px 8px;
-  }
-  .header {
-    padding: 4px 4px 6px 4px;
-    justify-content: center;
-  }
-  .back-btn {
-    width: 48px;
-    height: 28px;
-    font-size: 12px;
-    margin-right: 6px;
-  }
-  .title {
-    font-size: 14px;
-  }
-  .input-section {
-    padding: 8px;
-    margin-bottom: 6px;
-  }
-  .input-label {
-    font-size: 10px;
-  }
-  .input-text {
-    font-size: 14px;
-  }
-  .input-hint {
-    font-size: 12px;
-  }
-  .qr-wrapper {
-    padding: 6px;
-    margin-top: 4px;
-  }
-  .qr-hint {
-    font-size: 11px;
-    margin-top: 6px;
-  }
-  .empty-icon {
-    font-size: 36px;
-    margin-bottom: 8px;
-  }
-  .empty-text {
-    font-size: 12px;
-  }
-  .presets-section {
-    padding-top: 8px;
-  }
-  .presets-label {
-    font-size: 10px;
-  }
-  .preset-btn {
-    height: 32px;
-    font-size: 12px;
-  }
-}
-
-@media (shape: rect) {
-  .page {
-    padding: 44px 6px 6px 6px;
-  }
-  .header {
-    padding: 4px 0 6px 0;
-  }
-  .back-btn {
-    width: 48px;
-    height: 28px;
-    font-size: 12px;
-    margin-right: 6px;
-  }
-  .title {
-    font-size: 14px;
-  }
-  .input-section {
-    padding: 8px;
-    margin-bottom: 6px;
-  }
-  .input-label {
-    font-size: 10px;
-  }
-  .input-text {
-    font-size: 13px;
-  }
-  .input-hint {
-    font-size: 12px;
-  }
-  .qr-wrapper {
-    padding: 6px;
-    margin-top: 4px;
-  }
-  .qr-hint {
-    font-size: 11px;
-    margin-top: 6px;
-  }
-  .empty-icon {
-    font-size: 36px;
-    margin-bottom: 8px;
-  }
-  .empty-text {
-    font-size: 12px;
-  }
-  .presets-section {
-    padding-top: 8px;
-  }
-  .presets-label {
-    font-size: 10px;
-  }
-  .preset-btn {
-    height: 30px;
-    font-size: 12px;
-  }
-}
-
 @media (shape: circle) {
   .page {
     padding: 44px 36px 44px 36px;
@@ -352,13 +249,17 @@ export default {
     padding: 0 20px;
     justify-content: center;
   }
-  .back-btn {
-    width: 56px;
-    height: 30px;
-    font-size: 13px;
+}
+
+@media (shape: capsule) {
+  .page {
+    padding: 44px 8px 12px 8px;
   }
-  .title {
-    font-size: 16px;
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 6px 6px 6px;
   }
 }
 </style>

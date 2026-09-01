@@ -47,6 +47,14 @@
       <text class="preview-card-name" style="font-size: {{ previewClassSize }}px; color: {{ theme.text }}">数学 08:00 - 08:45 301教室</text>
     </div>
 
+    <div class="info-section" onclick="openHomepageSettings" style="background-color: {{ theme.card }}">
+      <text class="info-label" style="color: {{ theme.text }}">首页设置</text>
+      <div class="info-value-row">
+        <text class="info-placeholder" style="color: {{ theme.textMuted }}">自定义首页内容与时间显示</text>
+        <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+    </div>
+
     <div class="remind-section" style="background-color: {{ theme.card }}">
       <text class="section-label" style="color: {{ theme.text }}">上课提醒</text>
 
@@ -85,6 +93,14 @@
       <text class="info-label" style="color: {{ theme.text }}">功能实验室</text>
       <div class="info-value-row">
         <text class="info-placeholder" style="color: {{ theme.textMuted }}">实验性功能尝鲜</text>
+        <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+    </div>
+
+    <div class="info-section" onclick="openActivation" style="background-color: {{ theme.card }}">
+      <text class="info-label" style="color: {{ theme.text }}">软件授权</text>
+      <div class="info-value-row">
+        <text class="info-placeholder" style="color: {{ theme.textMuted }}">爱发电购买兑换码激活</text>
         <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
     </div>
@@ -198,7 +214,7 @@ export default {
   },
 
   updatePreviews() {
-    this.previewClassSize = Math.round(48 * this.scale)
+    this.previewClassSize = Math.round(28 * this.scale)
     this.previewClassStyle = "font-size: " + this.previewClassSize + "px"
   },
 
@@ -264,32 +280,12 @@ export default {
     router.push({ uri: "/pages/nickname-edit" })
   },
 
-  openDeviceInfo() {
-    router.push({ uri: "/pages/device-info" })
-  },
-
-  openVibrationLab() {
-    router.push({ uri: "/pages/vibration-lab" })
-  },
-
-  openQrcodeGenerator() {
-    router.push({ uri: "/pages/qrcode-generator" })
-  },
-
-  openPromptDemo() {
-    router.push({ uri: "/pages/prompt-demo" })
-  },
-
-  openQrcodeTest() {
-    router.push({ uri: "/pages/qrcode-test" })
-  },
-
-  openBackgroundRunning() {
-    router.push({ uri: "/pages/background-running" })
-  },
-
   openTestArea() {
     router.push({ uri: "/pages/test-area" })
+  },
+
+  openActivation() {
+    router.push({ uri: "/pages/activation" })
   },
 
   toggleRemind() {
@@ -349,7 +345,7 @@ export default {
       duration: pattern.duration,
       interval: pattern.interval,
       count: pattern.count,
-      success: function(data) {},
+      success: function() {},
       fail: function(data, code) {
         console.warn("[SETTINGS] vibrator.start fail, code=" + code + ", fallback to vibrate")
         var idx = 0
@@ -370,6 +366,10 @@ export default {
   saveSettings() {
     prompt.showToast({ message: "设置已保存" })
     router.back()
+  },
+
+  openHomepageSettings() {
+    router.push({ uri: "/pages/homepage-settings" })
   },
 
   openResetData() {

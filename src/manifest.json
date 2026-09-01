@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.3.106",
-  "versionCode": 236,
+  "versionName": "1.3.120",
+  "versionCode": 250,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -95,6 +95,9 @@
       "pages/reset-data": {
         "component": "reset-data"
       },
+      "pages/homepage-settings": {
+        "component": "homepage-settings"
+      },
       "pages/device-info": {
         "component": "device-info"
       },
@@ -107,29 +110,14 @@
       "pages/schedule-qrcode": {
         "component": "schedule-qrcode"
       },
-      "pages/qrcode-test": {
-        "component": "qrcode-test"
-      },
-      "pages/prompt-demo": {
-        "component": "prompt-demo"
-      },
-      "pages/background-running": {
-        "component": "background-running"
-      },
       "pages/test-area": {
         "component": "test-area"
       },
       "pages/activation-lab": {
         "component": "activation-lab"
       },
-      "pages/activation-lab-demo": {
-        "component": "activation-lab-demo"
-      },
       "pages/activation": {
         "component": "activation"
-      },
-      "pages/numpad-input": {
-        "component": "numpad-input"
       }
     }
   }

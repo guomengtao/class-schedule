@@ -285,6 +285,23 @@ module.exports = {
     })
   },
 
+  getScaleSafe: function(callback) {
+    this.getFontScale(function(scale) {
+      if (!scale || scale < 0.5) { scale = 1.0 }
+      callback(scale)
+    })
+  },
+
+  buildFontStyles: function(scale, bases) {
+    var styles = {}
+    for (var key in bases) {
+      if (bases.hasOwnProperty(key)) {
+        styles[key] = "font-size: " + Math.round(bases[key] * scale) + "px"
+      }
+    }
+    return styles
+  },
+
   getScheduleNames: function(callback) {
     storage.get({
       key: "scheduleNames",
@@ -524,5 +541,56 @@ module.exports = {
       success: function() { if (callback) callback() },
       fail: function() { if (callback) callback() }
     })
+  },
+
+  getHomepageSettings: function(callback) {
+    storage.get({
+      key: "homepage_settings",
+      success: function(data) {
+        if (data) {
+          try {
+            callback(JSON.parse(data))
+          } catch (e) {
+            callback({ showQuickAdd: true, showCustomContent: false, customContent: "", showTime: true, showStatusBar: true, timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false } })
+          }
+        } else {
+          callback({ showQuickAdd: true, showCustomContent: false, customContent: "", showTime: true, showStatusBar: true, timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false } })
+        }
+      },
+      fail: function() {
+        callback({ showQuickAdd: true, showCustomContent: false, customContent: "", showTime: true, showStatusBar: true, timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false } })
+      }
+    })
+  },
+
+  setHomepageSettings: function(settings, callback) {
+    storage.set({
+      key: "homepage_settings",
+      value: JSON.stringify(settings),
+      success: function() { if (callback) callback() },
+      fail: function() { if (callback) callback() }
+    })
+  },
+
+  DEFAULT_THEME: {
+    name: '深空蓝',
+    bg: '#1a1a2e',
+    card: '#16213e',
+    cardLight: '#0f3460',
+    accent: '#7ec8e3',
+    text: '#ffffff',
+    textSecondary: '#888899',
+    textMuted: '#555566',
+    border: '#0f3460',
+    borderLight: '#2a2a5a',
+    keyBg: '#1a1a3e',
+    keyBorder: '#2a2a5a',
+    btnSecondary: '#333355',
+    btnSecondaryText: '#a0a0b0',
+    deleteBg: '#2a1a3e',
+    deleteText: '#e08080',
+    icon: '🔵',
+    progressOngoing: 'rgba(126,200,227,0.2)',
+    progressDone: 'rgba(74,138,154,0.25)'
   }
 }

@@ -1,8 +1,8 @@
 <template>
-  <div class="page" style="background-color: {{ theme.bg }}">
-    <div class="header">
+  <div class="device-info-page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="title" style="color: {{ theme.text }}">设备信息</text>
+      <text class="header-title" style="color: {{ theme.text }}">设备信息</text>
     </div>
 
     <div class="loading" if="{{ loading }}" style="background-color: {{ theme.card }}">
@@ -10,22 +10,24 @@
       <text class="loading-text" style="color: {{ theme.textMuted }}">正在获取设备信息...</text>
     </div>
 
-    <div class="error" if="{{ errorMsg }}" style="background-color: {{ theme.card }}">
+    <div class="error-card" if="{{ errorMsg }}" style="background-color: {{ theme.card }}">
       <text class="error-icon">⚠</text>
       <text class="error-text" style="color: #e74c3c">{{ errorMsg }}</text>
       <input class="retry-btn" type="button" value="重试" onclick="fetchDeviceInfo" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
-    <div class="list" if="{{ !loading }}" style="background-color: {{ theme.card }}">
-      <div class="hero">
+    <div class="info-section" if="{{ !loading && !errorMsg }}">
+      <div class="hero-card" style="background-color: {{ theme.card }}">
         <text class="hero-icon">{{ deviceIcon }}</text>
         <text class="hero-model" style="color: {{ theme.text }}">{{ deviceModel }}</text>
         <text class="hero-sub" style="color: {{ theme.textSecondary }}">{{ deviceBrand }}</text>
       </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
-      <div class="row" for="{{ infoList }}">
-        <text class="label" style="color: {{ theme.textSecondary }}">{{ $item.label }}</text>
-        <text class="value" style="color: {{ theme.text }}">{{ $item.value || '未知' }}</text>
+
+      <div class="menu-item" for="{{ infoList }}" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">{{ $item.label }}</text>
+        <div class="menu-right">
+          <text class="menu-value" style="color: {{ theme.textMuted }}">{{ $item.value || '未知' }}</text>
+        </div>
       </div>
     </div>
   </div>
@@ -61,8 +63,6 @@ function formatStorage(bytes) {
   if (bytes >= 1024) return (bytes / 1024).toFixed(2) + " KB"
   return bytes + " B"
 }
-
-var title = ""
 
 export default {
   private: {
@@ -101,6 +101,13 @@ export default {
       self.theme = t
     })
     this.fetchDeviceInfo()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
   },
 
   fetchDeviceInfo() {
@@ -180,17 +187,17 @@ export default {
 </script>
 
 <style>
-.page {
+.device-info-page {
   flex-direction: column;
   padding: 44px 8px 8px 8px;
   min-height: 100%;
 }
 
-.header {
+.back-header {
   flex-direction: row;
   align-items: center;
   margin-bottom: 10px;
-  padding: 6px 0;
+  padding: 0;
 }
 
 .back-btn {
@@ -201,22 +208,22 @@ export default {
   text-align: center;
 }
 
-.title {
+.header-title {
   font-size: 18px;
   font-weight: bold;
   margin-left: 8px;
 }
 
-.list {
+.info-section {
   flex-direction: column;
-  border-radius: 12px;
-  padding: 14px;
 }
 
-.hero {
+.hero-card {
   flex-direction: column;
   align-items: center;
-  padding: 10px 0 14px;
+  border-radius: 10px;
+  padding: 16px 12px;
+  margin-bottom: 8px;
 }
 
 .hero-icon {
@@ -236,31 +243,33 @@ export default {
   text-align: center;
 }
 
-.divider {
-  height: 1px;
-  margin-bottom: 6px;
-}
-
-.row {
+.menu-item {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 7px 0;
+  border-radius: 10px;
+  padding: 14px 12px;
+  margin-bottom: 8px;
 }
 
-.label {
-  font-size: 14px;
+.menu-label {
+  font-size: 15px;
 }
 
-.value {
-  font-size: 14px;
+.menu-right {
+  flex-direction: row;
+  align-items: center;
+}
+
+.menu-value {
+  font-size: 13px;
   text-align: right;
   margin-left: 12px;
 }
 
 .loading {
   flex-direction: column;
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 50px 16px;
   align-items: center;
 }
@@ -274,9 +283,9 @@ export default {
   font-size: 15px;
 }
 
-.error {
+.error-card {
   flex-direction: column;
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 20px 16px;
   margin-bottom: 8px;
   align-items: center;
@@ -301,153 +310,25 @@ export default {
   text-align: center;
 }
 
-@media (shape: capsule) {
-  .page {
-    padding: 44px 8px 16px 8px;
+@media (shape: circle) {
+  .device-info-page {
+    padding: 44px 36px 44px 36px;
   }
-  .header {
-    padding: 4px 4px;
-    margin-bottom: 6px;
+  .back-header {
+    padding: 0 20px;
     justify-content: center;
   }
-  .back-btn {
-    width: 52px;
-    height: 30px;
-    font-size: 13px;
-  }
-  .title {
-    font-size: 14px;
-    margin-left: 6px;
-  }
-  .list {
-    padding: 10px;
-  }
-  .hero {
-    padding: 6px 0 10px;
-  }
-  .hero-icon {
-    font-size: 26px;
-    margin-bottom: 4px;
-  }
-  .hero-model {
-    font-size: 15px;
-  }
-  .hero-sub {
-    font-size: 12px;
-  }
-  .row {
-    padding: 5px 0;
-  }
-  .label {
-    font-size: 12px;
-  }
-  .value {
-    font-size: 12px;
-    margin-left: 8px;
-  }
-  .loading {
-    padding: 30px 12px;
-  }
-  .loading-icon {
-    font-size: 22px;
-  }
-  .loading-text {
-    font-size: 13px;
-  }
-  .error {
-    padding: 14px 12px;
-  }
-  .error-icon {
-    font-size: 22px;
-  }
-  .error-text {
-    font-size: 12px;
+}
+
+@media (shape: capsule) {
+  .device-info-page {
+    padding: 44px 8px 12px 8px;
   }
 }
 
 @media (shape: rect) {
-  .page {
+  .device-info-page {
     padding: 44px 6px 6px 6px;
-  }
-  .header {
-    padding: 4px 0;
-    margin-bottom: 6px;
-  }
-  .back-btn {
-    width: 50px;
-    height: 28px;
-    font-size: 12px;
-  }
-  .title {
-    font-size: 14px;
-    margin-left: 6px;
-  }
-  .list {
-    padding: 10px;
-  }
-  .hero {
-    padding: 6px 0 10px;
-  }
-  .hero-icon {
-    font-size: 24px;
-    margin-bottom: 4px;
-  }
-  .hero-model {
-    font-size: 14px;
-  }
-  .hero-sub {
-    font-size: 11px;
-  }
-  .row {
-    padding: 5px 0;
-  }
-  .label {
-    font-size: 12px;
-  }
-  .value {
-    font-size: 12px;
-    margin-left: 8px;
-  }
-  .loading {
-    padding: 30px 12px;
-  }
-  .loading-icon {
-    font-size: 22px;
-  }
-  .loading-text {
-    font-size: 13px;
-  }
-  .error {
-    padding: 14px 12px;
-  }
-  .error-icon {
-    font-size: 22px;
-  }
-  .error-text {
-    font-size: 12px;
-  }
-  .retry-btn {
-    width: 60px;
-    height: 28px;
-    font-size: 12px;
-  }
-}
-
-@media (shape: circle) {
-  .page {
-    padding: 44px 36px 44px 36px;
-  }
-  .header {
-    padding: 0 20px;
-    justify-content: center;
-  }
-  .back-btn {
-    width: 56px;
-    height: 30px;
-    font-size: 13px;
-  }
-  .title {
-    font-size: 16px;
   }
 }
 </style>

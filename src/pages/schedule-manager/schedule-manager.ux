@@ -401,7 +401,7 @@ export default {
 <style>
 .manager-page {
   flex-direction: column;
-  padding: 44px 12px 12px 12px;
+  padding: 44px 8px 8px 8px;
   height: 100%;
 }
 
@@ -625,7 +625,7 @@ export default {
 
 @media (shape: capsule) {
   .manager-page {
-    padding: 44px 8px 16px 8px;
+    padding: 44px 8px 12px 8px;
   }
   .back-header {
     margin-bottom: 8px;
@@ -693,7 +693,7 @@ export default {
 
 @media (shape: rect) {
   .manager-page {
-    padding: 44px 8px 8px 8px;
+    padding: 44px 6px 6px 6px;
   }
   .back-header {
     margin-bottom: 6px;

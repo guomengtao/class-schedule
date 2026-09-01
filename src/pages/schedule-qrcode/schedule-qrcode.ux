@@ -186,7 +186,7 @@ export default {
 <style>
 .page {
   flex-direction: column;
-  padding: 44px 12px 12px 12px;
+  padding: 44px 8px 8px 8px;
   height: 100%;
 }
 
@@ -324,7 +324,7 @@ export default {
 
 @media (shape: capsule) {
   .page {
-    padding: 44px 8px 16px 8px;
+    padding: 44px 8px 12px 8px;
   }
   .header {
     padding: 4px 4px;

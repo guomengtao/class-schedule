@@ -8,34 +8,10 @@
     <text class="section-desc" style="color: {{ theme.textSecondary }}">这里是正在开发中的新功能，欢迎体验并反馈建议，你的意见对我们很重要。</text>
 
     <div class="menu-section">
-      <div class="menu-item" onclick="openPromptDemo" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">弹窗演示</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">Toast 弹窗效果体验</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openQrcodeTest" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">二维码容量检测</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">检测组件文字上限</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
       <div class="menu-item" onclick="openQrcodeGenerator" style="background-color: {{ theme.card }}">
         <text class="menu-label" style="color: {{ theme.text }}">文字转二维码</text>
         <div class="menu-right">
           <text class="menu-desc" style="color: {{ theme.textMuted }}">将文字生成二维码</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openBackgroundRunning" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">后台运行</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">测试后台保活功能</text>
           <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
@@ -55,34 +31,21 @@
           <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
-
-      <div class="menu-item" onclick="openActivation" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">软件授权</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">爱发电购买兑换码激活</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openNumpadInput" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">数字输入</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">4x4 格子 + 数字键盘</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
     </div>
 
-    <text class="secret-text" onclick="onSecretTap" style="color: {{ theme.textMuted }}">这里是正在开发中的新功能</text>
+    <text class="dev-expire-hint" onclick="onDevExpireClick" style="color: {{ theme.textSecondary }}">丰富欢迎用户提交意见建议</text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
+import prompt from "@system.prompt"
 const store = require("../../data/store.js")
+const authStore = require("../../data/auth-store.js")
 
 export default {
   private: {
+    devClickCount: 0,
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -102,9 +65,7 @@ export default {
       icon: '🔵',
       progressOngoing: 'rgba(126,200,227,0.2)',
       progressDone: 'rgba(74,138,154,0.25)'
-    },
-    secretTapCount: 0,
-    secretTapTimer: null
+    }
   },
 
   onInit() {
@@ -121,20 +82,8 @@ export default {
     })
   },
 
-  openPromptDemo() {
-    router.push({ uri: "/pages/prompt-demo" })
-  },
-
-  openQrcodeTest() {
-    router.push({ uri: "/pages/qrcode-test" })
-  },
-
   openQrcodeGenerator() {
     router.push({ uri: "/pages/qrcode-generator" })
-  },
-
-  openBackgroundRunning() {
-    router.push({ uri: "/pages/background-running" })
   },
 
   openVibrationLab() {
@@ -145,28 +94,32 @@ export default {
     router.push({ uri: "/pages/device-info" })
   },
 
-  openActivation() {
-    router.push({ uri: "/pages/activation" })
-  },
-
-  openNumpadInput() {
-    router.push({ uri: "/pages/numpad-input" })
-  },
-
-  onSecretTap() {
-    var self = this
-    self.secretTapCount = self.secretTapCount + 1
-    if (self.secretTapTimer) {
-      clearTimeout(self.secretTapTimer)
+  onDevExpireClick() {
+    this.devClickCount++
+    if (this.devClickCount >= 5) {
+      this.devClickCount = 0
+      var self = this
+      authStore.getAuthData(function(data) {
+        if (!data) {
+          data = {
+            installTime: Date.now() - 8 * 24 * 60 * 60 * 1000,
+            trialDays: 7,
+            history: [],
+            lastRemindDate: '',
+            remindEnabled: true
+          }
+        }
+        data.isActivated = true
+        data.isPermanent = false
+        data.expireAt = Date.now() - 1
+        if (!data.activatedAt) {
+          data.activatedAt = Date.now() - 8 * 24 * 60 * 60 * 1000
+        }
+        authStore.setAuthData(data, function() {
+          prompt.showToast({ message: '已设置为过期状态，请返回首页查看效果' })
+        })
+      })
     }
-    if (self.secretTapCount >= 3) {
-      self.secretTapCount = 0
-      router.push({ uri: "/pages/activation-lab-demo" })
-      return
-    }
-    self.secretTapTimer = setTimeout(function() {
-      self.secretTapCount = 0
-    }, 2000)
   },
 
   goBack() {
@@ -241,10 +194,33 @@ export default {
   font-size: 20px;
 }
 
-.secret-text {
-  font-size: 11px;
+.dev-expire-hint {
+  font-size: 14px;
+  margin-top: 24px;
   text-align: center;
-  margin-top: 16px;
-  padding: 8px;
+  padding: 8px 12px;
+  line-height: 1.5;
+}
+
+@media (shape: circle) {
+  .test-area-page {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-header {
+    padding: 0 20px;
+    justify-content: center;
+  }
+}
+
+@media (shape: capsule) {
+  .test-area-page {
+    padding: 44px 8px 12px 8px;
+  }
+}
+
+@media (shape: rect) {
+  .test-area-page {
+    padding: 44px 6px 6px 6px;
+  }
 }
 </style>

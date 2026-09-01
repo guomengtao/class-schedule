@@ -202,6 +202,8 @@
           <div class="history-left">
             <text class="history-date" style="color: {{ theme.textSecondary }}">{{ $item.date }}</text>
             <text class="history-type" style="color: {{ theme.text }}">{{ $item.type }}</text>
+            <text class="history-code" if="{{ $item.activationCode }}" style="font-size: 20px; color: {{ theme.textMuted }}">激活码: {{ $item.activationCode }}</text>
+            <text class="history-code" if="{{ $item.redeemCode }}" style="font-size: 20px; color: {{ theme.textMuted }}">兑换码: {{ $item.redeemCode }}</text>
           </div>
           <div class="history-right">
             <text class="history-duration" style="color: {{ theme.accent }}">{{ $item.duration }}</text>
@@ -237,6 +239,7 @@
 <script>
 import router from "@system.router"
 import prompt from "@system.prompt"
+import vibrator from "@system.vibrator"
 const store = require("../../data/store.js")
 const authStore = require("../../data/auth-store.js")
 const crypto = require("../../lib/crypto.js")
@@ -244,6 +247,12 @@ const PRODUCTS = require("../../data/products.js").PRODUCTS
 
 var ACTIVATION_URL = "https://app-auth.gudq.com/activate.html?deviceId="
 var AFDIAN_URL = "https://www.ifdian.net/item/54100fe4a1e011f1a3f452540025c377"
+
+function doVibrate() {
+  try {
+    vibrator.vibrate({ mode: "short" })
+  } catch (e) {}
+}
 
 function formatDate(ts) {
   if (!ts) return ''
@@ -379,10 +388,12 @@ export default {
   },
 
   onCellClick(index) {
+    doVibrate()
     this.cursor = index
   },
 
   onKeyPress(digit) {
+    doVibrate()
     var idx = this.cursor
     this['cell' + idx] = digit
     if (this.cursor < 17) {
@@ -391,6 +402,7 @@ export default {
   },
 
   onDelete() {
+    doVibrate()
     var idx = this.cursor
     if (this['cell' + idx] === null || this['cell' + idx] === undefined) {
       if (this.cursor > 0) {
@@ -405,6 +417,7 @@ export default {
   },
 
   onClear() {
+    doVibrate()
     for (var i = 0; i < 18; i++) {
       this['cell' + i] = null
     }
@@ -443,7 +456,7 @@ export default {
         self.verifyResult = '万能码验证通过 - ' + masterResult.duration + ' 天'
         self.verifyDetail = '剩余可用次数: ' + masterResult.remainingUses
 
-        authStore.markActivated(masterResult.duration, function(success) {
+        authStore.markActivated(masterResult.duration, code, '', function(success) {
           if (success) {
             prompt.showToast({ message: masterResult.message || '激活成功' })
             self.loadStatus()
@@ -501,15 +514,19 @@ export default {
         var months = parseInt(decrypted.months, 10)
         var productName = PRODUCTS[productId4] ? PRODUCTS[productId4].name : '产品' + productIdIndex
 
+        var isPermanent = months === 99
+        var days = isPermanent ? -1 : months * 30
+        var durationLabel = isPermanent ? '永久' : (months + ' 个月')
+
         self.verifySuccess = true
-        self.verifyResult = '验证通过 - ' + months + ' 个月'
+        self.verifyResult = '验证通过 - ' + (isPermanent ? '永久激活' : (months + ' 个月'))
         self.verifyDetail = '产品: ' + productName + ' | 设备ID: ' + decrypted.deviceId + ' | 月份: ' + months + '个月'
 
-        authStore.markActivated(months * 30, function(success) {
+        authStore.markActivated(days, code, decrypted.redeemCode, function(success) {
           if (success) {
             authStore.saveUsedCode(code)
             authStore.saveUsedRedeemCode(decrypted.redeemCode)
-            prompt.showToast({ message: '激活成功，有效期延长 ' + months + ' 个月' })
+            prompt.showToast({ message: '激活成功，' + durationLabel })
             self.loadStatus()
             self.loadHistory()
           }
@@ -523,19 +540,20 @@ export default {
 <style>
 .page {
   flex-direction: column;
-  height: 100%;
+  padding: 44px 8px 8px 8px;
+  min-height: 100%;
 }
 
 .page-scroll {
   flex: 1;
   flex-direction: column;
-  padding: 0 8px 0 8px;
 }
 
 .back-header {
   flex-direction: row;
   align-items: center;
-  padding: 44px 8px 4px 8px;
+  padding: 0;
+  margin-bottom: 10px;
 }
 
 .back-btn {
@@ -872,5 +890,27 @@ export default {
 
 .bottom-spacer {
   height: 20px;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-header {
+    padding: 0 20px;
+    justify-content: center;
+  }
+}
+
+@media (shape: capsule) {
+  .page {
+    padding: 44px 8px 12px 8px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 6px 6px 6px;
+  }
 }
 </style>

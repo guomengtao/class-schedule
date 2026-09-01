@@ -658,7 +658,7 @@ export default {
 
 @media (shape: capsule) {
   .page {
-    padding: 44px 8px 16px 8px;
+    padding: 44px 8px 12px 8px;
   }
   .header {
     margin-bottom: 8px;

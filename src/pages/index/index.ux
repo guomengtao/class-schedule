@@ -1,7 +1,7 @@
 <template>
   <div class="schedule-page" style="background-color: {{ theme.bg }}">
-    <div class="clock-row" if="{{ !isCapsule && !isNarrowScreen }}">
-      <div class="clock-box" onclick="onClockClick">
+    <div class="clock-row" if="{{ !isCapsule && !isNarrowScreen && showTime }}">
+      <div class="clock-box">
         <text class="clock-text" style="color: {{ theme.textSecondary }}">{{ currentTime }}</text>
       </div>
     </div>
@@ -23,10 +23,14 @@
       <input class="nav-btn" type="button" value="&#9654;" onclick="nextDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
     </div>
 
-    <div class="status-bar" if="{{ isToday }}" style="background-color: {{ theme.cardLight }}; border-left-color: {{ theme.accent }}" onclick="goToStatusClass">
+    <div class="status-bar" if="{{ isToday && showStatusBar }}" style="background-color: {{ theme.cardLight }}; border-left-color: {{ theme.accent }}" onclick="goToStatusClass">
       <text class="status-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
       <text class="status-middle" style="color: {{ theme.text }}">{{ statusMainText }}</text>
       <text class="status-right" if="{{ !isCapsule && !isNarrowScreen }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
+    </div>
+
+    <div class="custom-content-bar" if="{{ showCustomContent && customContent }}" style="background-color: {{ theme.cardLight }}; border-left-color: {{ theme.accent }}">
+      <text class="custom-content-text" style="{{ customContentStyle }}; color: {{ theme.text }}">{{ customContent }}</text>
     </div>
 
     <scroll class="class-list" scroll-y="{{true}}" scroll-top="{{ scrollListTop }}">
@@ -52,27 +56,29 @@
       </div>
     </scroll>
 
+    <div class="quick-add" if="{{ showQuickAdd }}" style="background-color: {{ theme.card }}">
+      <text class="quick-add-title" onclick="toggleQuickAdd" style="{{ weekTextStyle }}; color: {{ theme.accent }}">快速添加 {{ quickAddExpanded ? '▲' : '▼' }}</text>
+      <scroll class="quick-add-scroll" scroll-x="{{true}}" if="{{ quickAddExpanded && quickCourseNames.length > 0 && !quickAddDisabled }}">
+        <div class="quick-add-list">
+          <div for="{{ quickCourseNames }}" class="quick-add-item" onclick="quickAddCourse($item)" style="background-color: {{ theme.cardLight }}">
+            <text class="quick-add-name" style="font-size: 24px; color: {{ theme.text }}">{{ $item }}</text>
+          </div>
+        </div>
+      </scroll>
+      <text class="quick-add-empty" if="{{ quickAddExpanded && quickAddDisabled }}" style="font-size: 20px; color: {{ theme.textMuted }}">今天课程已排满</text>
+      <text class="quick-add-empty" if="{{ quickAddExpanded && !quickAddDisabled && quickCourseNames.length === 0 }}" style="font-size: 20px; color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
+    </div>
+
     <div class="bottom-buttons">
       <input class="add-btn" type="button" value="+ 添加课程" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
-      <input class="style-btn" type="button" value="去激活" onclick="goToActivation" if="{{ !isActivated }}" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
     <div class="week-indicator" onclick="openScheduleManager">
       <text class="week-text" style="{{ weekTextStyle }}; color: {{ theme.accent }}">⇄ {{ currentScheduleName }}</text>
     </div>
 
-    <div class="dialog-overlay" if="{{ showRemindDialog }}" style="background-color: rgba(0,0,0,0.6)">
-      <div class="dialog-box" style="background-color: {{ theme.card }}">
-        <text class="dialog-title" style="color: {{ theme.text }}">{{ dialogTitle }}</text>
-        <text class="dialog-message" style="color: {{ theme.textSecondary }}">{{ dialogMessage }}</text>
-        <div class="dialog-buttons">
-          <input class="dialog-btn dismiss-btn" type="button" value="我知道了" onclick="closeRemindDialog" style="background-color: {{ theme.bg }}; color: {{ theme.textSecondary }}" />
-          <input class="dialog-btn action-btn" type="button" value="{{ dialogActionText }}" onclick="goToActivationFromRemind" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}; font-weight: bold" />
-        </div>
-      </div>
     </div>
-  </div>
 </template>
 
 <script>
@@ -82,7 +88,6 @@ import prompt from "@system.prompt"
 import device from "@system.device"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
-const authStore = require("../../data/auth-store.js")
 
 const dayNames = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
 
@@ -113,6 +118,7 @@ export default {
     weekTextStyle: "",
     nameStyle: "",
     btnTextStyle: "",
+    customContentStyle: "",
     scrollListTop: 0,
     upperTouchStartX: 0,
     upperTouchStartY: 0,
@@ -135,18 +141,15 @@ export default {
       text: '#ffffff',
       textSecondary: '#888899',
       textMuted: '#555566',
-      border: '#0f3460',
-      borderLight: '#2a2a5a',
-      keyBg: '#1a1a3e',
-      keyBorder: '#2a2a5a',
-      btnSecondary: '#333355',
-      btnSecondaryText: '#a0a0b0',
-      deleteBg: '#2a1a3e',
-      deleteText: '#e08080',
-      icon: '🔵',
       progressOngoing: 'rgba(126,200,227,0.2)',
       progressDone: 'rgba(74,138,154,0.25)'
     },
+    showQuickAdd: true,
+    showTime: true,
+    showStatusBar: true,
+    showCustomContent: false,
+    customContent: "",
+    timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false },
     quickCourseNames: [],
     quickAddTime: "",
     quickAddExpanded: false,
@@ -157,17 +160,7 @@ export default {
     statusTimeText: "",
     presetCourses: [],
     isCapsule: false,
-    isNarrowScreen: false,
-    showBanner: false,
-    bannerTextContent: '',
-    bannerBg: '#3a2a1a',
-    bannerText: '#e67e22',
-    bannerClickCount: 0,
-    showRemindDialog: false,
-    dialogTitle: '',
-    dialogMessage: '',
-    dialogActionText: '去激活',
-    isActivated: false
+    isNarrowScreen: false
   },
 
   sortByTime: function(list) {
@@ -184,7 +177,7 @@ export default {
   },
 
   onInit() {
-    console.log("[INDEX] onInit, currentDay=" + this.currentDay)
+    console.log("[INDEX] onInit")
     var self = this
     store.getTheme(function(t) {
       self.theme = t
@@ -199,7 +192,7 @@ export default {
     })
     this.currentDayIndex = getRealTodayIndex()
     this.currentDay = dayNames[this.currentDayIndex]
-    store.getFontScale(function(scale) {
+    store.getScaleSafe(function(scale) {
       self.fontScale = scale
       self.applyFontScale()
     })
@@ -208,6 +201,14 @@ export default {
     })
     store.getRemindSettings(function(settings) {
       self.remindSettings = settings
+    })
+    store.getHomepageSettings(function(settings) {
+      self.showQuickAdd = settings.showQuickAdd !== false
+      self.showTime = settings.showTime !== false
+      self.showStatusBar = settings.showStatusBar !== false
+      self.showCustomContent = settings.showCustomContent || false
+      self.customContent = settings.customContent || ""
+      self.timeFormat = settings.timeFormat || { year: false, month: false, day: false, hour: true, minute: true, second: true }
     })
     this.applyFontScale()
     this.startClockTimer()
@@ -240,7 +241,7 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-    store.getFontScale(function(scale) {
+    store.getScaleSafe(function(scale) {
       self.fontScale = scale
       self.applyFontScale()
     })
@@ -255,6 +256,14 @@ export default {
     store.getRemindSettings(function(settings) {
       self.remindSettings = settings
     })
+    store.getHomepageSettings(function(settings) {
+      self.showQuickAdd = settings.showQuickAdd !== false
+      self.showTime = settings.showTime !== false
+      self.showStatusBar = settings.showStatusBar !== false
+      self.showCustomContent = settings.showCustomContent || false
+      self.customContent = settings.customContent || ""
+      self.timeFormat = settings.timeFormat || { year: false, month: false, day: false, hour: true, minute: true, second: true }
+    })
     this.applyFontScale()
     database.getAllCourses(function(schedule) {
       self.schedule = schedule
@@ -262,88 +271,6 @@ export default {
       self.updateStatus()
       self.startStatusTimer()
     })
-    this.checkDailyRemind()
-  },
-
-  goToActivation() {
-    router.push({ uri: "/pages/activation" })
-  },
-
-  checkDailyRemind() {
-    var self = this
-    try {
-      authStore.needsDailyRemind(function(result) {
-        if (result.shouldRemind && result.status) {
-          var content = authStore.getRemindDialogContent(result.status)
-          self.dialogTitle = content.title
-          self.dialogMessage = content.message
-          self.dialogActionText = content.actionText
-          self.showRemindDialog = true
-        }
-        self.checkBanner()
-      })
-    } catch (e) {
-      console.warn('[INDEX] checkDailyRemind error: ' + e)
-    }
-  },
-
-  checkBanner() {
-    var self = this
-    try {
-      authStore.checkStatus(function(status) {
-        self.isActivated = status.isActivated
-        if (!status.isActivated && (status.isExpired || status.isExpiring)) {
-          self.showBanner = true
-          self.bannerTextContent = status.text
-          if (status.color === 'red') {
-            self.bannerBg = '#3a1a1a'
-            self.bannerText = '#e74c3c'
-          } else if (status.color === '#e67e22') {
-            self.bannerBg = '#3a2a1a'
-            self.bannerText = '#e67e22'
-          } else {
-            self.bannerBg = '#2a2a1a'
-            self.bannerText = '#f1c40f'
-          }
-        } else {
-          self.showBanner = false
-        }
-      })
-    } catch (e) {
-      console.warn('[INDEX] checkBanner error: ' + e)
-    }
-  },
-
-  closeRemindBanner() {
-    this.showBanner = false
-    this.bannerClickCount = 0
-    authStore.markRemindedToday()
-  },
-
-  onClockClick() {
-    this.bannerClickCount++
-    if (this.bannerClickCount >= 5) {
-      this.bannerClickCount = 0
-      var self = this
-      authStore.needsDailyRemind(function(result) {
-        if (result.status) {
-          var content = authStore.getRemindDialogContent(result.status)
-          self.dialogTitle = content.title
-          self.dialogMessage = content.message
-          self.dialogActionText = content.actionText
-          self.showRemindDialog = true
-        }
-      })
-    }
-  },
-
-  closeRemindDialog() {
-    this.showRemindDialog = false
-    authStore.markRemindedToday()
-  },
-
-  goToActivationFromRemind() {
-    router.push({ uri: "/pages/activation" })
   },
 
   onHide() {
@@ -360,10 +287,18 @@ export default {
   applyFontScale() {
     var s = this.fontScale
     if (!s || s < 0.5) { s = 1.0 }
-    this.dayTitleStyle = "font-size: " + Math.round(20 * s) + "px"
-    this.weekTextStyle = "font-size: " + Math.round(20 * s) + "px"
-    this.nameStyle = "font-size: " + Math.round(28 * s) + "px"
-    this.btnTextStyle = "font-size: " + Math.round(14 * s) + "px"
+    var styles = store.buildFontStyles(s, {
+      dayTitleStyle: 20,
+      weekTextStyle: 20,
+      nameStyle: 28,
+      btnTextStyle: 14,
+      customContentStyle: 14
+    })
+    this.dayTitleStyle = styles.dayTitleStyle
+    this.weekTextStyle = styles.weekTextStyle
+    this.nameStyle = styles.nameStyle
+    this.btnTextStyle = styles.btnTextStyle
+    this.customContentStyle = styles.customContentStyle
   },
 
   loadDayClasses() {
@@ -741,10 +676,22 @@ export default {
 
   updateClock() {
     var now = new Date()
-    var h = now.getHours()
-    var m = now.getMinutes()
-    var s = now.getSeconds()
-    this.currentTime = (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s
+    var tf = this.timeFormat || { year: false, month: false, day: false, hour: true, minute: true, second: false }
+    var dateParts = []
+    var timeParts = []
+    if (tf.year) dateParts.push(now.getFullYear() + "年")
+    if (tf.month) dateParts.push((now.getMonth() + 1) + "月")
+    if (tf.day) dateParts.push(now.getDate() + "日")
+    if (tf.hour) timeParts.push((now.getHours() < 10 ? "0" : "") + now.getHours())
+    if (tf.minute) timeParts.push((now.getMinutes() < 10 ? "0" : "") + now.getMinutes())
+    if (tf.second) timeParts.push((now.getSeconds() < 10 ? "0" : "") + now.getSeconds())
+    var dateStr = dateParts.join(" ")
+    var timeStr = timeParts.join(":")
+    if (dateStr && timeStr) {
+      this.currentTime = dateStr + " " + timeStr
+    } else {
+      this.currentTime = dateStr || timeStr || "00:00"
+    }
   },
 
   startClockTimer() {
@@ -951,15 +898,6 @@ export default {
   height: 100%;
 }
 
-.upper-half {
-  flex: 1;
-  flex-direction: column;
-}
-
-.lower-half {
-  flex-direction: column;
-}
-
 .header {
   flex-direction: row;
   justify-content: space-between;
@@ -985,100 +923,6 @@ export default {
   font-size: 18px;
   font-weight: normal;
   text-align: center;
-}
-
-.remind-banner {
-  flex-direction: row;
-  align-items: center;
-  border-radius: 8px;
-  padding: 4px 8px;
-  margin-bottom: 4px;
-  height: 32px;
-}
-
-.remind-banner-text {
-  flex: 1;
-  font-size: 12px;
-  max-lines: 1;
-  text-overflow: ellipsis;
-  margin-right: 4px;
-}
-
-.remind-banner-btn {
-  width: 64px;
-  height: 30px;
-  font-size: 12px;
-  text-align: center;
-  border-radius: 5px;
-  margin-left: 4px;
-  flex-shrink: 0;
-}
-
-.remind-banner-close {
-  width: 44px;
-  height: 30px;
-  font-size: 11px;
-  text-align: center;
-  border-radius: 5px;
-  background-color: transparent;
-  margin-left: 4px;
-  flex-shrink: 0;
-}
-
-.dialog-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.dialog-box {
-  flex-direction: column;
-  align-items: center;
-  border-radius: 16px;
-  padding: 24px 20px 16px;
-  width: 280px;
-}
-
-.dialog-title {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  text-align: center;
-}
-
-.dialog-message {
-  font-size: 14px;
-  line-height: 20px;
-  margin-bottom: 18px;
-  text-align: center;
-  padding: 0 4px;
-}
-
-.dialog-buttons {
-  flex-direction: row;
-  justify-content: center;
-  width: 100%;
-}
-
-.dialog-btn {
-  height: 40px;
-  border-radius: 10px;
-  font-size: 15px;
-  text-align: center;
-}
-
-.dismiss-btn {
-  width: 90px;
-  margin-right: 12px;
-}
-
-.action-btn {
-  width: 110px;
 }
 
 .day-title {
@@ -1161,6 +1005,22 @@ export default {
   font-size: 28px;
   color: #7ec8e3;
   font-weight: bold;
+}
+
+.custom-content-bar {
+  flex-direction: row;
+  align-items: center;
+  border-radius: 10px;
+  padding: 8px 14px;
+  margin-bottom: 6px;
+  border-left-width: 4px;
+  border-left-style: solid;
+}
+
+.custom-content-text {
+  font-size: 14px;
+  flex: 1;
+  text-align: center;
 }
 
 .class-list {
@@ -1337,278 +1197,47 @@ export default {
     padding: 44px 36px 44px 36px;
   }
   .header {
-    padding: 6px 12px;
     justify-content: center;
+    padding: 8px 0;
   }
   .nav-btn {
-    width: 44px;
-    height: 36px;
-    border-radius: 18px;
-    font-size: 16px;
-  }
-  .clock-text {
-    font-size: 14px;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 18px;
   }
   .day-title {
-    font-size: 16px;
-  }
-  .status-bar {
-    padding: 4px 12px;
-    margin-bottom: 4px;
-    height: 38px;
-  }
-  .status-tag {
-    font-size: 12px;
-    padding: 1px 10px;
-    margin-right: 8px;
-  }
-  .status-middle {
-    font-size: 16px;
-  }
-  .status-right {
-    font-size: 14px;
-    min-width: 40px;
-  }
-  .status-time {
-    font-size: 22px;
-  }
-  .class-card-wrapper {
-    margin-bottom: 4px;
-  }
-  .class-content {
-    padding: 8px 12px;
-  }
-  .class-name {
-    font-size: 20px;
-    flex: 1;
-  }
-  .class-time-text {
-    font-size: 20px;
-  }
-  .class-location {
-    font-size: 20px;
-  }
-  .class-progress {
     font-size: 18px;
+    margin: 0 8px;
   }
-  .quick-add {
-    padding: 6px;
+  .day-nav-btns {
+    display: none;
   }
-  .quick-add-item {
-    padding: 4px 10px;
-    margin-right: 4px;
+  .bottom-buttons {
+    justify-content: center;
   }
-  .quick-add-name {
-    font-size: 18px;
+  .add-btn {
+    width: 80px;
+    height: 32px;
+    font-size: 13px;
+    margin-right: 12px;
+  }
+  .style-btn {
+    width: 80px;
+    height: 32px;
+    font-size: 13px;
   }
 }
 
 @media (shape: capsule) {
   .schedule-page {
-    padding: 44px 4px 10px 4px;
-  }
-  .header {
-    padding: 2px 0;
-    margin-bottom: 2px;
-    justify-content: center;
-  }
-  .nav-btn {
-    width: 28px;
-    height: 24px;
-    border-radius: 12px;
-    font-size: 12px;
-  }
-  .day-title {
-    font-size: 15px;
-    font-weight: bold;
-    margin: 0 2px;
-  }
-  .status-bar {
-    padding: 2px 6px;
-    height: 26px;
-    margin-bottom: 3px;
-    border-left-width: 3px;
-    border-radius: 8px;
-  }
-  .status-tag {
-    font-size: 10px;
-    padding: 1px 6px;
-    margin-right: 4px;
-    border-radius: 6px;
-  }
-  .status-middle {
-    font-size: 12px;
-    max-lines: 1;
-    text-overflow: ellipsis;
-    overflow: hidden;
-  }
-  .class-card-wrapper {
-    margin-bottom: 2px;
-  }
-  .class-content {
-    padding: 3px 5px;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .class-time {
-    flex-direction: row;
-    align-items: center;
-    margin-bottom: 0;
-  }
-  .class-name {
-    font-size: 15px;
-    font-weight: bold;
-    max-width: 80px;
-    text-overflow: ellipsis;
-    max-lines: 1;
-    overflow: hidden;
-  }
-  .class-time-text {
-    font-size: 11px;
-    max-width: 45px;
-    text-overflow: ellipsis;
-    max-lines: 1;
-    overflow: hidden;
-    margin-left: 3px;
-    color: #a0a0b0;
-  }
-  .class-info {
-    flex-direction: row;
-    align-items: center;
-  }
-  .class-progress {
-    font-size: 10px;
-    min-width: 24px;
-    text-align: right;
-  }
-  .quick-add {
-    padding: 2px 4px;
-    margin-bottom: 2px;
-  }
-  .quick-add-title {
-    font-size: 10px;
-    margin-bottom: 2px;
-  }
-  .quick-add-item {
-    padding: 2px 6px;
-    margin-right: 2px;
-  }
-  .quick-add-name {
-    font-size: 11px;
-  }
-  .bottom-buttons {
-    justify-content: space-around;
-  }
-  .add-btn, .style-btn {
-    width: 48px;
-    height: 22px;
-    font-size: 9px;
-    border-radius: 6px;
-  }
-  .week-indicator {
-    padding: 2px 0;
-  }
-  .week-text {
-    font-size: 12px;
-  }
-}
-
-@media (shape: capsule) and (max-width: 240px) {
-  .class-name {
-    font-size: 16px;
-    max-width: 100px;
-  }
-  .add-btn, .style-btn {
-    width: 40px;
-    height: 20px;
-    font-size: 8px;
+    padding: 44px 8px 12px 8px;
   }
 }
 
 @media (shape: rect) {
   .schedule-page {
     padding: 44px 6px 6px 6px;
-  }
-  .header {
-    padding: 4px 2px;
-    margin-bottom: 2px;
-  }
-  .nav-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 18px;
-    font-size: 16px;
-  }
-  .clock-text {
-    font-size: 14px;
-  }
-  .day-title {
-    font-size: 16px;
-  }
-  .day-nav-circle {
-    width: 26px;
-    height: 26px;
-    border-radius: 13px;
-    margin-left: 4px;
-  }
-  .day-nav-text {
-    font-size: 16px;
-  }
-  .status-bar {
-    padding: 4px 8px;
-    margin-bottom: 4px;
-    height: 34px;
-  }
-  .status-tag {
-    font-size: 10px;
-    padding: 1px 6px;
-    margin-right: 4px;
-  }
-  .status-middle {
-    font-size: 13px;
-    min-width: 24px;
-  }
-  .status-right {
-    font-size: 12px;
-    min-width: 32px;
-    margin-left: 4px;
-  }
-  .status-time {
-    font-size: 22px;
-  }
-  .class-card-wrapper {
-    margin-bottom: 4px;
-    overflow: visible;
-  }
-  .class-card {
-    overflow: visible;
-  }
-  .class-content {
-    padding: 8px;
-  }
-  .class-name {
-    font-size: 20px;
-    flex: 1;
-    max-width: none;
-  }
-  .class-time-text {
-    font-size: 20px;
-  }
-  .class-location {
-    font-size: 20px;
-  }
-  .class-progress {
-    font-size: 18px;
-  }
-  .empty-text {
-    font-size: 20px;
-  }
-  .quick-add {
-    padding: 6px;
-  }
-  .quick-add-title {
-    font-size: 12px;
   }
 }
 </style>

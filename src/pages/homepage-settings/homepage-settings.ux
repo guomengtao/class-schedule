@@ -1,0 +1,423 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">首页设置</text>
+    </div>
+
+    <text class="group-title" style="color: {{ theme.textSecondary }}">显示控制</text>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <div class="item-row" style="border-bottom-color: {{ theme.border }}">
+        <div class="item-left">
+          <div class="dot" style="background-color: {{ theme.accent }}"></div>
+          <div class="item-text">
+            <text class="item-label" style="color: {{ theme.text }}">快速添加</text>
+            <text class="item-desc" style="color: {{ theme.textMuted }}">首页底部快速添加课程入口</text>
+          </div>
+        </div>
+        <div class="switch-track" style="background-color: {{ showQuickAdd ? theme.accent : theme.border }}" onclick="toggleQuickAdd">
+          <div class="switch-thumb" style="left: {{ showQuickAdd ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
+        </div>
+      </div>
+      <div class="item-row item-row-last">
+        <div class="item-left">
+          <div class="dot" style="background-color: {{ theme.accent }}"></div>
+          <div class="item-text">
+            <text class="item-label" style="color: {{ theme.text }}">课程提醒</text>
+            <text class="item-desc" style="color: {{ theme.textMuted }}">首页状态栏上课/下课提示</text>
+          </div>
+        </div>
+        <div class="switch-track" style="background-color: {{ showStatusBar ? theme.accent : theme.border }}" onclick="toggleStatusBar">
+          <div class="switch-thumb" style="left: {{ showStatusBar ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
+        </div>
+      </div>
+    </div>
+
+    <text class="group-title" style="color: {{ theme.textSecondary }}">自定义内容</text>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <div class="item-row" style="border-bottom-color: {{ theme.border }}">
+        <div class="item-left">
+          <div class="dot" style="background-color: {{ theme.accent }}"></div>
+          <div class="item-text">
+            <text class="item-label" style="color: {{ theme.text }}">自定义内容</text>
+            <text class="item-desc" style="color: {{ theme.textMuted }}">在首页显示自定义文字</text>
+          </div>
+        </div>
+        <div class="switch-track" style="background-color: {{ showCustomContent ? theme.accent : theme.border }}" onclick="toggleCustomContent">
+          <div class="switch-thumb" style="left: {{ showCustomContent ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
+        </div>
+      </div>
+      <div class="input-row" onclick="showContentKeyboard">
+        <text class="input-text" style="color: {{ customContent && showCustomContent ? theme.text : theme.textMuted }}">{{ customContent || '点击输入自定义文字...' }}</text>
+        <text class="input-arrow" style="color: {{ theme.textMuted }}">></text>
+      </div>
+      <div class="preview-row" if="{{ customContent && showCustomContent }}">
+        <text class="preview-label" style="color: {{ theme.textSecondary }}">预览效果</text>
+        <text class="preview-text" style="color: {{ theme.accent }}">{{ customContent }}</text>
+      </div>
+    </div>
+
+    <text class="group-title" style="color: {{ theme.textSecondary }}">时间显示</text>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <div class="item-row" style="border-bottom-color: {{ theme.border }}">
+        <div class="item-left">
+          <div class="dot" style="background-color: {{ theme.accent }}"></div>
+          <div class="item-text">
+            <text class="item-label" style="color: {{ theme.text }}">时间显示</text>
+            <text class="item-desc" style="color: {{ theme.textMuted }}">首页顶部实时时钟</text>
+          </div>
+        </div>
+        <div class="switch-track" style="background-color: {{ showTime ? theme.accent : theme.border }}" onclick="toggleTime">
+          <div class="switch-thumb" style="left: {{ showTime ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
+        </div>
+      </div>
+      <div class="time-format-row" if="{{ showTime }}">
+        <div class="unit-chip" style="border-color: {{ timeFormat.year ? theme.accent : theme.border }}; background-color: {{ timeFormat.year ? theme.cardLight : theme.border }}" onclick="toggleYear">
+          <text class="unit-text" style="color: {{ timeFormat.year ? theme.accent : theme.textSecondary }}">年</text>
+        </div>
+        <div class="unit-chip" style="border-color: {{ timeFormat.month ? theme.accent : theme.border }}; background-color: {{ timeFormat.month ? theme.cardLight : theme.border }}" onclick="toggleMonth">
+          <text class="unit-text" style="color: {{ timeFormat.month ? theme.accent : theme.textSecondary }}">月</text>
+        </div>
+        <div class="unit-chip" style="border-color: {{ timeFormat.day ? theme.accent : theme.border }}; background-color: {{ timeFormat.day ? theme.cardLight : theme.border }}" onclick="toggleDay">
+          <text class="unit-text" style="color: {{ timeFormat.day ? theme.accent : theme.textSecondary }}">日</text>
+        </div>
+        <text class="colon-sep" style="color: {{ theme.textMuted }}"></text>
+        <div class="unit-chip" style="border-color: {{ timeFormat.hour ? theme.accent : theme.border }}; background-color: {{ timeFormat.hour ? theme.cardLight : theme.border }}" onclick="toggleHour">
+          <text class="unit-text" style="color: {{ timeFormat.hour ? theme.accent : theme.textSecondary }}">时</text>
+        </div>
+        <text class="colon-sep" style="color: {{ theme.textMuted }}">:</text>
+        <div class="unit-chip" style="border-color: {{ timeFormat.minute ? theme.accent : theme.border }}; background-color: {{ timeFormat.minute ? theme.cardLight : theme.border }}" onclick="toggleMinute">
+          <text class="unit-text" style="color: {{ timeFormat.minute ? theme.accent : theme.textSecondary }}">分</text>
+        </div>
+        <text class="colon-sep" style="color: {{ theme.textMuted }}">:</text>
+        <div class="unit-chip" style="border-color: {{ timeFormat.second ? theme.accent : theme.border }}; background-color: {{ timeFormat.second ? theme.cardLight : theme.border }}" onclick="toggleSecond">
+          <text class="unit-text" style="color: {{ timeFormat.second ? theme.accent : theme.textSecondary }}">秒</text>
+        </div>
+      </div>
+      <text class="time-preview" if="{{ showTime }}" style="color: {{ theme.accent }}">{{ timePreview }}</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+export default {
+  private: {
+    theme: store.DEFAULT_THEME,
+    showQuickAdd: true,
+    showCustomContent: false,
+    customContent: "",
+    showStatusBar: true,
+    showTime: true,
+    timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false },
+    timePreview: ""
+  },
+  onInit() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+    this.loadSettings()
+  },
+  onShow() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+    this.loadSettings()
+  },
+  loadSettings() {
+    var self = this
+    store.getHomepageSettings(function(settings) {
+      self.showQuickAdd = settings.showQuickAdd !== false
+      self.showCustomContent = settings.showCustomContent || false
+      self.customContent = settings.customContent || ""
+      self.showStatusBar = settings.showStatusBar !== false
+      self.showTime = settings.showTime !== false
+      self.timeFormat = settings.timeFormat || { year: false, month: false, day: false, hour: true, minute: true, second: true }
+      self.updateTimePreview()
+    })
+  },
+  saveSettings() {
+    store.setHomepageSettings({
+      showQuickAdd: this.showQuickAdd,
+      showCustomContent: this.showCustomContent,
+      customContent: this.customContent,
+      showStatusBar: this.showStatusBar,
+      showTime: this.showTime,
+      timeFormat: this.timeFormat
+    })
+  },
+  goBack() {
+    store.setHomepageSettings({
+      showQuickAdd: this.showQuickAdd,
+      showCustomContent: this.showCustomContent,
+      customContent: this.customContent,
+      showStatusBar: this.showStatusBar,
+      showTime: this.showTime,
+      timeFormat: this.timeFormat
+    }, function() { router.back() })
+  },
+  toggleQuickAdd() { this.showQuickAdd = !this.showQuickAdd; this.saveSettings() },
+  toggleCustomContent() { this.showCustomContent = !this.showCustomContent; this.saveSettings() },
+  toggleStatusBar() { this.showStatusBar = !this.showStatusBar; this.saveSettings() },
+  toggleTime() { this.showTime = !this.showTime; this.saveSettings() },
+  showContentKeyboard() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.set({ key: "chinese_input_title", value: "自定义内容", success: function() {
+      storage.set({ key: "chinese_input_placeholder", value: "点击输入自定义内容", success: function() {
+        storage.set({ key: "chinese_input_value", value: self.customContent || "", success: function() {
+          storage.set({ key: "chinese_input_maxlen", value: "20", success: function() {
+            storage.set({ key: "chinese_input_return_key", value: "chinese_input_result", success: function() {
+              router.push({ uri: "/pages/chinese-input" })
+            } })
+          } })
+        } })
+      } })
+    } })
+  },
+  toggleTimeUnit(unit) {
+    this.timeFormat[unit] = !this.timeFormat[unit]
+    this.updateTimePreview()
+    this.saveSettings()
+  },
+  toggleYear() { this.toggleTimeUnit("year") },
+  toggleMonth() { this.toggleTimeUnit("month") },
+  toggleDay() { this.toggleTimeUnit("day") },
+  toggleHour() { this.toggleTimeUnit("hour") },
+  toggleMinute() { this.toggleTimeUnit("minute") },
+  toggleSecond() { this.toggleTimeUnit("second") },
+  updateTimePreview() {
+    var now = new Date()
+    var dateParts = []
+    var timeParts = []
+    if (this.timeFormat.year) dateParts.push(now.getFullYear() + "年")
+    if (this.timeFormat.month) dateParts.push((now.getMonth() + 1) + "月")
+    if (this.timeFormat.day) dateParts.push(now.getDate() + "日")
+    if (this.timeFormat.hour) timeParts.push((now.getHours() < 10 ? "0" : "") + now.getHours())
+    if (this.timeFormat.minute) timeParts.push((now.getMinutes() < 10 ? "0" : "") + now.getMinutes())
+    if (this.timeFormat.second) timeParts.push((now.getSeconds() < 10 ? "0" : "") + now.getSeconds())
+    var dateStr = dateParts.join(" ")
+    var timeStr = timeParts.join(":")
+    if (dateStr && timeStr) {
+      this.timePreview = dateStr + " " + timeStr
+    } else {
+      this.timePreview = dateStr || timeStr || "00:00:00"
+    }
+  }
+}
+</script>
+
+<style>
+.page {
+  flex: 1;
+  flex-direction: column;
+  padding: 44px 8px 8px 8px;
+  min-height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 0;
+}
+
+.back-btn {
+  width: 64px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.title {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  margin-right: 64px;
+}
+
+.group-title {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  margin-left: 4px;
+  letter-spacing: 1px;
+}
+
+.section {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 0 12px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.item-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+}
+
+.item-row-last {
+  border-bottom-width: 0;
+}
+
+.item-left {
+  flex-direction: row;
+  align-items: center;
+  flex: 1;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.item-text {
+  flex-direction: column;
+}
+
+.item-label {
+  font-size: 15px;
+}
+
+.item-desc {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.switch-track {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.switch-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  position: absolute;
+  top: 2px;
+}
+
+.input-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+
+.input-text {
+  font-size: 14px;
+  flex: 1;
+}
+
+.input-arrow {
+  font-size: 14px;
+  margin-left: 8px;
+}
+
+.preview-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 0 10px 0;
+}
+
+.preview-label {
+  font-size: 12px;
+  margin-right: 8px;
+}
+
+.preview-text {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.time-format-row {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: 10px;
+}
+
+.unit-chip {
+  padding: 3px 8px;
+  border-radius: 4px;
+  border-width: 1px;
+  border-style: solid;
+  margin: 2px;
+}
+
+.unit-text {
+  font-size: 12px;
+}
+
+.colon-sep {
+  font-size: 13px;
+  margin: 0 1px;
+}
+
+.time-preview {
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+  .header {
+    margin-bottom: 8px;
+    padding: 0 20px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 52px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .title {
+    font-size: 14px;
+  }
+}
+
+@media (shape: capsule) {
+  .page {
+    padding: 44px 8px 12px 8px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 6px 6px 6px;
+  }
+  .header {
+    margin-bottom: 6px;
+  }
+  .back-btn {
+    width: 50px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .title {
+    font-size: 14px;
+    margin-right: 50px;
+  }
+}
+</style>

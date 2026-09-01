@@ -340,11 +340,11 @@ function buildFullStatus(data) {
   return status
 }
 
-function markActivated(days, callback) {
-  markActivatedV2(days, '0001', callback)
+function markActivated(days, activationCode, redeemCode, callback) {
+  markActivatedV2(days, '0001', activationCode, redeemCode, callback)
 }
 
-function markActivatedV2(days, productId, callback) {
+function markActivatedV2(days, productId, activationCode, redeemCode, callback) {
   var pid = productId || '0001'
   getAuthData(function(data) {
     if (!data) {
@@ -382,13 +382,13 @@ function markActivatedV2(days, productId, callback) {
       codeType = (days === 7) ? 'trial' : 'standard'
     }
 
-    addHistoryEntry(data, '激活', durationText, codeType, '成功')
+    addHistoryEntry(data, '激活', durationText, codeType, '成功', activationCode, redeemCode)
 
     setAuthData(data, callback)
   })
 }
 
-function addHistoryEntry(data, type, duration, codeType, status) {
+function addHistoryEntry(data, type, duration, codeType, status, activationCode, redeemCode) {
   if (!data.history) data.history = []
   var entry = {
     id: String(Date.now()),
@@ -397,7 +397,9 @@ function addHistoryEntry(data, type, duration, codeType, status) {
     type: type,
     duration: duration,
     codeType: codeType,
-    status: status
+    status: status,
+    activationCode: activationCode || '',
+    redeemCode: redeemCode || ''
   }
   data.history.unshift(entry)
   if (data.history.length > 50) {
