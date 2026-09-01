@@ -1,55 +1,141 @@
 <template>
   <div class="manager-page" style="background-color: {{ theme.bg }}">
-    <div class="back-header">
-      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="header-title" style="color: {{ theme.text }}">课程表管理</text>
-      <input class="stats-btn" type="button" value="统计" onclick="openStatistics" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-    </div>
+    <!-- 顶部装饰渐变条 -->
+    <div class="top-gradient"></div>
 
-    <div class="rename-bar" show="{{ editingIndex >= 0 }}" style="background-color: {{ theme.card }}">
-      <div class="rename-display" onclick="startRename(editingIndex)" style="background-color: {{ theme.cardLight }}; border-color: {{ theme.accent }}">
-        <text class="rename-text" style="color: {{ theme.text }}">{{ editName || '输入新名称' }}</text>
+    <!-- 头部导航栏 -->
+    <div class="app-header">
+      <div class="header-left">
+        <div class="icon-btn" onclick="goBack" style="background-color: {{ theme.card }}">
+          <text class="icon-btn-text" style="color: {{ theme.accent }}">‹</text>
+        </div>
       </div>
-      <input class="rename-ok-btn" type="button" value="保存" onclick="finishEdit" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      <input class="rename-cancel-btn" type="button" value="取消" onclick="cancelEdit" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+      <div class="header-center">
+        <text class="header-title" style="color: {{ theme.text }}">课程表管理</text>
+        <text class="header-subtitle" style="color: {{ theme.textSecondary }}">共 {{ scheduleList.length }} 个课程表</text>
+      </div>
+      <div class="header-right">
+        <div class="icon-btn" onclick="openStatistics" style="background-color: {{ theme.card }}">
+          <text class="icon-btn-text" style="color: {{ theme.accent }}">📊</text>
+        </div>
+      </div>
     </div>
 
+    <!-- 重命名编辑栏 -->
+    <div class="edit-panel" show="{{ editingIndex >= 0 }}" style="background-color: {{ theme.card }}">
+      <div class="edit-panel-header">
+        <text class="edit-panel-icon">✏️</text>
+        <text class="edit-panel-title" style="color: {{ theme.text }}">重命名课程表</text>
+      </div>
+      <div class="edit-panel-body">
+        <div class="edit-input-wrapper" style="background-color: {{ theme.cardLight }}; border-color: {{ theme.accent }}">
+          <text class="edit-input-text" style="color: {{ theme.text }}">{{ editName || '点击输入新名称' }}</text>
+        </div>
+        <div class="edit-btn-group">
+          <div class="edit-btn edit-btn-cancel" onclick="cancelEdit" style="background-color: {{ theme.btnSecondary }}">
+            <text class="edit-btn-text" style="color: {{ theme.btnSecondaryText }}">取消</text>
+          </div>
+          <div class="edit-btn edit-btn-confirm" onclick="finishEdit" style="background-color: {{ theme.accent }}">
+            <text class="edit-btn-text" style="color: {{ theme.bg }}">✓ 保存</text>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 课程表列表 -->
     <scroll class="schedule-list-scroll" scroll-y="{{true}}">
-      <div for="{{ scheduleList }}" class="schedule-item {{ $idx === currentIndex ? 'active' : '' }}" style="background-color: {{ theme.card }}; border-left-color: {{ $idx === currentIndex ? theme.accent : theme.bg }}">
-        <div class="item-header" onclick="selectSchedule($idx)">
-          <text class="schedule-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-          <text class="badge" if="{{ $idx === currentIndex }}" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">使用中</text>
+      <div class="list-container">
+        <div for="{{ scheduleList }}" class="schedule-card {{ $idx === currentIndex ? 'card-active' : '' }}" style="background-color: {{ theme.card }}">
+          <!-- 激活指示器 -->
+          <div class="card-indicator" if="{{ $idx === currentIndex }}" style="background-color: {{ theme.accent }}"></div>
+
+          <!-- 卡片头部 -->
+          <div class="card-header" onclick="selectSchedule($idx)">
+            <div class="card-title-area">
+              <div class="card-icon" style="background-color: {{ $idx === currentIndex ? theme.accent : theme.cardLight }}">
+                <text class="card-icon-text" style="color: {{ $idx === currentIndex ? theme.bg : theme.accent }}">📚</text>
+              </div>
+              <div class="card-title-wrap">
+                <text class="card-title" style="color: {{ theme.text }}">{{ $item.name }}</text>
+                <div class="card-tag-row">
+                  <text class="card-index-tag" style="background-color: {{ theme.cardLight }}; color: {{ theme.textSecondary }}">#{{ $idx + 1 }}</text>
+                  <text class="active-badge" if="{{ $idx === currentIndex }}" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">
+                    ● 使用中
+                  </text>
+                </div>
+              </div>
+            </div>
+            <div class="card-arrow" style="color: {{ theme.textMuted }}">
+              <text>›</text>
+            </div>
+          </div>
+
+          <!-- 分隔线 -->
+          <div class="card-divider" style="background-color: {{ theme.cardLight }}"></div>
+
+          <!-- 操作按钮区 - 上排：主要操作 -->
+          <div class="action-section">
+            <div class="action-section-label">
+              <text style="color: {{ theme.textSecondary }}">快捷操作</text>
+            </div>
+            <div class="action-row-primary">
+              <div class="action-item" onclick="openWeekView($idx)" style="background-color: {{ theme.cardLight }}">
+                <text class="action-icon">📅</text>
+                <text class="action-label" style="color: {{ theme.text }}">周总览</text>
+              </div>
+              <div class="action-item" onclick="openScheduleStats($idx)" style="background-color: {{ theme.cardLight }}">
+                <text class="action-icon">📈</text>
+                <text class="action-label" style="color: {{ theme.text }}">数据统计</text>
+              </div>
+              <div class="action-item" onclick="openQrPopup($idx)" style="background-color: {{ theme.cardLight }}">
+                <text class="action-icon">📤</text>
+                <text class="action-label" style="color: {{ theme.text }}">导出</text>
+              </div>
+            </div>
+          </div>
+
+          <!-- 操作按钮区 - 下排：管理操作 -->
+          <div class="action-section">
+            <div class="action-section-label">
+              <text style="color: {{ theme.textSecondary }}">管理</text>
+            </div>
+            <div class="action-row-secondary">
+              <div class="action-item action-item-outline" onclick="startRename($idx)" style="border-color: {{ theme.accent }}">
+                <text class="action-icon" style="color: {{ theme.accent }}">📝</text>
+                <text class="action-label" style="color: {{ theme.accent }}">重命名</text>
+              </div>
+              <div class="action-item action-item-outline" onclick="copySchedule($idx)" style="border-color: {{ theme.accent }}">
+                <text class="action-icon" style="color: {{ theme.accent }}">📋</text>
+                <text class="action-label" style="color: {{ theme.accent }}">复制</text>
+              </div>
+              <div class="action-item action-item-danger" if="{{ scheduleList.length > 1 }}" onclick="deleteSchedule($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}">
+                <text class="action-icon">{{ deleteConfirmIndex === $idx ? '⚠️' : '🗑️' }}</text>
+                <text class="action-label" style="color: {{ deleteConfirmIndex === $idx ? '#ffffff' : theme.deleteText }}">
+                  {{ deleteConfirmIndex === $idx ? '确认删除' : '删除' }}
+                </text>
+              </div>
+            </div>
+          </div>
+
+          <!-- 选中使用提示 -->
+          <div class="card-tip" if="{{ $idx === currentIndex }}" style="background-color: {{ theme.cardLight }}">
+            <text class="card-tip-text" style="color: {{ theme.accent }}">💡 点击卡片区域可返回并应用此课程表</text>
+          </div>
         </div>
 
-        <div class="actions-grid">
-          <div class="action-row">
-            <div class="action-btn" onclick="startRename($idx)" style="background-color: {{ theme.cardLight }}">
-              <text class="action-btn-text" style="color: {{ theme.text }}">重命名</text>
-            </div>
-            <div class="action-btn" onclick="copySchedule($idx)" style="background-color: {{ theme.cardLight }}">
-              <text class="action-btn-text" style="color: {{ theme.text }}">复制</text>
-            </div>
-            <div class="action-btn" onclick="openQrPopup($idx)" style="background-color: {{ theme.cardLight }}">
-              <text class="action-btn-text" style="color: {{ theme.text }}">导出</text>
-            </div>
-          </div>
-          <div class="action-row">
-            <div class="action-btn" onclick="openWeekView($idx)" style="background-color: {{ theme.cardLight }}">
-              <text class="action-btn-text" style="color: {{ theme.text }}">总览</text>
-            </div>
-            <div class="action-btn" onclick="openScheduleStats($idx)" style="background-color: {{ theme.cardLight }}">
-              <text class="action-btn-text" style="color: {{ theme.text }}">统计</text>
-            </div>
-            <div class="action-btn delete-btn" if="{{ scheduleList.length > 1 }}" onclick="deleteSchedule($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}">
-              <text class="action-btn-text" style="color: {{ deleteConfirmIndex === $idx ? '#ffffff' : theme.deleteText }}">{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}</text>
-            </div>
-          </div>
-        </div>
+        <!-- 列表底部留白 -->
+        <div class="list-bottom-spacer"></div>
       </div>
     </scroll>
 
-    <div class="add-section">
-      <input class="add-btn" type="button" value="+ 新增课程表" onclick="addSchedule" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    <!-- 底部新增按钮 -->
+    <div class="footer-bar" style="background-color: {{ theme.bg }}">
+      <div class="add-btn-wrapper">
+        <div class="add-btn" onclick="addSchedule" style="background-color: {{ theme.accent }}">
+          <text class="add-btn-icon">＋</text>
+          <text class="add-btn-text" style="color: {{ theme.bg }}">新增课程表</text>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -68,17 +154,17 @@ export default {
     editName: "",
     deleteConfirmIndex: -1,
     theme: {
-      bg: '#1a1a2e',
-      card: '#16213e',
-      cardLight: '#0f3460',
-      accent: '#7ec8e3',
-      text: '#ffffff',
-      textSecondary: '#888899',
-      textMuted: '#555566',
-      btnSecondary: '#333355',
-      btnSecondaryText: '#a0a0b0',
-      deleteBg: '#2a1a3e',
-      deleteText: '#e08080'
+      bg: '#0f172a',
+      card: '#1e293b',
+      cardLight: '#334155',
+      accent: '#3b82f6',
+      text: '#f8fafc',
+      textSecondary: '#94a3b8',
+      textMuted: '#64748b',
+      btnSecondary: '#475569',
+      btnSecondaryText: '#e2e8f0',
+      deleteBg: '#1e1b2e',
+      deleteText: '#ef4444'
     }
   },
 
@@ -401,359 +487,741 @@ export default {
 <style>
 .manager-page {
   flex-direction: column;
-  padding: 44px 8px 8px 8px;
+  padding: 0px 14px 0px 14px;
   height: 100%;
+  position: relative;
 }
 
-.back-header {
+/* 顶部装饰渐变 */
+.top-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 160px;
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.15) 0%, rgba(15, 23, 42, 0) 100%);
+  pointer-events: none;
+}
+
+/* ====== 头部导航 ====== */
+.app-header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 12px;
-  padding: 6px 0;
+  justify-content: space-between;
+  padding: 50px 4px 18px 4px;
+  position: relative;
+  z-index: 1;
 }
 
-.back-btn {
-  width: 54px;
-  height: 40px;
-  border-radius: 10px;
-  font-size: 20px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.stats-btn {
-  width: 54px;
-  height: 40px;
-  border-radius: 10px;
-  font-size: 16px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.header-title {
-  font-size: 22px;
-  font-weight: bold;
-  margin-left: 12px;
-  flex: 1;
-}
-
-.rename-bar {
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 12px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  border-left-width: 3px;
-  border-left-style: solid;
-}
-
-.rename-display {
-  flex: 1;
-  height: 40px;
-  border-radius: 8px;
-  border-width: 2px;
-  font-size: 18px;
-  padding: 0 12px;
-  flex-direction: row;
-  align-items: center;
-}
-
-.rename-text {
-  font-size: 18px;
-}
-
-.rename-ok-btn {
-  width: 56px;
-  height: 36px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: bold;
-  text-align: center;
-  margin-left: 8px;
-}
-
-.rename-cancel-btn {
-  width: 56px;
-  height: 36px;
-  border-radius: 8px;
-  font-size: 16px;
-  text-align: center;
-  margin-left: 6px;
-}
-
-.schedule-list-scroll {
-  flex-grow: 1;
-  flex-direction: column;
-}
-
-.schedule-item {
-  flex-direction: column;
-  background-color: #16213e;
-  border-radius: 12px;
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  border-left-width: 4px;
-  border-left-style: solid;
-}
-
-.item-header {
-  flex-direction: row;
-  align-items: center;
-  padding-bottom: 10px;
-  border-bottom-width: 1px;
-  border-bottom-style: solid;
-  border-bottom-color: rgba(128, 128, 128, 0.2);
-}
-
-.schedule-name {
-  font-size: 22px;
-  font-weight: bold;
-}
-
-.badge {
-  font-size: 14px;
-  padding: 3px 12px;
-  border-radius: 10px;
-  font-weight: bold;
-  margin-left: 12px;
-}
-
-.actions-grid {
-  flex-direction: column;
-  padding-top: 10px;
-}
-
-.action-row {
-  flex-direction: row;
-  margin-bottom: 6px;
-}
-
-.action-btn {
-  flex: 1;
-  height: 34px;
-  border-radius: 8px;
+.header-left, .header-right {
+  width: 44px;
   align-items: center;
   justify-content: center;
 }
 
-.action-btn-text {
-  font-size: 15px;
+.header-center {
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 }
 
-.add-section {
-  margin-top: 10px;
-  padding-bottom: 4px;
-}
-
-.add-btn {
-  width: 100%;
+.icon-btn {
+  width: 44px;
   height: 44px;
-  border-radius: 10px;
-  font-size: 17px;
+  border-radius: 14px;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn-text {
+  font-size: 28px;
   font-weight: bold;
   text-align: center;
 }
 
+.header-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.header-subtitle {
+  font-size: 12px;
+  margin-top: 4px;
+  letter-spacing: 0.3px;
+}
+
+/* ====== 重命名编辑面板 ====== */
+.edit-panel {
+  flex-direction: column;
+  margin: 0px 2px 16px 2px;
+  padding: 16px;
+  border-radius: 18px;
+  position: relative;
+  z-index: 1;
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-left-color: #3b82f6;
+}
+
+.edit-panel-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.edit-panel-icon {
+  font-size: 18px;
+  margin-right: 8px;
+}
+
+.edit-panel-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.edit-panel-body {
+  flex-direction: column;
+}
+
+.edit-input-wrapper {
+  height: 46px;
+  border-radius: 12px;
+  border-width: 2px;
+  border-style: solid;
+  align-items: center;
+  padding: 0 16px;
+  margin-bottom: 14px;
+}
+
+.edit-input-text {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.edit-btn-group {
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.edit-btn {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 12px;
+  align-items: center;
+  justify-content: center;
+  margin-left: 10px;
+}
+
+.edit-btn-text {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ====== 列表区域 ====== */
+.schedule-list-scroll {
+  flex-grow: 1;
+  flex-direction: column;
+  padding-bottom: 100px;
+  position: relative;
+  z-index: 1;
+}
+
+.list-container {
+  flex-direction: column;
+}
+
+/* ====== 课程表卡片 ====== */
+.schedule-card {
+  flex-direction: column;
+  border-radius: 20px;
+  padding: 18px 18px 16px 18px;
+  margin-bottom: 16px;
+  margin-left: 2px;
+  margin-right: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-active {
+  position: relative;
+}
+
+/* 激活卡片左侧指示条 */
+.card-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+}
+
+/* ====== 卡片头部 ====== */
+.card-header {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 0 14px 0;
+}
+
+.card-title-area {
+  flex-direction: row;
+  align-items: center;
+  flex: 1;
+}
+
+.card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  align-items: center;
+  justify-content: center;
+  margin-right: 14px;
+  flex-shrink: 0;
+}
+
+.card-icon-text {
+  font-size: 22px;
+}
+
+.card-title-wrap {
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.card-title {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
+}
+
+.card-tag-row {
+  flex-direction: row;
+  align-items: center;
+}
+
+.card-index-tag {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.active-badge {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.card-arrow {
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-arrow text {
+  font-size: 26px;
+  font-weight: 300;
+  text-align: center;
+}
+
+/* ====== 分隔线 ====== */
+.card-divider {
+  height: 1px;
+  opacity: 0.6;
+  margin: 0 0 14px 0;
+}
+
+/* ====== 操作区 ====== */
+.action-section {
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.action-section:last-child {
+  margin-bottom: 0;
+}
+
+.action-section-label {
+  margin-bottom: 8px;
+  padding-left: 2px;
+}
+
+.action-section-label text {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.action-row-primary {
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.action-row-secondary {
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.action-item {
+  flex: 1;
+  height: 58px;
+  border-radius: 14px;
+  margin-right: 8px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 8px 4px;
+}
+
+.action-item:last-child {
+  margin-right: 0;
+}
+
+.action-item-outline {
+  background-color: transparent;
+  border-width: 1.5px;
+  border-style: solid;
+}
+
+.action-item-danger {
+  border-width: 1.5px;
+  border-style: solid;
+  border-color: transparent;
+}
+
+.action-icon {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.action-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-align: center;
+}
+
+/* ====== 使用提示 ====== */
+.card-tip {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-tip-text {
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* ====== 底部留白 ====== */
+.list-bottom-spacer {
+  height: 20px;
+}
+
+/* ====== 底部新增按钮 ====== */
+.footer-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 14px 16px 14px;
+  z-index: 10;
+}
+
+.add-btn-wrapper {
+  width: 100%;
+}
+
+.add-btn {
+  width: 100%;
+  height: 54px;
+  border-radius: 16px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-btn-icon {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-right: 8px;
+}
+
+.add-btn-text {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* ================================================ */
+/* ======  圆形屏幕适配 (shape: circle)    ====== */
+/* ================================================ */
 @media (shape: circle) {
   .manager-page {
-    padding: 44px 36px 44px 36px;
+    padding: 0px 28px 0px 28px;
   }
-  .back-header {
-    margin-bottom: 8px;
-    padding: 4px 20px;
-    justify-content: center;
-  }
-  .back-btn {
-    width: 44px;
-    height: 32px;
-    font-size: 16px;
-  }
-  .stats-btn {
-    width: 44px;
-    height: 32px;
-    font-size: 13px;
+  .app-header {
+    padding: 56px 2px 14px 2px;
   }
   .header-title {
-    font-size: 18px;
-    margin-left: 8px;
+    font-size: 17px;
   }
-  .rename-bar {
-    padding: 6px 8px;
-    margin-bottom: 8px;
-    justify-content: center;
+  .header-subtitle {
+    font-size: 11px;
   }
-  .rename-display {
-    height: 34px;
-    font-size: 15px;
-    padding: 0 8px;
+  .icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
   }
-  .rename-text {
-    font-size: 15px;
+  .icon-btn-text {
+    font-size: 24px;
   }
-  .rename-ok-btn {
-    width: 48px;
-    height: 30px;
-    font-size: 14px;
+  .header-left, .header-right {
+    width: 38px;
   }
-  .rename-cancel-btn {
-    width: 48px;
-    height: 30px;
-    font-size: 14px;
-  }
-  .schedule-item {
+  .edit-panel {
     padding: 12px 14px;
-    margin-bottom: 6px;
+    border-radius: 16px;
+    margin-bottom: 12px;
   }
-  .schedule-name {
-    font-size: 18px;
+  .edit-panel-title {
+    font-size: 14px;
   }
-  .badge {
-    font-size: 12px;
-    padding: 2px 10px;
+  .edit-input-wrapper {
+    height: 40px;
+    border-radius: 10px;
+    padding: 0 12px;
   }
-  .action-btn {
-    height: 30px;
+  .edit-input-text {
+    font-size: 14px;
   }
-  .action-btn-text {
+  .edit-btn {
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 10px;
+  }
+  .edit-btn-text {
     font-size: 13px;
   }
-  .add-btn {
+  .schedule-card {
+    padding: 14px 14px 12px 14px;
+    border-radius: 16px;
+    margin-bottom: 12px;
+  }
+  .card-icon {
+    width: 40px;
     height: 40px;
+    border-radius: 12px;
+    margin-right: 10px;
+  }
+  .card-icon-text {
+    font-size: 18px;
+  }
+  .card-title {
+    font-size: 16px;
+  }
+  .card-index-tag {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .active-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+  .card-header {
+    padding: 2px 0 10px 0;
+  }
+  .card-divider {
+    margin: 0 0 10px 0;
+  }
+  .action-section {
+    margin-bottom: 10px;
+  }
+  .action-item {
+    height: 50px;
+    border-radius: 12px;
+    margin-right: 6px;
+    padding: 6px 2px;
+  }
+  .action-icon {
     font-size: 15px;
+    margin-bottom: 2px;
+  }
+  .action-label {
+    font-size: 11px;
+  }
+  .card-tip {
+    margin-top: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+  }
+  .card-tip-text {
+    font-size: 11px;
+  }
+  .footer-bar {
+    padding: 10px 28px 14px 28px;
+  }
+  .add-btn {
+    height: 46px;
+    border-radius: 14px;
+  }
+  .add-btn-icon {
+    font-size: 18px;
+  }
+  .add-btn-text {
+    font-size: 14px;
   }
 }
 
+/* ================================================ */
+/* ======  胶囊屏幕适配 (shape: capsule)   ====== */
+/* ================================================ */
 @media (shape: capsule) {
   .manager-page {
-    padding: 44px 8px 12px 8px;
+    padding: 0px 10px 0px 10px;
   }
-  .back-header {
-    margin-bottom: 8px;
-    padding: 4px 4px;
-    justify-content: center;
-  }
-  .back-btn {
-    width: 42px;
-    height: 32px;
-    font-size: 16px;
-  }
-  .stats-btn {
-    width: 42px;
-    height: 32px;
-    font-size: 13px;
+  .app-header {
+    padding: 46px 2px 14px 2px;
   }
   .header-title {
-    font-size: 17px;
-    margin-left: 8px;
+    font-size: 18px;
   }
-  .rename-bar {
-    padding: 6px 8px;
-    margin-bottom: 8px;
-  }
-  .rename-display {
-    height: 32px;
-    font-size: 14px;
-    padding: 0 8px;
-  }
-  .rename-text {
-    font-size: 14px;
-  }
-  .rename-ok-btn {
-    width: 46px;
-    height: 30px;
-    font-size: 14px;
-  }
-  .rename-cancel-btn {
-    width: 46px;
-    height: 30px;
-    font-size: 14px;
-  }
-  .schedule-item {
-    padding: 10px 12px;
-    margin-bottom: 6px;
-  }
-  .schedule-name {
-    font-size: 17px;
-  }
-  .badge {
+  .header-subtitle {
     font-size: 11px;
+  }
+  .icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+  .icon-btn-text {
+    font-size: 24px;
+  }
+  .header-left, .header-right {
+    width: 40px;
+  }
+  .edit-panel {
+    padding: 13px 14px;
+    border-radius: 16px;
+    margin-bottom: 13px;
+  }
+  .edit-panel-title {
+    font-size: 14px;
+  }
+  .edit-input-wrapper {
+    height: 42px;
+    border-radius: 10px;
+    padding: 0 12px;
+    margin-bottom: 12px;
+  }
+  .edit-input-text {
+    font-size: 15px;
+  }
+  .edit-btn {
+    height: 38px;
+    padding: 0 15px;
+    border-radius: 10px;
+  }
+  .edit-btn-text {
+    font-size: 14px;
+  }
+  .schedule-card {
+    padding: 15px 15px 14px 15px;
+    border-radius: 17px;
+    margin-bottom: 13px;
+  }
+  .card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    margin-right: 12px;
+  }
+  .card-icon-text {
+    font-size: 20px;
+  }
+  .card-title {
+    font-size: 17px;
+  }
+  .card-index-tag {
+    font-size: 10px;
+    padding: 2px 7px;
+  }
+  .active-badge {
+    font-size: 10px;
     padding: 2px 8px;
   }
-  .action-btn {
-    height: 30px;
+  .card-header {
+    padding: 2px 0 12px 0;
   }
-  .action-btn-text {
-    font-size: 13px;
+  .card-divider {
+    margin: 0 0 12px 0;
+  }
+  .action-section {
+    margin-bottom: 10px;
+  }
+  .action-item {
+    height: 54px;
+    border-radius: 12px;
+    margin-right: 7px;
+  }
+  .action-icon {
+    font-size: 16px;
+  }
+  .action-label {
+    font-size: 11px;
+  }
+  .card-tip {
+    margin-top: 12px;
+    padding: 9px 10px;
+  }
+  .card-tip-text {
+    font-size: 11px;
+  }
+  .footer-bar {
+    padding: 10px 10px 14px 10px;
   }
   .add-btn {
-    height: 40px;
+    height: 50px;
+    border-radius: 14px;
+  }
+  .add-btn-icon {
+    font-size: 20px;
+  }
+  .add-btn-text {
     font-size: 15px;
   }
 }
 
+/* ================================================ */
+/* ======  方形屏幕适配 (shape: rect)      ====== */
+/* ================================================ */
 @media (shape: rect) {
   .manager-page {
-    padding: 44px 6px 6px 6px;
+    padding: 0px 8px 0px 8px;
   }
-  .back-header {
-    margin-bottom: 6px;
-    padding: 4px 0;
-  }
-  .back-btn {
-    width: 40px;
-    height: 30px;
-    font-size: 16px;
-  }
-  .stats-btn {
-    width: 40px;
-    height: 30px;
-    font-size: 13px;
+  .app-header {
+    padding: 44px 2px 14px 2px;
   }
   .header-title {
-    font-size: 17px;
-    margin-left: 8px;
+    font-size: 18px;
   }
-  .rename-bar {
-    padding: 6px 8px;
-    margin-bottom: 8px;
-  }
-  .rename-display {
-    height: 32px;
-    font-size: 14px;
-    padding: 0 8px;
-  }
-  .rename-text {
-    font-size: 14px;
-  }
-  .rename-ok-btn {
-    width: 44px;
-    height: 28px;
-    font-size: 13px;
-  }
-  .rename-cancel-btn {
-    width: 44px;
-    height: 28px;
-    font-size: 13px;
-  }
-  .schedule-item {
-    padding: 10px 12px;
-    margin-bottom: 6px;
-  }
-  .schedule-name {
-    font-size: 17px;
-  }
-  .badge {
+  .header-subtitle {
     font-size: 11px;
+  }
+  .icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+  .icon-btn-text {
+    font-size: 22px;
+  }
+  .header-left, .header-right {
+    width: 38px;
+  }
+  .edit-panel {
+    padding: 12px 14px;
+    border-radius: 14px;
+    margin-bottom: 12px;
+  }
+  .edit-panel-title {
+    font-size: 13px;
+  }
+  .edit-input-wrapper {
+    height: 40px;
+    border-radius: 10px;
+    padding: 0 12px;
+    margin-bottom: 12px;
+  }
+  .edit-input-text {
+    font-size: 14px;
+  }
+  .edit-btn {
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 10px;
+  }
+  .edit-btn-text {
+    font-size: 13px;
+  }
+  .schedule-card {
+    padding: 14px 14px 12px 14px;
+    border-radius: 16px;
+    margin-bottom: 12px;
+  }
+  .card-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    margin-right: 11px;
+  }
+  .card-icon-text {
+    font-size: 18px;
+  }
+  .card-title {
+    font-size: 16px;
+  }
+  .card-index-tag {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .active-badge {
+    font-size: 10px;
     padding: 2px 8px;
   }
-  .action-btn {
-    height: 28px;
+  .card-header {
+    padding: 2px 0 10px 0;
   }
-  .action-btn-text {
-    font-size: 12px;
+  .card-divider {
+    margin: 0 0 10px 0;
+  }
+  .action-section {
+    margin-bottom: 10px;
+  }
+  .action-item {
+    height: 52px;
+    border-radius: 12px;
+    margin-right: 6px;
+  }
+  .action-icon {
+    font-size: 16px;
+  }
+  .action-label {
+    font-size: 11px;
+  }
+  .card-tip {
+    margin-top: 10px;
+    padding: 8px 10px;
+  }
+  .card-tip-text {
+    font-size: 11px;
+  }
+  .footer-bar {
+    padding: 10px 8px 12px 8px;
   }
   .add-btn {
-    height: 36px;
+    height: 48px;
+    border-radius: 14px;
+  }
+  .add-btn-icon {
+    font-size: 20px;
+  }
+  .add-btn-text {
     font-size: 14px;
   }
 }
