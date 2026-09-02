@@ -326,15 +326,20 @@ export default {
         self.statusColor = status.color
 
         if (status.isPermanent) {
-          self.statusText = '已永久激活'
-        } else if (status.isExpired) {
-          self.statusText = '已过期'
-        } else if (status.isExpiring) {
-          self.statusText = '即将到期'
+          self.statusText = '高级版'
+          self.statusColor = 'green'
+        } else if (status.isActivated && status.isExpired) {
+          self.statusText = '高级版'
+          self.statusColor = 'red'
+        } else if (status.isActivated && status.isExpiring) {
+          self.statusText = '高级版'
+          self.statusColor = '#e67e22'
         } else if (status.isActivated) {
-          self.statusText = '已激活'
-        } else if (status.isTrial) {
-          self.statusText = '免费试用中'
+          self.statusText = '高级版'
+          self.statusColor = 'green'
+        } else {
+          self.statusText = '基础版'
+          self.statusColor = 'gray'
         }
 
         self.statusDetail = status.expireText || ''
@@ -342,10 +347,10 @@ export default {
         if (status.installTime) {
           self.installTimeText = formatDate(status.installTime)
         }
-        if (status.expireAt) {
-          self.expireTimeText = formatDate(status.expireAt)
-        } else if (status.isPermanent) {
+        if (status.isPermanent) {
           self.expireTimeText = '永久有效'
+        } else if (status.expireAt) {
+          self.expireTimeText = formatDate(status.expireAt)
         } else {
           self.expireTimeText = ''
         }

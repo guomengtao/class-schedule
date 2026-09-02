@@ -177,9 +177,9 @@ function buildStatus(data) {
     return {
       priority: 3,
       status: 'permanent',
-      displayStatus: '永久授权',
+      displayStatus: '高级版',
       color: 'green',
-      text: '已永久激活',
+      text: '高级版 永久有效',
       remainingDays: -1,
       expireText: '永久有效',
       isExpired: false,
@@ -199,9 +199,9 @@ function buildStatus(data) {
       return {
         priority: 1,
         status: 'auth_expired',
-        displayStatus: '已过期',
+        displayStatus: '高级版',
         color: 'red',
-        text: '授权已过期，请续费',
+        text: '高级版 已过期 ' + expiredDays + ' 天',
         remainingDays: 0,
         expiredDays: expiredDays,
         expireText: '已过期 ' + expiredDays + ' 天',
@@ -217,9 +217,9 @@ function buildStatus(data) {
       return {
         priority: 2,
         status: 'auth_expiring_critical',
-        displayStatus: '即将到期',
+        displayStatus: '高级版',
         color: '#e67e22',
-        text: '授权即将到期，剩余 1 天',
+        text: '高级版 剩余 1 天',
         remainingDays: 1,
         expireText: '剩余 1 天',
         isExpired: false,
@@ -234,9 +234,9 @@ function buildStatus(data) {
       return {
         priority: 2,
         status: 'auth_expiring_soon',
-        displayStatus: '即将到期',
+        displayStatus: '高级版',
         color: '#d4a017',
-        text: '授权剩余 ' + remainingDays + ' 天，请及时续费',
+        text: '高级版 剩余 ' + remainingDays + ' 天',
         remainingDays: remainingDays,
         expireText: '剩余 ' + remainingDays + ' 天',
         isExpired: false,
@@ -250,9 +250,9 @@ function buildStatus(data) {
     return {
       priority: 3,
       status: 'active',
-      displayStatus: '已激活',
+      displayStatus: '高级版',
       color: 'green',
-      text: '已激活，剩余 ' + remainingDays + ' 天',
+      text: '高级版 剩余 ' + remainingDays + ' 天',
       remainingDays: remainingDays,
       expireText: '剩余 ' + remainingDays + ' 天',
       isExpired: false,
@@ -263,56 +263,17 @@ function buildStatus(data) {
     }
   }
 
-  var elapsedMs = now - data.installTime
-  var elapsedDays = elapsedMs / (24 * 60 * 60 * 1000)
-  var trialDays = data.trialDays || DEFAULT_TRIAL_DAYS
-  var remainingDays = Math.ceil(trialDays - elapsedDays)
-
-  if (remainingDays <= 0) {
-    return {
-      priority: 1,
-      status: 'trial_expired',
-      displayStatus: '已过期',
-      color: 'red',
-      text: '试用已结束，请激活',
-      remainingDays: 0,
-      expireText: '试用已过期',
-      isExpired: true,
-      isExpiring: false,
-      isTrial: true,
-      isActivated: false,
-      isPermanent: false
-    }
-  }
-
-  if (remainingDays <= 1) {
-    return {
-      priority: 2,
-      status: 'trial_expiring',
-      displayStatus: '即将到期',
-      color: '#e67e22',
-      text: '免费试用即将到期',
-      remainingDays: remainingDays,
-      expireText: '免费试用剩余 ' + remainingDays + ' 天',
-      isExpired: false,
-      isExpiring: true,
-      isTrial: true,
-      isActivated: false,
-      isPermanent: false
-    }
-  }
-
   return {
     priority: 3,
-    status: 'trial_active',
-    displayStatus: '免费试用中',
+    status: 'basic',
+    displayStatus: '基础版',
     color: 'gray',
-    text: '免费试用中，剩余 ' + remainingDays + ' 天',
-    remainingDays: remainingDays,
-    expireText: '免费试用剩余 ' + remainingDays + ' 天',
+    text: '基础版',
+    remainingDays: 0,
+    expireText: '',
     isExpired: false,
     isExpiring: false,
-    isTrial: true,
+    isTrial: false,
     isActivated: false,
     isPermanent: false
   }
@@ -431,7 +392,7 @@ function needsDailyRemind(callback) {
 
 function shouldRemindToday(data) {
   var status = buildStatus(data)
-  if (status.status === 'active' || status.status === 'permanent' || status.isActivated) {
+  if (status.status === 'active' || status.status === 'permanent' || status.status === 'basic') {
     return { shouldRemind: false, status: status }
   }
   var today = getTodayDate()
@@ -450,47 +411,20 @@ function markRemindedToday(callback) {
 }
 
 function getRemindDialogContent(status) {
-  if (status.isTrial && status.isExpired) {
-    return {
-      title: '试用已结束',
-      icon: '⏰',
-      message: '您的7天免费试用已结束，请激活后继续使用全部功能',
-      buttonText: '我知道了',
-      actionText: '去激活'
-    }
-  }
-  if (status.isTrial && status.isExpiring) {
-    return {
-      title: '免费试用即将到期',
-      icon: '⚠️',
-      message: '您的7天免费试用还剩' + status.remainingDays + '天，请及时激活以免影响使用',
-      buttonText: '我知道了',
-      actionText: '去激活'
-    }
-  }
-  if (status.isTrial) {
-    return {
-      title: '免费试用中',
-      icon: '🎁',
-      message: '您正在使用免费试用版，剩余' + status.remainingDays + '天。激活后可解锁全部功能',
-      buttonText: '我知道了',
-      actionText: '去激活'
-    }
-  }
   if (status.isExpired) {
     return {
-      title: '授权已过期',
+      title: '高级版已过期',
       icon: '🔒',
-      message: '您的授权已过期' + (status.expiredDays || 0) + '天，请续费后继续使用',
+      message: '您的高级版授权已过期' + (status.expiredDays || 0) + '天，请续费后继续使用',
       buttonText: '我知道了',
       actionText: '去续费'
     }
   }
   if (status.isExpiring) {
     return {
-      title: '授权即将到期',
+      title: '高级版即将到期',
       icon: '⏳',
-      message: '您的授权还剩' + status.remainingDays + '天，到期后将无法使用，请及时续费',
+      message: '您的高级版授权还剩' + status.remainingDays + '天，到期后将无法使用，请及时续费',
       buttonText: '我知道了',
       actionText: '去续费'
     }
@@ -498,7 +432,7 @@ function getRemindDialogContent(status) {
   return {
     title: '软件授权',
     icon: '📱',
-    message: '请激活软件授权以继续使用',
+    message: '请激活高级版以解锁全部功能',
     buttonText: '我知道了',
     actionText: '去激活'
   }
