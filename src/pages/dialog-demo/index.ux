@@ -1,0 +1,107 @@
+<import name="simple-dialog" src="../../components/simple-dialog"></import>
+
+<template>
+  <div class="page" style="background-color: #1a1a2e">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: #16213e; color: #7ec8e3" />
+      <text class="title" style="color: #ffffff">弹窗组件测试</text>
+    </div>
+
+    <div class="content">
+      <text class="desc" style="color: #888899">基于 hello 组件模式改造的弹窗</text>
+
+      <input class="test-btn" type="button" value="触发弹窗" onclick="showDialog"
+             style="background-color: #7ec8e3; color: #1a1a2e" />
+
+      <text class="log-text" style="color: {{ logColor }}">{{ logText }}</text>
+    </div>
+
+    <simple-dialog id="myDialog" title="测试弹窗" message="这是基于组件化模式改造的弹窗，如果能看到说明组件化弹窗方案可行！"></simple-dialog>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+
+export default {
+  private: {
+    logText: '等待触发...',
+    logColor: '#555566'
+  },
+
+  onInit() {
+    console.log('[dialog-demo] onInit')
+  },
+
+  showDialog() {
+    var comp = this.$element('myDialog')
+    console.log('[dialog-demo] $element result:', comp)
+    if (comp) {
+      comp.show()
+      this.logText = '弹窗已触发，查看 Log 面板'
+      this.logColor = '#7ec8e3'
+    } else {
+      this.logText = '组件未找到!'
+      this.logColor = '#e08080'
+    }
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 16px 16px 16px;
+  min-height: 100%;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+  margin-right: 70px;
+}
+
+.content {
+  flex-direction: column;
+  align-items: center;
+}
+
+.desc {
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.test-btn {
+  width: 80%;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.log-text {
+  font-size: 13px;
+  text-align: center;
+}
+</style>
