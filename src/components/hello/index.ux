@@ -1,6 +1,6 @@
 <template>
   <div class="hello-container">
-    <text class="hello-text" style="color: {{ textColor }}">{{ msg }}</text>
+    <text class="hello-text" style="color: {{ textColor }}">内容来自组件里</text>
   </div>
 </template>
 

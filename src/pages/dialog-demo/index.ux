@@ -8,7 +8,7 @@
     </div>
 
     <div class="content">
-      <text class="desc" style="color: #888899">基于 hello 组件模式改造的弹窗</text>
+      <text class="desc" style="color: #888899">通过 props 控制弹窗显隐</text>
 
       <input class="test-btn" type="button" value="触发弹窗" onclick="showDialog"
              style="background-color: #7ec8e3; color: #1a1a2e" />
@@ -16,7 +16,7 @@
       <text class="log-text" style="color: {{ logColor }}">{{ logText }}</text>
     </div>
 
-    <simple-dialog id="myDialog" title="测试弹窗" message="这是基于组件化模式改造的弹窗，如果能看到说明组件化弹窗方案可行！"></simple-dialog>
+    <simple-dialog title="测试弹窗" message="基于组件化模式的弹窗，props 控制显隐！" visible="{{ dialogVisible }}" onclose="onDialogClose"></simple-dialog>
   </div>
 </template>
 
@@ -25,6 +25,7 @@ import router from "@system.router"
 
 export default {
   private: {
+    dialogVisible: false,
     logText: '等待触发...',
     logColor: '#555566'
   },
@@ -34,16 +35,17 @@ export default {
   },
 
   showDialog() {
-    var comp = this.$element('myDialog')
-    console.log('[dialog-demo] $element result:', comp)
-    if (comp) {
-      comp.show()
-      this.logText = '弹窗已触发，查看 Log 面板'
-      this.logColor = '#7ec8e3'
-    } else {
-      this.logText = '组件未找到!'
-      this.logColor = '#e08080'
-    }
+    console.log('[dialog-demo] showDialog')
+    this.dialogVisible = true
+    this.logText = '弹窗已触发！'
+    this.logColor = '#7ec8e3'
+  },
+
+  onDialogClose() {
+    console.log('[dialog-demo] onDialogClose')
+    this.dialogVisible = false
+    this.logText = '弹窗已关闭'
+    this.logColor = '#888899'
   },
 
   goBack() {

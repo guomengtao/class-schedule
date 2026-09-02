@@ -1,9 +1,9 @@
 <template>
-  <div class="overlay" show="{{ visible }}" style="background-color: rgba(0,0,0,0.65)">
+  <div class="overlay" show="{{ visible }}" style="background-color: rgba(0,0,0,0.65)" onclick="onOverlayClick">
     <div class="dialog-box" style="background-color: #16213e">
       <text class="dialog-title" style="color: #7ec8e3">{{ title }}</text>
       <text class="dialog-msg" style="color: #ffffff">{{ message }}</text>
-      <input class="dialog-btn" type="button" value="关闭" onclick="hide"
+      <input class="dialog-btn" type="button" value="关闭" onclick="onClose"
              style="background-color: #7ec8e3; color: #1a1a2e" />
     </div>
   </div>
@@ -11,20 +11,17 @@
 
 <script>
 export default {
-  props: ['title', 'message'],
-  data: {
-    visible: false
-  },
+  props: ['title', 'message', 'visible'],
   onInit() {
-    console.log('[simple-dialog] onInit')
+    console.log('[simple-dialog] onInit, visible =', this.visible)
   },
-  show() {
-    console.log('[simple-dialog] show() called')
-    this.visible = true
+  onClose() {
+    console.log('[simple-dialog] onClose')
+    this.$emit('close')
   },
-  hide() {
-    console.log('[simple-dialog] hide() called')
-    this.visible = false
+  onOverlayClick() {
+    console.log('[simple-dialog] onOverlayClick')
+    this.$emit('close')
   }
 }
 </script>
