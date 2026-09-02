@@ -61,11 +61,11 @@
       <div class="divider" style="background-color: {{ theme.border }}"></div>
 
       <text class="section-title" style="color: {{ theme.text }}">对比: 自定义组件弹窗</text>
-      <text class="section-desc" style="color: {{ theme.textSecondary }}">通过 $element 引用 unlock-dialog 组件</text>
+      <text class="section-desc" style="color: {{ theme.textSecondary }}">通过 props 控制显隐，和 component-demo 一样的方式</text>
 
       <div class="demo-card custom-card" style="background-color: {{ theme.card }}">
         <text class="card-title" style="color: {{ theme.text }}">自定义组件弹窗</text>
-        <text class="card-desc" style="color: {{ theme.textSecondary }}">this.$element('unlockDialog').show()</text>
+        <text class="card-desc" style="color: {{ theme.textSecondary }}">visible="{{ dialogVisible }}" props 驱动</text>
         <input class="demo-btn" type="button" value="触发自定义组件弹窗" onclick="showCustomComponentDialog"
                style="background-color: #4a8a9a; color: {{ theme.bg }}" />
       </div>
@@ -73,8 +73,8 @@
       <div class="bottom-spacer"></div>
     </scroll>
 
-    <import name="unlock-dialog" src="../../components/unlock-dialog"></import>
-    <unlock-dialog id="unlockDialog"></unlock-dialog>
+    <import name="simple-dialog" src="../../components/simple-dialog"></import>
+    <simple-dialog title="解锁高级功能" message="解锁后可获得：多课表管理、数据备份与恢复、首页自定义、10套主题风格。一次性解锁，永久使用！" visible="{{ dialogVisible }}" onclose="onDialogClose"></simple-dialog>
   </div>
 </template>
 
@@ -94,7 +94,8 @@ export default {
       textMuted: '#555566',
       border: '#0f3460'
     },
-    lastResult: ''
+    lastResult: '',
+    dialogVisible: false
   },
 
   onInit() {
@@ -256,16 +257,13 @@ export default {
   },
 
   showCustomComponentDialog() {
-    var comp = this.$element('unlockDialog')
-    if (comp) {
-      comp.show({
-        title: '解锁高级功能',
-        benefits: ['多课表管理', '数据备份与恢复', '首页自定义', '10套主题'],
-        cancelText: '继续使用标准版'
-      })
-    } else {
-      prompt.showToast({ message: '自定义组件未找到，请刷新' })
-    }
+    this.dialogVisible = true
+    this.lastResult = '自定义组件弹窗: 已触发'
+  },
+
+  onDialogClose() {
+    this.dialogVisible = false
+    this.lastResult = '自定义组件弹窗: 已关闭'
   },
 
   goBack() {
