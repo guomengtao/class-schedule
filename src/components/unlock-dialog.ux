@@ -33,7 +33,7 @@ export default {
     visible: false,
     title: "解锁高级功能",
     benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
-    cancelText: "继续使用基础版",
+    cancelText: "继续使用标准版",
     feature: "",
     onSuccess: null,
     onPayFail: null,
@@ -59,7 +59,7 @@ export default {
     options = options || {}
     this.title = options.title || "解锁高级功能"
     this.benefits = options.benefits || ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"]
-    this.cancelText = options.cancelText || "继续使用基础版"
+    this.cancelText = options.cancelText || "继续使用标准版"
     this.feature = options.feature || ""
     this.onSuccess = options.onSuccess || null
     this.onPayFail = options.onPayFail || null

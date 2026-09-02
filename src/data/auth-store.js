@@ -266,9 +266,9 @@ function buildStatus(data) {
   return {
     priority: 3,
     status: 'basic',
-    displayStatus: '基础版',
+    displayStatus: '标准版',
     color: 'gray',
-    text: '基础版',
+    text: '标准版',
     remainingDays: 0,
     expireText: '',
     isExpired: false,

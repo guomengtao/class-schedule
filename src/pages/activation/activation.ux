@@ -337,7 +337,7 @@ export default {
           self.statusText = '高级版'
           self.statusColor = 'green'
         } else {
-          self.statusText = '基础版'
+          self.statusText = '标准版'
           self.statusColor = 'gray'
         }
 

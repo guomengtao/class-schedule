@@ -164,7 +164,7 @@ addSchedule() {
           feature: "schedule",
           benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
           primaryImage: "",
-          cancelText: "继续使用基础版"
+          cancelText: "继续使用标准版"
         })
       } else {
         self.doAddSchedule()
@@ -225,7 +225,7 @@ selectTheme(themeKey) {
         feature: "theme",
         benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
         primaryImage: "",
-        cancelText: "继续使用基础版"
+        cancelText: "继续使用标准版"
       })
     }
   })
@@ -277,7 +277,7 @@ openHomepageSettings() {
         feature: "homepage",
         benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
         primaryImage: "",
-        cancelText: "继续使用基础版"
+        cancelText: "继续使用标准版"
       })
     }
   })
@@ -309,7 +309,7 @@ openBackup() {
         feature: "backup",
         benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
         primaryImage: "",
-        cancelText: "继续使用基础版"
+        cancelText: "继续使用标准版"
       })
     }
   })
