@@ -4,7 +4,6 @@
     <div class="header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">震动实验室</text>
-      <input class="pin-btn" type="button" value="📌钉首页" onclick="pinToHome" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
     <div class="hero" style="background-color: {{ theme.card }}">
@@ -92,6 +91,10 @@
     </div>
 
     <unlock-dialog id="unlockDialog"></unlock-dialog>
+
+    <div class="footer-actions">
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">📌 固定到首页</text>
+    </div>
   </div>
 </template>
 
@@ -411,11 +414,13 @@ export default {
   text-align: center;
 }
 
-.pin-btn {
-  width: 80px;
-  height: 36px;
-  border-radius: 8px;
-  font-size: 13px;
+.footer-actions {
+  flex-direction: row;
+  justify-content: center;
+  padding: 16px 0 8px 0;
+}
+
+.pin-link {
   text-align: center;
 }
 

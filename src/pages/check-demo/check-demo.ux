@@ -3,7 +3,6 @@
     <div class="back-header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" />
       <text class="title">勾选 Demo</text>
-      <input class="pin-btn" type="button" value="📌钉首页" onclick="pinToHome" style="background-color: #7ec8e3; color: #1a1a2e" />
     </div>
 
     <div for="{{ list }}" class="item" onclick="toggle($idx)">
@@ -14,6 +13,10 @@
     </div>
 
     <text class="hint">当前选中: {{ selectedName }}</text>
+
+    <div class="footer-actions">
+      <text class="pin-link" onclick="pinToHome" style="color: #555566; font-size: 13px;">📌 固定到首页</text>
+    </div>
   </div>
 </template>
 
@@ -83,11 +86,13 @@ export default {
   color: #ffffff;
 }
 
-.pin-btn {
-  width: 80px;
-  height: 36px;
-  border-radius: 8px;
-  font-size: 13px;
+.footer-actions {
+  flex-direction: row;
+  justify-content: center;
+  padding: 16px 0 8px 0;
+}
+
+.pin-link {
   text-align: center;
 }
 

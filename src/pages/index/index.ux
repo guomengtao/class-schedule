@@ -37,9 +37,12 @@
 
     <div class="pinned-bar" if="{{ hasPinned }}" style="background-color: {{ theme.cardLight }}">
       <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
-      <div class="pinned-row">
-        <div for="{{ pinnedPages }}" class="pinned-item" onclick="openPinnedPage($item.uri)" style="background-color: {{ theme.card }}">
-          <text class="pinned-text" style="color: {{ theme.accent }}">📌 {{ $item.name }}</text>
+      <div class="pinned-content">
+        <text class="pinned-hint" style="color: {{ theme.textMuted }}; font-size: 11px;">📌 已固定页面，点击可快速访问</text>
+        <div class="pinned-row">
+          <div for="{{ pinnedPages }}" class="pinned-item" onclick="openPinnedPage($item.uri)" style="background-color: {{ theme.card }}">
+            <text class="pinned-text" style="color: {{ theme.accent }}">{{ $item.name }}</text>
+          </div>
         </div>
       </div>
     </div>
@@ -1084,14 +1087,22 @@ export default {
 
 .pinned-bar {
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   border-radius: 10px;
   padding: 6px 14px;
   margin-bottom: 6px;
 }
 
-.pinned-row {
+.pinned-content {
   flex: 1;
+  flex-direction: column;
+}
+
+.pinned-hint {
+  margin-bottom: 4px;
+}
+
+.pinned-row {
   flex-direction: row;
   flex-wrap: wrap;
 }

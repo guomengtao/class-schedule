@@ -3,7 +3,6 @@
     <div class="back-header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="header-title" style="color: {{ theme.text }}">功能实验室</text>
-      <input class="pin-btn" type="button" value="📌钉首页" onclick="pinToHome" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
     <text class="section-desc" style="color: {{ theme.textSecondary }}">这里是正在开发中的新功能，欢迎体验并反馈建议，你的意见对我们很重要。</text>
@@ -83,6 +82,10 @@
     </div>
 
     <text class="dev-expire-hint" onclick="onDevExpireClick" style="color: {{ theme.textSecondary }}">丰富欢迎用户提交意见建议</text>
+
+    <div class="footer-actions">
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">📌 固定到首页</text>
+    </div>
   </div>
 </template>
 
@@ -235,11 +238,13 @@ export default {
   text-align: center;
 }
 
-.pin-btn {
-  width: 80px;
-  height: 36px;
-  border-radius: 8px;
-  font-size: 13px;
+.footer-actions {
+  flex-direction: row;
+  justify-content: center;
+  padding: 16px 0 8px 0;
+}
+
+.pin-link {
   text-align: center;
 }
 
