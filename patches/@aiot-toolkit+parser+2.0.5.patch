@@ -1,0 +1,13 @@
+diff --git a/node_modules/@aiot-toolkit/parser/lib/ux/parser/UxParser.js b/node_modules/@aiot-toolkit/parser/lib/ux/parser/UxParser.js
+index 426e1b8..08e5aea 100644
+--- a/node_modules/@aiot-toolkit/parser/lib/ux/parser/UxParser.js
++++ b/node_modules/@aiot-toolkit/parser/lib/ux/parser/UxParser.js
+@@ -230,7 +230,7 @@ class UxParser {
+     else if (templateCount === 1) {
+       const templateNode = childNodes.filter(node => node.nodeName === 'template')[0];
+       const templateChildNodes = templateNode.content.childNodes;
+-      const elements = templateChildNodes.filter(node => _TemplateUtil.default.isElement(node));
++      const elements = templateChildNodes.filter(node => _TemplateUtil.default.isElement(node) && node.nodeName !== 'import');
+       if (elements.length !== 1) {
+         onLog({
+           level: _sharedUtils.Loglevel.THROW,

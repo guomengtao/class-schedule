@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.3.137",
-  "versionCode": 267,
+  "versionName": "1.3.140",
+  "versionCode": 270,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -125,8 +125,8 @@
       "pages/check-demo": {
         "component": "check-demo"
       },
-      "pages/accordion-demo": {
-        "component": "accordion-demo"
+      "pages/backup-restore": {
+        "component": "backup-restore"
       },
       "pages/add-course-demo": {
         "component": "add-course-demo"

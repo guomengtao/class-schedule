@@ -14,7 +14,8 @@
     "build:dev": "npm run clean && aiot build",
     "prerelease": "node scripts/bump-version.js",
     "release": "aiot release",
-    "lint": "eslint --format codeframe --fix --ext .ux,.js src/"
+    "lint": "eslint --format codeframe --fix --ext .ux,.js src/",
+    "postinstall": "patch-package"
   },
   "lint-staged": {
     "*.{ux,js}": [
@@ -30,6 +31,8 @@
   },
   "devDependencies": {
     "@aiot-toolkit/jsc": "^1.0.3",
-    "aiot-toolkit": "^2.0.5"
+    "aiot-toolkit": "^2.0.5",
+    "patch-package": "^8.0.1",
+    "postinstall-postinstall": "^2.1.0"
   }
 }

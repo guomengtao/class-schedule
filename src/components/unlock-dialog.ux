@@ -1,0 +1,167 @@
+<template>
+  <div class="overlay" if="{{ visible }}" style="background-color: rgba(0,0,0,0.65)">
+    <div class="dialog" style="background-color: {{ theme.card }}">
+      <text class="dialog-title" style="color: {{ theme.accent }}">{{ title }}</text>
+
+      <div class="benefits">
+        <div for="{{ benefits }}" class="benefit-row">
+          <text class="benefit-icon" style="color: {{ theme.accent }}">✓</text>
+          <text class="benefit-text" style="color: {{ theme.text }}">{{ $item }}</text>
+        </div>
+      </div>
+
+      <div class="price-row">
+        <text class="price-text" style="color: {{ theme.textSecondary }}">一次性解锁，永久使用</text>
+      </div>
+
+      <div class="btn-row">
+        <input class="unlock-btn" type="button" value="立即解锁" onclick="doUnlock"
+               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="cancel-btn" type="button" value="{{ cancelText }}" onclick="doCancel"
+               style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../data/store.js")
+
+export default {
+  private: {
+    visible: false,
+    title: "解锁高级功能",
+    benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
+    cancelText: "继续使用基础版",
+    feature: "",
+    onSuccess: null,
+    onPayFail: null,
+    theme: {
+      card: "#16213e",
+      accent: "#7ec8e3",
+      text: "#ffffff",
+      textSecondary: "#888899",
+      bg: "#1a1a2e",
+      btnSecondary: "#333355",
+      btnSecondaryText: "#a0a0b0"
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+  },
+
+  show(options) {
+    options = options || {}
+    this.title = options.title || "解锁高级功能"
+    this.benefits = options.benefits || ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"]
+    this.cancelText = options.cancelText || "继续使用基础版"
+    this.feature = options.feature || ""
+    this.onSuccess = options.onSuccess || null
+    this.onPayFail = options.onPayFail || null
+    this.visible = true
+  },
+
+  hide() {
+    this.visible = false
+  },
+
+  doUnlock() {
+    this.hide()
+    router.push({ uri: "/pages/activation" })
+  },
+
+  doCancel() {
+    this.hide()
+  }
+}
+</script>
+
+<style>
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog {
+  width: 90%;
+  max-width: 340px;
+  border-radius: 16px;
+  padding: 24px 20px 20px 20px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dialog-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.benefits {
+  width: 100%;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.benefit-row {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.benefit-icon {
+  font-size: 16px;
+  margin-right: 8px;
+  width: 20px;
+  text-align: center;
+}
+
+.benefit-text {
+  font-size: 15px;
+  flex: 1;
+}
+
+.price-row {
+  margin-bottom: 16px;
+}
+
+.price-text {
+  font-size: 13px;
+  text-align: center;
+}
+
+.btn-row {
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+}
+
+.unlock-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 22px;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.cancel-btn {
+  width: 100%;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+</style>

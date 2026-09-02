@@ -1,4 +1,5 @@
 <template>
+  <import name="unlock-dialog" src="../../components/unlock-dialog"></import>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
@@ -102,6 +103,8 @@
       </div>
       <text class="time-preview" if="{{ showTime }}" style="color: {{ theme.accent }}">{{ timePreview }}</text>
     </div>
+
+    <unlock-dialog id="unlockDialog"></unlock-dialog>
   </div>
 </template>
 
@@ -161,29 +164,70 @@ export default {
       timeFormat: this.timeFormat
     }, function() { router.back() })
   },
-  toggleQuickAdd() { this.showQuickAdd = !this.showQuickAdd; this.saveSettings() },
-  toggleCustomContent() { this.showCustomContent = !this.showCustomContent; this.saveSettings() },
-  toggleStatusBar() { this.showStatusBar = !this.showStatusBar; this.saveSettings() },
-  toggleTime() { this.showTime = !this.showTime; this.saveSettings() },
+
+  checkPremiumAccess(callback) {
+    var self = this
+    store.isPremiumUnlocked(function(unlocked) {
+      if (unlocked) {
+        callback()
+      } else {
+        self.$element('unlockDialog').show({})
+      }
+    })
+  },
+
+  toggleQuickAdd() {
+    var self = this
+    this.checkPremiumAccess(function() {
+      self.showQuickAdd = !self.showQuickAdd
+      self.saveSettings()
+    })
+  },
+  toggleCustomContent() {
+    var self = this
+    this.checkPremiumAccess(function() {
+      self.showCustomContent = !self.showCustomContent
+      self.saveSettings()
+    })
+  },
+  toggleStatusBar() {
+    var self = this
+    this.checkPremiumAccess(function() {
+      self.showStatusBar = !self.showStatusBar
+      self.saveSettings()
+    })
+  },
+  toggleTime() {
+    var self = this
+    this.checkPremiumAccess(function() {
+      self.showTime = !self.showTime
+      self.saveSettings()
+    })
+  },
   showContentKeyboard() {
     var self = this
-    var storage = require("@system.storage")
-    storage.set({ key: "chinese_input_title", value: "自定义内容", success: function() {
-      storage.set({ key: "chinese_input_placeholder", value: "点击输入自定义内容", success: function() {
-        storage.set({ key: "chinese_input_value", value: self.customContent || "", success: function() {
-          storage.set({ key: "chinese_input_maxlen", value: "20", success: function() {
-            storage.set({ key: "chinese_input_return_key", value: "chinese_input_result", success: function() {
-              router.push({ uri: "/pages/chinese-input" })
+    this.checkPremiumAccess(function() {
+      var storage = require("@system.storage")
+      storage.set({ key: "chinese_input_title", value: "自定义内容", success: function() {
+        storage.set({ key: "chinese_input_placeholder", value: "点击输入自定义内容", success: function() {
+          storage.set({ key: "chinese_input_value", value: self.customContent || "", success: function() {
+            storage.set({ key: "chinese_input_maxlen", value: "20", success: function() {
+              storage.set({ key: "chinese_input_return_key", value: "chinese_input_result", success: function() {
+                router.push({ uri: "/pages/chinese-input" })
+              } })
             } })
           } })
         } })
       } })
-    } })
+    })
   },
   toggleTimeUnit(unit) {
-    this.timeFormat[unit] = !this.timeFormat[unit]
-    this.updateTimePreview()
-    this.saveSettings()
+    var self = this
+    this.checkPremiumAccess(function() {
+      self.timeFormat[unit] = !self.timeFormat[unit]
+      self.updateTimePreview()
+      self.saveSettings()
+    })
   },
   toggleYear() { this.toggleTimeUnit("year") },
   toggleMonth() { this.toggleTimeUnit("month") },

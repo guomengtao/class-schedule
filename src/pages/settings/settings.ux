@@ -1,4 +1,5 @@
 <template>
+  <import name="unlock-dialog" src="../../components/unlock-dialog"></import>
   <div class="settings-page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
@@ -89,6 +90,14 @@
       <input class="save-settings-btn" type="button" value="保存设置" onclick="saveSettings" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
+    <div class="info-section" onclick="openBackupRestore" style="background-color: {{ theme.card }}">
+      <text class="info-label" style="color: {{ theme.text }}">数据备份与恢复</text>
+      <div class="info-value-row">
+        <text class="info-placeholder" style="color: {{ theme.textMuted }}">备份课程数据，换设备一键恢复</text>
+        <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+    </div>
+
     <div class="info-section" onclick="openTestArea" style="background-color: {{ theme.card }}">
       <text class="info-label" style="color: {{ theme.text }}">功能实验室</text>
       <div class="info-value-row">
@@ -114,6 +123,8 @@
     </div>
 
     <text class="version-text" style="color: {{ theme.textMuted }}">{{ versionText }}</text>
+
+    <unlock-dialog id="unlockDialog"></unlock-dialog>
   </div>
 </template>
 
@@ -251,6 +262,23 @@ export default {
 
   selectTheme(themeKey) {
     var self = this
+
+    if (store.isFreeTheme(themeKey)) {
+      this.applyTheme(themeKey)
+      return
+    }
+
+    store.isPremiumUnlocked(function(unlocked) {
+      if (unlocked) {
+        self.applyTheme(themeKey)
+      } else {
+        self.$element('unlockDialog').show({})
+      }
+    })
+  },
+
+  applyTheme(themeKey) {
+    var self = this
     this.currentThemeKey = themeKey
     store.setTheme(themeKey, function() {
       store.getTheme(function(t) {
@@ -369,7 +397,25 @@ export default {
   },
 
   openHomepageSettings() {
-    router.push({ uri: "/pages/homepage-settings" })
+    var self = this
+    store.isPremiumUnlocked(function(unlocked) {
+      if (unlocked) {
+        router.push({ uri: "/pages/homepage-settings" })
+      } else {
+        self.$element('unlockDialog').show({})
+      }
+    })
+  },
+
+  openBackupRestore() {
+    var self = this
+    store.isPremiumUnlocked(function(unlocked) {
+      if (unlocked) {
+        router.push({ uri: "/pages/backup-restore" })
+      } else {
+        self.$element('unlockDialog').show({})
+      }
+    })
   },
 
   openResetData() {

@@ -1,4 +1,5 @@
 <template>
+  <import name="unlock-dialog" src="../../components/unlock-dialog"></import>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
@@ -53,6 +54,8 @@
     <div class="add-section">
       <input class="add-btn" type="button" value="+ 新增课程表" onclick="addSchedule" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
+
+    <unlock-dialog id="unlockDialog"></unlock-dialog>
   </div>
 </template>
 
@@ -367,6 +370,20 @@ export default {
 
   addSchedule() {
     var self = this
+    store.isPremiumUnlocked(function(unlocked) {
+      if (unlocked) {
+        self.doAddSchedule()
+      } else {
+        if (self.list.length >= 1) {
+          self.$element('unlockDialog').show({})
+        } else {
+          self.doAddSchedule()
+        }
+      }
+    })
+  },
+
+  doAddSchedule() {
     var names = []
     for (var i = 0; i < this.list.length; i++) {
       names.push(this.list[i].name)
@@ -378,6 +395,7 @@ export default {
       counter++
     }
     names.push(newName)
+    var self = this
     store.setScheduleNames(names, function() {
       prompt.showToast({ message: "课程表已添加" })
       self.loadData()

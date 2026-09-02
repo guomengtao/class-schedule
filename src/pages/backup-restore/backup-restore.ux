@@ -1,0 +1,345 @@
+<template>
+  <import name="unlock-dialog" src="../../components/unlock-dialog"></import>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">数据备份与恢复</text>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">本地备份</text>
+      <text class="section-desc" style="color: {{ theme.textSecondary }}">将课程数据备份到手环本地存储，重置或换设备后可恢复</text>
+
+      <div class="status-row">
+        <text class="status-label" style="color: {{ theme.textSecondary }}">上次备份：</text>
+        <text class="status-value" style="color: {{ theme.accent }}">{{ lastBackupTime || '从未备份' }}</text>
+      </div>
+
+      <div class="btn-row">
+        <input class="action-btn" type="button" value="创建备份" onclick="doBackup"
+               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="action-btn" type="button" value="恢复备份" onclick="doRestore"
+               style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">备份包含的数据</text>
+      <div class="data-list">
+        <text class="data-item" style="color: {{ theme.textSecondary }}">• 所有课程表及课程数据</text>
+        <text class="data-item" style="color: {{ theme.textSecondary }}">• 课程名称预设列表</text>
+        <text class="data-item" style="color: {{ theme.textSecondary }}">• 首页设置与自定义内容</text>
+        <text class="data-item" style="color: {{ theme.textSecondary }}">• 主题与字体大小设置</text>
+        <text class="data-item" style="color: {{ theme.textSecondary }}">• 上课提醒设置</text>
+        <text class="data-item" style="color: {{ theme.textSecondary }}">• 解锁状态</text>
+      </div>
+    </div>
+
+    <text class="result-text" if="{{ resultMessage }}" style="color: {{ resultSuccess ? theme.accent : theme.deleteText }}">{{ resultMessage }}</text>
+
+    <unlock-dialog id="unlockDialog"></unlock-dialog>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+var storage = require("@system.storage")
+var prompt = require("@system.prompt")
+const store = require("../../data/store.js")
+
+var BACKUP_KEY = "data_backup"
+var BACKUP_TIME_KEY = "last_backup_time"
+
+var DATA_KEYS = [
+  "allCourses_0", "allCourses_1", "allCourses_2", "allCourses_3", "allCourses_4",
+  "allCourses_5", "allCourses_6", "allCourses_7", "allCourses_8", "allCourses_9",
+  "scheduleNames", "currentScheduleIndex",
+  "remindSettings", "homepage_settings",
+  "theme", "fontScale", "premium_unlocked",
+  "course_preset_list"
+]
+
+export default {
+  private: {
+    theme: store.DEFAULT_THEME,
+    lastBackupTime: "",
+    resultMessage: "",
+    resultSuccess: false
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+    this.loadBackupInfo()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+    this.loadBackupInfo()
+  },
+
+  loadBackupInfo() {
+    var self = this
+    storage.get({
+      key: BACKUP_TIME_KEY,
+      success: function(data) {
+        self.lastBackupTime = data || ""
+      },
+      fail: function() {
+        self.lastBackupTime = ""
+      }
+    })
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  doBackup() {
+    var self = this
+    store.isPremiumUnlocked(function(unlocked) {
+      if (unlocked) {
+        self.performBackup()
+      } else {
+        self.$element('unlockDialog').show({
+          title: "解锁数据备份",
+          benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
+          cancelText: "继续使用基础版"
+        })
+      }
+    })
+  },
+
+  doRestore() {
+    var self = this
+    store.isPremiumUnlocked(function(unlocked) {
+      if (unlocked) {
+        self.performRestore()
+      } else {
+        self.$element('unlockDialog').show({
+          title: "解锁数据恢复",
+          benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
+          cancelText: "继续使用基础版"
+        })
+      }
+    })
+  },
+
+  performBackup() {
+    var self = this
+    var backupData = {}
+    var loaded = 0
+    var total = DATA_KEYS.length
+
+    function loadKey(index) {
+      if (index >= total) {
+        saveBackup(backupData)
+        return
+      }
+      var key = DATA_KEYS[index]
+      storage.get({
+        key: key,
+        success: function(data) {
+          if (data) {
+            backupData[key] = data
+          }
+          loaded++
+          loadKey(index + 1)
+        },
+        fail: function() {
+          loaded++
+          loadKey(index + 1)
+        }
+      })
+    }
+
+    function saveBackup(data) {
+      var now = new Date()
+      var timeStr = now.getFullYear() + "-" +
+        (now.getMonth() + 1 < 10 ? "0" : "") + (now.getMonth() + 1) + "-" +
+        (now.getDate() < 10 ? "0" : "") + now.getDate() + " " +
+        (now.getHours() < 10 ? "0" : "") + now.getHours() + ":" +
+        (now.getMinutes() < 10 ? "0" : "") + now.getMinutes()
+
+      storage.set({
+        key: BACKUP_KEY,
+        value: JSON.stringify(data),
+        success: function() {
+          storage.set({
+            key: BACKUP_TIME_KEY,
+            value: timeStr,
+            success: function() {
+              self.lastBackupTime = timeStr
+              self.resultMessage = "备份成功！(" + timeStr + ")"
+              self.resultSuccess = true
+            },
+            fail: function() {
+              self.lastBackupTime = timeStr
+              self.resultMessage = "备份成功！(" + timeStr + ")"
+              self.resultSuccess = true
+            }
+          })
+        },
+        fail: function() {
+          self.resultMessage = "备份失败，请重试"
+          self.resultSuccess = false
+        }
+      })
+    }
+
+    loadKey(0)
+  },
+
+  performRestore() {
+    var self = this
+    storage.get({
+      key: BACKUP_KEY,
+      success: function(data) {
+        if (!data) {
+          self.resultMessage = "没有可恢复的备份数据"
+          self.resultSuccess = false
+          return
+        }
+        try {
+          var backupData = JSON.parse(data)
+          var keys = Object.keys(backupData)
+          var saved = 0
+          var total = keys.length
+
+          if (total === 0) {
+            self.resultMessage = "备份数据为空"
+            self.resultSuccess = false
+            return
+          }
+
+          function saveKey(index) {
+            if (index >= total) {
+              self.resultMessage = "恢复成功！已恢复 " + total + " 项数据"
+              self.resultSuccess = true
+              return
+            }
+            var key = keys[index]
+            storage.set({
+              key: key,
+              value: backupData[key],
+              success: function() {
+                saved++
+                saveKey(index + 1)
+              },
+              fail: function() {
+                saveKey(index + 1)
+              }
+            })
+          }
+
+          saveKey(0)
+        } catch (e) {
+          self.resultMessage = "备份数据已损坏，无法恢复"
+          self.resultSuccess = false
+        }
+      },
+      fail: function() {
+        self.resultMessage = "没有可恢复的备份数据"
+        self.resultSuccess = false
+      }
+    })
+  }
+}
+</script>
+
+<style>
+.page {
+  flex: 1;
+  flex-direction: column;
+  padding: 44px 8px 8px 8px;
+  min-height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 0;
+}
+
+.back-btn {
+  width: 64px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.title {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  margin-right: 64px;
+}
+
+.section {
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.section-desc {
+  font-size: 12px;
+  margin-bottom: 12px;
+  line-height: 18px;
+}
+
+.status-row {
+  flex-direction: row;
+  margin-bottom: 12px;
+}
+
+.status-label {
+  font-size: 13px;
+}
+
+.status-value {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.btn-row {
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.action-btn {
+  width: 120px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.data-list {
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+.data-item {
+  font-size: 12px;
+  line-height: 22px;
+}
+
+.result-text {
+  font-size: 13px;
+  text-align: center;
+  margin-top: 10px;
+  padding: 10px;
+  font-weight: bold;
+}
+</style>

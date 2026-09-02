@@ -625,5 +625,36 @@ module.exports = {
     icon: '🔵',
     progressOngoing: 'rgba(126,200,227,0.2)',
     progressDone: 'rgba(74,138,154,0.25)'
+  },
+
+  FREE_THEMES: ["blue", "auto"],
+
+  isFreeTheme: function(themeKey) {
+    var free = this.FREE_THEMES
+    for (var i = 0; i < free.length; i++) {
+      if (free[i] === themeKey) return true
+    }
+    return false
+  },
+
+  isPremiumUnlocked: function(callback) {
+    storage.get({
+      key: "premium_unlocked",
+      success: function(data) {
+        callback(data === "true")
+      },
+      fail: function() {
+        callback(false)
+      }
+    })
+  },
+
+  setPremiumUnlocked: function(callback) {
+    storage.set({
+      key: "premium_unlocked",
+      value: "true",
+      success: function() { if (callback) callback(true) },
+      fail: function() { if (callback) callback(false) }
+    })
   }
 }
