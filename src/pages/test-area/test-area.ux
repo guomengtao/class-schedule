@@ -71,6 +71,22 @@
           <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
+
+      <div class="menu-item" onclick="openCompDemo" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">组件化测试</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">测试组件化是否可用</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+
+      <div class="menu-item" onclick="openActivationLab" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">激活码实验室</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">激活码加密解密测试</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
     </div>
 
     <text class="dev-expire-hint" onclick="onDevExpireClick" style="color: {{ theme.textSecondary }}">丰富欢迎用户提交意见建议</text>
@@ -152,6 +168,14 @@ export default {
 
   openUnlockDemo() {
     router.push({ uri: "/pages/unlock-demo" })
+  },
+
+  openCompDemo() {
+    router.push({ uri: "/pages/comp-demo" })
+  },
+
+  openActivationLab() {
+    router.push({ uri: "/pages/activation-lab" })
   },
 
   onDevExpireClick() {
