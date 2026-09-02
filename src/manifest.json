@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.3.141",
-  "versionCode": 271,
+  "versionName": "1.3.143",
+  "versionCode": 273,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -130,6 +130,9 @@
       },
       "pages/add-course-demo": {
         "component": "add-course-demo"
+      },
+      "pages/unlock-demo": {
+        "component": "unlock-demo"
       }
     }
   }

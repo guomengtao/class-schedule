@@ -8,9 +8,8 @@
     <scroll class="page-scroll" scroll-y="{{true}}">
       <div class="status-card" style="background-color: {{ theme.card }}">
         <div class="status-row">
-          <text class="status-icon" style="color: {{ statusColor }}">[</text>
+          <text class="version-prefix" style="color: {{ theme.textSecondary }}">当前:</text>
           <text class="status-text" style="color: {{ statusColor }}">{{ statusText }}</text>
-          <text class="status-icon" style="color: {{ statusColor }}">]</text>
         </div>
         <div class="status-details" if="{{ statusDetail }}">
           <text class="status-detail-line" style="color: {{ theme.textSecondary }}">{{ statusDetail }}</text>
@@ -587,9 +586,9 @@ export default {
   margin-bottom: 4px;
 }
 
-.status-icon {
-  font-size: 22px;
-  margin-right: 8px;
+.version-prefix {
+  font-size: 14px;
+  margin-right: 6px;
 }
 
 .status-text {

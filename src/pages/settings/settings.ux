@@ -407,6 +407,7 @@ export default {
   },
 
   openBackupRestore() {
+    var self = this
     store.isPremiumUnlocked(function(unlocked) {
       if (unlocked) {
         router.push({ uri: "/pages/backup-restore" })
