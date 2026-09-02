@@ -81,6 +81,7 @@
 <script>
 import router from "@system.router"
 const store = require("../../data/store.js")
+const prompt = require("@system.prompt")
 
 export default {
   private: {
