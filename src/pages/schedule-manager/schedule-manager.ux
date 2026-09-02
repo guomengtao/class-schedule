@@ -291,8 +291,8 @@ export default {
                 location: course.location,
                 notes: course.notes || ""
               }
-              database.insertCourse(newCourse, function(success) {
-                if (success) {
+              database.insertCourse(newCourse, function(err) {
+                if (!err) {
                   inserted++
                 }
                 if (inserted === totalCourses) {

@@ -473,8 +473,8 @@ export default {
 
     database.setScheduleIndex(targetIndex, function() {
       if (saveTimeout) return
-      database.insertCourse(newCourse, function(success) {
-        onSaveDone(success)
+      database.insertCourse(newCourse, function(err) {
+        onSaveDone(!err)
       })
     })
   }

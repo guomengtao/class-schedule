@@ -537,12 +537,12 @@ export default {
       location: this.courseLocation || "",
       notes: ""
     }
-    database.updateCourse(updatedCourse, function(success) {
-      if (success) {
+    database.updateCourse(updatedCourse, function(err) {
+      if (!err) {
         prompt.showToast({ message: "课程已更新" })
         router.back()
       } else {
-        prompt.showToast({ message: "更新失败，请重试" })
+        prompt.showToast({ message: "更新失败: " + err })
       }
     })
   },
@@ -561,12 +561,12 @@ export default {
       this.deleteTimer = null
     }
     var self = this
-    database.deleteCourse(self.classId, self.day, function(success) {
-      if (success) {
+    database.deleteCourse(self.classId, self.day, function(err) {
+      if (!err) {
         prompt.showToast({ message: "课程已删除" })
         router.back()
       } else {
-        prompt.showToast({ message: "删除失败，请重试" })
+        prompt.showToast({ message: "删除失败: " + err })
       }
     })
   }

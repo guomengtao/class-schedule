@@ -600,15 +600,15 @@ export default {
       key: "index_nextId",
       value: String(this.nextId)
     })
-    database.insertCourse(newCourse, function(success) {
-      if (success) {
+    database.insertCourse(newCourse, function(err) {
+      if (!err) {
         prompt.showToast({ message: "已添加 " + name })
         database.getAllCourses(function(schedule) {
           self.schedule = schedule
           self.loadDayClasses()
         })
       } else {
-        prompt.showToast({ message: "添加失败，请重试" })
+        prompt.showToast({ message: "添加失败: " + err })
       }
     })
   },

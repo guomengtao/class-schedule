@@ -24,6 +24,10 @@ function logErr(msg) {
   console.error("[DB] " + msg)
 }
 
+function formatError(operation, detail) {
+  return "[DB] " + operation + ": " + (detail || "未知错误")
+}
+
 function getStorageKey() {
   return STORAGE_KEY + "_" + currentScheduleIndex
 }
@@ -250,11 +254,11 @@ function saveToStorage(schedule, callback) {
     key: getStorageKey(),
     value: JSON.stringify(schedule),
     success: function() {
-      if (callback) callback(true)
+      if (callback) callback(null)
     },
     fail: function(e) {
       logErr("saveToStorage failed: " + JSON.stringify(e))
-      if (callback) callback(false)
+      if (callback) callback(formatError("saveToStorage", (e && e.message) || JSON.stringify(e)))
     }
   })
 }
@@ -368,11 +372,11 @@ function saveToStorageWithIndex(index, schedule, callback) {
     key: STORAGE_KEY + "_" + index,
     value: JSON.stringify(schedule),
     success: function() {
-      if (callback) callback(true)
+      if (callback) callback(null)
     },
     fail: function(e) {
       logErr("saveToStorageWithIndex failed: " + JSON.stringify(e))
-      if (callback) callback(false)
+      if (callback) callback(formatError("saveToStorageWithIndex", (e && e.message) || JSON.stringify(e)))
     }
   })
 }
@@ -410,11 +414,11 @@ function insertCourseSqlite(course, callback) {
     args: [course.id, course.day, course.name, course.time, course.teacher, course.location, course.notes || "", String(currentScheduleIndex)],
     success: function() {
       log("insertCourseSqlite success")
-      callback(true)
+      callback(null)
     },
     fail: function(e) {
       logErr("insertCourseSqlite failed: " + JSON.stringify(e))
-      callback(false)
+      callback(formatError("insertCourseSqlite", (e && e.message) || JSON.stringify(e)))
     }
   })
 }
@@ -428,7 +432,7 @@ function insertCourseStorage(course, callback) {
       if (val) {
         try { schedule = JSON.parse(val) } catch (e) {
           logErr("insertCourseStorage JSON parse failed: " + e)
-          callback(false)
+          callback(formatError("insertCourseStorage", "JSON解析失败: " + e))
           return
         }
       }
@@ -461,14 +465,14 @@ function insertCourseStorage(course, callback) {
           }]
         })
       }
-      saveToStorage(schedule, function(success) {
-        log("insertCourseStorage " + (success ? "success" : "failed"))
-        callback(success)
+      saveToStorage(schedule, function(err) {
+        log("insertCourseStorage " + (err ? "failed" : "success"))
+        callback(err)
       })
     },
     fail: function(e) {
       logErr("insertCourseStorage get failed: " + JSON.stringify(e))
-      callback(false)
+      callback(formatError("insertCourseStorage", (e && e.message) || JSON.stringify(e)))
     }
   })
 }
@@ -481,11 +485,11 @@ function updateCourseSqlite(course, callback) {
     args: [course.name, course.time, course.teacher, course.location, course.notes || "", course.id, course.day, String(currentScheduleIndex)],
     success: function() {
       log("updateCourseSqlite success")
-      callback(true)
+      callback(null)
     },
     fail: function(e) {
       logErr("updateCourseSqlite failed: " + JSON.stringify(e))
-      callback(false)
+      callback(formatError("updateCourseSqlite", (e && e.message) || JSON.stringify(e)))
     }
   })
 }
@@ -499,7 +503,7 @@ function updateCourseStorage(course, callback) {
       if (val) {
         try { schedule = JSON.parse(val) } catch (e) {
           logErr("updateCourseStorage JSON parse failed: " + e)
-          callback(false)
+          callback(formatError("updateCourseStorage", "JSON解析失败: " + e))
           return
         }
       }
@@ -519,14 +523,14 @@ function updateCourseStorage(course, callback) {
           break
         }
       }
-      saveToStorage(schedule, function(success) {
-        log("updateCourseStorage " + (success ? "success" : "failed"))
-        callback(success)
+      saveToStorage(schedule, function(err) {
+        log("updateCourseStorage " + (err ? "failed" : "success"))
+        callback(err)
       })
     },
     fail: function(e) {
       logErr("updateCourseStorage get failed: " + JSON.stringify(e))
-      callback(false)
+      callback(formatError("updateCourseStorage", (e && e.message) || JSON.stringify(e)))
     }
   })
 }
@@ -539,11 +543,11 @@ function deleteCourseSqlite(id, day, callback) {
     args: [id, day, String(currentScheduleIndex)],
     success: function() {
       log("deleteCourseSqlite success")
-      callback(true)
+      callback(null)
     },
     fail: function(e) {
       logErr("deleteCourseSqlite failed: " + JSON.stringify(e))
-      callback(false)
+      callback(formatError("deleteCourseSqlite", (e && e.message) || JSON.stringify(e)))
     }
   })
 }
@@ -557,7 +561,7 @@ function deleteCourseStorage(id, day, callback) {
       if (val) {
         try { schedule = JSON.parse(val) } catch (e) {
           logErr("deleteCourseStorage JSON parse failed: " + e)
-          callback(false)
+          callback(formatError("deleteCourseStorage", "JSON解析失败: " + e))
           return
         }
       }
@@ -574,16 +578,17 @@ function deleteCourseStorage(id, day, callback) {
           break
         }
       }
-      saveToStorage(schedule, function(success) {
-        log("deleteCourseStorage " + (success ? "success" : "failed"))
-        callback(success)
+      saveToStorage(schedule, function(err) {
+        log("deleteCourseStorage " + (err ? "failed" : "success"))
+        callback(err)
       })
     },
     fail: function(e) {
       logErr("deleteCourseStorage get failed: " + JSON.stringify(e))
-      callback(false)
+      callback(formatError("deleteCourseStorage", (e && e.message) || JSON.stringify(e)))
     }
   })
+}
 
 function clearScheduleByIndexSqlite(index, callback) {
   log("clearScheduleByIndexSqlite: " + index)
@@ -961,23 +966,23 @@ module.exports = {
           },
           fail: function(e) {
             logErr("resetToDemoData: DELETE FROM courses failed: " + JSON.stringify(e))
-            if (callback) callback(false)
+            if (callback) callback(formatError("resetToDemoData", "DELETE courses失败: " + ((e && e.message) || JSON.stringify(e))))
           }
         })
       } else {
-        saveToStorageWithIndex(0, schedule1, function(success1) {
-          if (!success1) {
-            logErr("resetToDemoData: save schedule1 to storage failed")
-            if (callback) callback(false)
+        saveToStorageWithIndex(0, schedule1, function(err1) {
+          if (err1) {
+            logErr("resetToDemoData: save schedule1 to storage failed: " + err1)
+            if (callback) callback(err1)
             return
           }
-          saveToStorageWithIndex(1, schedule2, function(success2) {
-            if (!success2) {
-              logErr("resetToDemoData: save schedule2 to storage failed")
-              if (callback) callback(false)
+          saveToStorageWithIndex(1, schedule2, function(err2) {
+            if (err2) {
+              logErr("resetToDemoData: save schedule2 to storage failed: " + err2)
+              if (callback) callback(err2)
               return
             }
-            finalizeReset(false)
+            finalizeReset(null)
           })
         })
       }
@@ -1010,8 +1015,10 @@ module.exports = {
       if (index >= courses.length) {
         if (errorCount > 0) {
           logErr("resetToDemoData: " + errorCount + " of " + courses.length + " inserts failed")
+          cb(formatError("resetToDemoData", errorCount + " of " + courses.length + " 条插入失败"))
+        } else {
+          cb(null)
         }
-        cb(errorCount > 0)
         return
       }
       var c = courses[index]
@@ -1040,17 +1047,17 @@ module.exports = {
             value: "0",
             success: function() {
               log("resetToDemoData: complete" + (hadError ? " (with errors)" : ""))
-              if (callback) callback(!hadError)
+              if (callback) callback(hadError || null)
             },
             fail: function(e) {
               logErr("resetToDemoData: failed to set currentScheduleIndex: " + JSON.stringify(e))
-              if (callback) callback(false)
+              if (callback) callback(formatError("resetToDemoData", "设置currentScheduleIndex失败: " + ((e && e.message) || JSON.stringify(e))))
             }
           })
         },
         fail: function(e) {
           logErr("resetToDemoData: failed to set scheduleNames: " + JSON.stringify(e))
-          if (callback) callback(false)
+          if (callback) callback(formatError("resetToDemoData", "设置scheduleNames失败: " + ((e && e.message) || JSON.stringify(e))))
         }
       })
     }
@@ -1079,11 +1086,11 @@ module.exports = {
       value: JSON.stringify(defaultCoursePreset),
       success: function() {
         log("resetCoursePresets: complete")
-        if (callback) callback(true)
+        if (callback) callback(null)
       },
       fail: function(e) {
         logErr("resetCoursePresets: failed: " + JSON.stringify(e))
-        if (callback) callback(false)
+        if (callback) callback(formatError("resetCoursePresets", (e && e.message) || JSON.stringify(e)))
       }
     })
   },
@@ -1100,13 +1107,13 @@ module.exports = {
           },
           fail: function(e) {
             logErr("resetToEmpty: DELETE FROM courses failed: " + JSON.stringify(e))
-            if (callback) callback(false)
+            if (callback) callback(formatError("resetToEmpty", "DELETE courses失败: " + ((e && e.message) || JSON.stringify(e))))
           }
         })
       } else {
         var totalKeys = 10
         var completedDeletes = 0
-        var deleteError = false
+        var deleteError = null
         function onDeleteComplete() {
           completedDeletes++
           if (completedDeletes >= totalKeys) {
@@ -1119,7 +1126,7 @@ module.exports = {
             success: onDeleteComplete,
             fail: function(e) {
               logErr("resetToEmpty: delete key failed: " + JSON.stringify(e))
-              deleteError = true
+              deleteError = formatError("resetToEmpty", "删除存储key失败: " + ((e && e.message) || JSON.stringify(e)))
               onDeleteComplete()
             }
           })
@@ -1144,23 +1151,23 @@ module.exports = {
                 value: JSON.stringify(emptyPreset),
                 success: function() {
                   log("resetToEmpty: complete")
-                  if (cb) cb(true)
+                  if (cb) cb(null)
                 },
                 fail: function(e) {
                   logErr("resetToEmpty: failed to set course_preset_list: " + JSON.stringify(e))
-                  if (cb) cb(false)
+                  if (cb) cb(formatError("resetToEmpty", "设置course_preset_list失败: " + ((e && e.message) || JSON.stringify(e))))
                 }
               })
             },
             fail: function(e) {
               logErr("resetToEmpty: failed to set currentScheduleIndex: " + JSON.stringify(e))
-              if (cb) cb(false)
+              if (cb) cb(formatError("resetToEmpty", "设置currentScheduleIndex失败: " + ((e && e.message) || JSON.stringify(e))))
             }
           })
         },
         fail: function(e) {
           logErr("resetToEmpty: failed to set scheduleNames: " + JSON.stringify(e))
-          if (cb) cb(false)
+          if (cb) cb(formatError("resetToEmpty", "设置scheduleNames失败: " + ((e && e.message) || JSON.stringify(e))))
         }
       })
     }

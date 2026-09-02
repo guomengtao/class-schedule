@@ -118,14 +118,14 @@ export default {
     }
 
     var self = this
-    database.resetCoursePresets(function(success) {
+    database.resetCoursePresets(function(err) {
       self.presetConfirm = false
       self.presetDone = true
-      if (success) {
+      if (!err) {
         prompt.showToast({ message: "默认课程已恢复" })
         console.log("[RESET] Course presets restored successfully")
       } else {
-        prompt.showToast({ message: "恢复失败，请重试" })
+        prompt.showToast({ message: "恢复失败: " + err })
       }
     })
   },
@@ -146,15 +146,15 @@ export default {
     }
 
     var self = this
-    database.resetToDemoData(function(success) {
-      database.resetCoursePresets(function(presetSuccess) {
+    database.resetToDemoData(function(err) {
+      database.resetCoursePresets(function(presetErr) {
         self.fullConfirm = false
         self.fullDone = true
-        if (success && presetSuccess) {
+        if (!err && !presetErr) {
           prompt.showToast({ message: "全部数据已重置" })
           console.log("[RESET] Full demo data restored successfully")
         } else {
-          prompt.showToast({ message: "重置失败，请重试" })
+          prompt.showToast({ message: "重置失败: " + (err || presetErr) })
         }
       })
     })
@@ -176,14 +176,14 @@ export default {
     }
 
     var self = this
-    database.resetToEmpty(function(success) {
+    database.resetToEmpty(function(err) {
       self.emptyConfirm = false
       self.emptyDone = true
-      if (success) {
+      if (!err) {
         prompt.showToast({ message: "已重置为空" })
         console.log("[RESET] Empty reset completed successfully")
       } else {
-        prompt.showToast({ message: "重置失败，请重试" })
+        prompt.showToast({ message: "重置失败: " + err })
       }
     })
   },
