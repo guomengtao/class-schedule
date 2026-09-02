@@ -215,8 +215,11 @@ export default {
       self.theme = t
     })
 
+    database.init(function() {
+      self.loadSchedules()
+    })
+
     this.loadCourses()
-    this.loadSchedules()
 
     var storage = require("@system.storage")
     storage.get({
@@ -429,24 +432,40 @@ export default {
     })
 
     var targetIndex = this.scheduleIndex
+    var saveTimeout = false
+
+    var timeoutTimer = setTimeout(function() {
+      if (saveTimeout) return
+      saveTimeout = true
+      self.isSaving = false
+      prompt.showToast({ message: "保存超时，请重试" })
+    }, 5000)
+
+    function onSaveDone(success) {
+      if (saveTimeout) return
+      saveTimeout = true
+      clearTimeout(timeoutTimer)
+      if (success) {
+        self.lastAdded = {
+          scheduleName: self.scheduleName,
+          name: newCourse.name,
+          day: newCourse.day,
+          time: newCourse.time,
+          location: newCourse.location,
+          id: newCourse.id
+        }
+        self.isSaving = false
+        prompt.showToast({ message: "课程已添加" })
+      } else {
+        self.isSaving = false
+        prompt.showToast({ message: "保存失败，请重试" })
+      }
+    }
 
     database.setScheduleIndex(targetIndex, function() {
+      if (saveTimeout) return
       database.insertCourse(newCourse, function(success) {
-        if (success) {
-          self.lastAdded = {
-            scheduleName: self.scheduleName,
-            name: newCourse.name,
-            day: newCourse.day,
-            time: newCourse.time,
-            location: newCourse.location,
-            id: newCourse.id
-          }
-          self.isSaving = false
-          prompt.showToast({ message: "课程已添加" })
-        } else {
-          self.isSaving = false
-          prompt.showToast({ message: "保存失败，请重试" })
-        }
+        onSaveDone(success)
       })
     })
   }
