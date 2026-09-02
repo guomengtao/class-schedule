@@ -2,7 +2,7 @@
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="header-title" style="color: {{ theme.text }}">软件授权</text>
+      <text class="header-title" style="color: {{ theme.text }}">高级版</text>
     </div>
 
     <scroll class="page-scroll" scroll-y="{{true}}">
@@ -24,9 +24,9 @@
           <div class="step-badge" style="background-color: {{ theme.accent }}">
             <text class="step-badge-text" style="color: {{ theme.bg }}">1</text>
           </div>
-          <text class="step-title" style="color: {{ theme.text }}">爱发电购买兑换码</text>
+          <text class="step-title" style="color: {{ theme.text }}">购买高级版兑换码</text>
         </div>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">使用手机扫描下方二维码，或在浏览器中访问爱发电网址，购买软件授权兑换码</text>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">在爱发电购买高级版兑换码，永久解锁全部高级功能，无后续费用</text>
         <div class="qr-section">
           <div class="qr-wrapper" style="background-color: #ffffff">
             <qrcode value="{{ afdianUrl }}" style="color: #000000; background-color: #ffffff; width: 120px; height: 120px;"></qrcode>
@@ -45,9 +45,9 @@
           <div class="step-badge" style="background-color: {{ theme.accent }}">
             <text class="step-badge-text" style="color: {{ theme.bg }}">2</text>
           </div>
-          <text class="step-title" style="color: {{ theme.text }}">兑换激活码</text>
+          <text class="step-title" style="color: {{ theme.text }}">获取激活码</text>
         </div>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">购买后，扫描下方二维码打开激活页面，输入兑换码获取12位激活码</text>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">购买后扫描下方二维码，输入兑换码即可获取18位激活码</text>
         <div class="device-row">
           <text class="device-label" style="color: {{ theme.textSecondary }}">本机设备ID</text>
           <text class="device-value" style="color: {{ theme.accent }}">{{ deviceId || '获取中...' }}</text>
@@ -75,7 +75,7 @@
           </div>
           <text class="step-title" style="color: {{ theme.text }}">输入激活码</text>
         </div>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">将从网页获取的激活码逐位点选输入，3行6列共18位数字</text>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">请输入18位激活码，逐位点选输入</text>
 
         <div class="cells-grid" style="background-color: {{ theme.card }}">
           <div class="cells-row">
@@ -246,7 +246,6 @@ import vibrator from "@system.vibrator"
 const store = require("../../data/store.js")
 const authStore = require("../../data/auth-store.js")
 const crypto = require("../../lib/crypto.js")
-const PRODUCTS = require("../../data/products.js").PRODUCTS
 
 var ACTIVATION_URL = "https://app-auth.gudq.com/activate.html?deviceId="
 var AFDIAN_URL = "https://www.ifdian.net/item/54100fe4a1e011f1a3f452540025c377"
@@ -461,8 +460,8 @@ export default {
     authStore.verifyMasterCode(code, deviceId, function(masterResult) {
       if (masterResult.success) {
         self.verifySuccess = true
-        self.verifyResult = '万能码验证通过 - ' + masterResult.duration + ' 天'
-        self.verifyDetail = '剩余可用次数: ' + masterResult.remainingUses
+        self.verifyResult = '激活成功 - ' + masterResult.duration + ' 天'
+        self.verifyDetail = ''
 
         authStore.markActivated(masterResult.duration, code, '', function(success) {
           if (success) {
@@ -517,18 +516,15 @@ export default {
           return
         }
 
-        var productIdIndex = decrypted.productIdIndex
-        var productId4 = productIdIndex.padStart(4, '0')
         var months = parseInt(decrypted.months, 10)
-        var productName = PRODUCTS[productId4] ? PRODUCTS[productId4].name : '产品' + productIdIndex
 
         var isPermanent = months === 99
         var days = isPermanent ? -1 : months * 30
         var durationLabel = isPermanent ? '永久' : (months + ' 个月')
 
         self.verifySuccess = true
-        self.verifyResult = '验证通过 - ' + (isPermanent ? '永久激活' : (months + ' 个月'))
-        self.verifyDetail = '产品: ' + productName + ' | 设备ID: ' + decrypted.deviceId + ' | 月份: ' + months + '个月'
+        self.verifyResult = '激活成功 - ' + (isPermanent ? '永久高级版 ✓' : (months + ' 个月'))
+        self.verifyDetail = isPermanent ? '' : ('有效期: ' + months + ' 个月')
 
         authStore.markActivated(days, code, decrypted.redeemCode, function(success) {
           if (success) {

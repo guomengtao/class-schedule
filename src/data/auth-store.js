@@ -430,7 +430,7 @@ function getRemindDialogContent(status) {
     }
   }
   return {
-    title: '软件授权',
+    title: '高级版',
     icon: '📱',
     message: '请激活高级版以解锁全部功能',
     buttonText: '我知道了',

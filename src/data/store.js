@@ -645,7 +645,7 @@ module.exports = {
           callback(true)
           return
         }
-        var authStore = require("../data/auth-store")
+        var authStore = require("./auth-store")
         authStore.getAuthData(function(authData) {
           if (authData && (authData.isActivated || authData.isPermanent)) {
             callback(true)
@@ -655,7 +655,7 @@ module.exports = {
         })
       },
       fail: function() {
-        var authStore = require("../data/auth-store")
+        var authStore = require("./auth-store")
         authStore.getAuthData(function(authData) {
           if (authData && (authData.isActivated || authData.isPermanent)) {
             callback(true)

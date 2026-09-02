@@ -107,7 +107,7 @@
     </div>
 
     <div class="info-section" onclick="openActivation" style="background-color: {{ theme.card }}">
-      <text class="info-label" style="color: {{ theme.text }}">软件授权</text>
+      <text class="info-label" style="color: {{ theme.text }}">高级版</text>
       <div class="info-value-row">
         <text class="info-placeholder" style="color: {{ theme.textMuted }}">爱发电购买兑换码激活</text>
         <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
