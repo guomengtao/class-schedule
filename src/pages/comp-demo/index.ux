@@ -1,0 +1,57 @@
+<import name="hello" src="../../components/hello"></import>
+
+<template>
+  <div class="page" style="background-color: #1a1a2e">
+    <div class="header">
+      <text class="title" style="color: #ffffff">组件化测试</text>
+    </div>
+
+    <div class="content">
+      <hello msg="hello world"></hello>
+
+      <div class="divider" style="background-color: #333355"></div>
+
+      <text class="native-text" style="color: #888899">原生 text 显示：hello world</text>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  onInit() {
+    console.log('[comp-demo page] onInit')
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 16px 16px 16px;
+  min-height: 100%;
+}
+
+.header {
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.content {
+  flex-direction: column;
+  align-items: center;
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  margin: 16px 0;
+}
+
+.native-text {
+  font-size: 16px;
+}
+</style>

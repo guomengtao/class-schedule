@@ -1,0 +1,28 @@
+<template>
+  <div class="hello-container">
+    <text class="hello-text" style="color: {{ textColor }}">{{ msg }}</text>
+  </div>
+</template>
+
+<script>
+export default {
+  props: ['msg'],
+  data: {
+    textColor: '#7ec8e3'
+  },
+  onInit() {
+    console.log('[hello component] onInit, msg =', this.msg)
+  }
+}
+</script>
+
+<style>
+.hello-container {
+  padding: 12px;
+  align-items: center;
+}
+.hello-text {
+  font-size: 20px;
+  font-weight: bold;
+}
+</style>
