@@ -953,24 +953,33 @@ module.exports = {
           name: DB_NAME,
           sql: "DELETE FROM courses",
           success: function() {
-            insertScheduleToSqlite(0, schedule1, function() {
-              insertScheduleToSqlite(1, schedule2, function() {
-                finalizeReset()
+            insertScheduleToSqlite(0, schedule1, function(s1Err) {
+              insertScheduleToSqlite(1, schedule2, function(s2Err) {
+                finalizeReset(s1Err || s2Err)
               })
             })
           },
-          fail: function() {
-            insertScheduleToSqlite(0, schedule1, function() {
-              insertScheduleToSqlite(1, schedule2, function() {
-                finalizeReset()
-              })
-            })
+          fail: function(e) {
+            logErr("resetToDemoData: DELETE FROM courses failed: " + JSON.stringify(e))
+            if (callback) callback(false)
           }
         })
       } else {
-        saveToStorageWithIndex(0, schedule1)
-        saveToStorageWithIndex(1, schedule2)
-        finalizeReset()
+        saveToStorageWithIndex(0, schedule1, function(success1) {
+          if (!success1) {
+            logErr("resetToDemoData: save schedule1 to storage failed")
+            if (callback) callback(false)
+            return
+          }
+          saveToStorageWithIndex(1, schedule2, function(success2) {
+            if (!success2) {
+              logErr("resetToDemoData: save schedule2 to storage failed")
+              if (callback) callback(false)
+              return
+            }
+            finalizeReset(false)
+          })
+        })
       }
     }
 
@@ -996,9 +1005,13 @@ module.exports = {
       insertBatchSqlite(allCourses, 0, cb)
     }
 
-    function insertBatchSqlite(courses, index, cb) {
+    function insertBatchSqlite(courses, index, cb, errorCount) {
+      if (errorCount === undefined) errorCount = 0
       if (index >= courses.length) {
-        cb()
+        if (errorCount > 0) {
+          logErr("resetToDemoData: " + errorCount + " of " + courses.length + " inserts failed")
+        }
+        cb(errorCount > 0)
         return
       }
       var c = courses[index]
@@ -1007,16 +1020,16 @@ module.exports = {
         sql: "INSERT OR REPLACE INTO courses (id, day, name, time, teacher, location, notes, schedule_index) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         args: [c.id, c.day, c.name, c.time, c.teacher, c.location, c.notes, c.scheduleIndex],
         success: function() {
-          insertBatchSqlite(courses, index + 1, cb)
+          insertBatchSqlite(courses, index + 1, cb, errorCount)
         },
         fail: function(e) {
           logErr("reset insert failed: " + JSON.stringify(e))
-          insertBatchSqlite(courses, index + 1, cb)
+          insertBatchSqlite(courses, index + 1, cb, errorCount + 1)
         }
       })
     }
 
-    function finalizeReset() {
+    function finalizeReset(hadError) {
       storage.set({
         key: "scheduleNames",
         value: JSON.stringify(names),
@@ -1026,16 +1039,18 @@ module.exports = {
             key: "currentScheduleIndex",
             value: "0",
             success: function() {
-              log("resetToDemoData: complete")
-              if (callback) callback(true)
+              log("resetToDemoData: complete" + (hadError ? " (with errors)" : ""))
+              if (callback) callback(!hadError)
             },
-            fail: function() {
-              if (callback) callback(true)
+            fail: function(e) {
+              logErr("resetToDemoData: failed to set currentScheduleIndex: " + JSON.stringify(e))
+              if (callback) callback(false)
             }
           })
         },
-        fail: function() {
-          if (callback) callback(true)
+        fail: function(e) {
+          logErr("resetToDemoData: failed to set scheduleNames: " + JSON.stringify(e))
+          if (callback) callback(false)
         }
       })
     }
@@ -1059,7 +1074,6 @@ module.exports = {
       { name: "地理", time: "10:00 - 10:45", teacher: "老师", location: "" },
       { name: "生物", time: "10:55 - 11:40", teacher: "老师", location: "" }
     ]
-    var storage = require("@system.storage")
     storage.set({
       key: "course_preset_list",
       value: JSON.stringify(defaultCoursePreset),
@@ -1067,8 +1081,8 @@ module.exports = {
         log("resetCoursePresets: complete")
         if (callback) callback(true)
       },
-      fail: function() {
-        logErr("resetCoursePresets: failed")
+      fail: function(e) {
+        logErr("resetCoursePresets: failed: " + JSON.stringify(e))
         if (callback) callback(false)
       }
     })
@@ -1084,15 +1098,32 @@ module.exports = {
           success: function() {
             finalizeEmpty(callback)
           },
-          fail: function() {
-            finalizeEmpty(callback)
+          fail: function(e) {
+            logErr("resetToEmpty: DELETE FROM courses failed: " + JSON.stringify(e))
+            if (callback) callback(false)
           }
         })
       } else {
-        for (var i = 0; i < 10; i++) {
-          storage.delete({ key: STORAGE_KEY + "_" + i })
+        var totalKeys = 10
+        var completedDeletes = 0
+        var deleteError = false
+        function onDeleteComplete() {
+          completedDeletes++
+          if (completedDeletes >= totalKeys) {
+            finalizeEmpty(callback)
+          }
         }
-        finalizeEmpty(callback)
+        for (var i = 0; i < totalKeys; i++) {
+          storage.delete({
+            key: STORAGE_KEY + "_" + i,
+            success: onDeleteComplete,
+            fail: function(e) {
+              logErr("resetToEmpty: delete key failed: " + JSON.stringify(e))
+              deleteError = true
+              onDeleteComplete()
+            }
+          })
+        }
       }
     })
 
@@ -1115,18 +1146,21 @@ module.exports = {
                   log("resetToEmpty: complete")
                   if (cb) cb(true)
                 },
-                fail: function() {
-                  if (cb) cb(true)
+                fail: function(e) {
+                  logErr("resetToEmpty: failed to set course_preset_list: " + JSON.stringify(e))
+                  if (cb) cb(false)
                 }
               })
             },
-            fail: function() {
-              if (cb) cb(true)
+            fail: function(e) {
+              logErr("resetToEmpty: failed to set currentScheduleIndex: " + JSON.stringify(e))
+              if (cb) cb(false)
             }
           })
         },
-        fail: function() {
-          if (cb) cb(true)
+        fail: function(e) {
+          logErr("resetToEmpty: failed to set scheduleNames: " + JSON.stringify(e))
+          if (cb) cb(false)
         }
       })
     }
