@@ -1,17 +1,19 @@
 <template>
-  <div class="overlay" show="{{ visible }}" style="background-color: rgba(0,0,0,0.65)">
-    <div class="dialog" style="background-color: {{ theme.card }}">
-      <text class="dialog-title" style="color: {{ theme.accent }}">{{ title }}</text>
+  <div class="sheet-overlay" show="{{ visible }}" style="background-color: rgba(0,0,0,0.35)" onclick="doCancel">
+    <div class="sheet-panel" style="background-color: {{ theme.card }}">
+      <div class="sheet-handle-row">
+        <div class="sheet-handle" style="background-color: {{ theme.textMuted }}"></div>
+      </div>
+
+      <text class="sheet-title" style="color: {{ theme.accent }}">{{ title }}</text>
+
+      <text class="sheet-desc" style="color: {{ theme.textSecondary }}">{{ description }}</text>
 
       <div class="benefits">
         <div for="{{ benefits }}" class="benefit-row">
           <text class="benefit-icon" style="color: {{ theme.accent }}">✓</text>
           <text class="benefit-text" style="color: {{ theme.text }}">{{ $item }}</text>
         </div>
-      </div>
-
-      <div class="price-row">
-        <text class="price-text" style="color: {{ theme.textSecondary }}">一次性解锁，永久使用</text>
       </div>
 
       <div class="btn-row">
@@ -32,8 +34,9 @@ export default {
   private: {
     visible: false,
     title: "解锁高级功能",
-    benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
-    cancelText: "继续使用标准版",
+    description: "一次性解锁，永久使用全部高级功能",
+    benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "多套主题"],
+    cancelText: "暂不需要",
     feature: "",
     onSuccess: null,
     onPayFail: null,
@@ -42,6 +45,7 @@ export default {
       accent: "#7ec8e3",
       text: "#ffffff",
       textSecondary: "#888899",
+      textMuted: "#555566",
       bg: "#1a1a2e",
       btnSecondary: "#333355",
       btnSecondaryText: "#a0a0b0"
@@ -65,8 +69,9 @@ export default {
   show(options) {
     options = options || {}
     this.title = options.title || "解锁高级功能"
-    this.benefits = options.benefits || ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"]
-    this.cancelText = options.cancelText || "继续使用标准版"
+    this.description = options.description || "一次性解锁，永久使用全部高级功能"
+    this.benefits = options.benefits || ["多课表管理", "数据备份与恢复", "首页自定义", "多套主题"]
+    this.cancelText = options.cancelText || "暂不需要"
     this.feature = options.feature || ""
     this.onSuccess = options.onSuccess || null
     this.onPayFail = options.onPayFail || null
@@ -89,38 +94,55 @@ export default {
 </script>
 
 <style>
-.overlay {
+.sheet-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   z-index: 1000;
 }
 
-.dialog {
-  width: 88%;
-  max-width: 300px;
-  border-radius: 12px;
-  padding: 16px 14px 14px 14px;
+.sheet-panel {
+  width: 100%;
+  border-radius: 16px 16px 0 0;
+  padding: 8px 16px 16px 16px;
   flex-direction: column;
   align-items: center;
 }
 
-.dialog-title {
+.sheet-handle-row {
+  width: 100%;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.sheet-title {
   font-size: 16px;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   text-align: center;
+}
+
+.sheet-desc {
+  font-size: 11px;
+  text-align: center;
+  margin-bottom: 10px;
+  line-height: 16px;
 }
 
 .benefits {
   width: 100%;
   flex-direction: column;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .benefit-row {
@@ -141,15 +163,6 @@ export default {
   flex: 1;
 }
 
-.price-row {
-  margin-bottom: 10px;
-}
-
-.price-text {
-  font-size: 11px;
-  text-align: center;
-}
-
 .btn-row {
   width: 100%;
   flex-direction: column;
@@ -158,8 +171,8 @@ export default {
 
 .unlock-btn {
   width: 100%;
-  height: 32px;
-  border-radius: 16px;
+  height: 34px;
+  border-radius: 17px;
   font-size: 13px;
   font-weight: bold;
   margin-bottom: 6px;

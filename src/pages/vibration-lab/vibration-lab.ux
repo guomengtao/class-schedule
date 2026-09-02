@@ -1,3 +1,4 @@
+<import name="unlock-dialog" src="../../components/unlock-dialog"></import>
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
@@ -89,6 +90,8 @@
     <div class="save-section">
       <input class="save-btn" type="button" value="💾 保存当前为方案" onclick="savePreset" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
+
+    <unlock-dialog id="unlockDialog"></unlock-dialog>
   </div>
 </template>
 
@@ -98,6 +101,7 @@ var pinHelper = require("../../data/pin-helper.js")
 import vibrator from "@system.vibrator"
 import prompt from "@system.prompt"
 const store = require("../../data/store.js")
+const authStore = require("../../data/auth-store.js")
 
 var presetMap = {
   short:       { label: "短震",   duration: 100,  interval: 200, count: 1 },
@@ -115,6 +119,7 @@ var fallbackTimer = null
 
 export default {
   private: {
+    isPro: false,
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -159,6 +164,14 @@ export default {
       self.theme = t
     })
     this.loadPresets()
+    this.checkProStatus()
+  },
+
+  checkProStatus() {
+    var self = this
+    authStore.checkStatus(function(status) {
+      self.isPro = status.isActivated
+    })
   },
 
   loadPresets() {
@@ -306,6 +319,16 @@ export default {
   },
 
   savePreset() {
+    var self = this
+    if (!self.isPro) {
+      store.showUnlockDialog({
+        title: "解锁震动自定义",
+        description: "一次性解锁，永久使用全部高级功能",
+        benefits: ["保存震动方案", "多套震动方案", "数据备份与恢复", "首页自定义"],
+        cancelText: "暂不需要"
+      })
+      return
+    }
     var name = "方案" + (this.savedPresets.length + 1)
     var preset = {
       name: name,

@@ -1,3 +1,4 @@
+<import name="unlock-dialog" src="../../components/unlock-dialog"></import>
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
@@ -43,6 +44,8 @@
         </div>
       </div>
     </div>
+
+    <unlock-dialog id="unlockDialog"></unlock-dialog>
   </div>
 </template>
 
@@ -50,6 +53,7 @@
 import router from "@system.router"
 var pinHelper = require("../../data/pin-helper.js")
 const store = require("../../data/store.js")
+const authStore = require("../../data/auth-store.js")
 
 var PRESETS = [
   "Hello World",
@@ -62,6 +66,7 @@ var PRESETS = [
 
 export default {
   private: {
+    isPro: false,
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -88,14 +93,24 @@ export default {
   onInit() {
     var self = this
     store.getTheme(function(t) { self.theme = t })
+    this.checkProStatus()
   },
 
   onShow() {
     this.loadInputText()
+    this.checkProStatus()
+  },
+
+  checkProStatus() {
+    var self = this
+    authStore.checkStatus(function(status) {
+      self.isPro = status.isActivated
+    })
   },
 
   loadInputText() {
     var self = this
+    if (!self.isPro) return
     store.getQrcodeText(function(text) {
       if (text) {
         self.inputText = text
@@ -110,6 +125,16 @@ export default {
   },
 
   usePreset(index) {
+    var self = this
+    if (!self.isPro) {
+      store.showUnlockDialog({
+        title: "解锁二维码生成",
+        description: "一次性解锁，永久使用全部高级功能",
+        benefits: ["文字转二维码", "快捷内容模板", "多课表管理", "首页自定义"],
+        cancelText: "暂不需要"
+      })
+      return
+    }
     var text = PRESETS[index]
     if (text) {
       this.inputText = text

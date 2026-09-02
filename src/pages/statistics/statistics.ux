@@ -1,3 +1,4 @@
+<import name="pro-card" src="../../components/pro-card"></import>
 <template>
   <div class="stats-page" style="background-color: {{ theme.bg }}">
     <div class="header">
@@ -58,6 +59,10 @@
         </div>
       </div>
     </scroll>
+
+    <div class="pro-overlay" if="{{ !isPro }}">
+      <pro-card id="proCard"></pro-card>
+    </div>
   </div>
 </template>
 
@@ -65,11 +70,13 @@
 import router from "@system.router"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
+const authStore = require("../../data/auth-store.js")
 
 var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
 export default {
   private: {
+    isPro: false,
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -104,6 +111,7 @@ export default {
       self.theme = t
     })
     this.loadStatistics()
+    this.checkProStatus()
   },
 
   onShow() {
@@ -112,6 +120,22 @@ export default {
       self.theme = t
     })
     this.loadStatistics()
+    this.checkProStatus()
+  },
+
+  checkProStatus() {
+    var self = this
+    authStore.checkStatus(function(status) {
+      self.isPro = status.isActivated
+      if (!self.isPro) {
+        self.$child("proCard").configure({
+          title: "解锁课程统计",
+          description: "一次性解锁，永久使用全部高级功能",
+          benefits: ["课程分布图表", "各科数量排行", "每周趋势分析", "每日课程分布"],
+          cancelText: "继续使用标准版"
+        })
+      }
+    })
   },
 
   loadStatistics() {
@@ -487,6 +511,23 @@ export default {
   }
   .header-title {
     font-size: 16px;
+  }
+}
+.pro-overlay {
+  position: absolute;
+  top: 80px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+@media (shape: circle) {
+  .pro-overlay {
+    left: 36px;
+    right: 36px;
   }
 }
 </style>

@@ -1,0 +1,150 @@
+<template>
+  <div class="pro-card-inline" style="background-color: {{ theme.card }}">
+    <div class="pro-card-top">
+      <text class="pro-icon">👑</text>
+      <text class="pro-title" style="color: {{ theme.accent }}">{{ title }}</text>
+    </div>
+
+    <text class="pro-desc" style="color: {{ theme.textSecondary }}">{{ description }}</text>
+
+    <div class="pro-benefits">
+      <div for="{{ benefits }}" class="benefit-row">
+        <text class="benefit-check" style="color: {{ theme.accent }}">✓</text>
+        <text class="benefit-text" style="color: {{ theme.text }}">{{ $item }}</text>
+      </div>
+    </div>
+
+    <div class="pro-btn-row">
+      <input class="pro-btn" type="button" value="立即解锁" onclick="doUnlock"
+             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="pro-btn-cancel" type="button" value="{{ cancelText }}" onclick="doCancel"
+             style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../data/store.js")
+
+export default {
+  private: {
+    title: "解锁高级功能",
+    description: "一次性解锁，永久使用全部高级功能",
+    benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "多套主题"],
+    cancelText: "继续使用标准版",
+    theme: {
+      card: "#16213e",
+      accent: "#7ec8e3",
+      text: "#ffffff",
+      textSecondary: "#888899",
+      bg: "#1a1a2e",
+      btnSecondary: "#333355",
+      btnSecondaryText: "#a0a0b0"
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+  },
+
+  configure(options) {
+    options = options || {}
+    this.title = options.title || "解锁高级功能"
+    this.description = options.description || "一次性解锁，永久使用全部高级功能"
+    this.benefits = options.benefits || ["多课表管理", "数据备份与恢复", "首页自定义", "多套主题"]
+    this.cancelText = options.cancelText || "继续使用标准版"
+  },
+
+  doUnlock() {
+    router.push({ uri: "/pages/activation" })
+  },
+
+  doCancel() {
+    this.$emit("cancel")
+  }
+}
+</script>
+
+<style>
+.pro-card-inline {
+  width: 100%;
+  border-radius: 12px;
+  padding: 16px 14px 14px 14px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pro-card-top {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.pro-icon {
+  font-size: 18px;
+  margin-right: 6px;
+}
+
+.pro-title {
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.pro-desc {
+  font-size: 11px;
+  text-align: center;
+  margin-bottom: 10px;
+  line-height: 16px;
+}
+
+.pro-benefits {
+  width: 100%;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.benefit-row {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.benefit-check {
+  font-size: 11px;
+  margin-right: 6px;
+  width: 14px;
+  text-align: center;
+}
+
+.benefit-text {
+  font-size: 11px;
+  flex: 1;
+}
+
+.pro-btn-row {
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pro-btn {
+  width: 100%;
+  height: 32px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.pro-btn-cancel {
+  width: 100%;
+  height: 28px;
+  border-radius: 14px;
+  font-size: 12px;
+}
+</style>

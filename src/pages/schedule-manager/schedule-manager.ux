@@ -66,9 +66,11 @@ var pinHelper = require("../../data/pin-helper.js")
 import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
+const authStore = require("../../data/auth-store.js")
 
 export default {
   private: {
+    isPro: false,
     list: [],
     currentIndex: 0,
     expandedIndex: -1,
@@ -95,6 +97,28 @@ export default {
       self.theme = t
     })
     this.loadData()
+    this.checkProStatus()
+  },
+
+  checkProStatus() {
+    var self = this
+    authStore.checkStatus(function(status) {
+      self.isPro = status.isActivated
+    })
+  },
+
+  checkProAccess() {
+    var self = this
+    if (!self.isPro) {
+      store.showUnlockDialog({
+        title: "解锁多课表管理",
+        description: "一次性解锁，永久使用全部高级功能",
+        benefits: ["多课表管理", "课表复制导出", "数据备份与恢复", "首页自定义"],
+        cancelText: "暂不需要"
+      })
+      return false
+    }
+    return true
   },
 
   onShow() {
@@ -156,6 +180,7 @@ export default {
   },
 
   startRename(index) {
+    if (!this.checkProAccess()) return
     this.editingIndex = index
     this.editName = this.list[index].name
 
@@ -208,6 +233,7 @@ export default {
   },
 
   copySchedule(index) {
+    if (!this.checkProAccess()) return
     var self = this
     var sourceName = this.list[index].name
     var newName = sourceName + " (副本)"
@@ -281,6 +307,7 @@ export default {
   },
 
   openQrPopup(index) {
+    if (!this.checkProAccess()) return
     var storage = require("@system.storage")
     storage.set({
       key: "schedule_qrcode_index",
@@ -295,6 +322,7 @@ export default {
   },
 
   openWeekView(index) {
+    if (!this.checkProAccess()) return
     var storage = require("@system.storage")
     storage.set({
       key: "weekview_index",
@@ -309,6 +337,7 @@ export default {
   },
 
   openScheduleStats(index) {
+    if (!this.checkProAccess()) return
     var storage = require("@system.storage")
     storage.set({
       key: "statistics_index",

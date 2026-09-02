@@ -116,9 +116,6 @@
       "pages/test-area": {
         "component": "test-area"
       },
-      "pages/popup-test": {
-        "component": "popup-test"
-      },
       "pages/activation-lab": {
         "component": "activation-lab"
       },
@@ -139,12 +136,6 @@
       },
       "pages/accordion-demo": {
         "component": "accordion-demo"
-      },
-      "pages/dialog-demo": {
-        "component": "index"
-      },
-      "pages/full-dialog": {
-        "component": "index"
       }
     }
   }

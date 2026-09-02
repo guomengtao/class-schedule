@@ -1,3 +1,5 @@
+<import name="unlock-dialog" src="../../components/unlock-dialog"></import>
+<import name="pro-card" src="../../components/pro-card"></import>
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
@@ -8,6 +10,13 @@
 
     <div class="subtitle-section" style="background-color: {{ theme.card }}">
       <text class="subtitle-text" style="color: {{ theme.textSecondary }}">通过二维码方式导出课程表，手机扫码即可获取完整课程信息并可复制保留</text>
+    </div>
+
+    <div class="pro-inline-wrap" if="{{ !isPro }}">
+      <div class="preview-hint" style="background-color: {{ theme.card }}">
+        <text class="preview-hint-text" style="color: {{ theme.textMuted }}">课程表导出预览（Pro 解锁完整功能）</text>
+      </div>
+      <pro-card id="proCard"></pro-card>
     </div>
 
     <scroll class="content-scroll" scroll-y="{{true}}">
@@ -43,6 +52,8 @@
         <text class="loading-text" style="color: {{ theme.textMuted }}">正在加载课程数据...</text>
       </div>
     </scroll>
+
+    <unlock-dialog id="unlockDialog"></unlock-dialog>
   </div>
 </template>
 
@@ -51,9 +62,11 @@ import router from "@system.router"
 var pinHelper = require("../../data/pin-helper.js")
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
+const authStore = require("../../data/auth-store.js")
 
 export default {
   private: {
+    isPro: false,
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -74,6 +87,7 @@ export default {
       self.theme = t
     })
     this.loadData()
+    this.checkProStatus()
   },
 
   onShow() {
@@ -82,6 +96,22 @@ export default {
       self.theme = t
     })
     this.loadData()
+    this.checkProStatus()
+  },
+
+  checkProStatus() {
+    var self = this
+    authStore.checkStatus(function(status) {
+      self.isPro = status.isActivated
+      if (!self.isPro) {
+        self.$child("proCard").configure({
+          title: "解锁导出课程表",
+          description: "一次性解锁，永久使用全部高级功能",
+          benefits: ["课程表二维码导出", "多课表管理", "数据备份与恢复", "首页自定义"],
+          cancelText: "暂不需要"
+        })
+      }
+    })
   },
 
   loadData() {
@@ -497,5 +527,20 @@ export default {
     flex: 1;
     text-align: center;
   }
+}
+.pro-inline-wrap {
+  padding: 0 0 12px 0;
+  flex-direction: column;
+}
+
+.preview-hint {
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin-bottom: 8px;
+}
+
+.preview-hint-text {
+  font-size: 13px;
+  text-align: center;
 }
 </style>
