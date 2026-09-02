@@ -65,9 +65,9 @@
       </div>
 
       <div class="menu-item" onclick="openUnlockDemo" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">弹窗 Demo</text>
+        <text class="menu-label" style="color: {{ theme.text }}">完整弹窗</text>
         <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">解锁弹窗功能测试</text>
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">完善弹窗组件开发</text>
           <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
@@ -175,7 +175,7 @@ export default {
   },
 
   openUnlockDemo() {
-    router.push({ uri: "/pages/unlock-demo" })
+    router.push({ uri: "/pages/full-dialog" })
   },
 
   openCompDemo() {
