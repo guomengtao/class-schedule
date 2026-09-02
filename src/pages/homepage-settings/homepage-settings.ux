@@ -166,12 +166,11 @@ export default {
   },
 
   checkPremiumAccess(callback) {
-    var self = this
     store.isPremiumUnlocked(function(unlocked) {
       if (unlocked) {
         callback()
       } else {
-        self.$element('unlockDialog').show({})
+        store.showUnlockDialog({})
       }
     })
   },

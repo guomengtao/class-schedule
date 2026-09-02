@@ -375,7 +375,7 @@ export default {
         self.doAddSchedule()
       } else {
         if (self.list.length >= 1) {
-          self.$element('unlockDialog').show({})
+          store.showUnlockDialog({})
         } else {
           self.doAddSchedule()
         }

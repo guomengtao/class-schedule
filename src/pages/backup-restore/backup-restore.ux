@@ -102,7 +102,7 @@ export default {
       if (unlocked) {
         self.performBackup()
       } else {
-        self.$element('unlockDialog').show({
+        store.showUnlockDialog({
           title: "解锁数据备份",
           benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
           cancelText: "继续使用标准版"
@@ -117,7 +117,7 @@ export default {
       if (unlocked) {
         self.performRestore()
       } else {
-        self.$element('unlockDialog').show({
+        store.showUnlockDialog({
           title: "解锁数据恢复",
           benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
           cancelText: "继续使用标准版"

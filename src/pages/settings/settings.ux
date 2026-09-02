@@ -272,7 +272,7 @@ export default {
       if (unlocked) {
         self.applyTheme(themeKey)
       } else {
-        self.$element('unlockDialog').show({})
+        store.showUnlockDialog({})
       }
     })
   },
@@ -397,23 +397,21 @@ export default {
   },
 
   openHomepageSettings() {
-    var self = this
     store.isPremiumUnlocked(function(unlocked) {
       if (unlocked) {
         router.push({ uri: "/pages/homepage-settings" })
       } else {
-        self.$element('unlockDialog').show({})
+        store.showUnlockDialog({})
       }
     })
   },
 
   openBackupRestore() {
-    var self = this
     store.isPremiumUnlocked(function(unlocked) {
       if (unlocked) {
         router.push({ uri: "/pages/backup-restore" })
       } else {
-        self.$element('unlockDialog').show({})
+        store.showUnlockDialog({})
       }
     })
   },

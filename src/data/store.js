@@ -1,4 +1,5 @@
 var storage = require("@system.storage")
+var authStore = require("./auth-store")
 
 var DEFAULT_NAMES = ["课程表1"]
 
@@ -645,7 +646,6 @@ module.exports = {
           callback(true)
           return
         }
-        var authStore = require("./auth-store")
         authStore.getAuthData(function(authData) {
           if (authData && (authData.isActivated || authData.isPermanent)) {
             callback(true)
@@ -655,7 +655,6 @@ module.exports = {
         })
       },
       fail: function() {
-        var authStore = require("./auth-store")
         authStore.getAuthData(function(authData) {
           if (authData && (authData.isActivated || authData.isPermanent)) {
             callback(true)
@@ -674,5 +673,19 @@ module.exports = {
       success: function() { if (callback) callback(true) },
       fail: function() { if (callback) callback(false) }
     })
+  },
+
+  _unlockDialogRef: null,
+
+  showUnlockDialog: function(options) {
+    if (this._unlockDialogRef) {
+      this._unlockDialogRef.show(options)
+    }
+  },
+
+  hideUnlockDialog: function() {
+    if (this._unlockDialogRef) {
+      this._unlockDialogRef.hide()
+    }
   }
 }

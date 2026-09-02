@@ -50,9 +50,16 @@ export default {
 
   onInit() {
     var self = this
+    store._unlockDialogRef = this
     store.getTheme(function(t) {
       self.theme = t
     })
+  },
+
+  onDestroy() {
+    if (store._unlockDialogRef === this) {
+      store._unlockDialogRef = null
+    }
   },
 
   show(options) {
