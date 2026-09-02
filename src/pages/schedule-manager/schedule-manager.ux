@@ -1,5 +1,5 @@
+<import name="unlock-dialog" src="../../components/unlock-dialog"></import>
 <template>
-  <import name="unlock-dialog" src="../../components/unlock-dialog"></import>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
