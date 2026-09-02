@@ -9,6 +9,16 @@
 
     <scroll class="form-scroll" scroll-y="true">
       <div class="form-card" style="background-color: {{ theme.card }}">
+        <text class="field-label" style="color: {{ theme.text }}">目标课程表</text>
+        <div class="schedule-select-row">
+          <input class="swipe-arrow" type="button" value="◀" onclick="prevSchedule" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+          <text class="schedule-name-display" style="color: {{ theme.accent }}">{{ scheduleName }}</text>
+          <input class="swipe-arrow" type="button" value="▶" onclick="nextSchedule" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+        </div>
+        <text class="course-index" style="color: {{ theme.textMuted }}">{{ scheduleIndex + 1 }} / {{ scheduleNames.length }}</text>
+      </div>
+
+      <div class="form-card" style="background-color: {{ theme.card }}">
         <text class="field-label" style="color: {{ theme.text }}">课程名称</text>
         <div class="course-select-row">
           <input class="swipe-arrow" type="button" value="◀" onclick="prevCourse" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
@@ -65,6 +75,10 @@
       <div class="form-card" style="background-color: {{ theme.card }}">
         <text class="field-label" style="color: {{ theme.text }}">确认信息</text>
         <div class="info-row">
+          <text class="info-label" style="color: {{ theme.textSecondary }}">课程表: </text>
+          <text class="info-value" style="color: {{ theme.accent }}">{{ scheduleName }}</text>
+        </div>
+        <div class="info-row">
           <text class="info-label" style="color: {{ theme.textSecondary }}">课程: </text>
           <text class="info-value" style="color: {{ theme.accent }}">{{ presetCourses[courseIndex].name }}</text>
         </div>
@@ -85,6 +99,7 @@
 
     <div class="result-card" if="{{ lastAdded }}" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
       <text class="result-title" style="color: {{ theme.accent }}">最新添加课程记录</text>
+      <text class="result-item" style="color: {{ theme.text }}">课程表: {{ lastAdded.scheduleName }}</text>
       <text class="result-item" style="color: {{ theme.text }}">课程: {{ lastAdded.name }}</text>
       <text class="result-item" style="color: {{ theme.text }}">日期: {{ lastAdded.day }}</text>
       <text class="result-item" style="color: {{ theme.text }}">时间: {{ lastAdded.time }}</text>
@@ -102,6 +117,7 @@
 import router from "@system.router"
 import prompt from "@system.prompt"
 const store = require("../../data/store.js")
+const database = require("../../data/database.js")
 
 var COURSE_LIST_KEY = "course_preset_list"
 
@@ -155,6 +171,9 @@ export default {
     nextId: 100,
     isSaving: false,
     lastAdded: null,
+    scheduleIndex: 0,
+    scheduleNames: ["课程表1"],
+    scheduleName: "课程表1",
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -197,6 +216,7 @@ export default {
     })
 
     this.loadCourses()
+    this.loadSchedules()
 
     var storage = require("@system.storage")
     storage.get({
@@ -339,6 +359,50 @@ export default {
     router.back()
   },
 
+  loadSchedules() {
+    var self = this
+    store.getScheduleNames(function(names) {
+      self.scheduleNames = names
+      store.getCurrentScheduleIndex(function(idx) {
+        self.scheduleIndex = idx
+        self.updateScheduleName()
+      })
+    })
+  },
+
+  updateScheduleName() {
+    if (this.scheduleNames && this.scheduleNames.length > 0) {
+      if (this.scheduleIndex >= 0 && this.scheduleIndex < this.scheduleNames.length) {
+        this.scheduleName = this.scheduleNames[this.scheduleIndex]
+      } else {
+        this.scheduleIndex = 0
+        this.scheduleName = this.scheduleNames[0]
+      }
+    } else {
+      this.scheduleName = "课程表1"
+    }
+  },
+
+  prevSchedule() {
+    if (this.scheduleNames.length === 0) return
+    if (this.scheduleIndex > 0) {
+      this.scheduleIndex--
+    } else {
+      this.scheduleIndex = this.scheduleNames.length - 1
+    }
+    this.updateScheduleName()
+  },
+
+  nextSchedule() {
+    if (this.scheduleNames.length === 0) return
+    if (this.scheduleIndex < this.scheduleNames.length - 1) {
+      this.scheduleIndex++
+    } else {
+      this.scheduleIndex = 0
+    }
+    this.updateScheduleName()
+  },
+
   saveCourse() {
     if (this.isSaving) return
     var c = this.presetCourses[this.courseIndex]
@@ -364,71 +428,24 @@ export default {
       value: String(this.nextId)
     })
 
-    store.getCurrentScheduleIndex(function(idx) {
-      var storageKey = "allCourses_" + idx
-      storage.get({
-        key: storageKey,
-        success: function(val) {
-          var schedule = []
-          if (val) {
-            try { schedule = JSON.parse(val) } catch (e) {
-              self.isSaving = false
-              prompt.showToast({ message: "数据解析失败" })
-              return
-            }
+    var targetIndex = this.scheduleIndex
+
+    database.setScheduleIndex(targetIndex, function() {
+      database.insertCourse(newCourse, function(success) {
+        if (success) {
+          self.lastAdded = {
+            scheduleName: self.scheduleName,
+            name: newCourse.name,
+            day: newCourse.day,
+            time: newCourse.time,
+            location: newCourse.location,
+            id: newCourse.id
           }
-          var dayData = null
-          for (var i = 0; i < schedule.length; i++) {
-            if (schedule[i].day === newCourse.day) {
-              dayData = schedule[i]
-              break
-            }
-          }
-          if (dayData) {
-            dayData.classes.push({
-              id: newCourse.id,
-              name: newCourse.name,
-              time: newCourse.time,
-              teacher: newCourse.teacher,
-              location: newCourse.location,
-              notes: newCourse.notes || ""
-            })
-          } else {
-            schedule.push({
-              day: newCourse.day,
-              classes: [{
-                id: newCourse.id,
-                name: newCourse.name,
-                time: newCourse.time,
-                teacher: newCourse.teacher,
-                location: newCourse.location,
-                notes: newCourse.notes || ""
-              }]
-            })
-          }
-          storage.set({
-            key: storageKey,
-            value: JSON.stringify(schedule),
-            success: function() {
-              self.lastAdded = {
-                name: newCourse.name,
-                day: newCourse.day,
-                time: newCourse.time,
-                location: newCourse.location,
-                id: newCourse.id
-              }
-              self.isSaving = false
-              prompt.showToast({ message: "课程已添加" })
-            },
-            fail: function() {
-              self.isSaving = false
-              prompt.showToast({ message: "保存失败，请重试" })
-            }
-          })
-        },
-        fail: function() {
           self.isSaving = false
-          prompt.showToast({ message: "读取课程表失败" })
+          prompt.showToast({ message: "课程已添加" })
+        } else {
+          self.isSaving = false
+          prompt.showToast({ message: "保存失败，请重试" })
         }
       })
     })
@@ -488,7 +505,8 @@ export default {
   margin-bottom: 8px;
 }
 
-.course-select-row {
+.course-select-row,
+.schedule-select-row {
   flex-direction: row;
   align-items: center;
   justify-content: center;
@@ -502,7 +520,8 @@ export default {
   text-align: center;
 }
 
-.course-name-display {
+.course-name-display,
+.schedule-name-display {
   font-size: 20px;
   font-weight: bold;
   margin: 0 16px;
