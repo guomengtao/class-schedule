@@ -1,12 +1,11 @@
 <template>
-  <div class="manager-page" style="background-color: {{ theme.bg }}">
-    <div class="back-header">
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
       <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="header-title" style="color: {{ theme.text }}">课程表管理</text>
-      <input class="stats-btn" type="button" value="统计" onclick="openStatistics" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">课程表管理</text>
     </div>
 
-    <div class="rename-bar" show="{{ editingIndex >= 0 }}" style="background-color: {{ theme.card }}">
+    <div class="rename-bar" if="{{ editingIndex >= 0 }}" style="background-color: {{ theme.card }}">
       <div class="rename-display" onclick="startRename(editingIndex)" style="background-color: {{ theme.cardLight }}; border-color: {{ theme.accent }}">
         <text class="rename-text" style="color: {{ theme.text }}">{{ editName || '输入新名称' }}</text>
       </div>
@@ -14,39 +13,42 @@
       <input class="rename-cancel-btn" type="button" value="取消" onclick="cancelEdit" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
     </div>
 
-    <scroll class="schedule-list-scroll" scroll-y="{{true}}">
-      <div for="{{ scheduleList }}" class="schedule-item {{ $idx === currentIndex ? 'active' : '' }}" style="background-color: {{ theme.card }}; border-left-color: {{ $idx === currentIndex ? theme.accent : theme.bg }}">
-        <div class="item-header" onclick="selectSchedule($idx)">
-          <text class="schedule-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-          <text class="badge" if="{{ $idx === currentIndex }}" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">使用中</text>
-        </div>
-
-        <div class="actions-grid">
-          <div class="action-row">
-            <div class="action-btn" onclick="startRename($idx)" style="background-color: {{ theme.cardLight }}">
-              <text class="action-btn-text" style="color: {{ theme.text }}">重命名</text>
-            </div>
-            <div class="action-btn" onclick="copySchedule($idx)" style="background-color: {{ theme.cardLight }}">
-              <text class="action-btn-text" style="color: {{ theme.text }}">复制</text>
-            </div>
-            <div class="action-btn" onclick="openQrPopup($idx)" style="background-color: {{ theme.cardLight }}">
-              <text class="action-btn-text" style="color: {{ theme.text }}">导出</text>
-            </div>
+    <div for="{{ list }}" class="item" style="background-color: {{ theme.card }}">
+      <div class="item-row">
+        <div class="item-left" onclick="toggle($idx)">
+          <div class="box" style="background-color: {{ $idx === currentIndex ? theme.accent : theme.cardLight }}; border-color: {{ theme.accent }}">
+            <text class="check" style="color: {{ $idx === currentIndex ? theme.bg : theme.textMuted }}">{{ $idx === currentIndex ? '✓' : '' }}</text>
           </div>
-          <div class="action-row">
-            <div class="action-btn" onclick="openWeekView($idx)" style="background-color: {{ theme.cardLight }}">
-              <text class="action-btn-text" style="color: {{ theme.text }}">总览</text>
-            </div>
-            <div class="action-btn" onclick="openScheduleStats($idx)" style="background-color: {{ theme.cardLight }}">
-              <text class="action-btn-text" style="color: {{ theme.text }}">统计</text>
-            </div>
-            <div class="action-btn delete-btn" if="{{ scheduleList.length > 1 }}" onclick="deleteSchedule($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}">
-              <text class="action-btn-text" style="color: {{ deleteConfirmIndex === $idx ? '#ffffff' : theme.deleteText }}">{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}</text>
-            </div>
+          <text class="name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+        </div>
+        <text class="expand-arrow" onclick="expandItem($idx)" style="color: {{ theme.accent }}">{{ expandedIndex === $idx ? '▲' : '▼' }}</text>
+      </div>
+
+      <div class="actions" if="{{ expandedIndex === $idx }}">
+        <div class="action-row">
+          <div class="action-btn" onclick="startRename($idx)" style="background-color: {{ theme.cardLight }}">
+            <text class="action-btn-text" style="color: {{ theme.text }}">重命名</text>
+          </div>
+          <div class="action-btn" onclick="copySchedule($idx)" style="background-color: {{ theme.cardLight }}">
+            <text class="action-btn-text" style="color: {{ theme.text }}">复制</text>
+          </div>
+          <div class="action-btn" onclick="openQrPopup($idx)" style="background-color: {{ theme.cardLight }}">
+            <text class="action-btn-text" style="color: {{ theme.text }}">导出</text>
+          </div>
+        </div>
+        <div class="action-row">
+          <div class="action-btn" onclick="openWeekView($idx)" style="background-color: {{ theme.cardLight }}">
+            <text class="action-btn-text" style="color: {{ theme.text }}">总览</text>
+          </div>
+          <div class="action-btn" onclick="openScheduleStats($idx)" style="background-color: {{ theme.cardLight }}">
+            <text class="action-btn-text" style="color: {{ theme.text }}">统计</text>
+          </div>
+          <div class="action-btn delete-btn" if="{{ list.length > 1 }}" onclick="deleteSchedule($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}">
+            <text class="action-btn-text" style="color: {{ deleteConfirmIndex === $idx ? '#ffffff' : theme.deleteText }}">{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}</text>
           </div>
         </div>
       </div>
-    </scroll>
+    </div>
 
     <div class="add-section">
       <input class="add-btn" type="button" value="+ 新增课程表" onclick="addSchedule" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
@@ -62,8 +64,9 @@ const database = require("../../data/database.js")
 
 export default {
   private: {
-    scheduleList: [],
+    list: [],
     currentIndex: 0,
+    expandedIndex: -1,
     editingIndex: -1,
     editName: "",
     deleteConfirmIndex: -1,
@@ -73,7 +76,6 @@ export default {
       cardLight: '#0f3460',
       accent: '#7ec8e3',
       text: '#ffffff',
-      textSecondary: '#888899',
       textMuted: '#555566',
       btnSecondary: '#333355',
       btnSecondaryText: '#a0a0b0',
@@ -117,61 +119,32 @@ export default {
       for (var i = 0; i < names.length; i++) {
         list.push({ name: names[i] })
       }
-      self.scheduleList = list
+      self.list = list
     })
     store.getCurrentScheduleIndex(function(idx) {
       self.currentIndex = idx
     })
   },
 
-  goBack() {
-    if (this.editingIndex >= 0) {
-      this.cancelEdit()
-      return
+  expandItem(idx) {
+    if (this.expandedIndex === idx) {
+      this.expandedIndex = -1
+    } else {
+      this.expandedIndex = idx
     }
-    router.back()
   },
 
-  openStatistics() {
-    var storage = require("@system.storage")
-    storage.set({
-      key: "statistics_index",
-      value: "-1",
-      success: function() {
-        router.push({ uri: "/pages/statistics" })
-      },
-      fail: function() {
-        router.push({ uri: "/pages/statistics" })
-      }
-    })
-  },
-
-  openScheduleStats(index) {
-    var storage = require("@system.storage")
-    storage.set({
-      key: "statistics_index",
-      value: String(index),
-      success: function() {
-        router.push({ uri: "/pages/statistics" })
-      },
-      fail: function() {
-        router.push({ uri: "/pages/statistics" })
-      }
-    })
-  },
-
-  selectSchedule(index) {
-    if (this.editingIndex >= 0) {
-      return
-    }
-    if (index === this.currentIndex) {
+  toggle(idx) {
+    if (idx === this.currentIndex) {
       router.back()
       return
     }
     var self = this
-    database.setScheduleIndex(index, function() {
-      store.setCurrentScheduleIndex(index, function() {
-        self.currentIndex = index
+    this.currentIndex = idx
+    this.expandedIndex = -1
+    store.setCurrentScheduleIndex(idx, function() {
+      database.setScheduleIndex(idx, function() {
+        prompt.showToast({ message: "已切换到 " + self.list[idx].name })
         router.back()
       })
     })
@@ -179,7 +152,7 @@ export default {
 
   startRename(index) {
     this.editingIndex = index
-    this.editName = this.scheduleList[index].name
+    this.editName = this.list[index].name
 
     var storage = require("@system.storage")
     storage.set({ key: "chinese_input_title", value: "重命名课程表" })
@@ -197,8 +170,8 @@ export default {
 
     var newName = this.editName.trim()
     var exists = false
-    for (var i = 0; i < this.scheduleList.length; i++) {
-      if (i !== this.editingIndex && this.scheduleList[i].name === newName) {
+    for (var i = 0; i < this.list.length; i++) {
+      if (i !== this.editingIndex && this.list[i].name === newName) {
         exists = true
         break
       }
@@ -208,11 +181,11 @@ export default {
       return
     }
 
-    this.scheduleList[this.editingIndex].name = newName
+    this.list[this.editingIndex].name = newName
 
     var names = []
-    for (var i = 0; i < this.scheduleList.length; i++) {
-      names.push(this.scheduleList[i].name)
+    for (var i = 0; i < this.list.length; i++) {
+      names.push(this.list[i].name)
     }
 
     var self = this
@@ -229,48 +202,15 @@ export default {
     this.editName = ""
   },
 
-  openWeekView(index) {
-    var storage = require("@system.storage")
-    storage.set({
-      key: "weekview_index",
-      value: String(index),
-      success: function() {
-        router.push({ uri: "/pages/week-view" })
-      },
-      fail: function() {
-        router.push({ uri: "/pages/week-view" })
-      }
-    })
-  },
-
-  addSchedule() {
-    var self = this
-    var names = []
-    for (var i = 0; i < this.scheduleList.length; i++) {
-      names.push(this.scheduleList[i].name)
-    }
-    var newName = "课程表" + (names.length + 1)
-    var counter = 1
-    while (names.indexOf(newName) !== -1) {
-      newName = "课程表" + (names.length + 1) + "(" + counter + ")"
-      counter++
-    }
-    names.push(newName)
-    store.setScheduleNames(names, function() {
-      prompt.showToast({ message: "课程表已添加" })
-      self.loadData()
-    })
-  },
-
   copySchedule(index) {
     var self = this
-    var sourceName = this.scheduleList[index].name
+    var sourceName = this.list[index].name
     var newName = sourceName + " (副本)"
-    var newIndex = this.scheduleList.length
+    var newIndex = this.list.length
 
     var exists = false
-    for (var i = 0; i < this.scheduleList.length; i++) {
-      if (this.scheduleList[i].name === newName) {
+    for (var i = 0; i < this.list.length; i++) {
+      if (this.list[i].name === newName) {
         exists = true
         break
       }
@@ -281,8 +221,8 @@ export default {
 
     database.getAllCoursesWithIndex(index, function(sourceData) {
       var names = []
-      for (var i = 0; i < self.scheduleList.length; i++) {
-        names.push(self.scheduleList[i].name)
+      for (var i = 0; i < self.list.length; i++) {
+        names.push(self.list[i].name)
       }
       names.push(newName)
 
@@ -317,8 +257,10 @@ export default {
                 location: course.location,
                 notes: course.notes || ""
               }
-              database.insertCourse(newCourse, function() {
-                inserted++
+              database.insertCourse(newCourse, function(success) {
+                if (success) {
+                  inserted++
+                }
                 if (inserted === totalCourses) {
                   database.setScheduleIndex(self.currentIndex, function() {
                     prompt.showToast({ message: "课程表已复制" })
@@ -330,55 +272,6 @@ export default {
           }
         })
       })
-    })
-  },
-
-  deleteSchedule(index) {
-    if (this.scheduleList.length <= 1) {
-      return
-    }
-    if (this.deleteConfirmIndex !== index) {
-      this.deleteConfirmIndex = index
-      var self = this
-      this.deleteTimer = setTimeout(function() {
-        self.deleteConfirmIndex = -1
-      }, 5000)
-      return
-    }
-    if (this.deleteTimer) {
-      clearTimeout(this.deleteTimer)
-      this.deleteTimer = null
-    }
-    this.deleteConfirmIndex = -1
-    var self = this
-    var needSwitch = (index === this.currentIndex)
-
-    var names = []
-    for (var i = 0; i < this.scheduleList.length; i++) {
-      names.push(this.scheduleList[i].name)
-    }
-    names.splice(index, 1)
-
-    store.setScheduleNames(names, function() {
-      prompt.showToast({ message: "课程表已删除" })
-      if (needSwitch) {
-        store.setCurrentScheduleIndex(0, function() {
-          database.setScheduleIndex(0, function() {
-            self.currentIndex = 0
-            self.loadData()
-          })
-        })
-      } else if (index < self.currentIndex) {
-        var newIdx = self.currentIndex - 1
-        store.setCurrentScheduleIndex(newIdx, function() {
-          database.setScheduleIndex(newIdx, function() {
-            self.currentIndex = newIdx
-            self.loadData()
-          })
-        })
-      } else {
-        self.loadData()
-      }
     })
   },
 
@@ -394,47 +287,139 @@ export default {
         router.push({ uri: "/pages/schedule-qrcode" })
       }
     })
+  },
+
+  openWeekView(index) {
+    var storage = require("@system.storage")
+    storage.set({
+      key: "weekview_index",
+      value: String(index),
+      success: function() {
+        router.push({ uri: "/pages/week-view" })
+      },
+      fail: function() {
+        router.push({ uri: "/pages/week-view" })
+      }
+    })
+  },
+
+  openScheduleStats(index) {
+    var storage = require("@system.storage")
+    storage.set({
+      key: "statistics_index",
+      value: String(index),
+      success: function() {
+        router.push({ uri: "/pages/statistics" })
+      },
+      fail: function() {
+        router.push({ uri: "/pages/statistics" })
+      }
+    })
+  },
+
+  deleteSchedule(index) {
+    if (this.list.length <= 1) {
+      return
+    }
+    if (this.deleteConfirmIndex !== index) {
+      if (this.deleteTimer) {
+        clearTimeout(this.deleteTimer)
+        this.deleteTimer = null
+      }
+      this.deleteConfirmIndex = index
+      var self = this
+      this.deleteTimer = setTimeout(function() {
+        self.deleteConfirmIndex = -1
+      }, 5000)
+      return
+    }
+    if (this.deleteTimer) {
+      clearTimeout(this.deleteTimer)
+      this.deleteTimer = null
+    }
+    this.deleteConfirmIndex = -1
+    var self = this
+    var needSwitch = (index === this.currentIndex)
+    var deletedName = this.list[index].name
+
+    this.list.splice(index, 1)
+
+    if (needSwitch) {
+      this.currentIndex = 0
+    } else if (index < this.currentIndex) {
+      this.currentIndex = this.currentIndex - 1
+    }
+
+    var names = []
+    for (var i = 0; i < this.list.length; i++) {
+      names.push(this.list[i].name)
+    }
+
+    store.setScheduleNames(names, function() {
+      prompt.showToast({ message: "已删除 " + deletedName })
+      if (needSwitch) {
+        database.setScheduleIndex(0, function() {})
+      } else if (index < self.currentIndex) {
+        database.setScheduleIndex(self.currentIndex, function() {})
+      }
+    })
+  },
+
+  addSchedule() {
+    var self = this
+    var names = []
+    for (var i = 0; i < this.list.length; i++) {
+      names.push(this.list[i].name)
+    }
+    var newName = "课程表" + (names.length + 1)
+    var counter = 1
+    while (names.indexOf(newName) !== -1) {
+      newName = "课程表" + (names.length + 1) + "(" + counter + ")"
+      counter++
+    }
+    names.push(newName)
+    store.setScheduleNames(names, function() {
+      prompt.showToast({ message: "课程表已添加" })
+      self.loadData()
+    })
+  },
+
+  goBack() {
+    if (this.editingIndex >= 0) {
+      this.cancelEdit()
+      return
+    }
+    router.back()
   }
 }
 </script>
 
 <style>
-.manager-page {
+.page {
   flex-direction: column;
-  padding: 44px 8px 8px 8px;
+  padding: 44px 12px 12px 12px;
   height: 100%;
 }
 
-.back-header {
+.header {
   flex-direction: row;
   align-items: center;
   margin-bottom: 12px;
-  padding: 6px 0;
 }
 
 .back-btn {
-  width: 54px;
-  height: 40px;
-  border-radius: 10px;
+  width: 48px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.title {
   font-size: 20px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.stats-btn {
-  width: 54px;
-  height: 40px;
-  border-radius: 10px;
-  font-size: 16px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.header-title {
-  font-size: 22px;
   font-weight: bold;
-  margin-left: 12px;
-  flex: 1;
+  margin-left: 10px;
 }
 
 .rename-bar {
@@ -443,8 +428,6 @@ export default {
   margin-bottom: 12px;
   padding: 8px 12px;
   border-radius: 10px;
-  border-left-width: 3px;
-  border-left-style: solid;
 }
 
 .rename-display {
@@ -481,46 +464,57 @@ export default {
   margin-left: 6px;
 }
 
-.schedule-list-scroll {
-  flex-grow: 1;
+.item {
   flex-direction: column;
-}
-
-.schedule-item {
-  flex-direction: column;
-  background-color: #16213e;
   border-radius: 12px;
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  border-left-width: 4px;
-  border-left-style: solid;
+  padding: 12px 14px;
+  margin-bottom: 12px;
 }
 
-.item-header {
+.item-row {
   flex-direction: row;
   align-items: center;
-  padding-bottom: 10px;
-  border-bottom-width: 1px;
-  border-bottom-style: solid;
-  border-bottom-color: rgba(128, 128, 128, 0.2);
 }
 
-.schedule-name {
-  font-size: 22px;
+.item-left {
+  flex-direction: row;
+  align-items: center;
+  flex: 1;
+}
+
+.box {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border-width: 2px;
+  border-style: solid;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.check {
+  font-size: 18px;
   font-weight: bold;
 }
 
-.badge {
-  font-size: 14px;
-  padding: 3px 12px;
-  border-radius: 10px;
+.name {
+  font-size: 16px;
   font-weight: bold;
-  margin-left: 12px;
+  margin-left: 10px;
+  flex: 1;
 }
 
-.actions-grid {
+.expand-arrow {
+  font-size: 12px;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.actions {
   flex-direction: column;
-  padding-top: 10px;
+  padding-top: 12px;
+  margin-top: 10px;
 }
 
 .action-row {
@@ -534,6 +528,7 @@ export default {
   border-radius: 8px;
   align-items: center;
   justify-content: center;
+  margin-right: 8px;
 }
 
 .action-btn-text {
@@ -547,214 +542,10 @@ export default {
 
 .add-btn {
   width: 100%;
-  height: 44px;
+  height: 42px;
   border-radius: 10px;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: bold;
   text-align: center;
-}
-
-@media (shape: circle) {
-  .manager-page {
-    padding: 44px 36px 44px 36px;
-  }
-  .back-header {
-    margin-bottom: 8px;
-    padding: 4px 20px;
-    justify-content: center;
-  }
-  .back-btn {
-    width: 44px;
-    height: 32px;
-    font-size: 16px;
-  }
-  .stats-btn {
-    width: 44px;
-    height: 32px;
-    font-size: 13px;
-  }
-  .header-title {
-    font-size: 18px;
-    margin-left: 8px;
-  }
-  .rename-bar {
-    padding: 6px 8px;
-    margin-bottom: 8px;
-    justify-content: center;
-  }
-  .rename-display {
-    height: 34px;
-    font-size: 15px;
-    padding: 0 8px;
-  }
-  .rename-text {
-    font-size: 15px;
-  }
-  .rename-ok-btn {
-    width: 48px;
-    height: 30px;
-    font-size: 14px;
-  }
-  .rename-cancel-btn {
-    width: 48px;
-    height: 30px;
-    font-size: 14px;
-  }
-  .schedule-item {
-    padding: 12px 14px;
-    margin-bottom: 6px;
-  }
-  .schedule-name {
-    font-size: 18px;
-  }
-  .badge {
-    font-size: 12px;
-    padding: 2px 10px;
-  }
-  .action-btn {
-    height: 30px;
-  }
-  .action-btn-text {
-    font-size: 13px;
-  }
-  .add-btn {
-    height: 40px;
-    font-size: 15px;
-  }
-}
-
-@media (shape: capsule) {
-  .manager-page {
-    padding: 44px 8px 12px 8px;
-  }
-  .back-header {
-    margin-bottom: 8px;
-    padding: 4px 4px;
-    justify-content: center;
-  }
-  .back-btn {
-    width: 42px;
-    height: 32px;
-    font-size: 16px;
-  }
-  .stats-btn {
-    width: 42px;
-    height: 32px;
-    font-size: 13px;
-  }
-  .header-title {
-    font-size: 17px;
-    margin-left: 8px;
-  }
-  .rename-bar {
-    padding: 6px 8px;
-    margin-bottom: 8px;
-  }
-  .rename-display {
-    height: 32px;
-    font-size: 14px;
-    padding: 0 8px;
-  }
-  .rename-text {
-    font-size: 14px;
-  }
-  .rename-ok-btn {
-    width: 46px;
-    height: 30px;
-    font-size: 14px;
-  }
-  .rename-cancel-btn {
-    width: 46px;
-    height: 30px;
-    font-size: 14px;
-  }
-  .schedule-item {
-    padding: 10px 12px;
-    margin-bottom: 6px;
-  }
-  .schedule-name {
-    font-size: 17px;
-  }
-  .badge {
-    font-size: 11px;
-    padding: 2px 8px;
-  }
-  .action-btn {
-    height: 30px;
-  }
-  .action-btn-text {
-    font-size: 13px;
-  }
-  .add-btn {
-    height: 40px;
-    font-size: 15px;
-  }
-}
-
-@media (shape: rect) {
-  .manager-page {
-    padding: 44px 6px 6px 6px;
-  }
-  .back-header {
-    margin-bottom: 6px;
-    padding: 4px 0;
-  }
-  .back-btn {
-    width: 40px;
-    height: 30px;
-    font-size: 16px;
-  }
-  .stats-btn {
-    width: 40px;
-    height: 30px;
-    font-size: 13px;
-  }
-  .header-title {
-    font-size: 17px;
-    margin-left: 8px;
-  }
-  .rename-bar {
-    padding: 6px 8px;
-    margin-bottom: 8px;
-  }
-  .rename-display {
-    height: 32px;
-    font-size: 14px;
-    padding: 0 8px;
-  }
-  .rename-text {
-    font-size: 14px;
-  }
-  .rename-ok-btn {
-    width: 44px;
-    height: 28px;
-    font-size: 13px;
-  }
-  .rename-cancel-btn {
-    width: 44px;
-    height: 28px;
-    font-size: 13px;
-  }
-  .schedule-item {
-    padding: 10px 12px;
-    margin-bottom: 6px;
-  }
-  .schedule-name {
-    font-size: 17px;
-  }
-  .badge {
-    font-size: 11px;
-    padding: 2px 8px;
-  }
-  .action-btn {
-    height: 28px;
-  }
-  .action-btn-text {
-    font-size: 12px;
-  }
-  .add-btn {
-    height: 36px;
-    font-size: 14px;
-  }
 }
 </style>

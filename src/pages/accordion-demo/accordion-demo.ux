@@ -1,0 +1,122 @@
+<template>
+  <div class="page">
+    <div class="header">
+      <text class="title">手风琴 Demo</text>
+    </div>
+
+    <div for="{{ list }}" class="item">
+      <div class="row" onclick="toggle($idx)">
+        <text class="name">第 {{ $idx + 1 }} 行</text>
+        <text class="arrow">{{ expandedIndex === $idx ? '▲' : '▼' }}</text>
+      </div>
+
+      <div class="panel" if="{{ expandedIndex === $idx }}">
+        <div class="panel-divider"></div>
+        <div class="btn-row">
+          <div class="btn"><text class="btn-text">按钮 1</text></div>
+          <div class="btn"><text class="btn-text">按钮 2</text></div>
+          <div class="btn"><text class="btn-text">按钮 3</text></div>
+        </div>
+        <div class="btn-row">
+          <div class="btn"><text class="btn-text">按钮 4</text></div>
+          <div class="btn"><text class="btn-text">按钮 5</text></div>
+          <div class="btn"><text class="btn-text">按钮 6</text></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  private: {
+    list: [{}, {}, {}],
+    expandedIndex: -1
+  },
+
+  toggle(idx) {
+    if (this.expandedIndex === idx) {
+      this.expandedIndex = -1
+    } else {
+      this.expandedIndex = idx
+    }
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 12px 12px 12px;
+  background-color: #1a1a2e;
+  height: 100%;
+}
+
+.header {
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.item {
+  flex-direction: column;
+  background-color: #16213e;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.row {
+  flex-direction: row;
+  align-items: center;
+}
+
+.name {
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffffff;
+  flex: 1;
+}
+
+.arrow {
+  font-size: 12px;
+  color: #7ec8e3;
+  padding: 4px;
+}
+
+.panel {
+  flex-direction: column;
+  padding-top: 10px;
+  margin-top: 8px;
+}
+
+.panel-divider {
+  height: 1px;
+  background-color: rgba(128, 128, 128, 0.15);
+  margin-bottom: 10px;
+}
+
+.btn-row {
+  flex-direction: row;
+  margin-bottom: 6px;
+}
+
+.btn {
+  flex: 1;
+  height: 34px;
+  background-color: #0f3460;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+}
+
+.btn-text {
+  font-size: 15px;
+  color: #ffffff;
+}
+</style>

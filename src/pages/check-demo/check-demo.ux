@@ -1,0 +1,119 @@
+<template>
+  <div class="page">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" />
+      <text class="title">勾选 Demo</text>
+    </div>
+
+    <div for="{{ list }}" class="item" onclick="toggle($idx)">
+      <div class="box" style="background-color: {{ $item.checked ? '#7ec8e3' : '#0f3460' }}">
+        <text class="check" style="color: {{ $item.checked ? '#ffffff' : '#555566' }}">{{ $item.checked ? '✓' : '' }}</text>
+      </div>
+      <text class="name">{{ $item.name }}</text>
+    </div>
+
+    <text class="hint">当前选中: {{ selectedName }}</text>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+
+export default {
+  private: {
+    list: [
+      { name: "课程表 A", checked: true },
+      { name: "课程表 B", checked: false },
+      { name: "课程表 C", checked: false }
+    ],
+    selectedName: "课程表 A"
+  },
+
+  toggle(idx) {
+    console.log("[CHECK-DEMO] toggle idx=" + idx)
+    for (var i = 0; i < this.list.length; i++) {
+      this.list[i].checked = (i === idx)
+    }
+    this.selectedName = this.list[idx].name
+  },
+
+  goBack() {
+    console.log("[CHECK-DEMO] goBack")
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 16px 16px 16px;
+  background-color: #1a1a2e;
+  min-height: 100%;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+  background-color: #16213e;
+  color: #7ec8e3;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: bold;
+  color: #ffffff;
+  text-align: center;
+  flex: 1;
+}
+
+.item {
+  flex-direction: row;
+  align-items: center;
+  background-color: #16213e;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: #7ec8e3;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.check {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.name {
+  font-size: 20px;
+  color: #ffffff;
+  font-weight: bold;
+  margin-left: 14px;
+}
+
+.hint {
+  font-size: 14px;
+  color: #888899;
+  margin-top: 20px;
+  text-align: center;
+}
+</style>

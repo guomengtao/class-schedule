@@ -1,0 +1,639 @@
+<template>
+  <div class="demo-page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="color: {{ theme.text }}">添加课程 Demo</text>
+    </div>
+
+    <text class="section-desc" style="color: {{ theme.textSecondary }}">简易版添加课程，用于测试保存功能</text>
+
+    <scroll class="form-scroll" scroll-y="true">
+      <div class="form-card" style="background-color: {{ theme.card }}">
+        <text class="field-label" style="color: {{ theme.text }}">课程名称</text>
+        <div class="course-select-row">
+          <input class="swipe-arrow" type="button" value="◀" onclick="prevCourse" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+          <text class="course-name-display" style="color: {{ theme.accent }}">{{ presetCourses[courseIndex].name }}</text>
+          <input class="swipe-arrow" type="button" value="▶" onclick="nextCourse" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+        </div>
+        <text class="course-index" style="color: {{ theme.textMuted }}">{{ courseIndex + 1 }} / {{ presetCourses.length }}</text>
+      </div>
+
+      <div class="form-card" style="background-color: {{ theme.card }}">
+        <text class="field-label" style="color: {{ theme.text }}">上课日期</text>
+        <div class="day-select-row">
+          <div class="day-chip {{ dayIndex === $idx ? 'day-chip-active' : '' }}" for="{{ dayNames }}" onclick="selectDay($idx)" style="background-color: {{ dayIndex === $idx ? theme.accent : theme.cardLight }}; border-color: {{ dayIndex === $idx ? theme.accent : theme.border }}">
+            <text class="day-chip-text" style="color: {{ dayIndex === $idx ? theme.bg : theme.text }}">{{ $item }}</text>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card" style="background-color: {{ theme.card }}">
+        <text class="field-label" style="color: {{ theme.text }}">开始时间</text>
+        <div class="time-row">
+          <text class="time-label" style="color: {{ theme.text }}">小时</text>
+          <input class="stepper-btn" type="button" value="-" onclick="decreaseStartHour" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+          <text class="stepper-val" style="color: {{ theme.text }}">{{ startHour }}</text>
+          <input class="stepper-btn" type="button" value="+" onclick="increaseStartHour" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+          <text class="time-label" style="color: {{ theme.text }}">分钟</text>
+          <input class="stepper-btn" type="button" value="-" onclick="decreaseStartMin" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+          <text class="stepper-val" style="color: {{ theme.text }}">{{ startMin }}</text>
+          <input class="stepper-btn" type="button" value="+" onclick="increaseStartMin" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+        </div>
+      </div>
+
+      <div class="form-card" style="background-color: {{ theme.card }}">
+        <text class="field-label" style="color: {{ theme.text }}">结束时间</text>
+        <div class="time-row">
+          <text class="time-label" style="color: {{ theme.text }}">小时</text>
+          <input class="stepper-btn" type="button" value="-" onclick="decreaseEndHour" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+          <text class="stepper-val" style="color: {{ theme.text }}">{{ endHour }}</text>
+          <input class="stepper-btn" type="button" value="+" onclick="increaseEndHour" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+          <text class="time-label" style="color: {{ theme.text }}">分钟</text>
+          <input class="stepper-btn" type="button" value="-" onclick="decreaseEndMin" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+          <text class="stepper-val" style="color: {{ theme.text }}">{{ endMin }}</text>
+          <input class="stepper-btn" type="button" value="+" onclick="increaseEndMin" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+        </div>
+      </div>
+
+      <div class="form-card" style="background-color: {{ theme.card }}">
+        <text class="field-label" style="color: {{ theme.text }}">上课位置</text>
+        <div class="location-input" onclick="showKeyboard" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+          <text class="location-text" style="color: {{ courseLocation ? theme.text : theme.textMuted }}">{{ courseLocation || '点击输入位置 (可选)' }}</text>
+        </div>
+      </div>
+
+      <div class="form-card" style="background-color: {{ theme.card }}">
+        <text class="field-label" style="color: {{ theme.text }}">确认信息</text>
+        <div class="info-row">
+          <text class="info-label" style="color: {{ theme.textSecondary }}">课程: </text>
+          <text class="info-value" style="color: {{ theme.accent }}">{{ presetCourses[courseIndex].name }}</text>
+        </div>
+        <div class="info-row">
+          <text class="info-label" style="color: {{ theme.textSecondary }}">日期: </text>
+          <text class="info-value" style="color: {{ theme.accent }}">{{ dayNames[dayIndex] }}</text>
+        </div>
+        <div class="info-row">
+          <text class="info-label" style="color: {{ theme.textSecondary }}">时间: </text>
+          <text class="info-value" style="color: {{ theme.accent }}">{{ courseTime }}</text>
+        </div>
+        <div class="info-row">
+          <text class="info-label" style="color: {{ theme.textSecondary }}">位置: </text>
+          <text class="info-value" style="color: {{ theme.accent }}">{{ courseLocation || '(无)' }}</text>
+        </div>
+      </div>
+    </scroll>
+
+    <div class="result-card" if="{{ lastAdded }}" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+      <text class="result-title" style="color: {{ theme.accent }}">最新添加课程记录</text>
+      <text class="result-item" style="color: {{ theme.text }}">课程: {{ lastAdded.name }}</text>
+      <text class="result-item" style="color: {{ theme.text }}">日期: {{ lastAdded.day }}</text>
+      <text class="result-item" style="color: {{ theme.text }}">时间: {{ lastAdded.time }}</text>
+      <text class="result-item" style="color: {{ theme.text }}">位置: {{ lastAdded.location || '(无)' }}</text>
+      <text class="result-item" style="color: {{ theme.textMuted }}">ID: {{ lastAdded.id }}</text>
+    </div>
+
+    <div class="bottom-bar">
+      <input class="save-btn" type="button" value="{{ isSaving ? '保存中...' : '保存课程' }}" onclick="saveCourse" style="background-color: {{ isSaving ? theme.textMuted : theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import prompt from "@system.prompt"
+const store = require("../../data/store.js")
+
+var COURSE_LIST_KEY = "course_preset_list"
+
+var defaultCourses = [
+  { name: "语文", time: "08:00 - 08:45", teacher: "老师", location: "" },
+  { name: "数学", time: "08:55 - 09:40", teacher: "老师", location: "" },
+  { name: "英语", time: "10:00 - 10:45", teacher: "老师", location: "" },
+  { name: "物理", time: "10:55 - 11:40", teacher: "老师", location: "" },
+  { name: "化学", time: "13:00 - 13:45", teacher: "老师", location: "" },
+  { name: "政治", time: "13:55 - 14:40", teacher: "老师", location: "" },
+  { name: "音乐", time: "15:00 - 15:45", teacher: "老师", location: "" },
+  { name: "体育", time: "15:55 - 16:40", teacher: "老师", location: "" },
+  { name: "美术", time: "08:00 - 08:45", teacher: "老师", location: "" },
+  { name: "历史", time: "08:55 - 09:40", teacher: "老师", location: "" },
+  { name: "地理", time: "10:00 - 10:45", teacher: "老师", location: "" },
+  { name: "生物", time: "10:55 - 11:40", teacher: "老师", location: "" }
+]
+
+function padZero(n) {
+  return n < 10 ? "0" + n : String(n)
+}
+
+function parseTimeParts(timeStr) {
+  if (!timeStr) return { startH: 8, startM: 0, endH: 8, endM: 45 }
+  var parts = timeStr.split("-")
+  if (parts.length < 2) return { startH: 8, startM: 0, endH: 8, endM: 45 }
+  var start = parts[0].trim()
+  var end = parts[1].trim()
+  var sParts = start.split(":")
+  var eParts = end.split(":")
+  return {
+    startH: parseInt(sParts[0]) || 8,
+    startM: parseInt(sParts[1]) || 0,
+    endH: parseInt(eParts[0]) || 8,
+    endM: parseInt(eParts[1]) || 45
+  }
+}
+
+export default {
+  private: {
+    courseIndex: 0,
+    presetCourses: [],
+    dayNames: ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"],
+    dayIndex: 0,
+    startHour: 8,
+    startMin: 0,
+    endHour: 8,
+    endMin: 45,
+    courseTime: "08:00 - 08:45",
+    courseLocation: "",
+    nextId: 100,
+    isSaving: false,
+    lastAdded: null,
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a',
+      keyBg: '#1a1a3e',
+      keyBorder: '#2a2a5a',
+      btnSecondary: '#333355',
+      btnSecondaryText: '#a0a0b0',
+      deleteBg: '#2a1a3e',
+      deleteText: '#e08080',
+      icon: '🔵',
+      progressOngoing: 'rgba(126,200,227,0.2)',
+      progressDone: 'rgba(74,138,154,0.25)'
+    }
+  },
+
+  sortByTime: function(list) {
+    if (!list || list.length === 0) return list
+    var sorted = list.slice()
+    sorted.sort(function(a, b) {
+      var ta = a.time ? a.time.split(' - ')[0] : '00:00'
+      var tb = b.time ? b.time.split(' - ')[0] : '00:00'
+      var taParts = ta.split(':')
+      var tbParts = tb.split(':')
+      return (parseInt(taParts[0]) * 60 + parseInt(taParts[1])) - (parseInt(tbParts[0]) * 60 + parseInt(tbParts[1]))
+    })
+    return sorted
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+
+    this.loadCourses()
+
+    var storage = require("@system.storage")
+    storage.get({
+      key: "add_course_nextId",
+      success: function(val) {
+        self.nextId = parseInt(val) || 100
+      },
+      fail: function() {
+        self.nextId = 100
+      }
+    })
+
+    var now = new Date()
+    var day = now.getDay()
+    this.dayIndex = day === 0 ? 6 : day - 1
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+
+    var storage = require("@system.storage")
+    storage.get({
+      key: "chinese_input_result",
+      success: function(data) {
+        if (data !== undefined && data !== null && data !== "") {
+          self.courseLocation = data
+          storage.delete({ key: "chinese_input_result" })
+        }
+      }
+    })
+  },
+
+  loadCourses() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.get({
+      key: COURSE_LIST_KEY,
+      success: function(data) {
+        if (data) {
+          try {
+            var list = JSON.parse(data)
+            if (list && list.length > 0) {
+              self.presetCourses = self.sortByTime(list)
+            } else {
+              self.presetCourses = self.sortByTime(defaultCourses.slice())
+            }
+          } catch (e) {
+            self.presetCourses = self.sortByTime(defaultCourses.slice())
+          }
+        } else {
+          self.presetCourses = self.sortByTime(defaultCourses.slice())
+        }
+        self.selectCourse(0)
+      },
+      fail: function() {
+        self.presetCourses = self.sortByTime(defaultCourses.slice())
+        self.selectCourse(0)
+      }
+    })
+  },
+
+  selectCourse(index) {
+    if (this.presetCourses.length === 0) return
+    if (index < 0) index = this.presetCourses.length - 1
+    if (index >= this.presetCourses.length) index = 0
+    this.courseIndex = index
+    var c = this.presetCourses[index]
+    var tp = parseTimeParts(c.time)
+    this.startHour = tp.startH
+    this.startMin = tp.startM
+    this.endHour = tp.endH
+    this.endMin = tp.endM
+    this.courseTime = c.time
+    this.courseLocation = c.location || ""
+  },
+
+  prevCourse() {
+    this.selectCourse(this.courseIndex - 1)
+  },
+
+  nextCourse() {
+    this.selectCourse(this.courseIndex + 1)
+  },
+
+  selectDay(idx) {
+    this.dayIndex = idx
+  },
+
+  updateTimeString() {
+    this.courseTime = padZero(this.startHour) + ":" + padZero(this.startMin) + " - " + padZero(this.endHour) + ":" + padZero(this.endMin)
+  },
+
+  increaseStartHour() {
+    if (this.startHour < 23) { this.startHour++ } else { this.startHour = 0 }
+    this.updateTimeString()
+  },
+  decreaseStartHour() {
+    if (this.startHour > 0) { this.startHour-- } else { this.startHour = 23 }
+    this.updateTimeString()
+  },
+  increaseStartMin() {
+    if (this.startMin < 59) { this.startMin++ } else { this.startMin = 0 }
+    this.updateTimeString()
+  },
+  decreaseStartMin() {
+    if (this.startMin > 0) { this.startMin-- } else { this.startMin = 59 }
+    this.updateTimeString()
+  },
+  increaseEndHour() {
+    if (this.endHour < 23) { this.endHour++ } else { this.endHour = 0 }
+    this.updateTimeString()
+  },
+  decreaseEndHour() {
+    if (this.endHour > 0) { this.endHour-- } else { this.endHour = 23 }
+    this.updateTimeString()
+  },
+  increaseEndMin() {
+    if (this.endMin < 59) { this.endMin++ } else { this.endMin = 0 }
+    this.updateTimeString()
+  },
+  decreaseEndMin() {
+    if (this.endMin > 0) { this.endMin-- } else { this.endMin = 59 }
+    this.updateTimeString()
+  },
+
+  showKeyboard() {
+    var storage = require("@system.storage")
+    storage.set({ key: "chinese_input_title", value: "输入位置" })
+    storage.set({ key: "chinese_input_placeholder", value: "点击输入位置, 例如: 301教室" })
+    storage.set({ key: "chinese_input_value", value: this.courseLocation || "" })
+    storage.set({ key: "chinese_input_maxlen", value: "10" })
+    storage.set({ key: "chinese_input_return_key", value: "chinese_input_result" })
+    router.push({ uri: "/pages/chinese-input" })
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  saveCourse() {
+    if (this.isSaving) return
+    var c = this.presetCourses[this.courseIndex]
+    if (!c) {
+      prompt.showToast({ message: "请先选择课程" })
+      return
+    }
+    this.isSaving = true
+    var self = this
+    var newCourse = {
+      id: String(this.nextId),
+      day: this.dayNames[this.dayIndex],
+      name: c.name,
+      time: this.courseTime,
+      teacher: c.teacher || "TBD",
+      location: this.courseLocation || "",
+      notes: ""
+    }
+    this.nextId++
+    var storage = require("@system.storage")
+    storage.set({
+      key: "add_course_nextId",
+      value: String(this.nextId)
+    })
+
+    store.getCurrentScheduleIndex(function(idx) {
+      var storageKey = "allCourses_" + idx
+      storage.get({
+        key: storageKey,
+        success: function(val) {
+          var schedule = []
+          if (val) {
+            try { schedule = JSON.parse(val) } catch (e) {
+              self.isSaving = false
+              prompt.showToast({ message: "数据解析失败" })
+              return
+            }
+          }
+          var dayData = null
+          for (var i = 0; i < schedule.length; i++) {
+            if (schedule[i].day === newCourse.day) {
+              dayData = schedule[i]
+              break
+            }
+          }
+          if (dayData) {
+            dayData.classes.push({
+              id: newCourse.id,
+              name: newCourse.name,
+              time: newCourse.time,
+              teacher: newCourse.teacher,
+              location: newCourse.location,
+              notes: newCourse.notes || ""
+            })
+          } else {
+            schedule.push({
+              day: newCourse.day,
+              classes: [{
+                id: newCourse.id,
+                name: newCourse.name,
+                time: newCourse.time,
+                teacher: newCourse.teacher,
+                location: newCourse.location,
+                notes: newCourse.notes || ""
+              }]
+            })
+          }
+          storage.set({
+            key: storageKey,
+            value: JSON.stringify(schedule),
+            success: function() {
+              self.lastAdded = {
+                name: newCourse.name,
+                day: newCourse.day,
+                time: newCourse.time,
+                location: newCourse.location,
+                id: newCourse.id
+              }
+              self.isSaving = false
+              prompt.showToast({ message: "课程已添加" })
+            },
+            fail: function() {
+              self.isSaving = false
+              prompt.showToast({ message: "保存失败，请重试" })
+            }
+          })
+        },
+        fail: function() {
+          self.isSaving = false
+          prompt.showToast({ message: "读取课程表失败" })
+        }
+      })
+    })
+  }
+}
+</script>
+
+<style>
+.demo-page {
+  flex-direction: column;
+  padding: 44px 8px 8px 8px;
+  height: 100%;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 6px;
+  padding: 6px 0;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.section-desc {
+  font-size: 12px;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+
+.form-scroll {
+  flex: 1;
+  flex-direction: column;
+}
+
+.form-card {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.field-label {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.course-select-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.swipe-arrow {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  font-size: 16px;
+  text-align: center;
+}
+
+.course-name-display {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 0 16px;
+  text-align: center;
+  min-width: 80px;
+}
+
+.course-index {
+  font-size: 11px;
+  text-align: center;
+  margin-top: 6px;
+}
+
+.day-select-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.day-chip {
+  border-radius: 14px;
+  padding: 4px 8px;
+  margin-right: 4px;
+  margin-bottom: 4px;
+  border-width: 1px;
+}
+
+.day-chip-text {
+  font-size: 11px;
+}
+
+.time-row {
+  flex-direction: row;
+  align-items: center;
+}
+
+.time-label {
+  font-size: 13px;
+  width: 36px;
+  text-align: center;
+}
+
+.stepper-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  font-size: 16px;
+  text-align: center;
+}
+
+.stepper-val {
+  font-size: 18px;
+  width: 32px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.location-input {
+  height: 40px;
+  border-radius: 8px;
+  padding: 0 10px;
+  justify-content: center;
+  border-width: 1px;
+}
+
+.location-text {
+  font-size: 14px;
+}
+
+.info-row {
+  flex-direction: row;
+  margin-bottom: 2px;
+}
+
+.info-label {
+  font-size: 12px;
+}
+
+.info-value {
+  font-size: 12px;
+}
+
+.result-card {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-width: 2px;
+}
+
+.result-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.result-item {
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.bottom-bar {
+  padding: 8px 0 8px 0;
+}
+
+.save-btn {
+  height: 44px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+}
+
+@media (shape: circle) {
+  .demo-page {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-header {
+    padding: 6px 20px;
+    justify-content: center;
+  }
+}
+
+@media (shape: capsule) {
+  .demo-page {
+    padding: 44px 8px 12px 8px;
+  }
+}
+
+@media (shape: rect) {
+  .demo-page {
+    padding: 44px 6px 6px 6px;
+  }
+}
+</style>

@@ -114,7 +114,6 @@
 import router from "@system.router"
 import prompt from "@system.prompt"
 const store = require("../../data/store.js")
-const database = require("../../data/database.js")
 
 var COURSE_LIST_KEY = "course_preset_list"
 
@@ -138,6 +137,7 @@ function padZero(n) {
 }
 
 function parseTimeParts(timeStr) {
+  if (!timeStr) return { startH: 8, startM: 0, endH: 8, endM: 45 }
   var parts = timeStr.split("-")
   if (parts.length < 2) return { startH: 8, startM: 0, endH: 8, endM: 45 }
   var start = parts[0].trim()
@@ -160,6 +160,7 @@ export default {
     courseTeacher: "",
     day: "",
     nextId: 100,
+    isSaving: false,
     step: 1,
     courseIndex: 0,
     presetCourses: [],
@@ -250,7 +251,7 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-    this.loadCourses()
+    this.refreshCourseList()
 
     var storage = require("@system.storage")
     storage.get({
@@ -259,6 +260,26 @@ export default {
         if (data !== undefined && data !== null && data !== "") {
           self.courseLocation = data
           storage.delete({ key: "chinese_input_result" })
+        }
+      }
+    })
+  },
+
+  refreshCourseList() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.get({
+      key: COURSE_LIST_KEY,
+      success: function(data) {
+        if (data) {
+          try {
+            var list = JSON.parse(data)
+            if (list && list.length > 0) {
+              self.presetCourses = self.sortByTime(list)
+            }
+          } catch (e) {
+            // keep existing list
+          }
         }
       }
     })
@@ -320,6 +341,14 @@ export default {
   },
 
   selectCourse(index) {
+    if (this.presetCourses.length === 0) {
+      this.courseName = ""
+      this.courseTime = ""
+      return
+    }
+    if (index < 0 || index >= this.presetCourses.length) {
+      index = 0
+    }
     this.courseIndex = index
     var c = this.presetCourses[index]
     this.courseName = c.name
@@ -441,9 +470,19 @@ export default {
   },
 
   saveCourse() {
-    if (!this.courseName || !this.courseTime) {
+    if (this.isSaving) {
       return
     }
+    if (!this.courseName) {
+      prompt.showToast({ message: "请先选择课程" })
+      return
+    }
+    if (!this.courseTime) {
+      prompt.showToast({ message: "请先设置时间" })
+      return
+    }
+    this.isSaving = true
+    var self = this
     var newCourse = {
       id: String(this.nextId),
       day: this.day,
@@ -453,9 +492,81 @@ export default {
       location: this.courseLocation || "",
       notes: ""
     }
-    database.insertCourse(newCourse, function() {
-      prompt.showToast({ message: "课程已添加" })
-      router.back()
+    this.nextId++
+    var storage = require("@system.storage")
+    storage.set({
+      key: "add_course_nextId",
+      value: String(this.nextId)
+    })
+    storage.get({
+      key: "currentScheduleIndex",
+      success: function(idxVal) {
+        var idx = 0
+        if (idxVal) { idx = parseInt(idxVal) || 0 }
+        var storageKey = "allCourses_" + idx
+        storage.get({
+          key: storageKey,
+          success: function(val) {
+            var schedule = []
+            if (val) {
+              try { schedule = JSON.parse(val) } catch (e) {
+                self.isSaving = false
+                prompt.showToast({ message: "数据读取失败" })
+                return
+              }
+            }
+            var dayData = null
+            for (var i = 0; i < schedule.length; i++) {
+              if (schedule[i].day === newCourse.day) {
+                dayData = schedule[i]
+                break
+              }
+            }
+            if (dayData) {
+              dayData.classes.push({
+                id: newCourse.id,
+                name: newCourse.name,
+                time: newCourse.time,
+                teacher: newCourse.teacher,
+                location: newCourse.location,
+                notes: newCourse.notes || ""
+              })
+            } else {
+              schedule.push({
+                day: newCourse.day,
+                classes: [{
+                  id: newCourse.id,
+                  name: newCourse.name,
+                  time: newCourse.time,
+                  teacher: newCourse.teacher,
+                  location: newCourse.location,
+                  notes: newCourse.notes || ""
+                }]
+              })
+            }
+            storage.set({
+              key: storageKey,
+              value: JSON.stringify(schedule),
+              success: function() {
+                prompt.showToast({ message: "课程已添加" })
+                router.back()
+              },
+              fail: function() {
+                self.isSaving = false
+                prompt.showToast({ message: "保存失败，请重试" })
+              }
+            })
+          },
+          fail: function() {
+            self.isSaving = false
+            prompt.showToast({ message: "数据读取失败" })
+          }
+        })
+      },
+      fail: function() {
+        self.isSaving = false
+        prompt.showToast({ message: "数据读取失败" })
+      }
     })
   }
 }

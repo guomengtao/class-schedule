@@ -215,6 +215,26 @@ var THEMES = {
   }
 }
 
+function resolveSystemTheme(callback) {
+  try {
+    var configuration = require("@system.configuration")
+    configuration.getColorMode({
+      success: function(data) {
+        if (data.colorMode === "dark" || data.colorModeNumber === 1) {
+          callback(THEMES.dark, 'auto')
+        } else {
+          callback(THEMES.light, 'auto')
+        }
+      },
+      fail: function() {
+        callback(THEMES.dark, 'auto')
+      }
+    })
+  } catch (e) {
+    callback(THEMES.dark, 'auto')
+  }
+}
+
 module.exports = {
   THEMES: THEMES,
 
@@ -223,7 +243,11 @@ module.exports = {
       key: "appTheme",
       success: function(data) {
         var name = data || 'blue'
-        callback(THEMES[name] || THEMES.blue, name)
+        if (name === 'auto') {
+          resolveSystemTheme(callback)
+        } else {
+          callback(THEMES[name] || THEMES.blue, name)
+        }
       },
       fail: function() {
         callback(THEMES.blue, 'blue')
@@ -254,7 +278,7 @@ module.exports = {
 
   getAvailableThemes: function() {
     var keys = Object.keys(THEMES)
-    return keys.map(function(key) {
+    var list = keys.map(function(key) {
       return {
         key: key,
         name: THEMES[key].name,
@@ -264,6 +288,15 @@ module.exports = {
         card: THEMES[key].card
       }
     })
+    list.unshift({
+      key: 'auto',
+      name: '跟随系统',
+      icon: '🔄',
+      accent: '#888888',
+      bg: '#1a1a2e',
+      card: '#16213e'
+    })
+    return list
   },
   setFontScale: function(scale, callback) {
     storage.set({

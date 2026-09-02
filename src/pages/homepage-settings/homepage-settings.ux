@@ -8,7 +8,7 @@
     <text class="group-title" style="color: {{ theme.textSecondary }}">显示控制</text>
 
     <div class="section" style="background-color: {{ theme.card }}">
-      <div class="item-row" style="border-bottom-color: {{ theme.border }}">
+      <div class="item-row">
         <div class="item-left">
           <div class="dot" style="background-color: {{ theme.accent }}"></div>
           <div class="item-text">
@@ -20,6 +20,7 @@
           <div class="switch-thumb" style="left: {{ showQuickAdd ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
         </div>
       </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row item-row-last">
         <div class="item-left">
           <div class="dot" style="background-color: {{ theme.accent }}"></div>
@@ -37,7 +38,7 @@
     <text class="group-title" style="color: {{ theme.textSecondary }}">自定义内容</text>
 
     <div class="section" style="background-color: {{ theme.card }}">
-      <div class="item-row" style="border-bottom-color: {{ theme.border }}">
+      <div class="item-row">
         <div class="item-left">
           <div class="dot" style="background-color: {{ theme.accent }}"></div>
           <div class="item-text">
@@ -49,6 +50,7 @@
           <div class="switch-thumb" style="left: {{ showCustomContent ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
         </div>
       </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="input-row" onclick="showContentKeyboard">
         <text class="input-text" style="color: {{ customContent && showCustomContent ? theme.text : theme.textMuted }}">{{ customContent || '点击输入自定义文字...' }}</text>
         <text class="input-arrow" style="color: {{ theme.textMuted }}">></text>
@@ -62,7 +64,7 @@
     <text class="group-title" style="color: {{ theme.textSecondary }}">时间显示</text>
 
     <div class="section" style="background-color: {{ theme.card }}">
-      <div class="item-row" style="border-bottom-color: {{ theme.border }}">
+      <div class="item-row">
         <div class="item-left">
           <div class="dot" style="background-color: {{ theme.accent }}"></div>
           <div class="item-text">
@@ -74,6 +76,7 @@
           <div class="switch-thumb" style="left: {{ showTime ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
         </div>
       </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}" if="{{ showTime }}"></div>
       <div class="time-format-row" if="{{ showTime }}">
         <div class="unit-chip" style="border-color: {{ timeFormat.year ? theme.accent : theme.border }}; background-color: {{ timeFormat.year ? theme.cardLight : theme.border }}" onclick="toggleYear">
           <text class="unit-text" style="color: {{ timeFormat.year ? theme.accent : theme.textSecondary }}">年</text>
@@ -261,12 +264,10 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 12px 0;
-  border-bottom-width: 1px;
-  border-bottom-style: solid;
 }
 
-.item-row-last {
-  border-bottom-width: 0;
+.row-divider {
+  height: 1px;
 }
 
 .item-left {

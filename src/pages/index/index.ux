@@ -23,19 +23,22 @@
       <input class="nav-btn" type="button" value="&#9654;" onclick="nextDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
     </div>
 
-    <div class="status-bar" if="{{ isToday && showStatusBar }}" style="background-color: {{ theme.cardLight }}; border-left-color: {{ theme.accent }}" onclick="goToStatusClass">
+    <div class="status-bar" if="{{ isToday && showStatusBar }}" style="background-color: {{ theme.cardLight }}" onclick="goToStatusClass">
+      <div class="left-accent left-accent-6" style="background-color: {{ theme.accent }}"></div>
       <text class="status-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
       <text class="status-middle" style="color: {{ theme.text }}">{{ statusMainText }}</text>
       <text class="status-right" if="{{ !isCapsule && !isNarrowScreen }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
     </div>
 
-    <div class="custom-content-bar" if="{{ showCustomContent && customContent }}" style="background-color: {{ theme.cardLight }}; border-left-color: {{ theme.accent }}">
+    <div class="custom-content-bar" if="{{ showCustomContent && customContent }}" style="background-color: {{ theme.cardLight }}">
+      <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
       <text class="custom-content-text" style="{{ customContentStyle }}; color: {{ theme.text }}">{{ customContent }}</text>
     </div>
 
     <scroll class="class-list" scroll-y="{{true}}" scroll-top="{{ scrollListTop }}">
       <div for="{{ currentClasses }}" class="class-card-wrapper">
-        <div class="class-card" onclick="openDetail($item.id)" style="background-color: {{ theme.card }}; border-left-color: {{ theme.accent }}">
+        <div class="class-card" onclick="openDetail($item.id)" style="background-color: {{ theme.card }}">
+          <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
           <div class="progress-bg" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
           <div class="class-content">
             <div class="class-time">
@@ -89,7 +92,7 @@ import device from "@system.device"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 
-const dayNames = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+const dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
 function parseTime(timeStr) {
   var parts = timeStr.split(":")
@@ -99,14 +102,12 @@ function parseTime(timeStr) {
 }
 
 function getRealTodayIndex() {
-  var d = new Date().getDay()
-  if (d >= 1 && d <= 5) return d - 1
-  return 0
+  return new Date().getDay()
 }
 
 export default {
   private: {
-    currentDay: "Mon",
+    currentDay: "星期日",
     currentWeek: 1,
     currentScheduleName: "课程表1",
     currentDayIndex: 0,
@@ -192,6 +193,16 @@ export default {
     })
     this.currentDayIndex = getRealTodayIndex()
     this.currentDay = dayNames[this.currentDayIndex]
+    var storage = require("@system.storage")
+    storage.get({
+      key: "index_nextId",
+      success: function(val) {
+        self.nextId = parseInt(val) || 50
+      },
+      fail: function() {
+        self.nextId = 50
+      }
+    })
     store.getScaleSafe(function(scale) {
       self.fontScale = scale
       self.applyFontScale()
@@ -513,9 +524,26 @@ export default {
 
   openAddCoursePage() {
     var storage = require("@system.storage")
-    storage.set({ key: "add_course_day", value: this.currentDay })
-    storage.set({ key: "add_course_nextId", value: String(this.nextId) })
-    router.push({ uri: "/pages/add-course" })
+    var self = this
+    storage.set({
+      key: "add_course_day",
+      value: this.currentDay,
+      success: function() {
+        storage.set({
+          key: "add_course_nextId",
+          value: String(self.nextId),
+          success: function() {
+            router.push({ uri: "/pages/add-course" })
+          },
+          fail: function() {
+            router.push({ uri: "/pages/add-course" })
+          }
+        })
+      },
+      fail: function() {
+        router.push({ uri: "/pages/add-course" })
+      }
+    })
   },
 
   openSettings() {
@@ -528,6 +556,7 @@ export default {
 
   makeCourse(name, time, teacher, location) {
     var self = this
+    var storage = require("@system.storage")
     var newCourse = {
       id: String(this.nextId),
       day: this.currentDay,
@@ -538,12 +567,20 @@ export default {
       notes: ""
     }
     this.nextId++
-    database.insertCourse(newCourse, function() {
-      prompt.showToast({ message: "已添加 " + name })
-      database.getAllCourses(function(schedule) {
-        self.schedule = schedule
-        self.loadDayClasses()
-      })
+    storage.set({
+      key: "index_nextId",
+      value: String(this.nextId)
+    })
+    database.insertCourse(newCourse, function(success) {
+      if (success) {
+        prompt.showToast({ message: "已添加 " + name })
+        database.getAllCourses(function(schedule) {
+          self.schedule = schedule
+          self.loadDayClasses()
+        })
+      } else {
+        prompt.showToast({ message: "添加失败，请重试" })
+      }
     })
   },
 
@@ -968,8 +1005,6 @@ export default {
   border-radius: 14px;
   padding: 6px 14px;
   margin-bottom: 6px;
-  border-left-width: 6px;
-  border-left-style: solid;
   height: 44px;
   overflow: hidden;
 }
@@ -1013,8 +1048,6 @@ export default {
   border-radius: 10px;
   padding: 8px 14px;
   margin-bottom: 6px;
-  border-left-width: 4px;
-  border-left-style: solid;
 }
 
 .custom-content-text {
@@ -1042,9 +1075,6 @@ export default {
   background-color: #16213e;
   border-radius: 10px;
   flex: 1;
-  border-left-width: 4px;
-  border-left-color: #7ec8e3;
-  border-left-style: solid;
   overflow: hidden;
 }
 
@@ -1054,6 +1084,21 @@ export default {
   top: 0;
   height: 100%;
   border-radius: 10px;
+}
+
+.left-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+}
+
+.left-accent-6 {
+  width: 6px;
+}
+
+.left-accent-4 {
+  width: 4px;
 }
 
 .class-content {

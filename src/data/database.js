@@ -245,10 +245,17 @@ function loadFromStorage() {
   return data
 }
 
-function saveToStorage(schedule) {
+function saveToStorage(schedule, callback) {
   storage.set({
     key: getStorageKey(),
-    value: JSON.stringify(schedule)
+    value: JSON.stringify(schedule),
+    success: function() {
+      if (callback) callback(true)
+    },
+    fail: function(e) {
+      logErr("saveToStorage failed: " + JSON.stringify(e))
+      if (callback) callback(false)
+    }
   })
 }
 
@@ -356,10 +363,17 @@ function getAllCoursesStorageWithIndex(index, callback) {
   })
 }
 
-function saveToStorageWithIndex(index, schedule) {
+function saveToStorageWithIndex(index, schedule, callback) {
   storage.set({
     key: STORAGE_KEY + "_" + index,
-    value: JSON.stringify(schedule)
+    value: JSON.stringify(schedule),
+    success: function() {
+      if (callback) callback(true)
+    },
+    fail: function(e) {
+      logErr("saveToStorageWithIndex failed: " + JSON.stringify(e))
+      if (callback) callback(false)
+    }
   })
 }
 
@@ -412,7 +426,11 @@ function insertCourseStorage(course, callback) {
     success: function(val) {
       var schedule = []
       if (val) {
-        try { schedule = JSON.parse(val) } catch (e) { schedule = [] }
+        try { schedule = JSON.parse(val) } catch (e) {
+          logErr("insertCourseStorage JSON parse failed: " + e)
+          callback(false)
+          return
+        }
       }
       var dayData = null
       for (var i = 0; i < schedule.length; i++) {
@@ -443,9 +461,10 @@ function insertCourseStorage(course, callback) {
           }]
         })
       }
-      saveToStorage(schedule)
-      log("insertCourseStorage success")
-      callback(true)
+      saveToStorage(schedule, function(success) {
+        log("insertCourseStorage " + (success ? "success" : "failed"))
+        callback(success)
+      })
     },
     fail: function(e) {
       logErr("insertCourseStorage get failed: " + JSON.stringify(e))
@@ -478,7 +497,11 @@ function updateCourseStorage(course, callback) {
     success: function(val) {
       var schedule = []
       if (val) {
-        try { schedule = JSON.parse(val) } catch (e) { schedule = [] }
+        try { schedule = JSON.parse(val) } catch (e) {
+          logErr("updateCourseStorage JSON parse failed: " + e)
+          callback(false)
+          return
+        }
       }
       for (var i = 0; i < schedule.length; i++) {
         if (schedule[i].day === course.day) {
@@ -496,9 +519,10 @@ function updateCourseStorage(course, callback) {
           break
         }
       }
-      saveToStorage(schedule)
-      log("updateCourseStorage success")
-      callback(true)
+      saveToStorage(schedule, function(success) {
+        log("updateCourseStorage " + (success ? "success" : "failed"))
+        callback(success)
+      })
     },
     fail: function(e) {
       logErr("updateCourseStorage get failed: " + JSON.stringify(e))
@@ -531,7 +555,11 @@ function deleteCourseStorage(id, day, callback) {
     success: function(val) {
       var schedule = []
       if (val) {
-        try { schedule = JSON.parse(val) } catch (e) { schedule = [] }
+        try { schedule = JSON.parse(val) } catch (e) {
+          logErr("deleteCourseStorage JSON parse failed: " + e)
+          callback(false)
+          return
+        }
       }
       for (var i = 0; i < schedule.length; i++) {
         if (schedule[i].day === day) {
@@ -546,15 +574,163 @@ function deleteCourseStorage(id, day, callback) {
           break
         }
       }
-      saveToStorage(schedule)
-      log("deleteCourseStorage success")
-      callback(true)
+      saveToStorage(schedule, function(success) {
+        log("deleteCourseStorage " + (success ? "success" : "failed"))
+        callback(success)
+      })
     },
     fail: function(e) {
       logErr("deleteCourseStorage get failed: " + JSON.stringify(e))
       callback(false)
     }
   })
+
+function clearScheduleByIndexSqlite(index, callback) {
+  log("clearScheduleByIndexSqlite: " + index)
+  sqlite.executeSql({
+    name: DB_NAME,
+    sql: "DELETE FROM courses WHERE schedule_index = ?",
+    args: [String(index)],
+    success: function() {
+      log("clearScheduleByIndexSqlite success")
+      if (callback) callback()
+    },
+    fail: function(e) {
+      logErr("clearScheduleByIndexSqlite failed: " + JSON.stringify(e))
+      if (callback) callback()
+    }
+  })
+}
+
+function clearScheduleByIndexStorage(index, callback) {
+  log("clearScheduleByIndexStorage: " + index)
+  var key = STORAGE_KEY + "_" + index
+  storage.set({
+    key: key,
+    value: JSON.stringify([]),
+    success: function() {
+      log("clearScheduleByIndexStorage success")
+      if (callback) callback()
+    },
+    fail: function(e) {
+      logErr("clearScheduleByIndexStorage failed: " + JSON.stringify(e))
+      if (callback) callback()
+    }
+  })
+}
+
+function deleteScheduleAndShiftSqlite(index, totalBeforeDelete, callback) {
+  log("deleteScheduleAndShiftSqlite: " + index + " total=" + totalBeforeDelete)
+  var allDone = function() {
+    if (callback) callback()
+  }
+  var doneCount = 0
+  var totalOps = 1 + (totalBeforeDelete - index - 1)
+  if (totalOps <= 0) {
+    allDone()
+    return
+  }
+  var checkDone = function() {
+    doneCount++
+    if (doneCount >= totalOps) {
+      allDone()
+    }
+  }
+  sqlite.executeSql({
+    name: DB_NAME,
+    sql: "DELETE FROM courses WHERE schedule_index = ?",
+    args: [String(index)],
+    success: function() {
+      log("deleteScheduleAndShiftSqlite: deleted index " + index)
+      checkDone()
+    },
+    fail: function(e) {
+      logErr("deleteScheduleAndShiftSqlite delete failed: " + JSON.stringify(e))
+      checkDone()
+    }
+  })
+  for (var i = index + 1; i < totalBeforeDelete; i++) {
+    (function(idx) {
+      sqlite.executeSql({
+        name: DB_NAME,
+        sql: "UPDATE courses SET schedule_index = ? WHERE schedule_index = ?",
+        args: [String(idx - 1), String(idx)],
+        success: function() {
+          checkDone()
+        },
+        fail: function(e) {
+          logErr("deleteScheduleAndShiftSqlite update failed: " + JSON.stringify(e))
+          checkDone()
+        }
+      })
+    })(i)
+  }
+}
+
+function deleteScheduleAndShiftStorage(index, totalBeforeDelete, callback) {
+  log("deleteScheduleAndShiftStorage: " + index + " total=" + totalBeforeDelete)
+  var deletedKey = STORAGE_KEY + "_" + index
+  var shiftCount = totalBeforeDelete - index - 1
+  storage.delete({
+    key: deletedKey,
+    success: function() {
+      log("deleteScheduleAndShiftStorage: deleted key " + deletedKey)
+      if (shiftCount <= 0) {
+        if (callback) callback()
+        return
+      }
+      shiftStorageKeysFrom(index + 1, shiftCount, callback)
+    },
+    fail: function() {
+      log("deleteScheduleAndShiftStorage: delete failed, continuing")
+      if (shiftCount <= 0) {
+        if (callback) callback()
+        return
+      }
+      shiftStorageKeysFrom(index + 1, shiftCount, callback)
+    }
+  })
+}
+
+function shiftStorageKeysFrom(startIndex, count, callback) {
+  var done = 0
+  for (var i = startIndex; i < startIndex + count; i++) {
+    (function(idx) {
+      var oldKey = STORAGE_KEY + "_" + idx
+      var newKey = STORAGE_KEY + "_" + (idx - 1)
+      storage.get({
+        key: oldKey,
+        success: function(data) {
+          var value = data || "[]"
+          storage.set({
+            key: newKey,
+            value: value,
+            success: function() {
+              storage.delete({
+                key: oldKey,
+                success: function() {
+                  done++
+                  if (done >= count && callback) callback()
+                },
+                fail: function() {
+                  done++
+                  if (done >= count && callback) callback()
+                }
+              })
+            },
+            fail: function() {
+              done++
+              if (done >= count && callback) callback()
+            }
+          })
+        },
+        fail: function() {
+          done++
+          if (done >= count && callback) callback()
+        }
+      })
+    })(i)
+  }
 }
 
 module.exports = {
@@ -565,53 +741,45 @@ module.exports = {
   getAllCourses: function(callback) {
     log("getAllCourses called, useSqlite=" + useSqlite + ", currentIndex=" + currentScheduleIndex)
     ensureReady(function() {
-      loadScheduleIndex(function() {
-        log("getAllCourses after loadScheduleIndex: currentIndex=" + currentScheduleIndex)
-        if (useSqlite) {
-          getAllCoursesSqlite(callback)
-        } else {
-          getAllCoursesStorage(callback)
-        }
-      })
+      log("getAllCourses ready, currentIndex=" + currentScheduleIndex)
+      if (useSqlite) {
+        getAllCoursesSqlite(callback)
+      } else {
+        getAllCoursesStorage(callback)
+      }
     })
   },
 
   insertCourse: function(course, callback) {
     log("insertCourse called: " + JSON.stringify(course))
     ensureReady(function() {
-      loadScheduleIndex(function() {
-        if (useSqlite) {
-          insertCourseSqlite(course, callback)
-        } else {
-          insertCourseStorage(course, callback)
-        }
-      })
+      if (useSqlite) {
+        insertCourseSqlite(course, callback)
+      } else {
+        insertCourseStorage(course, callback)
+      }
     })
   },
 
   updateCourse: function(course, callback) {
     log("updateCourse called: " + JSON.stringify(course))
     ensureReady(function() {
-      loadScheduleIndex(function() {
-        if (useSqlite) {
-          updateCourseSqlite(course, callback)
-        } else {
-          updateCourseStorage(course, callback)
-        }
-      })
+      if (useSqlite) {
+        updateCourseSqlite(course, callback)
+      } else {
+        updateCourseStorage(course, callback)
+      }
     })
   },
 
   deleteCourse: function(id, day, callback) {
     log("deleteCourse called: " + id + " " + day)
     ensureReady(function() {
-      loadScheduleIndex(function() {
-        if (useSqlite) {
-          deleteCourseSqlite(id, day, callback)
-        } else {
-          deleteCourseStorage(id, day, callback)
-        }
-      })
+      if (useSqlite) {
+        deleteCourseSqlite(id, day, callback)
+      } else {
+        deleteCourseStorage(id, day, callback)
+      }
     })
   },
 
@@ -685,6 +853,28 @@ module.exports = {
           callback([])
         }
       })
+    })
+  },
+
+  clearScheduleByIndex: function(index, callback) {
+    log("clearScheduleByIndex: " + index)
+    ensureReady(function() {
+      if (useSqlite) {
+        clearScheduleByIndexSqlite(index, callback)
+      } else {
+        clearScheduleByIndexStorage(index, callback)
+      }
+    })
+  },
+
+  deleteScheduleAndShift: function(index, totalBeforeDelete, callback) {
+    log("deleteScheduleAndShift: " + index + " total=" + totalBeforeDelete)
+    ensureReady(function() {
+      if (useSqlite) {
+        deleteScheduleAndShiftSqlite(index, totalBeforeDelete, callback)
+      } else {
+        deleteScheduleAndShiftStorage(index, totalBeforeDelete, callback)
+      }
     })
   },
 

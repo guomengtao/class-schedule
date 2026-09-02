@@ -199,16 +199,19 @@
       <text class="section-title" style="color: {{ theme.text }}">激活历史</text>
       <div class="history-list" style="background-color: {{ theme.card }}">
         <div for="{{ historyList }}" class="history-item">
-          <div class="history-left">
-            <text class="history-date" style="color: {{ theme.textSecondary }}">{{ $item.date }}</text>
-            <text class="history-type" style="color: {{ theme.text }}">{{ $item.type }}</text>
-            <text class="history-code" if="{{ $item.activationCode }}" style="font-size: 20px; color: {{ theme.textMuted }}">激活码: {{ $item.activationCode }}</text>
-            <text class="history-code" if="{{ $item.redeemCode }}" style="font-size: 20px; color: {{ theme.textMuted }}">兑换码: {{ $item.redeemCode }}</text>
+          <div class="history-row">
+            <div class="history-left">
+              <text class="history-date" style="color: {{ theme.textSecondary }}">{{ $item.date }}</text>
+              <text class="history-type" style="color: {{ theme.text }}">{{ $item.type }}</text>
+              <text class="history-code" if="{{ $item.activationCode }}" style="font-size: 20px; color: {{ theme.textMuted }}">激活码: {{ $item.activationCode }}</text>
+              <text class="history-code" if="{{ $item.redeemCode }}" style="font-size: 20px; color: {{ theme.textMuted }}">兑换码: {{ $item.redeemCode }}</text>
+            </div>
+            <div class="history-right">
+              <text class="history-duration" style="color: {{ theme.accent }}">{{ $item.duration }}</text>
+              <text class="history-status" style="color: {{ $item.status === '成功' ? '#27ae60' : '#e74c3c' }}">{{ $item.status }}</text>
+            </div>
           </div>
-          <div class="history-right">
-            <text class="history-duration" style="color: {{ theme.accent }}">{{ $item.duration }}</text>
-            <text class="history-status" style="color: {{ $item.status === '成功' ? '#27ae60' : '#e74c3c' }}">{{ $item.status }}</text>
-          </div>
+          <div class="history-divider"></div>
         </div>
         <div class="history-empty" if="{{ historyList.length === 0 }}">
           <text class="history-empty-text" style="color: {{ theme.textMuted }}">暂无激活记录</text>
@@ -633,12 +636,21 @@ export default {
 }
 
 .history-item {
+  flex-direction: column;
+  padding: 8px 0;
+}
+
+.history-row {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
-  border-bottom-width: 1px;
-  border-bottom-color: rgba(255,255,255,0.05);
+}
+
+.history-divider {
+  height: 1px;
+  background-color: rgba(255,255,255,0.05);
+  margin-top: 8px;
+  width: 100%;
 }
 
 .history-left {

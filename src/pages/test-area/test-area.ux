@@ -24,10 +24,42 @@
         </div>
       </div>
 
+      <div class="menu-item" onclick="openCheckDemo" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">勾选 Demo</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">勾选交互测试</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+
+      <div class="menu-item" onclick="openScheduleManagerV2" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">课程表管理 V2</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">重构版课程表管理</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+
       <div class="menu-item" onclick="openDeviceInfo" style="background-color: {{ theme.card }}">
         <text class="menu-label" style="color: {{ theme.text }}">设备信息</text>
         <div class="menu-right">
           <text class="menu-desc" style="color: {{ theme.textMuted }}">查看详情</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+
+      <div class="menu-item" onclick="openAccordionDemo" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">手风琴 Demo</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">展开收起交互测试</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+
+      <div class="menu-item" onclick="openAddCourseDemo" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">添加课程 Demo</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">简易添加课程测试</text>
           <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
@@ -90,8 +122,24 @@ export default {
     router.push({ uri: "/pages/vibration-lab" })
   },
 
+  openScheduleManagerV2() {
+    router.push({ uri: "/pages/schedule-manager" })
+  },
+
+  openCheckDemo() {
+    router.push({ uri: "/pages/check-demo" })
+  },
+
   openDeviceInfo() {
     router.push({ uri: "/pages/device-info" })
+  },
+
+  openAccordionDemo() {
+    router.push({ uri: "/pages/accordion-demo" })
+  },
+
+  openAddCourseDemo() {
+    router.push({ uri: "/pages/add-course-demo" })
   },
 
   onDevExpireClick() {

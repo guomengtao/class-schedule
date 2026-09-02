@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.3.120",
-  "versionCode": 250,
+  "versionName": "1.3.137",
+  "versionCode": 267,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -27,6 +27,9 @@
     },
     {
       "name": "system.device"
+    },
+    {
+      "name": "system.configuration"
     },
     {
       "name": "system.alarm",
@@ -118,6 +121,15 @@
       },
       "pages/activation": {
         "component": "activation"
+      },
+      "pages/check-demo": {
+        "component": "check-demo"
+      },
+      "pages/accordion-demo": {
+        "component": "accordion-demo"
+      },
+      "pages/add-course-demo": {
+        "component": "add-course-demo"
       }
     }
   }

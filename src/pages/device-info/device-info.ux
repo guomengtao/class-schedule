@@ -117,7 +117,6 @@ export default {
 
     device.getInfo({
       success: function(ret) {
-        title = ret.model || "设备信息"
         self.deviceIcon = deviceIconMap[ret.deviceType] || "⌚"
         self.deviceModel = ret.model || "未知设备"
         self.deviceBrand = (ret.brand || "") + " · " + (deviceTypeMap[ret.deviceType] || "")

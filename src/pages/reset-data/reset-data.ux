@@ -6,7 +6,7 @@
     </div>
 
     <div class="warning-section" style="background-color: {{ theme.card }}">
-      <div class="warning-icon" style="border-bottom-color: {{ theme.accent }}"></div>
+      <text class="warning-icon" style="color: {{ theme.accent }}">▲</text>
       <text class="warning-title" style="color: {{ theme.accent }}">重要提示</text>
       <text class="warning-text" style="color: {{ theme.textSecondary }}">以下操作将覆盖您当前的课程数据。</text>
       <text class="warning-text" style="color: {{ theme.textSecondary }}">您自己添加、修改的所有课程都可能丢失。</text>
@@ -243,11 +243,7 @@ export default {
 }
 
 .warning-icon {
-  width: 0;
-  height: 0;
-  border-left: 20px solid transparent;
-  border-right: 20px solid transparent;
-  border-bottom: 36px solid;
+  font-size: 36px;
   margin-bottom: 8px;
 }
 
