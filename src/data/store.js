@@ -641,10 +641,28 @@ module.exports = {
     storage.get({
       key: "premium_unlocked",
       success: function(data) {
-        callback(data === "true")
+        if (data === "true") {
+          callback(true)
+          return
+        }
+        var authStore = require("../data/auth-store")
+        authStore.getAuthData(function(authData) {
+          if (authData && (authData.isActivated || authData.isPermanent)) {
+            callback(true)
+          } else {
+            callback(false)
+          }
+        })
       },
       fail: function() {
-        callback(false)
+        var authStore = require("../data/auth-store")
+        authStore.getAuthData(function(authData) {
+          if (authData && (authData.isActivated || authData.isPermanent)) {
+            callback(true)
+          } else {
+            callback(false)
+          }
+        })
       }
     })
   },
