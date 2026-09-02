@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Ev课程表 · 小米手环10 Pro 快应用 · 校园课程管理">
+  <meta name="theme-color" content="#2563eb">
+  <title>Ev课程表 · 今日课程</title>
+
+  <!-- External libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+  <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+
+  <!-- Tailwind theme bridge -->
+  <style type="text/tailwindcss">
+    @theme inline {
+      --color-background: var(--ev-background);
+      --color-foreground: var(--ev-foreground);
+      --color-card: var(--ev-card);
+      --color-card-foreground: var(--ev-card-foreground);
+      --color-popover: var(--ev-popover);
+      --color-popover-foreground: var(--ev-popover-foreground);
+      --color-primary: var(--ev-primary);
+      --color-primary-foreground: var(--ev-primary-foreground);
+      --color-muted: var(--ev-muted);
+      --color-muted-foreground: var(--ev-muted-foreground);
+      --color-border: var(--ev-border);
+      --color-input: var(--ev-input);
+      --color-ring: var(--ev-ring);
+      --radius-sm: var(--ev-radius-small);
+      --radius-md: var(--ev-radius-medium);
+      --radius-lg: var(--ev-radius-large);
+    }
+    @layer base {
+      body { background: var(--ev-background); color: var(--ev-foreground); font-family: var(--ev-font-sans); }
+    }
+  </style>
+
+  <!-- Shared stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="font-sans antialiased m-0 min-h-screen">
+
+  <div id="app-shell" class="app-shell watch-mode">
+
+    <!-- Device Preview Toolbar -->
+    <div class="device-toolbar" role="toolbar" aria-label="设备预览">
+      <button class="device-btn active ripple" data-device="watch" title="手环模式">
+        <i data-lucide="watch"></i>
+        <span>手环</span>
+      </button>
+      <button class="device-btn ripple" data-device="mobile" title="手机模式">
+        <i data-lucide="smartphone"></i>
+        <span>手机</span>
+      </button>
+      <button class="device-btn ripple" data-device="full" title="全屏模式">
+        <i data-lucide="maximize"></i>
+        <span>全屏</span>
+      </button>
+      <div class="w-px h-6 bg-border mx-1"></div>
+      <button class="theme-btn ripple" id="theme-toggle" title="切换主题" aria-label="切换主题">
+        <i data-lucide="moon" id="theme-icon"></i>
+      </button>
+    </div>
+
+    <!-- Watch Frame (wraps the single watch-screen with 4 views inside) -->
+    <div class="watch-frame" id="watch-frame">
+      <div class="watch-screen">
+
+        <!-- ============================================================ -->
+        <!-- VIEW 1: Today's Courses (今日课程) -->
+        <!-- ============================================================ -->
+        <div id="view-today" class="view">
+          <div class="status-bar">
+            <span class="ev-micro text-foreground status-clock">08:42</span>
+            <div class="flex items-center gap-1">
+              <i data-lucide="battery-medium" class="w-3.5 h-3.5 text-foreground"></i>
+            </div>
+          </div>
+
+          <header class="px-4 pt-3 pb-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="ev-caption text-muted-foreground">2025 秋季学期</p>
+                <h1 class="ev-h1 text-foreground">今日课程</h1>
+              </div>
+              <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <i data-lucide="calendar-days" class="w-4 h-4 text-primary"></i>
+              </div>
+            </div>
+            <p class="ev-micro text-muted-foreground mt-1">9月3日 星期三 · 第2周</p>
+          </header>
+
+          <div class="screen-content">
+            <!-- Rendered by JS -->
+          </div>
+
+          <!-- Bottom Nav -->
+          <nav class="bottom-nav">
+            <button class="nav-item active" data-dom-id="nav-today">
+              <i data-lucide="calendar-check" class="w-5 h-5"></i>
+              <span class="ev-micro">今日</span>
+            </button>
+            <button class="nav-item" data-dom-id="nav-week">
+              <i data-lucide="calendar-range" class="w-5 h-5"></i>
+              <span class="ev-micro">周表</span>
+            </button>
+            <button class="nav-item" data-dom-id="nav-settings">
+              <i data-lucide="settings" class="w-5 h-5"></i>
+              <span class="ev-micro">设置</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- VIEW 2: Weekly Schedule (本周课表) -->
+        <!-- ============================================================ -->
+        <div id="view-week" class="view hidden">
+          <div class="status-bar">
+            <span class="ev-micro text-foreground status-clock">08:42</span>
+            <div class="flex items-center gap-1">
+              <i data-lucide="battery-medium" class="w-3.5 h-3.5 text-foreground"></i>
+            </div>
+          </div>
+
+          <header class="px-4 pt-3 pb-2">
+            <h1 class="ev-h1 text-foreground">本周课表</h1>
+            <p class="ev-micro text-muted-foreground mt-0.5">9月1日 - 9月5日 · 第2周</p>
+          </header>
+
+          <div class="screen-content">
+            <!-- Weekday tabs -->
+            <div class="flex gap-2 overflow-x-auto no-scrollbar mb-3 px-0.5" id="week-tabs">
+              <!-- Rendered by JS -->
+            </div>
+            <!-- Schedule list -->
+            <section class="space-y-2">
+              <!-- Rendered by JS -->
+            </section>
+          </div>
+
+          <!-- Bottom Nav -->
+          <nav class="bottom-nav">
+            <button class="nav-item" data-dom-id="nav-today">
+              <i data-lucide="calendar-check" class="w-5 h-5"></i>
+              <span class="ev-micro">今日</span>
+            </button>
+            <button class="nav-item active" data-dom-id="nav-week">
+              <i data-lucide="calendar-range" class="w-5 h-5"></i>
+              <span class="ev-micro">周表</span>
+            </button>
+            <button class="nav-item" data-dom-id="nav-settings">
+              <i data-lucide="settings" class="w-5 h-5"></i>
+              <span class="ev-micro">设置</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- VIEW 3: Course Detail (课程详情) -->
+        <!-- ============================================================ -->
+        <div id="view-detail" class="view hidden">
+          <div class="status-bar">
+            <span class="ev-micro text-foreground status-clock">08:42</span>
+            <div class="flex items-center gap-1">
+              <i data-lucide="battery-medium" class="w-3.5 h-3.5 text-foreground"></i>
+            </div>
+          </div>
+
+          <header class="px-4 pt-3 pb-2 flex items-center gap-2">
+            <button class="back-btn ripple" id="back-btn" data-dom-id="back-today" aria-label="返回">
+              <i data-lucide="chevron-left" class="w-4 h-4 text-foreground"></i>
+            </button>
+            <h1 class="ev-h1 text-foreground">课程详情</h1>
+          </header>
+
+          <div class="screen-content">
+            <!-- Rendered by JS -->
+          </div>
+
+          <!-- Bottom Nav -->
+          <nav class="bottom-nav">
+            <button class="nav-item" data-dom-id="nav-today">
+              <i data-lucide="calendar-check" class="w-5 h-5"></i>
+              <span class="ev-micro">今日</span>
+            </button>
+            <button class="nav-item" data-dom-id="nav-week">
+              <i data-lucide="calendar-range" class="w-5 h-5"></i>
+              <span class="ev-micro">周表</span>
+            </button>
+            <button class="nav-item" data-dom-id="nav-settings">
+              <i data-lucide="settings" class="w-5 h-5"></i>
+              <span class="ev-micro">设置</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- VIEW 4: Settings (设置) -->
+        <!-- ============================================================ -->
+        <div id="view-settings" class="view hidden">
+          <div class="status-bar">
+            <span class="ev-micro text-foreground status-clock">08:42</span>
+            <div class="flex items-center gap-1">
+              <i data-lucide="battery-medium" class="w-3.5 h-3.5 text-foreground"></i>
+            </div>
+          </div>
+
+          <header class="px-4 pt-3 pb-2">
+            <h1 class="ev-h1 text-foreground">设置</h1>
+            <p class="ev-micro text-muted-foreground mt-0.5">Ev课程表 小米手环版</p>
+          </header>
+
+          <div class="screen-content">
+            <!-- Rendered by JS -->
+          </div>
+
+          <!-- Bottom Nav -->
+          <nav class="bottom-nav">
+            <button class="nav-item" data-dom-id="nav-today">
+              <i data-lucide="calendar-check" class="w-5 h-5"></i>
+              <span class="ev-micro">今日</span>
+            </button>
+            <button class="nav-item" data-dom-id="nav-week">
+              <i data-lucide="calendar-range" class="w-5 h-5"></i>
+              <span class="ev-micro">周表</span>
+            </button>
+            <button class="nav-item active" data-dom-id="nav-settings">
+              <i data-lucide="settings" class="w-5 h-5"></i>
+              <span class="ev-micro">设置</span>
+            </button>
+          </nav>
+        </div>
+
+      </div><!-- /.watch-screen -->
+    </div><!-- /.watch-frame -->
+
+  </div><!-- /.app-shell -->
+
+  <!-- App logic -->
+  <script src="js/app.js"></script>
+
+  <!-- Initialize lucide icons first pass (on DOMContentLoaded app.js does more) -->
+  <script>
+    // First render icons immediately so there's no flash of missing icons
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+
+</body>
+</html>

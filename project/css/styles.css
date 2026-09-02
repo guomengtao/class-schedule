@@ -1,0 +1,746 @@
+/* ============================================================
+   Ev课程表 · 小米手环10 Pro 快应用 — 共享样式表
+   ============================================================ */
+
+/* ---------- Theme Variables ---------- */
+:root {
+  /* Brand primary — academic blue */
+  --ev-brand-50: #eff6ff;
+  --ev-brand-100: #dbeafe;
+  --ev-brand-200: #bfdbfe;
+  --ev-brand-300: #93c5fd;
+  --ev-brand-400: #60a5fa;
+  --ev-brand-500: #3b82f6;
+  --ev-brand-600: #2563eb;
+  --ev-brand-700: #1d4ed8;
+  --ev-brand-800: #1e40af;
+  --ev-brand-900: #1e3a8a;
+
+  /* Neutral scale */
+  --ev-neutral-0: #ffffff;
+  --ev-neutral-50: #f8fafc;
+  --ev-neutral-100: #f1f5f9;
+  --ev-neutral-200: #e2e8f0;
+  --ev-neutral-300: #cbd5e1;
+  --ev-neutral-400: #94a3b8;
+  --ev-neutral-500: #64748b;
+  --ev-neutral-600: #475569;
+  --ev-neutral-700: #334155;
+  --ev-neutral-800: #1e293b;
+  --ev-neutral-900: #0f172a;
+
+  /* State colors */
+  --ev-state-success: #10b981;
+  --ev-state-success-soft: #d1fae5;
+  --ev-state-warning: #f59e0b;
+  --ev-state-warning-soft: #fef3c7;
+  --ev-state-error: #ef4444;
+  --ev-state-error-soft: #fee2e2;
+  --ev-state-info: #3b82f6;
+  --ev-state-info-soft: #dbeafe;
+
+  /* Semantic aliases (Light) */
+  --ev-background: var(--ev-neutral-50);
+  --ev-foreground: var(--ev-neutral-900);
+  --ev-card: var(--ev-neutral-0);
+  --ev-card-foreground: var(--ev-neutral-900);
+  --ev-popover: var(--ev-neutral-0);
+  --ev-popover-foreground: var(--ev-neutral-900);
+  --ev-primary: var(--ev-brand-600);
+  --ev-primary-foreground: var(--ev-neutral-0);
+  --ev-muted: var(--ev-neutral-100);
+  --ev-muted-foreground: var(--ev-neutral-500);
+  --ev-border: var(--ev-neutral-200);
+  --ev-input: var(--ev-neutral-200);
+  --ev-ring: var(--ev-brand-500);
+
+  /* Radius */
+  --ev-radius-small: 4px;
+  --ev-radius-medium: 8px;
+  --ev-radius-large: 12px;
+  --ev-radius-full: 9999px;
+
+  /* Shadows */
+  --ev-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 1px rgba(15, 23, 42, 0.03);
+  --ev-shadow-2: 0 4px 12px -4px rgba(15, 23, 42, 0.05);
+
+  /* Wearable presentation frame */
+  --ev-watch-stage-bg: var(--ev-neutral-200);
+  --ev-watch-frame-bg: var(--ev-neutral-900);
+  --ev-watch-frame-shadow: 0 24px 60px -16px rgba(15, 23, 42, 0.05);
+
+  /* Typography */
+  --ev-font-sans: "MiSans", "HarmonyOS Sans", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  --ev-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Type scale — wearable optimized */
+  --ev-text-xs: 11px;
+  --ev-text-sm: 12px;
+  --ev-text-base: 13px;
+  --ev-text-md: 15px;
+  --ev-text-lg: 17px;
+  --ev-text-xl: 20px;
+  --ev-text-2xl: 24px;
+
+  /* Transitions */
+  --ev-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ev-transition: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ev-transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark Theme */
+html.dark {
+  --ev-background: #0b1220;
+  --ev-foreground: #f1f5f9;
+  --ev-card: #111827;
+  --ev-card-foreground: #f1f5f9;
+  --ev-popover: #111827;
+  --ev-popover-foreground: #f1f5f9;
+  --ev-primary: var(--ev-brand-400);
+  --ev-primary-foreground: var(--ev-neutral-900);
+  --ev-muted: #1e293b;
+  --ev-muted-foreground: #94a3b8;
+  --ev-border: #1e293b;
+  --ev-input: #334155;
+  --ev-ring: var(--ev-brand-400);
+  --ev-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --ev-shadow-2: 0 4px 12px -4px rgba(0, 0, 0, 0.3);
+  --ev-watch-stage-bg: #0f172a;
+  --ev-watch-frame-bg: #020617;
+  --ev-watch-frame-shadow: 0 24px 60px -16px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------- Typography Classes ---------- */
+.ev-display { font-family: var(--ev-font-sans); font-size: var(--ev-text-2xl); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
+.ev-h1      { font-family: var(--ev-font-sans); font-size: var(--ev-text-xl); font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
+.ev-h2      { font-family: var(--ev-font-sans); font-size: var(--ev-text-lg); font-weight: 600; line-height: 1.25; }
+.ev-h3      { font-family: var(--ev-font-sans); font-size: var(--ev-text-md); font-weight: 600; line-height: 1.3; }
+.ev-body    { font-family: var(--ev-font-sans); font-size: var(--ev-text-base); font-weight: 400; line-height: 1.5; }
+.ev-caption { font-family: var(--ev-font-sans); font-size: var(--ev-text-sm); font-weight: 400; line-height: 1.4; }
+.ev-micro   { font-family: var(--ev-font-sans); font-size: var(--ev-text-xs); font-weight: 400; line-height: 1.3; }
+.ev-mono    { font-family: var(--ev-font-mono); font-variant-numeric: tabular-nums; }
+
+/* ---------- Tailwind Semantic Token Fallback ---------- */
+.bg-background { background-color: var(--ev-background); }
+.text-background { color: var(--ev-background); }
+.border-background { border-color: var(--ev-background); }
+.bg-foreground { background-color: var(--ev-foreground); }
+.text-foreground { color: var(--ev-foreground); }
+.border-foreground { border-color: var(--ev-foreground); }
+.bg-card { background-color: var(--ev-card); }
+.text-card { color: var(--ev-card); }
+.border-card { border-color: var(--ev-card); }
+.bg-card-foreground { background-color: var(--ev-card-foreground); }
+.text-card-foreground { color: var(--ev-card-foreground); }
+.bg-popover { background-color: var(--ev-popover); }
+.text-popover { color: var(--ev-popover); }
+.bg-popover-foreground { background-color: var(--ev-popover-foreground); }
+.text-popover-foreground { color: var(--ev-popover-foreground); }
+.bg-primary { background-color: var(--ev-primary); }
+.text-primary { color: var(--ev-primary); }
+.border-primary { border-color: var(--ev-primary); }
+.bg-primary-foreground { background-color: var(--ev-primary-foreground); }
+.text-primary-foreground { color: var(--ev-primary-foreground); }
+.bg-muted { background-color: var(--ev-muted); }
+.text-muted { color: var(--ev-muted); }
+.bg-muted-foreground { background-color: var(--ev-muted-foreground); }
+.text-muted-foreground { color: var(--ev-muted-foreground); }
+.bg-border { background-color: var(--ev-border); }
+.text-border { color: var(--ev-border); }
+.border-border { border-color: var(--ev-border); }
+.bg-input { background-color: var(--ev-input); }
+.text-input { color: var(--ev-input); }
+.bg-ring { background-color: var(--ev-ring); }
+.text-ring { color: var(--ev-ring); }
+
+/* ---------- Utilities ---------- */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+[data-icon] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  background-color: currentColor;
+}
+
+/* ---------- Device Stage & Frame ---------- */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--ev-watch-stage-bg);
+  padding: 16px;
+  transition: background var(--ev-transition);
+}
+
+/* Device preview toolbar */
+.device-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--ev-card);
+  border: 1px solid var(--ev-border);
+  border-radius: var(--ev-radius-large);
+  margin-bottom: 16px;
+  box-shadow: var(--ev-shadow-1);
+  z-index: 10;
+}
+.device-toolbar.hidden { display: none; }
+
+.device-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--ev-radius-medium);
+  background: var(--ev-muted);
+  color: var(--ev-muted-foreground);
+  font-family: var(--ev-font-sans);
+  font-size: var(--ev-text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all var(--ev-transition-fast);
+}
+.device-btn:hover { background: var(--ev-border); color: var(--ev-foreground); }
+.device-btn.active {
+  background: var(--ev-primary);
+  color: var(--ev-primary-foreground);
+}
+.device-btn i { width: 14px; height: 14px; }
+
+.theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ev-radius-medium);
+  background: var(--ev-muted);
+  color: var(--ev-foreground);
+  cursor: pointer;
+  border: none;
+  transition: all var(--ev-transition-fast);
+}
+.theme-btn:hover { background: var(--ev-border); }
+
+/* Watch frame mode */
+.watch-frame {
+  width: 372px;
+  background: var(--ev-watch-frame-bg);
+  border-radius: 40px;
+  padding: 14px;
+  box-shadow: var(--ev-watch-frame-shadow);
+  transition: all var(--ev-transition);
+  position: relative;
+}
+.watch-frame::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -2px;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 52px;
+  background: var(--ev-neutral-700);
+  border-radius: 0 2px 2px 0;
+}
+.watch-frame::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -2px;
+  transform: translateY(-110%);
+  width: 3px;
+  height: 36px;
+  background: var(--ev-neutral-700);
+  border-radius: 2px 0 0 2px;
+}
+
+.watch-screen {
+  width: 344px;
+  height: 492px;
+  background: var(--ev-background);
+  border-radius: 28px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: background var(--ev-transition);
+}
+
+/* Mobile mode */
+.app-shell.mobile-mode {
+  padding: 0;
+  background: var(--ev-background);
+}
+.mobile-mode .device-toolbar {
+  margin: 0;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  width: 100%;
+  max-width: 100%;
+}
+.mobile-mode .watch-frame {
+  width: 100%;
+  max-width: 480px;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+.mobile-mode .watch-frame::before,
+.mobile-mode .watch-frame::after {
+  display: none;
+}
+.mobile-mode .watch-screen {
+  width: 100%;
+  max-width: 480px;
+  height: calc(100vh - 58px);
+  border-radius: 0;
+}
+
+/* Full-screen mode */
+.app-shell.full-mode {
+  padding: 0;
+  background: var(--ev-background);
+}
+.full-mode .device-toolbar { display: none; }
+.full-mode .watch-frame {
+  width: 100%;
+  max-width: 100%;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+.full-mode .watch-frame::before,
+.full-mode .watch-frame::after {
+  display: none;
+}
+.full-mode .watch-screen {
+  width: 100%;
+  max-width: 100%;
+  height: 100vh;
+  border-radius: 0;
+}
+
+/* ---------- Status Bar ---------- */
+.status-bar {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  padding-top: 10px;
+  flex-shrink: 0;
+}
+
+/* ---------- Screen Content ---------- */
+.screen-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 14px 14px;
+  scroll-behavior: smooth;
+}
+.screen-content::-webkit-scrollbar { display: none; }
+
+/* ---------- Bottom Navigation ---------- */
+.bottom-nav {
+  height: 54px;
+  border-top: 1px solid var(--ev-border);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--ev-card);
+  flex-shrink: 0;
+  transition: all var(--ev-transition);
+}
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--ev-muted-foreground);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--ev-font-sans);
+  transition: color var(--ev-transition-fast);
+  position: relative;
+}
+.nav-item i { transition: transform var(--ev-transition-fast); }
+.nav-item:hover:not(.active) { color: var(--ev-neutral-600); }
+html.dark .nav-item:hover:not(.active) { color: var(--ev-neutral-300); }
+.nav-item.active { color: var(--ev-primary); }
+.nav-item.active i { transform: scale(1.08); }
+.nav-item:active i { transform: scale(0.92); }
+
+/* ---------- Course Cards ---------- */
+.course-card {
+  background: var(--ev-card);
+  border: 1px solid var(--ev-border);
+  border-radius: var(--ev-radius-large);
+  padding: 12px;
+  cursor: pointer;
+  transition: all var(--ev-transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+.course-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--ev-primary);
+  opacity: 0;
+  transition: opacity var(--ev-transition-fast);
+}
+.course-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--ev-shadow-2);
+  border-color: var(--ev-brand-300);
+}
+html.dark .course-card:hover {
+  border-color: var(--ev-brand-700);
+}
+.course-card:hover::before { opacity: 0.6; }
+.course-card:active { transform: translateY(0); }
+
+.course-card.active {
+  border-color: var(--ev-primary);
+  background: var(--ev-brand-50);
+}
+html.dark .course-card.active {
+  background: rgba(59, 130, 246, 0.12);
+}
+.course-card.active::before { opacity: 1; }
+
+/* Icon container for course list */
+.course-icon-box {
+  width: 40px; height: 40px;
+  border-radius: var(--ev-radius-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--ev-brand-100);
+  color: var(--ev-primary);
+  transition: transform var(--ev-transition-fast);
+}
+html.dark .course-icon-box {
+  background: rgba(59, 130, 246, 0.18);
+}
+.course-card:hover .course-icon-box { transform: rotate(-4deg) scale(1.05); }
+
+/* Pulse dot for active class */
+.pulse-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--ev-primary);
+  position: relative;
+}
+.pulse-dot::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: var(--ev-primary);
+  opacity: 0.4;
+  animation: pulse-ring 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes pulse-ring {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.8); opacity: 0; }
+}
+
+/* ---------- Week Tabs ---------- */
+.week-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 48px;
+  padding: 0 10px;
+  border-radius: var(--ev-radius-medium);
+  background: var(--ev-card);
+  color: var(--ev-muted-foreground);
+  border: 1px solid var(--ev-border);
+  cursor: pointer;
+  font-family: var(--ev-font-sans);
+  transition: all var(--ev-transition-fast);
+  flex-shrink: 0;
+}
+.week-tab:hover {
+  background: var(--ev-muted);
+  color: var(--ev-foreground);
+}
+.week-tab.active {
+  background: var(--ev-primary);
+  color: var(--ev-primary-foreground);
+  border-color: var(--ev-primary);
+  transform: scale(1.02);
+}
+.week-tab:active { transform: scale(0.97); }
+
+/* ---------- Detail Cards ---------- */
+.detail-card {
+  background: var(--ev-card);
+  border: 1px solid var(--ev-border);
+  border-radius: var(--ev-radius-large);
+  padding: 14px;
+  transition: all var(--ev-transition);
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--ev-border);
+}
+.info-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+/* ---------- Settings ---------- */
+.settings-card {
+  background: var(--ev-card);
+  border: 1px solid var(--ev-border);
+  border-radius: var(--ev-radius-large);
+  overflow: hidden;
+  transition: all var(--ev-transition);
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--ev-border);
+  cursor: pointer;
+  transition: background var(--ev-transition-fast);
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-row:hover { background: var(--ev-muted); }
+.settings-row:active { background: var(--ev-border); }
+
+/* Toggle switch */
+.toggle {
+  width: 40px;
+  height: 22px;
+  border-radius: var(--ev-radius-full);
+  background: var(--ev-primary);
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--ev-transition-fast);
+  padding: 0;
+  border: none;
+}
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  top: 2px; right: 2px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  transition: all var(--ev-transition-fast);
+}
+.toggle.off { background: var(--ev-neutral-300); }
+html.dark .toggle.off { background: var(--ev-neutral-600); }
+.toggle.off::after { right: auto; left: 2px; }
+.toggle:active::after { width: 22px; }
+.toggle.off:active::after { width: 22px; }
+
+/* ---------- Back Button ---------- */
+.back-btn {
+  width: 28px; height: 28px;
+  border-radius: var(--ev-radius-medium);
+  background: var(--ev-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: none;
+  cursor: pointer;
+  color: var(--ev-foreground);
+  transition: all var(--ev-transition-fast);
+}
+.back-btn:hover {
+  background: var(--ev-border);
+  transform: translateX(-1px);
+}
+.back-btn:active { transform: translateX(-2px) scale(0.95); }
+
+/* ---------- View Transitions ---------- */
+.view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  animation: viewIn var(--ev-transition-slow) cubic-bezier(0.22, 1, 0.36, 1);
+}
+.view.hidden {
+  display: none;
+}
+@keyframes viewIn {
+  from { opacity: 0; transform: translateX(18px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.view.back-transition {
+  animation: viewInBack var(--ev-transition-slow) cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes viewInBack {
+  from { opacity: 0; transform: translateX(-18px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Screen content fade in */
+.screen-content > * {
+  animation: fadeUp 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.screen-content > section:nth-child(1) { animation-delay: 30ms; }
+.screen-content > section:nth-child(2) { animation-delay: 80ms; }
+.screen-content > section:nth-child(3) { animation-delay: 130ms; }
+.screen-content > section:nth-child(4) { animation-delay: 180ms; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Stagger for list items ---------- */
+.space-y-2 > * {
+  animation: fadeIn var(--ev-transition) both;
+}
+.space-y-2 > *:nth-child(1) { animation-delay: 0ms; }
+.space-y-2 > *:nth-child(2) { animation-delay: 60ms; }
+.space-y-2 > *:nth-child(3) { animation-delay: 120ms; }
+.space-y-2 > *:nth-child(4) { animation-delay: 180ms; }
+.space-y-2 > *:nth-child(5) { animation-delay: 240ms; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Progress Bar for Active Class ---------- */
+.class-progress {
+  height: 4px;
+  border-radius: var(--ev-radius-full);
+  background: rgba(37, 99, 235, 0.12);
+  overflow: hidden;
+  margin-top: 10px;
+}
+.class-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ev-brand-500), var(--ev-brand-400));
+  border-radius: var(--ev-radius-full);
+  transition: width 1s linear;
+}
+
+/* ---------- Detail Hero Icon ---------- */
+.detail-hero-icon {
+  width: 48px; height: 48px;
+  border-radius: var(--ev-radius-large);
+  background: rgba(37, 99, 235, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  color: var(--ev-primary);
+}
+html.dark .detail-hero-icon {
+  background: rgba(96, 165, 250, 0.15);
+}
+
+/* ---------- Ripple Effect ---------- */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+.ripple-effect {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.18);
+  transform: scale(0);
+  animation: rippleAnim 500ms ease-out forwards;
+  pointer-events: none;
+}
+html.dark .ripple-effect {
+  background: rgba(96, 165, 250, 0.2);
+}
+@keyframes rippleAnim {
+  to { transform: scale(4); opacity: 0; }
+}
+
+/* ---------- Responsive Breakpoints ---------- */
+
+/* Tablet: hide device toolbar labels for more space */
+@media (max-width: 768px) {
+  .device-btn { padding: 6px 10px; }
+  .device-btn span { display: none; }
+  .watch-frame { transform: scale(0.95); }
+}
+
+/* Mobile: default to mobile mode under 480px */
+@media (max-width: 480px) {
+  .app-shell.auto-responsive {
+    padding: 0;
+    background: var(--ev-background);
+  }
+  .app-shell.auto-responsive .device-toolbar {
+    margin: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    width: 100%;
+  }
+  .app-shell.auto-responsive .watch-frame {
+    width: 100%;
+    max-width: 100%;
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
+    border-radius: 0;
+    transform: scale(1);
+  }
+  .app-shell.auto-responsive .watch-frame::before,
+  .app-shell.auto-responsive .watch-frame::after {
+    display: none;
+  }
+  .app-shell.auto-responsive .watch-screen {
+    width: 100%;
+    max-width: 100%;
+    height: calc(100dvh - 58px);
+    border-radius: 0;
+  }
+}
+
+/* Large screens: add nice background pattern */
+@media (min-width: 1024px) {
+  .app-shell {
+    background:
+      radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.08), transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.06), transparent 40%),
+      var(--ev-watch-stage-bg);
+  }
+  html.dark .app-shell {
+    background:
+      radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.12), transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(96, 165, 250, 0.08), transparent 40%),
+      var(--ev-watch-stage-bg);
+  }
+}

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今日课程</title>
+    <style id="theme-vars">
+/* Ev课程表 · 小米手环10 Pro 快应用 — 校园清新浅色主题 */
+
+:root {
+  /* Brand primary — academic blue */
+  --ev-brand-50: #eff6ff;
+  --ev-brand-100: #dbeafe;
+  --ev-brand-200: #bfdbfe;
+  --ev-brand-300: #93c5fd;
+  --ev-brand-400: #60a5fa;
+  --ev-brand-500: #3b82f6;
+  --ev-brand-600: #2563eb;
+  --ev-brand-700: #1d4ed8;
+  --ev-brand-800: #1e40af;
+  --ev-brand-900: #1e3a8a;
+
+  /* Neutral scale */
+  --ev-neutral-0: #ffffff;
+  --ev-neutral-50: #f8fafc;
+  --ev-neutral-100: #f1f5f9;
+  --ev-neutral-200: #e2e8f0;
+  --ev-neutral-300: #cbd5e1;
+  --ev-neutral-400: #94a3b8;
+  --ev-neutral-500: #64748b;
+  --ev-neutral-600: #475569;
+  --ev-neutral-700: #334155;
+  --ev-neutral-800: #1e293b;
+  --ev-neutral-900: #0f172a;
+
+  /* State colors */
+  --ev-state-success: #10b981;
+  --ev-state-success-soft: #d1fae5;
+  --ev-state-warning: #f59e0b;
+  --ev-state-warning-soft: #fef3c7;
+  --ev-state-error: #ef4444;
+  --ev-state-error-soft: #fee2e2;
+  --ev-state-info: #3b82f6;
+  --ev-state-info-soft: #dbeafe;
+
+  /* Semantic aliases */
+  --ev-background: var(--ev-neutral-50);
+  --ev-foreground: var(--ev-neutral-900);
+  --ev-card: var(--ev-neutral-0);
+  --ev-card-foreground: var(--ev-neutral-900);
+  --ev-popover: var(--ev-neutral-0);
+  --ev-popover-foreground: var(--ev-neutral-900);
+  --ev-primary: var(--ev-brand-600);
+  --ev-primary-foreground: var(--ev-neutral-0);
+  --ev-muted: var(--ev-neutral-100);
+  --ev-muted-foreground: var(--ev-neutral-500);
+  --ev-border: var(--ev-neutral-200);
+  --ev-input: var(--ev-neutral-200);
+  --ev-ring: var(--ev-brand-500);
+
+  /* Radius */
+  --ev-radius-small: 4px;
+  --ev-radius-medium: 8px;
+  --ev-radius-large: 12px;
+  --ev-radius-full: 9999px;
+
+  /* Shadows */
+  --ev-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 1px rgba(15, 23, 42, 0.03);
+  --ev-shadow-2: 0 4px 12px -4px rgba(15, 23, 42, 0.05);
+
+  /* Wearable presentation frame */
+  --ev-watch-stage-bg: var(--ev-neutral-200);
+  --ev-watch-frame-bg: var(--ev-neutral-900);
+  --ev-watch-frame-shadow: 0 24px 60px -16px rgba(15, 23, 42, 0.05);
+
+  /* Typography */
+  --ev-font-sans: "MiSans", "HarmonyOS Sans", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  --ev-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Type scale — wearable optimized */
+  --ev-text-xs: 11px;
+  --ev-text-sm: 12px;
+  --ev-text-base: 13px;
+  --ev-text-md: 15px;
+  --ev-text-lg: 17px;
+  --ev-text-xl: 20px;
+  --ev-text-2xl: 24px;
+}
+
+.dark {
+  --ev-background: #0b1220;
+  --ev-foreground: #f1f5f9;
+  --ev-card: #111827;
+  --ev-card-foreground: #f1f5f9;
+  --ev-popover: #111827;
+  --ev-popover-foreground: #f1f5f9;
+  --ev-primary: var(--ev-brand-400);
+  --ev-primary-foreground: var(--ev-neutral-900);
+  --ev-muted: #1e293b;
+  --ev-muted-foreground: #94a3b8;
+  --ev-border: #1e293b;
+  --ev-input: #334155;
+  --ev-ring: var(--ev-brand-400);
+  --ev-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --ev-shadow-2: 0 4px 12px -4px rgba(0, 0, 0, 0.3);
+}
+
+/* Typography classes */
+.ev-display { font-family: var(--ev-font-sans); font-size: var(--ev-text-2xl); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
+.ev-h1 { font-family: var(--ev-font-sans); font-size: var(--ev-text-xl); font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
+.ev-h2 { font-family: var(--ev-font-sans); font-size: var(--ev-text-lg); font-weight: 600; line-height: 1.25; }
+.ev-h3 { font-family: var(--ev-font-sans); font-size: var(--ev-text-md); font-weight: 600; line-height: 1.3; }
+.ev-body { font-family: var(--ev-font-sans); font-size: var(--ev-text-base); font-weight: 400; line-height: 1.5; }
+.ev-caption { font-family: var(--ev-font-sans); font-size: var(--ev-text-sm); font-weight: 400; line-height: 1.4; }
+.ev-micro { font-family: var(--ev-font-sans); font-size: var(--ev-text-xs); font-weight: 400; line-height: 1.3; }
+.ev-mono { font-family: var(--ev-font-mono); font-variant-numeric: tabular-nums; }
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--ev-background);
+    --color-foreground: var(--ev-foreground);
+    --color-card: var(--ev-card);
+    --color-card-foreground: var(--ev-card-foreground);
+    --color-popover: var(--ev-popover);
+    --color-popover-foreground: var(--ev-popover-foreground);
+    --color-primary: var(--ev-primary);
+    --color-primary-foreground: var(--ev-primary-foreground);
+    --color-muted: var(--ev-muted);
+    --color-muted-foreground: var(--ev-muted-foreground);
+    --color-border: var(--ev-border);
+    --color-input: var(--ev-input);
+    --color-ring: var(--ev-ring);
+    --radius-sm: var(--ev-radius-small);
+    --radius-md: var(--ev-radius-medium);
+    --radius-lg: var(--ev-radius-large);
+  }
+  @layer base {
+    body { background: var(--ev-background); color: var(--ev-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--ev-background); }
+      .text-background { color: var(--ev-background); }
+      .border-background { border-color: var(--ev-background); }
+      .ring-background { --tw-ring-color: var(--ev-background); }
+      .bg-foreground { background-color: var(--ev-foreground); }
+      .text-foreground { color: var(--ev-foreground); }
+      .border-foreground { border-color: var(--ev-foreground); }
+      .ring-foreground { --tw-ring-color: var(--ev-foreground); }
+      .bg-card { background-color: var(--ev-card); }
+      .text-card { color: var(--ev-card); }
+      .border-card { border-color: var(--ev-card); }
+      .ring-card { --tw-ring-color: var(--ev-card); }
+      .bg-card-foreground { background-color: var(--ev-card-foreground); }
+      .text-card-foreground { color: var(--ev-card-foreground); }
+      .border-card-foreground { border-color: var(--ev-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--ev-card-foreground); }
+      .bg-popover { background-color: var(--ev-popover); }
+      .text-popover { color: var(--ev-popover); }
+      .border-popover { border-color: var(--ev-popover); }
+      .ring-popover { --tw-ring-color: var(--ev-popover); }
+      .bg-popover-foreground { background-color: var(--ev-popover-foreground); }
+      .text-popover-foreground { color: var(--ev-popover-foreground); }
+      .border-popover-foreground { border-color: var(--ev-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--ev-popover-foreground); }
+      .bg-primary { background-color: var(--ev-primary); }
+      .text-primary { color: var(--ev-primary); }
+      .border-primary { border-color: var(--ev-primary); }
+      .ring-primary { --tw-ring-color: var(--ev-primary); }
+      .bg-primary-foreground { background-color: var(--ev-primary-foreground); }
+      .text-primary-foreground { color: var(--ev-primary-foreground); }
+      .border-primary-foreground { border-color: var(--ev-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--ev-primary-foreground); }
+      .bg-muted { background-color: var(--ev-muted); }
+      .text-muted { color: var(--ev-muted); }
+      .border-muted { border-color: var(--ev-muted); }
+      .ring-muted { --tw-ring-color: var(--ev-muted); }
+      .bg-muted-foreground { background-color: var(--ev-muted-foreground); }
+      .text-muted-foreground { color: var(--ev-muted-foreground); }
+      .border-muted-foreground { border-color: var(--ev-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--ev-muted-foreground); }
+      .bg-border { background-color: var(--ev-border); }
+      .text-border { color: var(--ev-border); }
+      .border-border { border-color: var(--ev-border); }
+      .ring-border { --tw-ring-color: var(--ev-border); }
+      .bg-input { background-color: var(--ev-input); }
+      .text-input { color: var(--ev-input); }
+      .border-input { border-color: var(--ev-input); }
+      .ring-input { --tw-ring-color: var(--ev-input); }
+      .bg-ring { background-color: var(--ev-ring); }
+      .text-ring { color: var(--ev-ring); }
+      .border-ring { border-color: var(--ev-ring); }
+      .ring-ring { --tw-ring-color: var(--ev-ring); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="font-sans antialiased">
+  <div class="watch-stage">
+    <div class="watch-frame">
+      <div class="watch-screen">
+        <div class="status-bar">
+          <span class="ev-micro text-foreground">08:42</span>
+          <div class="flex items-center gap-1">
+            <i data-lucide="battery-medium" class="w-3.5 h-3.5 text-foreground"></i>
+          </div>
+        </div>
+
+        <header class="px-4 pt-3 pb-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="ev-caption text-muted-foreground">2025 秋季学期</p>
+              <h1 class="ev-h1 text-foreground">今日课程</h1>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <i data-lucide="calendar-days" class="w-4 h-4 text-primary"></i>
+            </div>
+          </div>
+          <p class="ev-micro text-muted-foreground mt-1">9月3日 星期三 · 第2周</p>
+        </header>
+
+        <div class="screen-content">
+          <!-- Current class -->
+          <section class="mb-3">
+            <div class="flex items-center gap-1.5 mb-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+              <span class="ev-micro text-primary font-medium">正在上课</span>
+            </div>
+            <article class="course-card active" data-dom-id="class-current-detail">
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                  <h2 class="ev-h2 text-foreground truncate">高等数学 A</h2>
+                  <p class="ev-caption text-muted-foreground mt-0.5 truncate">王建国 · 教学楼 A-301</p>
+                </div>
+                <span class="ev-micro px-2 py-0.5 rounded-md bg-primary text-primary-foreground whitespace-nowrap">01-02节</span>
+              </div>
+              <div class="flex items-center gap-3 mt-2 pt-2 border-t border-primary/10">
+                <span class="ev-micro text-foreground"><span class="ev-mono">08:00</span> - <span class="ev-mono">09:35</span></span>
+                <span class="ev-micro text-muted-foreground">剩余 18 分钟</span>
+              </div>
+            </article>
+          </section>
+
+          <!-- Next class -->
+          <section class="mb-3">
+            <h3 class="ev-caption text-muted-foreground mb-2">接下来</h3>
+            <article class="course-card" data-dom-id="class-next-detail">
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                  <h2 class="ev-h3 text-foreground truncate">大学英语 III</h2>
+                  <p class="ev-micro text-muted-foreground truncate">李雅婷 · 外语楼 B-205</p>
+                </div>
+                <span class="ev-micro px-2 py-0.5 rounded-md bg-muted text-foreground whitespace-nowrap">03-04节</span>
+              </div>
+              <p class="ev-micro text-muted-foreground mt-1.5"><span class="ev-mono">10:00</span> - <span class="ev-mono">11:35</span></p>
+            </article>
+          </section>
+
+          <!-- Today list -->
+          <section>
+            <h3 class="ev-caption text-muted-foreground mb-2">今日全部</h3>
+            <div class="space-y-2">
+              <article class="course-card" data-dom-id="class-list-1">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="sigma" class="w-4 h-4 text-primary"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <h4 class="ev-body text-foreground truncate">高等数学 A</h4>
+                    <p class="ev-micro text-muted-foreground truncate">08:00 · A-301</p>
+                  </div>
+                  <i data-lucide="chevron-right" class="w-4 h-4 text-muted-foreground shrink-0"></i>
+                </div>
+              </article>
+              <article class="course-card" data-dom-id="class-list-2">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-[var(--ev-brand-100)] flex items-center justify-center shrink-0">
+                    <i data-lucide="languages" class="w-4 h-4 text-primary"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <h4 class="ev-body text-foreground truncate">大学英语 III</h4>
+                    <p class="ev-micro text-muted-foreground truncate">10:00 · B-205</p>
+                  </div>
+                  <i data-lucide="chevron-right" class="w-4 h-4 text-muted-foreground shrink-0"></i>
+                </div>
+              </article>
+              <article class="course-card" data-dom-id="class-list-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-[var(--ev-brand-100)] flex items-center justify-center shrink-0">
+                    <i data-lucide="cpu" class="w-4 h-4 text-primary"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <h4 class="ev-body text-foreground truncate">数据结构</h4>
+                    <p class="ev-micro text-muted-foreground truncate">14:00 · 信息楼 C-402</p>
+                  </div>
+                  <i data-lucide="chevron-right" class="w-4 h-4 text-muted-foreground shrink-0"></i>
+                </div>
+              </article>
+            </div>
+          </section>
+        </div>
+
+        <nav class="bottom-nav">
+          <button class="nav-item active" data-dom-id="nav-today">
+            <i data-lucide="calendar-check" class="w-5 h-5"></i>
+            <span class="ev-micro">今日</span>
+          </button>
+          <button class="nav-item" data-dom-id="nav-week">
+            <i data-lucide="calendar-range" class="w-5 h-5"></i>
+            <span class="ev-micro">周表</span>
+          </button>
+          <button class="nav-item" data-dom-id="nav-settings">
+            <i data-lucide="settings" class="w-5 h-5"></i>
+            <span class="ev-micro">设置</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>lucide.createIcons();</script>
+
+    <style id="critical-layout">
+      .watch-stage { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--ev-watch-stage-bg); padding: 24px; }
+      .watch-frame { width: 372px; background: var(--ev-watch-frame-bg); border-radius: 40px; padding: 14px; box-shadow: var(--ev-watch-frame-shadow); }
+      .watch-screen { width: 344px; height: 492px; background: var(--ev-background); border-radius: 28px; overflow: hidden; display: flex; flex-direction: column; position: relative; }
+      .screen-content { flex: 1; overflow-y: auto; padding: 0 14px 14px; }
+      .screen-content::-webkit-scrollbar { display: none; }
+      .status-bar { height: 22px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; padding-top: 10px; }
+      .bottom-nav { height: 54px; border-top: 1px solid var(--ev-border); display: grid; grid-template-columns: repeat(3, 1fr); background: var(--ev-card); }
+      .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--ev-muted-foreground); }
+      .nav-item.active { color: var(--ev-primary); }
+      .course-card { background: var(--ev-card); border: 1px solid var(--ev-border); border-radius: var(--ev-radius-large); padding: 12px; }
+      .course-card.active { border-color: var(--ev-primary); background: var(--ev-brand-50); }
+    </style>
+</body>
+</html>
