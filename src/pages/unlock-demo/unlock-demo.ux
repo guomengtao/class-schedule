@@ -1,5 +1,3 @@
-<import name="unlock-dialog" src="../../components/unlock-dialog"></import>
-
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
@@ -8,54 +6,74 @@
     </div>
 
     <scroll class="page-scroll" scroll-y="{{true}}">
-      <text class="section-title" style="color: {{ theme.text }}">弹窗核心实现测试</text>
-      <text class="section-desc" style="color: {{ theme.textSecondary }}">点击下方按钮触发不同类型的解锁弹窗，测试弹窗组件的核心功能</text>
+      <text class="section-title" style="color: {{ theme.text }}">prompt.showDialog 原生弹窗</text>
+      <text class="section-desc" style="color: {{ theme.textSecondary }}">系统原生 prompt.showDialog，稳定可靠，适合高级版解锁提示</text>
 
       <div class="demo-card" style="background-color: {{ theme.card }}">
-        <text class="card-title" style="color: {{ theme.text }}">场景1: 默认弹窗</text>
-        <text class="card-desc" style="color: {{ theme.textSecondary }}">使用默认标题和权益列表，模拟标准的高级功能解锁提示</text>
+        <text class="card-title" style="color: {{ theme.text }}">场景1: 默认解锁弹窗</text>
+        <text class="card-desc" style="color: {{ theme.textSecondary }}">标准解锁提示，含两个按钮</text>
         <input class="demo-btn" type="button" value="触发默认弹窗" onclick="showDefaultDialog"
                style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
 
       <div class="demo-card" style="background-color: {{ theme.card }}">
-        <text class="card-title" style="color: {{ theme.text }}">场景2: 自定义弹窗</text>
-        <text class="card-desc" style="color: {{ theme.textSecondary }}">自定义标题和权益列表，模拟特定功能的解锁提示</text>
+        <text class="card-title" style="color: {{ theme.text }}">场景2: 自定义权益弹窗</text>
+        <text class="card-desc" style="color: {{ theme.textSecondary }}">自定义标题和权益列表</text>
         <input class="demo-btn" type="button" value="触发自定义弹窗" onclick="showCustomDialog"
                style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
 
       <div class="demo-card" style="background-color: {{ theme.card }}">
-        <text class="card-title" style="color: {{ theme.text }}">场景3: 数据备份弹窗</text>
-        <text class="card-desc" style="color: {{ theme.textSecondary }}">模拟数据备份功能的解锁提示，与 backup-restore 页面一致</text>
+        <text class="card-title" style="color: {{ theme.text }}">场景3: 数据备份提示</text>
+        <text class="card-desc" style="color: {{ theme.textSecondary }}">模拟数据备份功能解锁</text>
         <input class="demo-btn" type="button" value="触发备份弹窗" onclick="showBackupDialog"
                style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
 
       <div class="demo-card" style="background-color: {{ theme.card }}">
-        <text class="card-title" style="color: {{ theme.text }}">场景4: 多课表弹窗</text>
-        <text class="card-desc" style="color: {{ theme.textSecondary }}">模拟多课表管理功能的解锁提示</text>
+        <text class="card-title" style="color: {{ theme.text }}">场景4: 多课表管理提示</text>
+        <text class="card-desc" style="color: {{ theme.textSecondary }}">模拟多课表管理功能解锁</text>
         <input class="demo-btn" type="button" value="触发多课表弹窗" onclick="showScheduleDialog"
                style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
 
       <div class="demo-card" style="background-color: {{ theme.card }}">
-        <text class="card-title" style="color: {{ theme.text }}">场景5: 首页自定义弹窗</text>
-        <text class="card-desc" style="color: {{ theme.textSecondary }}">模拟首页自定义功能的解锁提示</text>
+        <text class="card-title" style="color: {{ theme.text }}">场景5: 首页自定义提示</text>
+        <text class="card-desc" style="color: {{ theme.textSecondary }}">模拟首页自定义功能解锁</text>
         <input class="demo-btn" type="button" value="触发首页自定义弹窗" onclick="showHomepageDialog"
                style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
 
       <div class="demo-card" style="background-color: {{ theme.card }}">
-        <text class="card-title" style="color: {{ theme.text }}">场景6: 取消按钮自定义</text>
-        <text class="card-desc" style="color: {{ theme.textSecondary }}">自定义取消按钮文案，验证 cancelText 参数</text>
-        <input class="demo-btn" type="button" value="触发自定义取消按钮" onclick="showCustomCancelDialog"
+        <text class="card-title" style="color: {{ theme.text }}">场景6: 单按钮通知</text>
+        <text class="card-desc" style="color: {{ theme.textSecondary }}">仅一个确认按钮，纯通知场景</text>
+        <input class="demo-btn" type="button" value="触发单按钮弹窗" onclick="showSingleButtonDialog"
                style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      </div>
+
+      <div class="demo-card" style="background-color: {{ theme.card }}">
+        <text class="card-title" style="color: {{ theme.text }}">场景7: 三按钮弹窗</text>
+        <text class="card-desc" style="color: {{ theme.textSecondary }}">三个按钮，最大按钮数测试</text>
+        <input class="demo-btn" type="button" value="触发三按钮弹窗" onclick="showThreeButtonDialog"
+               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      </div>
+
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
+
+      <text class="section-title" style="color: {{ theme.text }}">对比: 自定义组件弹窗</text>
+      <text class="section-desc" style="color: {{ theme.textSecondary }}">通过 $element 引用 unlock-dialog 组件</text>
+
+      <div class="demo-card custom-card" style="background-color: {{ theme.card }}">
+        <text class="card-title" style="color: {{ theme.text }}">自定义组件弹窗</text>
+        <text class="card-desc" style="color: {{ theme.textSecondary }}">this.$element('unlockDialog').show()</text>
+        <input class="demo-btn" type="button" value="触发自定义组件弹窗" onclick="showCustomComponentDialog"
+               style="background-color: #4a8a9a; color: {{ theme.bg }}" />
       </div>
 
       <div class="bottom-spacer"></div>
     </scroll>
 
+    <import name="unlock-dialog" src="../../components/unlock-dialog"></import>
     <unlock-dialog id="unlockDialog"></unlock-dialog>
   </div>
 </template>
@@ -72,8 +90,10 @@ export default {
       accent: '#7ec8e3',
       text: '#ffffff',
       textSecondary: '#888899',
-      textMuted: '#555566'
-    }
+      textMuted: '#555566',
+      border: '#0f3460'
+    },
+    lastResult: ''
   },
 
   onInit() {
@@ -91,47 +111,160 @@ export default {
   },
 
   showDefaultDialog() {
-    store.showUnlockDialog()
+    var self = this
+    prompt.showDialog({
+      title: '解锁高级版',
+      message: '解锁后可获得：多课表管理、数据备份与恢复、首页自定义、10套主题风格。是否立即解锁？',
+      buttons: [
+        { text: '立即解锁', color: '#7ec8e3' },
+        { text: '继续使用标准版', color: '#888899' }
+      ],
+      success: function(data) {
+        self.lastResult = '默认弹窗: 按钮' + data.index
+        if (data.index === 0) {
+          router.push({ uri: '/pages/activation' })
+        }
+      },
+      cancel: function() {
+        self.lastResult = '默认弹窗: 取消'
+      }
+    })
   },
 
   showCustomDialog() {
-    store.showUnlockDialog({
-      title: "解锁全部功能",
-      benefits: ["无限制添加课程", "云端数据同步", "智能课表推荐", "20套精美主题", "优先技术支持"],
-      cancelText: "继续使用标准版"
+    var self = this
+    prompt.showDialog({
+      title: '解锁全部功能',
+      message: '无限制添加课程\n云端数据同步\n智能课表推荐\n20套精美主题\n优先技术支持\n\n一次性解锁，永久使用',
+      buttons: [
+        { text: '立即解锁', color: '#7ec8e3' },
+        { text: '继续使用标准版', color: '#888899' }
+      ],
+      success: function(data) {
+        self.lastResult = '自定义弹窗: 按钮' + data.index
+        if (data.index === 0) {
+          router.push({ uri: '/pages/activation' })
+        }
+      },
+      cancel: function() {
+        self.lastResult = '自定义弹窗: 取消'
+      }
     })
   },
 
   showBackupDialog() {
-    store.showUnlockDialog({
-      title: "解锁数据备份",
-      benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
-      cancelText: "继续使用标准版"
+    var self = this
+    prompt.showDialog({
+      title: '解锁数据备份',
+      message: '多课表管理\n数据备份与恢复\n首页自定义\n10套主题\n\n一次性解锁，永久使用',
+      buttons: [
+        { text: '立即解锁', color: '#7ec8e3' },
+        { text: '继续使用标准版', color: '#888899' }
+      ],
+      success: function(data) {
+        self.lastResult = '备份弹窗: 按钮' + data.index
+        if (data.index === 0) {
+          router.push({ uri: '/pages/activation' })
+        }
+      },
+      cancel: function() {
+        self.lastResult = '备份弹窗: 取消'
+      }
     })
   },
 
   showScheduleDialog() {
-    store.showUnlockDialog({
-      title: "解锁多课表管理",
-      benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
-      cancelText: "继续使用标准版"
+    var self = this
+    prompt.showDialog({
+      title: '解锁多课表管理',
+      message: '多课表管理\n数据备份与恢复\n首页自定义\n10套主题\n\n一次性解锁，永久使用',
+      buttons: [
+        { text: '立即解锁', color: '#7ec8e3' },
+        { text: '继续使用标准版', color: '#888899' }
+      ],
+      success: function(data) {
+        self.lastResult = '多课表弹窗: 按钮' + data.index
+        if (data.index === 0) {
+          router.push({ uri: '/pages/activation' })
+        }
+      },
+      cancel: function() {
+        self.lastResult = '多课表弹窗: 取消'
+      }
     })
   },
 
   showHomepageDialog() {
-    store.showUnlockDialog({
-      title: "解锁首页自定义",
-      benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
-      cancelText: "继续使用标准版"
+    var self = this
+    prompt.showDialog({
+      title: '解锁首页自定义',
+      message: '多课表管理\n数据备份与恢复\n首页自定义\n10套主题\n\n一次性解锁，永久使用',
+      buttons: [
+        { text: '立即解锁', color: '#7ec8e3' },
+        { text: '继续使用标准版', color: '#888899' }
+      ],
+      success: function(data) {
+        self.lastResult = '首页自定义弹窗: 按钮' + data.index
+        if (data.index === 0) {
+          router.push({ uri: '/pages/activation' })
+        }
+      },
+      cancel: function() {
+        self.lastResult = '首页自定义弹窗: 取消'
+      }
     })
   },
 
-  showCustomCancelDialog() {
-    store.showUnlockDialog({
-      title: "升级高级版",
-      benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
-      cancelText: "暂不升级"
+  showSingleButtonDialog() {
+    var self = this
+    prompt.showDialog({
+      title: '提示',
+      message: '当前为标准版，部分功能受限。升级高级版即可解锁全部功能。',
+      buttons: [
+        { text: '我知道了', color: '#7ec8e3' }
+      ],
+      success: function(data) {
+        self.lastResult = '单按钮弹窗: 按钮' + data.index
+      },
+      cancel: function() {
+        self.lastResult = '单按钮弹窗: 取消'
+      }
     })
+  },
+
+  showThreeButtonDialog() {
+    var self = this
+    prompt.showDialog({
+      title: '选择操作',
+      message: '请选择您要执行的操作',
+      buttons: [
+        { text: '立即解锁', color: '#7ec8e3' },
+        { text: '稍后再说', color: '#d4a017' },
+        { text: '不再提示', color: '#888899' }
+      ],
+      success: function(data) {
+        self.lastResult = '三按钮弹窗: 按钮' + data.index
+        if (data.index === 0) {
+          router.push({ uri: '/pages/activation' })
+        }
+      },
+      cancel: function() {
+        self.lastResult = '三按钮弹窗: 取消'
+      }
+    })
+  },
+
+  showCustomComponentDialog() {
+    var comp = this.$element('unlockDialog')
+    if (comp) {
+      comp.show({
+        title: '解锁高级功能',
+        benefits: ['多课表管理', '数据备份与恢复', '首页自定义', '10套主题'],
+        cancelText: '继续使用标准版'
+      })
+    } else {
+      prompt.showToast({ message: '自定义组件未找到，请刷新' })
+    }
   },
 
   goBack() {
@@ -196,6 +329,12 @@ export default {
   flex-direction: column;
 }
 
+.custom-card {
+  border-width: 1px;
+  border-style: dashed;
+  border-color: #4a8a9a;
+}
+
 .card-title {
   font-size: 16px;
   font-weight: bold;
@@ -214,6 +353,11 @@ export default {
   border-radius: 20px;
   font-size: 14px;
   font-weight: bold;
+}
+
+.divider {
+  height: 1px;
+  margin: 8px 0 16px 0;
 }
 
 .bottom-spacer {
