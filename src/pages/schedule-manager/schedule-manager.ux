@@ -4,6 +4,7 @@
     <div class="header">
       <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">课程表管理</text>
+      <input class="pin-btn" type="button" value="📌钉首页" onclick="pinToHome" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
     <div class="rename-bar" if="{{ editingIndex >= 0 }}" style="background-color: {{ theme.card }}">
@@ -61,6 +62,7 @@
 
 <script>
 import router from "@system.router"
+var pinHelper = require("../../data/pin-helper.js")
 import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
@@ -408,6 +410,10 @@ export default {
       return
     }
     router.back()
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("课程表管理", "/pages/schedule-manager")
   }
 }
 </script>
@@ -437,7 +443,16 @@ export default {
 .title {
   font-size: 20px;
   font-weight: bold;
-  margin-left: 10px;
+  flex: 1;
+  text-align: center;
+}
+
+.pin-btn {
+  width: 80px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
 }
 
 .rename-bar {

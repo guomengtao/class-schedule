@@ -5,6 +5,7 @@
     <div class="back-header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: #16213e; color: #7ec8e3" />
       <text class="title" style="color: #ffffff">弹窗组件测试</text>
+      <input class="pin-btn" type="button" value="📌钉首页" onclick="pinToHome" style="background-color: #7ec8e3; color: #1a1a2e" />
     </div>
 
     <div class="content">
@@ -22,6 +23,7 @@
 
 <script>
 import router from "@system.router"
+var pinHelper = require("../../data/pin-helper.js")
 
 export default {
   private: {
@@ -50,6 +52,10 @@ export default {
 
   goBack() {
     router.back()
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("弹窗组件测试", "/pages/dialog-demo")
   }
 }
 </script>
@@ -80,7 +86,14 @@ export default {
   font-weight: bold;
   flex: 1;
   text-align: center;
-  margin-right: 70px;
+}
+
+.pin-btn {
+  width: 80px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
 }
 
 .content {

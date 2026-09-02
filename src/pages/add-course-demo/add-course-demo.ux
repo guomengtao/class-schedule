@@ -3,6 +3,7 @@
     <div class="back-header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="header-title" style="color: {{ theme.text }}">添加课程 Demo</text>
+      <input class="pin-btn" type="button" value="📌钉首页" onclick="pinToHome" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
     <text class="section-desc" style="color: {{ theme.textSecondary }}">简易版添加课程，用于测试保存功能</text>
@@ -115,6 +116,7 @@
 
 <script>
 import router from "@system.router"
+var pinHelper = require("../../data/pin-helper.js")
 import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
@@ -362,6 +364,10 @@ export default {
     router.back()
   },
 
+  pinToHome() {
+    pinHelper.pinPage("添加课程 Demo", "/pages/add-course-demo")
+  },
+
   loadSchedules() {
     var self = this
     store.getScheduleNames(function(names) {
@@ -497,7 +503,16 @@ export default {
 .header-title {
   font-size: 18px;
   font-weight: bold;
-  margin-left: 8px;
+  flex: 1;
+  text-align: center;
+}
+
+.pin-btn {
+  width: 80px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
 }
 
 .section-desc {

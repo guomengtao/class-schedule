@@ -3,6 +3,7 @@
     <div class="back-header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="header-title" style="color: {{ theme.text }}">功能实验室</text>
+      <input class="pin-btn" type="button" value="📌钉首页" onclick="pinToHome" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
     <text class="section-desc" style="color: {{ theme.textSecondary }}">这里是正在开发中的新功能，欢迎体验并反馈建议，你的意见对我们很重要。</text>
@@ -95,6 +96,14 @@
           <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
+
+      <div class="menu-item" onclick="openPopupTest" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">弹起来测试</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">弹窗居中 + 钉首页</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
     </div>
 
     <text class="dev-expire-hint" onclick="onDevExpireClick" style="color: {{ theme.textSecondary }}">丰富欢迎用户提交意见建议</text>
@@ -106,6 +115,7 @@ import router from "@system.router"
 import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 const authStore = require("../../data/auth-store.js")
+var pinHelper = require("../../data/pin-helper.js")
 
 export default {
   private: {
@@ -190,6 +200,14 @@ export default {
     router.push({ uri: "/pages/dialog-demo" })
   },
 
+  openPopupTest() {
+    router.push({ uri: "/pages/popup-test" })
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("功能实验室", "/pages/test-area")
+  },
+
   onDevExpireClick() {
     this.devClickCount++
     if (this.devClickCount >= 5) {
@@ -249,7 +267,16 @@ export default {
 .header-title {
   font-size: 18px;
   font-weight: bold;
-  margin-left: 8px;
+  flex: 1;
+  text-align: center;
+}
+
+.pin-btn {
+  width: 80px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
 }
 
 .section-desc {

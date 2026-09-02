@@ -35,6 +35,15 @@
       <text class="custom-content-text" style="{{ customContentStyle }}; color: {{ theme.text }}">{{ customContent }}</text>
     </div>
 
+    <div class="pinned-bar" if="{{ hasPinned }}" style="background-color: {{ theme.cardLight }}">
+      <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
+      <div class="pinned-row">
+        <div for="{{ pinnedPages }}" class="pinned-item" onclick="openPinnedPage($item.uri)" style="background-color: {{ theme.card }}">
+          <text class="pinned-text" style="color: {{ theme.accent }}">📌 {{ $item.name }}</text>
+        </div>
+      </div>
+    </div>
+
     <scroll class="class-list" scroll-y="{{true}}" scroll-top="{{ scrollListTop }}">
       <div for="{{ currentClasses }}" class="class-card-wrapper">
         <div class="class-card" onclick="openDetail($item.id)" style="background-color: {{ theme.card }}">
@@ -91,6 +100,7 @@ import prompt from "@system.prompt"
 import device from "@system.device"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
+var pinHelper = require("../../data/pin-helper.js")
 
 const dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
@@ -161,7 +171,9 @@ export default {
     statusTimeText: "",
     presetCourses: [],
     isCapsule: false,
-    isNarrowScreen: false
+    isNarrowScreen: false,
+    pinnedPages: [],
+    hasPinned: false
   },
 
   sortByTime: function(list) {
@@ -224,6 +236,7 @@ export default {
     this.applyFontScale()
     this.startClockTimer()
     this.detectScreen()
+    this.loadPinnedPages()
   },
 
   detectScreen() {
@@ -282,6 +295,7 @@ export default {
       self.updateStatus()
       self.startStatusTimer()
     })
+    this.loadPinnedPages()
   },
 
   onHide() {
@@ -552,6 +566,18 @@ export default {
 
   openScheduleManager() {
     router.push({ uri: "/pages/schedule-manager" })
+  },
+
+  loadPinnedPages() {
+    var self = this
+    pinHelper.getList(function(list) {
+      self.pinnedPages = list
+      self.hasPinned = list.length > 0
+    })
+  },
+
+  openPinnedPage(uri) {
+    router.push({ uri: uri })
   },
 
   makeCourse(name, time, teacher, location) {
@@ -1054,6 +1080,30 @@ export default {
   font-size: 14px;
   flex: 1;
   text-align: center;
+}
+
+.pinned-bar {
+  flex-direction: row;
+  align-items: center;
+  border-radius: 10px;
+  padding: 6px 14px;
+  margin-bottom: 6px;
+}
+
+.pinned-row {
+  flex: 1;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.pinned-item {
+  padding: 4px 12px;
+  margin: 2px 6px 2px 0;
+  border-radius: 8px;
+}
+
+.pinned-text {
+  font-size: 13px;
 }
 
 .class-list {

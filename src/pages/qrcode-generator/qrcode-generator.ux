@@ -3,6 +3,7 @@
     <div class="header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">二维码生成</text>
+      <input class="pin-btn" type="button" value="📌钉首页" onclick="pinToHome" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
     <text class="section-title" style="color: {{ theme.textSecondary }}">自定义文字</text>
@@ -47,6 +48,7 @@
 
 <script>
 import router from "@system.router"
+var pinHelper = require("../../data/pin-helper.js")
 const store = require("../../data/store.js")
 
 var PRESETS = [
@@ -117,6 +119,10 @@ export default {
 
   goBack() {
     router.back()
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("二维码生成", "/pages/qrcode-generator")
   }
 }
 </script>
@@ -147,6 +153,16 @@ export default {
 .title {
   font-size: 18px;
   font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.pin-btn {
+  width: 80px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
 }
 
 .section-title {

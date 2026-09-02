@@ -1,7 +1,9 @@
 <template>
   <div class="page">
     <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: #16213e; color: #7ec8e3" />
       <text class="title">手风琴 Demo</text>
+      <input class="pin-btn" type="button" value="📌钉首页" onclick="pinToHome" style="background-color: #7ec8e3; color: #1a1a2e" />
     </div>
 
     <div for="{{ list }}" class="item">
@@ -28,6 +30,9 @@
 </template>
 
 <script>
+import router from "@system.router"
+var pinHelper = require("../../data/pin-helper.js")
+
 export default {
   private: {
     list: [{}, {}, {}],
@@ -40,6 +45,14 @@ export default {
     } else {
       this.expandedIndex = idx
     }
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("手风琴 Demo", "/pages/accordion-demo")
   }
 }
 </script>
@@ -53,13 +66,33 @@ export default {
 }
 
 .header {
+  flex-direction: row;
+  align-items: center;
   margin-bottom: 16px;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
 }
 
 .title {
   font-size: 20px;
   font-weight: bold;
   color: #ffffff;
+  flex: 1;
+  text-align: center;
+}
+
+.pin-btn {
+  width: 80px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
 }
 
 .item {

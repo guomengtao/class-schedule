@@ -3,7 +3,9 @@
 <template>
   <div class="page" style="background-color: #1a1a2e">
     <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: #16213e; color: #7ec8e3" />
       <text class="title" style="color: #ffffff">组件化测试</text>
+      <input class="pin-btn" type="button" value="📌钉首页" onclick="pinToHome" style="background-color: #7ec8e3; color: #1a1a2e" />
     </div>
 
     <div class="content">
@@ -17,9 +19,20 @@
 </template>
 
 <script>
+import router from "@system.router"
+var pinHelper = require("../../data/pin-helper.js")
+
 export default {
   onInit() {
     console.log('[comp-demo page] onInit')
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("组件化测试", "/pages/comp-demo")
   }
 }
 </script>
@@ -32,12 +45,32 @@ export default {
 }
 
 .header {
+  flex-direction: row;
+  align-items: center;
   margin-bottom: 20px;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
 }
 
 .title {
   font-size: 18px;
   font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.pin-btn {
+  width: 80px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
 }
 
 .content {

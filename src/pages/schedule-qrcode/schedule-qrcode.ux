@@ -3,6 +3,7 @@
     <div class="header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">导出课程表</text>
+      <input class="pin-btn" type="button" value="📌钉首页" onclick="pinToHome" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
     <div class="subtitle-section" style="background-color: {{ theme.card }}">
@@ -47,6 +48,7 @@
 
 <script>
 import router from "@system.router"
+var pinHelper = require("../../data/pin-helper.js")
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 
@@ -116,6 +118,10 @@ export default {
 
   goBack() {
     router.back()
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("导出课程表", "/pages/schedule-qrcode")
   },
 
   formatScheduleText(name, scheduleData) {
@@ -209,8 +215,16 @@ export default {
 .title {
   font-size: 22px;
   font-weight: bold;
-  margin-left: 12px;
   flex: 1;
+  text-align: center;
+}
+
+.pin-btn {
+  width: 80px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
 }
 
 .subtitle-section {
@@ -338,7 +352,8 @@ export default {
   }
   .title {
     font-size: 15px;
-    margin-left: 8px;
+    flex: 1;
+    text-align: center;
   }
   .subtitle-section {
     padding: 8px 12px;
@@ -397,7 +412,8 @@ export default {
   }
   .title {
     font-size: 15px;
-    margin-left: 8px;
+    flex: 1;
+    text-align: center;
   }
   .subtitle-section {
     padding: 8px 12px;
@@ -478,6 +494,8 @@ export default {
   }
   .title {
     font-size: 16px;
+    flex: 1;
+    text-align: center;
   }
 }
 </style>

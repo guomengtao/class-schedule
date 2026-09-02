@@ -1,0 +1,115 @@
+<template>
+  <div class="overlay" show="{{ visible }}" onclick="onOverlayClick">
+    <div class="dialog" style="background-color: {{ theme.card }}">
+      <text class="dialog-title" style="color: {{ theme.accent }}">{{ title }}</text>
+
+      <text class="dialog-message" style="color: {{ theme.text }}">{{ message }}</text>
+
+      <div class="dialog-actions">
+        <input class="btn-confirm" type="button" value="{{ confirmText }}" onclick="onConfirm"
+               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  props: ['title', 'message', 'confirmText'],
+
+  private: {
+    visible: false,
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      accent: '#7ec8e3',
+      text: '#ffffff'
+    }
+  },
+
+  onInit() {
+    var self = this
+    try {
+      var store = require('../../data/store.js')
+      store.getTheme(function(t) {
+        self.theme = t
+      })
+    } catch (e) {}
+  },
+
+  show() {
+    this.visible = true
+  },
+
+  hide() {
+    this.visible = false
+  },
+
+  onConfirm() {
+    this.hide()
+    this.$emit('confirm')
+  },
+
+  onOverlayClick() {
+  }
+}
+</script>
+
+<style>
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 0;
+  margin: 0;
+}
+
+.dialog {
+  width: 85%;
+  max-width: 320px;
+  border-radius: 16px;
+  padding: 24px 20px 20px 20px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dialog-title {
+  font-size: 17px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.dialog-message {
+  font-size: 13px;
+  text-align: left;
+  line-height: 22px;
+  width: 100%;
+  margin-bottom: 16px;
+  white-space: pre-wrap;
+}
+
+.dialog-actions {
+  width: 100%;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.btn-confirm {
+  width: 100%;
+  height: 36px;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: bold;
+  border-width: 0;
+}
+</style>

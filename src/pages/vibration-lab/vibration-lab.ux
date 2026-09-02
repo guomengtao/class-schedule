@@ -3,6 +3,7 @@
     <div class="header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">震动实验室</text>
+      <input class="pin-btn" type="button" value="📌钉首页" onclick="pinToHome" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
     <div class="hero" style="background-color: {{ theme.card }}">
@@ -93,6 +94,7 @@
 
 <script>
 import router from "@system.router"
+var pinHelper = require("../../data/pin-helper.js")
 import vibrator from "@system.vibrator"
 import prompt from "@system.prompt"
 const store = require("../../data/store.js")
@@ -349,6 +351,10 @@ export default {
   goBack() {
     this.stopVibration()
     router.back()
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("震动实验室", "/pages/vibration-lab")
   }
 }
 </script>
@@ -378,7 +384,16 @@ export default {
 .title {
   font-size: 18px;
   font-weight: bold;
-  margin-left: 8px;
+  flex: 1;
+  text-align: center;
+}
+
+.pin-btn {
+  width: 80px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
 }
 
 .hero {
@@ -581,7 +596,8 @@ export default {
   }
   .title {
     font-size: 16px;
-    margin-left: 6px;
+    flex: 1;
+    text-align: center;
   }
   .hero {
     padding: 12px;
@@ -672,7 +688,8 @@ export default {
   }
   .title {
     font-size: 15px;
-    margin-left: 6px;
+    flex: 1;
+    text-align: center;
   }
   .hero {
     padding: 10px;
@@ -735,7 +752,8 @@ export default {
   }
   .title {
     font-size: 15px;
-    margin-left: 6px;
+    flex: 1;
+    text-align: center;
   }
   .hero {
     padding: 10px;

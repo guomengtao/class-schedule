@@ -3,6 +3,7 @@
     <div class="back-header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="header-title" style="color: {{ theme.text }}">激活码系统</text>
+      <input class="pin-btn" type="button" value="📌钉首页" onclick="pinToHome" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
@@ -210,6 +211,7 @@
 
 <script>
 import router from "@system.router"
+var pinHelper = require("../../data/pin-helper.js")
 import prompt from "@system.prompt"
 import vibrator from "@system.vibrator"
 const store = require("../../data/store.js")
@@ -433,6 +435,10 @@ export default {
 
   goBack() {
     router.back()
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("激活码系统", "/pages/activation-lab")
   },
 
   // ===== Encrypt area =====
@@ -758,7 +764,16 @@ export default {
 .header-title {
   font-size: 18px;
   font-weight: bold;
-  margin-left: 8px;
+  flex: 1;
+  text-align: center;
+}
+
+.pin-btn {
+  width: 80px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
 }
 
 .section {
