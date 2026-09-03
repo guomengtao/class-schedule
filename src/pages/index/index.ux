@@ -157,7 +157,42 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-    initAllModules()
+    loadScheduleData()
+  },
+
+  loadScheduleData() {
+    var self = this
+    storage.get({
+      key: "currentScheduleIndex",
+      success: function(data) {
+        var idx = parseInt(data) || 0
+        if (idx < 0) idx = 0
+        storage.get({
+          key: "allCourses_" + idx,
+          success: function(val) {
+            if (val) {
+              try {
+                self.schedule = JSON.parse(val)
+              } catch (e) {
+                self.schedule = []
+              }
+            } else {
+              self.schedule = []
+            }
+            console.log("[index] schedule loaded, " + self.schedule.length + " days")
+            initAllModules()
+          },
+          fail: function() {
+            self.schedule = []
+            initAllModules()
+          }
+        })
+      },
+      fail: function() {
+        self.schedule = []
+        initAllModules()
+      }
+    })
   },
 
   initAllModules() {
