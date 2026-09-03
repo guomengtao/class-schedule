@@ -179,15 +179,15 @@ var pinHelper = require("../../data/pin-helper.js")
 var errorList = []
 var modules = {}
 var moduleNames = [
-  { key: "clock", path: "./modules/clock.js", text: "时钟" },
-  { key: "dayNav", path: "./modules/day-nav.js", text: "日期导航" },
-  { key: "statusBar", path: "./modules/status-bar.js", text: "状态栏" },
-  { key: "customContent", path: "./modules/custom-content.js", text: "自定义内容" },
-  { key: "pinnedPages", path: "./modules/pinned-pages.js", text: "已钉页面" },
-  { key: "classList", path: "./modules/class-list.js", text: "课程列表" },
-  { key: "quickAdd", path: "./modules/quick-add.js", text: "快速添加" },
-  { key: "bottomButtons", path: "./modules/bottom-buttons.js", text: "底部按钮" },
-  { key: "weekIndicator", path: "./modules/week-indicator.js", text: "课程表切换" }
+  { key: "clock", text: "时钟" },
+  { key: "dayNav", text: "日期导航" },
+  { key: "statusBar", text: "状态栏" },
+  { key: "customContent", text: "自定义内容" },
+  { key: "pinnedPages", text: "已钉页面" },
+  { key: "classList", text: "课程列表" },
+  { key: "quickAdd", text: "快速添加" },
+  { key: "bottomButtons", text: "底部按钮" },
+  { key: "weekIndicator", text: "课程表切换" }
 ]
 
 function addError(msg) {
@@ -195,17 +195,25 @@ function addError(msg) {
   errorList.push(msg)
 }
 
-for (var i = 0; i < moduleNames.length; i++) {
-  var m = moduleNames[i]
-  try {
-    console.log("[home-module-demo] requiring " + m.key + "...")
-    modules[m.key] = require(m.path)
-    console.log("[home-module-demo] " + m.key + " required: " + JSON.stringify(typeof modules[m.key]))
-  } catch (e) {
-    addError(m.key + " require 失败: " + (e.message || e))
-    modules[m.key] = null
+function loadModule(key, mod) {
+  if (mod && mod.init) {
+    modules[key] = mod
+    console.log("[home-module-demo] " + key + " required: object")
+  } else {
+    addError(key + " require failed: no init method")
+    modules[key] = null
   }
 }
+
+loadModule("clock", require("./modules/clock.js"))
+loadModule("dayNav", require("./modules/day-nav.js"))
+loadModule("statusBar", require("./modules/status-bar.js"))
+loadModule("customContent", require("./modules/custom-content.js"))
+loadModule("pinnedPages", require("./modules/pinned-pages.js"))
+loadModule("classList", require("./modules/class-list.js"))
+loadModule("quickAdd", require("./modules/quick-add.js"))
+loadModule("bottomButtons", require("./modules/bottom-buttons.js"))
+loadModule("weekIndicator", require("./modules/week-indicator.js"))
 
 export default {
   private: {
