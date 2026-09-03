@@ -101,7 +101,6 @@ export default {
 
   onInit() {
     var self = this
-    title = "设备信息"
     store.getTheme(function(t) {
       self.theme = t
     })

@@ -17,7 +17,7 @@
       </div>
     </div>
 
-    <text class="home-version">v1.3.214</text>
+    <text class="home-version">v1.3.215</text>
   </div>
 </template>
 
@@ -25,6 +25,13 @@
 import router from "@system.router"
 
 export default {
+  private: {
+    title: "课程表"
+  },
+
+  onInit() {
+  },
+
   goToSettings() {
     router.push({
       uri: "/pages/settings"
@@ -33,7 +40,7 @@ export default {
 
   goToLab() {
     router.push({
-      uri: "/pages/vibration-lab"
+      uri: "/pages/test-area"
     })
   }
 }
@@ -74,10 +81,6 @@ export default {
   border-radius: 16px;
   background-color: #16213e;
   border: 1px solid #0f3460;
-}
-
-.menu-item:active {
-  background-color: #0f3460;
 }
 
 .menu-icon {

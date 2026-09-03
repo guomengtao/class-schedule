@@ -129,7 +129,6 @@ export default {
   performBackup() {
     var self = this
     var backupData = {}
-    var loaded = 0
     var total = DATA_KEYS.length
 
     function loadKey(index) {
@@ -144,11 +143,9 @@ export default {
           if (data) {
             backupData[key] = data
           }
-          loaded++
           loadKey(index + 1)
         },
         fail: function() {
-          loaded++
           loadKey(index + 1)
         }
       })
@@ -204,7 +201,6 @@ export default {
         try {
           var backupData = JSON.parse(data)
           var keys = Object.keys(backupData)
-          var saved = 0
           var total = keys.length
 
           if (total === 0) {
@@ -224,7 +220,6 @@ export default {
               key: key,
               value: backupData[key],
               success: function() {
-                saved++
                 saveKey(index + 1)
               },
               fail: function() {

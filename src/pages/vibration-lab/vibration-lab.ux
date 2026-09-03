@@ -442,10 +442,6 @@ export default {
   border-radius: 8px;
 }
 
-.lab-nav-item:active {
-  opacity: 0.7;
-}
-
 .lab-nav-icon {
   font-size: 22px;
   margin-right: 10px;

@@ -87,6 +87,14 @@
           <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
+
+      <div class="menu-item" onclick="openLabModuleTest" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">多模块加载测试</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">3 个独立 JS 模块组合加载</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
     </div>
 
     <text class="dev-expire-hint" onclick="onDevExpireClick" style="color: {{ theme.textSecondary }}">丰富欢迎用户提交意见建议</text>
@@ -181,6 +189,10 @@ export default {
 
   openMultiFileDemo() {
     router.push({ uri: "/pages/multi-file-demo" })
+  },
+
+  openLabModuleTest() {
+    router.push({ uri: "/pages/lab-module-test" })
   },
 
   pinToHome() {
