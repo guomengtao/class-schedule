@@ -6,15 +6,15 @@
 
     <div class="header">
       <input class="nav-btn" type="button" value="&#9664;" onclick="prevDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="day-title" style="{{ dayTitleStyle }}; color: {{ theme.text }}">{{ currentDay }}</text>
+      <text class="day-title" style="color: {{ theme.text }}">{{ currentDay }}</text>
       <div class="day-nav-btns">
-        <div class="day-nav-circle" if="{{ showDayNavZong }}" onclick="goToWeekView" style="background-color: {{ theme.cardLight }}">
+        <div class="day-nav-circle" onclick="goToWeekView" style="background-color: {{ theme.cardLight }}">
           <text class="day-nav-text" style="color: {{ theme.accent }}">总</text>
         </div>
-        <div class="day-nav-circle" if="{{ showDayNavJin }}" onclick="goToToday" style="background-color: {{ theme.cardLight }}">
+        <div class="day-nav-circle" onclick="goToToday" style="background-color: {{ theme.cardLight }}">
           <text class="day-nav-text" style="color: {{ theme.accent }}">今</text>
         </div>
-        <div class="day-nav-circle" if="{{ showDayNavMing }}" onclick="goToTomorrow" style="background-color: {{ theme.cardLight }}">
+        <div class="day-nav-circle" onclick="goToTomorrow" style="background-color: {{ theme.cardLight }}">
           <text class="day-nav-text" style="color: {{ theme.accent }}">明</text>
         </div>
       </div>
@@ -33,7 +33,7 @@
       <text class="status-right" if="{{ statusTimeText }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
     </div>
 
-    <div class="pinned-bar" if="{{ showPinnedBar && hasPinned }}" style="background-color: {{ theme.cardLight }}">
+    <div class="pinned-bar" if="{{ hasPinned }}" style="background-color: {{ theme.cardLight }}">
       <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
       <div class="pinned-content">
         <div class="pinned-row">
@@ -51,11 +51,11 @@
           <div class="progress-bg" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
           <div class="class-content">
             <div class="class-time">
-              <text class="class-name" style="{{ nameStyle }}; color: {{ theme.text }}">{{ $item.name }}</text>
-              <text class="class-time-text" style="{{ nameStyle }}; color: {{ theme.textSecondary }}">{{ $item.time }}</text>
+              <text class="class-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+              <text class="class-time-text" style="color: {{ theme.textSecondary }}">{{ $item.time }}</text>
             </div>
             <div class="class-info">
-              <text class="class-location" if="{{ $item.location }}" style="{{ nameStyle }}; color: {{ theme.accent }}">{{ $item.location }}</text>
+              <text class="class-location" if="{{ $item.location }}" style="color: {{ theme.accent }}">{{ $item.location }}</text>
               <text class="class-progress" if="{{ $item.progress >= 100 }}" style="color: {{ theme.textMuted }}">已结束</text>
               <text class="class-progress" if="{{ $item.progress > 0 && $item.progress < 100 }}" style="color: {{ theme.textMuted }}">{{ $item.progress }}%</text>
             </div>
@@ -64,7 +64,7 @@
       </div>
 
       <div if="{{ currentClasses.length === 0 }}" class="empty-card">
-        <text class="empty-text" style="{{ nameStyle }}; color: {{ theme.textMuted }}">今天没有课</text>
+        <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
       </div>
     </scroll>
 
@@ -142,10 +142,6 @@ export default {
     showTime: true,
     showQuickAdd: true,
     showStatusBar: true,
-    showPinnedBar: true,
-    showDayNavZong: true,
-    showDayNavJin: true,
-    showDayNavMing: true,
     pinnedPages: [],
     hasPinned: false,
     currentClasses: [],
@@ -155,9 +151,6 @@ export default {
     quickAddDisabled: false,
     quickAddTime: "",
     currentScheduleName: "Schedule 1",
-    fontScale: 1.0,
-    dayTitleStyle: "",
-    nameStyle: "",
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -180,7 +173,6 @@ export default {
     })
 
     self.loadHomepageSettings()
-    self.loadFontScale()
 
     database.init(function() {
       database.getAllCourses(function(schedule) {
@@ -195,7 +187,6 @@ export default {
     var self = this
     store.getTheme(function(t) { self.theme = t })
     self.loadHomepageSettings()
-    self.loadFontScale()
   },
 
   loadHomepageSettings() {
@@ -206,30 +197,7 @@ export default {
       self.showStatusBar = settings.showStatusBar !== false
       self.showCustomContent = settings.showCustomContent || false
       self.customContent = settings.customContent || ""
-      self.showPinnedBar = settings.showPinnedBar !== false
-      self.showDayNavZong = settings.showDayNavZong !== false
-      self.showDayNavJin = settings.showDayNavJin !== false
-      self.showDayNavMing = settings.showDayNavMing !== false
     })
-  },
-
-  loadFontScale() {
-    var self = this
-    store.getScaleSafe(function(scale) {
-      self.fontScale = scale
-      self.applyFontScale()
-    })
-  },
-
-  applyFontScale() {
-    var s = this.fontScale
-    if (!s || s < 0.5) { s = 1.0 }
-    var styles = store.buildFontStyles(s, {
-      dayTitleStyle: 20,
-      nameStyle: 28
-    })
-    this.dayTitleStyle = styles.dayTitleStyle
-    this.nameStyle = styles.nameStyle
   },
 
   initAllModules() {
@@ -427,6 +395,10 @@ export default {
 .pinned-content {
   flex: 1;
   flex-direction: column;
+}
+
+.pinned-hint {
+  margin-bottom: 4px;
 }
 
 .pinned-row {
