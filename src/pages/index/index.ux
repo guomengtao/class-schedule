@@ -99,35 +99,7 @@ const database = require("../../data/database.js")
 var pinHelper = require("../../data/pin-helper.js")
 
 var modules = {}
-var moduleNames = [
-  { key: "clock", text: "clock" },
-  { key: "dayNav", text: "dayNav" },
-  { key: "statusBar", text: "statusBar" },
-  { key: "customContent", text: "customContent" },
-  { key: "pinnedPages", text: "pinnedPages" },
-  { key: "classList", text: "classList" },
-  { key: "quickAdd", text: "quickAdd" },
-  { key: "bottomButtons", text: "bottomButtons" },
-  { key: "weekIndicator", text: "weekIndicator" }
-]
-
-function loadModule(key, mod) {
-  if (mod && mod.init) {
-    modules[key] = mod
-  } else {
-    modules[key] = null
-  }
-}
-
-loadModule("clock", require("./modules/clock.js"))
-loadModule("dayNav", require("./modules/day-nav.js"))
-loadModule("statusBar", require("./modules/status-bar.js"))
-loadModule("customContent", require("./modules/custom-content.js"))
-loadModule("pinnedPages", require("./modules/pinned-pages.js"))
-loadModule("classList", require("./modules/class-list.js"))
-loadModule("quickAdd", require("./modules/quick-add.js"))
-loadModule("bottomButtons", require("./modules/bottom-buttons.js"))
-loadModule("weekIndicator", require("./modules/week-indicator.js"))
+var moduleNames = []
 
 export default {
   private: {
