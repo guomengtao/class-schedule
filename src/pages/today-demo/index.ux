@@ -5,15 +5,15 @@
       <text class="title" style="color: {{ theme.text }}">今日课程</text>
     </div>
 
+    <div class="quick-buttons">
+      <input class="quick-btn" type="button" value="化学" onclick="addQuickCourse('化学')" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="quick-btn" type="button" value="品德" onclick="addQuickCourse('品德')" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+    </div>
+
     <text class="subtitle" style="color: {{ theme.textSecondary }}">{{ currentDay }} · {{ classes.length }} 节课</text>
 
     <div if="{{ addedRandom }}" class="added-hint" style="background-color: {{ theme.cardLight }}">
       <text class="added-hint-text" style="color: {{ theme.accent }}">已自动添加 2 个随机课程</text>
-    </div>
-
-    <div class="quick-buttons">
-      <input class="quick-btn" type="button" value="化学" onclick="addQuickCourse('化学')" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      <input class="quick-btn" type="button" value="品德" onclick="addQuickCourse('品德')" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
     </div>
 
     <scroll class="class-list" scroll-y="{{true}}">
