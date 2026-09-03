@@ -12,8 +12,8 @@
 
     <text class="subtitle" style="color: {{ theme.textSecondary }}">{{ currentDay }} · {{ classes.length }} 节课</text>
 
-    <div if="{{ addedRandom }}" class="added-hint" style="background-color: {{ theme.cardLight }}">
-      <text class="added-hint-text" style="color: {{ theme.accent }}">已自动添加 2 个随机课程</text>
+    <div class="schedule-info" style="background-color: {{ theme.cardLight }}">
+      <text class="schedule-info-text" style="color: {{ theme.accent }}">当前课程表: {{ currentScheduleName }}</text>
     </div>
 
     <scroll class="class-list" scroll-y="{{true}}">
@@ -40,37 +40,15 @@ const database = require("../../data/database.js")
 
 var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
-var randomCourses = [
-  { name: "高等数学", time: "08:00 - 09:30", teacher: "张老师", location: "教学楼A101" },
-  { name: "大学英语", time: "10:00 - 11:30", teacher: "李老师", location: "教学楼B202" },
-  { name: "计算机科学", time: "14:00 - 15:30", teacher: "王老师", location: "实验楼C301" },
-  { name: "线性代数", time: "16:00 - 17:30", teacher: "赵老师", location: "教学楼A203" },
-  { name: "物理实验", time: "09:00 - 10:30", teacher: "陈老师", location: "物理楼101" },
-  { name: "马克思主义原理", time: "13:00 - 14:30", teacher: "刘老师", location: "教学楼D104" },
-  { name: "体育课", time: "15:00 - 16:30", teacher: "周老师", location: "操场" },
-  { name: "程序设计", time: "08:30 - 10:00", teacher: "吴老师", location: "机房401" }
-]
-
 function getRealTodayIndex() {
   return new Date().getDay()
-}
-
-function shuffle(arr) {
-  var result = arr.slice()
-  for (var i = result.length - 1; i > 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1))
-    var tmp = result[i]
-    result[i] = result[j]
-    result[j] = tmp
-  }
-  return result
 }
 
 export default {
   private: {
     currentDay: "",
     classes: [],
-    addedRandom: false,
+    currentScheduleName: "",
     loading: true,
     theme: {
       bg: '#1a1a2e',
@@ -92,90 +70,32 @@ export default {
       self.theme = t
     })
 
+    store.getCurrentScheduleIndex(function(idx) {
+      store.getScheduleNames(function(names) {
+        if (names && idx < names.length) {
+          self.currentScheduleName = names[idx]
+        } else {
+          self.currentScheduleName = "课程表" + (idx + 1)
+        }
+        console.log("[today-demo] active schedule: " + self.currentScheduleName + " (index=" + idx + ")")
+      })
+    })
+
     database.init(function() {
       database.getAllCourses(function(schedule) {
         console.log("[today-demo] schedule loaded, " + schedule.length + " days")
-        self.checkAndLoad(schedule, todayIdx)
-      })
-    })
-  },
-
-  checkAndLoad(schedule, todayIdx) {
-    var self = this
-    var todayName = dayNames[todayIdx]
-    var dayData = null
-
-    for (var i = 0; i < schedule.length; i++) {
-      if (schedule[i].day === todayName) {
-        dayData = schedule[i]
-        break
-      }
-    }
-
-    var rawClasses = dayData ? dayData.classes : []
-    console.log("[today-demo] " + todayName + " has " + rawClasses.length + " classes")
-
-    if (rawClasses.length === 0) {
-      console.log("[today-demo] no classes for today, adding 2 random courses")
-      self.addRandomCourses(todayName, 2, function() {
-        self.reloadClasses()
-      })
-    } else {
-      self.displayClasses(rawClasses)
-    }
-  },
-
-  addRandomCourses(day, count, callback) {
-    var self = this
-    var shuffled = shuffle(randomCourses)
-    var picked = []
-    for (var i = 0; i < count && i < shuffled.length; i++) {
-      picked.push(shuffled[i])
-    }
-
-    var added = 0
-    function addNext() {
-      if (added >= picked.length) {
-        console.log("[today-demo] added " + added + " random courses")
-        self.addedRandom = true
-        callback()
-        return
-      }
-      var c = picked[added]
-      var course = {
-        id: "random_" + Date.now() + "_" + added,
-        day: day,
-        name: c.name,
-        time: c.time,
-        teacher: c.teacher,
-        location: c.location,
-        notes: ""
-      }
-      database.insertCourse(course, function(err) {
-        if (err) {
-          console.log("[today-demo] insertCourse failed: " + JSON.stringify(err))
+        var todayName = dayNames[todayIdx]
+        var dayData = null
+        for (var i = 0; i < schedule.length; i++) {
+          if (schedule[i].day === todayName) {
+            dayData = schedule[i]
+            break
+          }
         }
-        added++
-        addNext()
+        var rawClasses = dayData ? dayData.classes : []
+        console.log("[today-demo] " + todayName + " has " + rawClasses.length + " classes")
+        self.displayClasses(rawClasses)
       })
-    }
-    addNext()
-  },
-
-  reloadClasses() {
-    var self = this
-    database.getAllCourses(function(schedule) {
-      var todayIdx = getRealTodayIndex()
-      var todayName = dayNames[todayIdx]
-      var dayData = null
-      for (var i = 0; i < schedule.length; i++) {
-        if (schedule[i].day === todayName) {
-          dayData = schedule[i]
-          break
-        }
-      }
-      var rawClasses = dayData ? dayData.classes : []
-      self.displayClasses(rawClasses)
     })
   },
 
@@ -224,7 +144,18 @@ export default {
         console.log("[today-demo] addQuickCourse failed: " + JSON.stringify(err))
       }
       console.log("[today-demo] added " + courseName + " to " + todayName)
-      self.reloadClasses()
+      database.getAllCourses(function(schedule) {
+        var todayName2 = dayNames[getRealTodayIndex()]
+        var dayData = null
+        for (var i = 0; i < schedule.length; i++) {
+          if (schedule[i].day === todayName2) {
+            dayData = schedule[i]
+            break
+          }
+        }
+        var rawClasses = dayData ? dayData.classes : []
+        self.displayClasses(rawClasses)
+      })
     })
   }
 }
@@ -264,7 +195,7 @@ export default {
   margin-bottom: 8px;
 }
 
-.added-hint {
+.schedule-info {
   flex-direction: row;
   justify-content: center;
   border-radius: 8px;
@@ -272,7 +203,7 @@ export default {
   margin-bottom: 8px;
 }
 
-.added-hint-text {
+.schedule-info-text {
   font-size: 13px;
 }
 
