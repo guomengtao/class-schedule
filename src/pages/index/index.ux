@@ -1,37 +1,542 @@
 <template>
-  <div class="page">
-    <text class="title">hello</text>
-    <text class="subtitle">{{ message }}</text>
+  <div class="schedule-page" style="background-color: {{ theme.bg }}">
+    <div class="clock-row" if="{{ showTime }}">
+      <text class="clock-text" style="color: {{ theme.textSecondary }}">{{ currentTime }}</text>
+    </div>
+
+    <div class="header">
+      <input class="nav-btn" type="button" value="&#9664;" onclick="prevDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="day-title" style="color: {{ theme.text }}">{{ currentDay }}</text>
+      <div class="day-nav-btns">
+        <div class="day-nav-circle" onclick="goToWeekView" style="background-color: {{ theme.cardLight }}">
+          <text class="day-nav-text" style="color: {{ theme.accent }}">总</text>
+        </div>
+        <div class="day-nav-circle" onclick="goToToday" style="background-color: {{ theme.cardLight }}">
+          <text class="day-nav-text" style="color: {{ theme.accent }}">今</text>
+        </div>
+        <div class="day-nav-circle" onclick="goToTomorrow" style="background-color: {{ theme.cardLight }}">
+          <text class="day-nav-text" style="color: {{ theme.accent }}">明</text>
+        </div>
+      </div>
+      <input class="nav-btn" type="button" value="&#9654;" onclick="nextDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+    </div>
+
+    <div class="custom-content-bar" if="{{ showCustomContent && customContent }}" style="background-color: {{ theme.cardLight }}">
+      <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
+      <text class="custom-content-text" style="color: {{ theme.text }}">{{ customContent }}</text>
+    </div>
+
+    <div class="status-bar" if="{{ showStatusBar }}" style="background-color: {{ theme.cardLight }}">
+      <div class="left-accent left-accent-6" style="background-color: {{ theme.accent }}"></div>
+      <text class="status-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
+      <text class="status-middle" style="color: {{ theme.text }}">{{ statusMainText }}</text>
+      <text class="status-right" if="{{ statusTimeText }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
+    </div>
+
+    <div class="pinned-bar" if="{{ hasPinned }}" style="background-color: {{ theme.cardLight }}">
+      <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
+      <div class="pinned-content">
+        <div class="pinned-row">
+          <div for="{{ pinnedPages }}" class="pinned-item" onclick="openPinnedPage($item.uri)" style="background-color: {{ theme.card }}">
+            <text class="pinned-text" style="color: {{ theme.accent }}">{{ $item.name }}</text>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <scroll class="class-list" scroll-y="{{true}}">
+      <div for="{{ currentClasses }}" class="class-card-wrapper">
+        <div class="class-card" style="background-color: {{ theme.card }}">
+          <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
+          <div class="progress-bg" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
+          <div class="class-content">
+            <div class="class-time">
+              <text class="class-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+              <text class="class-time-text" style="color: {{ theme.textSecondary }}">{{ $item.time }}</text>
+            </div>
+            <div class="class-info">
+              <text class="class-location" if="{{ $item.location }}" style="color: {{ theme.accent }}">{{ $item.location }}</text>
+              <text class="class-progress" if="{{ $item.progress >= 100 }}" style="color: {{ theme.textMuted }}">已结束</text>
+              <text class="class-progress" if="{{ $item.progress > 0 && $item.progress < 100 }}" style="color: {{ theme.textMuted }}">{{ $item.progress }}%</text>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div if="{{ currentClasses.length === 0 }}" class="empty-card">
+        <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
+      </div>
+    </scroll>
+
+    <div class="quick-add" if="{{ showQuickAdd }}" style="background-color: {{ theme.card }}">
+      <text class="quick-add-title" onclick="toggleQuickAdd" style="color: {{ theme.accent }}">快速添加 {{ quickAddExpanded ? '▲' : '▼' }}</text>
+      <scroll class="quick-add-scroll" scroll-x="{{true}}" if="{{ quickAddExpanded && quickCourseNames.length > 0 && !quickAddDisabled }}">
+        <div class="quick-add-list">
+          <div for="{{ quickCourseNames }}" class="quick-add-item" style="background-color: {{ theme.cardLight }}">
+            <text class="quick-add-name" style="color: {{ theme.text }}">{{ $item }}</text>
+          </div>
+        </div>
+      </scroll>
+      <text class="quick-add-empty" if="{{ quickAddExpanded && quickAddDisabled }}" style="color: {{ theme.textMuted }}">今天课程已排满</text>
+      <text class="quick-add-empty" if="{{ quickAddExpanded && !quickAddDisabled && quickCourseNames.length === 0 }}" style="color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
+    </div>
+
+    <div class="bottom-buttons">
+      <input class="add-btn" type="button" value="+ 添加课程" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+    </div>
+
+    <div class="week-indicator" onclick="openScheduleManager">
+      <text class="week-text" style="color: {{ theme.accent }}">⇄ {{ currentScheduleName }}</text>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
   private: {
-    message: ""
+    currentTime: "",
+    currentDay: "Sunday",
+    currentDayIndex: 0,
+    statusTag: "",
+    statusMainText: "",
+    statusTimeText: "",
+    showCustomContent: false,
+    customContent: "",
+    showTime: true,
+    showQuickAdd: true,
+    showStatusBar: true,
+    pinnedPages: [],
+    hasPinned: false,
+    currentClasses: [],
+    schedule: [],
+    quickAddExpanded: false,
+    quickCourseNames: [],
+    quickAddDisabled: false,
+    quickAddTime: "",
+    currentScheduleName: "Schedule 1",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a'
+    }
   },
+
   onInit() {
-    this.message = "我来自 js里"
+    var self = this
+    console.log("[index] onInit start")
+
+    var store = require("../../data/store.js")
+    var database = require("../../data/database.js")
+    console.log("[index] core requires OK")
+
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+
+    self.loadHomepageSettings(store)
+
+    database.init(function() {
+      database.getAllCourses(function(schedule) {
+        self.schedule = schedule
+        console.log("[index] data loaded, " + schedule.length + " days")
+        self.initAllModules(store)
+      })
+    })
+  },
+
+  onShow() {
+    var self = this
+    var store = require("../../data/store.js")
+    store.getTheme(function(t) { self.theme = t })
+    self.loadHomepageSettings(store)
+  },
+
+  loadHomepageSettings(store) {
+    var self = this
+    store.getHomepageSettings(function(settings) {
+      self.showTime = settings.showTime !== false
+      self.showQuickAdd = settings.showQuickAdd !== false
+      self.showStatusBar = settings.showStatusBar !== false
+      self.showCustomContent = settings.showCustomContent || false
+      self.customContent = settings.customContent || ""
+    })
+  },
+
+  initAllModules(store) {
+    var self = this
+
+    var moduleDefs = [
+      { key: "clock", path: "../index/modules/clock.js" },
+      { key: "dayNav", path: "../index/modules/day-nav.js" },
+      { key: "statusBar", path: "../index/modules/status-bar.js" },
+      { key: "customContent", path: "../index/modules/custom-content.js" },
+      { key: "pinnedPages", path: "../index/modules/pinned-pages.js" },
+      { key: "classList", path: "../index/modules/class-list.js" },
+      { key: "quickAdd", path: "../index/modules/quick-add.js" },
+      { key: "bottomButtons", path: "../index/modules/bottom-buttons.js" },
+      { key: "weekIndicator", path: "../index/modules/week-indicator.js" }
+    ]
+
+    for (var i = 0; i < moduleDefs.length; i++) {
+      var m = moduleDefs[i]
+      try {
+        var mod = require(m.path)
+        if (mod && mod.init) {
+          mod.init(self)
+          console.log("[index] [" + (i + 1) + "/" + moduleDefs.length + "] " + m.key + " OK")
+        } else {
+          console.warn("[index] [" + (i + 1) + "/" + moduleDefs.length + "] " + m.key + " SKIP (no init)")
+        }
+      } catch (e) {
+        console.warn("[index] [" + (i + 1) + "/" + moduleDefs.length + "] " + m.key + " SKIP: " + (e.message || e))
+      }
+    }
+
+    if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
+      try { self.loadDayClasses() } catch (e) { console.error("[index] loadDayClasses: " + (e.message || e)) }
+    }
+    if (self.updateStatus && typeof self.updateStatus === 'function') {
+      try { self.updateStatus() } catch (e) { console.error("[index] updateStatus: " + (e.message || e)) }
+      if (self.startStatusTimer && typeof self.startStatusTimer === 'function') {
+        try { self.startStatusTimer() } catch (e) { console.error("[index] startStatusTimer: " + (e.message || e)) }
+      }
+    }
+    console.log("[index] onInit done")
+  },
+
+  onDestroy() {
+    if (this.stopClockTimer && typeof this.stopClockTimer === 'function') this.stopClockTimer()
+    if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
+  },
+
+  goBack() {
+    var router = require("@system.router")
+    router.back()
+  },
+
+  goToWeekView() {
+    var router = require("@system.router")
+    var store = require("../../data/store.js")
+    var storage = require("@system.storage")
+    store.getCurrentScheduleIndex(function(idx) {
+      storage.set({
+        key: "weekview_index",
+        value: String(idx),
+        success: function() { router.push({ uri: "/pages/week-view" }) },
+        fail: function() { router.push({ uri: "/pages/week-view" }) }
+      })
+    })
+  },
+
+  goToTomorrow() {
+    var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+    var todayIdx = new Date().getDay()
+    var tomorrowIdx = todayIdx + 1
+    if (tomorrowIdx >= dayNames.length) tomorrowIdx = 0
+    if (this.currentDayIndex === tomorrowIdx) return
+    this.currentDayIndex = tomorrowIdx
+    this.currentDay = dayNames[tomorrowIdx]
+    if (this.loadDayClasses && typeof this.loadDayClasses === 'function') this.loadDayClasses()
+    if (this.updateStatus && typeof this.updateStatus === 'function') this.updateStatus()
+  },
+
+  pinToHome() {
+    var pinHelper = require("../../data/pin-helper.js")
+    pinHelper.pinPage("Home", "/pages/index")
   }
 }
 </script>
 
 <style>
-.page {
+.schedule-page {
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
   background-color: #1a1a2e;
+  padding: 44px 8px 8px 8px;
+  min-height: 100%;
 }
-.title {
-  font-size: 48px;
-  color: #ffffff;
-  margin-bottom: 20px;
+
+.header {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 4px;
+  margin-bottom: 4px;
 }
-.subtitle {
-  font-size: 32px;
-  color: #7ec8e3;
+
+.clock-row {
+  padding: 2px 0;
+  margin-bottom: 2px;
+}
+
+.clock-text {
+  font-size: 20px;
+  text-align: center;
+  width: 100%;
+}
+
+.day-title {
+  font-size: 28px;
+  font-weight: bold;
+  text-align: center;
+  lines: 1;
+  flex: 1;
+}
+
+.nav-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  font-size: 22px;
+  text-align: center;
+  border-width: 0;
+}
+
+.day-nav-btns {
+  flex-direction: row;
+}
+
+.day-nav-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  justify-content: center;
+  align-items: center;
+  margin-left: 4px;
+}
+
+.day-nav-text {
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.custom-content-bar {
+  flex-direction: row;
+  align-items: center;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.custom-content-text {
+  font-size: 18px;
+  flex: 1;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.status-bar {
+  flex-direction: row;
+  align-items: center;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.status-tag {
+  font-size: 16px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-right: 8px;
+}
+
+.status-middle {
+  font-size: 18px;
+  flex: 1;
+  lines: 1;
+}
+
+.status-right {
+  font-size: 16px;
+}
+
+.pinned-bar {
+  flex-direction: row;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.pinned-content {
+  flex: 1;
+}
+
+.pinned-row {
+  flex-direction: row;
+}
+
+.pinned-item {
+  padding: 4px 12px;
+  border-radius: 16px;
+  margin-right: 6px;
+}
+
+.pinned-text {
+  font-size: 16px;
+}
+
+.class-list {
+  flex: 1;
+  margin-bottom: 4px;
+}
+
+.class-card-wrapper {
+  margin-bottom: 6px;
+}
+
+.class-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.progress-bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  opacity: 0.15;
+}
+
+.class-content {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+}
+
+.class-time {
+  flex-direction: column;
+  flex: 1;
+}
+
+.class-name {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+.class-time-text {
+  font-size: 16px;
+}
+
+.class-info {
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.class-location {
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+.class-progress {
+  font-size: 14px;
+}
+
+.empty-card {
+  padding: 20px;
+  align-items: center;
+}
+
+.empty-text {
+  font-size: 18px;
+}
+
+.quick-add {
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.quick-add-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.quick-add-scroll {
+  height: 50px;
+}
+
+.quick-add-list {
+  flex-direction: row;
+}
+
+.quick-add-item {
+  padding: 6px 14px;
+  border-radius: 20px;
+  margin-right: 8px;
+}
+
+.quick-add-name {
+  font-size: 16px;
+}
+
+.quick-add-empty {
+  font-size: 14px;
+  padding: 4px 0;
+}
+
+.bottom-buttons {
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.add-btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 22px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  border-width: 0;
+  margin-right: 4px;
+}
+
+.style-btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 22px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  border-width: 0;
+}
+
+.week-indicator {
+  padding: 8px;
+  align-items: center;
+  border-radius: 8px;
+  border-width: 1px;
+  border-color: #0f3460;
+}
+
+.week-text {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.left-accent {
+  width: 4px;
+  border-radius: 2px;
+  margin-right: 8px;
+}
+
+.left-accent-4 {
+  height: 24px;
+}
+
+.left-accent-6 {
+  height: 28px;
 }
 </style>
