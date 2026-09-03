@@ -40,6 +40,11 @@
               <text class="class-name" style="{{ nameStyle }}; color: {{ theme.text }}">{{ $item.name }}</text>
               <text class="class-time-text" style="{{ nameStyle }}; color: {{ theme.textSecondary }}">{{ $item.time }}</text>
             </div>
+            <div class="class-info">
+              <text class="class-location" if="{{ !isCapsule && !isNarrowScreen }}" style="{{ nameStyle }}; color: {{ theme.accent }}">{{ $item.location }}</text>
+              <text class="class-progress class-ended" if="{{ $item.progress >= 100 && !isCapsule && !isNarrowScreen }}" style="font-size: 24px; color: {{ theme.textMuted }}">已结束</text>
+              <text class="class-progress" if="{{ $item.progress > 0 && $item.progress < 100 }}" style="font-size: 24px; color: {{ theme.textMuted }}">{{ $item.progress }}%</text>
+            </div>
           </div>
         </div>
       </div>
@@ -72,8 +77,8 @@
     </div>
 
     <div class="debug-body" style="flex: 1; justify-content: center; align-items: center;">
-      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 11</text>
-      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">模板模块: 全部已加回 (完整模板)</text>
+      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 12</text>
+      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">模板: +class-info(位置/进度)</text>
     </div>
   </div>
 </template>
