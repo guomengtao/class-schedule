@@ -93,6 +93,12 @@
 </template>
 
 <script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+const database = require("../../data/database.js")
+var pinHelper = require("../../data/pin-helper.js")
+var storage = require("@system.storage")
+
 export default {
   private: {
     currentTime: "12:00",
