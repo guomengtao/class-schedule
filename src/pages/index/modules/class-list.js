@@ -1,5 +1,7 @@
 console.log("[class-list module] loading...")
 
+var store = require("../../../data/store.js")
+
 function parseTime(timeStr) {
   var parts = timeStr.split(":")
   return parseInt(parts[0]) * 60 + parseInt(parts[1])
@@ -8,6 +10,23 @@ function parseTime(timeStr) {
 function init(instance) {
   console.log("[class-list module] init called")
   instance.currentClasses = []
+
+  instance.currentScheduleName = "课程表1"
+
+  store.getCurrentScheduleIndex(function(idx) {
+    store.getScheduleNames(function(names) {
+      if (names && idx < names.length) {
+        instance.currentScheduleName = names[idx]
+      } else {
+        instance.currentScheduleName = "课程表" + (idx + 1)
+      }
+    })
+  })
+
+  instance.openScheduleManager = function() {
+    var router = require("@system.router")
+    router.push({ uri: "/pages/schedule-manager" })
+  }
 
   instance.loadDayClasses = function() {
     var self = instance
