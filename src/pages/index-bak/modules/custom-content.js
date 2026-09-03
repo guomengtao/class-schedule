@@ -1,6 +1,7 @@
-console.log("[custom-content] loading...")
+console.log("[custom-content module] loading...")
 
 function init(instance) {
+  console.log("[custom-content module] init called")
   instance.showCustomContent = false
   instance.customContent = ""
 
@@ -16,15 +17,20 @@ function init(instance) {
         instance.showCustomContent = false
         instance.customContent = ""
       }
+      console.log("[custom-content module] loaded, show=" + instance.showCustomContent + ", content=" + instance.customContent)
     },
     fail: function() {
       instance.showCustomContent = false
       instance.customContent = ""
+      console.log("[custom-content module] no homepage settings")
     }
   })
 
-  console.log("[custom-content] init OK")
+  console.log("[custom-content module] init OK")
 }
 
-module.exports = { init: init }
-console.log("[custom-content] loaded")
+module.exports = {
+  init: init
+}
+
+console.log("[custom-content module] loaded successfully")

@@ -11,7 +11,6 @@ function init(instance) {
     pinHelper.getList(function(list) {
       self.pinnedPages = list
       self.hasPinned = list.length > 0
-      console.log("[pinned-pages] loaded " + list.length + " pages")
     })
   }
 

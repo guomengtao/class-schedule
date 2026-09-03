@@ -50,16 +50,6 @@ function init(instance) {
     onDayChanged()
   }
 
-  instance.goToTomorrow = function() {
-    var todayIdx = getRealTodayIndex()
-    var tomorrowIdx = todayIdx + 1
-    if (tomorrowIdx >= dayNames.length) tomorrowIdx = 0
-    if (instance.currentDayIndex === tomorrowIdx) return
-    instance.currentDayIndex = tomorrowIdx
-    instance.currentDay = dayNames[tomorrowIdx]
-    onDayChanged()
-  }
-
   console.log("[day-nav] init OK, day: " + instance.currentDay)
 }
 

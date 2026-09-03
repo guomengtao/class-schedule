@@ -25,10 +25,7 @@ function init(instance) {
     var h = now.getHours()
     var m = now.getMinutes()
     var s = now.getSeconds()
-    var hs = h < 10 ? "0" + h : "" + h
-    var ms = m < 10 ? "0" + m : "" + m
-    var ss = s < 10 ? "0" + s : "" + s
-    instance.currentTime = hs + ":" + ms + ":" + ss
+    instance.currentTime = (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s
   }
 
   instance.startClockTimer()

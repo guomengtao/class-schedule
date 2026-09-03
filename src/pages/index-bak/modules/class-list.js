@@ -1,6 +1,6 @@
-console.log("[class-list] loading...")
+console.log("[class-list module] loading...")
 
-var store = require("../../../data/store.js")
+var weekStore = require("../../../data/store.js")
 
 function parseTime(timeStr) {
   var parts = timeStr.split(":")
@@ -8,19 +8,8 @@ function parseTime(timeStr) {
 }
 
 function init(instance) {
+  console.log("[class-list module] init called")
   instance.currentClasses = []
-  instance.currentScheduleName = "课程表1"
-  instance._progressTimer = null
-
-  store.getCurrentScheduleIndex(function(idx) {
-    store.getScheduleNames(function(names) {
-      if (names && idx < names.length) {
-        instance.currentScheduleName = names[idx]
-      } else {
-        instance.currentScheduleName = "课程表" + (idx + 1)
-      }
-    })
-  })
 
   instance.loadDayClasses = function() {
     var self = instance
@@ -39,7 +28,6 @@ function init(instance) {
         id: src.id,
         name: src.name,
         time: src.time,
-        teacher: src.teacher || "",
         location: src.location || "",
         progress: 0,
         progressColor: "transparent"
@@ -56,18 +44,13 @@ function init(instance) {
     self.updateClassProgress()
   }
 
-  instance.refreshClasses = function() {
-    instance.loadDayClasses()
-    if (instance.updateStatus && typeof instance.updateStatus === 'function') {
-      instance.updateStatus()
-    }
-  }
-
   instance.updateClassProgress = function() {
     var self = instance
     var classes = self.currentClasses
     var now = new Date()
     var nowMinutes = now.getHours() * 60 + now.getMinutes()
+    var ongoing = "rgba(126,200,227,0.2)"
+    var done = "rgba(74,138,154,0.25)"
     for (var i = 0; i < classes.length; i++) {
       var course = classes[i]
       var parts = course.time.split("-")
@@ -83,55 +66,39 @@ function init(instance) {
         course.progressColor = "transparent"
       } else if (nowMinutes >= endMin) {
         course.progress = 100
-        course.progressColor = "rgba(74,138,154,0.25)"
+        course.progressColor = done
       } else {
         var total = endMin - startMin
         var elapsed = nowMinutes - startMin
         course.progress = Math.round((elapsed / total) * 100)
-        course.progressColor = "rgba(126,200,227,0.2)"
+        course.progressColor = ongoing
       }
     }
   }
 
-  instance.startProgressTimer = function() {
-    if (instance._progressTimer) clearInterval(instance._progressTimer)
-    instance._progressTimer = setInterval(function() {
-      instance.updateClassProgress()
-    }, 60000)
-  }
+  instance.currentScheduleName = "课程表1"
 
-  instance.stopProgressTimer = function() {
-    if (instance._progressTimer) {
-      clearInterval(instance._progressTimer)
-      instance._progressTimer = null
-    }
-  }
+  weekStore.getCurrentScheduleIndex(function(idx) {
+    weekStore.getScheduleNames(function(names) {
+      if (names && idx < names.length) {
+        instance.currentScheduleName = names[idx]
+      } else {
+        instance.currentScheduleName = "课程表" + (idx + 1)
+      }
+      console.log("[class-list module] schedule: " + instance.currentScheduleName)
+    })
+  })
 
   instance.openScheduleManager = function() {
     var router = require("@system.router")
     router.push({ uri: "/pages/schedule-manager" })
   }
 
-  instance.goToClassDetail = function(course) {
-    var router = require("@system.router")
-    var storage = require("@system.storage")
-    storage.set({
-      key: "detail_classId",
-      value: String(course.id),
-      success: function() {
-        storage.set({
-          key: "detail_day",
-          value: instance.currentDay,
-          success: function() { router.push({ uri: "/pages/detail" }) },
-          fail: function() { router.push({ uri: "/pages/detail" }) }
-        })
-      },
-      fail: function() { router.push({ uri: "/pages/detail" }) }
-    })
-  }
-
-  console.log("[class-list] init OK")
+  console.log("[class-list module] init OK, classList + weekIndicator ready")
 }
 
-module.exports = { init: init }
-console.log("[class-list] loaded")
+module.exports = {
+  init: init
+}
+
+console.log("[class-list module] loaded successfully")

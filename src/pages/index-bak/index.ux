@@ -45,18 +45,14 @@
     </div>
 
     <scroll class="class-list" scroll-y="{{true}}">
-      <div if="{{ isLoading }}" class="empty-card">
-        <text class="empty-text" style="color: {{ theme.textMuted }}">加载中...</text>
-      </div>
-      <div for="{{ currentClasses }}" class="class-card-wrapper" else>
-        <div class="class-card" onclick="goToClassDetail($item)" style="background-color: {{ theme.card }}">
+      <div for="{{ currentClasses }}" class="class-card-wrapper">
+        <div class="class-card" style="background-color: {{ theme.card }}">
           <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
           <div class="progress-bg" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
           <div class="class-content">
             <div class="class-time">
               <text class="class-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-              <text class="class-teacher" if="{{ $item.teacher }}" style="color: {{ theme.textSecondary }}">{{ $item.teacher }}</text>
-              <text class="class-time-text" style="color: {{ theme.textMuted }}">{{ $item.time }}</text>
+              <text class="class-time-text" style="color: {{ theme.textSecondary }}">{{ $item.time }}</text>
             </div>
             <div class="class-info">
               <text class="class-location" if="{{ $item.location }}" style="color: {{ theme.accent }}">{{ $item.location }}</text>
@@ -67,22 +63,22 @@
         </div>
       </div>
 
-      <div if="{{ !isLoading && currentClasses.length === 0 }}" class="empty-card">
+      <div if="{{ currentClasses.length === 0 }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
       </div>
     </scroll>
 
     <div class="quick-add" if="{{ showQuickAdd }}" style="background-color: {{ theme.card }}">
-      <text class="quick-add-title" onclick="quickAdd.toggle" style="color: {{ theme.accent }}">快速添加 {{ quickAdd.expanded ? '▲' : '▼' }}</text>
-      <scroll class="quick-add-scroll" scroll-x="{{true}}" if="{{ quickAdd.expanded && quickAdd.courseNames.length > 0 && !quickAdd.disabled }}">
+      <text class="quick-add-title" onclick="toggleQuickAdd" style="color: {{ theme.accent }}">快速添加 {{ quickAddExpanded ? '▲' : '▼' }}</text>
+      <scroll class="quick-add-scroll" scroll-x="{{true}}" if="{{ quickAddExpanded && quickCourseNames.length > 0 && !quickAddDisabled }}">
         <div class="quick-add-list">
-          <div for="{{ quickAdd.courseNames }}" class="quick-add-item" onclick="quickAdd.addCourse($item)" style="background-color: {{ theme.cardLight }}">
+          <div for="{{ quickCourseNames }}" class="quick-add-item" style="background-color: {{ theme.cardLight }}">
             <text class="quick-add-name" style="color: {{ theme.text }}">{{ $item }}</text>
           </div>
         </div>
       </scroll>
-      <text class="quick-add-empty" if="{{ quickAdd.expanded && quickAdd.disabled }}" style="color: {{ theme.textMuted }}">今天课程已排满</text>
-      <text class="quick-add-empty" if="{{ quickAdd.expanded && !quickAdd.disabled && quickAdd.courseNames.length === 0 }}" style="color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
+      <text class="quick-add-empty" if="{{ quickAddExpanded && quickAddDisabled }}" style="color: {{ theme.textMuted }}">今天课程已排满</text>
+      <text class="quick-add-empty" if="{{ quickAddExpanded && !quickAddDisabled && quickCourseNames.length === 0 }}" style="color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
     </div>
 
     <div class="bottom-buttons">
@@ -100,17 +96,16 @@
 import router from "@system.router"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
+var pinHelper = require("../../data/pin-helper.js")
 
 var modules = {}
 var moduleNames = [
-  { key: "clock" },
-  { key: "quickAdd" },
-  { key: "dayNav" },
-  { key: "statusBar" },
-  { key: "customContent" },
-  { key: "pinnedPages" },
-  { key: "bottomButtons" },
-  { key: "classList" }
+  { key: "clock", text: "clock" },
+  { key: "dayNav", text: "dayNav" },
+  { key: "statusBar", text: "statusBar" },
+  { key: "customContent", text: "customContent" },
+  { key: "pinnedPages", text: "pinnedPages" },
+  { key: "classList", text: "classList" }
 ]
 
 function loadModule(key, mod) {
@@ -122,19 +117,16 @@ function loadModule(key, mod) {
 }
 
 loadModule("clock", require("./modules/clock.js"))
-loadModule("quickAdd", require("./modules/quick-add.js"))
 loadModule("dayNav", require("./modules/day-nav.js"))
 loadModule("statusBar", require("./modules/status-bar.js"))
 loadModule("customContent", require("./modules/custom-content.js"))
 loadModule("pinnedPages", require("./modules/pinned-pages.js"))
-loadModule("bottomButtons", require("./modules/bottom-buttons.js"))
 loadModule("classList", require("./modules/class-list.js"))
 
 export default {
   private: {
-    isLoading: true,
     currentTime: "",
-    currentDay: "星期日",
+    currentDay: "Sunday",
     currentDayIndex: 0,
     statusTag: "",
     statusMainText: "",
@@ -148,15 +140,11 @@ export default {
     hasPinned: false,
     currentClasses: [],
     schedule: [],
-    quickAdd: {
-      expanded: false,
-      courseNames: [],
-      disabled: false,
-      time: "",
-      toggle: function() {},
-      addCourse: function() {}
-    },
-    currentScheduleName: "课程表1",
+    quickAddExpanded: false,
+    quickCourseNames: [],
+    quickAddDisabled: false,
+    quickAddTime: "",
+    currentScheduleName: "Schedule 1",
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -171,18 +159,18 @@ export default {
   },
 
   onInit() {
-    console.log("[index] onInit start")
     var self = this
-    self.isLoading = true
+    console.log("[index] onInit start")
+
     store.getTheme(function(t) {
       self.theme = t
     })
+
     self.loadHomepageSettings()
 
     database.init(function() {
       database.getAllCourses(function(schedule) {
         self.schedule = schedule
-        self.isLoading = false
         console.log("[index] data loaded, " + schedule.length + " days")
         self.initAllModules()
       })
@@ -193,21 +181,6 @@ export default {
     var self = this
     store.getTheme(function(t) { self.theme = t })
     self.loadHomepageSettings()
-    if (self.loadPinnedPages && typeof self.loadPinnedPages === 'function') {
-      self.loadPinnedPages()
-    }
-    database.getAllCourses(function(schedule) {
-      self.schedule = schedule
-      if (self.refreshClasses && typeof self.refreshClasses === 'function') {
-        self.refreshClasses()
-      }
-    })
-  },
-
-  onDestroy() {
-    if (this.stopClockTimer && typeof this.stopClockTimer === 'function') this.stopClockTimer()
-    if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
-    if (this.stopProgressTimer && typeof this.stopProgressTimer === 'function') this.stopProgressTimer()
   },
 
   loadHomepageSettings() {
@@ -242,16 +215,18 @@ export default {
     if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
       try { self.loadDayClasses() } catch (e) { console.error("[index] loadDayClasses: " + (e.message || e)) }
     }
-    if (self.startProgressTimer && typeof self.startProgressTimer === 'function') {
-      try { self.startProgressTimer() } catch (e) { console.error("[index] startProgressTimer: " + (e.message || e)) }
-    }
     if (self.updateStatus && typeof self.updateStatus === 'function') {
       try { self.updateStatus() } catch (e) { console.error("[index] updateStatus: " + (e.message || e)) }
       if (self.startStatusTimer && typeof self.startStatusTimer === 'function') {
         try { self.startStatusTimer() } catch (e) { console.error("[index] startStatusTimer: " + (e.message || e)) }
       }
     }
-    console.log("[index] initAllModules done")
+    console.log("[index] onInit done")
+  },
+
+  onDestroy() {
+    if (this.stopClockTimer && typeof this.stopClockTimer === 'function') this.stopClockTimer()
+    if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
   },
 
   goBack() {
@@ -280,6 +255,10 @@ export default {
     this.currentDay = dayNames[tomorrowIdx]
     if (this.loadDayClasses && typeof this.loadDayClasses === 'function') this.loadDayClasses()
     if (this.updateStatus && typeof this.updateStatus === 'function') this.updateStatus()
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("Home", "/pages/index")
   }
 }
 </script>
@@ -451,11 +430,6 @@ export default {
 .class-name {
   font-size: 22px;
   font-weight: bold;
-  margin-bottom: 2px;
-}
-
-.class-teacher {
-  font-size: 16px;
   margin-bottom: 2px;
 }
 

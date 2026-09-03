@@ -1,7 +1,5 @@
 console.log("[quick-add] loading...")
 
-var database = require("../../../data/database.js")
-
 function init(instance) {
   instance.quickAdd = {
     expanded: false,
@@ -42,7 +40,8 @@ function init(instance) {
       var self = instance
       var time = self.quickAdd.calcNext()
       if (self.quickAdd.disabled) return
-      var course = {
+      var database = require("../../../data/database.js")
+      database.insertCourse({
         id: String(Date.now()),
         name: courseName,
         time: time,
@@ -50,15 +49,13 @@ function init(instance) {
         teacher: "",
         location: "",
         notes: ""
-      }
-      database.insertCourse(course, function(err) {
+      }, function(err) {
         if (err) {
           console.error("[quick-add] insert failed: " + err)
           return
         }
-        console.log("[quick-add] added: " + courseName)
         self.loadDayClasses()
-        if (self.quickAdd.loadPreset) self.quickAdd.loadPreset()
+        self.quickAdd.loadPreset()
         self.quickAdd.time = self.quickAdd.calcNext()
       })
     },
@@ -71,7 +68,7 @@ function init(instance) {
       for (var i = 0; i < classes.length; i++) {
         var parts = classes[i].time.split("-")
         if (parts.length < 2) continue
-        var endMin = self.quickAdd._parseTime(parts[1].trim())
+        var endMin = _parseTime(parts[1].trim())
         if (endMin > lastEndMin) lastEndMin = endMin
       }
       var startMin = lastEndMin > 0 ? lastEndMin + 10 : 8 * 60
@@ -83,17 +80,19 @@ function init(instance) {
       var endMin = startMin + 45
       if (endMin > 24 * 60) endMin = 24 * 60
       self.quickAdd.disabled = false
-      return self.quickAdd._fmt(startMin) + " - " + self.quickAdd._fmt(endMin)
-    },
-    _fmt: function(minutes) {
-      var h = Math.floor(minutes / 60)
-      var m = minutes % 60
-      return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m
-    },
-    _parseTime: function(timeStr) {
-      var parts = timeStr.split(":")
-      return parseInt(parts[0]) * 60 + parseInt(parts[1])
+      return _fmt(startMin) + " - " + _fmt(endMin)
     }
+  }
+
+  function _fmt(minutes) {
+    var h = Math.floor(minutes / 60)
+    var m = minutes % 60
+    return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m
+  }
+
+  function _parseTime(timeStr) {
+    var parts = timeStr.split(":")
+    return parseInt(parts[0]) * 60 + parseInt(parts[1])
   }
 
   console.log("[quick-add] init OK")
