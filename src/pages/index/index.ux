@@ -100,8 +100,7 @@ var pinHelper = require("../../data/pin-helper.js")
 
 var modules = {}
 var moduleNames = [
-  { key: "clock", text: "clock" },
-  { key: "dayNav", text: "dayNav" },
+  { key: "clockDaynav", text: "clockDaynav" },
   { key: "statusBar", text: "statusBar" },
   { key: "customContent", text: "customContent" },
   { key: "pinnedPages", text: "pinnedPages" },
@@ -119,8 +118,7 @@ function loadModule(key, mod) {
   }
 }
 
-loadModule("clock", require("./modules/clock.js"))
-loadModule("dayNav", require("./modules/day-nav.js"))
+loadModule("clockDaynav", require("./modules/clock-daynav.js"))
 loadModule("statusBar", require("./modules/status-bar.js"))
 loadModule("customContent", require("./modules/custom-content.js"))
 loadModule("pinnedPages", require("./modules/pinned-pages.js"))
