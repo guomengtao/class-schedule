@@ -97,6 +97,7 @@ import router from "@system.router"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 var pinHelper = require("../../data/pin-helper.js")
+var storage = require("@system.storage")
 
 var modules = {}
 var moduleNames = [
