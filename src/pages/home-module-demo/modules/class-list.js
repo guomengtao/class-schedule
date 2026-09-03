@@ -8,7 +8,6 @@ function parseTime(timeStr) {
 function init(instance) {
   console.log("[class-list module] init called")
   instance.currentClasses = []
-  instance.schedule = []
 
   instance.loadDayClasses = function() {
     var self = instance
