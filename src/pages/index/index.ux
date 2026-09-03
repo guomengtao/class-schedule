@@ -17,7 +17,10 @@ var moduleNames = [
   { key: "js4" },
   { key: "js5" },
   { key: "js6" },
-  { key: "js7" }
+  { key: "js7" },
+  { key: "js8" },
+  { key: "js9" },
+  { key: "js10" }
 ]
 
 function loadModule(key, mod) {
@@ -35,6 +38,9 @@ loadModule("js4", require("./modules/js4.js"))
 loadModule("js5", require("./modules/js5.js"))
 loadModule("js6", require("./modules/js6.js"))
 loadModule("js7", require("./modules/js7.js"))
+loadModule("js8", require("./modules/js8.js"))
+loadModule("js9", require("./modules/js9.js"))
+loadModule("js10", require("./modules/js10.js"))
 
 export default {
   private: {
