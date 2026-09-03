@@ -35,6 +35,18 @@
       <text class="custom-content-text" style="{{ customContentStyle }}; color: {{ theme.text }}">{{ customContent }}</text>
     </div>
 
+    <div class="pinned-bar" if="{{ hasPinned }}" style="background-color: {{ theme.cardLight }}">
+      <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
+      <div class="pinned-content">
+        <text class="pinned-hint" style="color: {{ theme.textMuted }}; font-size: 11px;">📌 已固定页面，点击可快速访问</text>
+        <div class="pinned-row">
+          <div for="{{ pinnedPages }}" class="pinned-item" onclick="openPinnedPage($item.uri)" style="background-color: {{ theme.card }}">
+            <text class="pinned-text" style="color: {{ theme.accent }}">{{ $item.name }}</text>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <scroll class="class-list" scroll-y="{{true}}" scroll-top="{{ scrollListTop }}">
       <div for="{{ currentClasses }}" class="class-card-wrapper">
         <div class="class-card" onclick="openDetail($item.id)" style="background-color: {{ theme.card }}">
@@ -82,8 +94,8 @@
     </div>
 
     <div class="debug-body" style="flex: 1; justify-content: center; align-items: center;">
-      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 13</text>
-      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">模板: +CustomContentBar</text>
+      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 14（最终）</text>
+      <text class="debug-hint" style="color: #00ff88; font-size: 16px; margin-top: 10px;">模板: +PinnedBar, 全部模块已恢复!</text>
     </div>
   </div>
 </template>
