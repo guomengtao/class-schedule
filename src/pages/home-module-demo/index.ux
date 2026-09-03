@@ -5,7 +5,7 @@
       <text class="title" style="color: {{ theme.text }}">首页模块版</text>
     </div>
 
-    <text class="desc" style="color: {{ theme.textSecondary }}">加载 {{ moduleCount }} 个模块，逐个还原老版本首页功能</text>
+    <text class="desc" style="color: {{ theme.textSecondary }}">加载 {{ moduleCount }} 个模块，还原老版本首页全部功能</text>
 
     <text class="section-label" style="color: {{ theme.accent }}">模块 1: clock.js</text>
     <div class="card {{ status1 === 'ok' ? 'card-ok' : 'card-fail' }}" style="background-color: {{ theme.card }}">
@@ -13,7 +13,6 @@
       <text class="card-value" style="color: {{ theme.accent }}">{{ moduleText1 }}</text>
       <text class="card-status {{ status1 === 'ok' ? 'status-ok' : 'status-fail' }}">{{ status1 === 'ok' ? '✓' : '✗' }}</text>
     </div>
-
     <div if="{{ status1 === 'ok' }}" class="clock-display" style="background-color: {{ theme.card }}">
       <text class="clock-icon" style="color: {{ theme.textMuted }}">🕐</text>
       <text class="clock-time" style="color: {{ theme.text }}">{{ currentTime }}</text>
@@ -27,15 +26,131 @@
       <text class="card-value" style="color: {{ theme.accent }}">{{ moduleText2 }}</text>
       <text class="card-status {{ status2 === 'ok' ? 'status-ok' : 'status-fail' }}">{{ status2 === 'ok' ? '✓' : '✗' }}</text>
     </div>
-
     <div if="{{ status2 === 'ok' }}" class="day-nav-display" style="background-color: {{ theme.card }}">
-      <input class="day-nav-btn" type="button" value="◀" onclick="prevDay" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+      <input class="dn-btn" type="button" value="◀" onclick="prevDay" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
       <text class="day-title" style="color: {{ theme.text }}">{{ currentDay }}</text>
-      <input class="day-nav-btn" type="button" value="▶" onclick="nextDay" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+      <input class="dn-btn" type="button" value="▶" onclick="nextDay" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
     </div>
-
     <div if="{{ status2 === 'ok' }}" class="day-nav-quick" style="background-color: {{ theme.card }}">
       <input class="quick-btn" type="button" value="今" onclick="goToToday" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+    </div>
+
+    <div class="module-divider" style="background-color: {{ theme.borderLight }}"></div>
+
+    <text class="section-label" style="color: {{ theme.accent }}">模块 3: status-bar.js</text>
+    <div class="card {{ status3 === 'ok' ? 'card-ok' : 'card-fail' }}" style="background-color: {{ theme.card }}">
+      <text class="card-label" style="color: {{ theme.textMuted }}">status-bar.js</text>
+      <text class="card-value" style="color: {{ theme.accent }}">{{ moduleText3 }}</text>
+      <text class="card-status {{ status3 === 'ok' ? 'status-ok' : 'status-fail' }}">{{ status3 === 'ok' ? '✓' : '✗' }}</text>
+    </div>
+    <div if="{{ status3 === 'ok' }}" class="status-display" style="background-color: {{ theme.card }}">
+      <text class="status-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
+      <text class="status-main" style="color: {{ theme.text }}">{{ statusMainText }}</text>
+      <text class="status-time" if="{{ statusTimeText }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
+    </div>
+
+    <div class="module-divider" style="background-color: {{ theme.borderLight }}"></div>
+
+    <text class="section-label" style="color: {{ theme.accent }}">模块 4: custom-content.js</text>
+    <div class="card {{ status4 === 'ok' ? 'card-ok' : 'card-fail' }}" style="background-color: {{ theme.card }}">
+      <text class="card-label" style="color: {{ theme.textMuted }}">custom-content.js</text>
+      <text class="card-value" style="color: {{ theme.accent }}">{{ moduleText4 }}</text>
+      <text class="card-status {{ status4 === 'ok' ? 'status-ok' : 'status-fail' }}">{{ status4 === 'ok' ? '✓' : '✗' }}</text>
+    </div>
+    <div if="{{ status4 === 'ok' }}" class="content-display" style="background-color: {{ theme.card }}">
+      <text if="{{ showCustomContent && customContent }}" class="custom-text" style="color: {{ theme.text }}">{{ customContent }}</text>
+      <text if="{{ !showCustomContent || !customContent }}" class="custom-empty" style="color: {{ theme.textMuted }}">未设置自定义内容</text>
+    </div>
+
+    <div class="module-divider" style="background-color: {{ theme.borderLight }}"></div>
+
+    <text class="section-label" style="color: {{ theme.accent }}">模块 5: pinned-pages.js</text>
+    <div class="card {{ status5 === 'ok' ? 'card-ok' : 'card-fail' }}" style="background-color: {{ theme.card }}">
+      <text class="card-label" style="color: {{ theme.textMuted }}">pinned-pages.js</text>
+      <text class="card-value" style="color: {{ theme.accent }}">{{ moduleText5 }}</text>
+      <text class="card-status {{ status5 === 'ok' ? 'status-ok' : 'status-fail' }}">{{ status5 === 'ok' ? '✓' : '✗' }}</text>
+    </div>
+    <div if="{{ status5 === 'ok' && hasPinned }}" class="pinned-display" style="background-color: {{ theme.card }}">
+      <div class="pinned-row">
+        <div for="{{ pinnedPages }}" class="pinned-chip" onclick="openPinnedPage($item.uri)" style="background-color: {{ theme.cardLight }}">
+          <text class="pinned-chip-text" style="color: {{ theme.accent }}">{{ $item.name }}</text>
+        </div>
+      </div>
+    </div>
+    <div if="{{ status5 === 'ok' && !hasPinned }}" class="pinned-empty" style="background-color: {{ theme.card }}">
+      <text class="pinned-empty-text" style="color: {{ theme.textMuted }}">暂无已钉页面</text>
+    </div>
+
+    <div class="module-divider" style="background-color: {{ theme.borderLight }}"></div>
+
+    <text class="section-label" style="color: {{ theme.accent }}">模块 6: class-list.js</text>
+    <div class="card {{ status6 === 'ok' ? 'card-ok' : 'card-fail' }}" style="background-color: {{ theme.card }}">
+      <text class="card-label" style="color: {{ theme.textMuted }}">class-list.js</text>
+      <text class="card-value" style="color: {{ theme.accent }}">{{ moduleText6 }}</text>
+      <text class="card-status {{ status6 === 'ok' ? 'status-ok' : 'status-fail' }}">{{ status6 === 'ok' ? '✓' : '✗' }}</text>
+    </div>
+    <div if="{{ status6 === 'ok' }}" class="class-section">
+      <div if="{{ currentClasses.length === 0 }}" class="class-empty" style="background-color: {{ theme.card }}">
+        <text class="class-empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
+      </div>
+      <div for="{{ currentClasses }}" class="class-card" style="background-color: {{ theme.card }}">
+        <div class="class-left">
+          <text class="class-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+          <text class="class-time" style="color: {{ theme.textSecondary }}">{{ $item.time }}</text>
+        </div>
+        <div class="class-right">
+          <text if="{{ $item.location }}" class="class-location" style="color: {{ theme.accent }}">{{ $item.location }}</text>
+          <text if="{{ $item.progress >= 100 }}" class="class-ended" style="color: {{ theme.textMuted }}">已结束</text>
+          <text if="{{ $item.progress > 0 && $item.progress < 100 }}" class="class-progress" style="color: {{ theme.accent }}">{{ $item.progress }}%</text>
+        </div>
+      </div>
+    </div>
+
+    <div class="module-divider" style="background-color: {{ theme.borderLight }}"></div>
+
+    <text class="section-label" style="color: {{ theme.accent }}">模块 7: quick-add.js</text>
+    <div class="card {{ status7 === 'ok' ? 'card-ok' : 'card-fail' }}" style="background-color: {{ theme.card }}">
+      <text class="card-label" style="color: {{ theme.textMuted }}">quick-add.js</text>
+      <text class="card-value" style="color: {{ theme.accent }}">{{ moduleText7 }}</text>
+      <text class="card-status {{ status7 === 'ok' ? 'status-ok' : 'status-fail' }}">{{ status7 === 'ok' ? '✓' : '✗' }}</text>
+    </div>
+    <div if="{{ status7 === 'ok' }}" class="quick-display" style="background-color: {{ theme.card }}">
+      <text class="quick-toggle" onclick="toggleQuickAdd" style="color: {{ theme.accent }}">快速添加 {{ quickAddExpanded ? '▲' : '▼' }}</text>
+      <div if="{{ quickAddExpanded }}" class="quick-add-list">
+        <text if="{{ quickAddDisabled }}" class="quick-empty" style="color: {{ theme.textMuted }}">今天课程已排满</text>
+        <text if="{{ !quickAddDisabled && quickCourseNames.length === 0 }}" class="quick-empty" style="color: {{ theme.textMuted }}">暂无预设课程</text>
+        <div if="{{ quickCourseNames.length > 0 }}" class="quick-chips">
+          <div for="{{ quickCourseNames }}" class="quick-chip" style="background-color: {{ theme.cardLight }}">
+            <text class="quick-chip-text" style="color: {{ theme.text }}">{{ $item }}</text>
+          </div>
+        </div>
+        <text if="{{ quickAddTime }}" class="quick-time" style="color: {{ theme.textMuted }}">{{ quickAddTime }}</text>
+      </div>
+    </div>
+
+    <div class="module-divider" style="background-color: {{ theme.borderLight }}"></div>
+
+    <text class="section-label" style="color: {{ theme.accent }}">模块 8: bottom-buttons.js</text>
+    <div class="card {{ status8 === 'ok' ? 'card-ok' : 'card-fail' }}" style="background-color: {{ theme.card }}">
+      <text class="card-label" style="color: {{ theme.textMuted }}">bottom-buttons.js</text>
+      <text class="card-value" style="color: {{ theme.accent }}">{{ moduleText8 }}</text>
+      <text class="card-status {{ status8 === 'ok' ? 'status-ok' : 'status-fail' }}">{{ status8 === 'ok' ? '✓' : '✗' }}</text>
+    </div>
+    <div if="{{ status8 === 'ok' }}" class="bottom-display">
+      <input class="add-btn" type="button" value="+ 添加课程" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="set-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+    </div>
+
+    <div class="module-divider" style="background-color: {{ theme.borderLight }}"></div>
+
+    <text class="section-label" style="color: {{ theme.accent }}">模块 9: week-indicator.js</text>
+    <div class="card {{ status9 === 'ok' ? 'card-ok' : 'card-fail' }}" style="background-color: {{ theme.card }}">
+      <text class="card-label" style="color: {{ theme.textMuted }}">week-indicator.js</text>
+      <text class="card-value" style="color: {{ theme.accent }}">{{ moduleText9 }}</text>
+      <text class="card-status {{ status9 === 'ok' ? 'status-ok' : 'status-fail' }}">{{ status9 === 'ok' ? '✓' : '✗' }}</text>
+    </div>
+    <div if="{{ status9 === 'ok' }}" class="week-display" onclick="openScheduleManager" style="background-color: {{ theme.card }}">
+      <text class="week-text" style="color: {{ theme.accent }}">⇄ {{ currentScheduleName }}</text>
     </div>
 
     <div if="{{ hasErrors }}" class="error-panel">
@@ -46,7 +161,7 @@
     </div>
 
     <text class="status-text {{ hasErrors ? 'status-fail' : 'status-ok' }}">
-      {{ hasErrors ? '模块加载失败 ✗' : '2 个模块全部加载成功 ✓' }}
+      {{ hasErrors ? '部分模块加载失败 ✗' : okCount + ' 个模块全部加载成功 ✓' }}
     </text>
 
     <div class="footer-actions">
@@ -58,43 +173,70 @@
 <script>
 import router from "@system.router"
 const store = require("../../data/store.js")
+const database = require("../../data/database.js")
 var pinHelper = require("../../data/pin-helper.js")
 
 var errorList = []
-var module1 = null
-var module2 = null
+var modules = {}
+var moduleNames = [
+  { key: "clock", path: "./modules/clock.js", text: "时钟" },
+  { key: "dayNav", path: "./modules/day-nav.js", text: "日期导航" },
+  { key: "statusBar", path: "./modules/status-bar.js", text: "状态栏" },
+  { key: "customContent", path: "./modules/custom-content.js", text: "自定义内容" },
+  { key: "pinnedPages", path: "./modules/pinned-pages.js", text: "已钉页面" },
+  { key: "classList", path: "./modules/class-list.js", text: "课程列表" },
+  { key: "quickAdd", path: "./modules/quick-add.js", text: "快速添加" },
+  { key: "bottomButtons", path: "./modules/bottom-buttons.js", text: "底部按钮" },
+  { key: "weekIndicator", path: "./modules/week-indicator.js", text: "课程表切换" }
+]
 
 function addError(msg) {
   console.error("[home-module-demo] " + msg)
   errorList.push(msg)
 }
 
-try {
-  console.log("[home-module-demo] requiring clock module...")
-  module1 = require("./modules/clock.js")
-  console.log("[home-module-demo] clock required: " + JSON.stringify(typeof module1))
-} catch (e) {
-  addError("clock.js require 失败: " + (e.message || e))
-}
-
-try {
-  console.log("[home-module-demo] requiring day-nav module...")
-  module2 = require("./modules/day-nav.js")
-  console.log("[home-module-demo] day-nav required: " + JSON.stringify(typeof module2))
-} catch (e) {
-  addError("day-nav.js require 失败: " + (e.message || e))
+for (var i = 0; i < moduleNames.length; i++) {
+  var m = moduleNames[i]
+  try {
+    console.log("[home-module-demo] requiring " + m.key + "...")
+    modules[m.key] = require(m.path)
+    console.log("[home-module-demo] " + m.key + " required: " + JSON.stringify(typeof modules[m.key]))
+  } catch (e) {
+    addError(m.key + " require 失败: " + (e.message || e))
+    modules[m.key] = null
+  }
 }
 
 export default {
   private: {
-    moduleCount: 2,
-    moduleText1: "",
-    status1: "",
-    moduleText2: "",
-    status2: "",
+    moduleCount: 9,
+    okCount: 0,
+    moduleText1: "", status1: "",
+    moduleText2: "", status2: "",
+    moduleText3: "", status3: "",
+    moduleText4: "", status4: "",
+    moduleText5: "", status5: "",
+    moduleText6: "", status6: "",
+    moduleText7: "", status7: "",
+    moduleText8: "", status8: "",
+    moduleText9: "", status9: "",
     currentTime: "",
     currentDay: "星期日",
     currentDayIndex: 0,
+    statusTag: "暂无",
+    statusMainText: "",
+    statusTimeText: "",
+    showCustomContent: false,
+    customContent: "",
+    pinnedPages: [],
+    hasPinned: false,
+    currentClasses: [],
+    schedule: [],
+    quickAddExpanded: false,
+    quickCourseNames: [],
+    quickAddDisabled: false,
+    quickAddTime: "",
+    currentScheduleName: "课程表1",
     hasErrors: false,
     errorList: [],
     theme: {
@@ -128,49 +270,58 @@ export default {
       self.theme = t
     })
 
-    if (module1 && module1.init) {
-      try {
-        module1.init(self)
-        self.status1 = "ok"
-        self.moduleText1 = "时钟"
-        console.log("[home-module-demo] clock init OK")
-      } catch (e) {
-        addError("clock.init 失败: " + (e.message || e))
-        self.status1 = "fail"
-        self.moduleText1 = "错误"
-      }
-    } else {
-      addError("clock 未加载或无 init 方法")
-      self.status1 = "fail"
-      self.moduleText1 = "未加载"
-    }
+    database.init(function() {
+      database.getAllCourses(function(schedule) {
+        self.schedule = schedule
+        console.log("[home-module-demo] data loaded, " + schedule.length + " days")
+        self.initAllModules()
+      })
+    })
+  },
 
-    if (module2 && module2.init) {
-      try {
-        module2.init(self)
-        self.status2 = "ok"
-        self.moduleText2 = "日期导航"
-        console.log("[home-module-demo] day-nav init OK")
-      } catch (e) {
-        addError("day-nav.init 失败: " + (e.message || e))
-        self.status2 = "fail"
-        self.moduleText2 = "错误"
+  initAllModules() {
+    var self = this
+    var ok = 0
+    for (var i = 0; i < moduleNames.length; i++) {
+      var m = moduleNames[i]
+      var mod = modules[m.key]
+      var statusKey = "status" + (i + 1)
+      var textKey = "moduleText" + (i + 1)
+      if (mod && mod.init) {
+        try {
+          mod.init(self)
+          self[statusKey] = "ok"
+          self[textKey] = m.text
+          ok++
+          console.log("[home-module-demo] " + m.key + " init OK")
+        } catch (e) {
+          addError(m.key + ".init 失败: " + (e.message || e))
+          self[statusKey] = "fail"
+          self[textKey] = "错误"
+        }
+      } else {
+        addError(m.key + " 未加载或无 init 方法")
+        self[statusKey] = "fail"
+        self[textKey] = "未加载"
       }
-    } else {
-      addError("day-nav 未加载或无 init 方法")
-      self.status2 = "fail"
-      self.moduleText2 = "未加载"
     }
-
+    self.okCount = ok
     self.errorList = errorList
     self.hasErrors = errorList.length > 0
-    console.log("[home-module-demo] onInit done, errors: " + errorList.length)
+
+    if (self.loadDayClasses) {
+      self.loadDayClasses()
+    }
+    if (self.updateStatus) {
+      self.updateStatus()
+      if (self.startStatusTimer) self.startStatusTimer()
+    }
+    console.log("[home-module-demo] onInit done, ok=" + ok + ", errors=" + errorList.length)
   },
 
   onDestroy() {
-    if (this.stopClockTimer) {
-      this.stopClockTimer()
-    }
+    if (this.stopClockTimer) this.stopClockTimer()
+    if (this.stopStatusTimer) this.stopStatusTimer()
   },
 
   goBack() {
@@ -233,8 +384,8 @@ export default {
 .card {
   flex-direction: row;
   align-items: center;
-  padding: 16px;
-  margin-bottom: 12px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
   border-radius: 10px;
 }
 
@@ -250,11 +401,11 @@ export default {
 
 .card-label {
   font-size: 14px;
-  width: 100px;
+  width: 110px;
 }
 
 .card-value {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
   flex: 1;
 }
@@ -277,18 +428,18 @@ export default {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  margin-bottom: 12px;
+  padding: 16px;
+  margin-bottom: 8px;
   border-radius: 10px;
 }
 
 .clock-icon {
-  font-size: 28px;
-  margin-right: 12px;
+  font-size: 24px;
+  margin-right: 10px;
 }
 
 .clock-time {
-  font-size: 36px;
+  font-size: 32px;
   font-weight: bold;
 }
 
@@ -296,39 +447,262 @@ export default {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  margin-bottom: 8px;
+  padding: 10px 16px;
+  margin-bottom: 6px;
   border-radius: 10px;
 }
 
-.day-nav-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
-  font-size: 18px;
+.dn-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  font-size: 16px;
   text-align: center;
 }
 
 .day-title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: bold;
 }
 
 .day-nav-quick {
   flex-direction: row;
   justify-content: center;
-  padding: 8px 16px;
-  margin-bottom: 12px;
+  padding: 8px;
+  margin-bottom: 8px;
   border-radius: 10px;
 }
 
 .quick-btn {
-  width: 50px;
-  height: 40px;
+  width: 44px;
+  height: 36px;
   border-radius: 10px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: bold;
   text-align: center;
+}
+
+.status-display {
+  flex-direction: row;
+  align-items: center;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+}
+
+.status-tag {
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: bold;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.status-main {
+  font-size: 15px;
+  flex: 1;
+}
+
+.status-time {
+  font-size: 14px;
+  font-weight: bold;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.content-display {
+  padding: 14px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.custom-text {
+  font-size: 15px;
+  text-align: center;
+}
+
+.custom-empty {
+  font-size: 13px;
+}
+
+.pinned-display {
+  flex-direction: column;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+}
+
+.pinned-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.pinned-chip {
+  padding: 6px 12px;
+  border-radius: 8px;
+  margin-right: 8px;
+  margin-bottom: 6px;
+}
+
+.pinned-chip-text {
+  font-size: 13px;
+}
+
+.pinned-empty {
+  padding: 14px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.pinned-empty-text {
+  font-size: 13px;
+}
+
+.class-section {
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.class-empty {
+  padding: 14px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.class-empty-text {
+  font-size: 14px;
+}
+
+.class-card {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+}
+
+.class-left {
+  flex-direction: column;
+  flex: 1;
+}
+
+.class-name {
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+.class-time {
+  font-size: 12px;
+}
+
+.class-right {
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.class-location {
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.class-ended {
+  font-size: 12px;
+}
+
+.class-progress {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.quick-display {
+  flex-direction: column;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+}
+
+.quick-toggle {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.quick-add-list {
+  flex-direction: column;
+}
+
+.quick-empty {
+  font-size: 12px;
+  padding: 4px 0;
+}
+
+.quick-chips {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.quick-chip {
+  padding: 6px 12px;
+  border-radius: 8px;
+  margin-right: 8px;
+  margin-bottom: 4px;
+}
+
+.quick-chip-text {
+  font-size: 13px;
+}
+
+.quick-time {
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.bottom-display {
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.add-btn {
+  flex: 1;
+  height: 42px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+  margin-right: 8px;
+}
+
+.set-btn {
+  width: 80px;
+  height: 42px;
+  border-radius: 10px;
+  font-size: 15px;
+  text-align: center;
+}
+
+.week-display {
+  padding: 14px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.week-text {
+  font-size: 15px;
+  font-weight: bold;
 }
 
 .error-panel {
