@@ -1,11 +1,11 @@
 <template>
   <div class="debug-page" style="background-color: #1a1a2e">
     <div class="debug-header">
-      <text class="debug-title" style="color: #7ec8e3">白屏排查测试 - Step 1</text>
+      <text class="debug-title" style="color: #7ec8e3">白屏排查测试 - Step 2</text>
     </div>
     <div class="debug-body">
       <text class="debug-ok" style="color: #00ff88">✅ 页面主体正常渲染</text>
-      <text class="debug-hint" style="color: #888899">imports 已加回：router, vibrator, prompt, device, store, database</text>
+      <text class="debug-hint" style="color: #888899">private 数据定义已加回</text>
     </div>
   </div>
 </template>
@@ -17,18 +17,87 @@ import prompt from "@system.prompt"
 import device from "@system.device"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
+var pinHelper = require("../../data/pin-helper.js")
+
+const dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+
+function parseTime(timeStr) {
+  var parts = timeStr.split(":")
+  var hours = parseInt(parts[0]) || 0
+  var minutes = parseInt(parts[1]) || 0
+  return hours * 60 + minutes
+}
+
+function getRealTodayIndex() {
+  return new Date().getDay()
+}
 
 export default {
   private: {
-    test: "hello"
+    currentDay: "星期日",
+    currentWeek: 1,
+    currentScheduleName: "课程表1",
+    currentDayIndex: 0,
+    currentClasses: [],
+    schedule: [],
+    nextId: 50,
+    fontScale: 1.0,
+    dayTitleStyle: "",
+    weekTextStyle: "",
+    nameStyle: "",
+    btnTextStyle: "",
+    customContentStyle: "",
+    scrollListTop: 0,
+    upperTouchStartX: 0,
+    upperTouchStartY: 0,
+    isActive: true,
+    currentClass: null,
+    nextClass: null,
+    upcomingClass: null,
+    upcomingClassDay: "",
+    statusTimer: null,
+    progressTimer: null,
+    clockTimer: null,
+    currentTime: "",
+    _lastRemindedId: null,
+    remindSettings: { enabled: true, minutes: 5 },
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      progressOngoing: 'rgba(126,200,227,0.2)',
+      progressDone: 'rgba(74,138,154,0.25)'
+    },
+    showQuickAdd: true,
+    showTime: true,
+    showStatusBar: true,
+    showCustomContent: false,
+    customContent: "",
+    timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false },
+    quickCourseNames: [],
+    quickAddTime: "",
+    quickAddExpanded: false,
+    quickAddDisabled: false,
+    isToday: true,
+    statusTag: "暂无",
+    statusMainText: "",
+    statusTimeText: "",
+    presetCourses: [],
+    isCapsule: false,
+    isNarrowScreen: false,
+    pinnedPages: [],
+    hasPinned: false
   },
+
   onInit() {
-    console.log("[INDEX-DEBUG-STEP1] onInit executed")
-    console.log("[INDEX-DEBUG-STEP1] store keys:", Object.keys(store))
-    console.log("[INDEX-DEBUG-STEP1] database keys:", Object.keys(database))
+    console.log("[INDEX-DEBUG-STEP2] onInit executed")
   },
   onShow() {
-    console.log("[INDEX-DEBUG-STEP1] onShow executed")
+    console.log("[INDEX-DEBUG-STEP2] onShow executed")
   }
 }
 </script>
