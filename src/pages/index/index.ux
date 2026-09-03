@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <text class="hello">hello step1</text>
+    <text class="hello">hello step2</text>
   </div>
 </template>
 
@@ -9,6 +9,37 @@ import router from "@system.router"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 var pinHelper = require("../../data/pin-helper.js")
+
+var modules = {}
+var moduleNames = [
+  { key: "clock", text: "clock" },
+  { key: "dayNav", text: "dayNav" },
+  { key: "statusBar", text: "statusBar" },
+  { key: "customContent", text: "customContent" },
+  { key: "pinnedPages", text: "pinnedPages" },
+  { key: "classList", text: "classList" },
+  { key: "quickAdd", text: "quickAdd" },
+  { key: "bottomButtons", text: "bottomButtons" },
+  { key: "weekIndicator", text: "weekIndicator" }
+]
+
+function loadModule(key, mod) {
+  if (mod && mod.init) {
+    modules[key] = mod
+  } else {
+    modules[key] = null
+  }
+}
+
+loadModule("clock", require("../home-pro/modules/clock.js"))
+loadModule("dayNav", require("../home-pro/modules/day-nav.js"))
+loadModule("statusBar", require("../home-pro/modules/status-bar.js"))
+loadModule("customContent", require("../home-pro/modules/custom-content.js"))
+loadModule("pinnedPages", require("../home-pro/modules/pinned-pages.js"))
+loadModule("classList", require("../home-pro/modules/class-list.js"))
+loadModule("quickAdd", require("../home-pro/modules/quick-add.js"))
+loadModule("bottomButtons", require("../home-pro/modules/bottom-buttons.js"))
+loadModule("weekIndicator", require("../home-pro/modules/week-indicator.js"))
 
 export default {
   private: {
@@ -46,7 +77,105 @@ export default {
   },
 
   onInit() {
-    console.log("[index] step1 onInit")
+    var self = this
+    console.log("[index] step2 onInit start")
+
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+
+    self.loadHomepageSettings()
+
+    database.init(function() {
+      database.getAllCourses(function(schedule) {
+        self.schedule = schedule
+        console.log("[index] step2 data loaded, " + schedule.length + " days")
+        self.initAllModules()
+      })
+    })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+    self.loadHomepageSettings()
+  },
+
+  loadHomepageSettings() {
+    var self = this
+    store.getHomepageSettings(function(settings) {
+      self.showTime = settings.showTime !== false
+      self.showQuickAdd = settings.showQuickAdd !== false
+      self.showStatusBar = settings.showStatusBar !== false
+      self.showCustomContent = settings.showCustomContent || false
+      self.customContent = settings.customContent || ""
+    })
+  },
+
+  initAllModules() {
+    var self = this
+    for (var i = 0; i < moduleNames.length; i++) {
+      var m = moduleNames[i]
+      var mod = modules[m.key]
+      if (mod && mod.init) {
+        try {
+          mod.init(self)
+          console.log("[index] step2 " + m.key + " init OK")
+        } catch (e) {
+          console.error("[index] step2 " + m.key + ".init failed: " + (e.message || e))
+        }
+      }
+    }
+
+    if (self.loadDayClasses) {
+      self.loadDayClasses()
+    }
+    if (self.updateStatus) {
+      self.updateStatus()
+      if (self.startStatusTimer) self.startStatusTimer()
+    }
+    console.log("[index] step2 onInit done")
+  },
+
+  onDestroy() {
+    if (this.stopClockTimer) this.stopClockTimer()
+    if (this.stopStatusTimer) this.stopStatusTimer()
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  goToWeekView() {
+    var storage = require("@system.storage")
+    store.getCurrentScheduleIndex(function(idx) {
+      storage.set({
+        key: "weekview_index",
+        value: String(idx),
+        success: function() {
+          router.push({ uri: "/pages/week-view" })
+        },
+        fail: function() {
+          router.push({ uri: "/pages/week-view" })
+        }
+      })
+    })
+  },
+
+  goToTomorrow() {
+    var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+    var todayIdx = new Date().getDay()
+    var tomorrowIdx = todayIdx + 1
+    if (tomorrowIdx >= dayNames.length) tomorrowIdx = 0
+    if (this.currentDayIndex === tomorrowIdx) return
+    this.currentDayIndex = tomorrowIdx
+    this.currentDay = dayNames[tomorrowIdx]
+    this.loadDayClasses()
+    this.updateStatus()
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("Home", "/pages/index")
   }
 }
 </script>
