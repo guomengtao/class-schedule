@@ -52,6 +52,10 @@ function init(instance) {
     var self = instance
     self.quickAddTime = "test"
   }
+
+  instance.loadPresetCourses = function() {
+    console.log("loadPresetCourses defined")
+  }
 }
 
 module.exports = {
