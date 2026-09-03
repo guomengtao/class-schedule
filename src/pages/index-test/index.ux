@@ -1,0 +1,32 @@
+<template>
+  <div style="background-color: #1a1a2e; padding: 44px 8px; min-height: 100%;">
+    <text style="color: white; font-size: 24px;">hello test 6 methods</text>
+  </div>
+</template>
+
+<script>
+var modules = {}
+
+function loadModule(key, mod) {
+  if (mod && mod.init) {
+    modules[key] = mod
+  }
+}
+
+loadModule("test", require("./test-module.js"))
+
+export default {
+  private: {},
+
+  onInit() {
+    var self = this
+    console.log("[index-test] onInit start")
+    var mod = modules["test"]
+    if (mod && mod.init) {
+      mod.init(self)
+      console.log("[index-test] test module init OK")
+    }
+    console.log("[index-test] onInit done")
+  }
+}
+</script>
