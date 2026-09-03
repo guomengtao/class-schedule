@@ -1,6 +1,6 @@
 <template>
   <div style="background-color: #1a1a2e; padding: 44px 8px; min-height: 100%;">
-    <text style="color: white; font-size: 24px;">hello test 6 methods</text>
+    <text style="color: white; font-size: 24px;">hello real modules</text>
   </div>
 </template>
 
@@ -13,7 +13,12 @@ function loadModule(key, mod) {
   }
 }
 
-loadModule("test", require("./test-module.js"))
+loadModule("clock", require("../index/modules/clock.js"))
+loadModule("dayNav", require("../index/modules/day-nav.js"))
+loadModule("statusBar", require("../index/modules/status-bar.js"))
+loadModule("customContent", require("../index/modules/custom-content.js"))
+loadModule("pinnedPages", require("../index/modules/pinned-pages.js"))
+loadModule("classList", require("../index/modules/class-list.js"))
 
 export default {
   private: {},
@@ -21,11 +26,30 @@ export default {
   onInit() {
     var self = this
     console.log("[index-test] onInit start")
-    var mod = modules["test"]
-    if (mod && mod.init) {
-      mod.init(self)
-      console.log("[index-test] test module init OK")
-    }
+    try {
+      var mod = modules["clock"]
+      if (mod && mod.init) { mod.init(self); console.log("[index-test] clock OK") }
+    } catch(e) { console.log("[index-test] clock ERROR: " + e) }
+    try {
+      var mod = modules["dayNav"]
+      if (mod && mod.init) { mod.init(self); console.log("[index-test] dayNav OK") }
+    } catch(e) { console.log("[index-test] dayNav ERROR: " + e) }
+    try {
+      var mod = modules["statusBar"]
+      if (mod && mod.init) { mod.init(self); console.log("[index-test] statusBar OK") }
+    } catch(e) { console.log("[index-test] statusBar ERROR: " + e) }
+    try {
+      var mod = modules["customContent"]
+      if (mod && mod.init) { mod.init(self); console.log("[index-test] customContent OK") }
+    } catch(e) { console.log("[index-test] customContent ERROR: " + e) }
+    try {
+      var mod = modules["pinnedPages"]
+      if (mod && mod.init) { mod.init(self); console.log("[index-test] pinnedPages OK") }
+    } catch(e) { console.log("[index-test] pinnedPages ERROR: " + e) }
+    try {
+      var mod = modules["classList"]
+      if (mod && mod.init) { mod.init(self); console.log("[index-test] classList OK") }
+    } catch(e) { console.log("[index-test] classList ERROR: " + e) }
     console.log("[index-test] onInit done")
   }
 }
