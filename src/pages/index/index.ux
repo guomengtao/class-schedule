@@ -69,16 +69,16 @@
     </scroll>
 
     <div class="quick-add" if="{{ showQuickAdd }}" style="background-color: {{ theme.card }}">
-      <text class="quick-add-title" onclick="toggleQuickAdd" style="color: {{ theme.accent }}">快速添加 {{ quickAddExpanded ? '▲' : '▼' }}</text>
-      <scroll class="quick-add-scroll" scroll-x="{{true}}" if="{{ quickAddExpanded && quickCourseNames.length > 0 && !quickAddDisabled }}">
+      <text class="quick-add-title" onclick="quickAdd.toggle" style="color: {{ theme.accent }}">快速添加 {{ quickAdd.expanded ? '▲' : '▼' }}</text>
+      <scroll class="quick-add-scroll" scroll-x="{{true}}" if="{{ quickAdd.expanded && quickAdd.courseNames.length > 0 && !quickAdd.disabled }}">
         <div class="quick-add-list">
-          <div for="{{ quickCourseNames }}" class="quick-add-item" style="background-color: {{ theme.cardLight }}">
+          <div for="{{ quickAdd.courseNames }}" class="quick-add-item" style="background-color: {{ theme.cardLight }}">
             <text class="quick-add-name" style="color: {{ theme.text }}">{{ $item }}</text>
           </div>
         </div>
       </scroll>
-      <text class="quick-add-empty" if="{{ quickAddExpanded && quickAddDisabled }}" style="color: {{ theme.textMuted }}">今天课程已排满</text>
-      <text class="quick-add-empty" if="{{ quickAddExpanded && !quickAddDisabled && quickCourseNames.length === 0 }}" style="color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
+      <text class="quick-add-empty" if="{{ quickAdd.expanded && quickAdd.disabled }}" style="color: {{ theme.textMuted }}">今天课程已排满</text>
+      <text class="quick-add-empty" if="{{ quickAdd.expanded && !quickAdd.disabled && quickAdd.courseNames.length === 0 }}" style="color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
     </div>
 
     <div class="bottom-buttons">
@@ -141,10 +141,12 @@ export default {
     hasPinned: false,
     currentClasses: [],
     schedule: [],
-    quickAddExpanded: false,
-    quickCourseNames: [],
-    quickAddDisabled: false,
-    quickAddTime: "",
+    quickAdd: {
+      expanded: false,
+      courseNames: [],
+      disabled: false,
+      time: ""
+    },
     currentScheduleName: "Schedule 1",
     theme: {
       bg: '#1a1a2e',
