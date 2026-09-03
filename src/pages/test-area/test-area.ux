@@ -7,18 +7,15 @@
 
     <text class="section-desc" style="color: {{ theme.textSecondary }}">这里是正在开发中的新功能，欢迎体验并反馈建议，你的意见对我们很重要。</text>
 
-    <div class="pinned-section" style="background-color: {{ theme.card }}">
-      <text class="pinned-section-title" style="color: {{ theme.text }}">📌 已钉首页</text>
-      <div class="pinned-list" if="pinnedList.length > 0">
-        <div class="pinned-row" for="{{ pinnedList }}" style="border-bottom-color: {{ theme.borderLight }}">
-          <text class="pinned-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-          <text class="pinned-uri" style="color: {{ theme.textMuted }}; font-size: 11px;">{{ $item.uri }}</text>
+    <div class="menu-section">
+      <div class="menu-item" onclick="openPinnedPages" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">📌 已钉首页</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">查看已固定到首页的页面</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
-      <text class="pinned-empty" if="pinnedList.length === 0" style="color: {{ theme.textMuted }}">暂无已钉首页的页面</text>
-    </div>
 
-    <div class="menu-section">
       <div class="menu-item" onclick="openQrcodeGenerator" style="background-color: {{ theme.card }}">
         <text class="menu-label" style="color: {{ theme.text }}">文字转二维码</text>
         <div class="menu-right">
@@ -126,7 +123,6 @@ var pinHelper = require("../../data/pin-helper.js")
 export default {
   private: {
     devClickCount: 0,
-    pinnedList: [],
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -161,18 +157,14 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-    self.loadPinnedList()
-  },
-
-  loadPinnedList() {
-    var self = this
-    pinHelper.getList(function(list) {
-      self.pinnedList = list
-    })
   },
 
   openQrcodeGenerator() {
     router.push({ uri: "/pages/qrcode-generator" })
+  },
+
+  openPinnedPages() {
+    router.push({ uri: "/pages/pinned-pages" })
   },
 
   openVibrationLab() {
@@ -297,40 +289,6 @@ export default {
   margin-bottom: 12px;
   padding: 0 4px;
   line-height: 1.4;
-}
-
-.pinned-section {
-  border-radius: 10px;
-  padding: 12px 14px;
-  margin-bottom: 12px;
-}
-
-.pinned-section-title {
-  font-size: 15px;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-.pinned-list {
-  flex-direction: column;
-}
-
-.pinned-row {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom-width: 1px;
-}
-
-.pinned-name {
-  font-size: 14px;
-}
-
-.pinned-empty {
-  font-size: 13px;
-  text-align: center;
-  padding: 8px 0;
 }
 
 .menu-section {

@@ -1,0 +1,217 @@
+<template>
+  <div class="pinned-pages-page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="color: {{ theme.text }}">已钉首页</text>
+    </div>
+
+    <text class="section-desc" style="color: {{ theme.textSecondary }}">以下页面已被固定到首页，点击可快速访问。</text>
+
+    <div class="empty-hint" if="pinnedList.length === 0" style="background-color: {{ theme.card }}">
+      <text class="empty-icon">📌</text>
+      <text class="empty-text" style="color: {{ theme.textMuted }}">暂无已钉首页的页面</text>
+      <text class="empty-sub" style="color: {{ theme.textSecondary }}">在实验室页面中点击底部"固定到首页"即可添加</text>
+    </div>
+
+    <div class="pinned-section" if="pinnedList.length > 0">
+      <div class="pinned-item" for="{{ pinnedList }}" style="background-color: {{ theme.card }}">
+        <div class="pinned-info">
+          <text class="pinned-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+          <text class="pinned-uri" style="color: {{ theme.textMuted }}">{{ $item.uri }}</text>
+        </div>
+        <text class="pinned-arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+    </div>
+
+    <div class="footer-actions">
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">📌 固定到首页</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+var pinHelper = require("../../data/pin-helper.js")
+
+export default {
+  private: {
+    pinnedList: [],
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a',
+      keyBg: '#1a1a3e',
+      keyBorder: '#2a2a5a',
+      btnSecondary: '#333355',
+      btnSecondaryText: '#a0a0b0',
+      deleteBg: '#2a1a3e',
+      deleteText: '#e08080',
+      icon: '🔵',
+      progressOngoing: 'rgba(126,200,227,0.2)',
+      progressDone: 'rgba(74,138,154,0.25)'
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    self.loadPinnedList()
+  },
+
+  loadPinnedList() {
+    var self = this
+    pinHelper.getList(function(list) {
+      self.pinnedList = list
+    })
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("已钉首页", "/pages/pinned-pages")
+  }
+}
+</script>
+
+<style>
+.pinned-pages-page {
+  flex-direction: column;
+  padding: 44px 8px 8px 8px;
+  min-height: 100%;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 0;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.section-desc {
+  font-size: 13px;
+  margin-bottom: 12px;
+  padding: 0 4px;
+  line-height: 1.4;
+}
+
+.empty-hint {
+  flex-direction: column;
+  align-items: center;
+  border-radius: 10px;
+  padding: 24px 16px;
+  margin-bottom: 12px;
+}
+
+.empty-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.empty-text {
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.empty-sub {
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.pinned-section {
+  flex-direction: column;
+}
+
+.pinned-item {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 10px;
+  padding: 14px 12px;
+  margin-bottom: 8px;
+}
+
+.pinned-info {
+  flex-direction: column;
+  flex: 1;
+}
+
+.pinned-name {
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+
+.pinned-uri {
+  font-size: 11px;
+}
+
+.pinned-arrow {
+  font-size: 20px;
+  margin-left: 8px;
+}
+
+.footer-actions {
+  flex-direction: row;
+  justify-content: center;
+  padding: 16px 0 8px 0;
+}
+
+.pin-link {
+  text-align: center;
+}
+
+@media (shape: circle) {
+  .pinned-pages-page {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-header {
+    padding: 0 20px;
+    justify-content: center;
+  }
+}
+
+@media (shape: capsule) {
+  .pinned-pages-page {
+    padding: 44px 8px 12px 8px;
+  }
+}
+
+@media (shape: rect) {
+  .pinned-pages-page {
+    padding: 44px 6px 6px 6px;
+  }
+}
+</style>

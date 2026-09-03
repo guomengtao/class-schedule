@@ -142,6 +142,9 @@
       },
       "pages/lab-module-test": {
         "component": "index"
+      },
+      "pages/pinned-pages": {
+        "component": "pinned-pages"
       }
     }
   }
