@@ -23,9 +23,16 @@
       <input class="nav-btn" type="button" value="&#9654;" onclick="nextDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
     </div>
 
+    <div class="status-bar" if="{{ isToday && showStatusBar }}" style="background-color: {{ theme.cardLight }}" onclick="goToStatusClass">
+      <div class="left-accent left-accent-6" style="background-color: {{ theme.accent }}"></div>
+      <text class="status-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
+      <text class="status-middle" style="color: {{ theme.text }}">{{ statusMainText }}</text>
+      <text class="status-right" if="{{ !isCapsule && !isNarrowScreen }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
+    </div>
+
     <div class="debug-body" style="flex: 1; justify-content: center; align-items: center;">
-      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 6</text>
-      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">模板模块: 时钟行 + Header</text>
+      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 7</text>
+      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">模板模块: 时钟行 + Header + StatusBar</text>
     </div>
   </div>
 </template>
