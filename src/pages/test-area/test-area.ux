@@ -16,6 +16,14 @@
         </div>
       </div>
 
+      <div class="menu-item" onclick="openStorageViewer" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">🗄 数据表展示</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">查看本地存储数据表</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+
       <div class="menu-item" onclick="openQrcodeGenerator" style="background-color: {{ theme.card }}">
         <text class="menu-label" style="color: {{ theme.text }}">文字转二维码</text>
         <div class="menu-right">
@@ -165,6 +173,10 @@ export default {
 
   openPinnedPages() {
     router.push({ uri: "/pages/pinned-pages" })
+  },
+
+  openStorageViewer() {
+    router.push({ uri: "/pages/storage-viewer" })
   },
 
   openVibrationLab() {

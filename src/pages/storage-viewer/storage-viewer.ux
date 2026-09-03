@@ -1,0 +1,388 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">数据表展示</text>
+    </div>
+
+    <text class="section-desc" style="color: {{ theme.textSecondary }}">本地存储数据表，点击展开查看最新 5 条数据。</text>
+
+    <div for="{{ tableList }}" class="item" style="background-color: {{ theme.card }}">
+      <div class="row" onclick="toggle($idx)">
+        <div class="row-left">
+          <text class="name" style="color: {{ theme.text }}">{{ $item.key }}</text>
+          <text class="desc" style="color: {{ theme.textMuted }}">{{ $item.desc }}</text>
+        </div>
+        <div class="row-right">
+          <text class="count" style="color: {{ theme.accent }}">{{ $item.totalCount >= 0 ? $item.totalCount + '条' : '...' }}</text>
+          <text class="arrow" style="color: {{ theme.accent }}">{{ expandedIndex === $idx ? '▲' : '▼' }}</text>
+        </div>
+      </div>
+
+      <div class="panel" if="{{ expandedIndex === $idx }}">
+        <div class="panel-divider" style="background-color: {{ theme.borderLight }}"></div>
+        <div class="panel-header" style="border-bottom-color: {{ theme.borderLight }}">
+          <block for="{{ $item.columns }}">
+            <text class="col-header" style="color: {{ theme.accent }}">{{ $item }}</text>
+          </block>
+        </div>
+        <div class="loading-row" if="{{ $item.loading }}" style="color: {{ theme.textMuted }}">
+          <text>加载中...</text>
+        </div>
+        <div class="empty-row" if="{{ !$item.loading && $item.totalCount === 0 }}" style="color: {{ theme.textMuted }}">
+          <text>暂无数据</text>
+        </div>
+        <div class="data-rows" if="{{ !$item.loading && $item.totalCount > 0 }}">
+          <div for="{{ $item.records }}" class="data-row" style="border-bottom-color: {{ theme.borderLight }}">
+            <block for="{{ $item.values }}">
+              <text class="col-value" style="color: {{ theme.textSecondary }}">{{ $item }}</text>
+            </block>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-actions">
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">📌 固定到首页</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+var pinHelper = require("../../data/pin-helper.js")
+var tableDefs = require("../../data/storage-tables.js")
+
+export default {
+  private: {
+    tableList: [],
+    expandedIndex: -1,
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a',
+      keyBg: '#1a1a3e',
+      keyBorder: '#2a2a5a',
+      btnSecondary: '#333355',
+      btnSecondaryText: '#a0a0b0',
+      deleteBg: '#2a1a3e',
+      deleteText: '#e08080',
+      icon: '🔵',
+      progressOngoing: 'rgba(126,200,227,0.2)',
+      progressDone: 'rgba(74,138,154,0.25)'
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    self.initTableList()
+    self.loadAllCounts()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+  },
+
+  initTableList() {
+    var self = this
+    var list = []
+    for (var i = 0; i < tableDefs.length; i++) {
+      list.push({
+        key: tableDefs[i].key,
+        desc: tableDefs[i].desc,
+        columns: tableDefs[i].columns,
+        type: tableDefs[i].type,
+        totalCount: -1,
+        records: [],
+        loading: false
+      })
+    }
+    self.tableList = list
+  },
+
+  loadAllCounts() {
+    var self = this
+    for (var i = 0; i < self.tableList.length; i++) {
+      self.loadCount(i)
+    }
+  },
+
+  loadCount(idx) {
+    var self = this
+    var storage = require("@system.storage")
+    var key = self.tableList[idx].key
+    storage.get({
+      key: key,
+      success: function(data) {
+        var parsed = self.parseData(data)
+        var count = 0
+        if (Array.isArray(parsed)) {
+          count = parsed.length
+        } else if (parsed && typeof parsed === "object") {
+          count = Object.keys(parsed).length
+        } else if (parsed !== null && parsed !== undefined) {
+          count = 1
+        }
+        self.tableList[idx].totalCount = count
+      },
+      fail: function() {
+        self.tableList[idx].totalCount = 0
+      }
+    })
+  },
+
+  toggle(idx) {
+    var self = this
+    if (self.expandedIndex === idx) {
+      self.expandedIndex = -1
+      return
+    }
+    self.expandedIndex = idx
+    self.loadRecords(idx)
+  },
+
+  loadRecords(idx) {
+    var self = this
+    var item = self.tableList[idx]
+    if (item.records && item.records.length > 0) return
+
+    item.loading = true
+    var storage = require("@system.storage")
+    storage.get({
+      key: item.key,
+      success: function(data) {
+        var parsed = self.parseData(data)
+        var records = []
+        if (Array.isArray(parsed)) {
+          var start = Math.max(0, parsed.length - 5)
+          for (var i = start; i < parsed.length; i++) {
+            records.push({ values: self.buildValues(item.columns, parsed[i]) })
+          }
+        } else if (parsed && typeof parsed === "object") {
+          records.push({ values: self.buildValues(item.columns, parsed) })
+        } else if (parsed !== null && parsed !== undefined) {
+          records.push({ values: [self.formatValue(parsed)] })
+        }
+        item.records = records
+        item.loading = false
+      },
+      fail: function() {
+        item.records = []
+        item.loading = false
+      }
+    })
+  },
+
+  buildValues(columns, record) {
+    var values = []
+    for (var i = 0; i < columns.length; i++) {
+      values.push(this.formatValue(record[columns[i]]))
+    }
+    return values
+  },
+
+  parseData(data) {
+    if (!data) return null
+    try {
+      return JSON.parse(data)
+    } catch (e) {
+      return data
+    }
+  },
+
+  formatValue(val) {
+    if (val === null || val === undefined) return "-"
+    if (typeof val === "object") return JSON.stringify(val).substring(0, 30) + "..."
+    var s = String(val)
+    if (s.length > 20) return s.substring(0, 20) + "..."
+    return s
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("数据表展示", "/pages/storage-viewer")
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 8px 8px 8px;
+  min-height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 0;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.section-desc {
+  font-size: 13px;
+  margin-bottom: 12px;
+  padding: 0 4px;
+  line-height: 1.4;
+}
+
+.footer-actions {
+  flex-direction: row;
+  justify-content: center;
+  padding: 16px 0 8px 0;
+}
+
+.pin-link {
+  text-align: center;
+}
+
+.item {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+
+.row {
+  flex-direction: row;
+  align-items: center;
+}
+
+.row-left {
+  flex: 1;
+  flex-direction: column;
+}
+
+.name {
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.desc {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.row-right {
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.count {
+  font-size: 13px;
+  margin-right: 6px;
+}
+
+.arrow {
+  font-size: 12px;
+  padding: 4px;
+}
+
+.panel {
+  flex-direction: column;
+  padding-top: 8px;
+  margin-top: 6px;
+}
+
+.panel-divider {
+  height: 1px;
+  margin-bottom: 8px;
+}
+
+.panel-header {
+  flex-direction: row;
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+  border-bottom-width: 1px;
+}
+
+.col-header {
+  flex: 1;
+  font-size: 11px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.loading-row {
+  padding: 12px 0;
+  text-align: center;
+  font-size: 13px;
+}
+
+.empty-row {
+  padding: 12px 0;
+  text-align: center;
+  font-size: 13px;
+}
+
+.data-rows {
+  flex-direction: column;
+}
+
+.data-row {
+  flex-direction: row;
+  padding: 6px 0;
+  border-bottom-width: 1px;
+}
+
+.col-value {
+  flex: 1;
+  font-size: 11px;
+  text-align: center;
+  padding: 0 2px;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+  .header {
+    padding: 0 20px;
+    justify-content: center;
+  }
+}
+
+@media (shape: capsule) {
+  .page {
+    padding: 44px 8px 12px 8px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 6px 6px 6px;
+  }
+}
+</style>
