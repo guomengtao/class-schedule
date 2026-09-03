@@ -62,9 +62,14 @@
       <text class="quick-add-empty" if="{{ quickAddExpanded && !quickAddDisabled && quickCourseNames.length === 0 }}" style="font-size: 20px; color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
     </div>
 
+    <div class="bottom-buttons">
+      <input class="add-btn" type="button" value="+ 添加课程" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+    </div>
+
     <div class="debug-body" style="flex: 1; justify-content: center; align-items: center;">
-      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 9</text>
-      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">模板模块: +QuickAdd快速添加</text>
+      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 10</text>
+      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">模板模块: +BottomButtons</text>
     </div>
   </div>
 </template>
