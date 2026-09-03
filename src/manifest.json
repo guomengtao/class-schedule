@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.3.160",
-  "versionCode": 290,
+  "versionName": "1.3.161",
+  "versionCode": 291,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -136,6 +136,9 @@
       },
       "pages/accordion-demo": {
         "component": "accordion-demo"
+      },
+      "pages/multi-file-demo": {
+        "component": "index"
       }
     }
   }

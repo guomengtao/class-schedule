@@ -79,6 +79,14 @@
           <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
+
+      <div class="menu-item" onclick="openMultiFileDemo" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">多文件组合 Demo</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">多 JS 模块组合页面测试</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
     </div>
 
     <text class="dev-expire-hint" onclick="onDevExpireClick" style="color: {{ theme.textSecondary }}">丰富欢迎用户提交意见建议</text>
@@ -169,6 +177,10 @@ export default {
 
   openActivationLab() {
     router.push({ uri: "/pages/activation-lab" })
+  },
+
+  openMultiFileDemo() {
+    router.push({ uri: "/pages/multi-file-demo" })
   },
 
   pinToHome() {

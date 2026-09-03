@@ -1,0 +1,51 @@
+<template>
+  <div class="day-nav-btns">
+    <div class="day-nav-circle" onclick="onWeekView" style="background-color: {{ bgColor }}">
+      <text class="day-nav-text" style="color: {{ textColor }}">总</text>
+    </div>
+    <div class="day-nav-circle" onclick="onToday" style="background-color: {{ bgColor }}">
+      <text class="day-nav-text" style="color: {{ textColor }}">今</text>
+    </div>
+    <div class="day-nav-circle" onclick="onTomorrow" style="background-color: {{ bgColor }}">
+      <text class="day-nav-text" style="color: {{ textColor }}">明</text>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  props: ['bgColor', 'textColor'],
+
+  onWeekView() {
+    this.$emit('week-view')
+  },
+
+  onToday() {
+    this.$emit('today')
+  },
+
+  onTomorrow() {
+    this.$emit('tomorrow')
+  }
+}
+</script>
+
+<style>
+.day-nav-btns {
+  flex-direction: row;
+  align-items: center;
+}
+
+.day-nav-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  justify-content: center;
+  align-items: center;
+  margin-left: 6px;
+}
+
+.day-nav-text {
+  font-size: 20px;
+}
+</style>

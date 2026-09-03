@@ -1,0 +1,337 @@
+<template>
+  <div class="demo-page" style="background-color: {{ themeBg }}">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ themeCard }}; color: {{ themeAccent }}" />
+      <text class="header-title" style="color: #ffffff">多文件组合 Demo</text>
+    </div>
+
+    <text class="section-desc" style="color: #888899">此页面由多个独立 JS 模块组合而成，非自定义组件方式</text>
+
+    <div class="theme-section" style="background-color: {{ themeCard }}">
+      <text class="section-label" style="color: #ffffff">主题切换（theme.js 模块）</text>
+      <div class="theme-row">
+        <div for="{{ themeList }}" class="theme-item {{ currentTheme.key === $item.key ? 'active' : '' }}" onclick="onSwitchTheme($item.key)" style="background-color: {{ $item.card }}; border-color: {{ $item.accent }}">
+          <text class="theme-name" style="color: {{ $item.accent }}">{{ $item.name }}</text>
+        </div>
+      </div>
+    </div>
+
+    <div class="counter-section" style="background-color: {{ themeCard }}">
+      <text class="section-label" style="color: #ffffff">计数器（counter.js 模块）</text>
+      <text class="counter-value" style="color: {{ themeAccent }}">{{ counter }}</text>
+      <div class="counter-btns">
+        <input class="counter-btn" type="button" value="−" onclick="onDecrement" style="background-color: {{ themeCard }}; color: {{ themeAccent }}" />
+        <input class="counter-btn" type="button" value="+" onclick="onIncrement" style="background-color: {{ themeCard }}; color: {{ themeAccent }}" />
+        <input class="counter-btn reset-btn" type="button" value="重置" onclick="onReset" style="background-color: {{ themeCard }}; color: #e08080" />
+      </div>
+    </div>
+
+    <div class="list-section" style="background-color: {{ themeCard }}">
+      <text class="section-label" style="color: #ffffff">动态列表（list.js 模块）</text>
+      <div class="list-header">
+        <input class="list-btn" type="button" value="+ 添加" onclick="onAddItem" style="background-color: {{ themeAccent }}; color: {{ themeBg }}" />
+        <input class="list-btn" type="button" value="清空" onclick="onClearAll" style="background-color: {{ themeCard }}; color: #e08080" />
+      </div>
+      <scroll class="list-scroll" scroll-y="{{true}}">
+        <div for="{{ demoItems }}" class="list-item" style="background-color: {{ themeBg }}">
+          <div class="list-item-left">
+            <text class="list-item-name" style="color: #ffffff">{{ $item.name }}</text>
+            <text class="list-item-time" style="color: #888899">{{ $item.time }}</text>
+          </div>
+          <input class="list-delete-btn" type="button" value="✕" onclick="onRemoveItem($item.id)" style="background-color: transparent; color: #e08080" />
+        </div>
+        <div if="{{ demoItems.length === 0 }}" class="list-empty">
+          <text class="list-empty-text" style="color: #555566">列表为空，点击"添加"按钮</text>
+        </div>
+      </scroll>
+    </div>
+
+    <div class="info-section" style="background-color: {{ themeCard }}">
+      <text class="info-title" style="color: {{ themeAccent }}">模块文件结构</text>
+      <text class="info-text" style="color: #888899">src/pages/multi-file-demo/</text>
+      <text class="info-text" style="color: #888899">  ├── index.ux</text>
+      <text class="info-text" style="color: #888899">  └── modules/</text>
+      <text class="info-text" style="color: #888899">      ├── counter.js</text>
+      <text class="info-text" style="color: #888899">      ├── list.js</text>
+      <text class="info-text" style="color: #888899">      └── theme.js</text>
+    </div>
+
+    <div class="footer-actions">
+      <text class="pin-link" onclick="pinToHome" style="color: #555566; font-size: 13px;">📌 固定到首页</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+var pinHelper = require("../../data/pin-helper.js")
+
+var counterModule = require("./modules/counter.js")
+var listModule = require("./modules/list.js")
+var themeModule = require("./modules/theme.js")
+
+export default {
+  private: {
+    counter: 0,
+    themeList: [],
+    currentTheme: {},
+    themeBg: "",
+    themeCard: "",
+    themeAccent: "",
+    demoItems: []
+  },
+
+  onInit() {
+    var self = this
+    themeModule.init(self)
+    counterModule.init(self)
+    listModule.init(self)
+  },
+
+  onShow() {
+    var self = this
+    counterModule.init(self)
+    listModule.init(self)
+  },
+
+  onSwitchTheme(key) {
+    themeModule.switchTheme(this, key)
+  },
+
+  onIncrement() {
+    counterModule.increment(this)
+  },
+
+  onDecrement() {
+    counterModule.decrement(this)
+  },
+
+  onReset() {
+    counterModule.reset(this)
+  },
+
+  onAddItem() {
+    listModule.addItem(this)
+  },
+
+  onRemoveItem(id) {
+    listModule.removeItem(this, id)
+  },
+
+  onClearAll() {
+    listModule.clearAll(this)
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("多文件组合 Demo", "/pages/multi-file-demo")
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.demo-page {
+  flex-direction: column;
+  padding: 44px 8px 8px 8px;
+  min-height: 100%;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 0;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.section-desc {
+  font-size: 12px;
+  text-align: center;
+  margin-bottom: 12px;
+  padding: 0 8px;
+}
+
+.theme-section {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.section-label {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.theme-row {
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.theme-item {
+  flex: 1;
+  padding: 8px;
+  margin: 0 4px;
+  border-radius: 8px;
+  border-width: 2px;
+  border-color: transparent;
+  justify-content: center;
+  align-items: center;
+}
+
+.theme-item.active {
+  border-width: 2px;
+}
+
+.theme-name {
+  font-size: 13px;
+  text-align: center;
+}
+
+.counter-section {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.counter-value {
+  font-size: 48px;
+  font-weight: bold;
+  margin: 8px 0;
+}
+
+.counter-btns {
+  flex-direction: row;
+  align-items: center;
+}
+
+.counter-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  font-size: 24px;
+  text-align: center;
+  margin: 0 8px;
+}
+
+.reset-btn {
+  font-size: 14px;
+  width: 64px;
+}
+
+.list-section {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  flex: 1;
+}
+
+.list-header {
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.list-btn {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.list-scroll {
+  flex: 1;
+  flex-direction: column;
+}
+
+.list-item {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+}
+
+.list-item-left {
+  flex: 1;
+  flex-direction: column;
+}
+
+.list-item-name {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.list-item-time {
+  font-size: 12px;
+}
+
+.list-delete-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  font-size: 16px;
+  text-align: center;
+}
+
+.list-empty {
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.list-empty-text {
+  font-size: 14px;
+}
+
+.info-section {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.info-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.info-text {
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.footer-actions {
+  flex-direction: row;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.pin-link {
+  text-align: center;
+}
+</style>
