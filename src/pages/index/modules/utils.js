@@ -11,19 +11,6 @@ function getRealTodayIndex() {
   return new Date().getDay()
 }
 
-function sortByTime(list) {
-  if (!list || list.length === 0) return list
-  var sorted = list.slice()
-  sorted.sort(function(a, b) {
-    var ta = a.time ? a.time.split(' - ')[0] : '00:00'
-    var tb = b.time ? b.time.split(' - ')[0] : '00:00'
-    var taParts = ta.split(':')
-    var tbParts = tb.split(':')
-    return (parseInt(taParts[0]) * 60 + parseInt(taParts[1])) - (parseInt(tbParts[0]) * 60 + parseInt(tbParts[1]))
-  })
-  return sorted
-}
-
 function formatTime(minutes) {
   var h = Math.floor(minutes / 60)
   var m = minutes % 60
@@ -34,6 +21,5 @@ export default {
   dayNames: dayNames,
   parseTime: parseTime,
   getRealTodayIndex: getRealTodayIndex,
-  sortByTime: sortByTime,
   formatTime: formatTime
 }
