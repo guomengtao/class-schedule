@@ -43,14 +43,6 @@ function init(instance) {
   instance.toggleQuickAdd = function() {
     var self = instance
     self.quickAddExpanded = !self.quickAddExpanded
-    if (self.quickAddExpanded) {
-      self.refreshQuickAdd()
-    }
-  }
-
-  instance.refreshQuickAdd = function() {
-    var self = instance
-    self.quickAddTime = "test"
   }
 
   instance.loadPresetCourses = function() {
