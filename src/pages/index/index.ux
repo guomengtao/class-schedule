@@ -49,9 +49,22 @@
       </div>
     </scroll>
 
+    <div class="quick-add" if="{{ showQuickAdd }}" style="background-color: {{ theme.card }}">
+      <text class="quick-add-title" onclick="toggleQuickAdd" style="{{ weekTextStyle }}; color: {{ theme.accent }}">快速添加 {{ quickAddExpanded ? '▲' : '▼' }}</text>
+      <scroll class="quick-add-scroll" scroll-x="{{true}}" if="{{ quickAddExpanded && quickCourseNames.length > 0 && !quickAddDisabled }}">
+        <div class="quick-add-list">
+          <div for="{{ quickCourseNames }}" class="quick-add-item" onclick="quickAddCourse($item)" style="background-color: {{ theme.cardLight }}">
+            <text class="quick-add-name" style="font-size: 24px; color: {{ theme.text }}">{{ $item }}</text>
+          </div>
+        </div>
+      </scroll>
+      <text class="quick-add-empty" if="{{ quickAddExpanded && quickAddDisabled }}" style="font-size: 20px; color: {{ theme.textMuted }}">今天课程已排满</text>
+      <text class="quick-add-empty" if="{{ quickAddExpanded && !quickAddDisabled && quickCourseNames.length === 0 }}" style="font-size: 20px; color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
+    </div>
+
     <div class="debug-body" style="flex: 1; justify-content: center; align-items: center;">
-      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 8d</text>
-      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">ClassList: for循环+progress+onclick</text>
+      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 9</text>
+      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">模板模块: +QuickAdd快速添加</text>
     </div>
   </div>
 </template>
