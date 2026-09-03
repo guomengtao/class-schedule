@@ -30,6 +30,11 @@
       <text class="status-right" if="{{ !isCapsule && !isNarrowScreen }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
     </div>
 
+    <div class="custom-content-bar" if="{{ showCustomContent && customContent }}" style="background-color: {{ theme.cardLight }}">
+      <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
+      <text class="custom-content-text" style="{{ customContentStyle }}; color: {{ theme.text }}">{{ customContent }}</text>
+    </div>
+
     <scroll class="class-list" scroll-y="{{true}}" scroll-top="{{ scrollListTop }}">
       <div for="{{ currentClasses }}" class="class-card-wrapper">
         <div class="class-card" onclick="openDetail($item.id)" style="background-color: {{ theme.card }}">
@@ -77,8 +82,8 @@
     </div>
 
     <div class="debug-body" style="flex: 1; justify-content: center; align-items: center;">
-      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 12</text>
-      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">模板: +class-info(位置/进度)</text>
+      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 13</text>
+      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">模板: +CustomContentBar</text>
     </div>
   </div>
 </template>
