@@ -1,6 +1,14 @@
 <template>
-  <div style="background-color: #1a1a2e; padding: 44px 8px; min-height: 100%;">
-    <text style="color: white; font-size: 24px;">hello index simple</text>
+  <div class="schedule-page" style="background-color: {{ theme.bg }}">
+    <div class="clock-row" if="{{ showTime }}">
+      <text class="clock-text" style="color: {{ theme.textSecondary }}">{{ currentTime }}</text>
+    </div>
+
+    <div class="header">
+      <input class="nav-btn" type="button" value="&#9664;" onclick="prevDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="day-title" style="color: {{ theme.text }}">{{ currentDay }}</text>
+      <input class="nav-btn" type="button" value="&#9654;" onclick="nextDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+    </div>
   </div>
 </template>
 
