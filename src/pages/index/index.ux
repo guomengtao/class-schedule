@@ -1,11 +1,11 @@
 <template>
   <div class="debug-page" style="background-color: #1a1a2e">
     <div class="debug-header">
-      <text class="debug-title" style="color: #7ec8e3">白屏排查测试 - Step 2</text>
+      <text class="debug-title" style="color: #7ec8e3">白屏排查测试 - Step 3</text>
     </div>
     <div class="debug-body">
       <text class="debug-ok" style="color: #00ff88">✅ 页面主体正常渲染</text>
-      <text class="debug-hint" style="color: #888899">private 数据定义已加回</text>
+      <text class="debug-hint" style="color: #888899">完整脚本逻辑已加回（所有方法+onInit）</text>
     </div>
   </div>
 </template>
@@ -93,11 +93,779 @@ export default {
     hasPinned: false
   },
 
-  onInit() {
-    console.log("[INDEX-DEBUG-STEP2] onInit executed")
+  sortByTime: function(list) {
+    if (!list || list.length === 0) return list
+    var sorted = list.slice()
+    sorted.sort(function(a, b) {
+      var ta = a.time ? a.time.split(' - ')[0] : '00:00'
+      var tb = b.time ? b.time.split(' - ')[0] : '00:00'
+      var taParts = ta.split(':')
+      var tbParts = tb.split(':')
+      return (parseInt(taParts[0]) * 60 + parseInt(taParts[1])) - (parseInt(tbParts[0]) * 60 + parseInt(tbParts[1]))
+    })
+    return sorted
   },
+
+  onInit() {
+    console.log("[INDEX] onInit")
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    database.init(function() {
+      database.getAllCourses(function(schedule) {
+        self.schedule = schedule
+        self.loadDayClasses()
+        self.updateStatus()
+        self.startStatusTimer()
+      })
+    })
+    this.currentDayIndex = getRealTodayIndex()
+    this.currentDay = dayNames[this.currentDayIndex]
+    var storage = require("@system.storage")
+    storage.get({
+      key: "index_nextId",
+      success: function(val) {
+        self.nextId = parseInt(val) || 50
+      },
+      fail: function() {
+        self.nextId = 50
+      }
+    })
+    store.getScaleSafe(function(scale) {
+      self.fontScale = scale
+      self.applyFontScale()
+    })
+    store.getCurrentScheduleIndex(function(idx) {
+      self.currentWeek = idx + 1
+    })
+    store.getRemindSettings(function(settings) {
+      self.remindSettings = settings
+    })
+    store.getHomepageSettings(function(settings) {
+      self.showQuickAdd = settings.showQuickAdd !== false
+      self.showTime = settings.showTime !== false
+      self.showStatusBar = settings.showStatusBar !== false
+      self.showCustomContent = settings.showCustomContent || false
+      self.customContent = settings.customContent || ""
+      self.timeFormat = settings.timeFormat || { year: false, month: false, day: false, hour: true, minute: true, second: true }
+    })
+    this.applyFontScale()
+    this.startClockTimer()
+    this.detectScreen()
+    this.loadPinnedPages()
+  },
+
+  detectScreen() {
+    var self = this
+    try {
+      device.getInfo({
+        success: function(ret) {
+          var shape = ret.screenShape || ""
+          var width = ret.screenWidth || 0
+          self.isCapsule = (shape === "pill-shaped")
+          self.isNarrowScreen = (width > 0 && width < 240)
+        },
+        fail: function(data, code) {
+          console.warn("[INDEX] device.getInfo failed, code=" + code)
+        }
+      })
+    } catch (e) {
+      console.warn("[INDEX] detectScreen exception:", e)
+    }
+  },
+
   onShow() {
-    console.log("[INDEX-DEBUG-STEP2] onShow executed")
+    this.isActive = true
+    this.startClockTimer()
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    store.getScaleSafe(function(scale) {
+      self.fontScale = scale
+      self.applyFontScale()
+    })
+    store.getCurrentScheduleIndex(function(idx) {
+      self.currentWeek = idx + 1
+      store.getScheduleNames(function(names) {
+        if (names && idx < names.length) {
+          self.currentScheduleName = names[idx]
+        }
+      })
+    })
+    store.getRemindSettings(function(settings) {
+      self.remindSettings = settings
+    })
+    store.getHomepageSettings(function(settings) {
+      self.showQuickAdd = settings.showQuickAdd !== false
+      self.showTime = settings.showTime !== false
+      self.showStatusBar = settings.showStatusBar !== false
+      self.showCustomContent = settings.showCustomContent || false
+      self.customContent = settings.customContent || ""
+      self.timeFormat = settings.timeFormat || { year: false, month: false, day: false, hour: true, minute: true, second: true }
+    })
+    this.applyFontScale()
+    database.getAllCourses(function(schedule) {
+      self.schedule = schedule
+      self.loadDayClasses()
+      self.updateStatus()
+      self.startStatusTimer()
+    })
+    this.loadPinnedPages()
+  },
+
+  onHide() {
+    this.isActive = false
+    this.stopStatusTimer()
+    this.stopClockTimer()
+  },
+
+  onDestroy() {
+    this.stopStatusTimer()
+    this.stopClockTimer()
+  },
+
+  applyFontScale() {
+    var s = this.fontScale
+    if (!s || s < 0.5) { s = 1.0 }
+    var styles = store.buildFontStyles(s, {
+      dayTitleStyle: 20,
+      weekTextStyle: 20,
+      nameStyle: 28,
+      btnTextStyle: 14,
+      customContentStyle: 14
+    })
+    this.dayTitleStyle = styles.dayTitleStyle
+    this.weekTextStyle = styles.weekTextStyle
+    this.nameStyle = styles.nameStyle
+    this.btnTextStyle = styles.btnTextStyle
+    this.customContentStyle = styles.customContentStyle
+  },
+
+  loadDayClasses() {
+    var dayData = null
+    for (var i = 0; i < this.schedule.length; i++) {
+      if (this.schedule[i].day === this.currentDay) {
+        dayData = this.schedule[i]
+        break
+      }
+    }
+    var rawClasses = dayData ? dayData.classes : []
+    var classes = []
+    for (var j = 0; j < rawClasses.length; j++) {
+      var src = rawClasses[j]
+      classes.push({
+        id: src.id,
+        name: src.name,
+        time: src.time,
+        location: src.location,
+        progress: 0,
+        progressColor: "transparent"
+      })
+    }
+    this.currentClasses = this.sortByTime(classes)
+    this.isToday = (this.currentDayIndex === getRealTodayIndex())
+    this.scrollListTop = 0
+    this.updateClassProgress()
+    this.updateStatus()
+    this.refreshQuickAdd()
+  },
+
+  updateClassProgress() {
+    var classes = this.currentClasses
+    var realTodayIdx = getRealTodayIndex()
+    if (this.currentDayIndex !== realTodayIdx) {
+      for (var i = 0; i < classes.length; i++) {
+        classes[i].progress = 0
+        classes[i].progressColor = "transparent"
+      }
+      return
+    }
+    var now = new Date()
+    var nowMinutes = now.getHours() * 60 + now.getMinutes()
+    var theme = this.theme
+    var ongoing = theme.progressOngoing || "rgba(126,200,227,0.2)"
+    var done = theme.progressDone || "rgba(74,138,154,0.25)"
+    for (var i = 0; i < classes.length; i++) {
+      var course = classes[i]
+      var parts = course.time.split("-")
+      if (parts.length < 2) {
+        course.progress = 0
+        course.progressColor = "transparent"
+        continue
+      }
+      var startMin = parseTime(parts[0].trim())
+      var endMin = parseTime(parts[1].trim())
+      if (nowMinutes < startMin) {
+        course.progress = 0
+        course.progressColor = "transparent"
+      } else if (nowMinutes >= endMin) {
+        course.progress = 100
+        course.progressColor = done
+      } else {
+        var total = endMin - startMin
+        var elapsed = nowMinutes - startMin
+        course.progress = Math.round((elapsed / total) * 100)
+        course.progressColor = ongoing
+      }
+    }
+  },
+
+  prevDay() {
+    if (this.currentDayIndex > 0) {
+      this.currentDayIndex--
+    } else {
+      this.currentDayIndex = dayNames.length - 1
+    }
+    this.currentDay = dayNames[this.currentDayIndex]
+    this.loadDayClasses()
+  },
+
+  nextDay() {
+    if (this.currentDayIndex < dayNames.length - 1) {
+      this.currentDayIndex++
+    } else {
+      this.currentDayIndex = 0
+    }
+    this.currentDay = dayNames[this.currentDayIndex]
+    this.loadDayClasses()
+  },
+
+  goToToday() {
+    var todayIdx = getRealTodayIndex()
+    if (this.currentDayIndex === todayIdx) return
+    this.currentDayIndex = todayIdx
+    this.currentDay = dayNames[todayIdx]
+    this.loadDayClasses()
+  },
+
+  goToTomorrow() {
+    var todayIdx = getRealTodayIndex()
+    var tomorrowIdx = todayIdx + 1
+    if (tomorrowIdx >= dayNames.length) tomorrowIdx = 0
+    if (this.currentDayIndex === tomorrowIdx) return
+    this.currentDayIndex = tomorrowIdx
+    this.currentDay = dayNames[tomorrowIdx]
+    this.loadDayClasses()
+  },
+
+  goToWeekView() {
+    var storage = require("@system.storage")
+    store.getCurrentScheduleIndex(function(idx) {
+      storage.set({
+        key: "weekview_index",
+        value: String(idx),
+        success: function() {
+          router.push({ uri: "/pages/week-view" })
+        },
+        fail: function() {
+          router.push({ uri: "/pages/week-view" })
+        }
+      })
+    })
+  },
+
+  handleUpperTouchStart(e) {
+    if (!this.isActive || !e || !e.touches || e.touches.length === 0) return
+    this.upperTouchStartX = e.touches[0].clientX
+    this.upperTouchStartY = e.touches[0].clientY
+  },
+
+  goToStatusClass() {
+    if (this.currentClass && this.currentClass.id) {
+      this.openDetailById(this.currentClass.id)
+    } else if (this.nextClass && this.nextClass.id) {
+      this.openDetailById(this.nextClass.id)
+    }
+  },
+
+  openDetailById(id) {
+    var storage = require("@system.storage")
+    storage.set({
+      key: "detail_course_id",
+      value: String(id),
+      success: function() {
+        router.push({ uri: "/pages/detail" })
+      },
+      fail: function() {
+        router.push({ uri: "/pages/detail" })
+      }
+    })
+  },
+
+  handleUpperTouchEnd(e) {
+    if (!this.isActive || !e || !e.changedTouches || e.changedTouches.length === 0) return
+    var endX = e.changedTouches[0].clientX
+    var endY = e.changedTouches[0].clientY
+    var dx = endX - this.upperTouchStartX
+    var dy = endY - this.upperTouchStartY
+    var absDx = dx < 0 ? -dx : dx
+    var absDy = dy < 0 ? -dy : dy
+    if (absDx > 60 && absDx > absDy * 1.5) {
+      if (dx > 0) {
+        this.prevDay()
+      } else {
+        this.nextDay()
+      }
+    }
+  },
+
+  playVibration(style) {
+    try {
+      switch (style) {
+        case "single_short":
+          vibrator.vibrate({ mode: "short" })
+          break
+        case "single_long":
+          vibrator.vibrate({ mode: "long" })
+          break
+        case "double_short":
+          vibrator.vibrate({ mode: "short" })
+          setTimeout(function() { vibrator.vibrate({ mode: "short" }) }, 250)
+          break
+        case "short_long":
+          vibrator.vibrate({ mode: "short" })
+          setTimeout(function() { vibrator.vibrate({ mode: "long" }) }, 300)
+          break
+        case "long_short_long":
+          vibrator.vibrate({ mode: "long" })
+          setTimeout(function() { vibrator.vibrate({ mode: "short" }) }, 350)
+          setTimeout(function() { vibrator.vibrate({ mode: "long" }) }, 600)
+          break
+        case "triple_short":
+          vibrator.vibrate({ mode: "short" })
+          setTimeout(function() { vibrator.vibrate({ mode: "short" }) }, 200)
+          setTimeout(function() { vibrator.vibrate({ mode: "short" }) }, 400)
+          break
+        default:
+          vibrator.vibrate({ mode: "short" })
+      }
+    } catch (e) {
+      console.log("[INDEX] vibration error: " + e)
+    }
+  },
+
+  openDetail(classId) {
+    var storage = require("@system.storage")
+    storage.set({ key: "detail_classId", value: String(classId) })
+    storage.set({ key: "detail_day", value: this.currentDay })
+    router.push({ uri: "/pages/detail" })
+  },
+
+  openAddCoursePage() {
+    var storage = require("@system.storage")
+    var self = this
+    storage.set({
+      key: "add_course_day",
+      value: this.currentDay,
+      success: function() {
+        storage.set({
+          key: "add_course_nextId",
+          value: String(self.nextId),
+          success: function() {
+            router.push({ uri: "/pages/add-course" })
+          },
+          fail: function() {
+            router.push({ uri: "/pages/add-course" })
+          }
+        })
+      },
+      fail: function() {
+        router.push({ uri: "/pages/add-course" })
+      }
+    })
+  },
+
+  openSettings() {
+    router.push({ uri: "/pages/settings" })
+  },
+
+  openScheduleManager() {
+    router.push({ uri: "/pages/schedule-manager" })
+  },
+
+  loadPinnedPages() {
+    var self = this
+    pinHelper.getList(function(list) {
+      self.pinnedPages = list
+      self.hasPinned = list.length > 0
+    })
+  },
+
+  openPinnedPage(uri) {
+    router.push({ uri: uri })
+  },
+
+  makeCourse(name, time, teacher, location) {
+    var self = this
+    var storage = require("@system.storage")
+    var newCourse = {
+      id: String(this.nextId),
+      day: this.currentDay,
+      name: name,
+      time: time,
+      teacher: teacher,
+      location: location,
+      notes: ""
+    }
+    this.nextId++
+    storage.set({
+      key: "index_nextId",
+      value: String(this.nextId)
+    })
+    database.insertCourse(newCourse, function(err) {
+      if (!err) {
+        prompt.showToast({ message: "已添加 " + name })
+        database.getAllCourses(function(schedule) {
+          self.schedule = schedule
+          self.loadDayClasses()
+        })
+      } else {
+        prompt.showToast({ message: "添加失败: " + err })
+      }
+    })
+  },
+
+  quickAddCourse(name) {
+    var teacher = ""
+    var location = ""
+    for (var i = 0; i < this.presetCourses.length; i++) {
+      if (this.presetCourses[i].name === name) {
+        teacher = this.presetCourses[i].teacher || ""
+        location = this.presetCourses[i].location || ""
+        break
+      }
+    }
+    this.makeCourse(name, this.quickAddTime, teacher, location)
+  },
+
+  toggleQuickAdd() {
+    this.quickAddExpanded = !this.quickAddExpanded
+    if (this.quickAddExpanded) {
+      this.refreshQuickAdd()
+    }
+  },
+
+  refreshQuickAdd() {
+    this.loadPresetCourses()
+    this.quickAddTime = this.calcNextTimeSlot()
+  },
+
+  loadPresetCourses() {
+    var self = this
+    var storage = require("@system.storage")
+    var COURSE_KEY = "course_preset_list"
+    try {
+      storage.get({
+        key: COURSE_KEY,
+        success: function(data) {
+          if (data) {
+            try {
+              var list = JSON.parse(data)
+              if (list && list.length > 0) {
+                self.presetCourses = self.sortByTime(list)
+              } else {
+                self.presetCourses = []
+              }
+            } catch (e) {
+              self.presetCourses = []
+            }
+          } else {
+            self.presetCourses = []
+          }
+          var names = []
+          for (var i = 0; i < self.presetCourses.length; i++) {
+            names.push(self.presetCourses[i].name)
+          }
+          self.quickCourseNames = names
+        },
+        fail: function() {
+          self.presetCourses = []
+          self.quickCourseNames = []
+        }
+      })
+    } catch (e) {
+      self.presetCourses = []
+      self.quickCourseNames = []
+    }
+  },
+
+  calcNextTimeSlot() {
+    var now = new Date()
+    var nowMinutes = now.getHours() * 60 + now.getMinutes()
+    var dayClasses = this.currentClasses
+    var lastEndMin = 0
+    for (var i = 0; i < dayClasses.length; i++) {
+      var parts = dayClasses[i].time.split("-")
+      if (parts.length < 2) continue
+      var endMin = parseTime(parts[1].trim())
+      if (endMin > lastEndMin) {
+        lastEndMin = endMin
+      }
+    }
+    var startMin
+    if (lastEndMin > 0) {
+      startMin = lastEndMin + 10
+    } else {
+      startMin = 8 * 60
+    }
+    if (startMin < nowMinutes) {
+      startMin = nowMinutes + 5
+    }
+    var DAY_END = 24 * 60
+    if (startMin >= DAY_END) {
+      this.quickAddDisabled = true
+      return "今天课程已排满"
+    }
+    var endMin = startMin + 45
+    if (endMin > DAY_END) {
+      endMin = DAY_END
+    }
+    this.quickAddDisabled = false
+    return this.formatTime(startMin) + " - " + this.formatTime(endMin)
+  },
+
+  formatTime(minutes) {
+    var h = Math.floor(minutes / 60)
+    var m = minutes % 60
+    return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m
+  },
+
+  startStatusTimer() {
+    this.stopStatusTimer()
+    var self = this
+    this.statusTimer = setInterval(function() {
+      self.updateStatus()
+    }, 60000)
+    this.progressTimer = setInterval(function() {
+      self.updateClassProgress()
+    }, 30000)
+  },
+
+  stopStatusTimer() {
+    if (this.statusTimer) {
+      clearInterval(this.statusTimer)
+      this.statusTimer = null
+    }
+    if (this.progressTimer) {
+      clearInterval(this.progressTimer)
+      this.progressTimer = null
+    }
+  },
+
+  updateClock() {
+    var now = new Date()
+    var tf = this.timeFormat || { year: false, month: false, day: false, hour: true, minute: true, second: false }
+    var dateParts = []
+    var timeParts = []
+    if (tf.year) dateParts.push(now.getFullYear() + "年")
+    if (tf.month) dateParts.push((now.getMonth() + 1) + "月")
+    if (tf.day) dateParts.push(now.getDate() + "日")
+    if (tf.hour) timeParts.push((now.getHours() < 10 ? "0" : "") + now.getHours())
+    if (tf.minute) timeParts.push((now.getMinutes() < 10 ? "0" : "") + now.getMinutes())
+    if (tf.second) timeParts.push((now.getSeconds() < 10 ? "0" : "") + now.getSeconds())
+    var dateStr = dateParts.join(" ")
+    var timeStr = timeParts.join(":")
+    if (dateStr && timeStr) {
+      this.currentTime = dateStr + " " + timeStr
+    } else {
+      this.currentTime = dateStr || timeStr || "00:00"
+    }
+  },
+
+  startClockTimer() {
+    var self = this
+    self.updateClock()
+    this.clockTimer = setInterval(function() {
+      self.updateClock()
+    }, 1000)
+  },
+
+  stopClockTimer() {
+    if (this.clockTimer) {
+      clearInterval(this.clockTimer)
+      this.clockTimer = null
+    }
+  },
+
+  updateStatus() {
+    this.currentClass = null
+    this.nextClass = null
+    this.upcomingClass = null
+    this.upcomingClassDay = ""
+    var now = new Date()
+    var nowMinutes = now.getHours() * 60 + now.getMinutes()
+    var realTodayIdx = getRealTodayIndex()
+    if (this.currentDayIndex === realTodayIdx) {
+      this.computeTodayStatus(nowMinutes)
+    }
+    if (!this.currentClass && !this.nextClass) {
+      this.findUpcomingClass(realTodayIdx)
+    }
+    this.updateStatusLine()
+  },
+
+  updateStatusLine() {
+    if (this.currentClass) {
+      this.statusTag = "上课中"
+      this.statusMainText = this.currentClass.name
+      var remaining = this.currentClass.remaining > 0
+        ? Math.ceil(this.currentClass.remaining) + "min"
+        : "即将结束"
+      this.statusTimeText = remaining
+    } else if (this.nextClass) {
+      this.statusTag = "即将上课"
+      this.statusMainText = this.nextClass.name
+      this.statusTimeText = Math.ceil(this.nextClass.waitMin) + "min后"
+    } else if (this.upcomingClass) {
+      this.statusTag = "有课"
+      this.statusMainText = this.upcomingClass.name + " " + this.upcomingClass.day
+      this.statusTimeText = this.upcomingClass.time
+    } else {
+      this.statusTag = "暂无"
+      this.statusMainText = "今日无课程安排"
+      this.statusTimeText = ""
+    }
+  },
+
+  computeTodayStatus(nowMinutes) {
+    var todayClasses = this.currentClasses
+    if (!todayClasses || todayClasses.length === 0) return
+    var parsed = []
+    for (var i = 0; i < todayClasses.length; i++) {
+      var cls = todayClasses[i]
+      var timeParts = cls.time.split("-")
+      if (timeParts.length < 2) continue
+      var startMin = parseTime(timeParts[0].trim())
+      var endMin = parseTime(timeParts[1].trim())
+      parsed.push({
+        id: cls.id,
+        name: cls.name,
+        startMin: startMin,
+        endMin: endMin,
+        startTime: timeParts[0].trim()
+      })
+    }
+    parsed.sort(function(a, b) { return a.startMin - b.startMin })
+    var current = null
+    var next = null
+    for (var i = 0; i < parsed.length; i++) {
+      var cls = parsed[i]
+      if (nowMinutes >= cls.startMin && nowMinutes <= cls.endMin) {
+        current = {
+          name: cls.name,
+          remaining: Math.round((cls.endMin - nowMinutes) * 10) / 10,
+          id: cls.id
+        }
+        if (i + 1 < parsed.length) {
+          var nxt = parsed[i + 1]
+          next = {
+            name: nxt.name,
+            startTime: nxt.startTime,
+            waitMin: Math.round((nxt.startMin - nowMinutes) * 10) / 10,
+            id: nxt.id
+          }
+        }
+        break
+      }
+      if (nowMinutes < cls.startMin && (!next || cls.startMin < next.startMin)) {
+        next = {
+          name: cls.name,
+          startTime: cls.startTime,
+          waitMin: Math.round((cls.startMin - nowMinutes) * 10) / 10,
+          id: cls.id
+        }
+      }
+    }
+    this.currentClass = current
+    this.nextClass = next
+    if (next && this.remindSettings.enabled) {
+      var remindMinutes = this.remindSettings.minutes || 5
+      if (next.waitMin <= remindMinutes && next.waitMin > 0) {
+        var remindKey = next.id + "_" + this.currentDay
+        if (this._lastRemindedId !== remindKey) {
+          this._lastRemindedId = remindKey
+          var self = this
+          store.getVibrationStyle(function(style) {
+            self.playVibration(style)
+          })
+        }
+      }
+    }
+  },
+
+  findUpcomingClass(realTodayIdx) {
+    if (!this.schedule || this.schedule.length === 0) return
+    var now = new Date()
+    var nowMinutes = now.getHours() * 60 + now.getMinutes()
+    for (var offset = 0; offset < 7; offset++) {
+      var checkIdx = (realTodayIdx + offset) % 7
+      var checkDay = dayNames[checkIdx]
+      var dayData = null
+      for (var d = 0; d < this.schedule.length; d++) {
+        if (this.schedule[d].day === checkDay) { dayData = this.schedule[d]; break }
+      }
+      if (!dayData || !dayData.classes || dayData.classes.length === 0) continue
+      var parsed = []
+      for (var i = 0; i < dayData.classes.length; i++) {
+        var cls = dayData.classes[i]
+        var timeParts = cls.time.split("-")
+        if (timeParts.length < 2) continue
+        var startTimeStr = timeParts[0].trim()
+        var endTimeStr = timeParts[1].trim()
+        parsed.push({
+          name: cls.name,
+          time: cls.time,
+          startTime: startTimeStr,
+          endTime: endTimeStr,
+          startMin: parseTime(startTimeStr),
+          endMin: parseTime(endTimeStr),
+          id: cls.id
+        })
+      }
+      parsed.sort(function(a, b) { return a.startMin - b.startMin })
+      if (offset === 0) {
+        for (var j = 0; j < parsed.length; j++) {
+          if (parsed[j].endMin > nowMinutes) {
+            if (nowMinutes >= parsed[j].startMin) {
+              this.currentClass = {
+                name: parsed[j].name,
+                remaining: Math.round((parsed[j].endMin - nowMinutes) * 10) / 10,
+                id: parsed[j].id
+              }
+              if (j + 1 < parsed.length) {
+                this.nextClass = {
+                  name: parsed[j + 1].name,
+                  startTime: parsed[j + 1].startTime,
+                  waitMin: Math.round((parsed[j + 1].startMin - nowMinutes) * 10) / 10,
+                  id: parsed[j + 1].id
+                }
+              }
+              return
+            }
+            this.nextClass = {
+              name: parsed[j].name,
+              startTime: parsed[j].startTime,
+              waitMin: Math.round((parsed[j].startMin - nowMinutes) * 10) / 10,
+              id: parsed[j].id
+            }
+            return
+          }
+        }
+        continue
+      }
+      if (parsed.length > 0) {
+        this.upcomingClass = {
+          day: checkDay,
+          name: parsed[0].name,
+          time: parsed[0].time,
+          startTime: parsed[0].startTime
+        }
+        this.upcomingClassDay = checkDay
+        return
+      }
+    }
   }
 }
 </script>
