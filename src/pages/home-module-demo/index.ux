@@ -5,16 +5,17 @@
       <text class="title" style="color: {{ theme.text }}">首页模块版</text>
     </div>
 
-    <text class="desc" style="color: {{ theme.textSecondary }}">加载 1 个模块（lab-list.js），展示实验室列表</text>
+    <text class="desc" style="color: {{ theme.textSecondary }}">加载 {{ moduleCount }} 个模块，逐个还原老版本首页功能</text>
 
-    <div class="card {{ status === 'ok' ? 'card-ok' : 'card-fail' }}" style="background-color: {{ theme.card }}">
+    <text class="section-label" style="color: {{ theme.accent }}">模块 1: lab-list.js</text>
+    <div class="card {{ status1 === 'ok' ? 'card-ok' : 'card-fail' }}" style="background-color: {{ theme.card }}">
       <text class="card-label" style="color: {{ theme.textMuted }}">lab-list.js</text>
-      <text class="card-value" style="color: {{ theme.accent }}">{{ moduleText }}</text>
-      <text class="card-status {{ status === 'ok' ? 'status-ok' : 'status-fail' }}">{{ status === 'ok' ? '✓' : '✗' }}</text>
+      <text class="card-value" style="color: {{ theme.accent }}">{{ moduleText1 }}</text>
+      <text class="card-status {{ status1 === 'ok' ? 'status-ok' : 'status-fail' }}">{{ status1 === 'ok' ? '✓' : '✗' }}</text>
     </div>
 
-    <div if="{{ status === 'ok' }}" class="list-section">
-      <text class="list-title" style="color: {{ theme.text }}">模块提供的实验室列表：</text>
+    <div if="{{ status1 === 'ok' }}" class="list-section">
+      <text class="list-title" style="color: {{ theme.text }}">实验室列表：</text>
       <div class="list-item" for="{{ labItems }}" style="background-color: {{ theme.card }}">
         <text class="item-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
         <div class="item-right">
@@ -22,6 +23,20 @@
           <text class="item-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
+    </div>
+
+    <div class="module-divider" style="background-color: {{ theme.borderLight }}"></div>
+
+    <text class="section-label" style="color: {{ theme.accent }}">模块 2: clock.js</text>
+    <div class="card {{ status2 === 'ok' ? 'card-ok' : 'card-fail' }}" style="background-color: {{ theme.card }}">
+      <text class="card-label" style="color: {{ theme.textMuted }}">clock.js</text>
+      <text class="card-value" style="color: {{ theme.accent }}">{{ moduleText2 }}</text>
+      <text class="card-status {{ status2 === 'ok' ? 'status-ok' : 'status-fail' }}">{{ status2 === 'ok' ? '✓' : '✗' }}</text>
+    </div>
+
+    <div if="{{ status2 === 'ok' }}" class="clock-display" style="background-color: {{ theme.card }}">
+      <text class="clock-icon" style="color: {{ theme.textMuted }}">🕐</text>
+      <text class="clock-time" style="color: {{ theme.text }}">{{ currentTime }}</text>
     </div>
 
     <div if="{{ hasErrors }}" class="error-panel">
@@ -32,7 +47,7 @@
     </div>
 
     <text class="status-text {{ hasErrors ? 'status-fail' : 'status-ok' }}">
-      {{ hasErrors ? '模块加载失败 ✗' : '1 个模块加载成功 ✓' }}
+      {{ hasErrors ? '模块加载失败 ✗' : '2 个模块全部加载成功 ✓' }}
     </text>
 
     <div class="footer-actions">
@@ -48,6 +63,7 @@ var pinHelper = require("../../data/pin-helper.js")
 
 var errorList = []
 var module1 = null
+var module2 = null
 
 function addError(msg) {
   console.error("[home-module-demo] " + msg)
@@ -62,11 +78,23 @@ try {
   addError("lab-list.js require 失败: " + (e.message || e))
 }
 
+try {
+  console.log("[home-module-demo] requiring clock module...")
+  module2 = require("./modules/clock.js")
+  console.log("[home-module-demo] clock required: " + JSON.stringify(typeof module2))
+} catch (e) {
+  addError("clock.js require 失败: " + (e.message || e))
+}
+
 export default {
   private: {
-    moduleText: "",
-    status: "",
+    moduleCount: 2,
+    moduleText1: "",
+    status1: "",
+    moduleText2: "",
+    status2: "",
     labItems: [],
+    currentTime: "",
     hasErrors: false,
     errorList: [],
     theme: {
@@ -103,22 +131,46 @@ export default {
     if (module1 && module1.init) {
       try {
         module1.init(self)
-        self.status = "ok"
+        self.status1 = "ok"
+        self.moduleText1 = "实验室列表"
         console.log("[home-module-demo] lab-list init OK")
       } catch (e) {
         addError("lab-list.init 失败: " + (e.message || e))
-        self.status = "fail"
-        self.moduleText = "错误"
+        self.status1 = "fail"
+        self.moduleText1 = "错误"
       }
     } else {
       addError("lab-list 未加载或无 init 方法")
-      self.status = "fail"
-      self.moduleText = "未加载"
+      self.status1 = "fail"
+      self.moduleText1 = "未加载"
+    }
+
+    if (module2 && module2.init) {
+      try {
+        module2.init(self)
+        self.status2 = "ok"
+        self.moduleText2 = "时钟"
+        console.log("[home-module-demo] clock init OK")
+      } catch (e) {
+        addError("clock.init 失败: " + (e.message || e))
+        self.status2 = "fail"
+        self.moduleText2 = "错误"
+      }
+    } else {
+      addError("clock 未加载或无 init 方法")
+      self.status2 = "fail"
+      self.moduleText2 = "未加载"
     }
 
     self.errorList = errorList
     self.hasErrors = errorList.length > 0
     console.log("[home-module-demo] onInit done, errors: " + errorList.length)
+  },
+
+  onDestroy() {
+    if (this.stopClockTimer) {
+      this.stopClockTimer()
+    }
   },
 
   goBack() {
@@ -166,6 +218,18 @@ export default {
   margin-bottom: 16px;
 }
 
+.section-label {
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  padding: 0 4px;
+}
+
+.module-divider {
+  height: 1px;
+  margin: 12px 0;
+}
+
 .card {
   flex-direction: row;
   align-items: center;
@@ -207,6 +271,25 @@ export default {
 
 .status-fail {
   color: #e08080;
+}
+
+.clock-display {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+}
+
+.clock-icon {
+  font-size: 28px;
+  margin-right: 12px;
+}
+
+.clock-time {
+  font-size: 36px;
+  font-weight: bold;
 }
 
 .list-section {
