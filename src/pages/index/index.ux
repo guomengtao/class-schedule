@@ -101,12 +101,10 @@ var pinHelper = require("../../data/pin-helper.js")
 var modules = {}
 var moduleNames = [
   { key: "clockDaynav", text: "clockDaynav" },
-  { key: "statusBar", text: "statusBar" },
-  { key: "customContent", text: "customContent" },
-  { key: "pinnedPages", text: "pinnedPages" },
+  { key: "statusCustom", text: "statusCustom" },
+  { key: "pinnedBottom", text: "pinnedBottom" },
   { key: "classList", text: "classList" },
   { key: "quickAdd", text: "quickAdd" },
-  { key: "bottomButtons", text: "bottomButtons" },
   { key: "weekIndicator", text: "weekIndicator" }
 ]
 
@@ -119,12 +117,10 @@ function loadModule(key, mod) {
 }
 
 loadModule("clockDaynav", require("./modules/clock-daynav.js"))
-loadModule("statusBar", require("./modules/status-bar.js"))
-loadModule("customContent", require("./modules/custom-content.js"))
-loadModule("pinnedPages", require("./modules/pinned-pages.js"))
+loadModule("statusCustom", require("./modules/status-custom.js"))
+loadModule("pinnedBottom", require("./modules/pinned-bottom.js"))
 loadModule("classList", require("./modules/class-list.js"))
 loadModule("quickAdd", require("./modules/quick-add.js"))
-loadModule("bottomButtons", require("./modules/bottom-buttons.js"))
 loadModule("weekIndicator", require("./modules/week-indicator.js"))
 
 export default {
