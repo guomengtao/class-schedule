@@ -1,7 +1,38 @@
-console.log("[quick-add module] loading...")
+function init(instance, deps) {
+  instance.currentTime = ""
+  instance.showTime = true
+  instance.timeFormat = { year: false, month: false, day: false, hour: true, minute: true, second: false }
+  instance._clockTimer = null
 
-function init(instance) {
-  console.log("[quick-add module] init called")
+  instance.startClockTimer = function() {
+    var self = instance
+    self.stopClockTimer()
+    self._clockTimer = setInterval(function() {
+      self.updateClock()
+    }, 1000)
+    self.updateClock()
+  }
+
+  instance.stopClockTimer = function() {
+    if (instance._clockTimer) {
+      clearInterval(instance._clockTimer)
+      instance._clockTimer = null
+    }
+  }
+
+  instance.updateClock = function() {
+    var now = new Date()
+    var h = now.getHours()
+    var m = now.getMinutes()
+    var s = now.getSeconds()
+    var hs = h < 10 ? "0" + h : "" + h
+    var ms = m < 10 ? "0" + m : "" + m
+    var ss = s < 10 ? "0" + s : "" + s
+    instance.currentTime = hs + ":" + ms + ":" + ss
+  }
+
+  instance.startClockTimer()
+
   instance.quickAddExpanded = false
   instance.quickCourseNames = []
   instance.quickAddDisabled = false
@@ -23,8 +54,7 @@ function init(instance) {
 
   instance.loadPresetCourses = function() {
     var self = instance
-    var storage = require("@system.storage")
-    storage.get({
+    deps.storage.get({
       key: "course_preset_list",
       success: function(data) {
         try {
@@ -37,7 +67,6 @@ function init(instance) {
         } catch (e) {
           self.quickCourseNames = []
         }
-        console.log("[quick-add module] loaded " + self.quickCourseNames.length + " presets")
       },
       fail: function() {
         self.quickCourseNames = []
@@ -54,7 +83,7 @@ function init(instance) {
     for (var i = 0; i < classes.length; i++) {
       var parts = classes[i].time.split("-")
       if (parts.length < 2) continue
-      var endMin = parseTime(parts[1].trim())
+      var endMin = parseTimeQuick(parts[1].trim())
       if (endMin > lastEndMin) lastEndMin = endMin
     }
     var startMin = lastEndMin > 0 ? lastEndMin + 10 : 8 * 60
@@ -66,25 +95,19 @@ function init(instance) {
     var endMin = startMin + 45
     if (endMin > 24 * 60) endMin = 24 * 60
     self.quickAddDisabled = false
-    return self.formatTime(startMin) + " - " + self.formatTime(endMin)
+    return self.formatQuickTime(startMin) + " - " + self.formatQuickTime(endMin)
   }
 
-  instance.formatTime = function(minutes) {
+  instance.formatQuickTime = function(minutes) {
     var h = Math.floor(minutes / 60)
     var m = minutes % 60
     return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m
   }
 
-  function parseTime(timeStr) {
+  function parseTimeQuick(timeStr) {
     var parts = timeStr.split(":")
     return parseInt(parts[0]) * 60 + parseInt(parts[1])
   }
-
-  console.log("[quick-add module] init OK")
 }
 
-module.exports = {
-  init: init
-}
-
-console.log("[quick-add module] loaded successfully")
+module.exports = { init: init }

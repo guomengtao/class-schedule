@@ -1,14 +1,9 @@
-console.log("[class-list module] loading...")
-
-var weekStore = require("../../../data/store.js")
-
 function parseTime(timeStr) {
   var parts = timeStr.split(":")
   return parseInt(parts[0]) * 60 + parseInt(parts[1])
 }
 
-function init(instance) {
-  console.log("[class-list module] init called")
+function init(instance, deps) {
   instance.currentClasses = []
 
   instance.loadDayClasses = function() {
@@ -78,27 +73,19 @@ function init(instance) {
 
   instance.currentScheduleName = "课程表1"
 
-  weekStore.getCurrentScheduleIndex(function(idx) {
-    weekStore.getScheduleNames(function(names) {
+  deps.store.getCurrentScheduleIndex(function(idx) {
+    deps.store.getScheduleNames(function(names) {
       if (names && idx < names.length) {
         instance.currentScheduleName = names[idx]
       } else {
         instance.currentScheduleName = "课程表" + (idx + 1)
       }
-      console.log("[class-list module] schedule: " + instance.currentScheduleName)
     })
   })
 
   instance.openScheduleManager = function() {
-    var router = require("@system.router")
-    router.push({ uri: "/pages/schedule-manager" })
+    deps.router.push({ uri: "/pages/schedule-manager" })
   }
-
-  console.log("[class-list module] init OK, classList + weekIndicator ready")
 }
 
-module.exports = {
-  init: init
-}
-
-console.log("[class-list module] loaded successfully")
+module.exports = { init: init }
