@@ -30,9 +30,33 @@
       <text class="status-right" if="{{ !isCapsule && !isNarrowScreen }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
     </div>
 
+    <scroll class="class-list" scroll-y="{{true}}" scroll-top="{{ scrollListTop }}">
+      <div for="{{ currentClasses }}" class="class-card-wrapper">
+        <div class="class-card" onclick="openDetail($item.id)" style="background-color: {{ theme.card }}">
+          <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
+          <div class="progress-bg" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
+          <div class="class-content">
+            <div class="class-time">
+              <text class="class-name" style="{{ nameStyle }}; color: {{ theme.text }}">{{ $item.name }}</text>
+              <text class="class-time-text" style="{{ nameStyle }}; color: {{ theme.textSecondary }}">{{ $item.time }}</text>
+            </div>
+            <div class="class-info">
+              <text class="class-location" if="{{ !isCapsule && !isNarrowScreen }}" style="{{ nameStyle }}; color: {{ theme.accent }}">{{ $item.location }}</text>
+              <text class="class-progress class-ended" if="{{ $item.progress >= 100 && !isCapsule && !isNarrowScreen }}" style="font-size: 24px; color: {{ theme.textMuted }}">已结束</text>
+              <text class="class-progress" if="{{ $item.progress > 0 && $item.progress < 100 }}" style="font-size: 24px; color: {{ theme.textMuted }}">{{ $item.progress }}%</text>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div if="{{ currentClasses.length === 0 }}" class="empty-card">
+        <text class="empty-text" style="{{ nameStyle }}; color: {{ theme.textMuted }}">今天没有课</text>
+      </div>
+    </scroll>
+
     <div class="debug-body" style="flex: 1; justify-content: center; align-items: center;">
-      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 7</text>
-      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">模板模块: 时钟行 + Header + StatusBar</text>
+      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 8</text>
+      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">模板模块: 时钟行 + Header + StatusBar + ClassList</text>
     </div>
   </div>
 </template>
