@@ -32,6 +32,63 @@
       <text class="status-middle" style="color: {{ theme.text }}">{{ statusMainText }}</text>
       <text class="status-right" if="{{ statusTimeText }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
     </div>
+
+    <div class="pinned-bar" if="{{ hasPinned }}" style="background-color: {{ theme.cardLight }}">
+      <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
+      <div class="pinned-content">
+        <div class="pinned-row">
+          <div for="{{ pinnedPages }}" class="pinned-item" onclick="openPinnedPage($item.uri)" style="background-color: {{ theme.card }}">
+            <text class="pinned-text" style="color: {{ theme.accent }}">{{ $item.name }}</text>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <scroll class="class-list" scroll-y="{{true}}">
+      <div for="{{ currentClasses }}" class="class-card-wrapper">
+        <div class="class-card" style="background-color: {{ theme.card }}">
+          <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
+          <div class="progress-bg" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
+          <div class="class-content">
+            <div class="class-time">
+              <text class="class-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+              <text class="class-time-text" style="color: {{ theme.textSecondary }}">{{ $item.time }}</text>
+            </div>
+            <div class="class-info">
+              <text class="class-location" if="{{ $item.location }}" style="color: {{ theme.accent }}">{{ $item.location }}</text>
+              <text class="class-progress" if="{{ $item.progress >= 100 }}" style="color: {{ theme.textMuted }}">已结束</text>
+              <text class="class-progress" if="{{ $item.progress > 0 && $item.progress < 100 }}" style="color: {{ theme.textMuted }}">{{ $item.progress }}%</text>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div if="{{ currentClasses.length === 0 }}" class="empty-card">
+        <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
+      </div>
+    </scroll>
+
+    <div class="quick-add" if="{{ showQuickAdd }}" style="background-color: {{ theme.card }}">
+      <text class="quick-add-title" onclick="quickAdd.toggle" style="color: {{ theme.accent }}">快速添加 {{ quickAdd.expanded ? '▲' : '▼' }}</text>
+      <scroll class="quick-add-scroll" scroll-x="{{true}}" if="{{ quickAdd.expanded && quickAdd.courseNames.length > 0 && !quickAdd.disabled }}">
+        <div class="quick-add-list">
+          <div for="{{ quickAdd.courseNames }}" class="quick-add-item" style="background-color: {{ theme.cardLight }}">
+            <text class="quick-add-name" style="color: {{ theme.text }}">{{ $item }}</text>
+          </div>
+        </div>
+      </scroll>
+      <text class="quick-add-empty" if="{{ quickAdd.expanded && quickAdd.disabled }}" style="color: {{ theme.textMuted }}">今天课程已排满</text>
+      <text class="quick-add-empty" if="{{ quickAdd.expanded && !quickAdd.disabled && quickAdd.courseNames.length === 0 }}" style="color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
+    </div>
+
+    <div class="bottom-buttons">
+      <input class="add-btn" type="button" value="+ 添加课程" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+    </div>
+
+    <div class="week-indicator" onclick="openScheduleManager">
+      <text class="week-text" style="color: {{ theme.accent }}">⇄ {{ currentScheduleName }}</text>
+    </div>
   </div>
 </template>
 
