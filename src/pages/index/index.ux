@@ -92,12 +92,6 @@
     <div class="week-indicator" onclick="openScheduleManager">
       <text class="week-text" style="{{ weekTextStyle }}; color: {{ theme.accent }}">⇄ {{ currentScheduleName }}</text>
     </div>
-
-    <div class="debug-body" style="flex: 1; justify-content: center; align-items: center;">
-      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 14（最终）</text>
-      <text class="debug-hint" style="color: #00ff88; font-size: 16px; margin-top: 10px;">模板: +PinnedBar, 全部模块已恢复!</text>
-    </div>
-  </div>
 </template>
 
 <script>
