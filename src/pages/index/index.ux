@@ -99,6 +99,21 @@ const database = require("../../data/database.js")
 var pinHelper = require("../../data/pin-helper.js")
 var storage = require("@system.storage")
 
+var modules = {}
+function loadModule(key, mod) {
+  if (mod && mod.init) {
+    modules[key] = mod
+  } else {
+    modules[key] = null
+  }
+}
+loadModule("clock", require("./modules/clock.js"))
+loadModule("dayNav", require("./modules/day-nav.js"))
+loadModule("statusBar", require("./modules/status-bar.js"))
+loadModule("customContent", require("./modules/custom-content.js"))
+loadModule("pinnedPages", require("./modules/pinned-pages.js"))
+loadModule("classList", require("./modules/class-list.js"))
+
 export default {
   private: {
     currentTime: "12:00",
@@ -137,7 +152,29 @@ export default {
   },
 
   onInit() {
-    console.log("[index] onInit - no modules")
+    console.log("[index] onInit start")
+    initAllModules()
+  },
+
+  initAllModules() {
+    var self = this
+    var keys = ["clock", "dayNav", "statusBar", "customContent", "pinnedPages", "classList"]
+    console.log("[index] initAllModules start, count=" + keys.length)
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i]
+      var mod = modules[key]
+      if (mod && mod.init) {
+        try {
+          mod.init(self)
+          console.log("[index] " + key + " OK")
+        } catch (e) {
+          console.error("[index] " + key + " FAIL: " + (e.message || e))
+        }
+      } else {
+        console.warn("[index] " + key + " SKIP")
+      }
+    }
+    console.log("[index] initAllModules done")
   }
 }
 </script>
