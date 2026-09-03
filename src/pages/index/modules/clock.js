@@ -41,7 +41,15 @@ function init(instance) {
   instance.quickAddTime = ""
 
   instance.toggleQuickAdd = function() {
-    console.log("toggleQuickAdd clicked")
+    var self = instance
+    self.quickAddExpanded = !self.quickAddExpanded
+    if (self.quickAddExpanded) {
+      self.refreshQuickAdd()
+    }
+  }
+
+  instance.refreshQuickAdd = function() {
+    console.log("refreshQuickAdd called")
   }
 }
 
