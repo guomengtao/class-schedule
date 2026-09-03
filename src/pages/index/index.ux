@@ -157,20 +157,7 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-
-    try {
-      database.init(function() {
-        console.log("[index] database ready")
-        database.getAllCourses(function(schedule) {
-          self.schedule = schedule
-          console.log("[index] data loaded, " + schedule.length + " days")
-          initAllModules()
-        })
-      })
-    } catch (e) {
-      console.error("[index] database.init FAIL: " + (e.message || e))
-      initAllModules()
-    }
+    initAllModules()
   },
 
   initAllModules() {
