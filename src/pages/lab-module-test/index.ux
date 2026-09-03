@@ -7,43 +7,141 @@
 
     <text class="desc">此页面由 3 个独立 JS 模块组合而成</text>
 
-    <div class="card">
-      <text class="card-label">module1.js 输出：</text>
+    <div class="card {{ status1 === 'ok' ? 'card-ok' : 'card-fail' }}">
+      <text class="card-label">module1.js</text>
       <text class="card-value">{{ text1 }}</text>
+      <text class="card-status">{{ status1 === 'ok' ? '✓' : '✗' }}</text>
     </div>
 
-    <div class="card">
-      <text class="card-label">module2.js 输出：</text>
+    <div class="card {{ status2 === 'ok' ? 'card-ok' : 'card-fail' }}">
+      <text class="card-label">module2.js</text>
       <text class="card-value">{{ text2 }}</text>
+      <text class="card-status">{{ status2 === 'ok' ? '✓' : '✗' }}</text>
     </div>
 
-    <div class="card">
-      <text class="card-label">module3.js 输出：</text>
+    <div class="card {{ status3 === 'ok' ? 'card-ok' : 'card-fail' }}">
+      <text class="card-label">module3.js</text>
       <text class="card-value">{{ text3 }}</text>
+      <text class="card-status">{{ status3 === 'ok' ? '✓' : '✗' }}</text>
     </div>
 
-    <text class="status">3 个模块全部加载成功 ✓</text>
+    <div if="{{ hasErrors }}" class="error-panel">
+      <text class="error-title">错误详情（控制台）</text>
+      <div for="{{ errorList }}" class="error-item">
+        <text class="error-text">{{ $item }}</text>
+      </div>
+    </div>
+
+    <text class="status {{ hasErrors ? 'status-fail' : 'status-ok' }}">
+      {{ hasErrors ? '模块加载失败 ✗' : '3 个模块全部加载成功 ✓' }}
+    </text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
 
-var module1 = require("./modules/module1.js")
-var module2 = require("./modules/module2.js")
-var module3 = require("./modules/module3.js")
+var errorList = []
+var module1 = null
+var module2 = null
+var module3 = null
+
+function addError(msg) {
+  console.error("[lab-module-test] " + msg)
+  errorList.push(msg)
+}
+
+try {
+  console.log("[lab-module-test] requiring module1...")
+  module1 = require("./modules/module1.js")
+  console.log("[lab-module-test] module1 required: " + JSON.stringify(typeof module1))
+} catch (e) {
+  addError("module1.js require 失败: " + (e.message || e))
+}
+
+try {
+  console.log("[lab-module-test] requiring module2...")
+  module2 = require("./modules/module2.js")
+  console.log("[lab-module-test] module2 required: " + JSON.stringify(typeof module2))
+} catch (e) {
+  addError("module2.js require 失败: " + (e.message || e))
+}
+
+try {
+  console.log("[lab-module-test] requiring module3...")
+  module3 = require("./modules/module3.js")
+  console.log("[lab-module-test] module3 required: " + JSON.stringify(typeof module3))
+} catch (e) {
+  addError("module3.js require 失败: " + (e.message || e))
+}
 
 export default {
   private: {
     text1: "",
     text2: "",
-    text3: ""
+    text3: "",
+    status1: "",
+    status2: "",
+    status3: "",
+    hasErrors: false,
+    errorList: []
   },
 
   onInit() {
-    module1.init(this)
-    module2.init(this)
-    module3.init(this)
+    console.log("[lab-module-test] onInit start")
+    this.errorList = errorList
+
+    if (module1 && module1.init) {
+      try {
+        module1.init(this)
+        this.status1 = "ok"
+        console.log("[lab-module-test] module1 init OK")
+      } catch (e) {
+        addError("module1.init 失败: " + (e.message || e))
+        this.status1 = "fail"
+        this.text1 = "错误"
+      }
+    } else {
+      addError("module1 未加载或无 init 方法")
+      this.status1 = "fail"
+      this.text1 = "未加载"
+    }
+
+    if (module2 && module2.init) {
+      try {
+        module2.init(this)
+        this.status2 = "ok"
+        console.log("[lab-module-test] module2 init OK")
+      } catch (e) {
+        addError("module2.init 失败: " + (e.message || e))
+        this.status2 = "fail"
+        this.text2 = "错误"
+      }
+    } else {
+      addError("module2 未加载或无 init 方法")
+      this.status2 = "fail"
+      this.text2 = "未加载"
+    }
+
+    if (module3 && module3.init) {
+      try {
+        module3.init(this)
+        this.status3 = "ok"
+        console.log("[lab-module-test] module3 init OK")
+      } catch (e) {
+        addError("module3.init 失败: " + (e.message || e))
+        this.status3 = "fail"
+        this.text3 = "错误"
+      }
+    } else {
+      addError("module3 未加载或无 init 方法")
+      this.status3 = "fail"
+      this.text3 = "未加载"
+    }
+
+    this.errorList = errorList
+    this.hasErrors = errorList.length > 0
+    console.log("[lab-module-test] onInit done, errors: " + errorList.length)
   },
 
   goBack() {
@@ -98,22 +196,81 @@ export default {
   background-color: #16213e;
 }
 
+.card-ok {
+  border-left-width: 4px;
+  border-left-color: #4ecb71;
+}
+
+.card-fail {
+  border-left-width: 4px;
+  border-left-color: #e08080;
+}
+
 .card-label {
   font-size: 16px;
   color: #888899;
-  margin-right: 12px;
+  width: 120px;
 }
 
 .card-value {
   font-size: 24px;
   font-weight: bold;
   color: #7ec8e3;
+  flex: 1;
+}
+
+.card-status {
+  font-size: 20px;
+  width: 30px;
+  text-align: center;
+}
+
+.card-ok .card-status {
+  color: #4ecb71;
+}
+
+.card-fail .card-status {
+  color: #e08080;
+}
+
+.error-panel {
+  flex-direction: column;
+  padding: 16px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background-color: #2a1a1a;
+  border-left-width: 4px;
+  border-left-color: #e08080;
+}
+
+.error-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #e08080;
+  margin-bottom: 8px;
+}
+
+.error-item {
+  padding: 4px 0;
+}
+
+.error-text {
+  font-size: 12px;
+  color: #e0a0a0;
 }
 
 .status {
   font-size: 14px;
-  color: #4ecb71;
   text-align: center;
   margin-top: 16px;
+}
+
+.status-ok {
+  color: #4ecb71;
+}
+
+.status-fail {
+  color: #e08080;
 }
 </style>
