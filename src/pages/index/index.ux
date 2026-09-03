@@ -105,10 +105,18 @@ const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 var pinHelper = require("../../data/pin-helper.js")
 
-var utils = require("./modules/utils.js")
-var dayNames = utils.dayNames
-var parseTime = utils.parseTime
-var getRealTodayIndex = utils.getRealTodayIndex
+const dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+
+function parseTime(timeStr) {
+  var parts = timeStr.split(":")
+  var hours = parseInt(parts[0]) || 0
+  var minutes = parseInt(parts[1]) || 0
+  return hours * 60 + minutes
+}
+
+function getRealTodayIndex() {
+  return new Date().getDay()
+}
 
 export default {
   private: {
@@ -133,10 +141,10 @@ export default {
     nextClass: null,
     upcomingClass: null,
     upcomingClassDay: "",
-    clockTimer: null,
-    currentTime: "",
     statusTimer: null,
     progressTimer: null,
+    clockTimer: null,
+    currentTime: "",
     _lastRemindedId: null,
     remindSettings: { enabled: true, minutes: 5 },
     theme: {
@@ -171,7 +179,18 @@ export default {
     hasPinned: false
   },
 
-  sortByTime: utils.sortByTime,
+  sortByTime: function(list) {
+    if (!list || list.length === 0) return list
+    var sorted = list.slice()
+    sorted.sort(function(a, b) {
+      var ta = a.time ? a.time.split(' - ')[0] : '00:00'
+      var tb = b.time ? b.time.split(' - ')[0] : '00:00'
+      var taParts = ta.split(':')
+      var tbParts = tb.split(':')
+      return (parseInt(taParts[0]) * 60 + parseInt(taParts[1])) - (parseInt(tbParts[0]) * 60 + parseInt(tbParts[1]))
+    })
+    return sorted
+  },
 
   onInit() {
     console.log("[INDEX] onInit")
@@ -218,9 +237,9 @@ export default {
       self.timeFormat = settings.timeFormat || { year: false, month: false, day: false, hour: true, minute: true, second: true }
     })
     this.applyFontScale()
+    this.startClockTimer()
     this.detectScreen()
     this.loadPinnedPages()
-    this.startClockTimer()
   },
 
   detectScreen() {
@@ -244,6 +263,7 @@ export default {
 
   onShow() {
     this.isActive = true
+    this.startClockTimer()
     var self = this
     store.getTheme(function(t) {
       self.theme = t
@@ -279,7 +299,6 @@ export default {
       self.startStatusTimer()
     })
     this.loadPinnedPages()
-    this.startClockTimer()
   },
 
   onHide() {
@@ -693,7 +712,11 @@ export default {
     return this.formatTime(startMin) + " - " + this.formatTime(endMin)
   },
 
-  formatTime: utils.formatTime,
+  formatTime(minutes) {
+    var h = Math.floor(minutes / 60)
+    var m = minutes % 60
+    return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m
+  },
 
   startStatusTimer() {
     this.stopStatusTimer()
@@ -714,6 +737,41 @@ export default {
     if (this.progressTimer) {
       clearInterval(this.progressTimer)
       this.progressTimer = null
+    }
+  },
+
+  updateClock() {
+    var now = new Date()
+    var tf = this.timeFormat || { year: false, month: false, day: false, hour: true, minute: true, second: false }
+    var dateParts = []
+    var timeParts = []
+    if (tf.year) dateParts.push(now.getFullYear() + "年")
+    if (tf.month) dateParts.push((now.getMonth() + 1) + "月")
+    if (tf.day) dateParts.push(now.getDate() + "日")
+    if (tf.hour) timeParts.push((now.getHours() < 10 ? "0" : "") + now.getHours())
+    if (tf.minute) timeParts.push((now.getMinutes() < 10 ? "0" : "") + now.getMinutes())
+    if (tf.second) timeParts.push((now.getSeconds() < 10 ? "0" : "") + now.getSeconds())
+    var dateStr = dateParts.join(" ")
+    var timeStr = timeParts.join(":")
+    if (dateStr && timeStr) {
+      this.currentTime = dateStr + " " + timeStr
+    } else {
+      this.currentTime = dateStr || timeStr || "00:00"
+    }
+  },
+
+  startClockTimer() {
+    var self = this
+    self.updateClock()
+    this.clockTimer = setInterval(function() {
+      self.updateClock()
+    }, 1000)
+  },
+
+  stopClockTimer() {
+    if (this.clockTimer) {
+      clearInterval(this.clockTimer)
+      this.clockTimer = null
     }
   },
 
@@ -894,41 +952,6 @@ export default {
         return
       }
     }
-  },
-
-  updateClock() {
-    var now = new Date()
-    var tf = this.timeFormat || { year: false, month: false, day: false, hour: true, minute: true, second: false }
-    var dateParts = []
-    var timeParts = []
-    if (tf.year) dateParts.push(now.getFullYear() + "年")
-    if (tf.month) dateParts.push((now.getMonth() + 1) + "月")
-    if (tf.day) dateParts.push(now.getDate() + "日")
-    if (tf.hour) timeParts.push((now.getHours() < 10 ? "0" : "") + now.getHours())
-    if (tf.minute) timeParts.push((now.getMinutes() < 10 ? "0" : "") + now.getMinutes())
-    if (tf.second) timeParts.push((now.getSeconds() < 10 ? "0" : "") + now.getSeconds())
-    var dateStr = dateParts.join(" ")
-    var timeStr = timeParts.join(":")
-    if (dateStr && timeStr) {
-      this.currentTime = dateStr + " " + timeStr
-    } else {
-      this.currentTime = dateStr || timeStr || "00:00"
-    }
-  },
-
-  startClockTimer() {
-    var self = this
-    self.updateClock()
-    this.clockTimer = setInterval(function() {
-      self.updateClock()
-    }, 1000)
-  },
-
-  stopClockTimer() {
-    if (this.clockTimer) {
-      clearInterval(this.clockTimer)
-      this.clockTimer = null
-    }
   }
 }
 </script>
@@ -1041,6 +1064,12 @@ export default {
   margin-left: 10px;
   min-width: 50px;
   text-align: right;
+}
+
+.status-time {
+  font-size: 28px;
+  color: #7ec8e3;
+  font-weight: bold;
 }
 
 .custom-content-bar {
