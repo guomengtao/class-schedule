@@ -93,45 +93,14 @@
 </template>
 
 <script>
-import router from "@system.router"
-const store = require("../../data/store.js")
-const database = require("../../data/database.js")
-var pinHelper = require("../../data/pin-helper.js")
-var storage = require("@system.storage")
-
-var modules = {}
-var moduleNames = [
-  { key: "clock", text: "clock" },
-  { key: "dayNav", text: "dayNav" },
-  { key: "statusBar", text: "statusBar" },
-  { key: "customContent", text: "customContent" },
-  { key: "pinnedPages", text: "pinnedPages" },
-  { key: "classList", text: "classList" }
-]
-
-function loadModule(key, mod) {
-  if (mod && mod.init) {
-    modules[key] = mod
-  } else {
-    modules[key] = null
-  }
-}
-
-loadModule("clock", require("./modules/clock.js"))
-loadModule("dayNav", require("./modules/day-nav.js"))
-loadModule("statusBar", require("./modules/status-bar.js"))
-loadModule("customContent", require("./modules/custom-content.js"))
-loadModule("pinnedPages", require("./modules/pinned-pages.js"))
-loadModule("classList", require("./modules/class-list.js"))
-
 export default {
   private: {
-    currentTime: "",
-    currentDay: "Sunday",
-    currentDayIndex: 0,
-    statusTag: "",
-    statusMainText: "",
-    statusTimeText: "",
+    currentTime: "12:00",
+    currentDay: "星期三",
+    currentDayIndex: 3,
+    statusTag: "上课中",
+    statusMainText: "第3节课",
+    statusTimeText: "14:30下课",
     showCustomContent: false,
     customContent: "",
     showTime: true,
@@ -147,7 +116,7 @@ export default {
       disabled: false,
       time: ""
     },
-    currentScheduleName: "Schedule 1",
+    currentScheduleName: "课程表1",
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -162,106 +131,7 @@ export default {
   },
 
   onInit() {
-    var self = this
-    console.log("[index] onInit start")
-
-    store.getTheme(function(t) {
-      self.theme = t
-    })
-
-    self.loadHomepageSettings()
-
-    database.init(function() {
-      database.getAllCourses(function(schedule) {
-        self.schedule = schedule
-        console.log("[index] data loaded, " + schedule.length + " days")
-        self.initAllModules()
-      })
-    })
-  },
-
-  onShow() {
-    var self = this
-    store.getTheme(function(t) { self.theme = t })
-    self.loadHomepageSettings()
-  },
-
-  loadHomepageSettings() {
-    var self = this
-    store.getHomepageSettings(function(settings) {
-      self.showTime = settings.showTime !== false
-      self.showQuickAdd = settings.showQuickAdd !== false
-      self.showStatusBar = settings.showStatusBar !== false
-      self.showCustomContent = settings.showCustomContent || false
-      self.customContent = settings.customContent || ""
-    })
-  },
-
-  initAllModules() {
-    var self = this
-    console.log("[index] starting " + moduleNames.length + " modules...")
-    for (var i = 0; i < moduleNames.length; i++) {
-      var m = moduleNames[i]
-      var mod = modules[m.key]
-      if (mod && mod.init) {
-        try {
-          mod.init(self)
-          console.log("[index] [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " OK")
-        } catch (e) {
-          console.error("[index] [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " FAIL: " + (e.message || e))
-        }
-      } else {
-        console.warn("[index] [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " SKIP")
-      }
-    }
-
-    if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
-      try { self.loadDayClasses() } catch (e) { console.error("[index] loadDayClasses: " + (e.message || e)) }
-    }
-    if (self.updateStatus && typeof self.updateStatus === 'function') {
-      try { self.updateStatus() } catch (e) { console.error("[index] updateStatus: " + (e.message || e)) }
-      if (self.startStatusTimer && typeof self.startStatusTimer === 'function') {
-        try { self.startStatusTimer() } catch (e) { console.error("[index] startStatusTimer: " + (e.message || e)) }
-      }
-    }
-    console.log("[index] onInit done")
-  },
-
-  onDestroy() {
-    if (this.stopClockTimer && typeof this.stopClockTimer === 'function') this.stopClockTimer()
-    if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
-  },
-
-  goBack() {
-    router.back()
-  },
-
-  goToWeekView() {
-    var storage = require("@system.storage")
-    store.getCurrentScheduleIndex(function(idx) {
-      storage.set({
-        key: "weekview_index",
-        value: String(idx),
-        success: function() { router.push({ uri: "/pages/week-view" }) },
-        fail: function() { router.push({ uri: "/pages/week-view" }) }
-      })
-    })
-  },
-
-  goToTomorrow() {
-    var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
-    var todayIdx = new Date().getDay()
-    var tomorrowIdx = todayIdx + 1
-    if (tomorrowIdx >= dayNames.length) tomorrowIdx = 0
-    if (this.currentDayIndex === tomorrowIdx) return
-    this.currentDayIndex = tomorrowIdx
-    this.currentDay = dayNames[tomorrowIdx]
-    if (this.loadDayClasses && typeof this.loadDayClasses === 'function') this.loadDayClasses()
-    if (this.updateStatus && typeof this.updateStatus === 'function') this.updateStatus()
-  },
-
-  pinToHome() {
-    pinHelper.pinPage("Home", "/pages/index")
+    console.log("[index] onInit - no modules")
   }
 }
 </script>
