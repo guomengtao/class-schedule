@@ -63,7 +63,7 @@
     }
   },
   "router": {
-    "entry": "pages/index-test",
+    "entry": "pages/index",
     "pages": {
       "pages/index": {
         "component": "index"
