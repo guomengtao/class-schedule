@@ -127,6 +127,14 @@
           <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
+
+      <div class="menu-item" onclick="openTodayDemo" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">📅 今日课程</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">调用当前课程表今日课程信息</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
     </div>
 
     <text class="dev-expire-hint" onclick="onDevExpireClick" style="color: {{ theme.textSecondary }}">丰富欢迎用户提交意见建议</text>
@@ -241,6 +249,10 @@ export default {
 
   openHomePro() {
     router.push({ uri: "/pages/home-pro" })
+  },
+
+  openTodayDemo() {
+    router.push({ uri: "/pages/today-demo" })
   },
 
   pinToHome() {

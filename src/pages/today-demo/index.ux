@@ -1,0 +1,443 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="&#9664; 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">今日课程</text>
+    </div>
+
+    <text class="subtitle" style="color: {{ theme.textSecondary }}">当前课程表 · {{ currentDay }} · 共 {{ classes.length }} 节课</text>
+
+    <div class="status-bar" style="background-color: {{ theme.cardLight }}">
+      <div class="left-accent" style="background-color: {{ theme.accent }}"></div>
+      <text class="status-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
+      <text class="status-text" style="color: {{ theme.text }}">{{ statusText }}</text>
+    </div>
+
+    <scroll class="class-list" scroll-y="{{true}}">
+      <div for="{{ classes }}" class="class-card-wrapper">
+        <div class="class-card" style="background-color: {{ theme.card }}">
+          <div class="accent" style="background-color: {{ theme.accent }}"></div>
+          <div class="progress-bg" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
+          <div class="class-content">
+            <div class="class-row">
+              <text class="class-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+              <text class="class-time" style="color: {{ theme.textSecondary }}">{{ $item.time }}</text>
+            </div>
+            <div class="class-row">
+              <text class="class-location" if="{{ $item.location }}" style="color: {{ theme.accent }}">{{ $item.location }}</text>
+              <text class="class-teacher" if="{{ $item.teacher }}" style="color: {{ theme.textMuted }}">👤 {{ $item.teacher }}</text>
+              <text class="class-status" if="{{ $item.progress >= 100 }}" style="color: {{ theme.textMuted }}">已结束</text>
+              <text class="class-status" if="{{ $item.progress > 0 && $item.progress < 100 }}" style="color: {{ theme.accent }}">进行中 {{ $item.progress }}%</text>
+              <text class="class-status" if="{{ $item.progress === 0 }}" style="color: {{ theme.textMuted }}">未开始</text>
+            </div>
+            <div class="class-row" if="{{ $item.notes }}">
+              <text class="class-notes" style="color: {{ theme.textMuted }}">📝 {{ $item.notes }}</text>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div if="{{ classes.length === 0 }}" class="empty-card">
+        <text class="empty-icon">📅</text>
+        <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
+        <text class="empty-hint" style="color: {{ theme.textSecondary }}">轻松的一天，好好休息吧</text>
+      </div>
+    </scroll>
+
+    <div class="footer-actions">
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">📌 固定到首页</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+const database = require("../../data/database.js")
+var pinHelper = require("../../data/pin-helper.js")
+
+var dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
+function getRealTodayIndex() {
+  return new Date().getDay()
+}
+
+function parseTime(timeStr) {
+  var parts = timeStr.split(":")
+  return parseInt(parts[0]) * 60 + parseInt(parts[1])
+}
+
+export default {
+  private: {
+    currentDay: "",
+    classes: [],
+    statusTag: "",
+    statusText: "",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566'
+    }
+  },
+
+  onInit() {
+    var self = this
+    console.log("[today-demo] onInit")
+
+    var todayIdx = getRealTodayIndex()
+    self.currentDay = dayNames[todayIdx]
+
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+
+    database.init(function() {
+      database.getAllCourses(function(schedule) {
+        console.log("[today-demo] schedule loaded, " + schedule.length + " days")
+        self.loadTodayClasses(schedule, todayIdx)
+      })
+    })
+  },
+
+  loadTodayClasses(schedule, todayIdx) {
+    var self = this
+    var todayName = dayNames[todayIdx]
+    var dayData = null
+
+    for (var i = 0; i < schedule.length; i++) {
+      if (schedule[i].day === todayName) {
+        dayData = schedule[i]
+        break
+      }
+    }
+
+    var rawClasses = dayData ? dayData.classes : []
+    var classes = []
+
+    for (var j = 0; j < rawClasses.length; j++) {
+      var src = rawClasses[j]
+      classes.push({
+        id: src.id,
+        name: src.name,
+        time: src.time,
+        location: src.location || "",
+        teacher: src.teacher || "",
+        notes: src.notes || "",
+        progress: 0,
+        progressColor: "transparent"
+      })
+    }
+
+    classes.sort(function(a, b) {
+      var ta = a.time ? a.time.split(" - ")[0] : "00:00"
+      var tb = b.time ? b.time.split(" - ")[0] : "00:00"
+      var taParts = ta.split(":")
+      var tbParts = tb.split(":")
+      return (parseInt(taParts[0]) * 60 + parseInt(taParts[1])) - (parseInt(tbParts[0]) * 60 + parseInt(tbParts[1]))
+    })
+
+    self.classes = classes
+    self.updateProgress()
+    self.updateStatus()
+
+    console.log("[today-demo] " + classes.length + " classes loaded for " + todayName)
+  },
+
+  updateProgress() {
+    var classes = this.classes
+    var now = new Date()
+    var nowMinutes = now.getHours() * 60 + now.getMinutes()
+    var ongoing = "rgba(126,200,227,0.2)"
+    var done = "rgba(74,138,154,0.25)"
+
+    for (var i = 0; i < classes.length; i++) {
+      var course = classes[i]
+      var parts = course.time.split("-")
+      if (parts.length < 2) {
+        course.progress = 0
+        course.progressColor = "transparent"
+        continue
+      }
+      var startMin = parseTime(parts[0].trim())
+      var endMin = parseTime(parts[1].trim())
+      if (nowMinutes < startMin) {
+        course.progress = 0
+        course.progressColor = "transparent"
+      } else if (nowMinutes >= endMin) {
+        course.progress = 100
+        course.progressColor = done
+      } else {
+        var total = endMin - startMin
+        var elapsed = nowMinutes - startMin
+        course.progress = Math.round((elapsed / total) * 100)
+        course.progressColor = ongoing
+      }
+    }
+  },
+
+  updateStatus() {
+    var classes = this.classes
+    var now = new Date()
+    var nowMinutes = now.getHours() * 60 + now.getMinutes()
+
+    if (classes.length === 0) {
+      this.statusTag = "休息"
+      this.statusText = "今天没有课程安排"
+      return
+    }
+
+    var currentClass = null
+    var nextClass = null
+
+    for (var i = 0; i < classes.length; i++) {
+      var parts = classes[i].time.split("-")
+      if (parts.length < 2) continue
+      var startMin = parseTime(parts[0].trim())
+      var endMin = parseTime(parts[1].trim())
+
+      if (nowMinutes >= startMin && nowMinutes < endMin) {
+        currentClass = classes[i]
+        break
+      }
+      if (nowMinutes < startMin && !nextClass) {
+        nextClass = classes[i]
+      }
+    }
+
+    if (currentClass) {
+      var parts = currentClass.time.split("-")
+      var endMin = parseTime(parts[1].trim())
+      var remaining = endMin - nowMinutes
+      this.statusTag = "上课中"
+      this.statusText = currentClass.name + " · 剩余 " + remaining + " 分钟"
+    } else if (nextClass) {
+      var parts = nextClass.time.split("-")
+      var startMin = parseTime(parts[0].trim())
+      var waitMin = startMin - nowMinutes
+      this.statusTag = "课间"
+      this.statusText = "下一节 " + nextClass.name + " · " + waitMin + " 分钟后"
+    } else {
+      var lastClass = classes[classes.length - 1]
+      var lastParts = lastClass.time.split("-")
+      var lastEndMin = parseTime(lastParts[1].trim())
+      if (nowMinutes >= lastEndMin) {
+        this.statusTag = "放学"
+        this.statusText = "今日课程全部结束"
+      } else {
+        this.statusTag = "课前"
+        this.statusText = "距第一节 " + classes[0].name + " 还有 " + (parseTime(classes[0].time.split("-")[0].trim()) - nowMinutes) + " 分钟"
+      }
+    }
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("今日课程", "/pages/today-demo")
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 8px 8px 8px;
+  min-height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.status-bar {
+  flex-direction: row;
+  align-items: center;
+  border-radius: 14px;
+  padding: 6px 14px;
+  margin-bottom: 8px;
+  height: 44px;
+  overflow: hidden;
+}
+
+.left-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 6px;
+}
+
+.status-tag {
+  flex-shrink: 0;
+  margin-right: 10px;
+  padding: 2px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.status-text {
+  flex: 1;
+  font-size: 16px;
+  max-lines: 1;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.class-list {
+  flex: 1;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.class-card-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.class-card {
+  position: relative;
+  flex-direction: column;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+}
+
+.progress-bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 10px;
+}
+
+.class-content {
+  position: relative;
+  flex-direction: column;
+  width: 100%;
+  padding: 14px;
+}
+
+.class-row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.class-name {
+  font-size: 24px;
+  font-weight: bold;
+  max-width: 140px;
+}
+
+.class-time {
+  font-size: 20px;
+}
+
+.class-location {
+  font-size: 18px;
+}
+
+.class-teacher {
+  font-size: 14px;
+}
+
+.class-status {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.class-notes {
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.empty-card {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.empty-text {
+  font-size: 24px;
+  margin-bottom: 6px;
+}
+
+.empty-hint {
+  font-size: 14px;
+}
+
+.footer-actions {
+  flex-direction: row;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.pin-link {
+  text-align: center;
+  font-size: 13px;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+}
+
+@media (shape: capsule) {
+  .page {
+    padding: 44px 8px 12px 8px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 6px 6px 6px;
+  }
+}
+</style>
