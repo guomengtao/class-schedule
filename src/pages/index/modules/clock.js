@@ -39,6 +39,10 @@ function init(instance) {
   instance.quickCourseNames = []
   instance.quickAddDisabled = false
   instance.quickAddTime = ""
+
+  instance.toggleQuickAdd = function() {
+    console.log("toggleQuickAdd clicked")
+  }
 }
 
 module.exports = {
