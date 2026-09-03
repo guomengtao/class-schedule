@@ -22,7 +22,29 @@ function init(instance) {
   }
 
   instance.loadPinnedPages()
-  console.log("[pinned-pages module] init OK")
+
+  instance.openAddCoursePage = function() {
+    var router = require("@system.router")
+    var storage = require("@system.storage")
+    var self = instance
+    storage.set({
+      key: "add_course_day",
+      value: self.currentDay,
+      success: function() {
+        router.push({ uri: "/pages/add-course" })
+      },
+      fail: function() {
+        router.push({ uri: "/pages/add-course" })
+      }
+    })
+  }
+
+  instance.openSettings = function() {
+    var router = require("@system.router")
+    router.push({ uri: "/pages/settings" })
+  }
+
+  console.log("[pinned-pages module] init OK, pinned + bottomButtons ready")
 }
 
 module.exports = {
