@@ -33,7 +33,7 @@ import router from "@system.router"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 
-var dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
 var randomCourses = [
   { name: "高等数学", time: "08:00 - 09:30", teacher: "张老师", location: "教学楼A101" },
