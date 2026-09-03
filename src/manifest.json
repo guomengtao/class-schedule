@@ -68,9 +68,6 @@
       "pages/index": {
         "component": "index"
       },
-      "pages/index-test": {
-        "component": "index"
-      },
       "pages/detail": {
         "component": "detail"
       },

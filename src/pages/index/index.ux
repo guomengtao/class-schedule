@@ -198,6 +198,40 @@ export default {
       }
     }
     console.log("[index] initAllModules done")
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+    self.loadHomepageSettings()
+  },
+
+  onDestroy() {
+    if (this.stopClockTimer && typeof this.stopClockTimer === 'function') this.stopClockTimer()
+    if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
+  },
+
+  goToWeekView() {
+    store.getCurrentScheduleIndex(function(idx) {
+      storage.set({
+        key: "weekview_index",
+        value: String(idx),
+        success: function() { router.push({ uri: "/pages/week-view" }) },
+        fail: function() { router.push({ uri: "/pages/week-view" }) }
+      })
+    })
+  },
+
+  goToTomorrow() {
+    var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+    var todayIdx = new Date().getDay()
+    var tomorrowIdx = todayIdx + 1
+    if (tomorrowIdx >= dayNames.length) tomorrowIdx = 0
+    if (this.currentDayIndex === tomorrowIdx) return
+    this.currentDayIndex = tomorrowIdx
+    this.currentDay = dayNames[tomorrowIdx]
+    if (this.loadDayClasses && typeof this.loadDayClasses === 'function') this.loadDayClasses()
+    if (this.updateStatus && typeof this.updateStatus === 'function') this.updateStatus()
   }
 }
 </script>
