@@ -202,32 +202,50 @@ export default {
 
   initAllModules() {
     var self = this
+    console.log("[index] starting " + moduleNames.length + " modules...")
     for (var i = 0; i < moduleNames.length; i++) {
       var m = moduleNames[i]
       var mod = modules[m.key]
+      console.log("[index] [" + (i + 1) + "/" + moduleNames.length + "] loading " + m.key + "...")
       if (mod && mod.init) {
         try {
           mod.init(self)
-          console.log("[index] " + m.key + " init OK")
+          console.log("[index]   OK " + m.key)
         } catch (e) {
-          console.error("[index] " + m.key + ".init failed: " + (e.message || e))
+          console.error("[index]   FAIL " + m.key + ": " + (e.message || e))
         }
+      } else {
+        console.warn("[index]   SKIP " + m.key + " (no init)")
       }
     }
 
-    if (self.loadDayClasses) {
-      self.loadDayClasses()
+    if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
+      try {
+        self.loadDayClasses()
+      } catch (e) {
+        console.error("[index] loadDayClasses failed: " + (e.message || e))
+      }
     }
-    if (self.updateStatus) {
-      self.updateStatus()
-      if (self.startStatusTimer) self.startStatusTimer()
+    if (self.updateStatus && typeof self.updateStatus === 'function') {
+      try {
+        self.updateStatus()
+      } catch (e) {
+        console.error("[index] updateStatus failed: " + (e.message || e))
+      }
+      if (self.startStatusTimer && typeof self.startStatusTimer === 'function') {
+        try {
+          self.startStatusTimer()
+        } catch (e) {
+          console.error("[index] startStatusTimer failed: " + (e.message || e))
+        }
+      }
     }
     console.log("[index] onInit done")
   },
 
   onDestroy() {
-    if (this.stopClockTimer) this.stopClockTimer()
-    if (this.stopStatusTimer) this.stopStatusTimer()
+    if (this.stopClockTimer && typeof this.stopClockTimer === 'function') this.stopClockTimer()
+    if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
   },
 
   goBack() {
@@ -258,8 +276,8 @@ export default {
     if (this.currentDayIndex === tomorrowIdx) return
     this.currentDayIndex = tomorrowIdx
     this.currentDay = dayNames[tomorrowIdx]
-    this.loadDayClasses()
-    this.updateStatus()
+    if (this.loadDayClasses && typeof this.loadDayClasses === 'function') this.loadDayClasses()
+    if (this.updateStatus && typeof this.updateStatus === 'function') this.updateStatus()
   },
 
   pinToHome() {
