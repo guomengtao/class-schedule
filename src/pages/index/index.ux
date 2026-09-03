@@ -1,27 +1,34 @@
 <template>
   <div class="debug-page" style="background-color: #1a1a2e">
     <div class="debug-header">
-      <text class="debug-title" style="color: #7ec8e3">白屏排查测试</text>
+      <text class="debug-title" style="color: #7ec8e3">白屏排查测试 - Step 1</text>
     </div>
     <div class="debug-body">
       <text class="debug-ok" style="color: #00ff88">✅ 页面主体正常渲染</text>
-      <text class="debug-hint" style="color: #888899">如果能看到这段文字，说明页面结构和路由没问题</text>
+      <text class="debug-hint" style="color: #888899">imports 已加回：router, vibrator, prompt, device, store, database</text>
     </div>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
+import vibrator from "@system.vibrator"
+import prompt from "@system.prompt"
+import device from "@system.device"
+const store = require("../../data/store.js")
+const database = require("../../data/database.js")
 
 export default {
   private: {
     test: "hello"
   },
   onInit() {
-    console.log("[INDEX-DEBUG] onInit executed")
+    console.log("[INDEX-DEBUG-STEP1] onInit executed")
+    console.log("[INDEX-DEBUG-STEP1] store keys:", Object.keys(store))
+    console.log("[INDEX-DEBUG-STEP1] database keys:", Object.keys(database))
   },
   onShow() {
-    console.log("[INDEX-DEBUG] onShow executed")
+    console.log("[INDEX-DEBUG-STEP1] onShow executed")
   }
 }
 </script>
