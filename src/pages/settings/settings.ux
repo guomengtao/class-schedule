@@ -6,123 +6,124 @@
       <text class="header-title" style="color: {{ theme.text }}">设置</text>
     </div>
 
-    <div class="nickname-section" onclick="openNicknameEdit" style="background-color: {{ theme.card }}">
-      <text class="nickname-label" style="color: {{ theme.text }}">昵称</text>
-      <div class="nickname-value-row">
-        <text class="nickname-value" if="{{ nickname }}" style="color: {{ theme.accent }}">{{ nickname }}</text>
-        <text class="nickname-placeholder" if="{{ !nickname }}" style="color: {{ theme.textMuted }}">点击设置</text>
-        <text class="nickname-arrow" style="color: {{ theme.textMuted }}">›</text>
+    <div class="group" style="background-color: {{ theme.card }}">
+      <div class="row" onclick="openNicknameEdit">
+        <text class="row-label" style="color: {{ theme.text }}">昵称</text>
+        <div class="row-right">
+          <text class="row-value" if="{{ nickname }}" style="color: {{ theme.accent }}">{{ nickname }}</text>
+          <text class="row-hint" if="{{ !nickname }}" style="color: {{ theme.textMuted }}">点击设置</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
       </div>
     </div>
 
-    <div class="theme-section" style="background-color: {{ theme.card }}">
-      <text class="section-label" style="color: {{ theme.text }}">主题配色</text>
+    <div class="group" style="background-color: {{ theme.card }}">
+      <text class="group-title" style="color: {{ theme.text }}">主题配色</text>
       <div class="theme-grid">
-        <div for="{{ themes }}" class="theme-option {{ currentThemeKey === $item.key ? 'active' : '' }}" onclick="selectTheme($item.key)">
-          <div class="theme-dot" style="background-color: {{ $item.accent }}; border-color: {{ $item.bg }}"></div>
+        <div for="{{ themes }}" class="theme-item {{ currentThemeKey === $item.key ? 'active' : '' }}" onclick="selectTheme($item.key)" style="border-color: {{ currentThemeKey === $item.key ? theme.accent : 'transparent' }}">
+          <div class="theme-dot" style="background-color: {{ $item.accent }}"></div>
           <text class="theme-name" style="color: {{ currentThemeKey === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.name }}</text>
         </div>
       </div>
     </div>
 
-    <div class="scale-section" style="background-color: {{ theme.card }}">
-      <text class="section-label" style="color: {{ theme.text }}">课程名称字体：{{ displaySize }}px</text>
-
-      <div class="scale-control">
+    <div class="group" style="background-color: {{ theme.card }}">
+      <text class="group-title" style="color: {{ theme.text }}">字体大小</text>
+      <div class="scale-row">
         <input class="scale-btn" type="button" value="−" onclick="decreaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
         <text class="scale-value" style="color: {{ theme.accent }}">{{ displaySize }}px</text>
         <input class="scale-btn" type="button" value="+" onclick="increaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
       </div>
-
-      <div class="quick-scales">
-        <input class="quick-scale-btn {{ displaySize === 28 ? 'active' : '' }}" type="button" value="28px" onclick="set28" style="background-color: {{ displaySize === 28 ? theme.accent : theme.border }}; color: {{ displaySize === 28 ? theme.bg : theme.textSecondary }}" />
-        <input class="quick-scale-btn {{ displaySize === 36 ? 'active' : '' }}" type="button" value="36px" onclick="set36" style="background-color: {{ displaySize === 36 ? theme.accent : theme.border }}; color: {{ displaySize === 36 ? theme.bg : theme.textSecondary }}" />
-        <input class="quick-scale-btn {{ displaySize === 48 ? 'active' : '' }}" type="button" value="48px" onclick="set48" style="background-color: {{ displaySize === 48 ? theme.accent : theme.border }}; color: {{ displaySize === 48 ? theme.bg : theme.textSecondary }}" />
-        <input class="quick-scale-btn {{ displaySize === 62 ? 'active' : '' }}" type="button" value="62px" onclick="set62" style="background-color: {{ displaySize === 62 ? theme.accent : theme.border }}; color: {{ displaySize === 62 ? theme.bg : theme.textSecondary }}" />
-        <input class="quick-scale-btn {{ displaySize === 76 ? 'active' : '' }}" type="button" value="76px" onclick="set76" style="background-color: {{ displaySize === 76 ? theme.accent : theme.border }}; color: {{ displaySize === 76 ? theme.bg : theme.textSecondary }}" />
+      <div class="quick-row">
+        <input class="quick-btn {{ displaySize === 28 ? 'active' : '' }}" type="button" value="28" onclick="set28" style="background-color: {{ displaySize === 28 ? theme.accent : theme.border }}; color: {{ displaySize === 28 ? theme.bg : theme.textSecondary }}" />
+        <input class="quick-btn {{ displaySize === 36 ? 'active' : '' }}" type="button" value="36" onclick="set36" style="background-color: {{ displaySize === 36 ? theme.accent : theme.border }}; color: {{ displaySize === 36 ? theme.bg : theme.textSecondary }}" />
+        <input class="quick-btn {{ displaySize === 48 ? 'active' : '' }}" type="button" value="48" onclick="set48" style="background-color: {{ displaySize === 48 ? theme.accent : theme.border }}; color: {{ displaySize === 48 ? theme.bg : theme.textSecondary }}" />
+        <input class="quick-btn {{ displaySize === 62 ? 'active' : '' }}" type="button" value="62" onclick="set62" style="background-color: {{ displaySize === 62 ? theme.accent : theme.border }}; color: {{ displaySize === 62 ? theme.bg : theme.textSecondary }}" />
+        <input class="quick-btn {{ displaySize === 76 ? 'active' : '' }}" type="button" value="76" onclick="set76" style="background-color: {{ displaySize === 76 ? theme.accent : theme.border }}; color: {{ displaySize === 76 ? theme.bg : theme.textSecondary }}" />
+      </div>
+      <div class="preview-box" style="background-color: {{ theme.cardLight }}">
+        <text class="preview-text" style="font-size: {{ previewClassSize }}px; color: {{ theme.text }}">数学 08:00-08:45 301</text>
       </div>
     </div>
 
-    <div class="preview-section" style="background-color: {{ theme.card }}">
-      <text class="preview-label" style="color: {{ theme.textSecondary }}">文字预览（{{ previewClassSize }}px）</text>
-      <text class="preview-card-name" style="font-size: {{ previewClassSize }}px; color: {{ theme.text }}">数学 08:00 - 08:45 301教室</text>
-    </div>
-
-    <div class="info-section" onclick="openHomepageSettings" style="background-color: {{ theme.card }}">
-      <text class="info-label" style="color: {{ theme.text }}">首页设置</text>
-      <div class="info-value-row">
-        <text class="info-placeholder" style="color: {{ theme.textMuted }}">自定义首页内容与时间显示</text>
-        <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
-      </div>
-    </div>
-
-    <div class="remind-section" style="background-color: {{ theme.card }}">
-      <text class="section-label" style="color: {{ theme.text }}">上课提醒</text>
-
-      <div class="remind-row">
-        <text class="remind-label" style="color: {{ theme.text }}">震动提醒</text>
+    <div class="group" style="background-color: {{ theme.card }}">
+      <text class="group-title" style="color: {{ theme.text }}">上课提醒</text>
+      <div class="row">
+        <text class="row-label" style="color: {{ theme.text }}">震动提醒</text>
         <input class="toggle-btn" type="button" value="{{ remindEnabled ? 'ON' : 'OFF' }}" onclick="toggleRemind" style="background-color: {{ remindEnabled ? theme.accent : theme.border }}; color: {{ remindEnabled ? theme.bg : theme.textSecondary }}" />
       </div>
-
-      <div class="remind-row" if="{{ remindEnabled }}">
-        <text class="remind-label" style="color: {{ theme.text }}">提前提醒 (分钟)</text>
-        <div class="minute-selector">
+      <div class="row" if="{{ remindEnabled }}">
+        <text class="row-label" style="color: {{ theme.text }}">提前提醒</text>
+        <div class="minute-row">
           <input class="minute-btn" type="button" value="−" onclick="decreaseMinutes" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
-          <text class="minute-value" style="color: {{ theme.accent }}">{{ remindMinutes }}</text>
+          <text class="minute-value" style="color: {{ theme.accent }}">{{ remindMinutes }} 分钟</text>
           <input class="minute-btn" type="button" value="+" onclick="increaseMinutes" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
         </div>
       </div>
-
-      <div class="vibration-style-section" if="{{ remindEnabled }}">
-        <text class="section-label" style="color: {{ theme.text }}">震动样式</text>
-        <div class="vibration-grid">
-          <div for="{{ vibrationStyles }}" class="vibration-item {{ vibrationStyle === $item.key ? 'active' : '' }}" onclick="selectVibrationStyle($item.key)" style="background-color: {{ vibrationStyle === $item.key ? theme.cardLight : theme.border }}">
-            <text class="vibration-label" style="color: {{ vibrationStyle === $item.key ? theme.accent : theme.text }}">{{ $item.label }}</text>
-            <text class="vibration-desc" style="color: {{ vibrationStyle === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.desc }}</text>
-            <text class="vibration-check" if="{{ vibrationStyle === $item.key }}" style="color: {{ theme.accent }}">✓</text>
+      <div if="{{ remindEnabled }}">
+        <text class="group-title" style="color: {{ theme.text }}">震动样式</text>
+        <div class="vibe-grid">
+          <div for="{{ vibrationStyles }}" class="vibe-item {{ vibrationStyle === $item.key ? 'active' : '' }}" onclick="selectVibrationStyle($item.key)" style="background-color: {{ vibrationStyle === $item.key ? theme.cardLight : theme.border }}; border-color: {{ vibrationStyle === $item.key ? theme.accent : 'transparent' }}">
+            <div class="vibe-top">
+              <text class="vibe-label" style="color: {{ vibrationStyle === $item.key ? theme.accent : theme.text }}">{{ $item.label }}</text>
+              <text class="vibe-check" if="{{ vibrationStyle === $item.key }}" style="color: {{ theme.accent }}">✓</text>
+            </div>
+            <text class="vibe-desc" style="color: {{ vibrationStyle === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.desc }}</text>
           </div>
         </div>
-        <text class="vibration-hint" style="color: {{ theme.textMuted }}">点击选项试听震动效果</text>
+        <text class="vibe-hint" style="color: {{ theme.textMuted }}">点击试听震动效果</text>
       </div>
     </div>
 
-    <div class="save-section">
-      <input class="save-settings-btn" type="button" value="保存设置" onclick="saveSettings" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-    </div>
-
-    <div class="info-section" onclick="openBackupRestore" style="background-color: {{ theme.card }}">
-      <text class="info-label" style="color: {{ theme.text }}">数据备份与恢复</text>
-      <div class="info-value-row">
-        <text class="info-placeholder" style="color: {{ theme.textMuted }}">备份课程数据，换设备一键恢复</text>
-        <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
+    <div class="group" style="background-color: {{ theme.card }}">
+      <div class="row" onclick="openHomepageSettings">
+        <text class="row-label" style="color: {{ theme.text }}">首页设置</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">栏目与时间格式</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="openBackupRestore">
+        <text class="row-label" style="color: {{ theme.text }}">数据备份与恢复</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">备份与换设备恢复</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="openTestArea">
+        <text class="row-label" style="color: {{ theme.text }}">功能实验室</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">实验性功能</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="openActivation">
+        <text class="row-label" style="color: {{ theme.text }}">高级版</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">解锁全部功能</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
       </div>
     </div>
 
-    <div class="info-section" onclick="openTestArea" style="background-color: {{ theme.card }}">
-      <text class="info-label" style="color: {{ theme.text }}">功能实验室</text>
-      <div class="info-value-row">
-        <text class="info-placeholder" style="color: {{ theme.textMuted }}">实验性功能尝鲜</text>
-        <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
+    <div class="group" style="background-color: {{ theme.card }}">
+      <div class="row" onclick="openResetData">
+        <text class="row-label" style="color: {{ theme.deleteText }}">恢复默认数据</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">重置为Demo课程</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
       </div>
     </div>
 
-    <div class="info-section" onclick="openActivation" style="background-color: {{ theme.card }}">
-      <text class="info-label" style="color: {{ theme.text }}">高级版</text>
-      <div class="info-value-row">
-        <text class="info-placeholder" style="color: {{ theme.textMuted }}">爱发电购买兑换码激活</text>
-        <text class="info-arrow" style="color: {{ theme.textMuted }}">›</text>
-      </div>
+    <div class="save-area">
+      <input class="save-btn" type="button" value="保存设置" onclick="saveSettings" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
-    <div class="reset-section" onclick="openResetData" style="background-color: {{ theme.card }}">
-      <text class="reset-label" style="color: {{ theme.deleteText }}">恢复默认数据</text>
-      <div class="reset-value-row">
-        <text class="reset-desc" style="color: {{ theme.textMuted }}">重置所有课程为 Demo 数据</text>
-        <text class="reset-arrow" style="color: {{ theme.textMuted }}">›</text>
-      </div>
-    </div>
-
-    <text class="version-text" style="color: {{ theme.textMuted }}">{{ versionText }}</text>
+    <text class="version-text" style="color: {{ theme.textMuted }}">v{{ versionText }}</text>
 
     <unlock-dialog id="unlockDialog"></unlock-dialog>
   </div>
@@ -140,15 +141,11 @@ function safeVibrate(mode) {
     console.warn("[SETTINGS] vibrator module is missing")
     return false
   }
-
   var vibrateMode = (mode === "long" || mode === 400) ? "long" : "short"
-
   try {
     vibrator.vibrate({
       mode: vibrateMode,
-      success: function() {
-        console.log("[SETTINGS] vibrate success, mode: " + vibrateMode)
-      },
+      success: function() {},
       fail: function(data, code) {
         console.warn("[SETTINGS] vibrate fail, code: " + code)
       }
@@ -168,7 +165,6 @@ export default {
     scale: 1.0,
     displaySize: 48,
     previewClassSize: 48,
-    previewClassStyle: "",
     remindEnabled: true,
     remindMinutes: 5,
     vibrationStyle: "short",
@@ -217,7 +213,7 @@ export default {
     this.loadRemindSettings()
     this.loadNickname()
     this.loadVibrationStyle()
-    this.versionText = "v" + version.versionName
+    this.versionText = version.versionName
   },
 
   onShow() {
@@ -226,7 +222,6 @@ export default {
 
   updatePreviews() {
     this.previewClassSize = Math.round(28 * this.scale)
-    this.previewClassStyle = "font-size: " + this.previewClassSize + "px"
   },
 
   setSize(size) {
@@ -262,12 +257,10 @@ export default {
 
   selectTheme(themeKey) {
     var self = this
-
     if (store.isFreeTheme(themeKey)) {
       this.applyTheme(themeKey)
       return
     }
-
     store.isPremiumUnlocked(function(unlocked) {
       if (unlocked) {
         self.applyTheme(themeKey)
@@ -368,7 +361,6 @@ export default {
       safeVibrate("short")
       return
     }
-
     vibrator.start({
       duration: pattern.duration,
       interval: pattern.interval,
@@ -407,7 +399,6 @@ export default {
   },
 
   openBackupRestore() {
-    var self = this
     store.isPremiumUnlocked(function(unlocked) {
       if (unlocked) {
         router.push({ uri: "/pages/backup-restore" })
@@ -430,22 +421,22 @@ export default {
 <style>
 .settings-page {
   flex-direction: column;
-  padding: 44px 8px 8px 8px;
+  padding: 24px 8px 8px 8px;
   min-height: 100%;
 }
 
 .back-header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 10px;
-  padding: 0;
+  margin-bottom: 8px;
+  padding: 0 4px;
 }
 
 .back-btn {
-  width: 70px;
-  height: 36px;
+  width: 64px;
+  height: 32px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   text-align: center;
 }
 
@@ -455,99 +446,96 @@ export default {
   margin-left: 8px;
 }
 
-.nickname-section {
+.group {
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+}
+
+.group-title {
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  opacity: 0.8;
+}
+
+.row {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 8px;
+  padding: 4px 0;
 }
 
-.nickname-label {
-  font-size: 16px;
+.row-label {
+  font-size: 14px;
+  flex-shrink: 0;
 }
 
-.nickname-value-row {
+.row-right {
   flex-direction: row;
   align-items: center;
+  flex-shrink: 1;
+  overflow: hidden;
 }
 
-.nickname-value {
-  font-size: 15px;
-  margin-right: 6px;
+.row-value {
+  font-size: 13px;
+  margin-right: 4px;
 }
 
-.nickname-placeholder {
-  font-size: 14px;
-  margin-right: 6px;
+.row-hint {
+  font-size: 12px;
+  margin-right: 4px;
+  max-lines: 1;
 }
 
-.nickname-arrow {
-  font-size: 20px;
+.arrow {
+  font-size: 18px;
+  flex-shrink: 0;
 }
 
-.theme-section {
-  flex-direction: column;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 8px;
-}
-
-.section-label {
-  font-size: 16px;
-  margin-bottom: 8px;
+.divider {
+  height: 1px;
+  margin: 2px 0;
 }
 
 .theme-grid {
   flex-direction: row;
   flex-wrap: wrap;
-  justify-content: space-between;
 }
 
-.theme-option {
+.theme-item {
   flex-direction: column;
   align-items: center;
-  width: 18%;
-  padding: 6px 2px;
+  width: 20%;
+  padding: 4px 0;
   border-radius: 8px;
   border: 2px solid transparent;
 }
 
-.theme-option.active {
-  border: 2px solid #ffffff;
-}
-
 .theme-dot {
-  width: 24px;
-  height: 24px;
-  border-radius: 12px;
-  border: 2px solid;
+  width: 22px;
+  height: 22px;
+  border-radius: 11px;
 }
 
 .theme-name {
   font-size: 10px;
-  margin-top: 4px;
+  margin-top: 2px;
   text-align: center;
 }
 
-.scale-section {
-  flex-direction: column;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 8px;
-}
-
-.scale-control {
+.scale-row {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .scale-btn {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
   font-size: 18px;
   font-weight: bold;
@@ -557,448 +545,149 @@ export default {
 .scale-value {
   font-size: 16px;
   font-weight: bold;
-  width: 60px;
+  width: 56px;
   text-align: center;
 }
 
-.quick-scales {
+.quick-row {
   flex-direction: row;
-  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.quick-btn {
+  width: 44px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 11px;
+  text-align: center;
+  margin: 0 2px;
+}
+
+.quick-btn.active {
+  font-weight: bold;
+}
+
+.preview-box {
+  border-radius: 8px;
+  padding: 8px;
+  align-items: center;
   justify-content: center;
 }
 
-.quick-scale-btn {
-  width: 50px;
-  height: 32px;
-  border-radius: 6px;
-  font-size: 12px;
-  text-align: center;
-  margin: 2px;
-}
-
-.quick-scale-btn.active {
-  font-weight: bold;
-}
-
-.preview-section {
-  flex-direction: column;
-  align-items: center;
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 8px;
-}
-
-.preview-label {
-  font-size: 13px;
-  margin-bottom: 6px;
-}
-
-.preview-card-name {
+.preview-text {
   font-weight: bold;
   text-align: center;
-}
-
-.remind-section {
-  flex-direction: column;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 8px;
-}
-
-.remind-row {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.remind-label {
-  font-size: 15px;
 }
 
 .toggle-btn {
-  width: 60px;
-  height: 32px;
+  width: 52px;
+  height: 28px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: bold;
   text-align: center;
 }
 
-.minute-selector {
+.minute-row {
   flex-direction: row;
   align-items: center;
 }
 
 .minute-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  font-size: 18px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 16px;
   font-weight: bold;
   text-align: center;
 }
 
 .minute-value {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: bold;
-  width: 40px;
+  min-width: 64px;
   text-align: center;
 }
 
-.vibration-style-section {
-  flex-direction: column;
-  margin-top: 4px;
-}
-
-.vibration-grid {
+.vibe-grid {
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: space-between;
 }
 
-.vibration-item {
+.vibe-item {
   flex-direction: column;
   width: 48%;
   padding: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   border-radius: 8px;
   border: 2px solid transparent;
 }
 
-.vibration-item.active {
-  border: 2px solid;
+.vibe-top {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.vibration-label {
-  font-size: 14px;
+.vibe-label {
+  font-size: 13px;
   font-weight: bold;
 }
 
-.vibration-desc {
-  font-size: 12px;
+.vibe-check {
+  font-size: 14px;
+}
+
+.vibe-desc {
+  font-size: 11px;
   margin-top: 2px;
 }
 
-.vibration-check {
-  font-size: 14px;
-  position: absolute;
-  top: 4px;
-  right: 6px;
-}
-
-.vibration-hint {
-  font-size: 12px;
+.vibe-hint {
+  font-size: 11px;
   text-align: center;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
-.save-section {
-  flex-direction: row;
-  justify-content: center;
-  margin-top: 8px;
-  padding-bottom: 12px;
+.save-area {
+  margin-top: 10px;
+  padding-bottom: 4px;
 }
 
-.save-settings-btn {
+.save-btn {
   width: 100%;
-  height: 44px;
+  height: 42px;
   border-radius: 10px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
   text-align: center;
-}
-
-.info-section {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 8px;
-}
-
-.info-label {
-  font-size: 16px;
-}
-
-.info-value-row {
-  flex-direction: row;
-  align-items: center;
-}
-
-.info-placeholder {
-  font-size: 14px;
-  margin-right: 6px;
-}
-
-.info-arrow {
-  font-size: 20px;
-}
-
-.reset-section {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 8px;
-}
-
-.reset-label {
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.reset-value-row {
-  flex-direction: row;
-  align-items: center;
-}
-
-.reset-desc {
-  font-size: 13px;
-  margin-right: 6px;
-}
-
-.reset-arrow {
-  font-size: 20px;
 }
 
 .version-text {
-  font-size: 12px;
+  font-size: 11px;
   text-align: center;
-  padding-top: 8px;
+  padding-top: 6px;
   padding-bottom: 12px;
 }
 
 @media (shape: circle) {
   .settings-page {
-    padding: 44px 36px 44px 36px;
+    padding: 24px 24px 24px 24px;
   }
   .back-header {
     margin-bottom: 8px;
-    padding: 0 20px;
+    padding: 0 12px;
     justify-content: center;
   }
   .back-btn {
-    width: 56px;
-    height: 32px;
-    font-size: 13px;
+    width: 52px;
+    height: 28px;
+    font-size: 12px;
   }
   .header-title {
     font-size: 16px;
-  }
-  .nickname-section {
-    padding: 10px;
-    margin-bottom: 6px;
-  }
-  .nickname-label {
-    font-size: 14px;
-  }
-  .theme-section {
-    padding: 10px;
-    margin-bottom: 6px;
-  }
-  .section-label {
-    font-size: 14px;
-  }
-  .theme-dot {
-    width: 22px;
-    height: 22px;
-  }
-  .theme-name {
-    font-size: 9px;
-  }
-  .scale-section {
-    padding: 10px;
-    margin-bottom: 6px;
-  }
-  .scale-btn {
-    width: 30px;
-    height: 30px;
-    font-size: 15px;
-  }
-  .scale-value {
-    font-size: 14px;
-  }
-  .quick-scale-btn {
-    width: 44px;
-    height: 28px;
-    font-size: 11px;
-  }
-  .preview-section {
-    padding: 8px;
-    margin-bottom: 6px;
-  }
-  .remind-section {
-    padding: 10px;
-    margin-bottom: 6px;
-  }
-  .remind-label {
-    font-size: 13px;
-  }
-  .toggle-btn {
-    width: 52px;
-    height: 28px;
-    font-size: 12px;
-  }
-}
-
-@media (shape: capsule) {
-  .settings-page {
-    padding: 44px 8px 12px 8px;
-  }
-  .back-header {
-    margin-bottom: 8px;
-    padding: 0 4px;
-    justify-content: center;
-  }
-  .back-btn {
-    width: 52px;
-    height: 30px;
-    font-size: 13px;
-  }
-  .header-title {
-    font-size: 15px;
-  }
-  .nickname-section {
-    padding: 8px;
-    margin-bottom: 4px;
-  }
-  .nickname-label {
-    font-size: 13px;
-  }
-  .theme-section {
-    padding: 8px;
-    margin-bottom: 4px;
-  }
-  .section-label {
-    font-size: 13px;
-    margin-bottom: 4px;
-  }
-  .theme-dot {
-    width: 20px;
-    height: 20px;
-  }
-  .theme-name {
-    font-size: 9px;
-  }
-  .scale-section {
-    padding: 8px;
-    margin-bottom: 4px;
-  }
-  .scale-btn {
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
-  }
-  .scale-value {
-    font-size: 13px;
-  }
-  .quick-scale-btn {
-    width: 42px;
-    height: 28px;
-    font-size: 11px;
-  }
-  .preview-section {
-    padding: 8px;
-    margin-bottom: 4px;
-  }
-  .remind-section {
-    padding: 8px;
-    margin-bottom: 4px;
-  }
-  .remind-label {
-    font-size: 13px;
-  }
-  .toggle-btn {
-    width: 52px;
-    height: 28px;
-    font-size: 12px;
-  }
-}
-
-@media (shape: rect) {
-  .settings-page {
-    padding: 44px 6px 6px 6px;
-  }
-  .back-header {
-    margin-bottom: 6px;
-    padding: 0;
-  }
-  .back-btn {
-    width: 50px;
-    height: 28px;
-    font-size: 12px;
-  }
-  .header-title {
-    font-size: 15px;
-    margin-left: 6px;
-  }
-  .nickname-section {
-    padding: 8px;
-    margin-bottom: 4px;
-  }
-  .nickname-label {
-    font-size: 13px;
-  }
-  .nickname-value {
-    font-size: 12px;
-  }
-  .nickname-placeholder {
-    font-size: 11px;
-  }
-  .theme-section {
-    padding: 8px;
-    margin-bottom: 4px;
-  }
-  .section-label {
-    font-size: 13px;
-    margin-bottom: 4px;
-  }
-  .theme-dot {
-    width: 20px;
-    height: 20px;
-  }
-  .theme-name {
-    font-size: 9px;
-  }
-  .scale-section {
-    padding: 8px;
-    margin-bottom: 4px;
-  }
-  .scale-btn {
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
-  }
-  .scale-value {
-    font-size: 13px;
-    width: 48px;
-  }
-  .quick-scale-btn {
-    width: 40px;
-    height: 26px;
-    font-size: 10px;
-  }
-  .preview-section {
-    padding: 6px;
-    margin-bottom: 4px;
-  }
-  .preview-label {
-    font-size: 11px;
-  }
-  .remind-section {
-    padding: 8px;
-    margin-bottom: 4px;
-  }
-  .remind-label {
-    font-size: 12px;
-  }
-  .toggle-btn {
-    width: 48px;
-    height: 28px;
-    font-size: 11px;
   }
 }
 </style>
