@@ -172,32 +172,59 @@ export default {
   initAllModules(store) {
     var self = this
 
-    var moduleDefs = [
-      { key: "clock", path: "../index/modules/clock.js" },
-      { key: "dayNav", path: "../index/modules/day-nav.js" },
-      { key: "statusBar", path: "../index/modules/status-bar.js" },
-      { key: "customContent", path: "../index/modules/custom-content.js" },
-      { key: "pinnedPages", path: "../index/modules/pinned-pages.js" },
-      { key: "classList", path: "../index/modules/class-list.js" },
-      { key: "quickAdd", path: "../index/modules/quick-add.js" },
-      { key: "bottomButtons", path: "../index/modules/bottom-buttons.js" },
-      { key: "weekIndicator", path: "../index/modules/week-indicator.js" }
-    ]
+    try {
+      var m = require("../index/modules/clock.js")
+      if (m && m.init) { m.init(self); console.log("[index] [1/9] clock OK") }
+      else { console.warn("[index] [1/9] clock SKIP") }
+    } catch (e) { console.warn("[index] [1/9] clock SKIP: " + (e.message || e)) }
 
-    for (var i = 0; i < moduleDefs.length; i++) {
-      var m = moduleDefs[i]
-      try {
-        var mod = require(m.path)
-        if (mod && mod.init) {
-          mod.init(self)
-          console.log("[index] [" + (i + 1) + "/" + moduleDefs.length + "] " + m.key + " OK")
-        } else {
-          console.warn("[index] [" + (i + 1) + "/" + moduleDefs.length + "] " + m.key + " SKIP (no init)")
-        }
-      } catch (e) {
-        console.warn("[index] [" + (i + 1) + "/" + moduleDefs.length + "] " + m.key + " SKIP: " + (e.message || e))
-      }
-    }
+    try {
+      var m = require("../index/modules/day-nav.js")
+      if (m && m.init) { m.init(self); console.log("[index] [2/9] dayNav OK") }
+      else { console.warn("[index] [2/9] dayNav SKIP") }
+    } catch (e) { console.warn("[index] [2/9] dayNav SKIP: " + (e.message || e)) }
+
+    try {
+      var m = require("../index/modules/status-bar.js")
+      if (m && m.init) { m.init(self); console.log("[index] [3/9] statusBar OK") }
+      else { console.warn("[index] [3/9] statusBar SKIP") }
+    } catch (e) { console.warn("[index] [3/9] statusBar SKIP: " + (e.message || e)) }
+
+    try {
+      var m = require("../index/modules/custom-content.js")
+      if (m && m.init) { m.init(self); console.log("[index] [4/9] customContent OK") }
+      else { console.warn("[index] [4/9] customContent SKIP") }
+    } catch (e) { console.warn("[index] [4/9] customContent SKIP: " + (e.message || e)) }
+
+    try {
+      var m = require("../index/modules/pinned-pages.js")
+      if (m && m.init) { m.init(self); console.log("[index] [5/9] pinnedPages OK") }
+      else { console.warn("[index] [5/9] pinnedPages SKIP") }
+    } catch (e) { console.warn("[index] [5/9] pinnedPages SKIP: " + (e.message || e)) }
+
+    try {
+      var m = require("../index/modules/class-list.js")
+      if (m && m.init) { m.init(self); console.log("[index] [6/9] classList OK") }
+      else { console.warn("[index] [6/9] classList SKIP") }
+    } catch (e) { console.warn("[index] [6/9] classList SKIP: " + (e.message || e)) }
+
+    try {
+      var m = require("../index/modules/quick-add.js")
+      if (m && m.init) { m.init(self); console.log("[index] [7/9] quickAdd OK") }
+      else { console.warn("[index] [7/9] quickAdd SKIP") }
+    } catch (e) { console.warn("[index] [7/9] quickAdd SKIP: " + (e.message || e)) }
+
+    try {
+      var m = require("../index/modules/bottom-buttons.js")
+      if (m && m.init) { m.init(self); console.log("[index] [8/9] bottomButtons OK") }
+      else { console.warn("[index] [8/9] bottomButtons SKIP") }
+    } catch (e) { console.warn("[index] [8/9] bottomButtons SKIP: " + (e.message || e)) }
+
+    try {
+      var m = require("../index/modules/week-indicator.js")
+      if (m && m.init) { m.init(self); console.log("[index] [9/9] weekIndicator OK") }
+      else { console.warn("[index] [9/9] weekIndicator SKIP") }
+    } catch (e) { console.warn("[index] [9/9] weekIndicator SKIP: " + (e.message || e)) }
 
     if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
       try { self.loadDayClasses() } catch (e) { console.error("[index] loadDayClasses: " + (e.message || e)) }
