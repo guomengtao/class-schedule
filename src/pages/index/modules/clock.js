@@ -1,6 +1,6 @@
 console.log("[clock module] loading...")
 
-function init(instance, deps) {
+function init(instance) {
   instance.currentTime = ""
   instance.showTime = true
   instance.timeFormat = { year: false, month: false, day: false, hour: true, minute: true, second: false }
@@ -56,7 +56,8 @@ function init(instance, deps) {
 
   instance.loadPresetCourses = function() {
     var self = instance
-    deps.storage.get({
+    var storage = require("@system.storage")
+    storage.get({
       key: "course_preset_list",
       success: function(data) {
         try {
