@@ -1,0 +1,66 @@
+<template>
+  <div class="clock-container">
+    <text class="clock-text" style="color: {{ textColor }}">{{ currentTime }}</text>
+  </div>
+</template>
+
+<script>
+export default {
+  props: ['textColor', 'timeFormat'],
+  data: {
+    currentTime: '',
+    clockTimer: null
+  },
+  onInit() {
+    this.updateClock()
+    this.startClockTimer()
+  },
+  onDestroy() {
+    this.stopClockTimer()
+  },
+  updateClock() {
+    var now = new Date()
+    var tf = this.timeFormat || { year: false, month: false, day: false, hour: true, minute: true, second: false }
+    var dateParts = []
+    var timeParts = []
+    if (tf.year) dateParts.push(now.getFullYear() + '年')
+    if (tf.month) dateParts.push((now.getMonth() + 1) + '月')
+    if (tf.day) dateParts.push(now.getDate() + '日')
+    if (tf.hour) timeParts.push((now.getHours() < 10 ? '0' : '') + now.getHours())
+    if (tf.minute) timeParts.push((now.getMinutes() < 10 ? '0' : '') + now.getMinutes())
+    if (tf.second) timeParts.push((now.getSeconds() < 10 ? '0' : '') + now.getSeconds())
+    var dateStr = dateParts.join(' ')
+    var timeStr = timeParts.join(':')
+    if (dateStr && timeStr) {
+      this.currentTime = dateStr + ' ' + timeStr
+    } else {
+      this.currentTime = dateStr || timeStr || '00:00'
+    }
+  },
+  startClockTimer() {
+    var self = this
+    this.clockTimer = setInterval(function() {
+      self.updateClock()
+    }, 1000)
+  },
+  stopClockTimer() {
+    if (this.clockTimer) {
+      clearInterval(this.clockTimer)
+      this.clockTimer = null
+    }
+  }
+}
+</script>
+
+<style>
+.clock-container {
+  justify-content: center;
+  align-items: center;
+  padding: 4px 8px;
+}
+.clock-text {
+  font-size: 18px;
+  font-weight: normal;
+  text-align: center;
+}
+</style>
