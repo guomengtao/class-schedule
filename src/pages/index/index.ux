@@ -165,15 +165,15 @@ export default {
     }
 
     try {
-      loadModule("clock", require("./modules/clock.js"))
-      loadModule("dayNav", require("./modules/day-nav.js"))
-      loadModule("statusBar", require("./modules/status-bar.js"))
-      loadModule("customContent", require("./modules/custom-content.js"))
-      loadModule("pinnedPages", require("./modules/pinned-pages.js"))
-      loadModule("classList", require("./modules/class-list.js"))
-      loadModule("quickAdd", require("./modules/quick-add.js"))
-      loadModule("bottomButtons", require("./modules/bottom-buttons.js"))
-      loadModule("weekIndicator", require("./modules/week-indicator.js"))
+      loadModule("clock", require("pages/index/modules/clock.js"))
+      loadModule("dayNav", require("pages/index/modules/day-nav.js"))
+      loadModule("statusBar", require("pages/index/modules/status-bar.js"))
+      loadModule("customContent", require("pages/index/modules/custom-content.js"))
+      loadModule("pinnedPages", require("pages/index/modules/pinned-pages.js"))
+      loadModule("classList", require("pages/index/modules/class-list.js"))
+      loadModule("quickAdd", require("pages/index/modules/quick-add.js"))
+      loadModule("bottomButtons", require("pages/index/modules/bottom-buttons.js"))
+      loadModule("weekIndicator", require("pages/index/modules/week-indicator.js"))
       console.log("[index] modules loaded OK")
     } catch (e) {
       console.error("[index] module require failed: " + (e.message || e))
