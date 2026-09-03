@@ -11,6 +11,11 @@
       <text class="added-hint-text" style="color: {{ theme.accent }}">已自动添加 2 个随机课程</text>
     </div>
 
+    <div class="quick-buttons">
+      <input class="quick-btn" type="button" value="化学" onclick="addQuickCourse('化学')" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="quick-btn" type="button" value="品德" onclick="addQuickCourse('品德')" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+    </div>
+
     <scroll class="class-list" scroll-y="{{true}}">
       <div for="{{ classes }}" class="class-item" style="background-color: {{ theme.card }}">
         <div class="accent" style="background-color: {{ theme.accent }}"></div>
@@ -199,6 +204,28 @@ export default {
 
   goBack() {
     router.back()
+  },
+
+  addQuickCourse(courseName) {
+    var self = this
+    var todayIdx = getRealTodayIndex()
+    var todayName = dayNames[todayIdx]
+    var course = {
+      id: "quick_" + Date.now(),
+      day: todayName,
+      name: courseName,
+      time: "08:00 - 09:30",
+      teacher: "",
+      location: "",
+      notes: ""
+    }
+    database.insertCourse(course, function(err) {
+      if (err) {
+        console.log("[today-demo] addQuickCourse failed: " + JSON.stringify(err))
+      }
+      console.log("[today-demo] added " + courseName + " to " + todayName)
+      self.reloadClasses()
+    })
   }
 }
 </script>
@@ -247,6 +274,22 @@ export default {
 
 .added-hint-text {
   font-size: 13px;
+}
+
+.quick-buttons {
+  flex-direction: row;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.quick-btn {
+  width: 80px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  margin: 0 6px;
 }
 
 .class-list {
