@@ -193,7 +193,7 @@ function stopStatusTimer(instance) {
   }
 }
 
-export default {
+module.exports = {
   updateStatus: updateStatus,
   updateStatusLine: updateStatusLine,
   computeTodayStatus: computeTodayStatus,
