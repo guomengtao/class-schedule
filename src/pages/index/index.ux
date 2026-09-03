@@ -102,12 +102,12 @@ import device from "@system.device"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 var pinHelper = require("../../data/pin-helper.js")
-var all = require("./modules/all.js")
+var utils = require("./modules/utils.js")
 
-var dayNames = all.dayNames
-var parseTime = all.parseTime
-var getRealTodayIndex = all.getRealTodayIndex
-var formatTime = all.formatTime
+var dayNames = utils.dayNames
+var parseTime = utils.parseTime
+var getRealTodayIndex = utils.getRealTodayIndex
+var formatTime = utils.formatTime
 
 export default {
   private: {
@@ -726,7 +726,23 @@ export default {
   },
 
   updateClock() {
-    all.updateClock(this)
+    var now = new Date()
+    var tf = this.timeFormat || { year: false, month: false, day: false, hour: true, minute: true, second: false }
+    var dateParts = []
+    var timeParts = []
+    if (tf.year) dateParts.push(now.getFullYear() + "年")
+    if (tf.month) dateParts.push((now.getMonth() + 1) + "月")
+    if (tf.day) dateParts.push(now.getDate() + "日")
+    if (tf.hour) timeParts.push((now.getHours() < 10 ? "0" : "") + now.getHours())
+    if (tf.minute) timeParts.push((now.getMinutes() < 10 ? "0" : "") + now.getMinutes())
+    if (tf.second) timeParts.push((now.getSeconds() < 10 ? "0" : "") + now.getSeconds())
+    var dateStr = dateParts.join(" ")
+    var timeStr = timeParts.join(":")
+    if (dateStr && timeStr) {
+      this.currentTime = dateStr + " " + timeStr
+    } else {
+      this.currentTime = dateStr || timeStr || "00:00"
+    }
   },
 
   startClockTimer() {
