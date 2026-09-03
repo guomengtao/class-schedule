@@ -45,14 +45,18 @@
     </div>
 
     <scroll class="class-list" scroll-y="{{true}}">
-      <div for="{{ currentClasses }}" class="class-card-wrapper">
-        <div class="class-card" style="background-color: {{ theme.card }}">
+      <div if="{{ isLoading }}" class="empty-card">
+        <text class="empty-text" style="color: {{ theme.textMuted }}">加载中...</text>
+      </div>
+      <div for="{{ currentClasses }}" class="class-card-wrapper" else>
+        <div class="class-card" onclick="goToClassDetail($item)" style="background-color: {{ theme.card }}">
           <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
           <div class="progress-bg" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
           <div class="class-content">
             <div class="class-time">
               <text class="class-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-              <text class="class-time-text" style="color: {{ theme.textSecondary }}">{{ $item.time }}</text>
+              <text class="class-teacher" if="{{ $item.teacher }}" style="color: {{ theme.textSecondary }}">{{ $item.teacher }}</text>
+              <text class="class-time-text" style="color: {{ theme.textMuted }}">{{ $item.time }}</text>
             </div>
             <div class="class-info">
               <text class="class-location" if="{{ $item.location }}" style="color: {{ theme.accent }}">{{ $item.location }}</text>
@@ -63,7 +67,7 @@
         </div>
       </div>
 
-      <div if="{{ currentClasses.length === 0 }}" class="empty-card">
+      <div if="{{ !isLoading && currentClasses.length === 0 }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
       </div>
     </scroll>
@@ -72,7 +76,7 @@
       <text class="quick-add-title" onclick="quickAdd.toggle" style="color: {{ theme.accent }}">快速添加 {{ quickAdd.expanded ? '▲' : '▼' }}</text>
       <scroll class="quick-add-scroll" scroll-x="{{true}}" if="{{ quickAdd.expanded && quickAdd.courseNames.length > 0 && !quickAdd.disabled }}">
         <div class="quick-add-list">
-          <div for="{{ quickAdd.courseNames }}" class="quick-add-item" style="background-color: {{ theme.cardLight }}">
+          <div for="{{ quickAdd.courseNames }}" class="quick-add-item" onclick="quickAdd.addCourse($item)" style="background-color: {{ theme.cardLight }}">
             <text class="quick-add-name" style="color: {{ theme.text }}">{{ $item }}</text>
           </div>
         </div>
@@ -108,14 +112,17 @@ function loadModule(key, mod) {
   }
 }
 loadModule("clock", require("./modules/clock.js"))
+loadModule("quickAdd", require("./modules/quick-add.js"))
 loadModule("dayNav", require("./modules/day-nav.js"))
 loadModule("statusBar", require("./modules/status-bar.js"))
 loadModule("customContent", require("./modules/custom-content.js"))
 loadModule("pinnedPages", require("./modules/pinned-pages.js"))
+loadModule("bottomButtons", require("./modules/bottom-buttons.js"))
 loadModule("classList", require("./modules/class-list.js"))
 
 export default {
   private: {
+    isLoading: true,
     currentTime: "12:00",
     currentDay: "星期三",
     currentDayIndex: 3,
@@ -154,6 +161,7 @@ export default {
   onInit() {
     console.log("[index] onInit start")
     var self = this
+    self.isLoading = true
     store.getTheme(function(t) {
       self.theme = t
     })
@@ -162,6 +170,7 @@ export default {
     database.init(function() {
       database.getAllCourses(function(schedule) {
         self.schedule = schedule
+        self.isLoading = false
         console.log("[index] data loaded, " + schedule.length + " days")
         initAllModules()
       })
@@ -181,7 +190,7 @@ export default {
 
   initAllModules() {
     var self = this
-    var keys = ["clock", "dayNav", "statusBar", "customContent", "pinnedPages", "classList"]
+    var keys = ["clock", "quickAdd", "dayNav", "statusBar", "customContent", "pinnedPages", "bottomButtons", "classList"]
     console.log("[index] initAllModules start, count=" + keys.length)
     for (var i = 0; i < keys.length; i++) {
       var key = keys[i]
@@ -204,11 +213,21 @@ export default {
     var self = this
     store.getTheme(function(t) { self.theme = t })
     self.loadHomepageSettings()
+    if (self.loadPinnedPages && typeof self.loadPinnedPages === 'function') {
+      self.loadPinnedPages()
+    }
+    database.getAllCourses(function(schedule) {
+      self.schedule = schedule
+      if (self.refreshClasses && typeof self.refreshClasses === 'function') {
+        self.refreshClasses()
+      }
+    })
   },
 
   onDestroy() {
     if (this.stopClockTimer && typeof this.stopClockTimer === 'function') this.stopClockTimer()
     if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
+    if (this.stopProgressTimer && typeof this.stopProgressTimer === 'function') this.stopProgressTimer()
   },
 
   goToWeekView() {
@@ -220,18 +239,6 @@ export default {
         fail: function() { router.push({ uri: "/pages/week-view" }) }
       })
     })
-  },
-
-  goToTomorrow() {
-    var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
-    var todayIdx = new Date().getDay()
-    var tomorrowIdx = todayIdx + 1
-    if (tomorrowIdx >= dayNames.length) tomorrowIdx = 0
-    if (this.currentDayIndex === tomorrowIdx) return
-    this.currentDayIndex = tomorrowIdx
-    this.currentDay = dayNames[tomorrowIdx]
-    if (this.loadDayClasses && typeof this.loadDayClasses === 'function') this.loadDayClasses()
-    if (this.updateStatus && typeof this.updateStatus === 'function') this.updateStatus()
   }
 }
 </script>
@@ -403,6 +410,11 @@ export default {
 .class-name {
   font-size: 22px;
   font-weight: bold;
+  margin-bottom: 2px;
+}
+
+.class-teacher {
+  font-size: 16px;
   margin-bottom: 2px;
 }
 

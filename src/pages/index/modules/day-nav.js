@@ -1,4 +1,4 @@
-console.log("[day-nav module] loading...")
+console.log("[day-nav] loading...")
 
 var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
@@ -7,46 +7,61 @@ function getRealTodayIndex() {
 }
 
 function init(instance) {
-  console.log("[day-nav module] init called")
   instance.currentDay = "星期日"
   instance.currentDayIndex = 0
 
   instance.currentDayIndex = getRealTodayIndex()
   instance.currentDay = dayNames[instance.currentDayIndex]
 
-  instance.prevDay = function() {
-    var self = instance
-    if (self.currentDayIndex > 0) {
-      self.currentDayIndex--
-    } else {
-      self.currentDayIndex = dayNames.length - 1
+  function onDayChanged() {
+    if (instance.loadDayClasses && typeof instance.loadDayClasses === 'function') {
+      instance.loadDayClasses()
     }
-    self.currentDay = dayNames[self.currentDayIndex]
+    if (instance.updateStatus && typeof instance.updateStatus === 'function') {
+      instance.updateStatus()
+    }
+  }
+
+  instance.prevDay = function() {
+    if (instance.currentDayIndex > 0) {
+      instance.currentDayIndex--
+    } else {
+      instance.currentDayIndex = dayNames.length - 1
+    }
+    instance.currentDay = dayNames[instance.currentDayIndex]
+    onDayChanged()
   }
 
   instance.nextDay = function() {
-    var self = instance
-    if (self.currentDayIndex < dayNames.length - 1) {
-      self.currentDayIndex++
+    if (instance.currentDayIndex < dayNames.length - 1) {
+      instance.currentDayIndex++
     } else {
-      self.currentDayIndex = 0
+      instance.currentDayIndex = 0
     }
-    self.currentDay = dayNames[self.currentDayIndex]
+    instance.currentDay = dayNames[instance.currentDayIndex]
+    onDayChanged()
   }
 
   instance.goToToday = function() {
-    var self = instance
     var todayIdx = getRealTodayIndex()
-    if (self.currentDayIndex === todayIdx) return
-    self.currentDayIndex = todayIdx
-    self.currentDay = dayNames[todayIdx]
+    if (instance.currentDayIndex === todayIdx) return
+    instance.currentDayIndex = todayIdx
+    instance.currentDay = dayNames[todayIdx]
+    onDayChanged()
   }
 
-  console.log("[day-nav module] init OK, day: " + instance.currentDay)
+  instance.goToTomorrow = function() {
+    var todayIdx = getRealTodayIndex()
+    var tomorrowIdx = todayIdx + 1
+    if (tomorrowIdx >= dayNames.length) tomorrowIdx = 0
+    if (instance.currentDayIndex === tomorrowIdx) return
+    instance.currentDayIndex = tomorrowIdx
+    instance.currentDay = dayNames[tomorrowIdx]
+    onDayChanged()
+  }
+
+  console.log("[day-nav] init OK, day: " + instance.currentDay)
 }
 
-module.exports = {
-  init: init
-}
-
-console.log("[day-nav module] loaded successfully")
+module.exports = { init: init }
+console.log("[day-nav] loaded")

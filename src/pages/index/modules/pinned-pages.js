@@ -1,9 +1,8 @@
-console.log("[pinned-pages module] loading...")
+console.log("[pinned-pages] loading...")
 
 var pinHelper = require("../../../data/pin-helper.js")
 
 function init(instance) {
-  console.log("[pinned-pages module] init called")
   instance.pinnedPages = []
   instance.hasPinned = false
 
@@ -12,7 +11,7 @@ function init(instance) {
     pinHelper.getList(function(list) {
       self.pinnedPages = list
       self.hasPinned = list.length > 0
-      console.log("[pinned-pages module] loaded " + list.length + " pages")
+      console.log("[pinned-pages] loaded " + list.length + " pages")
     })
   }
 
@@ -21,33 +20,9 @@ function init(instance) {
     router.push({ uri: uri })
   }
 
-  instance.openAddCoursePage = function() {
-    var router = require("@system.router")
-    var storage = require("@system.storage")
-    var self = instance
-    storage.set({
-      key: "add_course_day",
-      value: self.currentDay,
-      success: function() {
-        router.push({ uri: "/pages/add-course" })
-      },
-      fail: function() {
-        router.push({ uri: "/pages/add-course" })
-      }
-    })
-  }
-
-  instance.openSettings = function() {
-    var router = require("@system.router")
-    router.push({ uri: "/pages/settings" })
-  }
-
   instance.loadPinnedPages()
-  console.log("[pinned-pages module] init OK")
+  console.log("[pinned-pages] init OK")
 }
 
-module.exports = {
-  init: init
-}
-
-console.log("[pinned-pages module] loaded successfully")
+module.exports = { init: init }
+console.log("[pinned-pages] loaded")

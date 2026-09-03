@@ -1,10 +1,4 @@
-console.log("[status-bar module] loading...")
-
-var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
-
-function getRealTodayIndex() {
-  return new Date().getDay()
-}
+console.log("[status-bar] loading...")
 
 function parseTime(timeStr) {
   var parts = timeStr.split(":")
@@ -12,7 +6,6 @@ function parseTime(timeStr) {
 }
 
 function init(instance) {
-  console.log("[status-bar module] init called")
   instance.statusTag = "暂无"
   instance.statusMainText = "今日无课程安排"
   instance.statusTimeText = ""
@@ -101,11 +94,9 @@ function init(instance) {
     }
   }
 
-  console.log("[status-bar module] init OK")
+  instance.startStatusTimer()
+  console.log("[status-bar] init OK")
 }
 
-module.exports = {
-  init: init
-}
-
-console.log("[status-bar module] loaded successfully")
+module.exports = { init: init }
+console.log("[status-bar] loaded")

@@ -1,4 +1,4 @@
-console.log("[class-list module] loading...")
+console.log("[class-list] loading...")
 
 var store = require("../../../data/store.js")
 
@@ -8,9 +8,7 @@ function parseTime(timeStr) {
 }
 
 function init(instance) {
-  console.log("[class-list module] init called")
   instance.currentClasses = []
-
   instance.currentScheduleName = "课程表1"
 
   store.getCurrentScheduleIndex(function(idx) {
@@ -26,6 +24,31 @@ function init(instance) {
   instance.openScheduleManager = function() {
     var router = require("@system.router")
     router.push({ uri: "/pages/schedule-manager" })
+  }
+
+  instance.goToClassDetail = function(course) {
+    var router = require("@system.router")
+    var storage = require("@system.storage")
+    var self = instance
+    storage.set({
+      key: "detail_classId",
+      value: String(course.id),
+      success: function() {
+        storage.set({
+          key: "detail_day",
+          value: self.currentDay,
+          success: function() {
+            router.push({ uri: "/pages/detail" })
+          },
+          fail: function() {
+            router.push({ uri: "/pages/detail" })
+          }
+        })
+      },
+      fail: function() {
+        router.push({ uri: "/pages/detail" })
+      }
+    })
   }
 
   instance.loadDayClasses = function() {
@@ -45,6 +68,7 @@ function init(instance) {
         id: src.id,
         name: src.name,
         time: src.time,
+        teacher: src.teacher || "",
         location: src.location || "",
         progress: 0,
         progressColor: "transparent"
@@ -59,6 +83,13 @@ function init(instance) {
     })
     self.currentClasses = classes
     self.updateClassProgress()
+  }
+
+  instance.refreshClasses = function() {
+    instance.loadDayClasses()
+    if (instance.updateStatus && typeof instance.updateStatus === 'function') {
+      instance.updateStatus()
+    }
   }
 
   instance.updateClassProgress = function() {
@@ -93,11 +124,27 @@ function init(instance) {
     }
   }
 
-  console.log("[class-list module] init OK")
+  instance.startProgressTimer = function() {
+    var self = instance
+    if (self._progressTimer) {
+      clearInterval(self._progressTimer)
+    }
+    self._progressTimer = setInterval(function() {
+      self.updateClassProgress()
+    }, 60000)
+  }
+
+  instance.stopProgressTimer = function() {
+    if (instance._progressTimer) {
+      clearInterval(instance._progressTimer)
+      instance._progressTimer = null
+    }
+  }
+
+  instance.loadDayClasses()
+  instance.startProgressTimer()
+  console.log("[class-list] init OK")
 }
 
-module.exports = {
-  init: init
-}
-
-console.log("[class-list module] loaded successfully")
+module.exports = { init: init }
+console.log("[class-list] loaded")
