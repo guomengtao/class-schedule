@@ -1,0 +1,285 @@
+<template>
+  <div class="test-page" style="background-color: {{ themeBg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ themeCard }}; color: {{ themeAccent }}" />
+      <text class="header-title" style="color: {{ themeText }}">多模块加载测试</text>
+    </div>
+
+    <text class="desc" style="color: {{ themeTextSecondary }}">此页面由 3 个独立 JS 模块组合而成</text>
+    <text class="file-structure" style="color: {{ themeTextMuted }}">modules/counter.js + list.js + theme.js</text>
+
+    <div class="section" style="background-color: {{ themeCard }}">
+      <text class="section-title" style="color: {{ themeText }}">主题切换（theme.js）</text>
+      <div class="theme-row">
+        <div for="{{ themeList }}" class="theme-chip {{ currentTheme.key === $item.key ? 'active' : '' }}" onclick="onSwitchTheme($item.key)" style="background-color: {{ $item.card }}; border-color: {{ $item.accent }}">
+          <text class="theme-name" style="color: {{ $item.accent }}">{{ $item.name }}</text>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ themeCard }}">
+      <text class="section-title" style="color: {{ themeText }}">计数器（counter.js）</text>
+      <text class="counter-value" style="color: {{ themeAccent }}">{{ counter }}</text>
+      <div class="btn-row">
+        <input class="action-btn" type="button" value="−" onclick="onDecrement" style="background-color: {{ themeTextMuted }}; color: {{ themeBg }}" />
+        <input class="action-btn" type="button" value="+" onclick="onIncrement" style="background-color: {{ themeAccent }}; color: {{ themeBg }}" />
+        <input class="action-btn reset-btn" type="button" value="重置" onclick="onReset" style="background-color: transparent; color: #e08080; border-color: #e08080" />
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ themeCard }}">
+      <text class="section-title" style="color: {{ themeText }}">动态列表（list.js）</text>
+      <div class="btn-row">
+        <input class="action-btn" type="button" value="+ 添加" onclick="onAddItem" style="background-color: {{ themeAccent }}; color: {{ themeBg }}" />
+        <input class="action-btn" type="button" value="清空" onclick="onClearAll" style="background-color: transparent; color: #e08080; border-color: #e08080" />
+      </div>
+      <scroll class="list-scroll" scroll-y="{{true}}">
+        <div for="{{ items }}" class="list-item" style="background-color: {{ themeBg }}">
+          <text class="list-name" style="color: {{ themeText }}">{{ $item.name }}</text>
+          <text class="list-time" style="color: {{ themeTextSecondary }}">{{ $item.time }}</text>
+          <input class="del-btn" type="button" value="✕" onclick="onRemoveItem($item.id)" style="background-color: transparent; color: #e08080" />
+        </div>
+        <div if="{{ items.length === 0 }}" class="empty">
+          <text class="empty-text" style="color: {{ themeTextMuted }}">列表为空</text>
+        </div>
+      </scroll>
+    </div>
+
+    <div class="section" style="background-color: {{ themeCard }}">
+      <text class="section-title" style="color: {{ themeAccent }}">模块状态</text>
+      <div class="status-row">
+        <text class="status-label" style="color: {{ themeTextSecondary }}">counter.js</text>
+        <text class="status-value" style="color: #4ecb71">✅ 已加载</text>
+      </div>
+      <div class="status-row">
+        <text class="status-label" style="color: {{ themeTextSecondary }}">list.js</text>
+        <text class="status-value" style="color: #4ecb71">✅ 已加载</text>
+      </div>
+      <div class="status-row">
+        <text class="status-label" style="color: {{ themeTextSecondary }}">theme.js</text>
+        <text class="status-value" style="color: #4ecb71">✅ 已加载</text>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+
+var counterModule = require("./modules/counter.js")
+var listModule = require("./modules/list.js")
+var themeModule = require("./modules/theme.js")
+
+export default {
+  private: {
+    counter: 0,
+    items: [],
+    themeList: [],
+    currentTheme: {},
+    themeBg: "#1a1a2e",
+    themeCard: "#16213e",
+    themeAccent: "#7ec8e3",
+    themeText: "#ffffff",
+    themeTextSecondary: "#888899",
+    themeTextMuted: "#555566"
+  },
+
+  onInit() {
+    var self = this
+    themeModule.init(self)
+    counterModule.init(self)
+    listModule.init(self)
+  },
+
+  onShow() {
+    var self = this
+    counterModule.init(self)
+    listModule.init(self)
+  },
+
+  onSwitchTheme(key) {
+    themeModule.switchTheme(this, key)
+  },
+
+  onIncrement() {
+    counterModule.increment(this)
+  },
+
+  onDecrement() {
+    counterModule.decrement(this)
+  },
+
+  onReset() {
+    counterModule.reset(this)
+  },
+
+  onAddItem() {
+    listModule.addItem(this)
+  },
+
+  onRemoveItem(id) {
+    listModule.removeItem(this, id)
+  },
+
+  onClearAll() {
+    listModule.clearAll(this)
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.test-page {
+  flex-direction: column;
+  padding: 44px 12px 12px 12px;
+  min-height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.back-btn {
+  width: 66px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.desc {
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.file-structure {
+  font-size: 11px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.section {
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.theme-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.theme-chip {
+  padding: 6px 14px;
+  margin: 0 6px 6px 0;
+  border-radius: 20px;
+  border-width: 2px;
+  border-color: transparent;
+}
+
+.theme-chip.active {
+  border-width: 2px;
+}
+
+.theme-name {
+  font-size: 13px;
+}
+
+.counter-value {
+  font-size: 48px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.btn-row {
+  flex-direction: row;
+  justify-content: center;
+}
+
+.action-btn {
+  width: 56px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 16px;
+  margin: 0 4px;
+  text-align: center;
+}
+
+.reset-btn {
+  border-width: 1px;
+}
+
+.list-scroll {
+  max-height: 200px;
+}
+
+.list-item {
+  flex-direction: row;
+  align-items: center;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  border-radius: 8px;
+}
+
+.list-name {
+  font-size: 14px;
+  flex: 1;
+}
+
+.list-time {
+  font-size: 11px;
+  margin-right: 8px;
+}
+
+.del-btn {
+  width: 30px;
+  height: 30px;
+  font-size: 14px;
+  border-radius: 6px;
+}
+
+.empty {
+  align-items: center;
+  padding: 20px;
+}
+
+.empty-text {
+  font-size: 13px;
+}
+
+.status-row {
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+
+.status-label {
+  font-size: 14px;
+}
+
+.status-value {
+  font-size: 14px;
+  font-weight: bold;
+}
+</style>

@@ -3,7 +3,15 @@
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="title" style="color: {{ theme.text }}">震动实验室</text>
+      <text class="title" style="color: {{ theme.text }}">实验室</text>
+    </div>
+
+    <div class="lab-nav" style="background-color: {{ theme.card }}">
+      <div class="lab-nav-item" onclick="goToModuleTest">
+        <text class="lab-nav-icon">🧪</text>
+        <text class="lab-nav-label" style="color: {{ theme.accent }}">多模块加载测试</text>
+        <text class="lab-nav-arrow" style="color: {{ theme.textSecondary }}">▶</text>
+      </div>
     </div>
 
     <div class="hero" style="background-color: {{ theme.card }}">
@@ -379,6 +387,12 @@ export default {
     router.back()
   },
 
+  goToModuleTest() {
+    router.push({
+      uri: "/pages/lab-module-test"
+    })
+  },
+
   pinToHome() {
     pinHelper.pinPage("震动实验室", "/pages/vibration-lab")
   }
@@ -412,6 +426,38 @@ export default {
   font-weight: bold;
   flex: 1;
   text-align: center;
+}
+
+.lab-nav {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 6px;
+  margin-bottom: 10px;
+}
+
+.lab-nav-item {
+  flex-direction: row;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 8px;
+}
+
+.lab-nav-item:active {
+  opacity: 0.7;
+}
+
+.lab-nav-icon {
+  font-size: 22px;
+  margin-right: 10px;
+}
+
+.lab-nav-label {
+  font-size: 15px;
+  flex: 1;
+}
+
+.lab-nav-arrow {
+  font-size: 14px;
 }
 
 .footer-actions {
