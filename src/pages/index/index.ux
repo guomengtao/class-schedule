@@ -92,6 +92,8 @@
     <div class="week-indicator" onclick="openScheduleManager">
       <text class="week-text" style="{{ weekTextStyle }}; color: {{ theme.accent }}">⇄ {{ currentScheduleName }}</text>
     </div>
+
+    </div>
 </template>
 
 <script>
@@ -103,7 +105,7 @@ const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 var pinHelper = require("../../data/pin-helper.js")
 
-var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+const dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
 function parseTime(timeStr) {
   var parts = timeStr.split(":")
@@ -114,12 +116,6 @@ function parseTime(timeStr) {
 
 function getRealTodayIndex() {
   return new Date().getDay()
-}
-
-function formatTime(minutes) {
-  var h = Math.floor(minutes / 60)
-  var m = minutes % 60
-  return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m
 }
 
 export default {
@@ -713,7 +709,13 @@ export default {
       endMin = DAY_END
     }
     this.quickAddDisabled = false
-    return formatTime(startMin) + " - " + formatTime(endMin)
+    return this.formatTime(startMin) + " - " + this.formatTime(endMin)
+  },
+
+  formatTime(minutes) {
+    var h = Math.floor(minutes / 60)
+    var m = minutes % 60
+    return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m
   },
 
   startStatusTimer() {
