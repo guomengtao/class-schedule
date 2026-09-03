@@ -5,7 +5,7 @@
       <text class="header-title" style="color: {{ theme.text }}">已钉首页</text>
     </div>
 
-    <text class="section-desc" style="color: {{ theme.textSecondary }}">以下页面已被固定到首页，点击可快速访问。</text>
+    <text class="section-desc" style="color: {{ theme.textSecondary }}">以下页面已被固定到首页，点击可快速访问。点击方框可取消固定。</text>
 
     <div class="empty-hint" if="pinnedList.length === 0" style="background-color: {{ theme.card }}">
       <text class="empty-icon">📌</text>
@@ -15,16 +15,19 @@
 
     <div class="pinned-section" if="pinnedList.length > 0">
       <div class="pinned-item" for="{{ pinnedList }}" style="background-color: {{ theme.card }}">
-        <div class="pinned-info">
+        <div class="pinned-checkbox" onclick="togglePin($idx)" style="border-color: {{ theme.accent }}; color: {{ theme.accent }}">
+          <text>☑</text>
+        </div>
+        <div class="pinned-info" onclick="openPage($item.uri)">
           <text class="pinned-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
           <text class="pinned-uri" style="color: {{ theme.textMuted }}">{{ $item.uri }}</text>
         </div>
-        <text class="pinned-arrow" style="color: {{ theme.textMuted }}">›</text>
+        <text class="pinned-arrow" onclick="openPage($item.uri)" style="color: {{ theme.textMuted }}">›</text>
       </div>
     </div>
 
     <div class="footer-actions">
-      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">📌 固定到首页</text>
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">📌 {{ isThisPinned ? '已钉到首页' : '固定到首页' }}</text>
     </div>
   </div>
 </template>
@@ -37,6 +40,7 @@ var pinHelper = require("../../data/pin-helper.js")
 export default {
   private: {
     pinnedList: [],
+    isThisPinned: false,
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -72,6 +76,7 @@ export default {
       self.theme = t
     })
     self.loadPinnedList()
+    self.checkThisPinned()
   },
 
   loadPinnedList() {
@@ -81,12 +86,40 @@ export default {
     })
   },
 
-  goBack() {
-    router.back()
+  checkThisPinned() {
+    var self = this
+    pinHelper.isPinned("/pages/pinned-pages", function(yes) {
+      self.isThisPinned = yes
+    })
+  },
+
+  openPage(uri) {
+    router.push({ uri: uri })
+  },
+
+  togglePin(idx) {
+    var self = this
+    var item = self.pinnedList[idx]
+    pinHelper.unpinPage(item.uri, function() {
+      self.loadPinnedList()
+    })
   },
 
   pinToHome() {
-    pinHelper.pinPage("已钉首页", "/pages/pinned-pages")
+    var self = this
+    if (self.isThisPinned) {
+      pinHelper.unpinPage("/pages/pinned-pages", function() {
+        self.isThisPinned = false
+      })
+    } else {
+      pinHelper.pinPage("已钉首页", "/pages/pinned-pages", function() {
+        self.isThisPinned = true
+      })
+    }
+  },
+
+  goBack() {
+    router.back()
   }
 }
 </script>
@@ -162,6 +195,17 @@ export default {
   border-radius: 10px;
   padding: 14px 12px;
   margin-bottom: 8px;
+}
+
+.pinned-checkbox {
+  width: 24px;
+  height: 24px;
+  border-width: 2px;
+  border-radius: 4px;
+  justify-content: center;
+  align-items: center;
+  margin-right: 10px;
+  flex-shrink: 0;
 }
 
 .pinned-info {

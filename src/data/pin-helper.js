@@ -57,8 +57,26 @@ function isPinned(uri, callback) {
   })
 }
 
+function unpinPage(uri, callback) {
+  var prompt = require("@system.prompt")
+  getList(function(list) {
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].uri === uri) {
+        list.splice(i, 1)
+        saveList(list, function() {
+          prompt.showToast({ message: "已取消钉首页" })
+          if (callback) callback()
+        })
+        return
+      }
+    }
+    prompt.showToast({ message: "该页面未钉在首页" })
+  })
+}
+
 module.exports = {
   pinPage: pinPage,
   isPinned: isPinned,
-  getList: getList
+  getList: getList,
+  unpinPage: unpinPage
 }
