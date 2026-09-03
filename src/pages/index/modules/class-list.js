@@ -1,9 +1,12 @@
+console.log("[class-list module] loading...")
+
 function parseTime(timeStr) {
   var parts = timeStr.split(":")
   return parseInt(parts[0]) * 60 + parseInt(parts[1])
 }
 
-function init(instance, deps) {
+function init(instance) {
+  console.log("[class-list module] init called")
   instance.currentClasses = []
 
   instance.loadDayClasses = function() {
@@ -71,21 +74,11 @@ function init(instance, deps) {
     }
   }
 
-  instance.currentScheduleName = "课程表1"
-
-  deps.store.getCurrentScheduleIndex(function(idx) {
-    deps.store.getScheduleNames(function(names) {
-      if (names && idx < names.length) {
-        instance.currentScheduleName = names[idx]
-      } else {
-        instance.currentScheduleName = "课程表" + (idx + 1)
-      }
-    })
-  })
-
-  instance.openScheduleManager = function() {
-    deps.router.push({ uri: "/pages/schedule-manager" })
-  }
+  console.log("[class-list module] init OK")
 }
 
-module.exports = { init: init }
+module.exports = {
+  init: init
+}
+
+console.log("[class-list module] loaded successfully")

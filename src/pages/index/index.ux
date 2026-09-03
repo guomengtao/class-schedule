@@ -97,15 +97,6 @@ import router from "@system.router"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 var pinHelper = require("../../data/pin-helper.js")
-var storage = require("@system.storage")
-
-var deps = {
-  router: router,
-  storage: storage,
-  pinHelper: pinHelper,
-  store: store,
-  database: database
-}
 
 var modules = {}
 var moduleNames = [
@@ -211,7 +202,7 @@ export default {
       var mod = modules[m.key]
       if (mod && mod.init) {
         try {
-          mod.init(self, deps)
+          mod.init(self)
           console.log("[index] [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " OK")
         } catch (e) {
           console.error("[index] [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " FAIL: " + (e.message || e))
@@ -243,6 +234,7 @@ export default {
   },
 
   goToWeekView() {
+    var storage = require("@system.storage")
     store.getCurrentScheduleIndex(function(idx) {
       storage.set({
         key: "weekview_index",

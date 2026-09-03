@@ -1,10 +1,13 @@
+console.log("[day-nav module] loading...")
+
 var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
 function getRealTodayIndex() {
   return new Date().getDay()
 }
 
-function init(instance, deps) {
+function init(instance) {
+  console.log("[day-nav module] init called")
   instance.currentDay = "星期日"
   instance.currentDayIndex = 0
 
@@ -38,6 +41,12 @@ function init(instance, deps) {
     self.currentDayIndex = todayIdx
     self.currentDay = dayNames[todayIdx]
   }
+
+  console.log("[day-nav module] init OK, day: " + instance.currentDay)
 }
 
-module.exports = { init: init }
+module.exports = {
+  init: init
+}
+
+console.log("[day-nav module] loaded successfully")

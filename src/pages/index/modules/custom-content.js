@@ -1,8 +1,12 @@
-function init(instance, deps) {
+console.log("[custom-content module] loading...")
+
+function init(instance) {
+  console.log("[custom-content module] init called")
   instance.showCustomContent = false
   instance.customContent = ""
 
-  deps.storage.get({
+  var storage = require("@system.storage")
+  storage.get({
     key: "homepage_settings",
     success: function(data) {
       try {
@@ -13,12 +17,20 @@ function init(instance, deps) {
         instance.showCustomContent = false
         instance.customContent = ""
       }
+      console.log("[custom-content module] loaded, show=" + instance.showCustomContent + ", content=" + instance.customContent)
     },
     fail: function() {
       instance.showCustomContent = false
       instance.customContent = ""
+      console.log("[custom-content module] no homepage settings")
     }
   })
+
+  console.log("[custom-content module] init OK")
 }
 
-module.exports = { init: init }
+module.exports = {
+  init: init
+}
+
+console.log("[custom-content module] loaded successfully")
