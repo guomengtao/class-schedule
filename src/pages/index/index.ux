@@ -1,14 +1,52 @@
 <template>
   <div class="page">
-    <text class="hello">hello</text>
+    <text class="hello">hello step1</text>
   </div>
 </template>
 
 <script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+const database = require("../../data/database.js")
+var pinHelper = require("../../data/pin-helper.js")
+
 export default {
-  private: {},
+  private: {
+    currentTime: "",
+    currentDay: "Sunday",
+    currentDayIndex: 0,
+    statusTag: "",
+    statusMainText: "",
+    statusTimeText: "",
+    showCustomContent: false,
+    customContent: "",
+    showTime: true,
+    showQuickAdd: true,
+    showStatusBar: true,
+    pinnedPages: [],
+    hasPinned: false,
+    currentClasses: [],
+    schedule: [],
+    quickAddExpanded: false,
+    quickCourseNames: [],
+    quickAddDisabled: false,
+    quickAddTime: "",
+    currentScheduleName: "Schedule 1",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a'
+    }
+  },
+
   onInit() {
-    console.log("[index] hello onInit")
+    console.log("[index] step1 onInit")
   }
 }
 </script>
