@@ -6,94 +6,11 @@
       </div>
     </div>
 
-    <div class="header">
-      <input class="nav-btn" type="button" value="&#9664;" onclick="prevDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="day-title" style="{{ dayTitleStyle }}; color: {{ theme.text }}">{{ currentDay }}</text>
-      <div class="day-nav-btns" if="{{ !isCapsule && !isNarrowScreen }}">
-        <div class="day-nav-circle" onclick="goToWeekView" style="background-color: {{ theme.cardLight }}">
-          <text class="day-nav-text" style="font-size: 20px; color: {{ theme.accent }}">总</text>
-        </div>
-        <div class="day-nav-circle" onclick="goToToday" style="background-color: {{ theme.cardLight }}">
-          <text class="day-nav-text" style="font-size: 20px; color: {{ theme.accent }}">今</text>
-        </div>
-        <div class="day-nav-circle" onclick="goToTomorrow" style="background-color: {{ theme.cardLight }}">
-          <text class="day-nav-text" style="font-size: 20px; color: {{ theme.accent }}">明</text>
-        </div>
-      </div>
-      <input class="nav-btn" type="button" value="&#9654;" onclick="nextDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+    <div class="debug-body" style="flex: 1; justify-content: center; align-items: center;">
+      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 5</text>
+      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">模板模块: 时钟行</text>
     </div>
-
-    <div class="status-bar" if="{{ isToday && showStatusBar }}" style="background-color: {{ theme.cardLight }}" onclick="goToStatusClass">
-      <div class="left-accent left-accent-6" style="background-color: {{ theme.accent }}"></div>
-      <text class="status-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
-      <text class="status-middle" style="color: {{ theme.text }}">{{ statusMainText }}</text>
-      <text class="status-right" if="{{ !isCapsule && !isNarrowScreen }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
-    </div>
-
-    <div class="custom-content-bar" if="{{ showCustomContent && customContent }}" style="background-color: {{ theme.cardLight }}">
-      <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
-      <text class="custom-content-text" style="{{ customContentStyle }}; color: {{ theme.text }}">{{ customContent }}</text>
-    </div>
-
-    <div class="pinned-bar" if="{{ hasPinned }}" style="background-color: {{ theme.cardLight }}">
-      <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
-      <div class="pinned-content">
-        <text class="pinned-hint" style="color: {{ theme.textMuted }}; font-size: 11px;">📌 已固定页面，点击可快速访问</text>
-        <div class="pinned-row">
-          <div for="{{ pinnedPages }}" class="pinned-item" onclick="openPinnedPage($item.uri)" style="background-color: {{ theme.card }}">
-            <text class="pinned-text" style="color: {{ theme.accent }}">{{ $item.name }}</text>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <scroll class="class-list" scroll-y="{{true}}" scroll-top="{{ scrollListTop }}">
-      <div for="{{ currentClasses }}" class="class-card-wrapper">
-        <div class="class-card" onclick="openDetail($item.id)" style="background-color: {{ theme.card }}">
-          <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
-          <div class="progress-bg" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
-          <div class="class-content">
-            <div class="class-time">
-              <text class="class-name" style="{{ nameStyle }}; color: {{ theme.text }}">{{ $item.name }}</text>
-              <text class="class-time-text" style="{{ nameStyle }}; color: {{ theme.textSecondary }}">{{ $item.time }}</text>
-            </div>
-            <div class="class-info">
-              <text class="class-location" if="{{ !isCapsule && !isNarrowScreen }}" style="{{ nameStyle }}; color: {{ theme.accent }}">{{ $item.location }}</text>
-              <text class="class-progress class-ended" if="{{ $item.progress >= 100 && !isCapsule && !isNarrowScreen }}" style="font-size: 24px; color: {{ theme.textMuted }}">已结束</text>
-              <text class="class-progress" if="{{ $item.progress > 0 && $item.progress < 100 }}" style="font-size: 24px; color: {{ theme.textMuted }}">{{ $item.progress }}%</text>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div if="{{ currentClasses.length === 0 }}" class="empty-card">
-        <text class="empty-text" style="{{ nameStyle }}; color: {{ theme.textMuted }}">今天没有课</text>
-      </div>
-    </scroll>
-
-    <div class="quick-add" if="{{ showQuickAdd }}" style="background-color: {{ theme.card }}">
-      <text class="quick-add-title" onclick="toggleQuickAdd" style="{{ weekTextStyle }}; color: {{ theme.accent }}">快速添加 {{ quickAddExpanded ? '▲' : '▼' }}</text>
-      <scroll class="quick-add-scroll" scroll-x="{{true}}" if="{{ quickAddExpanded && quickCourseNames.length > 0 && !quickAddDisabled }}">
-        <div class="quick-add-list">
-          <div for="{{ quickCourseNames }}" class="quick-add-item" onclick="quickAddCourse($item)" style="background-color: {{ theme.cardLight }}">
-            <text class="quick-add-name" style="font-size: 24px; color: {{ theme.text }}">{{ $item }}</text>
-          </div>
-        </div>
-      </scroll>
-      <text class="quick-add-empty" if="{{ quickAddExpanded && quickAddDisabled }}" style="font-size: 20px; color: {{ theme.textMuted }}">今天课程已排满</text>
-      <text class="quick-add-empty" if="{{ quickAddExpanded && !quickAddDisabled && quickCourseNames.length === 0 }}" style="font-size: 20px; color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
-    </div>
-
-    <div class="bottom-buttons">
-      <input class="add-btn" type="button" value="+ 添加课程" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
-    </div>
-
-    <div class="week-indicator" onclick="openScheduleManager">
-      <text class="week-text" style="{{ weekTextStyle }}; color: {{ theme.accent }}">⇄ {{ currentScheduleName }}</text>
-    </div>
-
-    </div>
+  </div>
 </template>
 
 <script>
