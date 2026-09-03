@@ -103,7 +103,6 @@ const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 var pinHelper = require("../../data/pin-helper.js")
 var utils = require("./modules/utils.js")
-var statusModule = require("./modules/status.js")
 
 var dayNames = utils.dayNames
 var parseTime = utils.parseTime
@@ -705,11 +704,25 @@ export default {
   },
 
   startStatusTimer() {
-    statusModule.startStatusTimer(this)
+    this.stopStatusTimer()
+    var self = this
+    this.statusTimer = setInterval(function() {
+      self.updateStatus()
+    }, 60000)
+    this.progressTimer = setInterval(function() {
+      self.updateClassProgress()
+    }, 30000)
   },
 
   stopStatusTimer() {
-    statusModule.stopStatusTimer(this)
+    if (this.statusTimer) {
+      clearInterval(this.statusTimer)
+      this.statusTimer = null
+    }
+    if (this.progressTimer) {
+      clearInterval(this.progressTimer)
+      this.progressTimer = null
+    }
   },
 
   updateClock() {
@@ -748,16 +761,96 @@ export default {
   },
 
   updateStatus() {
-    statusModule.updateStatus(this)
+    this.currentClass = null
+    this.nextClass = null
+    this.upcomingClass = null
+    this.upcomingClassDay = ""
+    var now = new Date()
+    var nowMinutes = now.getHours() * 60 + now.getMinutes()
+    var realTodayIdx = getRealTodayIndex()
+    if (this.currentDayIndex === realTodayIdx) {
+      this.computeTodayStatus(nowMinutes)
+    }
+    if (!this.currentClass && !this.nextClass) {
+      this.findUpcomingClass(realTodayIdx)
+    }
+    this.updateStatusLine()
   },
 
   updateStatusLine() {
-    statusModule.updateStatusLine(this)
+    if (this.currentClass) {
+      this.statusTag = "上课中"
+      this.statusMainText = this.currentClass.name
+      var remaining = this.currentClass.remaining > 0
+        ? Math.ceil(this.currentClass.remaining) + "min"
+        : "即将结束"
+      this.statusTimeText = remaining
+    } else if (this.nextClass) {
+      this.statusTag = "即将上课"
+      this.statusMainText = this.nextClass.name
+      this.statusTimeText = Math.ceil(this.nextClass.waitMin) + "min后"
+    } else if (this.upcomingClass) {
+      this.statusTag = "有课"
+      this.statusMainText = this.upcomingClass.name + " " + this.upcomingClass.day
+      this.statusTimeText = this.upcomingClass.time
+    } else {
+      this.statusTag = "暂无"
+      this.statusMainText = "今日无课程安排"
+      this.statusTimeText = ""
+    }
   },
 
   computeTodayStatus(nowMinutes) {
-    statusModule.computeTodayStatus(this, nowMinutes)
-    var next = this.nextClass
+    var todayClasses = this.currentClasses
+    if (!todayClasses || todayClasses.length === 0) return
+    var parsed = []
+    for (var i = 0; i < todayClasses.length; i++) {
+      var cls = todayClasses[i]
+      var timeParts = cls.time.split("-")
+      if (timeParts.length < 2) continue
+      var startMin = parseTime(timeParts[0].trim())
+      var endMin = parseTime(timeParts[1].trim())
+      parsed.push({
+        id: cls.id,
+        name: cls.name,
+        startMin: startMin,
+        endMin: endMin,
+        startTime: timeParts[0].trim()
+      })
+    }
+    parsed.sort(function(a, b) { return a.startMin - b.startMin })
+    var current = null
+    var next = null
+    for (var i = 0; i < parsed.length; i++) {
+      var cls = parsed[i]
+      if (nowMinutes >= cls.startMin && nowMinutes <= cls.endMin) {
+        current = {
+          name: cls.name,
+          remaining: Math.round((cls.endMin - nowMinutes) * 10) / 10,
+          id: cls.id
+        }
+        if (i + 1 < parsed.length) {
+          var nxt = parsed[i + 1]
+          next = {
+            name: nxt.name,
+            startTime: nxt.startTime,
+            waitMin: Math.round((nxt.startMin - nowMinutes) * 10) / 10,
+            id: nxt.id
+          }
+        }
+        break
+      }
+      if (nowMinutes < cls.startMin && (!next || cls.startMin < next.startMin)) {
+        next = {
+          name: cls.name,
+          startTime: cls.startTime,
+          waitMin: Math.round((cls.startMin - nowMinutes) * 10) / 10,
+          id: cls.id
+        }
+      }
+    }
+    this.currentClass = current
+    this.nextClass = next
     if (next && this.remindSettings.enabled) {
       var remindMinutes = this.remindSettings.minutes || 5
       if (next.waitMin <= remindMinutes && next.waitMin > 0) {
@@ -774,7 +867,76 @@ export default {
   },
 
   findUpcomingClass(realTodayIdx) {
-    statusModule.findUpcomingClass(this, realTodayIdx)
+    if (!this.schedule || this.schedule.length === 0) return
+    var now = new Date()
+    var nowMinutes = now.getHours() * 60 + now.getMinutes()
+    for (var offset = 0; offset < 7; offset++) {
+      var checkIdx = (realTodayIdx + offset) % 7
+      var checkDay = dayNames[checkIdx]
+      var dayData = null
+      for (var d = 0; d < this.schedule.length; d++) {
+        if (this.schedule[d].day === checkDay) { dayData = this.schedule[d]; break }
+      }
+      if (!dayData || !dayData.classes || dayData.classes.length === 0) continue
+      var parsed = []
+      for (var i = 0; i < dayData.classes.length; i++) {
+        var cls = dayData.classes[i]
+        var timeParts = cls.time.split("-")
+        if (timeParts.length < 2) continue
+        var startTimeStr = timeParts[0].trim()
+        var endTimeStr = timeParts[1].trim()
+        parsed.push({
+          name: cls.name,
+          time: cls.time,
+          startTime: startTimeStr,
+          endTime: endTimeStr,
+          startMin: parseTime(startTimeStr),
+          endMin: parseTime(endTimeStr),
+          id: cls.id
+        })
+      }
+      parsed.sort(function(a, b) { return a.startMin - b.startMin })
+      if (offset === 0) {
+        for (var j = 0; j < parsed.length; j++) {
+          if (parsed[j].endMin > nowMinutes) {
+            if (nowMinutes >= parsed[j].startMin) {
+              this.currentClass = {
+                name: parsed[j].name,
+                remaining: Math.round((parsed[j].endMin - nowMinutes) * 10) / 10,
+                id: parsed[j].id
+              }
+              if (j + 1 < parsed.length) {
+                this.nextClass = {
+                  name: parsed[j + 1].name,
+                  startTime: parsed[j + 1].startTime,
+                  waitMin: Math.round((parsed[j + 1].startMin - nowMinutes) * 10) / 10,
+                  id: parsed[j + 1].id
+                }
+              }
+              return
+            }
+            this.nextClass = {
+              name: parsed[j].name,
+              startTime: parsed[j].startTime,
+              waitMin: Math.round((parsed[j].startMin - nowMinutes) * 10) / 10,
+              id: parsed[j].id
+            }
+            return
+          }
+        }
+        continue
+      }
+      if (parsed.length > 0) {
+        this.upcomingClass = {
+          day: checkDay,
+          name: parsed[0].name,
+          time: parsed[0].time,
+          startTime: parsed[0].startTime
+        }
+        this.upcomingClassDay = checkDay
+        return
+      }
+    }
   }
 }
 </script>
