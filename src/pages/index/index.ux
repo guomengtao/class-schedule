@@ -757,6 +757,20 @@ export default {
 
   computeTodayStatus(nowMinutes) {
     statusModule.computeTodayStatus(this, nowMinutes)
+    var next = this.nextClass
+    if (next && this.remindSettings.enabled) {
+      var remindMinutes = this.remindSettings.minutes || 5
+      if (next.waitMin <= remindMinutes && next.waitMin > 0) {
+        var remindKey = next.id + "_" + this.currentDay
+        if (this._lastRemindedId !== remindKey) {
+          this._lastRemindedId = remindKey
+          var self = this
+          store.getVibrationStyle(function(style) {
+            self.playVibration(style)
+          })
+        }
+      }
+    }
   },
 
   findUpcomingClass(realTodayIdx) {

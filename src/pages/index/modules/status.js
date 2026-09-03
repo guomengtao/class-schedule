@@ -1,5 +1,3 @@
-var store = require("../../../data/store.js")
-
 function updateStatus(instance) {
   instance.currentClass = null
   instance.nextClass = null
@@ -91,18 +89,6 @@ function computeTodayStatus(instance, nowMinutes) {
   }
   instance.currentClass = current
   instance.nextClass = next
-  if (next && instance.remindSettings.enabled) {
-    var remindMinutes = instance.remindSettings.minutes || 5
-    if (next.waitMin <= remindMinutes && next.waitMin > 0) {
-      var remindKey = next.id + "_" + instance.currentDay
-      if (instance._lastRemindedId !== remindKey) {
-        instance._lastRemindedId = remindKey
-        store.getVibrationStyle(function(style) {
-          instance.playVibration(style)
-        })
-      }
-    }
-  }
 }
 
 function findUpcomingClass(instance, realTodayIdx) {
