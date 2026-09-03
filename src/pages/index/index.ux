@@ -104,7 +104,9 @@ var moduleNames = [
   { key: "dayNav" },
   { key: "statusBar" },
   { key: "customContent" },
-  { key: "pinnedPages" }
+  { key: "pinnedPages" },
+  { key: "classList" },
+  { key: "quickAdd" }
 ]
 
 try { modules["clock"] = require("./modules/clock.js") } catch (e) { console.warn("[index] clock require failed: " + (e.message || e)) }
@@ -112,6 +114,8 @@ try { modules["dayNav"] = require("./modules/day-nav.js") } catch (e) { console.
 try { modules["statusBar"] = require("./modules/status-bar.js") } catch (e) { console.warn("[index] statusBar require failed: " + (e.message || e)) }
 try { modules["customContent"] = require("./modules/custom-content.js") } catch (e) { console.warn("[index] customContent require failed: " + (e.message || e)) }
 try { modules["pinnedPages"] = require("./modules/pinned-pages.js") } catch (e) { console.warn("[index] pinnedPages require failed: " + (e.message || e)) }
+try { modules["classList"] = require("./modules/class-list.js") } catch (e) { console.warn("[index] classList require failed: " + (e.message || e)) }
+try { modules["quickAdd"] = require("./modules/quick-add.js") } catch (e) { console.warn("[index] quickAdd require failed: " + (e.message || e)) }
 
 export default {
   private: {
