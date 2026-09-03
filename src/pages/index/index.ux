@@ -31,14 +31,26 @@
     </div>
 
     <scroll class="class-list" scroll-y="{{true}}" scroll-top="{{ scrollListTop }}">
+      <div for="{{ currentClasses }}" class="class-card-wrapper">
+        <div class="class-card" style="background-color: {{ theme.card }}">
+          <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
+          <div class="class-content">
+            <div class="class-time">
+              <text class="class-name" style="{{ nameStyle }}; color: {{ theme.text }}">{{ $item.name }}</text>
+              <text class="class-time-text" style="{{ nameStyle }}; color: {{ theme.textSecondary }}">{{ $item.time }}</text>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div if="{{ currentClasses.length === 0 }}" class="empty-card">
         <text class="empty-text" style="{{ nameStyle }}; color: {{ theme.textMuted }}">今天没有课</text>
       </div>
     </scroll>
 
     <div class="debug-body" style="flex: 1; justify-content: center; align-items: center;">
-      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 8a</text>
-      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">ClassList: 仅scroll+空状态, 无for循环</text>
+      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 8b</text>
+      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">ClassList: for循环+简化卡片(无progress/onclick)</text>
     </div>
   </div>
 </template>
