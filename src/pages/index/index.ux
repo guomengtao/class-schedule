@@ -119,15 +119,15 @@ function loadModule(key, mod) {
   }
 }
 
-loadModule("clock", require("../home-pro/modules/clock.js"))
-loadModule("dayNav", require("../home-pro/modules/day-nav.js"))
-loadModule("statusBar", require("../home-pro/modules/status-bar.js"))
-loadModule("customContent", require("../home-pro/modules/custom-content.js"))
-loadModule("pinnedPages", require("../home-pro/modules/pinned-pages.js"))
-loadModule("classList", require("../home-pro/modules/class-list.js"))
-loadModule("quickAdd", require("../home-pro/modules/quick-add.js"))
-loadModule("bottomButtons", require("../home-pro/modules/bottom-buttons.js"))
-loadModule("weekIndicator", require("../home-pro/modules/week-indicator.js"))
+loadModule("clock", require("./modules/clock.js"))
+loadModule("dayNav", require("./modules/day-nav.js"))
+loadModule("statusBar", require("./modules/status-bar.js"))
+loadModule("customContent", require("./modules/custom-content.js"))
+loadModule("pinnedPages", require("./modules/pinned-pages.js"))
+loadModule("classList", require("./modules/class-list.js"))
+loadModule("quickAdd", require("./modules/quick-add.js"))
+loadModule("bottomButtons", require("./modules/bottom-buttons.js"))
+loadModule("weekIndicator", require("./modules/week-indicator.js"))
 
 export default {
   private: {
