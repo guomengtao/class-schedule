@@ -153,6 +153,10 @@ export default {
 
   onInit() {
     console.log("[index] onInit start")
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
     initAllModules()
   },
 
