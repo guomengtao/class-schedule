@@ -585,14 +585,14 @@ module.exports = {
           try {
             callback(JSON.parse(data))
           } catch (e) {
-            callback({ showQuickAdd: true, showCustomContent: false, customContent: "", showTime: true, showStatusBar: true, showPinnedBar: true, showDayNavZong: true, showDayNavJin: true, showDayNavMing: true, timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false } })
+            callback({ showQuickAdd: true, showCustomContent: false, customContent: "", showTime: true, showStatusBar: true, showPinnedBar: true, showDayNavZong: true, showDayNavJin: true, showDayNavMing: true, showLabSection: true, timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false } })
           }
         } else {
-          callback({ showQuickAdd: true, showCustomContent: false, customContent: "", showTime: true, showStatusBar: true, showPinnedBar: true, showDayNavZong: true, showDayNavJin: true, showDayNavMing: true, timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false } })
+          callback({ showQuickAdd: true, showCustomContent: false, customContent: "", showTime: true, showStatusBar: true, showPinnedBar: true, showDayNavZong: true, showDayNavJin: true, showDayNavMing: true, showLabSection: true, timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false } })
         }
       },
       fail: function() {
-        callback({ showQuickAdd: true, showCustomContent: false, customContent: "", showTime: true, showStatusBar: true, showPinnedBar: true, showDayNavZong: true, showDayNavJin: true, showDayNavMing: true, timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false } })
+        callback({ showQuickAdd: true, showCustomContent: false, customContent: "", showTime: true, showStatusBar: true, showPinnedBar: true, showDayNavZong: true, showDayNavJin: true, showDayNavMing: true, showLabSection: true, timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false } })
       }
     })
   },

@@ -22,10 +22,19 @@ function init(instance) {
 
   instance.updateClock = function() {
     var now = new Date()
-    var h = now.getHours()
-    var m = now.getMinutes()
-    var s = now.getSeconds()
-    instance.currentTime = (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s
+    var fmt = instance.timeFormat || { hour: true, minute: true, second: false }
+    var parts = []
+    if (fmt.year) parts.push(now.getFullYear().toString())
+    if (fmt.month) parts.push(_pad(now.getMonth() + 1))
+    if (fmt.day) parts.push(_pad(now.getDate()))
+    if (fmt.hour !== false) parts.push(_pad(now.getHours()))
+    if (fmt.minute !== false) parts.push(_pad(now.getMinutes()))
+    if (fmt.second) parts.push(_pad(now.getSeconds()))
+    instance.currentTime = parts.join(":")
+  }
+
+  function _pad(n) {
+    return (n < 10 ? "0" : "") + n
   }
 
   instance.startClockTimer()

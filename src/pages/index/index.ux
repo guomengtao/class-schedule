@@ -8,13 +8,13 @@
       <input class="nav-btn" type="button" value="&#9664;" onclick="prevDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="day-title" style="color: {{ theme.text }}">{{ currentDay }}</text>
       <div class="day-nav-btns">
-        <div class="day-nav-circle" onclick="goToWeekView" style="background-color: {{ theme.cardLight }}">
+        <div class="day-nav-circle" onclick="goToWeekView" if="{{ showDayNavZong }}" style="background-color: {{ theme.cardLight }}">
           <text class="day-nav-text" style="color: {{ theme.accent }}">总</text>
         </div>
-        <div class="day-nav-circle" onclick="goToToday" style="background-color: {{ theme.cardLight }}">
+        <div class="day-nav-circle" onclick="goToToday" if="{{ showDayNavJin }}" style="background-color: {{ theme.cardLight }}">
           <text class="day-nav-text" style="color: {{ theme.accent }}">今</text>
         </div>
-        <div class="day-nav-circle" onclick="goToTomorrow" style="background-color: {{ theme.cardLight }}">
+        <div class="day-nav-circle" onclick="goToTomorrow" if="{{ showDayNavMing }}" style="background-color: {{ theme.cardLight }}">
           <text class="day-nav-text" style="color: {{ theme.accent }}">明</text>
         </div>
       </div>
@@ -33,7 +33,7 @@
       <text class="status-right" if="{{ statusTimeText }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
     </div>
 
-    <div class="pinned-bar" if="{{ hasPinned }}" style="background-color: {{ theme.cardLight }}">
+    <div class="pinned-bar" if="{{ showPinnedBar && hasPinned }}" style="background-color: {{ theme.cardLight }}">
       <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
       <div class="pinned-content">
         <div class="pinned-row">
@@ -85,6 +85,16 @@
       <text class="quick-add-empty" if="{{ quickAdd.expanded && !quickAdd.disabled && quickAdd.courseNames.length === 0 }}" style="color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
     </div>
 
+    <div class="lab-section" if="{{ showLabSection && labItems.length > 0 }}" style="background-color: {{ theme.card }}">
+      <text class="lab-title" style="color: {{ theme.accent }}">🔬 实验室</text>
+      <div class="lab-grid">
+        <div for="{{ labItems }}" class="lab-item" onclick="openLabItem($item.uri)" style="background-color: {{ theme.cardLight }}">
+          <text class="lab-item-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+          <text class="lab-item-desc" style="color: {{ theme.textSecondary }}">{{ $item.desc }}</text>
+        </div>
+      </div>
+    </div>
+
     <div class="bottom-buttons">
       <input class="add-btn" type="button" value="+ 添加课程" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
@@ -110,7 +120,8 @@ var moduleNames = [
   { key: "customContent" },
   { key: "pinnedPages" },
   { key: "bottomButtons" },
-  { key: "classList" }
+  { key: "classList" },
+  { key: "labList" }
 ]
 
 function loadModule(key, mod) {
@@ -129,6 +140,7 @@ loadModule("customContent", require("./modules/custom-content.js"))
 loadModule("pinnedPages", require("./modules/pinned-pages.js"))
 loadModule("bottomButtons", require("./modules/bottom-buttons.js"))
 loadModule("classList", require("./modules/class-list.js"))
+loadModule("labList", require("./modules/lab-list.js"))
 
 export default {
   private: {
@@ -144,6 +156,13 @@ export default {
     showTime: true,
     showQuickAdd: true,
     showStatusBar: true,
+    showPinnedBar: true,
+    showDayNavZong: true,
+    showDayNavJin: true,
+    showDayNavMing: true,
+    showLabSection: true,
+    labItems: [],
+    timeFormat: { hour: true, minute: true, second: false },
     pinnedPages: [],
     hasPinned: false,
     currentClasses: [],
@@ -216,8 +235,14 @@ export default {
       self.showTime = settings.showTime !== false
       self.showQuickAdd = settings.showQuickAdd !== false
       self.showStatusBar = settings.showStatusBar !== false
+      self.showPinnedBar = settings.showPinnedBar !== false
+      self.showDayNavZong = settings.showDayNavZong !== false
+      self.showDayNavJin = settings.showDayNavJin !== false
+      self.showDayNavMing = settings.showDayNavMing !== false
+      self.showLabSection = settings.showLabSection !== false
       self.showCustomContent = settings.showCustomContent || false
       self.customContent = settings.customContent || ""
+      self.timeFormat = settings.timeFormat || { hour: true, minute: true, second: false }
     })
   },
 
@@ -280,6 +305,10 @@ export default {
     this.currentDay = dayNames[tomorrowIdx]
     if (this.loadDayClasses && typeof this.loadDayClasses === 'function') this.loadDayClasses()
     if (this.updateStatus && typeof this.updateStatus === 'function') this.updateStatus()
+  },
+
+  openLabItem(uri) {
+    router.push({ uri: uri })
   }
 }
 </script>
@@ -559,6 +588,37 @@ export default {
 .week-text {
   font-size: 16px;
   font-weight: bold;
+}
+
+.lab-section {
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.lab-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.lab-grid {
+  flex-direction: column;
+}
+
+.lab-item {
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.lab-item-name {
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+.lab-item-desc {
+  font-size: 14px;
 }
 
 .left-accent {
