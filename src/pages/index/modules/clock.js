@@ -49,7 +49,31 @@ function init(instance) {
   }
 
   instance.refreshQuickAdd = function() {
-    console.log("refreshQuickAdd called")
+    var self = instance
+    self.quickAddTime = "test"
+  }
+
+  instance.loadPresetCourses = function() {
+    var self = instance
+    var storage = require("@system.storage")
+    storage.get({
+      key: "course_preset_list",
+      success: function(data) {
+        try {
+          var list = JSON.parse(data)
+          var names = []
+          for (var i = 0; i < list.length; i++) {
+            names.push(list[i].name)
+          }
+          self.quickCourseNames = names
+        } catch (e) {
+          self.quickCourseNames = []
+        }
+      },
+      fail: function() {
+        self.quickCourseNames = []
+      }
+    })
   }
 }
 
