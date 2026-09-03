@@ -1,9 +1,9 @@
-<import name="clock" src="../../components/clock/index"></import>
-
 <template>
   <div class="schedule-page" style="background-color: {{ theme.bg }}">
     <div class="clock-row" if="{{ !isCapsule && !isNarrowScreen && showTime }}">
-      <clock text-color="{{ theme.textSecondary }}" time-format="{{ timeFormat }}"></clock>
+      <div class="clock-box">
+        <text class="clock-text" style="color: {{ theme.textSecondary }}">{{ currentTime }}</text>
+      </div>
     </div>
 
     <div class="header">
@@ -133,6 +133,8 @@ export default {
     nextClass: null,
     upcomingClass: null,
     upcomingClassDay: "",
+    clockTimer: null,
+    currentTime: "",
     statusTimer: null,
     progressTimer: null,
     _lastRemindedId: null,
@@ -218,6 +220,7 @@ export default {
     this.applyFontScale()
     this.detectScreen()
     this.loadPinnedPages()
+    this.startClockTimer()
   },
 
   detectScreen() {
@@ -276,15 +279,18 @@ export default {
       self.startStatusTimer()
     })
     this.loadPinnedPages()
+    this.startClockTimer()
   },
 
   onHide() {
     this.isActive = false
     this.stopStatusTimer()
+    this.stopClockTimer()
   },
 
   onDestroy() {
     this.stopStatusTimer()
+    this.stopClockTimer()
   },
 
   applyFontScale() {
@@ -888,6 +894,41 @@ export default {
         return
       }
     }
+  },
+
+  updateClock() {
+    var now = new Date()
+    var tf = this.timeFormat || { year: false, month: false, day: false, hour: true, minute: true, second: false }
+    var dateParts = []
+    var timeParts = []
+    if (tf.year) dateParts.push(now.getFullYear() + "年")
+    if (tf.month) dateParts.push((now.getMonth() + 1) + "月")
+    if (tf.day) dateParts.push(now.getDate() + "日")
+    if (tf.hour) timeParts.push((now.getHours() < 10 ? "0" : "") + now.getHours())
+    if (tf.minute) timeParts.push((now.getMinutes() < 10 ? "0" : "") + now.getMinutes())
+    if (tf.second) timeParts.push((now.getSeconds() < 10 ? "0" : "") + now.getSeconds())
+    var dateStr = dateParts.join(" ")
+    var timeStr = timeParts.join(":")
+    if (dateStr && timeStr) {
+      this.currentTime = dateStr + " " + timeStr
+    } else {
+      this.currentTime = dateStr || timeStr || "00:00"
+    }
+  },
+
+  startClockTimer() {
+    var self = this
+    self.updateClock()
+    this.clockTimer = setInterval(function() {
+      self.updateClock()
+    }, 1000)
+  },
+
+  stopClockTimer() {
+    if (this.clockTimer) {
+      clearInterval(this.clockTimer)
+      this.clockTimer = null
+    }
   }
 }
 </script>
@@ -914,6 +955,18 @@ export default {
   align-items: center;
   padding: 2px 4px;
   margin-bottom: 2px;
+}
+
+.clock-box {
+  width: 110px;
+  justify-content: center;
+  align-items: center;
+}
+
+.clock-text {
+  font-size: 18px;
+  font-weight: normal;
+  text-align: center;
 }
 
 .day-title {
