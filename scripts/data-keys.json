@@ -1,0 +1,174 @@
+{
+  "allCourses": {
+    "desc": "所有课程数据（多课程表存储）",
+    "type": "JSON对象数组",
+    "structure": {
+      "scheduleName": "string - 课程表名称",
+      "courses": "array - 课程对象数组 [{id, name, teacher, location, day, startTime, endTime, weeks, color, notes}]",
+      "createdAt": "string - 创建时间",
+      "updatedAt": "string - 更新时间"
+    }
+  },
+  "currentScheduleIndex": {
+    "desc": "当前选中的课程表索引",
+    "type": "number",
+    "structure": "0 开始的整数索引"
+  },
+  "scheduleNames": {
+    "desc": "所有课程表名称列表",
+    "type": "JSON字符串数组",
+    "structure": "[\"课程表1\", \"课程表2\", ...]"
+  },
+  "course_preset_list": {
+    "desc": "课程预设列表（快速添加用）",
+    "type": "JSON对象数组",
+    "structure": {
+      "name": "string - 课程名称",
+      "teacher": "string - 教师",
+      "location": "string - 地点",
+      "color": "string - 颜色"
+    }
+  },
+  "appTheme": {
+    "desc": "应用主题设置",
+    "type": "string",
+    "structure": "主题名称: blue | dark | ocean | sunset | forest | purple | auto"
+  },
+  "fontScale": {
+    "desc": "字体缩放比例",
+    "type": "number",
+    "structure": "缩放比例，如 1.0, 1.2, 1.5"
+  },
+  "remindSettings": {
+    "desc": "提醒设置",
+    "type": "JSON对象",
+    "structure": {
+      "enabled": "boolean - 是否启用提醒",
+      "advanceMinutes": "number - 提前提醒分钟数",
+      "vibrationEnabled": "boolean - 震动提醒",
+      "soundEnabled": "boolean - 声音提醒"
+    }
+  },
+  "userNickname": {
+    "desc": "用户昵称",
+    "type": "string",
+    "structure": "用户设置的昵称文本"
+  },
+  "vibrationStyle": {
+    "desc": "震动样式设置",
+    "type": "string",
+    "structure": "short | long | doubleShort | tripleShort | sos | heartbeat"
+  },
+  "vibration_presets": {
+    "desc": "自定义震动方案",
+    "type": "JSON对象数组",
+    "structure": {
+      "name": "string - 方案名称",
+      "pattern": "array - 震动模式 [{duration, interval}]",
+      "repeat": "number - 重复次数"
+    }
+  },
+  "qrcode_text": {
+    "desc": "二维码生成文本",
+    "type": "string",
+    "structure": "用户输入的二维码文本"
+  },
+  "background_running_config": {
+    "desc": "后台运行配置",
+    "type": "JSON对象",
+    "structure": {
+      "enabled": "boolean",
+      "interval": "number - 运行间隔(分钟)",
+      "lastRun": "string - 上次运行时间"
+    }
+  },
+  "background_running_logs": {
+    "desc": "后台运行日志",
+    "type": "JSON对象数组",
+    "structure": {
+      "time": "string - 日志时间",
+      "action": "string - 动作",
+      "result": "string - 结果"
+    }
+  },
+  "homepage_settings": {
+    "desc": "首页设置",
+    "type": "JSON对象",
+    "structure": {
+      "showQuickAdd": "boolean - 显示快速添加"
+    }
+  },
+  "premium_unlocked": {
+    "desc": "高级功能解锁状态",
+    "type": "boolean",
+    "structure": "true 或 false"
+  },
+  "pinned_pages": {
+    "desc": "钉在首页的页面列表",
+    "type": "JSON对象数组",
+    "structure": {
+      "name": "string - 页面名称",
+      "uri": "string - 页面路径"
+    }
+  },
+  "auth_data": {
+    "desc": "激活认证数据",
+    "type": "JSON对象",
+    "structure": {
+      "activated": "boolean - 是否已激活",
+      "activationDate": "string - 激活日期",
+      "expiryDate": "string - 到期日期",
+      "activationCode": "string - 使用的激活码",
+      "deviceId": "string - 设备ID",
+      "isTrial": "boolean - 是否试用",
+      "trialStartDate": "string - 试用开始日期"
+    }
+  },
+  "master_usage": {
+    "desc": "主激活码使用记录",
+    "type": "JSON对象",
+    "structure": {
+      "code": "string - 主激活码",
+      "usedCount": "number - 已使用次数",
+      "lastUsed": "string - 最后使用时间"
+    }
+  },
+  "used_codes": {
+    "desc": "已使用的激活码列表",
+    "type": "JSON字符串数组",
+    "structure": "[\"202656183702\", ...]"
+  },
+  "used_redeem": {
+    "desc": "已使用的兑换码",
+    "type": "JSON字符串数组",
+    "structure": "兑换码列表"
+  },
+  "data_backup": {
+    "desc": "数据备份",
+    "type": "JSON对象",
+    "structure": {
+      "schedules": "array - 课程表数据",
+      "settings": "object - 设置数据",
+      "backupTime": "string - 备份时间"
+    }
+  },
+  "last_backup_time": {
+    "desc": "上次备份时间",
+    "type": "string",
+    "structure": "ISO 时间字符串"
+  },
+  "multi_file_demo_counter": {
+    "desc": "多文件 Demo 计数器",
+    "type": "number",
+    "structure": "计数值"
+  },
+  "multi_file_demo_list": {
+    "desc": "多文件 Demo 列表",
+    "type": "JSON对象数组",
+    "structure": {
+      "id": "number",
+      "name": "string",
+      "time": "string"
+    }
+  }
+}
