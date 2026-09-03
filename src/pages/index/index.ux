@@ -32,7 +32,7 @@
 
     <scroll class="class-list" scroll-y="{{true}}" scroll-top="{{ scrollListTop }}">
       <div for="{{ currentClasses }}" class="class-card-wrapper">
-        <div class="class-card" style="background-color: {{ theme.card }}">
+        <div class="class-card" onclick="openDetail($item.id)" style="background-color: {{ theme.card }}">
           <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
           <div class="progress-bg" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
           <div class="class-content">
@@ -50,8 +50,8 @@
     </scroll>
 
     <div class="debug-body" style="flex: 1; justify-content: center; align-items: center;">
-      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 8c</text>
-      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">ClassList: for循环+progress进度条</text>
+      <text class="debug-title" style="color: #7ec8e3; font-size: 24px;">白屏排查 Step 8d</text>
+      <text class="debug-hint" style="color: #888899; font-size: 16px; margin-top: 10px;">ClassList: for循环+progress+onclick</text>
     </div>
   </div>
 </template>
