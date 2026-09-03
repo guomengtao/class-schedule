@@ -1,0 +1,506 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <text class="title" style="color: {{ theme.text }}">首页 Pro</text>
+    </div>
+
+    <div class="clock-row" onclick="goBack" style="background-color: {{ theme.card }}">
+      <text class="clock-icon-text">🕐</text>
+      <text class="clock-time-text" style="color: {{ theme.text }}">{{ currentTime }}</text>
+    </div>
+
+    <div class="day-nav-row" style="background-color: {{ theme.card }}">
+      <input class="nav-arrow" type="button" value="◀" onclick="prevDay" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+      <text class="day-title" style="color: {{ theme.text }}">{{ currentDay }}</text>
+      <input class="nav-arrow" type="button" value="▶" onclick="nextDay" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+      <input class="today-btn" type="button" value="今" onclick="goToToday" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+
+    <div class="status-row" style="background-color: {{ theme.card }}">
+      <text class="status-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
+      <text class="status-main" style="color: {{ theme.text }}">{{ statusMainText }}</text>
+      <text class="status-time" if="{{ statusTimeText }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
+    </div>
+
+    <div if="{{ showCustomContent && customContent }}" class="custom-row" style="background-color: {{ theme.card }}">
+      <text class="custom-text" style="color: {{ theme.text }}">{{ customContent }}</text>
+    </div>
+
+    <div if="{{ hasPinned }}" class="pinned-row">
+      <div for="{{ pinnedPages }}" class="pinned-chip" onclick="openPinnedPage($item.uri)" style="background-color: {{ theme.cardLight }}">
+        <text class="pinned-chip-text" style="color: {{ theme.accent }}">{{ $item.name }}</text>
+      </div>
+    </div>
+
+    <div class="class-section">
+      <text if="{{ currentClasses.length === 0 }}" class="class-empty" style="color: {{ theme.textMuted }}">今天没有课</text>
+      <div for="{{ currentClasses }}" class="class-card" style="background-color: {{ theme.card }}">
+        <div class="class-left">
+          <text class="class-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+          <text class="class-time" style="color: {{ theme.textSecondary }}">{{ $item.time }}</text>
+        </div>
+        <div class="class-right">
+          <text if="{{ $item.location }}" class="class-location" style="color: {{ theme.accent }}">{{ $item.location }}</text>
+          <text if="{{ $item.progress >= 100 }}" class="class-ended" style="color: {{ theme.textMuted }}">已结束</text>
+          <text if="{{ $item.progress > 0 && $item.progress < 100 }}" class="class-progress" style="color: {{ theme.accent }}">{{ $item.progress }}%</text>
+        </div>
+      </div>
+    </div>
+
+    <div class="quick-section" style="background-color: {{ theme.card }}">
+      <text class="quick-toggle" onclick="toggleQuickAdd" style="color: {{ theme.accent }}">快速添加 {{ quickAddExpanded ? '▲' : '▼' }}</text>
+      <div if="{{ quickAddExpanded }}" class="quick-add-list">
+        <text if="{{ quickAddDisabled }}" class="quick-empty" style="color: {{ theme.textMuted }}">今天课程已排满</text>
+        <text if="{{ !quickAddDisabled && quickCourseNames.length === 0 }}" class="quick-empty" style="color: {{ theme.textMuted }}">暂无预设课程</text>
+        <div if="{{ quickCourseNames.length > 0 }}" class="quick-chips">
+          <div for="{{ quickCourseNames }}" class="quick-chip" style="background-color: {{ theme.cardLight }}">
+            <text class="quick-chip-text" style="color: {{ theme.text }}">{{ $item }}</text>
+          </div>
+        </div>
+        <text if="{{ quickAddTime }}" class="quick-time" style="color: {{ theme.textMuted }}">{{ quickAddTime }}</text>
+      </div>
+    </div>
+
+    <div class="bottom-row">
+      <input class="add-btn" type="button" value="+ 添加课程" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="set-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+    </div>
+
+    <div class="week-row" onclick="openScheduleManager" style="background-color: {{ theme.card }}">
+      <text class="week-text" style="color: {{ theme.accent }}">⇄ {{ currentScheduleName }}</text>
+    </div>
+
+    <div class="footer-actions">
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">📌 固定到首页</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+const database = require("../../data/database.js")
+var pinHelper = require("../../data/pin-helper.js")
+
+var modules = {}
+var moduleNames = [
+  { key: "clock", text: "clock" },
+  { key: "dayNav", text: "dayNav" },
+  { key: "statusBar", text: "statusBar" },
+  { key: "customContent", text: "customContent" },
+  { key: "pinnedPages", text: "pinnedPages" },
+  { key: "classList", text: "classList" },
+  { key: "quickAdd", text: "quickAdd" },
+  { key: "bottomButtons", text: "bottomButtons" },
+  { key: "weekIndicator", text: "weekIndicator" }
+]
+
+function loadModule(key, mod) {
+  if (mod && mod.init) {
+    modules[key] = mod
+  } else {
+    modules[key] = null
+  }
+}
+
+loadModule("clock", require("./modules/clock.js"))
+loadModule("dayNav", require("./modules/day-nav.js"))
+loadModule("statusBar", require("./modules/status-bar.js"))
+loadModule("customContent", require("./modules/custom-content.js"))
+loadModule("pinnedPages", require("./modules/pinned-pages.js"))
+loadModule("classList", require("./modules/class-list.js"))
+loadModule("quickAdd", require("./modules/quick-add.js"))
+loadModule("bottomButtons", require("./modules/bottom-buttons.js"))
+loadModule("weekIndicator", require("./modules/week-indicator.js"))
+
+export default {
+  private: {
+    currentTime: "",
+    currentDay: "Sunday",
+    currentDayIndex: 0,
+    statusTag: "",
+    statusMainText: "",
+    statusTimeText: "",
+    showCustomContent: false,
+    customContent: "",
+    pinnedPages: [],
+    hasPinned: false,
+    currentClasses: [],
+    schedule: [],
+    quickAddExpanded: false,
+    quickCourseNames: [],
+    quickAddDisabled: false,
+    quickAddTime: "",
+    currentScheduleName: "Schedule 1",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a'
+    }
+  },
+
+  onInit() {
+    var self = this
+    console.log("[home-pro] onInit start")
+
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+
+    database.init(function() {
+      database.getAllCourses(function(schedule) {
+        self.schedule = schedule
+        console.log("[home-pro] data loaded, " + schedule.length + " days")
+        self.initAllModules()
+      })
+    })
+  },
+
+  initAllModules() {
+    var self = this
+    for (var i = 0; i < moduleNames.length; i++) {
+      var m = moduleNames[i]
+      var mod = modules[m.key]
+      if (mod && mod.init) {
+        try {
+          mod.init(self)
+          console.log("[home-pro] " + m.key + " init OK")
+        } catch (e) {
+          console.error("[home-pro] " + m.key + ".init failed: " + (e.message || e))
+        }
+      }
+    }
+
+    if (self.loadDayClasses) {
+      self.loadDayClasses()
+    }
+    if (self.updateStatus) {
+      self.updateStatus()
+      if (self.startStatusTimer) self.startStatusTimer()
+    }
+    console.log("[home-pro] onInit done")
+  },
+
+  onDestroy() {
+    if (this.stopClockTimer) this.stopClockTimer()
+    if (this.stopStatusTimer) this.stopStatusTimer()
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("Home Pro", "/pages/home-pro")
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 8px 8px 8px;
+  min-height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.clock-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+}
+
+.clock-icon-text {
+  font-size: 22px;
+  margin-right: 8px;
+}
+
+.clock-time-text {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.day-nav-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+}
+
+.nav-arrow {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  font-size: 16px;
+  text-align: center;
+}
+
+.day-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0 12px;
+  min-width: 70px;
+  text-align: center;
+}
+
+.today-btn {
+  width: 38px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  margin-left: 8px;
+}
+
+.status-row {
+  flex-direction: row;
+  align-items: center;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+}
+
+.status-tag {
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: bold;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.status-main {
+  font-size: 14px;
+  flex: 1;
+}
+
+.status-time {
+  font-size: 13px;
+  font-weight: bold;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.custom-row {
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.custom-text {
+  font-size: 14px;
+  text-align: center;
+}
+
+.pinned-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding: 6px 0;
+  margin-bottom: 8px;
+}
+
+.pinned-chip {
+  padding: 6px 12px;
+  border-radius: 8px;
+  margin-right: 8px;
+  margin-bottom: 6px;
+}
+
+.pinned-chip-text {
+  font-size: 13px;
+}
+
+.class-section {
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.class-empty {
+  font-size: 14px;
+  padding: 14px;
+  text-align: center;
+}
+
+.class-card {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+}
+
+.class-left {
+  flex-direction: column;
+  flex: 1;
+}
+
+.class-name {
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+.class-time {
+  font-size: 12px;
+}
+
+.class-right {
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.class-location {
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.class-ended {
+  font-size: 12px;
+}
+
+.class-progress {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.quick-section {
+  flex-direction: column;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+}
+
+.quick-toggle {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.quick-add-list {
+  flex-direction: column;
+}
+
+.quick-empty {
+  font-size: 12px;
+  padding: 4px 0;
+}
+
+.quick-chips {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.quick-chip {
+  padding: 6px 12px;
+  border-radius: 8px;
+  margin-right: 8px;
+  margin-bottom: 4px;
+}
+
+.quick-chip-text {
+  font-size: 13px;
+}
+
+.quick-time {
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.bottom-row {
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.add-btn {
+  flex: 1;
+  height: 42px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+  margin-right: 8px;
+}
+
+.set-btn {
+  width: 80px;
+  height: 42px;
+  border-radius: 10px;
+  font-size: 15px;
+  text-align: center;
+}
+
+.week-row {
+  padding: 14px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.week-text {
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.footer-actions {
+  flex-direction: row;
+  justify-content: center;
+  padding: 16px 0 8px 0;
+}
+
+.pin-link {
+  text-align: center;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+  .header {
+    padding: 0 20px;
+    justify-content: center;
+  }
+}
+
+@media (shape: capsule) {
+  .page {
+    padding: 44px 8px 12px 8px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 6px 6px 6px;
+  }
+}
+</style>

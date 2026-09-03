@@ -119,6 +119,14 @@
           <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
+
+      <div class="menu-item" onclick="openHomePro" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">🏠 首页 Pro</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">首页 Pro 版 - 实际页面效果</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
     </div>
 
     <text class="dev-expire-hint" onclick="onDevExpireClick" style="color: {{ theme.textSecondary }}">丰富欢迎用户提交意见建议</text>
@@ -229,6 +237,10 @@ export default {
 
   openLabModuleTest() {
     router.push({ uri: "/pages/lab-module-test" })
+  },
+
+  openHomePro() {
+    router.push({ uri: "/pages/home-pro" })
   },
 
   pinToHome() {
