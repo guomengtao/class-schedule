@@ -146,8 +146,8 @@ export default {
   private: {
     isLoading: true,
     currentTime: "",
-    currentDay: "星期日",
-    currentDayIndex: 0,
+    currentDay: "",
+    currentDayIndex: -1,
     statusTag: "",
     statusMainText: "",
     statusTimeText: "",
