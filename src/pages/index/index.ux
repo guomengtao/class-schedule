@@ -94,6 +94,30 @@
     <div class="week-indicator" onclick="openScheduleManager">
       <text class="week-text" style="color: {{ theme.accent }}">⇄ {{ currentScheduleName }}</text>
     </div>
+
+    <div class="debug-panel" style="background-color: #2a1a1a; padding: 10px; margin-top: 8px; border-radius: 8px;">
+      <text style="color: #ff6666; font-size: 16px; font-weight: bold;">DEBUG INFO</text>
+      <text style="color: #ffaa66; font-size: 13px;">isLoading: {{ isLoading }}</text>
+      <text style="color: #ffaa66; font-size: 13px;">currentDay: "{{ currentDay }}"</text>
+      <text style="color: #ffaa66; font-size: 13px;">schedule.length: {{ schedule.length }}</text>
+      <text style="color: #ffaa66; font-size: 13px;">currentClasses.length: {{ currentClasses.length }}</text>
+      <div style="margin-top: 6px;">
+        <text style="color: #66ff66; font-size: 12px;">--- schedule ---</text>
+        <div for="{{ schedule }}" style="margin-left: 8px;">
+          <text style="color: #66ccff; font-size: 11px;">{{ $item.day }}: {{ $item.classes.length }} classes</text>
+          <div for="{{ $item.classes }}" style="margin-left: 12px;">
+            <text style="color: #aaccff; font-size: 10px;">  - {{ $item.name }} ({{ $item.time }})</text>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 6px;">
+        <text style="color: #66ff66; font-size: 12px;">--- currentClasses ---</text>
+        <div for="{{ currentClasses }}" style="margin-left: 8px;">
+          <text style="color: #ffcc66; font-size: 11px;">{{ $item.name }} | {{ $item.time }} | {{ $item.location }}</text>
+        </div>
+        <text if="{{ currentClasses.length === 0 }}" style="color: #ff6666; font-size: 11px; margin-left: 8px;">EMPTY!</text>
+      </div>
+    </div>
   </div>
 </template>
 
