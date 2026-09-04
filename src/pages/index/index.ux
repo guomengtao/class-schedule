@@ -296,15 +296,23 @@ export default {
   },
 
   goToTomorrow() {
-    var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
-    var todayIdx = new Date().getDay()
-    var tomorrowIdx = todayIdx + 1
-    if (tomorrowIdx >= dayNames.length) tomorrowIdx = 0
-    if (this.currentDayIndex === tomorrowIdx) return
-    this.currentDayIndex = tomorrowIdx
-    this.currentDay = dayNames[tomorrowIdx]
-    if (this.loadDayClasses && typeof this.loadDayClasses === 'function') this.loadDayClasses()
-    if (this.updateStatus && typeof this.updateStatus === 'function') this.updateStatus()
+    var self = this
+    store.getHideWeekend(function(hide) {
+      var dayNames = hide ? ["星期一", "星期二", "星期三", "星期四", "星期五"] : ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+      var todayIdx = new Date().getDay()
+      if (hide && (todayIdx === 0 || todayIdx === 6)) {
+        todayIdx = 0
+      } else if (hide) {
+        todayIdx = todayIdx - 1
+      }
+      var tomorrowIdx = todayIdx + 1
+      if (tomorrowIdx >= dayNames.length) tomorrowIdx = 0
+      if (self.currentDayIndex === tomorrowIdx) return
+      self.currentDayIndex = tomorrowIdx
+      self.currentDay = dayNames[tomorrowIdx]
+      if (self.loadDayClasses && typeof self.loadDayClasses === 'function') self.loadDayClasses()
+      if (self.updateStatus && typeof self.updateStatus === 'function') self.updateStatus()
+    })
   },
 
   openLabItem(uri) {

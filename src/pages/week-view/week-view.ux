@@ -5,12 +5,12 @@
       <text class="header-title" style="color: {{ theme.text }}">课程总览</text>
     </div>
 
-    <text class="schedule-name" style="color: {{ theme.accent }}">{{ scheduleName }}</text>
+    <text class="schedule-name" style="color: {{ theme.accent }}">{{ scheduleName }}（{{ totalCourses }}门）</text>
 
     <div class="grid-wrapper">
       <div class="week-header">
         <text class="week-header-spacer"></text>
-        <text class="week-day {{ $idx === todayIndex ? 'today-day' : '' }}" for="{{ weekDays }}" style="color: {{ $idx === todayIndex ? theme.accent : theme.textSecondary }}">{{ $item }}</text>
+        <text class="week-day {{ $idx === todayIndex ? 'today-day' : '' }}" for="{{ weekDays }}" style="color: {{ $idx === todayIndex ? theme.accent : theme.textSecondary }}">{{ $item }} {{ dayCounts[$idx] }}</text>
       </div>
 
       <div class="grid-scroll">
@@ -45,11 +45,16 @@ var fullDayNames = ["星期一", "星期二", "星期三", "星期四", "星期�
 
 export default {
   private: {
+    allWeekDays: ["一", "二", "三", "四", "五", "六", "日"],
+    allDayNames: ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"],
     weekDays: ["一", "二", "三", "四", "五", "六", "日"],
+    displayDayNames: ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"],
     scheduleName: "",
     timeSlots: [],
     totalCourses: 0,
     totalDays: 0,
+    dayCounts: [],
+    hideWeekend: false,
     viewIndex: 0,
     todayIndex: 0,
     currentCourseDay: "",
@@ -86,6 +91,10 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
+    store.getHideWeekend(function(hide) {
+      self.hideWeekend = hide
+      self.applyWeekendFilter()
+    })
     var storage = require("@system.storage")
     storage.get({
       key: "weekview_index",
@@ -114,6 +123,10 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
+    store.getHideWeekend(function(hide) {
+      self.hideWeekend = hide
+      self.applyWeekendFilter()
+    })
     if (self._firstLoad) {
       self._firstLoad = false
       return
@@ -131,6 +144,22 @@ export default {
         self.loadData()
       }
     })
+  },
+
+  applyWeekendFilter() {
+    if (this.hideWeekend) {
+      this.weekDays = ["一", "二", "三", "四", "五"]
+      this.displayDayNames = ["星期一", "星期二", "星期三", "星期四", "星期五"]
+      if (this.todayIndex >= 5) {
+        this.todayIndex = -1
+      }
+    } else {
+      this.weekDays = ["一", "二", "三", "四", "五", "六", "日"]
+      this.displayDayNames = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+      var now = new Date()
+      var dayIdx = now.getDay()
+      this.todayIndex = dayIdx === 0 ? 6 : dayIdx - 1
+    }
   },
 
   loadData() {
@@ -189,6 +218,14 @@ export default {
       }
       self.totalCourses = total
       self.totalDays = totalDays
+
+      var dayCounts = []
+      var dayNames = self.displayDayNames
+      for (var dn = 0; dn < dayNames.length; dn++) {
+        var dayCourses = allCourses[dayNames[dn]]
+        dayCounts.push(dayCourses ? dayCourses.length : 0)
+      }
+      self.dayCounts = dayCounts
     })
 
     setTimeout(function() {
@@ -214,6 +251,14 @@ export default {
         }
         self.totalCourses = total
         self.totalDays = totalDays
+
+        var dayCounts = []
+        var dayNames = self.displayDayNames
+        for (var dn = 0; dn < dayNames.length; dn++) {
+          var dayCourses = allCourses[dayNames[dn]]
+          dayCounts.push(dayCourses ? dayCourses.length : 0)
+        }
+        self.dayCounts = dayCounts
       }
     }, 1500)
   },
@@ -221,7 +266,7 @@ export default {
   buildTimeSlots(allCourses) {
     var self = this
     var timeSet = {}
-    var dayList = fullDayNames
+    var dayList = self.displayDayNames
 
     for (var d = 0; d < dayList.length; d++) {
       var day = dayList[d]

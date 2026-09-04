@@ -687,5 +687,26 @@ module.exports = {
     if (this._unlockDialogRef) {
       this._unlockDialogRef.hide()
     }
+  },
+
+  getHideWeekend: function(callback) {
+    storage.get({
+      key: "hideWeekend",
+      success: function(data) {
+        callback(data === "true")
+      },
+      fail: function() {
+        callback(false)
+      }
+    })
+  },
+
+  setHideWeekend: function(hide, callback) {
+    storage.set({
+      key: "hideWeekend",
+      value: hide ? "true" : "false",
+      success: function() { if (callback) callback() },
+      fail: function() { if (callback) callback() }
+    })
   }
 }

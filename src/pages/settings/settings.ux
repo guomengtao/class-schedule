@@ -76,6 +76,14 @@
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
+      <text class="group-title" style="color: {{ theme.text }}">课程表设置</text>
+      <div class="row">
+        <text class="row-label" style="color: {{ theme.text }}">隐藏周六日</text>
+        <input class="toggle-btn" type="button" value="{{ hideWeekend ? '开' : '关' }}" onclick="toggleHideWeekend" style="background-color: {{ hideWeekend ? theme.accent : theme.border }}; color: {{ hideWeekend ? theme.bg : theme.textSecondary }}" />
+      </div>
+    </div>
+
+    <div class="group" style="background-color: {{ theme.card }}">
       <div class="row" onclick="openHomepageSettings">
         <text class="row-label" style="color: {{ theme.text }}">首页设置</text>
         <div class="row-right">
@@ -169,6 +177,7 @@ export default {
     remindMinutes: 5,
     vibrationStyle: "short",
     vibrationStyles: [],
+    hideWeekend: false,
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -213,6 +222,7 @@ export default {
     this.loadRemindSettings()
     this.loadNickname()
     this.loadVibrationStyle()
+    this.loadHideWeekend()
     this.versionText = version.versionName
   },
 
@@ -295,6 +305,18 @@ export default {
     store.getNickname(function(name) {
       self.nickname = name || ""
     })
+  },
+
+  loadHideWeekend() {
+    var self = this
+    store.getHideWeekend(function(hide) {
+      self.hideWeekend = hide
+    })
+  },
+
+  toggleHideWeekend() {
+    this.hideWeekend = !this.hideWeekend
+    store.setHideWeekend(this.hideWeekend)
   },
 
   openNicknameEdit() {
