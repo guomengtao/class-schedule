@@ -17,7 +17,7 @@
 var fs = require('fs')
 var path = require('path')
 
-var VALID_DAYS = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日']
+var VALID_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 var COURSE_NAMES = [
   'Mathematics', 'English', 'Physics', 'Chemistry', 'Biology',
   'History', 'Geography', 'Computer Science', 'Art & Design', 'Music',

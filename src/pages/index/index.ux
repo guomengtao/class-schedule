@@ -110,8 +110,8 @@ var moduleNames = [
   { key: "statusBar" },
   { key: "customContent" },
   { key: "pinnedPages" },
-  { key: "bottomButtons" }
-  // { key: "classList" }
+  { key: "bottomButtons" },
+  { key: "classList" }
 ]
 
 function loadModule(key, mod) {
@@ -207,27 +207,10 @@ export default {
     if (self.quickAdd && self.quickAdd.loadPreset) {
       self.quickAdd.loadPreset()
     }
-
-    var storage = require("@system.storage")
-    storage.get({
-      key: "currentScheduleIndex",
-      default: "0",
-      success: function(data) {
-        var idx = parseInt(data) || 0
-        database.getAllCoursesWithIndex(idx, function(schedule) {
-          self.schedule = schedule
-          if (self.refreshClasses && typeof self.refreshClasses === 'function') {
-            self.refreshClasses()
-          }
-        })
-      },
-      fail: function() {
-        database.getAllCourses(function(schedule) {
-          self.schedule = schedule
-          if (self.refreshClasses && typeof self.refreshClasses === 'function') {
-            self.refreshClasses()
-          }
-        })
+    database.getAllCourses(function(schedule) {
+      self.schedule = schedule
+      if (self.refreshClasses && typeof self.refreshClasses === 'function') {
+        self.refreshClasses()
       }
     })
   },

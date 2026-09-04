@@ -609,53 +609,8 @@ module.exports = {
             key: "currentScheduleIndex",
             value: "0",
             success: function() {
-              log("resetToDemoData: schedule index reset")
-              var demoPreset = [
-                { name: "语文", time: "08:00 - 08:45", teacher: "王老师", location: "301教室" },
-                { name: "数学", time: "08:55 - 09:40", teacher: "周老师", location: "205教室" },
-                { name: "英语", time: "10:00 - 10:45", teacher: "李老师", location: "205教室" },
-                { name: "物理", time: "10:55 - 11:40", teacher: "吴老师", location: "实验室B" },
-                { name: "化学", time: "13:00 - 13:45", teacher: "郑老师", location: "实验室A" },
-                { name: "生物", time: "13:55 - 14:40", teacher: "黄老师", location: "实验室C" },
-                { name: "历史", time: "15:00 - 15:45", teacher: "刘老师", location: "102教室" },
-                { name: "地理", time: "15:55 - 16:40", teacher: "张老师", location: "103教室" },
-                { name: "政治", time: "08:00 - 08:45", teacher: "杨老师", location: "104教室" },
-                { name: "体育", time: "08:55 - 09:40", teacher: "赵老师", location: "操场" },
-                { name: "音乐", time: "10:00 - 10:45", teacher: "孙老师", location: "音乐室" },
-                { name: "美术", time: "10:55 - 11:40", teacher: "陈老师", location: "美术室" }
-              ]
-              storage.set({
-                key: "course_preset_list",
-                value: JSON.stringify(demoPreset),
-                success: function() {
-                  storage.set({
-                    key: "remindSettings",
-                    value: JSON.stringify({}),
-                    success: function() {
-                      storage.set({
-                        key: "homepage_settings",
-                        value: JSON.stringify({ showQuickAdd: true, showCustomContent: false, customContent: "", showTime: true, showStatusBar: true, showPinnedBar: true, showDayNavZong: true, showDayNavJin: true, showDayNavMing: true, showLabSection: true, timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false } }),
-                        success: function() {
-                          log("resetToDemoData: complete" + (hadError ? " (with errors)" : ""))
-                          if (callback) callback(hadError || null)
-                        },
-                        fail: function(e) {
-                          logErr("resetToDemoData: homepage_settings failed: " + JSON.stringify(e))
-                          if (callback) callback(hadError || null)
-                        }
-                      })
-                    },
-                    fail: function(e) {
-                      logErr("resetToDemoData: remindSettings failed: " + JSON.stringify(e))
-                      if (callback) callback(hadError || null)
-                    }
-                  })
-                },
-                fail: function(e) {
-                  logErr("resetToDemoData: course_preset_list failed: " + JSON.stringify(e))
-                  if (callback) callback(hadError || null)
-                }
-              })
+              log("resetToDemoData: complete" + (hadError ? " (with errors)" : ""))
+              if (callback) callback(hadError || null)
             },
             fail: function(e) {
               logErr("resetToDemoData: failed to set currentScheduleIndex: " + JSON.stringify(e))

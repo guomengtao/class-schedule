@@ -1,7 +1,7 @@
 {
   "schedule": [
     {
-      "day": "星期一",
+      "day": "Monday",
       "classes": [
         { "id": "1", "name": "Mathematics", "time": "08:00 - 08:45", "teacher": "Dr. Smith", "location": "Room 301", "notes": "Chapter 1: Algebra" },
         { "id": "2", "name": "English", "time": "08:55 - 09:40", "teacher": "Prof. Johnson", "location": "Room 205", "notes": "Reading comprehension" },
@@ -14,7 +14,7 @@
       ]
     },
     {
-      "day": "星期二",
+      "day": "Tuesday",
       "classes": [
         { "id": "9", "name": "English", "time": "08:00 - 08:45", "teacher": "Prof. Johnson", "location": "Room 205", "notes": "Grammar workshop" },
         { "id": "10", "name": "Mathematics", "time": "08:55 - 09:40", "teacher": "Dr. Smith", "location": "Room 301", "notes": "Chapter 2: Geometry" },
@@ -27,7 +27,7 @@
       ]
     },
     {
-      "day": "星期三",
+      "day": "Wednesday",
       "classes": [
         { "id": "17", "name": "Chemistry", "time": "08:00 - 08:45", "teacher": "Dr. Miller", "location": "Lab A", "notes": "Acids and bases" },
         { "id": "18", "name": "Mathematics", "time": "08:55 - 09:40", "teacher": "Dr. Smith", "location": "Room 301", "notes": "Chapter 3: Calculus" },
@@ -40,7 +40,7 @@
       ]
     },
     {
-      "day": "星期四",
+      "day": "Thursday",
       "classes": [
         { "id": "25", "name": "Biology", "time": "08:00 - 08:45", "teacher": "Dr. Taylor", "location": "Lab C", "notes": "Evolution" },
         { "id": "26", "name": "Mathematics", "time": "08:55 - 09:40", "teacher": "Dr. Smith", "location": "Room 301", "notes": "Chapter 4: Statistics" },
@@ -53,7 +53,7 @@
       ]
     },
     {
-      "day": "星期五",
+      "day": "Friday",
       "classes": [
         { "id": "33", "name": "Computer Science", "time": "08:00 - 08:45", "teacher": "Prof. Davis", "location": "Computer Lab 1", "notes": "Web development" },
         { "id": "34", "name": "English", "time": "08:55 - 09:40", "teacher": "Prof. Johnson", "location": "Room 205", "notes": "Speech practice" },

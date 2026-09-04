@@ -1,0 +1,298 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="&#9664; 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">首页课程 Demo</text>
+    </div>
+
+    <div class="premium-overlay" style="background-color: {{ theme.accent }}">
+      <text class="premium-overlay-text" style="color: {{ theme.bg }}">⭐ 调用 class-list.js 模块渲染</text>
+      <text class="premium-overlay-link" onclick="goToPremium" style="color: {{ theme.bg }}">查看详情 →</text>
+    </div>
+
+    <div class="nav-row">
+      <input class="nav-btn" type="button" value="&#9664;" onclick="prevDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="day-title" style="color: {{ theme.text }}">{{ currentDay }}</text>
+      <input class="nav-btn" type="button" value="&#9654;" onclick="nextDay" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+
+    <text class="schedule-info" style="color: {{ theme.textSecondary }}">当前课程表: {{ currentScheduleName }} · {{ currentClasses.length }} 节课</text>
+
+    <scroll class="class-list" scroll-y="{{true}}">
+      <div if="{{ loading }}" class="empty-card">
+        <text class="empty-text" style="color: {{ theme.textMuted }}">加载中...</text>
+      </div>
+
+      <div class="class-grid" else>
+        <div for="{{ currentClasses }}" class="class-grid-item" style="background-color: {{ theme.card }}">
+          <text class="grid-item-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+          <text class="grid-item-time" style="color: {{ theme.accent }}">{{ $item.time }}</text>
+          <text class="grid-item-teacher" if="{{ $item.teacher }}" style="color: {{ theme.textSecondary }}">{{ $item.teacher }}</text>
+          <text class="grid-item-location" if="{{ $item.location }}" style="color: {{ theme.textMuted }}">{{ $item.location }}</text>
+        </div>
+      </div>
+
+      <div if="{{ !loading && currentClasses.length === 0 }}" class="empty-card">
+        <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
+      </div>
+    </scroll>
+
+    <div class="footer-actions">
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">📌 钉首页</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+const database = require("../../data/database.js")
+var pinHelper = require("../../data/pin-helper.js")
+var classList = require("../index/modules/class-list.js")
+
+var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+
+function getRealTodayIndex() {
+  return new Date().getDay()
+}
+
+export default {
+  private: {
+    loading: true,
+    currentDay: "",
+    currentDayIndex: 0,
+    currentClasses: [],
+    currentScheduleName: "课程表1",
+    schedule: [],
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566'
+    }
+  },
+
+  onInit() {
+    var self = this
+    var todayIdx = getRealTodayIndex()
+    self.currentDayIndex = todayIdx
+    self.currentDay = dayNames[todayIdx]
+
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+
+    store.getCurrentScheduleIndex(function(idx) {
+      store.getScheduleNames(function(names) {
+        if (names && idx < names.length) {
+          self.currentScheduleName = names[idx]
+        } else {
+          self.currentScheduleName = "课程表" + (idx + 1)
+        }
+      })
+    })
+
+    classList.init(self)
+
+    database.init(function() {
+      store.getCurrentScheduleIndex(function(idx) {
+        database.getAllCoursesWithIndex(idx, function(schedule) {
+          self.schedule = schedule
+          self.loading = false
+          console.log("[homepage-classes-demo] data loaded, " + (schedule ? schedule.length : 0) + " days")
+          if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
+            self.loadDayClasses()
+          }
+        })
+      })
+    })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  goToPremium() {
+    router.push({ uri: "/pages/premium-test" })
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("首页课程Demo", "/pages/homepage-classes-demo")
+  },
+
+  prevDay() {
+    if (this.currentDayIndex > 0) {
+      this.currentDayIndex--
+    } else {
+      this.currentDayIndex = 6
+    }
+    this.currentDay = dayNames[this.currentDayIndex]
+    if (this.loadDayClasses && typeof this.loadDayClasses === 'function') {
+      this.loadDayClasses()
+    }
+  },
+
+  nextDay() {
+    if (this.currentDayIndex < 6) {
+      this.currentDayIndex++
+    } else {
+      this.currentDayIndex = 0
+    }
+    this.currentDay = dayNames[this.currentDayIndex]
+    if (this.loadDayClasses && typeof this.loadDayClasses === 'function') {
+      this.loadDayClasses()
+    }
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 8px 8px 8px;
+  min-height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.premium-overlay {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  opacity: 0.85;
+}
+
+.premium-overlay-text {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.premium-overlay-link {
+  font-size: 13px;
+  text-decoration: underline;
+}
+
+.nav-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.nav-btn {
+  width: 40px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 16px;
+  text-align: center;
+  margin: 0 8px;
+}
+
+.day-title {
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  width: 80px;
+}
+
+.schedule-info {
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.class-list {
+  flex: 1;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.class-grid {
+  flex-direction: column;
+}
+
+.class-grid-item {
+  flex-direction: column;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+  position: relative;
+}
+
+.grid-item-name {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+.grid-item-time {
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.grid-item-teacher {
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.grid-item-location {
+  font-size: 12px;
+}
+
+.empty-card {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.empty-text {
+  font-size: 20px;
+}
+
+.footer-actions {
+  flex-direction: row;
+  justify-content: center;
+  padding: 12px 0 4px 0;
+}
+
+.pin-link {
+  font-size: 13px;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+}
+</style>
