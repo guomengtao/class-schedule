@@ -204,11 +204,30 @@ export default {
     if (self.quickAdd && self.quickAdd.loadPreset) {
       self.quickAdd.loadPreset()
     }
-    database.getAllCourses(function(schedule) {
-      self.schedule = schedule
-      if (self.refreshClasses && typeof self.refreshClasses === 'function') {
-        self.refreshClasses()
-      }
+
+    store.getCurrentScheduleIndex(function(idx) {
+      store.getScheduleNames(function(names) {
+        if (names && idx < names.length) {
+          self.currentScheduleName = names[idx]
+        } else {
+          self.currentScheduleName = '课程表' + (idx + 1)
+        }
+      })
+      database.getAllCoursesWithIndex(idx, function(schedule) {
+        if (!schedule || schedule.length === 0) {
+          database.getAllCourses(function(fallback) {
+            self.schedule = fallback
+            if (self.refreshClasses && typeof self.refreshClasses === 'function') {
+              self.refreshClasses()
+            }
+          })
+          return
+        }
+        self.schedule = schedule
+        if (self.refreshClasses && typeof self.refreshClasses === 'function') {
+          self.refreshClasses()
+        }
+      })
     })
   },
 
