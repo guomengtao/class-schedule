@@ -5,48 +5,27 @@
       <text class="title" style="color: {{ theme.text }}">高级版预览</text>
     </div>
 
-    <div class="content">
-      <div class="feature-card" style="background-color: {{ theme.card }}">
-        <text class="feature-icon">🎨</text>
-        <text class="feature-title" style="color: {{ theme.text }}">10套精美主题</text>
-        <text class="feature-desc" style="color: {{ theme.textSecondary }}">深色/浅色/多彩主题随心切换</text>
+    <text class="badge" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">🔒 高级版功能一览</text>
+
+    <scroll class="scroll" scroll-y="{{true}}">
+      <div class="feature" for="{{ features }}" style="background-color: {{ theme.card }}">
+        <text class="feature-icon" style="color: {{ theme.accent }}">{{ $item.icon }}</text>
+        <div class="feature-info">
+          <text class="feature-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+          <text class="feature-desc" style="color: {{ theme.textSecondary }}">{{ $item.desc }}</text>
+        </div>
+        <text class="feature-status" style="color: {{ $item.unlocked ? theme.accent : theme.textMuted }}">{{ $item.unlocked ? '已解锁' : '🔒' }}</text>
       </div>
 
-      <div class="feature-card" style="background-color: {{ theme.card }}">
-        <text class="feature-icon">📅</text>
-        <text class="feature-title" style="color: {{ theme.text }}">多课程表管理</text>
-        <text class="feature-desc" style="color: {{ theme.textSecondary }}">支持最多10个独立课程表</text>
+      <div class="upgrade-section" style="background-color: {{ theme.card }}">
+        <text class="upgrade-title" style="color: {{ theme.accent }}">升级到高级版</text>
+        <text class="upgrade-desc" style="color: {{ theme.textSecondary }}">解锁全部高级功能，享受更强大的课程管理体验</text>
+        <input class="upgrade-btn" type="button" value="立即升级" onclick="goToActivation" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
+    </scroll>
 
-      <div class="feature-card" style="background-color: {{ theme.card }}">
-        <text class="feature-icon">💾</text>
-        <text class="feature-title" style="color: {{ theme.text }}">数据备份与恢复</text>
-        <text class="feature-desc" style="color: {{ theme.textSecondary }}">随时备份，安全恢复</text>
-      </div>
-
-      <div class="feature-card" style="background-color: {{ theme.card }}">
-        <text class="feature-icon">🏠</text>
-        <text class="feature-title" style="color: {{ theme.text }}">首页自定义</text>
-        <text class="feature-desc" style="color: {{ theme.textSecondary }}">个性化首页布局与内容</text>
-      </div>
-
-      <div class="feature-card" style="background-color: {{ theme.card }}">
-        <text class="feature-icon">🔔</text>
-        <text class="feature-title" style="color: {{ theme.text }}">智能提醒</text>
-        <text class="feature-desc" style="color: {{ theme.textSecondary }}">上课前自动提醒，不错过每一节课</text>
-      </div>
-    </div>
-
-    <div class="overlay" if="{{ showOverlay }}" style="background-color: rgba(0,0,0,0.7)">
-      <div class="overlay-card" style="background-color: {{ theme.card }}">
-        <text class="overlay-icon">⭐</text>
-        <text class="overlay-title" style="color: {{ theme.text }}">高级版功能</text>
-        <text class="overlay-desc" style="color: {{ theme.textSecondary }}">此页面展示了高级版的全部功能。标准版用户可使用部分功能，激活高级版即可解锁全部。</text>
-        <input class="overlay-btn primary" type="button" value="去激活" onclick="goActivation"
-               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        <input class="overlay-btn" type="button" value="取消" onclick="dismissOverlay"
-               style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
-      </div>
+    <div class="footer-actions">
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">📌 固定到首页</text>
     </div>
   </div>
 </template>
@@ -54,40 +33,59 @@
 <script>
 import router from "@system.router"
 const store = require("../../data/store.js")
+var pinHelper = require("../../data/pin-helper.js")
 
 export default {
   private: {
     theme: store.DEFAULT_THEME,
-    showOverlay: true
+    features: [
+      { icon: "📅", name: "多课表管理", desc: "创建和管理多个课程表", unlocked: false },
+      { icon: "💾", name: "数据备份恢复", desc: "备份和恢复课程数据", unlocked: false },
+      { icon: "🎨", name: "10套主题", desc: "丰富的主题配色方案", unlocked: false },
+      { icon: "🏠", name: "首页自定义", desc: "自定义首页显示内容", unlocked: false },
+      { icon: "📊", name: "课程统计", desc: "查看课程数据统计", unlocked: false },
+      { icon: "📱", name: "二维码分享", desc: "生成课表二维码分享", unlocked: false },
+      { icon: "⏰", name: "课程提醒", desc: "上课前震动提醒", unlocked: false },
+      { icon: "📌", name: "页面固定", desc: "将页面固定到首页", unlocked: false }
+    ]
   },
 
   onInit() {
     var self = this
     store.getTheme(function(t) { self.theme = t })
+    store.isPremiumUnlocked(function(unlocked) {
+      for (var i = 0; i < self.features.length; i++) {
+        self.features[i].unlocked = unlocked
+      }
+    })
   },
 
   onShow() {
     var self = this
     store.getTheme(function(t) { self.theme = t })
+    store.isPremiumUnlocked(function(unlocked) {
+      for (var i = 0; i < self.features.length; i++) {
+        self.features[i].unlocked = unlocked
+      }
+    })
   },
 
   goBack() {
     router.back()
   },
 
-  goActivation() {
+  goToActivation() {
     router.push({ uri: "/pages/activation" })
   },
 
-  dismissOverlay() {
-    this.showOverlay = false
+  pinToHome() {
+    pinHelper.pinPage("高级版预览", "/pages/premium-test")
   }
 }
 </script>
 
 <style>
 .page {
-  flex: 1;
   flex-direction: column;
   padding: 44px 8px 8px 8px;
   min-height: 100%;
@@ -112,29 +110,42 @@ export default {
   text-align: center;
   font-size: 16px;
   font-weight: bold;
-  margin-right: 64px;
 }
 
-.content {
+.badge {
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.scroll {
+  flex: 1;
   flex-direction: column;
 }
 
-.feature-card {
+.feature {
   flex-direction: row;
   align-items: center;
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 8px;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
 }
 
 .feature-icon {
-  font-size: 28px;
-  margin-right: 12px;
-  width: 40px;
-  text-align: center;
+  font-size: 18px;
+  margin-right: 10px;
+  flex-shrink: 0;
 }
 
-.feature-title {
+.feature-info {
+  flex-direction: column;
+  flex: 1;
+}
+
+.feature-name {
   font-size: 15px;
   font-weight: bold;
   margin-bottom: 2px;
@@ -144,73 +155,50 @@ export default {
   font-size: 12px;
 }
 
-.overlay {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
+.feature-status {
+  font-size: 12px;
+  flex-shrink: 0;
 }
 
-.overlay-card {
-  width: 85%;
-  border-radius: 16px;
-  padding: 24px 20px;
-  align-items: center;
-  flex-direction: column;
-}
-
-.overlay-icon {
-  font-size: 40px;
-  margin-bottom: 12px;
-}
-
-.overlay-title {
-  font-size: 18px;
-  font-weight: bold;
+.upgrade-section {
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 10px;
   margin-bottom: 10px;
-  text-align: center;
+  flex-direction: column;
+  align-items: center;
 }
 
-.overlay-desc {
+.upgrade-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.upgrade-desc {
   font-size: 13px;
   text-align: center;
-  line-height: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
+  line-height: 18px;
 }
 
-.overlay-btn {
+.upgrade-btn {
   width: 80%;
-  height: 40px;
+  height: 36px;
   border-radius: 10px;
   font-size: 15px;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 8px;
 }
 
-.primary {
-  margin-bottom: 8px;
+.footer-actions {
+  flex-direction: row;
+  justify-content: center;
+  padding: 10px 0 4px 0;
 }
 
-@media (shape: circle) {
-  .page {
-    padding: 44px 24px 24px 24px;
-  }
-  .back-btn {
-    width: 52px;
-    height: 28px;
-    font-size: 12px;
-  }
-  .title {
-    font-size: 14px;
-    margin-right: 52px;
-  }
-  .overlay-card {
-    width: 90%;
-  }
+.pin-link {
+  font-size: 13px;
+  text-align: center;
 }
 </style>

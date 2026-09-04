@@ -48,22 +48,13 @@
       <div if="{{ isLoading }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">加载中...</text>
       </div>
-      <div for="{{ currentClasses }}" class="class-row" else>
-        <div class="class-row-card" onclick="goToClassDetail($item)" style="background-color: {{ theme.card }}">
+      <div class="class-grid" else>
+        <div for="{{ currentClasses }}" class="class-grid-item" onclick="goToClassDetail($item)" style="background-color: {{ theme.card }}">
           <div class="progress-bg" if="{{ isToday }}" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
-          <div class="class-row-content">
-            <div class="class-index" style="background-color: {{ theme.cardLight }}">
-              <text class="class-index-text" style="color: {{ theme.accent }}">{{ $idx + 1 }}</text>
-            </div>
-            <div class="class-row-left">
-              <text class="class-row-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-              <text class="class-row-time" style="color: {{ theme.textMuted }}">{{ $item.time }}</text>
-            </div>
-            <div class="class-row-right">
-              <text class="class-row-teacher" if="{{ $item.teacher }}" style="color: {{ theme.textSecondary }}">{{ $item.teacher }}</text>
-              <text class="class-row-location" if="{{ $item.location }}" style="color: {{ theme.accent }}">{{ $item.location }}</text>
-            </div>
-          </div>
+          <text class="grid-item-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+          <text class="grid-item-time" style="color: {{ theme.accent }}">{{ $item.time }}</text>
+          <text class="grid-item-teacher" if="{{ $item.teacher }}" style="color: {{ theme.textSecondary }}">{{ $item.teacher }}</text>
+          <text class="grid-item-location" if="{{ $item.location }}" style="color: {{ theme.textMuted }}">{{ $item.location }}</text>
         </div>
       </div>
 
@@ -73,16 +64,22 @@
     </scroll>
 
     <div class="quick-add" if="{{ showQuickAdd }}" style="background-color: {{ theme.card }}">
-      <text class="quick-add-title" onclick="quickAdd.toggle" style="color: {{ theme.accent }}">快速添加 {{ quickAdd.expanded ? '▲' : '▼' }}</text>
-      <scroll class="quick-add-scroll" scroll-x="{{true}}" if="{{ quickAdd.expanded && quickAdd.courseNames.length > 0 && !quickAdd.disabled }}">
-        <div class="quick-add-list">
-          <div for="{{ quickAdd.courseNames }}" class="quick-add-item" onclick="quickAdd.addCourse($item)" style="background-color: {{ theme.cardLight }}">
-            <text class="quick-add-name" style="color: {{ theme.text }}">{{ $item }}</text>
-          </div>
+      <div class="quick-add-header" onclick="quickAdd.toggle" style="background-color: {{ theme.card }}">
+        <text class="quick-add-title" style="color: {{ theme.accent }}">快速添加</text>
+        <div class="quick-add-info">
+          <text class="quick-add-time" if="{{ quickAdd.expanded }}" style="color: {{ theme.textSecondary }}">{{ quickAdd.time }}</text>
+          <text class="quick-add-arrow" style="color: {{ theme.accent }}">{{ quickAdd.expanded ? '▲' : '▼' }}</text>
         </div>
-      </scroll>
-      <text class="quick-add-empty" if="{{ quickAdd.expanded && quickAdd.disabled }}" style="color: {{ theme.textMuted }}">今天课程已排满</text>
-      <text class="quick-add-empty" if="{{ quickAdd.expanded && !quickAdd.disabled && quickAdd.courseNames.length === 0 }}" style="color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
+      </div>
+      <div class="quick-add-divider" if="{{ quickAdd.expanded }}" style="background-color: {{ theme.border || theme.borderLight }}"></div>
+      <div class="quick-add-accordion" if="{{ quickAdd.expanded }}">
+        <text class="quick-add-empty" if="{{ quickAdd.disabled }}" style="color: {{ theme.textMuted }}">今天课程已排满</text>
+        <text class="quick-add-empty" if="{{ !quickAdd.disabled && quickAdd.courseNames.length === 0 }}" style="color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
+        <div for="{{ quickAdd.courseNames }}" class="quick-add-row" onclick="quickAdd.addCourse($item)" style="background-color: {{ theme.cardLight }}">
+          <text class="quick-add-row-name" style="color: {{ theme.text }}">{{ $item }}</text>
+          <text class="quick-add-row-plus" style="color: {{ theme.accent }}">+</text>
+        </div>
+      </div>
     </div>
 
     
@@ -443,13 +440,18 @@ export default {
   margin-bottom: 4px;
 }
 
-.class-row {
-  margin-bottom: 4px;
+.class-grid {
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 
-.class-row-card {
+.class-grid-item {
   position: relative;
+  width: 48%;
   border-radius: 10px;
+  padding: 8px;
+  margin: 1%;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -461,56 +463,26 @@ export default {
   opacity: 0.12;
 }
 
-.class-row-content {
-  flex-direction: row;
-  align-items: center;
-  padding: 10px 12px;
-}
-
-.class-index {
-  width: 28px;
-  height: 28px;
-  border-radius: 14px;
-  align-items: center;
-  justify-content: center;
-  margin-right: 10px;
-  flex-shrink: 0;
-}
-
-.class-index-text {
-  font-size: 14px;
+.grid-item-name {
+  font-size: 15px;
   font-weight: bold;
+  margin-bottom: 2px;
+  max-lines: 2;
+  text-overflow: ellipsis;
 }
 
-.class-row-left {
-  flex-direction: column;
-  flex: 1;
+.grid-item-time {
+  font-size: 12px;
+  margin-bottom: 2px;
 }
 
-.class-row-name {
-  font-size: 17px;
-  font-weight: bold;
+.grid-item-teacher {
+  font-size: 11px;
   margin-bottom: 1px;
 }
 
-.class-row-time {
-  font-size: 13px;
-}
-
-.class-row-right {
-  flex-direction: column;
-  align-items: flex-end;
-  flex-shrink: 0;
-  margin-left: 8px;
-}
-
-.class-row-teacher {
-  font-size: 13px;
-  margin-bottom: 1px;
-}
-
-.class-row-location {
-  font-size: 13px;
+.grid-item-location {
+  font-size: 11px;
 }
 
 .empty-card {
@@ -523,38 +495,72 @@ export default {
 }
 
 .quick-add {
-  padding: 8px;
-  border-radius: 8px;
+  border-radius: 10px;
   margin-bottom: 4px;
+  flex-direction: column;
+}
+
+.quick-add-header {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
 }
 
 .quick-add-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
+}
+
+.quick-add-info {
+  flex-direction: row;
+  align-items: center;
+}
+
+.quick-add-time {
+  font-size: 12px;
+  margin-right: 6px;
+}
+
+.quick-add-arrow {
+  font-size: 12px;
+}
+
+.quick-add-divider {
+  height: 1px;
+  margin: 0 12px 4px 12px;
+}
+
+.quick-add-accordion {
+  flex-direction: column;
+  padding: 0 12px 8px 12px;
+}
+
+.quick-add-row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 8px;
+  padding: 8px 12px;
   margin-bottom: 4px;
 }
 
-.quick-add-scroll {
-  height: 42px;
+.quick-add-row-name {
+  font-size: 15px;
+  flex: 1;
 }
 
-.quick-add-list {
-  flex-direction: row;
-}
-
-.quick-add-item {
-  padding: 6px 14px;
-  border-radius: 20px;
-  margin-right: 8px;
-}
-
-.quick-add-name {
-  font-size: 16px;
+.quick-add-row-plus {
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 8px;
 }
 
 .quick-add-empty {
-  font-size: 14px;
-  padding: 4px 0;
+  font-size: 13px;
+  padding: 6px 0;
+  text-align: center;
 }
 
 .bottom-buttons {
