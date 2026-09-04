@@ -175,6 +175,14 @@
           <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
+
+      <div class="menu-item" onclick="openOverlayTest" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">🪟 弹窗直接测试</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">一个按钮，点击直接弹遮罩</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
     </div>
 
     <text class="dev-expire-hint" onclick="onDevExpireClick" style="color: {{ theme.textSecondary }}">丰富欢迎用户提交意见建议</text>
@@ -313,6 +321,10 @@ export default {
 
   openPremiumTest() {
     router.push({ uri: "/pages/premium-test" })
+  },
+
+  openOverlayTest() {
+    router.push({ uri: "/pages/overlay-test" })
   },
 
   pinToHome() {

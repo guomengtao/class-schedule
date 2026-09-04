@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.3.345",
-  "versionCode": 475,
+  "versionName": "1.3.346",
+  "versionCode": 476,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -162,7 +162,10 @@
         "component": "index"
       },
       "pages/premium-test": {
-        "component": "index"
+        "component": "premium-test"
+      },
+      "pages/overlay-test": {
+        "component": "overlay-test"
       },
       "pages/overlay-demo": {
         "component": "overlay-demo"
@@ -172,9 +175,6 @@
       },
       "pages/debug-demo": {
         "component": "debug-demo"
-      },
-      "pages/premium-test": {
-        "component": "premium-test"
       }
     }
   }
