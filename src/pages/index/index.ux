@@ -188,11 +188,13 @@ export default {
     self.loadHomepageSettings()
 
     database.init(function() {
-      database.getAllCourses(function(schedule) {
-        self.schedule = schedule
-        self.isLoading = false
-        console.log("[index] data loaded, " + schedule.length + " days")
-        self.initAllModules()
+      store.getCurrentScheduleIndex(function(idx) {
+        database.getAllCoursesWithIndex(idx, function(schedule) {
+          self.schedule = schedule
+          self.isLoading = false
+          console.log("[index] data loaded, " + (schedule ? schedule.length : 0) + " days, index=" + idx)
+          self.initAllModules()
+        })
       })
     })
   },
@@ -207,12 +209,40 @@ export default {
     if (self.quickAdd && self.quickAdd.loadPreset) {
       self.quickAdd.loadPreset()
     }
-    database.getAllCourses(function(schedule) {
-      self.schedule = schedule
-      if (self.refreshClasses && typeof self.refreshClasses === 'function') {
-        self.refreshClasses()
-      }
+
+    var dataLoaded = false
+    store.getCurrentScheduleIndex(function(idx) {
+      if (dataLoaded) return
+      database.getAllCoursesWithIndex(idx, function(schedule) {
+        if (dataLoaded) return
+        dataLoaded = true
+        if (!schedule || schedule.length === 0) {
+          database.getAllCourses(function(fallback) {
+            self.schedule = fallback
+            if (self.refreshClasses && typeof self.refreshClasses === 'function') {
+              self.refreshClasses()
+            }
+          })
+          return
+        }
+        self.schedule = schedule
+        if (self.refreshClasses && typeof self.refreshClasses === 'function') {
+          self.refreshClasses()
+        }
+      })
     })
+
+    setTimeout(function() {
+      if (!dataLoaded) {
+        dataLoaded = true
+        database.getAllCourses(function(fallback) {
+          self.schedule = fallback
+          if (self.refreshClasses && typeof self.refreshClasses === 'function') {
+            self.refreshClasses()
+          }
+        })
+      }
+    }, 1500)
   },
 
   onDestroy() {
