@@ -17,18 +17,18 @@
       <text class="section-title" style="color: {{ theme.text }}">备份列表</text>
       <text class="section-desc" if="{{ backupList.length === 0 }}" style="color: {{ theme.textMuted }}">暂无备份，点击上方按钮创建</text>
 
-      <div class="backup-item" for="(index, item) in backupList" style="border-color: {{ theme.border }}">
+      <div class="backup-item" for="$item in backupList" style="border-color: {{ theme.border }}">
         <div class="backup-info">
-          <text class="backup-name" style="color: {{ theme.text }}">{{ item.name }}</text>
-          <text class="backup-meta" style="color: {{ theme.textSecondary }}">{{ item.courseCount }}门课程 · {{ item.scheduleCount }}个课程表</text>
-          <text class="backup-time" style="color: {{ theme.textMuted }}">{{ item.time }}</text>
+          <text class="backup-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+          <text class="backup-meta" style="color: {{ theme.textSecondary }}">{{ $item.courseCount }}门课程 · {{ $item.scheduleCount }}个课程表</text>
+          <text class="backup-time" style="color: {{ theme.textMuted }}">{{ $item.time }}</text>
         </div>
         <div class="backup-actions">
-          <input class="restore-btn" type="button" value="恢复" onclick="restoreBackup({{ index }})"
+          <input class="restore-btn" type="button" value="恢复" onclick="restoreBackup($idx)"
                  style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-          <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === index ? '确认' : '删除' }}"
-                 onclick="{{ deleteConfirmIndex === index ? 'confirmDeleteBackup(' + index + ')' : 'promptDeleteBackup(' + index + ')' }}"
-                 style="background-color: {{ deleteConfirmIndex === index ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === index ? '#ffffff' : theme.deleteText }}" />
+          <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}"
+                 onclick="handleDeleteBackup($idx)"
+                 style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === $idx ? '#ffffff' : theme.deleteText }}" />
         </div>
       </div>
     </div>
@@ -54,7 +54,6 @@
 <script>
 import router from "@system.router"
 var storage = require("@system.storage")
-var prompt = require("@system.prompt")
 const store = require("../../data/store.js")
 
 var BACKUP_LIST_KEY = "backup_list"
@@ -288,18 +287,18 @@ export default {
     saveKey(0)
   },
 
-  promptDeleteBackup(index) {
-    this.deleteConfirmIndex = index
-  },
-
-  confirmDeleteBackup(index) {
+  handleDeleteBackup(index) {
     var self = this
-    var list = self.backupList.slice()
-    list.splice(index, 1)
-    self.saveBackupList(list)
-    self.deleteConfirmIndex = -1
-    self.resultMessage = "备份已删除"
-    self.resultSuccess = true
+    if (self.deleteConfirmIndex === index) {
+      var list = self.backupList.slice()
+      list.splice(index, 1)
+      self.saveBackupList(list)
+      self.deleteConfirmIndex = -1
+      self.resultMessage = "备份已删除"
+      self.resultSuccess = true
+    } else {
+      self.deleteConfirmIndex = index
+    }
   }
 }
 </script>
@@ -368,10 +367,6 @@ export default {
   padding: 12px 0;
   border-bottom-width: 1px;
   border-bottom-style: solid;
-}
-
-.backup-item:last-child {
-  border-bottom-width: 0;
 }
 
 .backup-info {

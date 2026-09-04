@@ -615,7 +615,7 @@ export default {
     this.clearWaiting();
     this.resetResultList();
   },
-  watchHidePropsChange(newV, _oldV) {
+  watchHidePropsChange(newV) {
     this.$emit("visibilityChange", { visible: newV });
     // 键盘从隐藏切到显示(hide:true→false)：首次弹出才把键盘子树建入 DOM（keyboardCreated 置 true 保活，
     // 之后 hide 切换只走 show 显隐、不再重建）。同时懒初始化字典（幂等）。
@@ -630,7 +630,7 @@ export default {
     this.__dictInitStarted = true
     SimpleInputMethod.initDict()
   },
-  watchMaxLengthPropsChange(newV, _oldV) {
+  watchMaxLengthPropsChange(newV) {
     if (newV) {
       const tempCvalList = [];
       for (let i = 0; i < newV; i++) {
