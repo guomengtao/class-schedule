@@ -48,18 +48,15 @@
       <div if="{{ isLoading }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">加载中...</text>
       </div>
-      <div class="class-grid" if="{{ !isLoading }}">
-        <div for="{{ currentClasses }}" class="class-grid-item" onclick="goToClassDetail($item)" style="background-color: {{ theme.card }}">
-          <div class="progress-bg" if="{{ isToday }}" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
-          <text class="grid-item-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-          <text class="grid-item-time" style="color: {{ theme.accent }}">{{ $item.time }}</text>
-          <text class="grid-item-teacher" if="{{ $item.teacher }}" style="color: {{ theme.textSecondary }}">{{ $item.teacher }}</text>
-          <text class="grid-item-location" if="{{ $item.location }}" style="color: {{ theme.textMuted }}">{{ $item.location }}</text>
-        </div>
-      </div>
-
       <div if="{{ !isLoading && currentClasses.length === 0 }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
+      </div>
+      <div for="{{ currentClasses }}" class="class-grid-item" onclick="goToClassDetail($item)" style="background-color: {{ theme.card }}">
+        <div class="progress-bg" if="{{ isToday }}" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
+        <text class="grid-item-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+        <text class="grid-item-time" style="color: {{ theme.accent }}">{{ $item.time }}</text>
+        <text class="grid-item-teacher" if="{{ $item.teacher }}" style="color: {{ theme.textSecondary }}">{{ $item.teacher }}</text>
+        <text class="grid-item-location" if="{{ $item.location }}" style="color: {{ theme.textMuted }}">{{ $item.location }}</text>
       </div>
     </scroll>
 
@@ -456,6 +453,7 @@ export default {
 .class-grid-item {
   position: relative;
   width: 100%;
+  min-height: 60px;
   border-radius: 10px;
   padding: 10px 12px;
   margin-bottom: 8px;
@@ -477,20 +475,24 @@ export default {
   margin-bottom: 2px;
   max-lines: 2;
   text-overflow: ellipsis;
+  lines: 1;
 }
 
 .grid-item-time {
   font-size: 12px;
   margin-bottom: 2px;
+  lines: 1;
 }
 
 .grid-item-teacher {
   font-size: 11px;
   margin-bottom: 1px;
+  lines: 1;
 }
 
 .grid-item-location {
   font-size: 11px;
+  lines: 1;
 }
 
 .empty-card {
