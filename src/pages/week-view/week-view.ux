@@ -94,6 +94,11 @@ export default {
     store.getHideWeekend(function(hide) {
       self.hideWeekend = hide
       self.applyWeekendFilter()
+      self._hideWeekendLoaded = true
+      if (self._weekViewIndexLoaded) {
+        self._initDone = true
+        self.loadData()
+      }
     })
     var storage = require("@system.storage")
     storage.get({
@@ -102,12 +107,18 @@ export default {
         if (data) {
           self.viewIndex = parseInt(data) || 0
         }
-        self._initDone = true
-        self.loadData()
+        self._weekViewIndexLoaded = true
+        if (self._hideWeekendLoaded) {
+          self._initDone = true
+          self.loadData()
+        }
       },
       fail: function() {
-        self._initDone = true
-        self.loadData()
+        self._weekViewIndexLoaded = true
+        if (self._hideWeekendLoaded) {
+          self._initDone = true
+          self.loadData()
+        }
       }
     })
     setTimeout(function() {
@@ -126,23 +137,23 @@ export default {
     store.getHideWeekend(function(hide) {
       self.hideWeekend = hide
       self.applyWeekendFilter()
-    })
-    if (self._firstLoad) {
-      self._firstLoad = false
-      return
-    }
-    var storage = require("@system.storage")
-    storage.get({
-      key: "weekview_index",
-      success: function(data) {
-        if (data) {
-          self.viewIndex = parseInt(data) || 0
-        }
-        self.loadData()
-      },
-      fail: function() {
-        self.loadData()
+      if (self._firstLoad) {
+        self._firstLoad = false
+        return
       }
+      var storage = require("@system.storage")
+      storage.get({
+        key: "weekview_index",
+        success: function(data) {
+          if (data) {
+            self.viewIndex = parseInt(data) || 0
+          }
+          self.loadData()
+        },
+        fail: function() {
+          self.loadData()
+        }
+      })
     })
   },
 
@@ -341,7 +352,12 @@ export default {
   },
 
   detectCurrentCourse(allCourses) {
-    var todayName = fullDayNames[this.todayIndex]
+    var todayName = this.displayDayNames[this.todayIndex]
+    if (!todayName) {
+      this.currentCourseDay = ""
+      this.currentCourseTime = ""
+      return
+    }
     var now = new Date()
     var currentTime = now.getHours() * 60 + now.getMinutes()
 

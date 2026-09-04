@@ -10,76 +10,78 @@ function getRealTodayIndex() {
 }
 
 function init(instance) {
-  var self = instance
+  console.log("[day-nav] init called")
+  instance._dayNames = fullDayNames
+  instance._hideWeekend = false
 
-  store.getHideWeekend(function(hide) {
-    var dayNames = hide ? weekdayNames : fullDayNames
-    instance._dayNames = dayNames
-    instance._hideWeekend = hide
+  var todayIdx = getRealTodayIndex()
+  instance.currentDay = fullDayNames[todayIdx]
+  instance.currentDayIndex = todayIdx
 
+  instance.prevDay = function() {
+    var self = instance
+    var names = self._dayNames || fullDayNames
+    if (self.currentDayIndex > 0) {
+      self.currentDayIndex--
+    } else {
+      self.currentDayIndex = names.length - 1
+    }
+    self.currentDay = names[self.currentDayIndex]
+    if (self.loadDayClasses) self.loadDayClasses()
+    if (self.updateStatus) self.updateStatus()
+  }
+
+  instance.nextDay = function() {
+    var self = instance
+    var names = self._dayNames || fullDayNames
+    if (self.currentDayIndex < names.length - 1) {
+      self.currentDayIndex++
+    } else {
+      self.currentDayIndex = 0
+    }
+    self.currentDay = names[self.currentDayIndex]
+    if (self.loadDayClasses) self.loadDayClasses()
+    if (self.updateStatus) self.updateStatus()
+  }
+
+  instance.goToToday = function() {
+    var self = instance
+    var names = self._dayNames || fullDayNames
     var todayIdx = getRealTodayIndex()
-    if (hide && (todayIdx === 0 || todayIdx === 6)) {
+    if (self._hideWeekend && (todayIdx === 0 || todayIdx === 6)) {
       todayIdx = 0
-    } else if (hide) {
+    } else if (self._hideWeekend) {
       todayIdx = todayIdx - 1
     }
-    instance.currentDay = dayNames[todayIdx]
-    instance.currentDayIndex = todayIdx
+    if (self.currentDayIndex === todayIdx) return
+    self.currentDayIndex = todayIdx
+    self.currentDay = names[todayIdx]
+    if (self.loadDayClasses) self.loadDayClasses()
+    if (self.updateStatus) self.updateStatus()
+  }
 
-    instance.prevDay = function() {
-      var names = self._dayNames || dayNames
-      if (self.currentDayIndex > 0) {
-        self.currentDayIndex--
-      } else {
-        self.currentDayIndex = names.length - 1
-      }
-      self.currentDay = names[self.currentDayIndex]
-      onDayChanged()
-    }
-
-    instance.nextDay = function() {
-      var names = self._dayNames || dayNames
-      if (self.currentDayIndex < names.length - 1) {
-        self.currentDayIndex++
-      } else {
-        self.currentDayIndex = 0
-      }
-      self.currentDay = names[self.currentDayIndex]
-      onDayChanged()
-    }
-
-    instance.goToToday = function() {
-      var names = self._dayNames || dayNames
+  instance.updateHideWeekend = function() {
+    var self = instance
+    store.getHideWeekend(function(hide) {
+      self._hideWeekend = hide
+      self._dayNames = hide ? weekdayNames : fullDayNames
       var todayIdx = getRealTodayIndex()
-      if (self._hideWeekend && (todayIdx === 0 || todayIdx === 6)) {
+      if (hide && (todayIdx === 0 || todayIdx === 6)) {
         todayIdx = 0
-      } else if (self._hideWeekend) {
+      } else if (hide) {
         todayIdx = todayIdx - 1
       }
-      if (self.currentDayIndex === todayIdx) return
-      self.currentDayIndex = todayIdx
-      self.currentDay = names[todayIdx]
-      onDayChanged()
-    }
-
-    console.log("[day-nav] init OK, day: " + instance.currentDay + ", hideWeekend: " + hide)
-
-    if (instance.loadDayClasses && typeof instance.loadDayClasses === 'function') {
-      instance.loadDayClasses()
-    }
-    if (instance.updateStatus && typeof instance.updateStatus === 'function') {
-      instance.updateStatus()
-    }
-  })
-
-  function onDayChanged() {
-    if (instance.loadDayClasses && typeof instance.loadDayClasses === 'function') {
-      instance.loadDayClasses()
-    }
-    if (instance.updateStatus && typeof instance.updateStatus === 'function') {
-      instance.updateStatus()
-    }
+      if (self.currentDayIndex !== todayIdx) {
+        self.currentDayIndex = todayIdx
+        self.currentDay = self._dayNames[todayIdx]
+        if (self.loadDayClasses) self.loadDayClasses()
+        if (self.updateStatus) self.updateStatus()
+      }
+      console.log("[day-nav] hideWeekend updated: " + hide + ", day: " + self.currentDay)
+    })
   }
+
+  console.log("[day-nav] init OK, day: " + instance.currentDay)
 }
 
 module.exports = { init: init }

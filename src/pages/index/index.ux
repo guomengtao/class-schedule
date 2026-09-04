@@ -277,6 +277,10 @@ export default {
       }
     }
     console.log("[index] initAllModules done")
+
+    if (self.updateHideWeekend && typeof self.updateHideWeekend === 'function') {
+      try { self.updateHideWeekend() } catch (e) { console.error("[index] updateHideWeekend: " + (e.message || e)) }
+    }
   },
 
   goBack() {
