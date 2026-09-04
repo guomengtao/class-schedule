@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.3.338",
-  "versionCode": 468,
+  "versionName": "1.3.345",
+  "versionCode": 475,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -169,6 +169,12 @@
       },
       "pages/auth-setter": {
         "component": "auth-setter"
+      },
+      "pages/debug-demo": {
+        "component": "debug-demo"
+      },
+      "pages/premium-test": {
+        "component": "premium-test"
       }
     }
   }

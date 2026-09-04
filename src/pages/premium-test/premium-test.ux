@@ -1,0 +1,230 @@
+<import name="premium-overlay" src="../../components/premium-overlay"></import>
+<template>
+  <stack class="page-root">
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack"
+             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">遮罩模块测试</text>
+    </div>
+
+    <div class="card" style="background-color: {{ theme.card }}">
+      <text class="card-title" style="color: {{ theme.accent }}">当前状态</text>
+      <text class="info-text" style="color: {{ premiumStatus === '高级会员' ? theme.accent : theme.deleteText }}">会员: {{ premiumStatus }}</text>
+      <text class="info-text" style="color: {{ theme.textSecondary }}">storage: {{ premiumStorage }}</text>
+      <text class="info-text" style="color: {{ theme.textSecondary }}">overlayRef: {{ hasRef ? '已注册' : '未注册' }}</text>
+      <text class="info-text" style="color: {{ theme.textSecondary }}">visible: {{ overlayVisible ? '显示中' : '隐藏' }}</text>
+    </div>
+
+    <div class="card" style="background-color: {{ theme.card }}">
+      <text class="card-title" style="color: {{ theme.accent }}">测试按钮</text>
+      <input class="test-btn" type="button" value="checkAndShow (检查后弹出)" onclick="testCheckAndShow"
+             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="test-btn" type="button" value="show (强制弹出遮罩)" onclick="testShow"
+             style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+      <input class="test-btn" type="button" value="hide (隐藏遮罩)" onclick="testHide"
+             style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+      <input class="test-btn" type="button" value="刷新状态" onclick="refreshStatus"
+             style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+    </div>
+
+    <div class="card" style="background-color: {{ theme.card }}">
+      <text class="card-title" style="color: {{ theme.accent }}">📋 操作日志 ({{ logs.length }})</text>
+      <div class="log-list" style="background-color: {{ theme.bg }}">
+        <block for="{{ logs }}">
+          <text class="log-line" style="color: {{ theme.text }}">{{ $item }}</text>
+        </block>
+        <text class="log-empty" style="color: {{ theme.textMuted }}"
+              if="{{ logs.length === 0 }}">点击按钮查看日志</text>
+      </div>
+    </div>
+
+    <premium-overlay></premium-overlay>
+  </div>
+  </stack>
+</template>
+
+<script>
+import router from "@system.router"
+var storage = require("@system.storage")
+const store = require("../../data/store.js")
+var premiumOverlay = require("../../data/premium-overlay.js")
+
+var MAX_LOGS = 40
+
+export default {
+  private: {
+    theme: store.DEFAULT_THEME,
+    premiumStatus: "loading...",
+    premiumStorage: "loading...",
+    hasRef: false,
+    overlayVisible: false,
+    logs: []
+  },
+
+  addLog(msg) {
+    console.log("[PREMIUM-TEST] " + msg)
+    var time = new Date().toLocaleTimeString()
+    var line = "[" + time + "] " + msg
+    this.logs.push(line)
+    if (this.logs.length > MAX_LOGS) {
+      this.logs.shift()
+    }
+  },
+
+  onInit() {
+    console.log("[PREMIUM-TEST] ========== onInit ==========")
+    this.addLog("page init")
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+    this.refreshStatus()
+  },
+
+  onShow() {
+    console.log("[PREMIUM-TEST] ========== onShow ==========")
+    this.addLog("page shown")
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+    this.refreshStatus()
+  },
+
+  refreshStatus() {
+    console.log("[PREMIUM-TEST] refreshStatus")
+    this.addLog("refreshing status...")
+    var self = this
+
+    store.isPremiumUnlocked(function(unlocked) {
+      self.premiumStatus = unlocked ? "高级会员" : "标准版"
+      self.addLog("isPremiumUnlocked: " + (unlocked ? "高级会员" : "标准版"))
+      self.hasRef = true
+    })
+
+    storage.get({
+      key: "premium_unlocked",
+      success: function(data) {
+        self.premiumStorage = data || "empty"
+        self.addLog("premium_unlocked storage: " + (data || "empty"))
+      },
+      fail: function() {
+        self.premiumStorage = "not found"
+        self.addLog("premium_unlocked: NOT FOUND")
+      }
+    })
+  },
+
+  testCheckAndShow() {
+    this.addLog(">>> checkAndShow() called")
+    premiumOverlay.checkAndShow()
+    this.addLog("checkAndShow() done, check console for [PREMIUM] logs")
+  },
+
+  testShow() {
+    this.addLog(">>> show() called (force)")
+    premiumOverlay.show()
+    this.overlayVisible = true
+    this.addLog("show() done, overlay should be visible")
+  },
+
+  testHide() {
+    this.addLog(">>> hide() called")
+    premiumOverlay.hide()
+    this.overlayVisible = false
+    this.addLog("hide() done, overlay should be hidden")
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page-root {
+  width: 100%;
+  height: 100%;
+}
+
+.page {
+  flex: 1;
+  flex-direction: column;
+  padding: 44px 8px 8px 8px;
+  min-height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.back-btn {
+  width: 64px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.title {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.card {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.info-text {
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.test-btn {
+  width: 100%;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.log-list {
+  flex-direction: column;
+  border-radius: 6px;
+  padding: 6px;
+  min-height: 60px;
+  max-height: 200px;
+  overflow: scroll;
+}
+
+.log-line {
+  font-size: 10px;
+  margin-bottom: 1px;
+  line-height: 1.3;
+  word-break: break-all;
+}
+
+.log-empty {
+  font-size: 11px;
+  text-align: center;
+  padding: 12px 0;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 24px 24px 24px;
+  }
+}
+</style>

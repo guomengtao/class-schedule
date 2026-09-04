@@ -14,7 +14,9 @@ var labItems = [
   { name: "📦 多模块加载测试", desc: "多模块加载测试", uri: "/pages/lab-module-test" },
   { name: "🏠 首页 Pro", desc: "首页 Pro 版 - 实际页面效果", uri: "/pages/home-pro" },
   { name: "📅 今日课程", desc: "调用当前课程表今日课程信息", uri: "/pages/today-demo" },
-  { name: "📋 首页课程Demo", desc: "直接调用 class-list.js 模块渲染", uri: "/pages/homepage-classes-demo" }
+  { name: "📋 首页课程Demo", desc: "直接调用 class-list.js 模块渲染", uri: "/pages/homepage-classes-demo" },
+  { name: "🖥 命令行 Debug", desc: "测试 console.log/warn/error 输出", uri: "/pages/debug-demo" },
+  { name: "🎭 遮罩模块测试", desc: "测试 premium-overlay 遮罩弹出", uri: "/pages/premium-test" }
 ]
 
 function init(instance) {

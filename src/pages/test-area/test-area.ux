@@ -159,6 +159,22 @@
           <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
+
+      <div class="menu-item" onclick="openDebugDemo" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">🖥 命令行 Debug</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">测试 console.log/warn/error 输出</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+
+      <div class="menu-item" onclick="openPremiumTest" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">🎭 遮罩模块测试</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">测试 premium-overlay 遮罩弹出</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
     </div>
 
     <text class="dev-expire-hint" onclick="onDevExpireClick" style="color: {{ theme.textSecondary }}">丰富欢迎用户提交意见建议</text>
@@ -289,6 +305,14 @@ export default {
 
   openAuthSetter() {
     router.push({ uri: "/pages/auth-setter" })
+  },
+
+  openDebugDemo() {
+    router.push({ uri: "/pages/debug-demo" })
+  },
+
+  openPremiumTest() {
+    router.push({ uri: "/pages/premium-test" })
   },
 
   pinToHome() {
