@@ -37,6 +37,7 @@
             <text class="action-btn-text" style="color: {{ theme.text }}">导出</text>
           </div>
         </div>
+        <div class="action-divider" style="background-color: {{ theme.border || theme.borderLight }}"></div>
         <div class="action-row">
           <div class="action-btn" onclick="openWeekView($idx)" style="background-color: {{ theme.cardLight }}">
             <text class="action-btn-text" style="color: {{ theme.text }}">总览</text>
@@ -422,17 +423,43 @@ export default {
     for (var i = 0; i < this.list.length; i++) {
       names.push(this.list[i].name)
     }
-    var newName = "课程表" + (names.length + 1)
-    var counter = 1
-    while (names.indexOf(newName) !== -1) {
-      newName = "课程表" + (names.length + 1) + "(" + counter + ")"
-      counter++
+
+    var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    var newName = ""
+    for (var attempt = 0; attempt < 100; attempt++) {
+      var suffix = ""
+      for (var j = 0; j < 3; j++) {
+        suffix += chars.charAt(Math.floor(Math.random() * chars.length))
+      }
+      var candidate = "课程表" + suffix
+      if (names.indexOf(candidate) === -1) {
+        newName = candidate
+        break
+      }
+    }
+    if (!newName) {
+      newName = "课程表" + Date.now().toString(36).slice(-3)
     }
     names.push(newName)
+    var newIndex = names.length - 1
     var self = this
     store.setScheduleNames(names, function() {
-      prompt.showToast({ message: "课程表已添加" })
-      self.loadData()
+      database.setScheduleIndex(newIndex, function() {
+        var storage = require("@system.storage")
+        var STORAGE_KEY = "allCourses"
+        storage.set({
+          key: STORAGE_KEY + "_" + newIndex,
+          value: "[]",
+          success: function() {
+            prompt.showToast({ message: "已添加 " + newName })
+            self.loadData()
+          },
+          fail: function() {
+            prompt.showToast({ message: "已添加 " + newName })
+            self.loadData()
+          }
+        })
+      })
     })
   },
 
@@ -582,6 +609,11 @@ export default {
   flex-direction: column;
   padding-top: 12px;
   margin-top: 10px;
+}
+
+.action-divider {
+  height: 1px;
+  margin: 8px 0;
 }
 
 .action-row {
