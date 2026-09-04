@@ -44,7 +44,7 @@
       </div>
     </div>
 
-    <scroll class="class-list" scroll-y="{{true}}">
+    <div class="class-list">
       <div if="{{ isLoading }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">加载中...</text>
       </div>
@@ -58,7 +58,7 @@
         <text class="grid-item-teacher" if="{{ $item.teacher }}" style="color: {{ theme.textSecondary }}">{{ $item.teacher }}</text>
         <text class="grid-item-location" if="{{ $item.location }}" style="color: {{ theme.textMuted }}">{{ $item.location }}</text>
       </div>
-    </scroll>
+    </div>
 
     <div class="quick-add" if="{{ showQuickAdd }}" style="background-color: {{ theme.card }}">
       <div class="quick-add-header" onclick="quickAdd.toggle">
@@ -314,7 +314,7 @@ export default {
   flex-direction: column;
   background-color: #1a1a2e;
   padding: 44px 8px 8px 8px;
-  height: 100%;
+  min-height: 100%;
 }
 
 .header {
@@ -442,7 +442,7 @@ export default {
 }
 
 .class-list {
-  flex: 1;
+  flex-direction: column;
   margin-bottom: 4px;
 }
 
