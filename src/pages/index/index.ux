@@ -61,17 +61,6 @@
       <div if="{{ !isLoading && currentClasses.length === 0 }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
       </div>
-
-      <div class="debug-panel">
-        <text class="debug-title">DEBUG</text>
-        <text class="debug-line">isLoading: {{ isLoading }}</text>
-        <text class="debug-line">currentDay: {{ currentDay }}</text>
-        <text class="debug-line">schedule.len: {{ schedule.length }}</text>
-        <text class="debug-line">classes.len: {{ currentClasses.length }}</text>
-        <div for="{{ currentClasses }}" class="debug-item">
-          <text class="debug-line">  {{ $item.name }} {{ $item.time }}</text>
-        </div>
-      </div>
     </scroll>
 
     <div class="quick-add" if="{{ showQuickAdd }}" style="background-color: {{ theme.card }}">
@@ -223,6 +212,7 @@ export default {
       if (self.refreshClasses && typeof self.refreshClasses === 'function') {
         self.refreshClasses()
       }
+      self.dumpState()
     })
   },
 
@@ -283,6 +273,40 @@ export default {
     if (self.updateHideWeekend && typeof self.updateHideWeekend === 'function') {
       try { self.updateHideWeekend() } catch (e) { console.error("[index] updateHideWeekend: " + (e.message || e)) }
     }
+
+    self.dumpState()
+  },
+
+  dumpState() {
+    var self = this
+    console.log("========== DUMP STATE ==========")
+    console.log("isLoading: " + self.isLoading)
+    console.log("currentDay: " + self.currentDay)
+    console.log("schedule.length: " + self.schedule.length)
+    if (self.schedule && self.schedule.length > 0) {
+      for (var i = 0; i < self.schedule.length; i++) {
+        var day = self.schedule[i]
+        console.log("  schedule[" + i + "] day=" + JSON.stringify(day.day) + " classes.length=" + day.classes.length)
+        for (var j = 0; j < day.classes.length; j++) {
+          var c = day.classes[j]
+          console.log("    [" + j + "] name=" + JSON.stringify(c.name) + " time=" + JSON.stringify(c.time) + " location=" + JSON.stringify(c.location))
+        }
+      }
+    } else {
+      console.log("schedule: EMPTY or null")
+    }
+    console.log("currentClasses.length: " + self.currentClasses.length)
+    if (self.currentClasses && self.currentClasses.length > 0) {
+      for (var k = 0; k < self.currentClasses.length; k++) {
+        var cc = self.currentClasses[k]
+        console.log("  [" + k + "] name=" + JSON.stringify(cc.name) + " time=" + JSON.stringify(cc.time) + " teacher=" + JSON.stringify(cc.teacher) + " location=" + JSON.stringify(cc.location))
+      }
+    } else {
+      console.log("currentClasses: EMPTY")
+    }
+    console.log("isToday: " + self.isToday)
+    console.log("currentScheduleName: " + self.currentScheduleName)
+    console.log("================================")
   },
 
   goBack() {
@@ -627,31 +651,5 @@ export default {
 
 .left-accent-6 {
   height: 28px;
-}
-
-.debug-panel {
-  flex-direction: column;
-  background-color: #2a1a1a;
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 8px;
-}
-
-.debug-title {
-  color: #ff6666;
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.debug-line {
-  color: #ffaa66;
-  font-size: 13px;
-  height: 20px;
-  lines: 1;
-}
-
-.debug-item {
-  height: 22px;
 }
 </style>
