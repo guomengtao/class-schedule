@@ -1,195 +1,49 @@
 <template>
-  <div class="test-area-page" style="background-color: {{ theme.bg }}">
-    <div class="back-header">
-      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="header-title" style="color: {{ theme.text }}">功能实验室</text>
+  <div class="page-root" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack"
+             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">功能实验室</text>
     </div>
 
-    <text class="section-desc" style="color: {{ theme.textSecondary }}">这里是正在开发中的新功能，欢迎体验并反馈建议，你的意见对我们很重要。</text>
+    <text class="hint" style="color: {{ theme.textSecondary }}">新功能体验区，欢迎反馈建议</text>
 
-    <div class="menu-section">
-      <div class="menu-item" onclick="openPinnedPages" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">📌 已钉首页</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">查看已固定到首页的页面</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+    <div class="list-scroll">
+      <div class="list-row" for="(idx, item) in labItems" style="background-color: {{ theme.card }}">
+        <input class="pin-check" type="checkbox" checked="{{ item.pinned }}" onclick="onTogglePin(idx)"
+               style="accent-color: {{ theme.accent }}" />
+        <div class="row-main" onclick="onOpenItem(idx)">
+          <text class="row-name" style="color: {{ theme.text }}">{{ item.name }}</text>
+          <text class="row-desc" style="color: {{ theme.textMuted }}">{{ item.desc }}</text>
         </div>
-      </div>
-
-      <div class="menu-item" onclick="openStorageViewer" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">🗄 数据表展示</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">查看本地存储数据表</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openHomeModuleDemo" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">🏠 首页模块版 (lab-list)</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">加载 lab-list.js 模块展示实验室列表</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openQrcodeGenerator" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">文字转二维码</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">将文字生成二维码</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openVibrationLab" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">震动自定义</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">自定义震动效果</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openCheckDemo" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">勾选 Demo</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">勾选交互测试</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openScheduleManagerV2" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">课程表管理 V2</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">重构版课程表管理</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openDeviceInfo" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">设备信息</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">查看详情</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openAccordionDemo" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">手风琴 Demo</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">展开收起交互测试</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openAddCourseDemo" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">添加课程 Demo</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">简易添加课程测试</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openCompDemo" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">组件化测试</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">测试组件化是否可用</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openActivationLab" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">激活码实验室</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">激活码加密解密测试</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openMultiFileDemo" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">多文件组合 Demo</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">多 JS 模块组合页面测试</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openLabModuleTest" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">多模块加载测试</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">3 个独立 JS 模块组合加载</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openHomePro" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">🏠 首页 Pro</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">首页 Pro 版 - 实际页面效果</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openTodayDemo" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">📅 今日课程</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">调用当前课程表今日课程信息</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openHomepageClassesDemo" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">📋 首页课程Demo</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">直接调用 class-list.js 模块渲染</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openOverlayDemo" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">🎭 弹窗遮罩 Demo</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">stack+absolute 三种弹窗方案测试</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openAuthSetter" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">🔑 授权数据设置</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">直接修改授权状态，永久/标准/过期</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openDebugDemo" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">🖥 命令行 Debug</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">测试 console.log/warn/error 输出</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openPremiumTest" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">🎭 遮罩模块测试</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">测试 premium-overlay 遮罩弹出</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-
-      <div class="menu-item" onclick="openOverlayTest" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">🪟 弹窗直接测试</text>
-        <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">一个按钮，点击直接弹遮罩</text>
-          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        <div class="row-actions">
+          <input class="action-btn sort-btn" type="button" value="▲" onclick="onMoveUp(idx)"
+                 style="color: {{ theme.textMuted }}" />
+          <input class="action-btn sort-btn" type="button" value="▼" onclick="onMoveDown(idx)"
+                 style="color: {{ theme.textMuted }}" />
+          <input class="action-btn del-btn" type="button" value="✕" onclick="onDelete(idx)"
+                 style="color: {{ theme.deleteText }}" />
         </div>
       </div>
     </div>
 
-    <text class="dev-expire-hint" onclick="onDevExpireClick" style="color: {{ theme.textSecondary }}">丰富欢迎用户提交意见建议</text>
-
-    <div class="footer-actions">
-      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">📌 固定到首页</text>
+    <div class="add-section">
+      <div class="add-header" onclick="toggleAddPanel" style="background-color: {{ theme.card }}">
+        <text class="add-label" style="color: {{ theme.accent }}">+ 添加页面</text>
+        <text class="add-arrow" style="color: {{ theme.textMuted }}">{{ showAddPanel ? '▼' : '▶' }}</text>
+      </div>
+      <div class="add-list" if="{{ showAddPanel }}">
+        <div class="add-row" for="item in availablePages" onclick="onAddItem(item.uri)"
+             style="background-color: {{ theme.cardLight }}">
+          <text class="add-name" style="color: {{ theme.text }}">{{ item.name }}</text>
+          <text class="add-desc" style="color: {{ theme.textMuted }}">{{ item.desc }}</text>
+        </div>
+        <text class="no-more" if="{{ availablePages.length === 0 }}"
+              style="color: {{ theme.textMuted }}">没有更多可添加的页面</text>
+      </div>
     </div>
+
+    <text class="dev-hint" onclick="onDevExpireClick" style="color: {{ theme.textSecondary }}">丰富欢迎用户提交意见建议</text>
   </div>
 </template>
 
@@ -198,137 +52,110 @@ import router from "@system.router"
 import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 const authStore = require("../../data/auth-store.js")
-var pinHelper = require("../../data/pin-helper.js")
+var labList = require("../home-module-demo/modules/lab-list.js")
 
 export default {
   private: {
+    labItems: [],
+    availablePages: [],
+    showAddPanel: false,
     devClickCount: 0,
+    labStatus: "loading",
     theme: {
-      bg: '#1a1a2e',
-      card: '#16213e',
-      cardLight: '#0f3460',
-      accent: '#7ec8e3',
-      text: '#ffffff',
-      textSecondary: '#888899',
-      textMuted: '#555566',
-      border: '#0f3460',
-      borderLight: '#2a2a5a',
-      keyBg: '#1a1a3e',
-      keyBorder: '#2a2a5a',
-      btnSecondary: '#333355',
-      btnSecondaryText: '#a0a0b0',
-      deleteBg: '#2a1a3e',
-      deleteText: '#e08080',
-      icon: '🔵',
-      progressOngoing: 'rgba(126,200,227,0.2)',
-      progressDone: 'rgba(74,138,154,0.25)'
+      bg: "#1a1a2e",
+      card: "#16213e",
+      cardLight: "#0f3460",
+      accent: "#7ec8e3",
+      text: "#ffffff",
+      textSecondary: "#888899",
+      textMuted: "#555566",
+      border: "#0f3460",
+      borderLight: "#2a2a5a",
+      keyBg: "#1a1a3e",
+      keyBorder: "#2a2a5a",
+      btnSecondary: "#333355",
+      btnSecondaryText: "#a0a0b0",
+      deleteBg: "#2a1a3e",
+      deleteText: "#e08080",
+      icon: "🔵",
+      progressOngoing: "rgba(126,200,227,0.2)",
+      progressDone: "rgba(74,138,154,0.25)"
     }
   },
 
   onInit() {
     var self = this
-    store.getTheme(function(t) {
-      self.theme = t
-    })
+    store.getTheme(function(t) { self.theme = t })
+    this.loadList()
   },
 
   onShow() {
     var self = this
-    store.getTheme(function(t) {
-      self.theme = t
+    store.getTheme(function(t) { self.theme = t })
+    this.loadList()
+  },
+
+  loadList() {
+    var self = this
+    labList.init(self, function() {
+      self.refreshAvailable()
     })
   },
 
-  openQrcodeGenerator() {
-    router.push({ uri: "/pages/qrcode-generator" })
+  onOpenItem(idx) {
+    var item = this.labItems[idx]
+    if (item && item.uri) {
+      router.push({ uri: item.uri })
+    }
   },
 
-  openPinnedPages() {
-    router.push({ uri: "/pages/pinned-pages" })
+  onTogglePin(idx) {
+    var self = this
+    labList.togglePin(self, idx, function() {})
   },
 
-  openStorageViewer() {
-    router.push({ uri: "/pages/storage-viewer" })
+  onMoveUp(idx) {
+    labList.moveUp(this, idx)
   },
 
-  openHomeModuleDemo() {
-    router.push({ uri: "/pages/home-module-demo" })
+  onMoveDown(idx) {
+    labList.moveDown(this, idx)
   },
 
-  openVibrationLab() {
-    router.push({ uri: "/pages/vibration-lab" })
+  onDelete(idx) {
+    var self = this
+    labList.deleteItem(self, idx, function() {
+      self.refreshAvailable()
+    })
   },
 
-  openScheduleManagerV2() {
-    router.push({ uri: "/pages/schedule-manager" })
+  toggleAddPanel() {
+    var self = this
+    if (!this.showAddPanel) {
+      labList.getAvailablePages(this.labItems, function(pages) {
+        self.availablePages = pages
+        self.showAddPanel = true
+      })
+    } else {
+      this.showAddPanel = false
+    }
   },
 
-  openCheckDemo() {
-    router.push({ uri: "/pages/check-demo" })
+  onAddItem(uri) {
+    var self = this
+    labList.addItem(self, uri, function() {
+      self.showAddPanel = false
+      self.refreshAvailable()
+    })
   },
 
-  openDeviceInfo() {
-    router.push({ uri: "/pages/device-info" })
-  },
-
-  openAccordionDemo() {
-    router.push({ uri: "/pages/accordion-demo" })
-  },
-
-  openAddCourseDemo() {
-    router.push({ uri: "/pages/add-course-demo" })
-  },
-
-  openCompDemo() {
-    router.push({ uri: "/pages/comp-demo" })
-  },
-
-  openActivationLab() {
-    router.push({ uri: "/pages/activation-lab" })
-  },
-
-  openMultiFileDemo() {
-    router.push({ uri: "/pages/multi-file-demo" })
-  },
-
-  openLabModuleTest() {
-    router.push({ uri: "/pages/lab-module-test" })
-  },
-
-  openHomePro() {
-    router.push({ uri: "/pages/home-pro" })
-  },
-
-  openTodayDemo() {
-    router.push({ uri: "/pages/today-demo" })
-  },
-
-  openHomepageClassesDemo() {
-    router.push({ uri: "/pages/homepage-classes-demo" })
-  },
-
-  openOverlayDemo() {
-    router.push({ uri: "/pages/overlay-demo" })
-  },
-
-  openAuthSetter() {
-    router.push({ uri: "/pages/auth-setter" })
-  },
-
-  openDebugDemo() {
-    router.push({ uri: "/pages/debug-demo" })
-  },
-
-  openPremiumTest() {
-    router.push({ uri: "/pages/premium-test" })
-  },
-
-  openOverlayTest() {
-    router.push({ uri: "/pages/overlay-test" })
-  },
-
-  pinToHome() {
-    pinHelper.pinPage("功能实验室", "/pages/test-area")
+  refreshAvailable() {
+    var self = this
+    if (this.showAddPanel) {
+      labList.getAvailablePages(this.labItems, function(pages) {
+        self.availablePages = pages
+      })
+    }
   },
 
   onDevExpireClick() {
@@ -342,7 +169,7 @@ export default {
             installTime: Date.now() - 8 * 24 * 60 * 60 * 1000,
             trialDays: 7,
             history: [],
-            lastRemindDate: '',
+            lastRemindDate: "",
             remindEnabled: true
           }
         }
@@ -353,7 +180,7 @@ export default {
           data.activatedAt = Date.now() - 8 * 24 * 60 * 60 * 1000
         }
         authStore.setAuthData(data, function() {
-          prompt.showToast({ message: '已设置为过期状态，请返回首页查看效果' })
+          prompt.showToast({ message: "已设置为过期状态，请返回首页查看效果" })
         })
       })
     }
@@ -366,17 +193,17 @@ export default {
 </script>
 
 <style>
-.test-area-page {
+.page-root {
+  width: 100%;
+  height: 100%;
   flex-direction: column;
   padding: 44px 8px 8px 8px;
-  min-height: 100%;
 }
 
-.back-header {
+.header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 10px;
-  padding: 0;
+  margin-bottom: 6px;
 }
 
 .back-btn {
@@ -387,87 +214,165 @@ export default {
   text-align: center;
 }
 
-.header-title {
+.title {
   font-size: 18px;
   font-weight: bold;
   flex: 1;
   text-align: center;
 }
 
-.footer-actions {
-  flex-direction: row;
-  justify-content: center;
-  padding: 16px 0 8px 0;
-}
-
-.pin-link {
-  text-align: center;
-}
-
-.section-desc {
-  font-size: 13px;
-  margin-bottom: 12px;
+.hint {
+  font-size: 12px;
+  margin-bottom: 8px;
   padding: 0 4px;
   line-height: 1.4;
 }
 
-.menu-section {
+.list-scroll {
+  flex: 1;
   flex-direction: column;
+  overflow: scroll;
 }
 
-.menu-item {
+.list-row {
+  flex-direction: row;
+  align-items: center;
+  border-radius: 8px;
+  padding: 10px 8px;
+  margin-bottom: 4px;
+}
+
+.pin-check {
+  width: 24px;
+  height: 24px;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.row-main {
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.row-name {
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.row-desc {
+  font-size: 10px;
+}
+
+.row-actions {
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 12px;
+  text-align: center;
+  margin-left: 2px;
+  background-color: transparent;
+  border: 1px solid transparent;
+}
+
+.sort-btn {
+  border: none;
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+}
+
+.del-btn {
+  border: none;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.add-section {
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.add-header {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  border-radius: 10px;
-  padding: 14px 12px;
-  margin-bottom: 8px;
+  border-radius: 8px;
+  padding: 10px 12px;
 }
 
-.menu-label {
-  font-size: 15px;
-}
-
-.menu-right {
-  flex-direction: row;
-  align-items: center;
-}
-
-.menu-desc {
-  font-size: 11px;
-  margin-right: 6px;
-}
-
-.menu-arrow {
-  font-size: 20px;
-}
-
-.dev-expire-hint {
+.add-label {
   font-size: 14px;
-  margin-top: 24px;
+  font-weight: bold;
+}
+
+.add-arrow {
+  font-size: 12px;
+}
+
+.add-list {
+  flex-direction: column;
+  max-height: 200px;
+  overflow: scroll;
+  margin-top: 4px;
+}
+
+.add-row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 2px;
+}
+
+.add-name {
+  font-size: 13px;
+  flex: 1;
+}
+
+.add-desc {
+  font-size: 10px;
+  margin-left: 8px;
+}
+
+.no-more {
+  text-align: center;
+  font-size: 11px;
+  padding: 8px;
+}
+
+.dev-hint {
+  font-size: 13px;
   text-align: center;
   padding: 8px 12px;
   line-height: 1.5;
+  flex-shrink: 0;
 }
 
 @media (shape: circle) {
-  .test-area-page {
+  .page-root {
     padding: 44px 36px 44px 36px;
-  }
-  .back-header {
-    padding: 0 20px;
-    justify-content: center;
   }
 }
 
 @media (shape: capsule) {
-  .test-area-page {
+  .page-root {
     padding: 44px 8px 12px 8px;
   }
 }
 
 @media (shape: rect) {
-  .test-area-page {
+  .page-root {
     padding: 44px 6px 6px 6px;
   }
 }
