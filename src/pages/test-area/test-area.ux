@@ -135,6 +135,14 @@
           <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
+
+      <div class="menu-item" onclick="openHomepageClassesDemo" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">📋 首页课程Demo</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">直接调用 class-list.js 模块渲染</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
     </div>
 
     <text class="dev-expire-hint" onclick="onDevExpireClick" style="color: {{ theme.textSecondary }}">丰富欢迎用户提交意见建议</text>
@@ -253,6 +261,10 @@ export default {
 
   openTodayDemo() {
     router.push({ uri: "/pages/today-demo" })
+  },
+
+  openHomepageClassesDemo() {
+    router.push({ uri: "/pages/homepage-classes-demo" })
   },
 
   pinToHome() {
