@@ -6,11 +6,77 @@ var USED_CODES_KEY = "used_codes"
 var USED_REDEEM_KEY = "used_redeem"
 var DEFAULT_TRIAL_DAYS = 7
 
+var FORCE_AUTH_MODE = 'standard'
+
 var MASTER_CODE = {
   enabled: true,
   code: '202656183702',
   duration: 1,
   maxUsesPerDevice: 30
+}
+
+function getForcedAuthData() {
+  if (FORCE_AUTH_MODE === null) return null
+  var now = Date.now()
+  if (FORCE_AUTH_MODE === 'standard') {
+    return {
+      installTime: now,
+      isActivated: false,
+      isPermanent: false,
+      expireAt: null,
+      activatedAt: null,
+      lastRemindDate: '',
+      remindEnabled: true,
+      trialDays: DEFAULT_TRIAL_DAYS,
+      productId: '0001',
+      history: [{ id: 'force', type: '强制', duration: '标准版', codeType: 'debug', status: '成功' }]
+    }
+  }
+  if (FORCE_AUTH_MODE === 'permanent') {
+    return {
+      installTime: now,
+      isActivated: true,
+      isPermanent: true,
+      expireAt: null,
+      activatedAt: now,
+      lastRemindDate: '',
+      remindEnabled: true,
+      trialDays: DEFAULT_TRIAL_DAYS,
+      productId: '0001',
+      history: [{ id: 'force', type: '强制', duration: '永久', codeType: 'debug', status: '成功' }]
+    }
+  }
+  if (FORCE_AUTH_MODE === 'expire') {
+    return {
+      installTime: now - 365 * 24 * 60 * 60 * 1000,
+      isActivated: true,
+      isPermanent: false,
+      expireAt: now - 30 * 24 * 60 * 60 * 1000,
+      activatedAt: now - 365 * 24 * 60 * 60 * 1000,
+      lastRemindDate: '',
+      remindEnabled: true,
+      trialDays: DEFAULT_TRIAL_DAYS,
+      productId: '0001',
+      history: [{ id: 'force', type: '强制', duration: '已过期', codeType: 'debug', status: '成功' }]
+    }
+  }
+  if (FORCE_AUTH_MODE.indexOf('months:') === 0) {
+    var months = parseInt(FORCE_AUTH_MODE.split(':')[1], 10)
+    if (isNaN(months) || months <= 0) months = 1
+    return {
+      installTime: now,
+      isActivated: true,
+      isPermanent: false,
+      expireAt: now + months * 30 * 24 * 60 * 60 * 1000,
+      activatedAt: now,
+      lastRemindDate: '',
+      remindEnabled: true,
+      trialDays: DEFAULT_TRIAL_DAYS,
+      productId: '0001',
+      history: [{ id: 'force', type: '强制', duration: months + '个月', codeType: 'debug', status: '成功' }]
+    }
+  }
+  return null
 }
 
 function getTodayDate() {
@@ -38,6 +104,11 @@ function formatDateStr(ts) {
 }
 
 function getAuthData(callback) {
+  var forced = getForcedAuthData()
+  if (forced) {
+    callback(forced)
+    return
+  }
   storage.get({
     key: AUTH_KEY,
     success: function(data) {
@@ -159,6 +230,11 @@ function initAuth(callback) {
 }
 
 function checkStatus(callback) {
+  var forced = getForcedAuthData()
+  if (forced) {
+    callback(buildStatus(forced))
+    return
+  }
   getAuthData(function(data) {
     if (!data) {
       initAuth(function(initData) {
@@ -280,6 +356,11 @@ function buildStatus(data) {
 }
 
 function getFullStatus(callback) {
+  var forced = getForcedAuthData()
+  if (forced) {
+    callback(buildFullStatus(forced))
+    return
+  }
   getAuthData(function(data) {
     if (!data) {
       initAuth(function(initData) {

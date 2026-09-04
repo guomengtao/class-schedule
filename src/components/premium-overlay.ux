@@ -29,36 +29,44 @@ export default {
   },
 
   onInit() {
+    console.log("[PREMIUM-UI] onInit: component created")
     var self = this
     store.getTheme(function(t) {
       self.theme = t
     })
     premiumOverlay._register(self)
+    console.log("[PREMIUM-UI] onInit: registered with premiumOverlay module")
   },
 
   onDestroy() {
+    console.log("[PREMIUM-UI] onDestroy: component destroyed")
     premiumOverlay._unregister(this)
   },
 
   show() {
+    console.log("[PREMIUM-UI] show: overlay visible = true")
     this.visible = true
   },
 
   hide() {
+    console.log("[PREMIUM-UI] hide: overlay visible = false")
     this.visible = false
   },
 
   doUnlock() {
+    console.log("[PREMIUM-UI] doUnlock: user clicked '立即解锁', navigating to activation")
     this.hide()
     router.push({ uri: "/pages/activation" })
   },
 
   doCancel() {
+    console.log("[PREMIUM-UI] doCancel: user clicked cancel / tapped outside, go back")
     this.hide()
     router.back()
   },
 
   stopBubble() {
+    console.log("[PREMIUM-UI] stopBubble: tap on card, prevent close")
   }
 }
 </script>

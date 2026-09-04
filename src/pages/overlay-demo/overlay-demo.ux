@@ -1,0 +1,515 @@
+ <template>
+  <stack class="page-root">
+    <!-- ====== 页面内容层 ====== -->
+    <div class="page-content" style="background-color: {{ theme.bg }}">
+      <div class="back-header">
+        <input class="back-btn" type="button" value="◀ 返回" onclick="goBack"
+               style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+        <text class="header-title" style="color: {{ theme.text }}">弹窗/遮罩 Demo</text>
+      </div>
+
+      <text class="section-desc" style="color: {{ theme.textSecondary }}">测试三种弹窗方案在 Vela 快应用中的兼容性</text>
+
+      <div class="demo-section">
+        <text class="section-title" style="color: {{ theme.text }}">方案一：全屏遮罩弹窗 (Modal)</text>
+        <text class="section-hint" style="color: {{ theme.textMuted }}">rgba(0,0,0,0.15) 半透明 + 居中卡片</text>
+        <text class="section-hint" style="color: {{ theme.textMuted }}">⭐ 最适合封装为独立 JS 模块</text>
+        <input class="demo-btn" type="button" value="打开全屏弹窗" onclick="showOverlay1"
+               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      </div>
+
+      <div class="demo-section">
+        <text class="section-title" style="color: {{ theme.text }}">方案二：底部半屏抽屉 (Bottom Sheet)</text>
+        <text class="section-hint" style="color: {{ theme.textMuted }}">rgba(0,0,0,0.12) 半透明 + 底部滑出卡片</text>
+        <input class="demo-btn" type="button" value="打开底部抽屉" onclick="showOverlay2"
+               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      </div>
+
+      <div class="demo-section">
+        <text class="section-title" style="color: {{ theme.text }}">方案三：浮动卡片 (Floating Card)</text>
+        <text class="section-hint" style="color: {{ theme.textMuted }}">rgba(0,0,0,0.08) 超轻遮罩 + 四角圆角浮动卡片</text>
+        <text class="section-hint" style="color: {{ theme.textMuted }}">不贴边，像气泡浮在页面中间</text>
+        <input class="demo-btn" type="button" value="切换内联卡片" onclick="showOverlay3"
+               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      </div>
+
+      <div class="poem-box" style="background-color: {{ theme.card }}">
+        <text class="poem-title" style="color: {{ theme.accent }}">📜 对比测试：遮罩透明度</text>
+        <text class="poem-text" style="color: {{ theme.text }}">静夜思 — 李白</text>
+        <text class="poem-line" style="color: {{ theme.textSecondary }}">床前明月光，</text>
+        <text class="poem-line" style="color: {{ theme.textSecondary }}">疑是地上霜。</text>
+        <text class="poem-line" style="color: {{ theme.textSecondary }}">举头望明月，</text>
+        <text class="poem-line" style="color: {{ theme.textSecondary }}">低头思故乡。</text>
+        <text class="poem-hint" style="color: {{ theme.textMuted }}">打开弹窗后，透过遮罩看这首诗的清晰度</text>
+      </div>
+
+      <div class="info-box" style="background-color: {{ theme.card }}">
+        <text class="info-title" style="color: {{ theme.text }}">当前状态</text>
+        <text class="info-text" style="color: {{ theme.textSecondary }}">方案一：{{ showDialog1 ? '显示中' : '已关闭' }}</text>
+        <text class="info-text" style="color: {{ theme.textSecondary }}">方案二：{{ showDialog2 ? '显示中' : '已关闭' }}</text>
+        <text class="info-text" style="color: {{ theme.textSecondary }}">方案三：{{ showDialog3 ? '显示中' : '已关闭' }}</text>
+      </div>
+
+      <input class="pin-btn" type="button" value="📌 钉首页" onclick="pinToHome"
+             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+    </div>
+
+    <!-- ====== 方案一：全屏遮罩弹窗 (Modal) ====== -->
+    <div class="overlay-modal" if="{{ showDialog1 }}" onclick="hideOverlay1">
+      <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
+        <text class="modal-title" style="color: {{ theme.accent }}">解锁高级功能</text>
+        <text class="modal-desc" style="color: {{ theme.textSecondary }}">一次性解锁，永久使用全部高级功能</text>
+        <div class="benefit-list">
+          <text class="benefit-item" style="color: {{ theme.text }}">✓ 多课表管理</text>
+          <text class="benefit-item" style="color: {{ theme.text }}">✓ 数据备份与恢复</text>
+          <text class="benefit-item" style="color: {{ theme.text }}">✓ 首页自定义</text>
+          <text class="benefit-item" style="color: {{ theme.text }}">✓ 多套主题</text>
+        </div>
+        <input class="modal-btn-primary" type="button" value="立即解锁" onclick="hideOverlay1"
+               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="modal-btn-secondary" type="button" value="暂不需要" onclick="hideOverlay1"
+               style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+      </div>
+    </div>
+
+    <!-- ====== 方案二：底部半屏抽屉 (Bottom Sheet) ====== -->
+    <div class="overlay-bottom-sheet" if="{{ showDialog2 }}" onclick="hideOverlay2">
+      <div class="bottom-sheet" style="background-color: {{ theme.card }}" onclick="stopBubble">
+        <div class="sheet-handle" style="background-color: {{ theme.textMuted }}"></div>
+        <text class="sheet-title" style="color: {{ theme.accent }}">解锁 Pro 功能</text>
+        <text class="sheet-desc" style="color: {{ theme.textSecondary }}">此功能需要 Pro 版才能使用</text>
+        <div class="benefit-list">
+          <text class="benefit-item" style="color: {{ theme.text }}">✓ 课程统计图表</text>
+          <text class="benefit-item" style="color: {{ theme.text }}">✓ 各科数量排行</text>
+          <text class="benefit-item" style="color: {{ theme.text }}">✓ 每周趋势分析</text>
+        </div>
+        <input class="sheet-btn" type="button" value="立即解锁" onclick="hideOverlay2"
+               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="sheet-cancel" type="button" value="暂不需要" onclick="hideOverlay2"
+               style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+      </div>
+    </div>
+
+    <!-- ====== 方案三：页面内联卡片 (Inline) ====== -->
+    <div class="overlay-inline" if="{{ showDialog3 }}" onclick="hideOverlay3">
+      <div class="inline-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
+        <text class="inline-title" style="color: {{ theme.accent }}">课程统计 — Pro 专属</text>
+        <text class="inline-desc" style="color: {{ theme.textSecondary }}">解锁后可查看完整课程分布、各科数量排行、每周趋势分析</text>
+        <input class="inline-btn" type="button" value="了解 Pro" onclick="hideOverlay3"
+               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="inline-close" type="button" value="返回" onclick="hideOverlay3"
+               style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+      </div>
+    </div>
+  </stack>
+</template>
+
+<script>
+import router from "@system.router"
+import prompt from "@system.prompt"
+const store = require("../../data/store.js")
+
+export default {
+  private: {
+    showDialog1: false,
+    showDialog2: false,
+    showDialog3: false,
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a',
+      keyBg: '#1a1a3e',
+      keyBorder: '#2a2a5a',
+      btnSecondary: '#333355',
+      btnSecondaryText: '#a0a0b0',
+      deleteBg: '#2a1a3e',
+      deleteText: '#e08080',
+      icon: '🔵',
+      progressOngoing: 'rgba(126,200,227,0.2)',
+      progressDone: 'rgba(74,138,154,0.25)'
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+  },
+
+  showOverlay1() {
+    this.showDialog1 = true
+  },
+  hideOverlay1() {
+    this.showDialog1 = false
+  },
+
+  showOverlay2() {
+    this.showDialog2 = true
+  },
+  hideOverlay2() {
+    this.showDialog2 = false
+  },
+
+  showOverlay3() {
+    this.showDialog3 = true
+  },
+  hideOverlay3() {
+    this.showDialog3 = false
+  },
+
+  stopBubble() {
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  pinToHome() {
+    prompt.showToast({
+      message: '已添加到首页快捷方式'
+    })
+  }
+}
+</script>
+
+<style>
+.page-root {
+  width: 100%;
+  height: 100%;
+}
+
+.page-content {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  padding: 44px 8px 8px 8px;
+  overflow: scroll;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 0;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.section-desc {
+  font-size: 13px;
+  margin-bottom: 12px;
+  padding: 0 4px;
+  line-height: 1.4;
+}
+
+.demo-section {
+  flex-direction: column;
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: 10px;
+  background-color: #16213e;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.section-hint {
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.demo-btn {
+  width: 100%;
+  height: 36px;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+.info-box {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 8px;
+}
+
+.info-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.info-text {
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.poem-box {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 8px;
+  align-items: center;
+}
+
+.poem-title {
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.poem-text {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.poem-line {
+  font-size: 15px;
+  margin-bottom: 4px;
+  text-align: center;
+  line-height: 22px;
+}
+
+.poem-hint {
+  font-size: 10px;
+  margin-top: 8px;
+  text-align: center;
+  font-style: italic;
+}
+
+.pin-btn {
+  width: 100%;
+  height: 36px;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* ====== 方案一：全屏遮罩弹窗 (Modal) ====== */
+.overlay-modal {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.15);
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-card {
+  width: 80%;
+  border-radius: 16px;
+  padding: 24px 20px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.modal-desc {
+  font-size: 12px;
+  text-align: center;
+  margin-bottom: 16px;
+  line-height: 18px;
+}
+
+.benefit-list {
+  width: 100%;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.benefit-item {
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.modal-btn-primary {
+  width: 100%;
+  height: 36px;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.modal-btn-secondary {
+  width: 100%;
+  height: 32px;
+  border-radius: 16px;
+  font-size: 13px;
+}
+
+/* ====== 方案二：底部半屏抽屉 (Bottom Sheet) ====== */
+.overlay-bottom-sheet {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.12);
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.bottom-sheet {
+  width: 100%;
+  border-radius: 16px 16px 0 0;
+  padding: 8px 16px 16px 16px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  margin-bottom: 12px;
+}
+
+.sheet-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.sheet-desc {
+  font-size: 12px;
+  text-align: center;
+  margin-bottom: 14px;
+  line-height: 18px;
+}
+
+.sheet-btn {
+  width: 100%;
+  height: 34px;
+  border-radius: 17px;
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.sheet-cancel {
+  width: 100%;
+  height: 28px;
+  border-radius: 14px;
+  font-size: 12px;
+}
+
+/* ====== 方案三：浮动卡片 (Floating Card) ====== */
+.overlay-inline {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.08);
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.inline-card {
+  width: 80%;
+  border-radius: 16px;
+  padding: 20px 18px 16px 18px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.inline-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.inline-desc {
+  font-size: 12px;
+  text-align: center;
+  margin-bottom: 16px;
+  line-height: 18px;
+}
+
+.inline-btn {
+  width: 100%;
+  height: 36px;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.inline-close {
+  width: 100%;
+  height: 28px;
+  border-radius: 14px;
+  font-size: 12px;
+}
+
+@media (shape: circle) {
+  .page-content {
+    padding: 44px 36px 44px 36px;
+  }
+
+  .modal-card {
+    width: 75%;
+    padding: 20px 16px;
+  }
+}
+
+@media (shape: capsule) {
+  .page-content {
+    padding: 44px 8px 12px 8px;
+  }
+}
+
+@media (shape: rect) {
+  .page-content {
+    padding: 44px 6px 6px 6px;
+  }
+}
+</style>

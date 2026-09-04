@@ -74,6 +74,7 @@ export default {
   },
 
   onInit() {
+    console.log("[BACKUP] onInit: page created, checking premium...")
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this.loadBackupList()
@@ -81,6 +82,7 @@ export default {
   },
 
   onShow() {
+    console.log("[BACKUP] onShow: page shown, checking premium...")
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this.loadBackupList()
@@ -128,8 +130,10 @@ export default {
   },
 
   doBackup() {
+    console.log("[BACKUP] doBackup: user clicked backup, checking premium...")
     var self = this
     store.isPremiumUnlocked(function(unlocked) {
+      console.log("[BACKUP] doBackup: premiumUnlocked=" + unlocked)
       if (unlocked) {
         self.performBackup()
       } else {
@@ -226,8 +230,10 @@ export default {
   },
 
   restoreBackup(index) {
+    console.log("[BACKUP] restoreBackup: user clicked restore index=" + index + ", checking premium...")
     var self = this
     store.isPremiumUnlocked(function(unlocked) {
+      console.log("[BACKUP] restoreBackup: premiumUnlocked=" + unlocked)
       if (unlocked) {
         self.performRestore(index)
       } else {

@@ -143,6 +143,22 @@
           <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
+
+      <div class="menu-item" onclick="openOverlayDemo" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">🎭 弹窗遮罩 Demo</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">stack+absolute 三种弹窗方案测试</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+
+      <div class="menu-item" onclick="openAuthSetter" style="background-color: {{ theme.card }}">
+        <text class="menu-label" style="color: {{ theme.text }}">🔑 授权数据设置</text>
+        <div class="menu-right">
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">直接修改授权状态，永久/标准/过期</text>
+          <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
     </div>
 
     <text class="dev-expire-hint" onclick="onDevExpireClick" style="color: {{ theme.textSecondary }}">丰富欢迎用户提交意见建议</text>
@@ -265,6 +281,14 @@ export default {
 
   openHomepageClassesDemo() {
     router.push({ uri: "/pages/homepage-classes-demo" })
+  },
+
+  openOverlayDemo() {
+    router.push({ uri: "/pages/overlay-demo" })
+  },
+
+  openAuthSetter() {
+    router.push({ uri: "/pages/auth-setter" })
   },
 
   pinToHome() {

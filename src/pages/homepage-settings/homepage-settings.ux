@@ -186,12 +186,14 @@ export default {
     timePreview: ""
   },
   onInit() {
+    console.log("[HOMEPAGE-SETTINGS] onInit: page created, checking premium...")
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this.loadSettings()
     premiumOverlay.checkAndShow()
   },
   onShow() {
+    console.log("[HOMEPAGE-SETTINGS] onShow: page shown, checking premium...")
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this.loadSettings()
@@ -256,7 +258,9 @@ export default {
   },
 
   checkPremiumAccess(callback) {
+    console.log("[HOMEPAGE-SETTINGS] checkPremiumAccess: feature toggle clicked, checking premium...")
     store.isPremiumUnlocked(function(unlocked) {
+      console.log("[HOMEPAGE-SETTINGS] checkPremiumAccess: premiumUnlocked=" + unlocked)
       if (unlocked) {
         callback()
       } else {
