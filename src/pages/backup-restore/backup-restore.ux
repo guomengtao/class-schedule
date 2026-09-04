@@ -7,31 +7,41 @@
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
-      <text class="section-title" style="color: {{ theme.text }}">本地备份</text>
-      <text class="section-desc" style="color: {{ theme.textSecondary }}">将课程数据备份到手环本地存储，重置或换设备后可恢复</text>
+      <text class="section-title" style="color: {{ theme.text }}">新建备份</text>
+      <text class="section-desc" style="color: {{ theme.textSecondary }}">将当前全部课程数据保存为一个备份</text>
+      <input class="create-btn" type="button" value="+ 新建备份" onclick="doBackup"
+             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
 
-      <div class="status-row">
-        <text class="status-label" style="color: {{ theme.textSecondary }}">上次备份：</text>
-        <text class="status-value" style="color: {{ theme.accent }}">{{ lastBackupTime || '从未备份' }}</text>
-      </div>
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">备份列表</text>
+      <text class="section-desc" if="{{ backupList.length === 0 }}" style="color: {{ theme.textMuted }}">暂无备份，点击上方按钮创建</text>
 
-      <div class="btn-row">
-        <input class="action-btn" type="button" value="创建备份" onclick="doBackup"
-               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        <input class="action-btn" type="button" value="恢复备份" onclick="doRestore"
-               style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+      <div class="backup-item" for="(index, item) in backupList" style="border-color: {{ theme.border }}">
+        <div class="backup-info">
+          <text class="backup-name" style="color: {{ theme.text }}">{{ item.name }}</text>
+          <text class="backup-meta" style="color: {{ theme.textSecondary }}">{{ item.courseCount }}门课程 · {{ item.scheduleCount }}个课程表</text>
+          <text class="backup-time" style="color: {{ theme.textMuted }}">{{ item.time }}</text>
+        </div>
+        <div class="backup-actions">
+          <input class="restore-btn" type="button" value="恢复" onclick="restoreBackup({{ index }})"
+                 style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+          <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === index ? '确认' : '删除' }}"
+                 onclick="{{ deleteConfirmIndex === index ? 'confirmDeleteBackup(' + index + ')' : 'promptDeleteBackup(' + index + ')' }}"
+                 style="background-color: {{ deleteConfirmIndex === index ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === index ? '#ffffff' : theme.deleteText }}" />
+        </div>
       </div>
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
       <text class="section-title" style="color: {{ theme.text }}">备份包含的数据</text>
       <div class="data-list">
-        <text class="data-item" style="color: {{ theme.textSecondary }}">• 所有课程表及课程数据</text>
-        <text class="data-item" style="color: {{ theme.textSecondary }}">• 课程名称预设列表</text>
-        <text class="data-item" style="color: {{ theme.textSecondary }}">• 首页设置与自定义内容</text>
-        <text class="data-item" style="color: {{ theme.textSecondary }}">• 主题与字体大小设置</text>
-        <text class="data-item" style="color: {{ theme.textSecondary }}">• 上课提醒设置</text>
-        <text class="data-item" style="color: {{ theme.textSecondary }}">• 解锁状态</text>
+        <text class="data-item" style="color: {{ theme.textSecondary }}">所有课程表及课程数据</text>
+        <text class="data-item" style="color: {{ theme.textSecondary }}">课程名称预设列表</text>
+        <text class="data-item" style="color: {{ theme.textSecondary }}">首页设置与自定义内容</text>
+        <text class="data-item" style="color: {{ theme.textSecondary }}">主题与字体大小设置</text>
+        <text class="data-item" style="color: {{ theme.textSecondary }}">上课提醒设置</text>
+        <text class="data-item" style="color: {{ theme.textSecondary }}">解锁状态</text>
       </div>
     </div>
 
@@ -47,8 +57,8 @@ var storage = require("@system.storage")
 var prompt = require("@system.prompt")
 const store = require("../../data/store.js")
 
-var BACKUP_KEY = "data_backup"
-var BACKUP_TIME_KEY = "last_backup_time"
+var BACKUP_LIST_KEY = "backup_list"
+var MAX_BACKUPS = 20
 
 var DATA_KEYS = [
   "allCourses_0", "allCourses_1", "allCourses_2", "allCourses_3", "allCourses_4",
@@ -62,32 +72,56 @@ var DATA_KEYS = [
 export default {
   private: {
     theme: store.DEFAULT_THEME,
-    lastBackupTime: "",
+    backupList: [],
     resultMessage: "",
-    resultSuccess: false
+    resultSuccess: false,
+    deleteConfirmIndex: -1
   },
 
   onInit() {
     var self = this
     store.getTheme(function(t) { self.theme = t })
-    this.loadBackupInfo()
+    this.loadBackupList()
   },
 
   onShow() {
     var self = this
     store.getTheme(function(t) { self.theme = t })
-    this.loadBackupInfo()
+    this.loadBackupList()
   },
 
-  loadBackupInfo() {
+  loadBackupList() {
     var self = this
     storage.get({
-      key: BACKUP_TIME_KEY,
+      key: BACKUP_LIST_KEY,
       success: function(data) {
-        self.lastBackupTime = data || ""
+        try {
+          var list = JSON.parse(data)
+          if (Array.isArray(list)) {
+            self.backupList = list
+          } else {
+            self.backupList = []
+          }
+        } catch (e) {
+          self.backupList = []
+        }
       },
       fail: function() {
-        self.lastBackupTime = ""
+        self.backupList = []
+      }
+    })
+  },
+
+  saveBackupList(list) {
+    var self = this
+    storage.set({
+      key: BACKUP_LIST_KEY,
+      value: JSON.stringify(list),
+      success: function() {
+        self.backupList = list
+      },
+      fail: function() {
+        self.backupList = list
       }
     })
   },
@@ -104,21 +138,6 @@ export default {
       } else {
         store.showUnlockDialog({
           title: "解锁数据备份",
-          benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
-          cancelText: "继续使用标准版"
-        })
-      }
-    })
-  },
-
-  doRestore() {
-    var self = this
-    store.isPremiumUnlocked(function(unlocked) {
-      if (unlocked) {
-        self.performRestore()
-      } else {
-        store.showUnlockDialog({
-          title: "解锁数据恢复",
           benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
           cancelText: "继续使用标准版"
         })
@@ -159,86 +178,128 @@ export default {
         (now.getHours() < 10 ? "0" : "") + now.getHours() + ":" +
         (now.getMinutes() < 10 ? "0" : "") + now.getMinutes()
 
-      storage.set({
-        key: BACKUP_KEY,
-        value: JSON.stringify(data),
-        success: function() {
-          storage.set({
-            key: BACKUP_TIME_KEY,
-            value: timeStr,
-            success: function() {
-              self.lastBackupTime = timeStr
-              self.resultMessage = "备份成功！(" + timeStr + ")"
-              self.resultSuccess = true
-            },
-            fail: function() {
-              self.lastBackupTime = timeStr
-              self.resultMessage = "备份成功！(" + timeStr + ")"
-              self.resultSuccess = true
-            }
-          })
-        },
-        fail: function() {
-          self.resultMessage = "备份失败，请重试"
-          self.resultSuccess = false
+      var courseCount = 0
+      var scheduleCount = 0
+
+      try {
+        var namesRaw = data["scheduleNames"]
+        if (namesRaw) {
+          var names = JSON.parse(namesRaw)
+          if (Array.isArray(names)) {
+            scheduleCount = names.length
+          }
         }
-      })
+      } catch (e) {}
+
+      for (var i = 0; i < 10; i++) {
+        var raw = data["allCourses_" + i]
+        if (raw) {
+          try {
+            var schedule = JSON.parse(raw)
+            if (Array.isArray(schedule)) {
+              for (var d = 0; d < schedule.length; d++) {
+                var classes = schedule[d].classes
+                if (classes && Array.isArray(classes)) {
+                  courseCount += classes.length
+                }
+              }
+            }
+          } catch (e) {}
+        }
+      }
+
+      var backupEntry = {
+        id: now.getTime(),
+        name: "备份 " + timeStr,
+        time: timeStr,
+        courseCount: courseCount,
+        scheduleCount: scheduleCount,
+        data: data
+      }
+
+      var list = self.backupList.slice()
+      list.unshift(backupEntry)
+
+      if (list.length > MAX_BACKUPS) {
+        list = list.slice(0, MAX_BACKUPS)
+      }
+
+      self.saveBackupList(list)
+      self.resultMessage = "备份成功！(" + timeStr + ")"
+      self.resultSuccess = true
     }
 
     loadKey(0)
   },
 
-  performRestore() {
+  restoreBackup(index) {
     var self = this
-    storage.get({
-      key: BACKUP_KEY,
-      success: function(data) {
-        if (!data) {
-          self.resultMessage = "没有可恢复的备份数据"
-          self.resultSuccess = false
-          return
-        }
-        try {
-          var backupData = JSON.parse(data)
-          var keys = Object.keys(backupData)
-          var total = keys.length
-
-          if (total === 0) {
-            self.resultMessage = "备份数据为空"
-            self.resultSuccess = false
-            return
-          }
-
-          function saveKey(index) {
-            if (index >= total) {
-              self.resultMessage = "恢复成功！已恢复 " + total + " 项数据"
-              self.resultSuccess = true
-              return
-            }
-            var key = keys[index]
-            storage.set({
-              key: key,
-              value: backupData[key],
-              success: function() {
-                saveKey(index + 1)
-              },
-              fail: function() {
-                saveKey(index + 1)
-              }
-            })
-          }
-
-          saveKey(0)
-        } catch (e) {
-          self.resultMessage = "备份数据已损坏，无法恢复"
-          self.resultSuccess = false
-        }
-      },
-      fail: function() {
-        self.resultMessage = "没有可恢复的备份数据"
-        self.resultSuccess = false
+    store.isPremiumUnlocked(function(unlocked) {
+      if (unlocked) {
+        self.performRestore(index)
+      } else {
+        store.showUnlockDialog({
+          title: "解锁数据恢复",
+          benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
+          cancelText: "继续使用标准版"
+        })
       }
     })
+  },
+
+  performRestore(index) {
+    var self = this
+    var backup = self.backupList[index]
+    if (!backup || !backup.data) {
+      self.resultMessage = "备份数据无效"
+      self.resultSuccess = false
+      return
+    }
+
+    var backupData = backup.data
+    var keys = Object.keys(backupData)
+    var total = keys.length
+
+    if (total === 0) {
+      self.resultMessage = "备份数据为空"
+      self.resultSuccess = false
+      return
+    }
+
+    function saveKey(i) {
+      if (i >= total) {
+        self.resultMessage = "恢复成功！已恢复 " + total + " 项数据"
+        self.resultSuccess = true
+        return
+      }
+      var key = keys[i]
+      storage.set({
+        key: key,
+        value: backupData[key],
+        success: function() {
+          saveKey(i + 1)
+        },
+        fail: function() {
+          saveKey(i + 1)
+        }
+      })
+    }
+
+    saveKey(0)
+  },
+
+  promptDeleteBackup(index) {
+    this.deleteConfirmIndex = index
+  },
+
+  confirmDeleteBackup(index) {
+    var self = this
+    var list = self.backupList.slice()
+    list.splice(index, 1)
+    self.saveBackupList(list)
+    self.deleteConfirmIndex = -1
+    self.resultMessage = "备份已删除"
+    self.resultSuccess = true
   }
 }
 </script>
@@ -292,30 +353,68 @@ export default {
   line-height: 18px;
 }
 
-.status-row {
-  flex-direction: row;
-  margin-bottom: 12px;
-}
-
-.status-label {
-  font-size: 13px;
-}
-
-.status-value {
-  font-size: 13px;
-  font-weight: bold;
-}
-
-.btn-row {
-  flex-direction: row;
-  justify-content: space-around;
-}
-
-.action-btn {
-  width: 120px;
-  height: 40px;
+.create-btn {
+  width: 100%;
+  height: 42px;
   border-radius: 10px;
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.backup-item {
+  flex-direction: row;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+}
+
+.backup-item:last-child {
+  border-bottom-width: 0;
+}
+
+.backup-info {
+  flex: 1;
+  flex-direction: column;
+}
+
+.backup-name {
   font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+.backup-meta {
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.backup-time {
+  font-size: 11px;
+}
+
+.backup-actions {
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.restore-btn {
+  width: 56px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.delete-btn {
+  width: 56px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 12px;
   font-weight: bold;
   text-align: center;
 }
@@ -336,5 +435,20 @@ export default {
   margin-top: 10px;
   padding: 10px;
   font-weight: bold;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 24px 24px 24px;
+  }
+  .back-btn {
+    width: 52px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .title {
+    font-size: 14px;
+    margin-right: 52px;
+  }
 }
 </style>
