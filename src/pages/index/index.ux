@@ -188,13 +188,11 @@ export default {
     self.loadHomepageSettings()
 
     database.init(function() {
-      store.getCurrentScheduleIndex(function(idx) {
-        database.getAllCoursesWithIndex(idx, function(schedule) {
-          self.schedule = schedule
-          self.isLoading = false
-          console.log("[index] data loaded, " + (schedule ? schedule.length : 0) + " days, index=" + idx)
-          self.initAllModules()
-        })
+      database.getAllCourses(function(schedule) {
+        self.schedule = schedule
+        self.isLoading = false
+        console.log("[index] data loaded, " + schedule.length + " days")
+        self.initAllModules()
       })
     })
   },
@@ -210,39 +208,28 @@ export default {
       self.quickAdd.loadPreset()
     }
 
-    var dataLoaded = false
-    store.getCurrentScheduleIndex(function(idx) {
-      if (dataLoaded) return
-      database.getAllCoursesWithIndex(idx, function(schedule) {
-        if (dataLoaded) return
-        dataLoaded = true
-        if (!schedule || schedule.length === 0) {
-          database.getAllCourses(function(fallback) {
-            self.schedule = fallback
-            if (self.refreshClasses && typeof self.refreshClasses === 'function') {
-              self.refreshClasses()
-            }
-          })
-          return
-        }
-        self.schedule = schedule
-        if (self.refreshClasses && typeof self.refreshClasses === 'function') {
-          self.refreshClasses()
-        }
-      })
-    })
-
-    setTimeout(function() {
-      if (!dataLoaded) {
-        dataLoaded = true
-        database.getAllCourses(function(fallback) {
-          self.schedule = fallback
+    var storage = require("@system.storage")
+    storage.get({
+      key: "currentScheduleIndex",
+      default: "0",
+      success: function(data) {
+        var idx = parseInt(data) || 0
+        database.getAllCoursesWithIndex(idx, function(schedule) {
+          self.schedule = schedule
+          if (self.refreshClasses && typeof self.refreshClasses === 'function') {
+            self.refreshClasses()
+          }
+        })
+      },
+      fail: function() {
+        database.getAllCourses(function(schedule) {
+          self.schedule = schedule
           if (self.refreshClasses && typeof self.refreshClasses === 'function') {
             self.refreshClasses()
           }
         })
       }
-    }, 1500)
+    })
   },
 
   onDestroy() {
