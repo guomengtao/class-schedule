@@ -573,16 +573,14 @@ export default {
 }
 
 .week-indicator {
-  padding: 8px;
+  padding: 12px 8px;
   align-items: center;
-  border-radius: 8px;
-  border-width: 1px;
-  border-color: #0f3460;
+  justify-content: center;
 }
 
 .week-text {
   font-size: 16px;
-  font-weight: bold;
+  text-align: center;
 }
 
 .left-accent {

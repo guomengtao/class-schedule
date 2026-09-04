@@ -21,6 +21,7 @@
             <text class="check" style="color: {{ $idx === currentIndex ? theme.bg : theme.textMuted }}">{{ $idx === currentIndex ? '✓' : '' }}</text>
           </div>
           <text class="name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+          <text class="course-count" style="color: {{ theme.textMuted }}">{{ $item.courseCount }}门</text>
         </div>
         <text class="expand-arrow" onclick="expandItem($idx)" style="color: {{ theme.accent }}">{{ expandedIndex === $idx ? '▲' : '▼' }}</text>
       </div>
@@ -150,9 +151,22 @@ export default {
     store.getScheduleNames(function(names) {
       var list = []
       for (var i = 0; i < names.length; i++) {
-        list.push({ name: names[i] })
+        list.push({ name: names[i], courseCount: 0 })
       }
       self.list = list
+      for (var i = 0; i < names.length; i++) {
+        (function(idx) {
+          database.getAllCoursesWithIndex(idx, function(schedule) {
+            var count = 0
+            if (schedule) {
+              for (var d = 0; d < schedule.length; d++) {
+                count += (schedule[d].classes || []).length
+              }
+            }
+            self.list[idx].courseCount = count
+          })
+        })(i)
+      }
     })
     store.getCurrentScheduleIndex(function(idx) {
       self.currentIndex = idx
@@ -596,7 +610,11 @@ export default {
   font-size: 16px;
   font-weight: bold;
   margin-left: 10px;
-  flex: 1;
+}
+
+.course-count {
+  font-size: 14px;
+  margin-left: 6px;
 }
 
 .expand-arrow {
