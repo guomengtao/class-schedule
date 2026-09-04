@@ -38,10 +38,9 @@
               if="{{ logs.length === 0 }}">点击按钮查看日志</text>
       </div>
     </div>
-
-    <premium-overlay></premium-overlay>
   </div>
-  </stack>
+  <premium-overlay></premium-overlay>
+</stack>
 </template>
 
 <script>

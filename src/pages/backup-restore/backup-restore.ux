@@ -38,10 +38,9 @@
       <text class="info-title" style="color: {{ theme.text }}">备份包含</text>
       <text class="info-text" style="color: {{ theme.textSecondary }}">课程数据 · 课表列表 · 首页设置 · 主题 · 提醒 · 解锁状态</text>
     </div>
-
-    <premium-overlay></premium-overlay>
   </div>
-  </stack>
+  <premium-overlay></premium-overlay>
+</stack>
 </template>
 
 <script>

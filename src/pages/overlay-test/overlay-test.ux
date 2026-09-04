@@ -12,10 +12,9 @@
 
     <input class="show-btn" type="button" value="弹出遮罩" onclick="doShow"
            style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-
-    <premium-overlay></premium-overlay>
   </div>
-  </stack>
+  <premium-overlay></premium-overlay>
+</stack>
 </template>
 
 <script>
