@@ -110,8 +110,8 @@ var moduleNames = [
   { key: "statusBar" },
   { key: "customContent" },
   { key: "pinnedPages" },
-  { key: "bottomButtons" },
-  { key: "classList" }
+  { key: "bottomButtons" }
+  // { key: "classList" }
 ]
 
 function loadModule(key, mod) {
