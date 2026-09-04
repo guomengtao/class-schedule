@@ -34,6 +34,17 @@
       </div>
     </div>
 
+    <div class="debug-card" style="background-color: {{ theme.card }}">
+      <text class="debug-title" style="color: {{ theme.accent }}">📋 账号状态 Debug ({{ debugLogs.length }})</text>
+      <div class="debug-list" style="background-color: {{ theme.bg }}">
+        <block for="{{ debugLogs }}">
+          <text class="debug-line" style="color: {{ theme.text }}">{{ $item }}</text>
+        </block>
+        <text class="debug-empty" style="color: {{ theme.textMuted }}"
+              if="{{ debugLogs.length === 0 }}">进入页面自动显示账号状态</text>
+      </div>
+    </div>
+
     <div class="info-section" style="background-color: {{ theme.card }}">
       <text class="info-title" style="color: {{ theme.text }}">备份包含</text>
       <text class="info-text" style="color: {{ theme.textSecondary }}">课程数据 · 课表列表 · 首页设置 · 主题 · 提醒 · 解锁状态</text>
@@ -49,6 +60,7 @@ import router from "@system.router"
 var storage = require("@system.storage")
 const store = require("../../data/store.js")
 var premiumOverlay = require("../../data/premium-overlay.js")
+const authStore = require("../../data/auth-store.js")
 
 var BACKUP_LIST_KEY = "backup_list"
 var MAX_BACKUPS = 20
@@ -66,6 +78,7 @@ export default {
   private: {
     theme: store.DEFAULT_THEME,
     backupList: [],
+    debugLogs: [],
     resultMessage: "",
     resultSuccess: false,
     deleteConfirmIndex: -1,
@@ -73,11 +86,61 @@ export default {
     restoreTotal: 0
   },
 
+  _logStatus() {
+    console.log("[BACKUP] ===== ACCOUNT STATUS DEBUG =====")
+    var self = this
+
+    store.isPremiumUnlocked(function(unlocked) {
+      console.log("[BACKUP] isPremiumUnlocked: " + unlocked)
+      self._addLog("INFO", "premium check: " + (unlocked ? "高级会员" : "标准版"))
+    })
+
+    storage.get({
+      key: "premium_unlocked",
+      success: function(data) {
+        console.log("[BACKUP] premium_unlocked (storage): " + (data || "empty"))
+        self._addLog("INFO", "premium_unlocked storage: " + (data || "empty"))
+      },
+      fail: function() {
+        console.log("[BACKUP] premium_unlocked (storage): NOT FOUND")
+        self._addLog("WARN", "premium_unlocked storage: NOT FOUND")
+      }
+    })
+
+    authStore.getFullStatus(function(status) {
+      console.log("[BACKUP] getFullStatus: " + status.text + " | activated=" + status.isActivated + " | permanent=" + status.isPermanent)
+      self._addLog("INFO", "status: " + status.text + " | activated=" + status.isActivated)
+    })
+
+    authStore.getAuthData(function(data) {
+      if (data) {
+        console.log("[BACKUP] authData: isActivated=" + data.isActivated + " | isPermanent=" + data.isPermanent + " | expireAt=" + (data.expireAt || "none") + " | deviceId=" + (data.deviceId || "none"))
+        self._addLog("INFO", "authData: isActivated=" + data.isActivated + " | isPermanent=" + data.isPermanent)
+      } else {
+        console.log("[BACKUP] authData: null (not set)")
+        self._addLog("WARN", "authData: null")
+      }
+    })
+    console.log("[BACKUP] ===== STATUS DEBUG END =====")
+  },
+
+  _addLog(level, msg) {
+    console.log("[BACKUP] " + msg)
+    var time = new Date().toLocaleTimeString()
+    var prefix = level === "ERROR" ? "ERR" : level === "WARN" ? "WRN" : level === "INFO" ? "INF" : "LOG"
+    var line = "[" + prefix + " " + time + "] " + msg
+    this.debugLogs.push(line)
+    if (this.debugLogs.length > 30) {
+      this.debugLogs.shift()
+    }
+  },
+
   onInit() {
     console.log("[BACKUP] onInit: page created, checking premium...")
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this.loadBackupList()
+    this._logStatus()
     premiumOverlay.checkAndShow()
   },
 
@@ -86,6 +149,7 @@ export default {
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this.loadBackupList()
+    this._logStatus()
     premiumOverlay.checkAndShow()
   },
 
@@ -452,6 +516,39 @@ export default {
 .info-text {
   font-size: 12px;
   line-height: 20px;
+}
+
+.debug-card {
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-top: 6px;
+}
+
+.debug-title {
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.debug-list {
+  border-radius: 6px;
+  padding: 6px;
+  min-height: 50px;
+  max-height: 150px;
+  overflow: scroll;
+}
+
+.debug-line {
+  font-size: 10px;
+  margin-bottom: 1px;
+  line-height: 1.3;
+  word-break: break-all;
+}
+
+.debug-empty {
+  font-size: 11px;
+  text-align: center;
+  padding: 10px 0;
 }
 
 @media (shape: circle) {
