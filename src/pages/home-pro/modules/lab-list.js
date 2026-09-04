@@ -11,7 +11,8 @@ var labItems = [
   { name: "🔀 多文件 Demo", desc: "多模块协同示例", uri: "/pages/multi-file-demo" },
   { name: "💻 设备信息", desc: "查看设备信息", uri: "/pages/device-info" },
   { name: "🧩 组件化测试", desc: "组件化测试", uri: "/pages/comp-demo" },
-  { name: "📦 多模块加载测试", desc: "多模块加载测试", uri: "/pages/lab-module-test" }
+  { name: "📦 多模块加载测试", desc: "多模块加载测试", uri: "/pages/lab-module-test" },
+  { name: "🖥 命令行 Debug", desc: "测试 console.log/warn/error 输出", uri: "/pages/debug-demo" }
 ]
 
 function init(instance) {
