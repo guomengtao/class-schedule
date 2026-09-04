@@ -611,7 +611,7 @@ module.exports = {
             success: function() {
               log("resetToDemoData: schedule index reset")
               var demoPreset = [
-                { name: "微软雅黑", time: "08:00 - 08:45", teacher: "王老师", location: "301教室" },
+                { name: "语文", time: "08:00 - 08:45", teacher: "王老师", location: "301教室" },
                 { name: "数学", time: "08:55 - 09:40", teacher: "周老师", location: "205教室" },
                 { name: "英语", time: "10:00 - 10:45", teacher: "李老师", location: "205教室" },
                 { name: "物理", time: "10:55 - 11:40", teacher: "吴老师", location: "实验室B" },
