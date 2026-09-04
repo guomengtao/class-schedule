@@ -162,7 +162,6 @@ export default {
     this.devClickCount++
     if (this.devClickCount >= 5) {
       this.devClickCount = 0
-      var self = this
       authStore.getAuthData(function(data) {
         if (!data) {
           data = {
