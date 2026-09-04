@@ -30,7 +30,7 @@
     </div>
 
     <div class="footer" style="background-color: {{ theme.card }}">
-      <text class="footer-text" style="color: {{ theme.textSecondary }}">共 {{ totalCourses }} 门课程</text>
+      <text class="footer-text" style="color: {{ theme.textSecondary }}">共 {{ totalCourses }} 门课程 · {{ totalDays }} 天有课</text>
     </div>
   </div>
 </template>
@@ -49,6 +49,7 @@ export default {
     scheduleName: "",
     timeSlots: [],
     totalCourses: 0,
+    totalDays: 0,
     viewIndex: 0,
     todayIndex: 0,
     currentCourseDay: "",
@@ -179,12 +180,15 @@ export default {
       self.buildTimeSlots(allCourses)
 
       var total = 0
+      var totalDays = 0
       for (var key in allCourses) {
         if (allCourses.hasOwnProperty(key)) {
           total += allCourses[key].length
+          if (allCourses[key].length > 0) totalDays++
         }
       }
       self.totalCourses = total
+      self.totalDays = totalDays
     })
 
     setTimeout(function() {
@@ -201,12 +205,15 @@ export default {
         self.detectCurrentCourse(allCourses)
         self.buildTimeSlots(allCourses)
         var total = 0
+        var totalDays = 0
         for (var key in allCourses) {
           if (allCourses.hasOwnProperty(key)) {
             total += allCourses[key].length
+            if (allCourses[key].length > 0) totalDays++
           }
         }
         self.totalCourses = total
+        self.totalDays = totalDays
       }
     }, 1500)
   },
@@ -480,6 +487,7 @@ export default {
   font-size: 11px;
   color: #555566;
   text-align: center;
+  width: 100%;
 }
 
 @media (shape: circle) {

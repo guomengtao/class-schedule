@@ -26,6 +26,7 @@
       </div>
 
       <div class="actions" if="{{ expandedIndex === $idx }}">
+        <div class="action-divider" style="background-color: {{ theme.border || theme.borderLight }}"></div>
         <div class="action-row">
           <div class="action-btn" onclick="startRename($idx)" style="background-color: {{ theme.cardLight }}">
             <text class="action-btn-text" style="color: {{ theme.text }}">重命名</text>
@@ -37,7 +38,6 @@
             <text class="action-btn-text" style="color: {{ theme.text }}">导出</text>
           </div>
         </div>
-        <div class="action-divider" style="background-color: {{ theme.border || theme.borderLight }}"></div>
         <div class="action-row">
           <div class="action-btn" onclick="openWeekView($idx)" style="background-color: {{ theme.cardLight }}">
             <text class="action-btn-text" style="color: {{ theme.text }}">总览</text>
