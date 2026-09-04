@@ -26,10 +26,19 @@
         <text class="class-location" if="{{ $item.location }}" style="color: {{ theme.accent }}">{{ $item.location }}</text>
       </div>
 
-      <div if="{{ classes.length === 0 && !loading }}" class="empty-card">
+      <div if="{{ loading }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">加载中...</text>
       </div>
+
+      <div if="{{ classes.length === 0 && !loading }}" class="empty-card">
+        <text class="empty-text" style="color: {{ theme.textMuted }}">今日暂无课程</text>
+        <text class="empty-hint" style="color: {{ theme.textSecondary }}">使用上方快速添加或前往课程管理添加课程</text>
+      </div>
     </scroll>
+
+    <div class="footer-actions">
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">📌 钉首页</text>
+    </div>
   </div>
 </template>
 
@@ -37,6 +46,7 @@
 import router from "@system.router"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
+var pinHelper = require("../../data/pin-helper.js")
 
 var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
@@ -124,6 +134,10 @@ export default {
 
   goBack() {
     router.back()
+  },
+
+  pinToHome() {
+    pinHelper.pinPage("今日课程", "/pages/today-demo")
   },
 
   addQuickCourse(courseName) {
@@ -278,6 +292,21 @@ export default {
 
 .empty-text {
   font-size: 20px;
+}
+
+.empty-hint {
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.footer-actions {
+  flex-direction: row;
+  justify-content: center;
+  padding: 12px 0 4px 0;
+}
+
+.pin-link {
+  font-size: 13px;
 }
 
 @media (shape: circle) {
