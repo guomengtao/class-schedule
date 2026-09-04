@@ -1,5 +1,5 @@
 <template>
-  <div class="overlay-modal" if="{{ visible }}" onclick="doCancel">
+  <div class="overlay-modal" show="{{ visible }}" onclick="doCancel">
     <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
       <text class="modal-title" style="color: {{ theme.accent }}">解锁高级功能</text>
       <text class="modal-desc" style="color: {{ theme.textSecondary }}">一次性解锁，永久使用全部高级功能</text>
@@ -73,7 +73,7 @@ export default {
 
 <style>
 .overlay-modal {
-  position: absolute;
+  position: fixed;
   left: 0;
   top: 0;
   width: 100%;
@@ -82,6 +82,7 @@ export default {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
 .modal-card {
