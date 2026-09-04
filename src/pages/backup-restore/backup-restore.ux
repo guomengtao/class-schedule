@@ -113,19 +113,22 @@ export default {
   },
 
   onInit() {
-    console.log("[BACKUP] onInit: page created, checking premium...")
+    console.log("[BACKUP] onInit: page created")
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this.loadBackupList()
     this._logStatus()
+  },
+
+  onReady() {
+    console.log("[BACKUP] onReady: all components ready, checking premium...")
     premiumOverlay.checkAndShow()
   },
 
   onShow() {
-    console.log("[BACKUP] onShow: page shown, checking premium...")
+    console.log("[BACKUP] onShow: page shown")
     var self = this
     store.getTheme(function(t) { self.theme = t })
-    this.loadBackupList()
     this._logStatus()
     premiumOverlay.checkAndShow()
   },
