@@ -74,13 +74,12 @@
 
     <div class="quick-add" if="{{ showQuickAdd }}" style="background-color: {{ theme.card }}">
       <text class="quick-add-title" onclick="quickAdd.toggle" style="color: {{ theme.accent }}">快速添加 {{ quickAdd.expanded ? '▲' : '▼' }}</text>
-      <scroll class="quick-add-scroll" scroll-x="{{true}}" if="{{ quickAdd.expanded && quickAdd.courseNames.length > 0 && !quickAdd.disabled }}">
-        <div class="quick-add-list">
-          <div for="{{ quickAdd.courseNames }}" class="quick-add-item" onclick="quickAdd.addCourse($item)" style="background-color: {{ theme.cardLight }}">
-            <text class="quick-add-name" style="color: {{ theme.text }}">{{ $item }}</text>
-          </div>
+      <div class="quick-add-vertical" if="{{ quickAdd.expanded && quickAdd.courseNames.length > 0 && !quickAdd.disabled }}">
+        <div for="{{ quickAdd.courseNames }}" class="quick-add-row" onclick="quickAdd.addCourse($item)" style="background-color: {{ theme.cardLight }}">
+          <text class="quick-add-name" style="color: {{ theme.text }}">{{ $item }}</text>
+          <text class="quick-add-time" style="color: {{ theme.textMuted }}">{{ quickAdd.time }}</text>
         </div>
-      </scroll>
+      </div>
       <text class="quick-add-empty" if="{{ quickAdd.expanded && quickAdd.disabled }}" style="color: {{ theme.textMuted }}">今天课程已排满</text>
       <text class="quick-add-empty" if="{{ quickAdd.expanded && !quickAdd.disabled && quickAdd.courseNames.length === 0 }}" style="color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
     </div>
@@ -519,25 +518,29 @@ export default {
 .quick-add-title {
   font-size: 18px;
   font-weight: bold;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
-.quick-add-scroll {
-  height: 50px;
+.quick-add-vertical {
+  flex-direction: column;
 }
 
-.quick-add-list {
+.quick-add-row {
   flex-direction: row;
-}
-
-.quick-add-item {
-  padding: 6px 14px;
-  border-radius: 20px;
-  margin-right: 8px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 4px;
 }
 
 .quick-add-name {
   font-size: 16px;
+  font-weight: bold;
+}
+
+.quick-add-time {
+  font-size: 14px;
 }
 
 .quick-add-empty {

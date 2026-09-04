@@ -4,48 +4,36 @@
     <div class="header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">数据备份与恢复</text>
-    </div>
-
-    <div class="section" style="background-color: {{ theme.card }}">
-      <text class="section-title" style="color: {{ theme.text }}">新建备份</text>
-      <text class="section-desc" style="color: {{ theme.textSecondary }}">将当前全部课程数据保存为一个备份</text>
-      <input class="create-btn" type="button" value="+ 新建备份" onclick="doBackup"
+      <input class="create-btn" type="button" value="+ 新建" onclick="doBackup"
              style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
-    <div class="section" style="background-color: {{ theme.card }}">
-      <text class="section-title" style="color: {{ theme.text }}">备份列表</text>
-      <text class="section-desc" if="{{ backupList.length === 0 }}" style="color: {{ theme.textMuted }}">暂无备份，点击上方按钮创建</text>
-
-      <div class="backup-item" for="$item in backupList" style="border-color: {{ theme.border }}">
-        <div class="backup-info">
-          <text class="backup-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-          <text class="backup-meta" style="color: {{ theme.textSecondary }}">{{ $item.courseCount }}门课程 · {{ $item.scheduleCount }}个课程表</text>
-          <text class="backup-time" style="color: {{ theme.textMuted }}">{{ $item.time }}</text>
-        </div>
-        <div class="backup-actions">
-          <input class="restore-btn" type="button" value="恢复" onclick="restoreBackup($idx)"
-                 style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-          <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}"
-                 onclick="handleDeleteBackup($idx)"
-                 style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === $idx ? '#ffffff' : theme.deleteText }}" />
-        </div>
-      </div>
-    </div>
-
-    <div class="section" style="background-color: {{ theme.card }}">
-      <text class="section-title" style="color: {{ theme.text }}">备份包含的数据</text>
-      <div class="data-list">
-        <text class="data-item" style="color: {{ theme.textSecondary }}">所有课程表及课程数据</text>
-        <text class="data-item" style="color: {{ theme.textSecondary }}">课程名称预设列表</text>
-        <text class="data-item" style="color: {{ theme.textSecondary }}">首页设置与自定义内容</text>
-        <text class="data-item" style="color: {{ theme.textSecondary }}">主题与字体大小设置</text>
-        <text class="data-item" style="color: {{ theme.textSecondary }}">上课提醒设置</text>
-        <text class="data-item" style="color: {{ theme.textSecondary }}">解锁状态</text>
-      </div>
-    </div>
-
     <text class="result-text" if="{{ resultMessage }}" style="color: {{ resultSuccess ? theme.accent : theme.deleteText }}">{{ resultMessage }}</text>
+
+    <text class="empty-msg" if="{{ backupList.length === 0 }}" style="color: {{ theme.textMuted }}">暂无备份，点击右上角"+ 新建"创建备份</text>
+
+    <div class="backup-card" for="$item in backupList" style="background-color: {{ theme.card }}">
+      <div class="backup-top">
+        <text class="backup-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+        <text class="backup-time" style="color: {{ theme.textMuted }}">{{ $item.time }}</text>
+      </div>
+      <div class="backup-meta-row">
+        <text class="backup-meta" style="color: {{ theme.textSecondary }}">{{ $item.courseCount }}门课程</text>
+        <text class="backup-meta" style="color: {{ theme.textSecondary }}">{{ $item.scheduleCount }}个课程表</text>
+      </div>
+      <div class="backup-actions">
+        <input class="restore-btn" type="button" value="恢复" onclick="restoreBackup($idx)"
+               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}"
+               onclick="handleDeleteBackup($idx)"
+               style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === $idx ? '#ffffff' : theme.deleteText }}" />
+      </div>
+    </div>
+
+    <div class="info-section" style="background-color: {{ theme.card }}">
+      <text class="info-title" style="color: {{ theme.text }}">备份包含</text>
+      <text class="info-text" style="color: {{ theme.textSecondary }}">课程数据 · 课表列表 · 首页设置 · 主题 · 提醒 · 解锁状态</text>
+    </div>
 
     <unlock-dialog id="unlockDialog"></unlock-dialog>
   </div>
@@ -315,7 +303,6 @@ export default {
   flex-direction: row;
   align-items: center;
   margin-bottom: 10px;
-  padding: 0;
 }
 
 .back-btn {
@@ -331,105 +318,100 @@ export default {
   text-align: center;
   font-size: 16px;
   font-weight: bold;
-  margin-right: 64px;
 }
 
-.section {
+.create-btn {
+  width: 64px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.result-text {
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.empty-msg {
+  font-size: 14px;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.backup-card {
   border-radius: 12px;
   padding: 14px;
   margin-bottom: 10px;
 }
 
-.section-title {
-  font-size: 14px;
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.section-desc {
-  font-size: 12px;
-  margin-bottom: 12px;
-  line-height: 18px;
-}
-
-.create-btn {
-  width: 100%;
-  height: 42px;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.backup-item {
+.backup-top {
   flex-direction: row;
+  justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
-  border-bottom-width: 1px;
-  border-bottom-style: solid;
-}
-
-.backup-info {
-  flex: 1;
-  flex-direction: column;
+  margin-bottom: 6px;
 }
 
 .backup-name {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: bold;
-  margin-bottom: 2px;
-}
-
-.backup-meta {
-  font-size: 12px;
-  margin-bottom: 2px;
 }
 
 .backup-time {
-  font-size: 11px;
+  font-size: 12px;
+}
+
+.backup-meta-row {
+  flex-direction: row;
+  margin-bottom: 10px;
+}
+
+.backup-meta {
+  font-size: 13px;
+  margin-right: 16px;
 }
 
 .backup-actions {
-  flex-direction: column;
-  align-items: flex-end;
-  flex-shrink: 0;
+  flex-direction: row;
 }
 
 .restore-btn {
   width: 56px;
   height: 30px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 4px;
+  margin-right: 8px;
 }
 
 .delete-btn {
   width: 56px;
   height: 30px;
   border-radius: 8px;
-  font-size: 12px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.data-list {
-  flex-direction: column;
-  margin-top: 4px;
-}
-
-.data-item {
-  font-size: 12px;
-  line-height: 22px;
-}
-
-.result-text {
   font-size: 13px;
-  text-align: center;
-  margin-top: 10px;
-  padding: 10px;
   font-weight: bold;
+  text-align: center;
+}
+
+.info-section {
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 6px;
+}
+
+.info-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.info-text {
+  font-size: 12px;
+  line-height: 20px;
 }
 
 @media (shape: circle) {
@@ -443,7 +425,11 @@ export default {
   }
   .title {
     font-size: 14px;
-    margin-right: 52px;
+  }
+  .create-btn {
+    width: 52px;
+    height: 28px;
+    font-size: 12px;
   }
 }
 </style>

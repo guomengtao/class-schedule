@@ -1,6 +1,7 @@
 console.log("[lab-list module] loading...")
 
 var labItems = [
+  { name: "⭐ 高级版预览", desc: "查看高级版全部功能", uri: "/pages/premium-test" },
   { name: "📌 已钉首页", desc: "查看已固定到首页的页面", uri: "/pages/pinned-pages" },
   { name: "🗄 数据表展示", desc: "查看本地存储数据表", uri: "/pages/storage-viewer" },
   { name: "📱 二维码生成器", desc: "文本转二维码", uri: "/pages/qrcode-generator" },
