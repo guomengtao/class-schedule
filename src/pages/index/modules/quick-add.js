@@ -40,9 +40,10 @@ function init(instance) {
       var self = instance
       var time = self.quickAdd.calcNext()
       if (self.quickAdd.disabled) return
+      var courseId = String(Date.now())
       var database = require("../../../data/database.js")
       database.insertCourse({
-        id: String(Date.now()),
+        id: courseId,
         name: courseName,
         time: time,
         day: self.currentDay,
@@ -53,6 +54,35 @@ function init(instance) {
         if (err) {
           console.error("[quick-add] insert failed: " + err)
           return
+        }
+        var dayData = null
+        for (var i = 0; i < self.schedule.length; i++) {
+          if (self.schedule[i].day === self.currentDay) {
+            dayData = self.schedule[i]
+            break
+          }
+        }
+        if (dayData) {
+          dayData.classes.push({
+            id: courseId,
+            name: courseName,
+            time: time,
+            teacher: "",
+            location: "",
+            notes: ""
+          })
+        } else {
+          self.schedule.push({
+            day: self.currentDay,
+            classes: [{
+              id: courseId,
+              name: courseName,
+              time: time,
+              teacher: "",
+              location: "",
+              notes: ""
+            }]
+          })
         }
         self.loadDayClasses()
         self.quickAdd.loadPreset()
