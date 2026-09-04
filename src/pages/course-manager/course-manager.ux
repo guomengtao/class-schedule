@@ -102,6 +102,8 @@ export default {
       self.theme = t
     })
 
+    this.loadCourses()
+
     var storage = require("@system.storage")
     storage.get({
       key: "chinese_input_result",
@@ -124,10 +126,10 @@ export default {
     storage.get({
       key: COURSE_KEY,
       success: function(data) {
-        if (data) {
+        if (data !== undefined && data !== null && data !== "") {
           try {
             var list = JSON.parse(data)
-            if (list && list.length > 0) {
+            if (Array.isArray(list)) {
               self.courseList = self.sortByTime(list)
             } else {
               self.courseList = self.sortByTime(defaultCourses.slice())
