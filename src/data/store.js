@@ -216,26 +216,6 @@ var THEMES = {
   }
 }
 
-function resolveSystemTheme(callback) {
-  try {
-    var configuration = require("@system.configuration")
-    configuration.getColorMode({
-      success: function(data) {
-        if (data.colorMode === "dark" || data.colorModeNumber === 1) {
-          callback(THEMES.dark, 'auto')
-        } else {
-          callback(THEMES.light, 'auto')
-        }
-      },
-      fail: function() {
-        callback(THEMES.dark, 'auto')
-      }
-    })
-  } catch (e) {
-    callback(THEMES.dark, 'auto')
-  }
-}
-
 module.exports = {
   THEMES: THEMES,
 
@@ -244,11 +224,7 @@ module.exports = {
       key: "appTheme",
       success: function(data) {
         var name = data || 'blue'
-        if (name === 'auto') {
-          resolveSystemTheme(callback)
-        } else {
-          callback(THEMES[name] || THEMES.blue, name)
-        }
+        callback(THEMES[name] || THEMES.blue, name)
       },
       fail: function() {
         callback(THEMES.blue, 'blue')
@@ -288,14 +264,6 @@ module.exports = {
         bg: THEMES[key].bg,
         card: THEMES[key].card
       }
-    })
-    list.unshift({
-      key: 'auto',
-      name: '跟随系统',
-      icon: '🔄',
-      accent: '#888888',
-      bg: '#1a1a2e',
-      card: '#16213e'
     })
     return list
   },
@@ -628,7 +596,7 @@ module.exports = {
     progressDone: 'rgba(74,138,154,0.25)'
   },
 
-  FREE_THEMES: ["blue", "auto"],
+  FREE_THEMES: ["blue"],
 
   isFreeTheme: function(themeKey) {
     var free = this.FREE_THEMES
