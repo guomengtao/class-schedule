@@ -5,6 +5,11 @@
       <text class="title" style="color: {{ theme.text }}">今日课程</text>
     </div>
 
+    <div class="premium-overlay" style="background-color: {{ theme.accent }}">
+      <text class="premium-overlay-text" style="color: {{ theme.bg }}">⭐ 高级版功能 · 升级解锁更多</text>
+      <text class="premium-overlay-link" onclick="goToPremium" style="color: {{ theme.bg }}">查看详情 →</text>
+    </div>
+
     <div class="quick-buttons">
       <input class="quick-btn" type="button" value="化学" onclick="addQuickCourse('化学')" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       <input class="quick-btn" type="button" value="品德" onclick="addQuickCourse('品德')" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
@@ -136,6 +141,10 @@ export default {
     router.back()
   },
 
+  goToPremium() {
+    router.push({ uri: "/pages/premium-test" })
+  },
+
   pinToHome() {
     pinHelper.pinPage("今日课程", "/pages/today-demo")
   },
@@ -201,6 +210,26 @@ export default {
   font-weight: bold;
   flex: 1;
   text-align: center;
+}
+
+.premium-overlay {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  opacity: 0.85;
+}
+
+.premium-overlay-text {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.premium-overlay-link {
+  font-size: 13px;
+  text-decoration: underline;
 }
 
 .subtitle {

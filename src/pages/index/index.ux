@@ -442,9 +442,6 @@ export default {
 
 .pinned-text {
   font-size: 16px;
-  max-width: 5em;
-  text-overflow: ellipsis;
-  lines: 1;
 }
 
 .class-list {

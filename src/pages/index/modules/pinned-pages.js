@@ -9,6 +9,11 @@ function init(instance) {
   instance.loadPinnedPages = function() {
     var self = instance
     pinHelper.getList(function(list) {
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].name && list[i].name.length > 4) {
+          list[i].name = list[i].name.substring(0, 4) + "..."
+        }
+      }
       self.pinnedPages = list
       self.hasPinned = list.length > 0
     })
