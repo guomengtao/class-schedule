@@ -39,7 +39,6 @@
 import router from "@system.router"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
-const scheduleSeed = require("../../data/schedule.js")
 
 var fullDayNames = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
 
@@ -53,7 +52,7 @@ export default {
     timeSlots: [],
     totalCourses: 0,
     totalDays: 0,
-    dayCounts: [],
+    dayCounts: [0, 0, 0, 0, 0, 0, 0],
     hideWeekend: false,
     viewIndex: 0,
     todayIndex: 0,
@@ -188,7 +187,12 @@ export default {
     database.getAllCoursesWithIndex(this.viewIndex, function(schedule) {
       if (dataLoaded) return
       dataLoaded = true
-      if (!schedule) return
+      if (!schedule) {
+        database.getAllCourses(function(fallback) {
+          self.renderSchedule(fallback)
+        })
+        return
+      }
 
       var allCourses = {}
       for (var d = 0; d < schedule.length; d++) {
@@ -206,72 +210,61 @@ export default {
       }
 
       if (totalCourses === 0) {
-        var seedData = scheduleSeed.schedule
-        allCourses = {}
-        for (var sd = 0; sd < seedData.length; sd++) {
-          var sdd = seedData[sd]
-          if (sdd && sdd.day) {
-            allCourses[sdd.day] = sdd.classes || []
-          }
-        }
+        database.getAllCourses(function(fallback) {
+          self.renderSchedule(fallback)
+        })
+        return
       }
 
-      self.detectCurrentCourse(allCourses)
-      self.buildTimeSlots(allCourses)
-
-      var total = 0
-      var totalDays = 0
-      for (var key in allCourses) {
-        if (allCourses.hasOwnProperty(key)) {
-          total += allCourses[key].length
-          if (allCourses[key].length > 0) totalDays++
-        }
-      }
-      self.totalCourses = total
-      self.totalDays = totalDays
-
-      var dayCounts = []
-      var dayNames = self.displayDayNames
-      for (var dn = 0; dn < dayNames.length; dn++) {
-        var dayCourses = allCourses[dayNames[dn]]
-        dayCounts.push(dayCourses ? dayCourses.length : 0)
-      }
-      self.dayCounts = dayCounts
+      self.renderScheduleData(allCourses)
     })
 
     setTimeout(function() {
       if (!dataLoaded) {
         dataLoaded = true
-        var seedData = scheduleSeed.schedule
-        var allCourses = {}
-        for (var sd = 0; sd < seedData.length; sd++) {
-          var sdd = seedData[sd]
-          if (sdd && sdd.day) {
-            allCourses[sdd.day] = sdd.classes || []
-          }
-        }
-        self.detectCurrentCourse(allCourses)
-        self.buildTimeSlots(allCourses)
-        var total = 0
-        var totalDays = 0
-        for (var key in allCourses) {
-          if (allCourses.hasOwnProperty(key)) {
-            total += allCourses[key].length
-            if (allCourses[key].length > 0) totalDays++
-          }
-        }
-        self.totalCourses = total
-        self.totalDays = totalDays
-
-        var dayCounts = []
-        var dayNames = self.displayDayNames
-        for (var dn = 0; dn < dayNames.length; dn++) {
-          var dayCourses = allCourses[dayNames[dn]]
-          dayCounts.push(dayCourses ? dayCourses.length : 0)
-        }
-        self.dayCounts = dayCounts
+        database.getAllCourses(function(fallback) {
+          self.renderSchedule(fallback)
+        })
       }
     }, 1500)
+  },
+
+  renderSchedule(schedule) {
+    var allCourses = {}
+    if (schedule) {
+      for (var d = 0; d < schedule.length; d++) {
+        var dayData = schedule[d]
+        if (dayData && dayData.day) {
+          allCourses[dayData.day] = dayData.classes || []
+        }
+      }
+    }
+    this.renderScheduleData(allCourses)
+  },
+
+  renderScheduleData(allCourses) {
+    var self = this
+    self.detectCurrentCourse(allCourses)
+    self.buildTimeSlots(allCourses)
+
+    var total = 0
+    var totalDays = 0
+    for (var key in allCourses) {
+      if (allCourses.hasOwnProperty(key)) {
+        total += allCourses[key].length
+        if (allCourses[key].length > 0) totalDays++
+      }
+    }
+    self.totalCourses = total
+    self.totalDays = totalDays
+
+    var dayCounts = []
+    var dayNames = self.displayDayNames
+    for (var dn = 0; dn < dayNames.length; dn++) {
+      var dayCourses = allCourses[dayNames[dn]]
+      dayCounts.push(dayCourses ? dayCourses.length : 0)
+    }
+    self.dayCounts = dayCounts
   },
 
   buildTimeSlots(allCourses) {

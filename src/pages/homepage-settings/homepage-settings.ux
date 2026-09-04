@@ -39,7 +39,7 @@
         <div class="item-left">
           <div class="dot" style="background-color: {{ theme.accent }}"></div>
           <div class="item-text">
-            <text class="item-label" style="color: {{ theme.text }}">固定首页区域</text>
+            <text class="item-label" style="color: {{ theme.text }}">钉首页</text>
             <text class="item-desc" style="color: {{ theme.textMuted }}">首页已固定页面的快捷入口</text>
           </div>
         </div>

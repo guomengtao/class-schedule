@@ -27,7 +27,6 @@
       </div>
 
       <div class="actions" if="{{ expandedIndex === $idx }}">
-        <div class="action-divider" style="background-color: {{ theme.border || theme.borderLight }}"></div>
         <div class="action-row">
           <div class="action-btn" onclick="startRename($idx)" style="background-color: {{ theme.cardLight }}">
             <text class="action-btn-text" style="color: {{ theme.text }}">重命名</text>
@@ -39,6 +38,7 @@
             <text class="action-btn-text" style="color: {{ theme.text }}">导出</text>
           </div>
         </div>
+        <div class="action-divider" style="background-color: {{ theme.border || theme.borderLight }}"></div>
         <div class="action-row">
           <div class="action-btn" onclick="openWeekView($idx)" style="background-color: {{ theme.cardLight }}">
             <text class="action-btn-text" style="color: {{ theme.text }}">总览</text>
@@ -183,7 +183,6 @@ export default {
 
   toggle(idx) {
     if (idx === this.currentIndex) {
-      router.back()
       return
     }
     var self = this
@@ -192,7 +191,6 @@ export default {
     store.setCurrentScheduleIndex(idx, function() {
       database.setScheduleIndex(idx, function() {
         prompt.showToast({ message: "已切换到 " + self.list[idx].name })
-        router.back()
       })
     })
   },

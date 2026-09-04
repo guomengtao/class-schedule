@@ -147,16 +147,35 @@ export default {
         var idx = parseInt(data)
         if (!isNaN(idx) && idx >= 0) {
           database.getAllCoursesWithIndex(idx, function(schedule) {
-            self.processData(schedule)
+            if (schedule && schedule.length > 0) {
+              var hasCourses = false
+              for (var d = 0; d < schedule.length; d++) {
+                if (schedule[d].classes && schedule[d].classes.length > 0) {
+                  hasCourses = true
+                  break
+                }
+              }
+              if (hasCourses) {
+                self.processData(schedule)
+              } else {
+                database.getAllCourses(function(fallback) {
+                  self.processData(fallback)
+                })
+              }
+            } else {
+              database.getAllCourses(function(fallback) {
+                self.processData(fallback)
+              })
+            }
           })
         } else {
-          database.getAllCoursesCombined(function(schedule) {
+          database.getAllCourses(function(schedule) {
             self.processData(schedule)
           })
         }
       },
       fail: function() {
-        database.getAllCoursesCombined(function(schedule) {
+        database.getAllCourses(function(schedule) {
           self.processData(schedule)
         })
       }
