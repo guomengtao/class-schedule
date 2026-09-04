@@ -5,6 +5,11 @@ function parseTime(timeStr) {
   return parseInt(parts[0]) * 60 + parseInt(parts[1])
 }
 
+function getRealTodayName() {
+  var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+  return dayNames[new Date().getDay()]
+}
+
 function init(instance) {
   instance.statusTag = "暂无"
   instance.statusMainText = "今日无课程安排"
@@ -13,12 +18,18 @@ function init(instance) {
 
   instance.updateStatus = function() {
     var self = instance
-    if (!self.schedule || self.schedule.length === 0) {
-      self.statusTag = "暂无"
-      self.statusMainText = "今日无课程安排"
-      self.statusTimeText = ""
+    var realToday = getRealTodayName()
+
+    if (self.currentDay !== realToday) {
+      self.showStatusBar = false
       return
     }
+
+    if (!self.schedule || self.schedule.length === 0) {
+      self.showStatusBar = false
+      return
+    }
+
     var now = new Date()
     var nowMinutes = now.getHours() * 60 + now.getMinutes()
     var dayData = null
@@ -29,9 +40,7 @@ function init(instance) {
       }
     }
     if (!dayData || !dayData.classes || dayData.classes.length === 0) {
-      self.statusTag = "暂无"
-      self.statusMainText = "今日无课程安排"
-      self.statusTimeText = ""
+      self.showStatusBar = false
       return
     }
     var classes = []
@@ -62,14 +71,14 @@ function init(instance) {
       self.statusTag = "上课中"
       self.statusMainText = current.name
       self.statusTimeText = Math.ceil(current.endMin - nowMinutes) + "min"
+      self.showStatusBar = (self._statusBarSetting !== false)
     } else if (next) {
       self.statusTag = "即将上课"
       self.statusMainText = next.name
       self.statusTimeText = Math.ceil(next.startMin - nowMinutes) + "min后"
+      self.showStatusBar = (self._statusBarSetting !== false)
     } else {
-      self.statusTag = "暂无"
-      self.statusMainText = "今日无课程安排"
-      self.statusTimeText = ""
+      self.showStatusBar = false
     }
   }
 
