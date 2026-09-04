@@ -48,7 +48,7 @@
       <div if="{{ isLoading }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">加载中...</text>
       </div>
-      <div class="class-grid" else>
+      <div class="class-grid" if="{{ !isLoading }}">
         <div for="{{ currentClasses }}" class="class-grid-item" onclick="goToClassDetail($item)" style="background-color: {{ theme.card }}">
           <div class="progress-bg" if="{{ isToday }}" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
           <text class="grid-item-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
@@ -212,7 +212,6 @@ export default {
       if (self.refreshClasses && typeof self.refreshClasses === 'function') {
         self.refreshClasses()
       }
-      self.dumpState()
     })
   },
 
@@ -273,40 +272,6 @@ export default {
     if (self.updateHideWeekend && typeof self.updateHideWeekend === 'function') {
       try { self.updateHideWeekend() } catch (e) { console.error("[index] updateHideWeekend: " + (e.message || e)) }
     }
-
-    self.dumpState()
-  },
-
-  dumpState() {
-    var self = this
-    console.log("========== DUMP STATE ==========")
-    console.log("isLoading: " + self.isLoading)
-    console.log("currentDay: " + self.currentDay)
-    console.log("schedule.length: " + self.schedule.length)
-    if (self.schedule && self.schedule.length > 0) {
-      for (var i = 0; i < self.schedule.length; i++) {
-        var day = self.schedule[i]
-        console.log("  schedule[" + i + "] day=" + JSON.stringify(day.day) + " classes.length=" + day.classes.length)
-        for (var j = 0; j < day.classes.length; j++) {
-          var c = day.classes[j]
-          console.log("    [" + j + "] name=" + JSON.stringify(c.name) + " time=" + JSON.stringify(c.time) + " location=" + JSON.stringify(c.location))
-        }
-      }
-    } else {
-      console.log("schedule: EMPTY or null")
-    }
-    console.log("currentClasses.length: " + self.currentClasses.length)
-    if (self.currentClasses && self.currentClasses.length > 0) {
-      for (var k = 0; k < self.currentClasses.length; k++) {
-        var cc = self.currentClasses[k]
-        console.log("  [" + k + "] name=" + JSON.stringify(cc.name) + " time=" + JSON.stringify(cc.time) + " teacher=" + JSON.stringify(cc.teacher) + " location=" + JSON.stringify(cc.location))
-      }
-    } else {
-      console.log("currentClasses: EMPTY")
-    }
-    console.log("isToday: " + self.isToday)
-    console.log("currentScheduleName: " + self.currentScheduleName)
-    console.log("================================")
   },
 
   goBack() {
