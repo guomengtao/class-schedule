@@ -2,6 +2,12 @@ console.log("[class-list] loading...")
 
 var store = require("../../../data/store.js")
 
+var fullDayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+
+function getRealTodayName() {
+  return fullDayNames[new Date().getDay()]
+}
+
 function parseTime(timeStr) {
   var parts = timeStr.split(":")
   return parseInt(parts[0]) * 60 + parseInt(parts[1])
@@ -53,6 +59,7 @@ function init(instance) {
       return (parseInt(taParts[0]) * 60 + parseInt(taParts[1])) - (parseInt(tbParts[0]) * 60 + parseInt(tbParts[1]))
     })
     self.currentClasses = classes
+    self.isToday = (self.currentDay === getRealTodayName())
     self.updateClassProgress()
   }
 
