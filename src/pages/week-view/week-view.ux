@@ -19,7 +19,8 @@
             <text class="time-label" style="color: {{ theme.textSecondary }}">{{ $item.time }}</text>
             <div class="course-row">
               <div for="{{ $item.cells }}" class="course-cell {{ $item.isCurrent ? 'current-course' : '' }}" onclick="showDetail($item.day, $item.course)" style="background-color: {{ $item.course ? theme.cardLight : 'transparent' }}">
-                <text class="course-char" if="{{ $item.course }}" style="color: {{ theme.accent }}">{{ $item.course.char }}</text>
+                <text class="course-char" if="{{ $item.course }}" style="color: {{ theme.accent }}">{{ $item.course.displayChar }}</text>
+                <text class="course-extra" if="{{ $item.course && $item.course.extraCount > 0 }}" style="color: {{ theme.textMuted }}">+{{ $item.course.extraCount }}</text>
                 <text class="course-empty" if="{{ !$item.course }}" style="color: {{ theme.textMuted }}">·</text>
               </div>
             </div>
@@ -242,24 +243,27 @@ export default {
       for (var d = 0; d < dayList.length; d++) {
         var day = dayList[d]
         var courses = allCourses[day] || []
-        var matched = null
+        var matched = []
         for (var c = 0; c < courses.length; c++) {
           if (courses[c].time === time) {
-            matched = courses[c]
-            break
+            matched.push(courses[c])
           }
         }
-        if (matched) {
+        if (matched.length > 0) {
+          var firstCourse = matched[0]
           cells.push({
             day: day,
             isCurrent: day === self.currentCourseDay && time === self.currentCourseTime,
             course: {
-              id: matched.id,
-              name: matched.name,
-              char: self.getFirstChar(matched.name),
-              time: matched.time,
-              teacher: matched.teacher,
-              location: matched.location
+              id: firstCourse.id,
+              name: firstCourse.name,
+              char: self.getFirstChar(firstCourse.name),
+              displayChar: self.getFirstChar(firstCourse.name),
+              extraCount: matched.length > 1 ? matched.length - 1 : 0,
+              time: firstCourse.time,
+              teacher: firstCourse.teacher,
+              location: firstCourse.location,
+              allCourses: matched
             }
           })
         } else {
@@ -452,6 +456,12 @@ export default {
   font-size: 20px;
   font-weight: bold;
   color: #7ec8e3;
+  text-align: center;
+}
+
+.course-extra {
+  font-size: 9px;
+  color: #555566;
   text-align: center;
 }
 
