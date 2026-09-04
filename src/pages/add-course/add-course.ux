@@ -271,10 +271,10 @@ export default {
     storage.get({
       key: COURSE_LIST_KEY,
       success: function(data) {
-        if (data) {
+        if (data !== undefined && data !== null && data !== "") {
           try {
             var list = JSON.parse(data)
-            if (list && list.length > 0) {
+            if (Array.isArray(list)) {
               self.presetCourses = self.sortByTime(list)
             }
           } catch (e) {

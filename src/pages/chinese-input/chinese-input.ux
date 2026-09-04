@@ -356,30 +356,7 @@ export default {
       key: returnKey,
       value: value,
       success: function() {
-        if (returnKey === "chinese_input_result") {
-          storage.get({
-            key: "homepage_settings",
-            success: function(data) {
-              var settings = { showQuickAdd: true, showCustomContent: false, customContent: "", showTime: true, showStatusBar: true, timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: true } }
-              if (data) {
-                try { settings = JSON.parse(data) } catch (e) {}
-              }
-              settings.customContent = value
-              if (value && value.length > 0) {
-                settings.showCustomContent = true
-              }
-              storage.set({
-                key: "homepage_settings",
-                value: JSON.stringify(settings),
-                success: function() { router.back() },
-                fail: function() { router.back() }
-              })
-            },
-            fail: function() { router.back() }
-          })
-        } else {
-          router.back()
-        }
+        router.back()
       },
       fail: function() { router.back() }
     })

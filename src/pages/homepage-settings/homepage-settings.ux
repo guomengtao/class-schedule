@@ -191,6 +191,19 @@ export default {
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this.loadSettings()
+
+    var storage = require("@system.storage")
+    storage.get({
+      key: "chinese_input_result",
+      success: function(data) {
+        if (data !== undefined && data !== null && data !== "") {
+          self.customContent = data
+          self.showCustomContent = true
+          self.saveSettings()
+          storage.delete({ key: "chinese_input_result" })
+        }
+      }
+    })
   },
   loadSettings() {
     var self = this
