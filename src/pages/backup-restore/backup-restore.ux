@@ -1,5 +1,6 @@
-<import name="unlock-dialog" src="../../components/unlock-dialog"></import>
+<import name="premium-overlay" src="../../components/premium-overlay"></import>
 <template>
+  <stack class="page-root">
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
@@ -38,14 +39,16 @@
       <text class="info-text" style="color: {{ theme.textSecondary }}">课程数据 · 课表列表 · 首页设置 · 主题 · 提醒 · 解锁状态</text>
     </div>
 
-    <unlock-dialog id="unlockDialog"></unlock-dialog>
+    <premium-overlay></premium-overlay>
   </div>
+  </stack>
 </template>
 
 <script>
 import router from "@system.router"
 var storage = require("@system.storage")
 const store = require("../../data/store.js")
+var premiumOverlay = require("../../data/premium-overlay.js")
 
 var BACKUP_LIST_KEY = "backup_list"
 var MAX_BACKUPS = 20
@@ -74,12 +77,14 @@ export default {
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this.loadBackupList()
+    premiumOverlay.checkAndShow()
   },
 
   onShow() {
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this.loadBackupList()
+    premiumOverlay.checkAndShow()
   },
 
   loadBackupList() {
@@ -128,11 +133,7 @@ export default {
       if (unlocked) {
         self.performBackup()
       } else {
-        store.showUnlockDialog({
-          title: "解锁数据备份",
-          benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
-          cancelText: "继续使用标准版"
-        })
+        premiumOverlay.show()
       }
     })
   },
@@ -230,11 +231,7 @@ export default {
       if (unlocked) {
         self.performRestore(index)
       } else {
-        store.showUnlockDialog({
-          title: "解锁数据恢复",
-          benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "10套主题"],
-          cancelText: "继续使用标准版"
-        })
+        premiumOverlay.show()
       }
     })
   },
@@ -303,6 +300,11 @@ export default {
 </script>
 
 <style>
+.page-root {
+  width: 100%;
+  height: 100%;
+}
+
 .page {
   flex: 1;
   flex-direction: column;
