@@ -660,26 +660,26 @@ module.exports = {
 
   resetToEmpty: function(callback) {
     log("resetToEmpty: starting")
-    ensureReady(function() {
-      var totalKeys = 10
-      var completedDeletes = 0
-      function onDeleteComplete() {
-        completedDeletes++
-        if (completedDeletes >= totalKeys) {
-          finalizeEmpty(callback)
+    var emptyData = JSON.stringify([])
+    var totalKeys = 10
+    var completed = 0
+    function onComplete() {
+      completed++
+      if (completed >= totalKeys) {
+        finalizeEmpty(callback)
+      }
+    }
+    for (var i = 0; i < totalKeys; i++) {
+      storage.set({
+        key: STORAGE_KEY + "_" + i,
+        value: emptyData,
+        success: onComplete,
+        fail: function(e) {
+          logErr("resetToEmpty: set empty key failed: " + JSON.stringify(e))
+          onComplete()
         }
-      }
-      for (var i = 0; i < totalKeys; i++) {
-        storage.delete({
-          key: STORAGE_KEY + "_" + i,
-          success: onDeleteComplete,
-          fail: function(e) {
-            logErr("resetToEmpty: delete key failed: " + JSON.stringify(e))
-            onDeleteComplete()
-          }
-        })
-      }
-    })
+      })
+    }
 
     function finalizeEmpty(cb) {
       var names = ["课程表1"]
@@ -697,24 +697,44 @@ module.exports = {
                 key: "course_preset_list",
                 value: JSON.stringify(emptyPreset),
                 success: function() {
-                  log("resetToEmpty: complete")
-                  if (cb) cb(null)
+                  storage.set({
+                    key: "remindSettings",
+                    value: JSON.stringify({}),
+                    success: function() {
+                      storage.set({
+                        key: "homepage_settings",
+                        value: JSON.stringify({}),
+                        success: function() {
+                          log("resetToEmpty: complete")
+                          if (cb) cb(null)
+                        },
+                        fail: function(e) {
+                          logErr("resetToEmpty: homepage_settings failed: " + JSON.stringify(e))
+                          if (cb) cb(null)
+                        }
+                      })
+                    },
+                    fail: function(e) {
+                      logErr("resetToEmpty: remindSettings failed: " + JSON.stringify(e))
+                      if (cb) cb(null)
+                    }
+                  })
                 },
                 fail: function(e) {
-                  logErr("resetToEmpty: failed to set course_preset_list: " + JSON.stringify(e))
-                  if (cb) cb(formatError("resetToEmpty", "set course_preset_list failed: " + ((e && e.message) || JSON.stringify(e))))
+                  logErr("resetToEmpty: course_preset_list failed: " + JSON.stringify(e))
+                  if (cb) cb(null)
                 }
               })
             },
             fail: function(e) {
-              logErr("resetToEmpty: failed to set currentScheduleIndex: " + JSON.stringify(e))
-              if (cb) cb(formatError("resetToEmpty", "set currentScheduleIndex failed: " + ((e && e.message) || JSON.stringify(e))))
+              logErr("resetToEmpty: currentScheduleIndex failed: " + JSON.stringify(e))
+              if (cb) cb(null)
             }
           })
         },
         fail: function(e) {
-          logErr("resetToEmpty: failed to set scheduleNames: " + JSON.stringify(e))
-          if (cb) cb(formatError("resetToEmpty", "set scheduleNames failed: " + ((e && e.message) || JSON.stringify(e))))
+          logErr("resetToEmpty: scheduleNames failed: " + JSON.stringify(e))
+          if (cb) cb(null)
         }
       })
     }

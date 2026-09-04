@@ -52,12 +52,15 @@
         <div class="class-row-card" onclick="goToClassDetail($item)" style="background-color: {{ theme.card }}">
           <div class="progress-bg" if="{{ isToday }}" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
           <div class="class-row-content">
+            <div class="class-index" style="background-color: {{ theme.cardLight }}">
+              <text class="class-index-text" style="color: {{ theme.accent }}">{{ $idx + 1 }}</text>
+            </div>
             <div class="class-row-left">
               <text class="class-row-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-              <text class="class-row-teacher" if="{{ $item.teacher }}" style="color: {{ theme.textSecondary }}">{{ $item.teacher }}</text>
+              <text class="class-row-time" style="color: {{ theme.textMuted }}">{{ $item.time }}</text>
             </div>
             <div class="class-row-right">
-              <text class="class-row-time" style="color: {{ theme.textMuted }}">{{ $item.time }}</text>
+              <text class="class-row-teacher" if="{{ $item.teacher }}" style="color: {{ theme.textSecondary }}">{{ $item.teacher }}</text>
               <text class="class-row-location" if="{{ $item.location }}" style="color: {{ theme.accent }}">{{ $item.location }}</text>
             </div>
           </div>
@@ -455,14 +458,28 @@ export default {
   left: 0;
   top: 0;
   height: 100%;
-  opacity: 0.15;
+  opacity: 0.12;
 }
 
 .class-row-content {
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
+  padding: 10px 12px;
+}
+
+.class-index {
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.class-index-text {
+  font-size: 14px;
+  font-weight: bold;
 }
 
 .class-row-left {
@@ -471,13 +488,13 @@ export default {
 }
 
 .class-row-name {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: bold;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
-.class-row-teacher {
-  font-size: 14px;
+.class-row-time {
+  font-size: 13px;
 }
 
 .class-row-right {
@@ -487,13 +504,13 @@ export default {
   margin-left: 8px;
 }
 
-.class-row-time {
-  font-size: 14px;
-  margin-bottom: 2px;
+.class-row-teacher {
+  font-size: 13px;
+  margin-bottom: 1px;
 }
 
 .class-row-location {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .empty-card {
