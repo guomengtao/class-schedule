@@ -25,9 +25,9 @@
       </div>
 
       <div class="menu-item" onclick="openHomeModuleDemo" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">🏠 首页模块版</text>
+        <text class="menu-label" style="color: {{ theme.text }}">🏠 首页模块版 (lab-list)</text>
         <div class="menu-right">
-          <text class="menu-desc" style="color: {{ theme.textMuted }}">加载 1 个模块展示实验室列表</text>
+          <text class="menu-desc" style="color: {{ theme.textMuted }}">加载 lab-list.js 模块展示实验室列表</text>
           <text class="menu-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>

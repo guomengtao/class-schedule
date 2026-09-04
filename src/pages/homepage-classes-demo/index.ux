@@ -6,7 +6,7 @@
     </div>
 
     <div class="premium-overlay" style="background-color: {{ theme.accent }}">
-      <text class="premium-overlay-text" style="color: {{ theme.bg }}">⭐ 调用 class-list.js 模块渲染</text>
+      <text class="premium-overlay-text" style="color: {{ theme.bg }}">⭐ 直接调用 database.getAllCoursesWithIndex 渲染</text>
       <text class="premium-overlay-link" onclick="goToPremium" style="color: {{ theme.bg }}">查看详情 →</text>
     </div>
 
@@ -48,7 +48,6 @@ import router from "@system.router"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 var pinHelper = require("../../data/pin-helper.js")
-var classList = require("../index/modules/class-list.js")
 
 var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
@@ -85,27 +84,21 @@ export default {
       self.theme = t
     })
 
-    store.getCurrentScheduleIndex(function(idx) {
-      store.getScheduleNames(function(names) {
-        if (names && idx < names.length) {
-          self.currentScheduleName = names[idx]
-        } else {
-          self.currentScheduleName = "课程表" + (idx + 1)
-        }
-      })
-    })
-
-    classList.init(self)
-
     database.init(function() {
       store.getCurrentScheduleIndex(function(idx) {
+        store.getScheduleNames(function(names) {
+          if (names && idx < names.length) {
+            self.currentScheduleName = names[idx]
+          } else {
+            self.currentScheduleName = "课程表" + (idx + 1)
+          }
+        })
+
         database.getAllCoursesWithIndex(idx, function(schedule) {
           self.schedule = schedule
           self.loading = false
-          console.log("[homepage-classes-demo] data loaded, " + (schedule ? schedule.length : 0) + " days")
-          if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
-            self.loadDayClasses()
-          }
+          console.log("[homepage-classes-demo] schedule loaded, " + (schedule ? schedule.length : 0) + " days")
+          self.loadDayClasses()
         })
       })
     })
@@ -114,6 +107,45 @@ export default {
   onShow() {
     var self = this
     store.getTheme(function(t) { self.theme = t })
+  },
+
+  loadDayClasses() {
+    var self = this
+    var dayData = null
+    for (var i = 0; i < self.schedule.length; i++) {
+      if (self.schedule[i].day === self.currentDay) {
+        dayData = self.schedule[i]
+        break
+      }
+    }
+
+    if (!dayData || !dayData.classes || dayData.classes.length === 0) {
+      self.currentClasses = []
+      console.log("[homepage-classes-demo] no classes for " + self.currentDay)
+      return
+    }
+
+    var classes = dayData.classes.slice()
+    classes.sort(function(a, b) {
+      return a.startTime.localeCompare(b.startTime)
+    })
+
+    var result = []
+    for (var j = 0; j < classes.length; j++) {
+      var c = classes[j]
+      var displayName = c.name || "未命名"
+      var timeText = (c.startTime || "") + " - " + (c.endTime || "")
+      result.push({
+        id: c.id || "",
+        name: displayName,
+        time: timeText,
+        teacher: c.teacher || "",
+        location: c.location || ""
+      })
+    }
+
+    self.currentClasses = result
+    console.log("[homepage-classes-demo] " + self.currentDay + " loaded " + result.length + " classes")
   },
 
   goBack() {
@@ -135,9 +167,7 @@ export default {
       this.currentDayIndex = 6
     }
     this.currentDay = dayNames[this.currentDayIndex]
-    if (this.loadDayClasses && typeof this.loadDayClasses === 'function') {
-      this.loadDayClasses()
-    }
+    this.loadDayClasses()
   },
 
   nextDay() {
@@ -147,9 +177,7 @@ export default {
       this.currentDayIndex = 0
     }
     this.currentDay = dayNames[this.currentDayIndex]
-    if (this.loadDayClasses && typeof this.loadDayClasses === 'function') {
-      this.loadDayClasses()
-    }
+    this.loadDayClasses()
   }
 }
 </script>
