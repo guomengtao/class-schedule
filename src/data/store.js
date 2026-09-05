@@ -3,6 +3,27 @@ var authStore = require("./auth-store")
 
 var DEFAULT_NAMES = ["课程表1"]
 
+var DEFAULT_NICKNAMES = [
+  "学霸小明", "追光者", "书山行者", "知识猎人", "星海航者",
+  "梦想家", "笔尖少年", "晨读者", "夜学者", "自律达人",
+  "前进者", "思考者", "小太阳", "追风少年", "书虫",
+  "考试锦鲤", "高分选手", "努力鸭", "不熬夜", "满分目标"
+]
+
+var DEFAULT_QUOTES = [
+  "每天进步一点点", "今天的努力，明天的底气", "星光不问赶路人",
+  "越努力，越幸运", "坚持就是胜利", "学海无涯苦作舟",
+  "自律给我自由", "不负青春，不负自己", "梦想从学习开始",
+  "今天的汗水，明天的辉煌", "做最好的自己", "每一次努力都是成长",
+  "未来可期，加油少年", "书山有路勤为径", "相信自己，你可以的",
+  "努力的人运气不会太差", "青春不留白", "学习使我快乐",
+  "志当存高远", "天道酬勤"
+]
+
+function randomPick(list) {
+  return list[Math.floor(Math.random() * list.length)]
+}
+
 var THEMES = {
   blue: {
     name: '深空蓝',
@@ -280,16 +301,16 @@ module.exports = {
       key: "fontScale",
       success: function(data) {
         var scale = parseFloat(data)
-        if (!scale || scale < 0.5) { scale = 1.0 }
+        if (!scale || scale < 0.5) { scale = 28 / 48 }
         callback(scale)
       },
-      fail: function() { callback(1.0) }
+      fail: function() { callback(28 / 48) }
     })
   },
 
   getScaleSafe: function(callback) {
     this.getFontScale(function(scale) {
-      if (!scale || scale < 0.5) { scale = 1.0 }
+      if (!scale || scale < 0.5) { scale = 28 / 48 }
       callback(scale)
     })
   },
@@ -400,10 +421,10 @@ module.exports = {
     storage.get({
       key: "userNickname",
       success: function(data) {
-        callback(data || "")
+        callback(data || randomPick(DEFAULT_NICKNAMES))
       },
       fail: function() {
-        callback("")
+        callback(randomPick(DEFAULT_NICKNAMES))
       }
     })
   },
@@ -546,6 +567,19 @@ module.exports = {
   },
 
   getHomepageSettings: function(callback) {
+    var defaultSettings = {
+      showQuickAdd: true,
+      showCustomContent: true,
+      customContent: randomPick(DEFAULT_QUOTES),
+      showTime: true,
+      showStatusBar: true,
+      showPinnedBar: false,
+      showDayNavZong: true,
+      showDayNavJin: false,
+      showDayNavMing: false,
+      showLabSection: false,
+      timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false }
+    }
     storage.get({
       key: "homepage_settings",
       success: function(data) {
@@ -553,14 +587,14 @@ module.exports = {
           try {
             callback(JSON.parse(data))
           } catch (e) {
-            callback({ showQuickAdd: true, showCustomContent: false, customContent: "", showTime: true, showStatusBar: true, showPinnedBar: true, showDayNavZong: true, showDayNavJin: true, showDayNavMing: true, showLabSection: true, timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false } })
+            callback(defaultSettings)
           }
         } else {
-          callback({ showQuickAdd: true, showCustomContent: false, customContent: "", showTime: true, showStatusBar: true, showPinnedBar: true, showDayNavZong: true, showDayNavJin: true, showDayNavMing: true, showLabSection: true, timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false } })
+          callback(defaultSettings)
         }
       },
       fail: function() {
-        callback({ showQuickAdd: true, showCustomContent: false, customContent: "", showTime: true, showStatusBar: true, showPinnedBar: true, showDayNavZong: true, showDayNavJin: true, showDayNavMing: true, showLabSection: true, timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false } })
+        callback(defaultSettings)
       }
     })
   },
@@ -661,10 +695,10 @@ module.exports = {
     storage.get({
       key: "hideWeekend",
       success: function(data) {
-        callback(data === "true")
+        callback(data === "" ? true : data === "true")
       },
       fail: function() {
-        callback(false)
+        callback(true)
       }
     })
   },

@@ -53,7 +53,7 @@ export default {
     authStore.initAuth()
     store.getFontScale(function(scale) {
       if (!scale || scale < 0.5) {
-        store.setFontScale(1.0)
+        store.setFontScale(28 / 48)
       }
     })
     this.initBackgroundRunning()

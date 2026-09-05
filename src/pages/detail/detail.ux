@@ -230,7 +230,7 @@ export default {
     store.getFontScale(function(scale) {
       self.applyFontScale(scale)
     })
-    this.applyFontScale(1.0)
+    this.applyFontScale(28 / 48)
 
     var storage = require("@system.storage")
     var classIdLoaded = false

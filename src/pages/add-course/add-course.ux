@@ -219,7 +219,7 @@ export default {
     store.getFontScale(function(scale) {
       self.applyFontScale(scale)
     })
-    this.applyFontScale(1.0)
+    this.applyFontScale(28 / 48)
 
     this.loadCourses()
 

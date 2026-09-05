@@ -137,10 +137,10 @@ const sizeLevels = [28, 36, 48, 62, 76]
 export default {
   private: {
     nickname: "",
-    scale: 1.0,
-    displaySize: 48,
+    scale: 28 / 48,
+    displaySize: 28,
     previewClassSize: 48,
-    hideWeekend: false,
+    hideWeekend: true,
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -177,7 +177,7 @@ export default {
     })
 
     store.getFontScale(function(scale) {
-      if (!scale || scale < 0.5) { scale = 1.0 }
+      if (!scale || scale < 0.5) { scale = 28 / 48 }
       self.scale = scale
       self.displaySize = Math.round(48 * scale)
       self.updatePreviews()
