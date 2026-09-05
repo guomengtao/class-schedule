@@ -49,9 +49,7 @@
 
 <script>
 import router from "@system.router"
-import prompt from "@system.prompt"
 const store = require("../../data/store.js")
-const authStore = require("../../data/auth-store.js")
 var labList = require("../home-module-demo/modules/lab-list.js")
 
 export default {
@@ -59,7 +57,6 @@ export default {
     labItems: [],
     availablePages: [],
     showAddPanel: false,
-    devClickCount: 0,
     labStatus: "loading",
     theme: {
       bg: "#1a1a2e",
@@ -154,33 +151,6 @@ export default {
     if (this.showAddPanel) {
       labList.getAvailablePages(this.labItems, function(pages) {
         self.availablePages = pages
-      })
-    }
-  },
-
-  onDevExpireClick() {
-    this.devClickCount++
-    if (this.devClickCount >= 5) {
-      this.devClickCount = 0
-      authStore.getAuthData(function(data) {
-        if (!data) {
-          data = {
-            installTime: Date.now() - 8 * 24 * 60 * 60 * 1000,
-            trialDays: 7,
-            history: [],
-            lastRemindDate: "",
-            remindEnabled: true
-          }
-        }
-        data.isActivated = true
-        data.isPermanent = false
-        data.expireAt = Date.now() - 1
-        if (!data.activatedAt) {
-          data.activatedAt = Date.now() - 8 * 24 * 60 * 60 * 1000
-        }
-        authStore.setAuthData(data, function() {
-          prompt.showToast({ message: "已设置为过期状态，请返回首页查看效果" })
-        })
       })
     }
   },

@@ -8,7 +8,6 @@ var labItems = [
   { name: "📳 震动实验室", desc: "自定义震动方案", uri: "/pages/vibration-lab" },
   { name: "🔤 中文输入", desc: "中文输入法引擎", uri: "/pages/chinese-input" },
   { name: "🎵 手风琴 Demo", desc: "手风琴展开/折叠组件", uri: "/pages/accordion-demo" },
-  { name: "🔀 多文件 Demo", desc: "多模块协同示例", uri: "/pages/multi-file-demo" },
   { name: "💻 设备信息", desc: "查看设备信息", uri: "/pages/device-info" },
   { name: "🧩 组件化测试", desc: "组件化测试", uri: "/pages/comp-demo" },
   { name: "📦 多模块加载测试", desc: "多模块加载测试", uri: "/pages/lab-module-test" },
