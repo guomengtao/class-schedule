@@ -266,18 +266,7 @@ export default {
   },
 
   selectTheme(themeKey) {
-    var self = this
-    if (store.isFreeTheme(themeKey)) {
-      this.applyTheme(themeKey)
-      return
-    }
-    store.isPremiumUnlocked(function(unlocked) {
-      if (unlocked) {
-        self.applyTheme(themeKey)
-      } else {
-        store.showUnlockDialog({})
-      }
-    })
+    this.applyTheme(themeKey)
   },
 
   applyTheme(themeKey) {
@@ -411,23 +400,11 @@ export default {
   },
 
   openHomepageSettings() {
-    store.isPremiumUnlocked(function(unlocked) {
-      if (unlocked) {
-        router.push({ uri: "/pages/homepage-settings" })
-      } else {
-        store.showUnlockDialog({})
-      }
-    })
+    router.push({ uri: "/pages/homepage-settings" })
   },
 
   openBackupRestore() {
-    store.isPremiumUnlocked(function(unlocked) {
-      if (unlocked) {
-        router.push({ uri: "/pages/backup-restore" })
-      } else {
-        store.showUnlockDialog({})
-      }
-    })
+    router.push({ uri: "/pages/backup-restore" })
   },
 
   openResetData() {

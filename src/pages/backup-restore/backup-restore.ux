@@ -1,6 +1,4 @@
-<import name="premium-overlay" src="../../components/premium-overlay"></import>
 <template>
-  <stack class="page-root">
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
@@ -38,16 +36,30 @@
       <text class="info-title" style="color: {{ theme.text }}">备份包含</text>
       <text class="info-text" style="color: {{ theme.textSecondary }}">课程数据 · 课表列表 · 首页设置 · 主题 · 提醒 · 解锁状态</text>
     </div>
+
+    <div class="overlay-modal" show="{{ showDialog }}" onclick="hideOverlay">
+      <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
+        <text class="modal-title" style="color: {{ theme.accent }}">解锁高级功能</text>
+        <text class="modal-desc" style="color: {{ theme.textSecondary }}">一次性解锁，永久使用全部高级功能</text>
+        <div class="benefit-list">
+          <text class="benefit-item" style="color: {{ theme.text }}">✓ 多课表管理</text>
+          <text class="benefit-item" style="color: {{ theme.text }}">✓ 数据备份与恢复</text>
+          <text class="benefit-item" style="color: {{ theme.text }}">✓ 首页自定义</text>
+          <text class="benefit-item" style="color: {{ theme.text }}">✓ 多套主题</text>
+        </div>
+        <input class="modal-btn-primary" type="button" value="立即解锁" onclick="hideOverlay"
+               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="modal-btn-secondary" type="button" value="暂不需要" onclick="hideOverlay"
+               style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+      </div>
+    </div>
   </div>
-  <premium-overlay></premium-overlay>
-</stack>
 </template>
 
 <script>
 import router from "@system.router"
 var storage = require("@system.storage")
 const store = require("../../data/store.js")
-var premiumOverlay = require("../../data/premium-overlay.js")
 
 var BACKUP_LIST_KEY = "backup_list"
 var MAX_BACKUPS = 20
@@ -69,7 +81,8 @@ export default {
     resultSuccess: false,
     deleteConfirmIndex: -1,
     restoreProgress: -1,
-    restoreTotal: 0
+    restoreTotal: 0,
+    showDialog: false
   },
 
   _logStatus() {
@@ -121,7 +134,7 @@ export default {
 
   onReady() {
     console.log("[BACKUP] onReady: all components ready, checking premium...")
-    premiumOverlay.checkAndShow()
+    this.checkAndShowOverlay()
   },
 
   onShow() {
@@ -129,7 +142,31 @@ export default {
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this._logStatus()
-    premiumOverlay.checkAndShow()
+    this.checkAndShowOverlay()
+  },
+
+  checkAndShowOverlay() {
+    console.log("[BACKUP] checkAndShowOverlay: START, calling store.isPremiumUnlocked...")
+    var self = this
+    store.isPremiumUnlocked(function(unlocked) {
+      console.log("[BACKUP] checkAndShowOverlay: CALLBACK fired, unlocked=" + unlocked)
+      if (!unlocked) {
+        console.log("[BACKUP] checkAndShowOverlay: setting showDialog=true, was=" + self.showDialog)
+        self.showDialog = true
+        console.log("[BACKUP] checkAndShowOverlay: showDialog now=" + self.showDialog)
+      } else {
+        console.log("[BACKUP] checkAndShowOverlay: user IS premium, skip overlay")
+      }
+    })
+    console.log("[BACKUP] checkAndShowOverlay: END (async pending)")
+  },
+
+  hideOverlay() {
+    console.log("[BACKUP] hideOverlay: hiding dialog")
+    this.showDialog = false
+  },
+
+  stopBubble() {
   },
 
   loadBackupList() {
@@ -173,14 +210,17 @@ export default {
   },
 
   doBackup() {
-    console.log("[BACKUP] doBackup: user clicked backup, checking premium...")
+    console.log("[BACKUP] doBackup: START, user clicked backup, checking premium...")
     var self = this
     store.isPremiumUnlocked(function(unlocked) {
-      console.log("[BACKUP] doBackup: premiumUnlocked=" + unlocked)
+      console.log("[BACKUP] doBackup: CALLBACK, unlocked=" + unlocked + ", showDialog=" + self.showDialog)
       if (unlocked) {
+        console.log("[BACKUP] doBackup: premium, performing backup")
         self.performBackup()
       } else {
-        premiumOverlay.show()
+        console.log("[BACKUP] doBackup: NOT premium, setting showDialog=true")
+        self.showDialog = true
+        console.log("[BACKUP] doBackup: showDialog now=" + self.showDialog)
       }
     })
   },
@@ -273,14 +313,17 @@ export default {
   },
 
   restoreBackup(index) {
-    console.log("[BACKUP] restoreBackup: user clicked restore index=" + index + ", checking premium...")
+    console.log("[BACKUP] restoreBackup: START, index=" + index + ", checking premium...")
     var self = this
     store.isPremiumUnlocked(function(unlocked) {
-      console.log("[BACKUP] restoreBackup: premiumUnlocked=" + unlocked)
+      console.log("[BACKUP] restoreBackup: CALLBACK, unlocked=" + unlocked + ", showDialog=" + self.showDialog)
       if (unlocked) {
+        console.log("[BACKUP] restoreBackup: premium, performing restore")
         self.performRestore(index)
       } else {
-        premiumOverlay.show()
+        console.log("[BACKUP] restoreBackup: NOT premium, setting showDialog=true")
+        self.showDialog = true
+        console.log("[BACKUP] restoreBackup: showDialog now=" + self.showDialog)
       }
     })
   },
@@ -349,11 +392,6 @@ export default {
 </script>
 
 <style>
-.page-root {
-  width: 100%;
-  height: 100%;
-}
-
 .page {
   flex: 1;
   flex-direction: column;
@@ -497,13 +535,81 @@ export default {
   line-height: 20px;
 }
 
+.overlay-modal {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  width: 80%;
+  border-radius: 16px;
+  padding: 24px 20px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.modal-desc {
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 16px;
+  line-height: 20px;
+}
+
+.benefit-list {
+  width: 100%;
+  flex-direction: column;
+  padding-left: 12px;
+  margin-bottom: 18px;
+}
+
+.benefit-item {
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.modal-btn-primary {
+  width: 100%;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.modal-btn-secondary {
+  width: 100%;
+  height: 36px;
+  border-radius: 18px;
+  font-size: 13px;
+  text-align: center;
+}
+
 @media (shape: circle) {
   .page {
     padding: 44px 24px 24px 24px;
   }
+  .header {
+    margin-bottom: 10px;
+  }
   .back-btn {
     width: 52px;
-    height: 28px;
+    height: 26px;
     font-size: 12px;
   }
   .title {
@@ -511,7 +617,7 @@ export default {
   }
   .create-btn {
     width: 52px;
-    height: 28px;
+    height: 26px;
     font-size: 12px;
   }
 }

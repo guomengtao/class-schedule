@@ -1,6 +1,4 @@
-<import name="premium-overlay" src="../../components/premium-overlay"></import>
 <template>
-  <stack class="page-root">
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
@@ -161,15 +159,12 @@
       <text class="time-preview" if="{{ showTime }}" style="color: {{ theme.accent }}">{{ timePreview }}</text>
     </div>
 
-    <premium-overlay></premium-overlay>
-  </div>
-  </stack>
+    </div>
 </template>
 
 <script>
 import router from "@system.router"
 const store = require("../../data/store.js")
-var premiumOverlay = require("../../data/premium-overlay.js")
 export default {
   private: {
     theme: store.DEFAULT_THEME,
@@ -186,18 +181,16 @@ export default {
     timePreview: ""
   },
   onInit() {
-    console.log("[HOMEPAGE-SETTINGS] onInit: page created, checking premium...")
+    console.log("[HOMEPAGE-SETTINGS] onInit: page created")
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this.loadSettings()
-    premiumOverlay.checkAndShow()
   },
   onShow() {
-    console.log("[HOMEPAGE-SETTINGS] onShow: page shown, checking premium...")
+    console.log("[HOMEPAGE-SETTINGS] onShow: page shown")
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this.loadSettings()
-    premiumOverlay.checkAndShow()
 
     var storage = require("@system.storage")
     storage.get({
@@ -257,98 +250,57 @@ export default {
     }, function() { router.back() })
   },
 
-  checkPremiumAccess(callback) {
-    console.log("[HOMEPAGE-SETTINGS] checkPremiumAccess: feature toggle clicked, checking premium...")
-    store.isPremiumUnlocked(function(unlocked) {
-      console.log("[HOMEPAGE-SETTINGS] checkPremiumAccess: premiumUnlocked=" + unlocked)
-      if (unlocked) {
-        callback()
-      } else {
-        premiumOverlay.show()
-      }
-    })
-  },
-
   toggleQuickAdd() {
-    var self = this
-    this.checkPremiumAccess(function() {
-      self.showQuickAdd = !self.showQuickAdd
-      self.saveSettings()
-    })
+    this.showQuickAdd = !this.showQuickAdd
+    this.saveSettings()
   },
   toggleCustomContent() {
-    var self = this
-    this.checkPremiumAccess(function() {
-      self.showCustomContent = !self.showCustomContent
-      self.saveSettings()
-    })
+    this.showCustomContent = !this.showCustomContent
+    this.saveSettings()
   },
   toggleStatusBar() {
-    var self = this
-    this.checkPremiumAccess(function() {
-      self.showStatusBar = !self.showStatusBar
-      self.saveSettings()
-    })
+    this.showStatusBar = !this.showStatusBar
+    this.saveSettings()
   },
   toggleTime() {
-    var self = this
-    this.checkPremiumAccess(function() {
-      self.showTime = !self.showTime
-      self.saveSettings()
-    })
+    this.showTime = !this.showTime
+    this.saveSettings()
   },
   togglePinnedBar() {
-    var self = this
-    this.checkPremiumAccess(function() {
-      self.showPinnedBar = !self.showPinnedBar
-      self.saveSettings()
-    })
+    this.showPinnedBar = !this.showPinnedBar
+    this.saveSettings()
   },
   toggleDayNavZong() {
-    var self = this
-    this.checkPremiumAccess(function() {
-      self.showDayNavZong = !self.showDayNavZong
-      self.saveSettings()
-    })
+    this.showDayNavZong = !this.showDayNavZong
+    this.saveSettings()
   },
   toggleDayNavJin() {
-    var self = this
-    this.checkPremiumAccess(function() {
-      self.showDayNavJin = !self.showDayNavJin
-      self.saveSettings()
-    })
+    this.showDayNavJin = !this.showDayNavJin
+    this.saveSettings()
   },
   toggleDayNavMing() {
-    var self = this
-    this.checkPremiumAccess(function() {
-      self.showDayNavMing = !self.showDayNavMing
-      self.saveSettings()
-    })
+    this.showDayNavMing = !this.showDayNavMing
+    this.saveSettings()
   },
   showContentKeyboard() {
     var self = this
-    this.checkPremiumAccess(function() {
-      var storage = require("@system.storage")
-      storage.set({ key: "chinese_input_title", value: "自定义内容", success: function() {
-        storage.set({ key: "chinese_input_placeholder", value: "点击输入自定义内容", success: function() {
-          storage.set({ key: "chinese_input_value", value: self.customContent || "", success: function() {
-            storage.set({ key: "chinese_input_maxlen", value: "20", success: function() {
-              storage.set({ key: "chinese_input_return_key", value: "chinese_input_result", success: function() {
-                router.push({ uri: "/pages/chinese-input" })
-              } })
+    var storage = require("@system.storage")
+    storage.set({ key: "chinese_input_title", value: "自定义内容", success: function() {
+      storage.set({ key: "chinese_input_placeholder", value: "点击输入自定义内容", success: function() {
+        storage.set({ key: "chinese_input_value", value: self.customContent || "", success: function() {
+          storage.set({ key: "chinese_input_maxlen", value: "20", success: function() {
+            storage.set({ key: "chinese_input_return_key", value: "chinese_input_result", success: function() {
+              router.push({ uri: "/pages/chinese-input" })
             } })
           } })
         } })
       } })
-    })
+    } })
   },
   toggleTimeUnit(unit) {
-    var self = this
-    this.checkPremiumAccess(function() {
-      self.timeFormat[unit] = !self.timeFormat[unit]
-      self.updateTimePreview()
-      self.saveSettings()
-    })
+    this.timeFormat[unit] = !this.timeFormat[unit]
+    this.updateTimePreview()
+    this.saveSettings()
   },
   toggleYear() { this.toggleTimeUnit("year") },
   toggleMonth() { this.toggleTimeUnit("month") },

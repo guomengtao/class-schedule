@@ -71,11 +71,9 @@ var pinHelper = require("../../data/pin-helper.js")
 import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
-const authStore = require("../../data/auth-store.js")
 
 export default {
   private: {
-    isPro: false,
     list: [],
     currentIndex: 0,
     expandedIndex: -1,
@@ -102,27 +100,9 @@ export default {
       self.theme = t
     })
     this.loadData()
-    this.checkProStatus()
-  },
-
-  checkProStatus() {
-    var self = this
-    authStore.checkStatus(function(status) {
-      self.isPro = status.isActivated
-    })
   },
 
   checkProAccess() {
-    var self = this
-    if (!self.isPro) {
-      store.showUnlockDialog({
-        title: "解锁多课表管理",
-        description: "一次性解锁，永久使用全部高级功能",
-        benefits: ["多课表管理", "课表复制导出", "数据备份与恢复", "首页自定义"],
-        cancelText: "暂不需要"
-      })
-      return false
-    }
     return true
   },
 
@@ -416,18 +396,7 @@ export default {
   },
 
   addSchedule() {
-    var self = this
-    store.isPremiumUnlocked(function(unlocked) {
-      if (unlocked) {
-        self.doAddSchedule()
-      } else {
-        if (self.list.length >= 1) {
-          store.showUnlockDialog({})
-        } else {
-          self.doAddSchedule()
-        }
-      }
-    })
+    this.doAddSchedule()
   },
 
   doAddSchedule() {
