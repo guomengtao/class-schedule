@@ -123,6 +123,10 @@ export default {
     this.loadData()
   },
 
+  onReady() {
+    this.checkAndShowOverlay()
+  },
+
   checkProAccess() {
     return true
   },
@@ -145,6 +149,16 @@ export default {
     })
 
     this.loadData()
+    this.checkAndShowOverlay()
+  },
+
+  checkAndShowOverlay() {
+    var self = this
+    store.isPremiumUnlocked(function(unlocked) {
+      if (!unlocked) {
+        self.showDialog = true
+      }
+    })
   },
 
   loadData() {
