@@ -1,4 +1,4 @@
-<template>
+rinuo@qq.com<template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
@@ -164,7 +164,7 @@ export default {
   goToPremium() {
     console.log("[BACKUP] goToPremium: navigating to premium page")
     this.showDialog = false
-    router.push({ uri: "/pages/premium/premium" })
+    router.push({ uri: "/pages/activation" })
   },
 
   loadBackupList() {
