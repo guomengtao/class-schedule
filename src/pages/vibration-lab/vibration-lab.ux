@@ -3,7 +3,41 @@
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="title" style="color: {{ theme.text }}">实验室</text>
+      <text class="title" style="color: {{ theme.text }}">震动自定义</text>
+    </div>
+
+    <div class="notice-banner" style="background-color: {{ theme.cardLight }}; border-color: {{ theme.accent }}">
+      <text class="notice-icon">💡</text>
+      <text class="notice-text" style="color: {{ theme.textSecondary }}">温馨提示：震动提醒功能仅在屏幕亮屏时有效，息屏后系统无法触发震动。</text>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">震动提醒设置</text>
+      <div class="remind-toggle-row">
+        <text class="remind-label" style="color: {{ theme.text }}">上课提醒</text>
+        <input class="toggle-btn" type="button" value="{{ remindEnabled ? 'ON' : 'OFF' }}" onclick="toggleRemind" style="background-color: {{ remindEnabled ? theme.accent : theme.border }}; color: {{ remindEnabled ? theme.bg : theme.textSecondary }}" />
+      </div>
+      <div class="remind-toggle-row" if="{{ remindEnabled }}">
+        <text class="remind-label" style="color: {{ theme.text }}">提前提醒</text>
+        <div class="minute-row">
+          <input class="minute-btn" type="button" value="−" onclick="decreaseMinutes" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
+          <text class="minute-value" style="color: {{ theme.accent }}">{{ remindMinutes }} 分钟</text>
+          <input class="minute-btn" type="button" value="+" onclick="increaseMinutes" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
+        </div>
+      </div>
+      <div if="{{ remindEnabled }}">
+        <text class="remind-label" style="color: {{ theme.text }}; margin-bottom: 6px;">震动样式</text>
+        <div class="vibe-grid">
+          <div for="{{ vibrationStyles }}" class="vibe-item {{ vibrationStyle === $item.key ? 'active' : '' }}" onclick="selectVibrationStyle($item.key)" style="background-color: {{ vibrationStyle === $item.key ? theme.cardLight : theme.border }}; border-color: {{ vibrationStyle === $item.key ? theme.accent : 'transparent' }}">
+            <div class="vibe-top">
+              <text class="vibe-label" style="color: {{ vibrationStyle === $item.key ? theme.accent : theme.text }}">{{ $item.label }}</text>
+              <text class="vibe-check" if="{{ vibrationStyle === $item.key }}" style="color: {{ theme.accent }}">✓</text>
+            </div>
+            <text class="vibe-desc" style="color: {{ vibrationStyle === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.desc }}</text>
+          </div>
+        </div>
+        <text class="vibe-hint" style="color: {{ theme.textMuted }}">点击试听震动效果</text>
+      </div>
     </div>
 
     <div class="lab-nav" style="background-color: {{ theme.card }}">
@@ -158,11 +192,16 @@ export default {
     isPlaying: false,
     presets: [],
     savedPresets: [],
-    deleteConfirmIndex: -1
+    deleteConfirmIndex: -1,
+    remindEnabled: true,
+    remindMinutes: 5,
+    vibrationStyle: "short",
+    vibrationStyles: []
   },
 
   onInit() {
     var self = this
+    this.vibrationStyles = store.getVibrationStyles ? store.getVibrationStyles() : []
     this.presets = presetKeys.map(function(key) {
       return {
         key: key,
@@ -175,6 +214,8 @@ export default {
       self.theme = t
     })
     this.loadPresets()
+    this.loadRemindSettings()
+    this.loadVibrationStyle()
     this.checkProStatus()
   },
 
@@ -380,6 +421,101 @@ export default {
     this.deleteConfirmIndex = -1
     store.setVibrationPresets(this.savedPresets)
     prompt.showToast({ message: "方案已删除" })
+  },
+
+  loadRemindSettings() {
+    var self = this
+    store.getRemindSettings(function(settings) {
+      if (settings) {
+        self.remindEnabled = settings.enabled
+        self.remindMinutes = settings.minutes
+      }
+    })
+  },
+
+  loadVibrationStyle() {
+    var self = this
+    store.getVibrationStyle(function(style) {
+      self.vibrationStyle = style || "short"
+    })
+  },
+
+  toggleRemind() {
+    this.remindEnabled = !this.remindEnabled
+    this.saveRemindSettings()
+  },
+
+  increaseMinutes() {
+    if (this.remindMinutes < 30) {
+      this.remindMinutes++
+      this.saveRemindSettings()
+    }
+  },
+
+  decreaseMinutes() {
+    if (this.remindMinutes > 0) {
+      this.remindMinutes--
+      this.saveRemindSettings()
+    }
+  },
+
+  saveRemindSettings() {
+    store.setRemindSettings({
+      enabled: this.remindEnabled,
+      minutes: this.remindMinutes
+    })
+  },
+
+  selectVibrationStyle(style) {
+    this.vibrationStyle = style
+    this.previewVibrationStyle(style)
+    store.setVibrationStyle(style)
+  },
+
+  previewVibrationStyle(style) {
+    var pattern = null
+    var styles = this.vibrationStyles
+    for (var i = 0; i < styles.length; i++) {
+      if (styles[i].key === style) {
+        pattern = styles[i]
+        break
+      }
+    }
+    if (!pattern) {
+      this.fallbackVibrateOnce("short")
+      return
+    }
+    var self = this
+    vibrator.start({
+      duration: pattern.duration,
+      interval: pattern.interval,
+      count: pattern.count,
+      success: function() {},
+      fail: function(data, code) {
+        console.warn("[VIBRATION-LAB] vibrator.start fail, code=" + code + ", fallback")
+        self.fallbackVibratePattern(pattern)
+      }
+    })
+  },
+
+  fallbackVibrateOnce(mode) {
+    var vibrateMode = (mode === "long" || mode === 400) ? "long" : "short"
+    vibrator.vibrate({ mode: vibrateMode })
+  },
+
+  fallbackVibratePattern(pattern) {
+    var idx = 0
+    var self = this
+    function loop() {
+      if (idx >= pattern.count) return
+      var mode = pattern.duration > 300 ? "long" : "short"
+      vibrator.vibrate({ mode: mode })
+      idx++
+      if (idx < pattern.count) {
+        setTimeout(loop, pattern.interval + pattern.duration)
+      }
+    }
+    loop()
   },
 
   goBack() {
@@ -648,6 +784,110 @@ export default {
   font-size: 16px;
   font-weight: bold;
   text-align: center;
+}
+
+.notice-banner {
+  flex-direction: row;
+  align-items: center;
+  border-radius: 10px;
+  border: 1px solid;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.notice-icon {
+  font-size: 18px;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.notice-text {
+  font-size: 12px;
+  line-height: 18px;
+  flex: 1;
+}
+
+.remind-toggle-row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.remind-label {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.toggle-btn {
+  width: 52px;
+  height: 28px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.minute-row {
+  flex-direction: row;
+  align-items: center;
+}
+
+.minute-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.minute-value {
+  font-size: 14px;
+  font-weight: bold;
+  min-width: 64px;
+  text-align: center;
+}
+
+.vibe-grid {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.vibe-item {
+  flex-direction: column;
+  width: 48%;
+  padding: 8px;
+  margin-bottom: 4px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+}
+
+.vibe-top {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vibe-label {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.vibe-check {
+  font-size: 14px;
+}
+
+.vibe-desc {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.vibe-hint {
+  font-size: 11px;
+  text-align: center;
+  margin-top: 6px;
 }
 
 @media (shape: circle) {

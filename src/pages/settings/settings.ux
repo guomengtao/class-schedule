@@ -47,35 +47,6 @@
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
-      <text class="group-title" style="color: {{ theme.text }}">上课提醒</text>
-      <div class="row">
-        <text class="row-label" style="color: {{ theme.text }}">震动提醒</text>
-        <input class="toggle-btn" type="button" value="{{ remindEnabled ? 'ON' : 'OFF' }}" onclick="toggleRemind" style="background-color: {{ remindEnabled ? theme.accent : theme.border }}; color: {{ remindEnabled ? theme.bg : theme.textSecondary }}" />
-      </div>
-      <div class="row" if="{{ remindEnabled }}">
-        <text class="row-label" style="color: {{ theme.text }}">提前提醒</text>
-        <div class="minute-row">
-          <input class="minute-btn" type="button" value="−" onclick="decreaseMinutes" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
-          <text class="minute-value" style="color: {{ theme.accent }}">{{ remindMinutes }} 分钟</text>
-          <input class="minute-btn" type="button" value="+" onclick="increaseMinutes" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
-        </div>
-      </div>
-      <div if="{{ remindEnabled }}">
-        <text class="group-title" style="color: {{ theme.text }}">震动样式</text>
-        <div class="vibe-grid">
-          <div for="{{ vibrationStyles }}" class="vibe-item {{ vibrationStyle === $item.key ? 'active' : '' }}" onclick="selectVibrationStyle($item.key)" style="background-color: {{ vibrationStyle === $item.key ? theme.cardLight : theme.border }}; border-color: {{ vibrationStyle === $item.key ? theme.accent : 'transparent' }}">
-            <div class="vibe-top">
-              <text class="vibe-label" style="color: {{ vibrationStyle === $item.key ? theme.accent : theme.text }}">{{ $item.label }}</text>
-              <text class="vibe-check" if="{{ vibrationStyle === $item.key }}" style="color: {{ theme.accent }}">✓</text>
-            </div>
-            <text class="vibe-desc" style="color: {{ vibrationStyle === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.desc }}</text>
-          </div>
-        </div>
-        <text class="vibe-hint" style="color: {{ theme.textMuted }}">点击试听震动效果</text>
-      </div>
-    </div>
-
-    <div class="group" style="background-color: {{ theme.card }}">
       <text class="group-title" style="color: {{ theme.text }}">课程表设置</text>
       <div class="row">
         <text class="row-label" style="color: {{ theme.text }}">隐藏周六日</text>
@@ -139,31 +110,9 @@
 
 <script>
 import router from "@system.router"
-import vibrator from "@system.vibrator"
 import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 const version = require("../../data/version.js")
-
-function safeVibrate(mode) {
-  if (!vibrator) {
-    console.warn("[SETTINGS] vibrator module is missing")
-    return false
-  }
-  var vibrateMode = (mode === "long" || mode === 400) ? "long" : "short"
-  try {
-    vibrator.vibrate({
-      mode: vibrateMode,
-      success: function() {},
-      fail: function(data, code) {
-        console.warn("[SETTINGS] vibrate fail, code: " + code)
-      }
-    })
-    return true
-  } catch (e) {
-    console.warn("[SETTINGS] vibrate exception: " + e)
-    return false
-  }
-}
 
 const sizeLevels = [28, 36, 48, 62, 76]
 
@@ -173,10 +122,6 @@ export default {
     scale: 1.0,
     displaySize: 48,
     previewClassSize: 48,
-    remindEnabled: true,
-    remindMinutes: 5,
-    vibrationStyle: "short",
-    vibrationStyles: [],
     hideWeekend: false,
     theme: {
       bg: '#1a1a2e',
@@ -205,7 +150,6 @@ export default {
 
   onInit() {
     var self = this
-    this.vibrationStyles = store.getVibrationStyles ? store.getVibrationStyles() : []
     this.themes = store.getAvailableThemes ? store.getAvailableThemes() : []
 
     store.getTheme(function(t, name) {
@@ -219,9 +163,7 @@ export default {
       self.displaySize = Math.round(48 * scale)
       self.updatePreviews()
     })
-    this.loadRemindSettings()
     this.loadNickname()
-    this.loadVibrationStyle()
     this.loadHideWeekend()
     this.versionText = version.versionName
   },
@@ -279,16 +221,6 @@ export default {
     })
   },
 
-  loadRemindSettings() {
-    var self = this
-    store.getRemindSettings(function(settings) {
-      if (settings) {
-        self.remindEnabled = settings.enabled
-        self.remindMinutes = settings.minutes
-      }
-    })
-  },
-
   loadNickname() {
     var self = this
     store.getNickname(function(name) {
@@ -318,85 +250,6 @@ export default {
 
   openActivation() {
     router.push({ uri: "/pages/activation" })
-  },
-
-  toggleRemind() {
-    this.remindEnabled = !this.remindEnabled
-    this.saveRemindSettings()
-  },
-
-  increaseMinutes() {
-    if (this.remindMinutes < 30) {
-      this.remindMinutes++
-      this.saveRemindSettings()
-    }
-  },
-
-  decreaseMinutes() {
-    if (this.remindMinutes > 0) {
-      this.remindMinutes--
-      this.saveRemindSettings()
-    }
-  },
-
-  saveRemindSettings() {
-    store.setRemindSettings({
-      enabled: this.remindEnabled,
-      minutes: this.remindMinutes
-    })
-  },
-
-  loadVibrationStyle() {
-    var self = this
-    store.getVibrationStyle(function(style) {
-      self.vibrationStyle = style || "short"
-    })
-  },
-
-  selectVibrationStyle(style) {
-    this.vibrationStyle = style
-    this.previewVibration(style)
-    store.setVibrationStyle(style)
-  },
-
-  previewVibration(style) {
-    var pattern = null
-    var styles = this.vibrationStyles
-    for (var i = 0; i < styles.length; i++) {
-      if (styles[i].key === style) {
-        pattern = styles[i]
-        break
-      }
-    }
-    if (!pattern) {
-      safeVibrate("short")
-      return
-    }
-    vibrator.start({
-      duration: pattern.duration,
-      interval: pattern.interval,
-      count: pattern.count,
-      success: function() {},
-      fail: function(data, code) {
-        console.warn("[SETTINGS] vibrator.start fail, code=" + code + ", fallback to vibrate")
-        var idx = 0
-        function loop() {
-          if (idx >= pattern.count) return
-          var mode = pattern.duration > 300 ? "long" : "short"
-          vibrator.vibrate({ mode: mode })
-          idx++
-          if (idx < pattern.count) {
-            setTimeout(loop, pattern.interval + pattern.duration)
-          }
-        }
-        loop()
-      }
-    })
-  },
-
-  saveSettings() {
-    prompt.showToast({ message: "设置已保存" })
-    router.back()
   },
 
   openHomepageSettings() {
@@ -586,68 +439,6 @@ export default {
   font-size: 12px;
   font-weight: bold;
   text-align: center;
-}
-
-.minute-row {
-  flex-direction: row;
-  align-items: center;
-}
-
-.minute-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.minute-value {
-  font-size: 14px;
-  font-weight: bold;
-  min-width: 64px;
-  text-align: center;
-}
-
-.vibe-grid {
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: space-between;
-}
-
-.vibe-item {
-  flex-direction: column;
-  width: 48%;
-  padding: 8px;
-  margin-bottom: 4px;
-  border-radius: 8px;
-  border: 2px solid transparent;
-}
-
-.vibe-top {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.vibe-label {
-  font-size: 13px;
-  font-weight: bold;
-}
-
-.vibe-check {
-  font-size: 14px;
-}
-
-.vibe-desc {
-  font-size: 11px;
-  margin-top: 2px;
-}
-
-.vibe-hint {
-  font-size: 11px;
-  text-align: center;
-  margin-top: 6px;
 }
 
 .save-area {
