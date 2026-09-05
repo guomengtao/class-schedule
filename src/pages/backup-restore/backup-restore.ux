@@ -37,8 +37,8 @@
       <text class="info-text" style="color: {{ theme.textSecondary }}">课程数据 · 课表列表 · 首页设置 · 主题 · 提醒 · 解锁状态</text>
     </div>
 
-    <div class="overlay-modal" show="{{ showDialog }}" onclick="hideOverlay">
-      <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
+    <div class="overlay-modal" show="{{ showDialog }}">
+      <div class="modal-card" style="background-color: {{ theme.card }}">
         <text class="modal-title" style="color: {{ theme.accent }}">解锁高级功能</text>
         <text class="modal-desc" style="color: {{ theme.textSecondary }}">一次性解锁，永久使用全部高级功能</text>
         <div class="benefit-list">
@@ -47,9 +47,9 @@
           <text class="benefit-item" style="color: {{ theme.text }}">✓ 首页自定义</text>
           <text class="benefit-item" style="color: {{ theme.text }}">✓ 多套主题</text>
         </div>
-        <input class="modal-btn-primary" type="button" value="立即解锁" onclick="hideOverlay"
+        <input class="modal-btn-primary" type="button" value="立即解锁" onclick="goToPremium"
                style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        <input class="modal-btn-secondary" type="button" value="暂不需要" onclick="hideOverlay"
+        <input class="modal-btn-secondary" type="button" value="暂不需要" onclick="goBack"
                style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
       </div>
     </div>
@@ -161,12 +161,10 @@ export default {
     console.log("[BACKUP] checkAndShowOverlay: END (async pending)")
   },
 
-  hideOverlay() {
-    console.log("[BACKUP] hideOverlay: hiding dialog")
+  goToPremium() {
+    console.log("[BACKUP] goToPremium: navigating to premium page")
     this.showDialog = false
-  },
-
-  stopBubble() {
+    router.push({ uri: "/pages/premium/premium" })
   },
 
   loadBackupList() {
