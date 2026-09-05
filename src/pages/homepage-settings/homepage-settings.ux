@@ -159,8 +159,6 @@
       <text class="time-preview" if="{{ showTime }}" style="color: {{ theme.accent }}">{{ timePreview }}</text>
     </div>
 
-    </div>
-
     <div class="overlay-modal" show="{{ showDialog }}">
       <div class="modal-card" style="background-color: {{ theme.card }}">
         <text class="modal-title" style="color: {{ theme.accent }}">解锁高级功能</text>
