@@ -30,6 +30,7 @@ var ALL_PAGES = [
   { name: "📅 课表二维码", uri: "/pages/schedule-qrcode" },
   { name: "🔄 重置数据", uri: "/pages/reset-data" },
   { name: "✏️ 昵称编辑", uri: "/pages/nickname-edit" },
+  { name: "➕ 添加课程", uri: "/pages/add-course" },
   { name: "📋 课程详情", uri: "/pages/detail" },
   { name: "⚙️ 设置", uri: "/pages/settings" }
 ]

@@ -71,6 +71,9 @@
       "pages/detail": {
         "component": "detail"
       },
+      "pages/add-course": {
+        "component": "add-course"
+      },
       "pages/settings": {
         "component": "settings"
       },
