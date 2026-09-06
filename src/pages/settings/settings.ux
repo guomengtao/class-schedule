@@ -32,10 +32,10 @@
         <text class="group-title" style="color: {{ theme.text }}">字体大小</text>
         <div class="row-right">
           <text class="row-hint" style="color: {{ theme.textMuted }}">{{ displaySize }}px</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">{{ showFontSize ? '˅' : '›' }}</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">{{ showFontSize ? 'v' : '›' }}</text>
         </div>
       </div>
-      <div if="{{ showFontSize }}">
+      <div if="{{ showFontSize }}" class="font-size-body">
         <div class="scale-row">
           <input class="scale-btn" type="button" value="−" onclick="decreaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
           <text class="scale-value" style="color: {{ theme.accent }}">{{ displaySize }}px</text>
@@ -377,6 +377,10 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
+}
+
+.font-size-body {
+  flex-direction: column;
 }
 
 .row {
