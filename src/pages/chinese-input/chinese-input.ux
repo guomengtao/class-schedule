@@ -21,55 +21,14 @@
 
     <div class="keyboard" show="{{ !hideKeyboard }}">
 
-        <div class="t9-key-row" show="{{ keyboardMode === 't9' && !numFlag }}">
-          <div class="t9-key" onclick="onT9Key('2')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
-            <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">ABC</text>
-            <text class="t9-key-digit" style="color: {{ theme.text }}">2</text>
-          </div>
-          <div class="t9-key" onclick="onT9Key('3')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
-            <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">DEF</text>
-            <text class="t9-key-digit" style="color: {{ theme.text }}">3</text>
-          </div>
-          <div class="t9-key" onclick="onT9Key('4')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
-            <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">GHI</text>
-            <text class="t9-key-digit" style="color: {{ theme.text }}">4</text>
-          </div>
-          <div class="t9-key t9-key-func" onclick="onDeleteKey" style="background-color: {{ theme.deleteBg }}; border-color: {{ theme.borderLight }}">
-            <text class="t9-key-del-icon" style="color: {{ theme.deleteText }}">Del</text>
-          </div>
+        <div class="key-row" show="{{ keyboardMode === 't9' && !numFlag }}">
+          <text for="{{ item in t9Keys[0] }}" class="key-btn t9-btn" onclick="onT9Key(item)">{{ item.label }}</text>
         </div>
-        <div class="t9-key-row" show="{{ keyboardMode === 't9' && !numFlag }}">
-          <div class="t9-key" onclick="onT9Key('5')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
-            <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">JKL</text>
-            <text class="t9-key-digit" style="color: {{ theme.text }}">5</text>
-          </div>
-          <div class="t9-key" onclick="onT9Key('6')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
-            <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">MNO</text>
-            <text class="t9-key-digit" style="color: {{ theme.text }}">6</text>
-          </div>
-          <div class="t9-key" onclick="onT9Key('7')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
-            <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">PQRS</text>
-            <text class="t9-key-digit" style="color: {{ theme.text }}">7</text>
-          </div>
-          <div class="t9-key t9-key-func" onclick="toggleNumMode" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
-            <text class="t9-key-func-text" style="color: {{ theme.accent }}">123</text>
-          </div>
+        <div class="key-row" show="{{ keyboardMode === 't9' && !numFlag }}">
+          <text for="{{ item in t9Keys[1] }}" class="key-btn t9-btn" onclick="onT9Key(item)">{{ item.label }}</text>
         </div>
-        <div class="t9-key-row" show="{{ keyboardMode === 't9' && !numFlag }}">
-          <div class="t9-key" onclick="onT9Key('8')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
-            <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">TUV</text>
-            <text class="t9-key-digit" style="color: {{ theme.text }}">8</text>
-          </div>
-          <div class="t9-key" onclick="onT9Key('9')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
-            <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">WXYZ</text>
-            <text class="t9-key-digit" style="color: {{ theme.text }}">9</text>
-          </div>
-          <div class="t9-key" onclick="onT9Key('0')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
-            <text class="t9-key-digit-only" style="color: {{ theme.text }}">0</text>
-          </div>
-          <div class="t9-key t9-key-space" onclick="onSpace" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
-            <text class="t9-key-func-text" style="color: {{ theme.text }}">{{ lang === 'cn' ? '空格' : 'Space' }}</text>
-          </div>
+        <div class="key-row" show="{{ keyboardMode === 't9' && !numFlag }}">
+          <text for="{{ item in t9Keys[2] }}" class="key-btn t9-btn" onclick="onT9Key(item)">{{ item.label }}</text>
         </div>
 
         <div class="key-row" show="{{ keyboardMode === 'full' && !numFlag }}">
@@ -194,6 +153,26 @@ export default {
     numFlag: false,
     shiftFlag: false,
     resultRow0: [],
+    t9Keys: [
+      [
+        { key: '2', label: '2', action: 'digit' },
+        { key: '3', label: '3', action: 'digit' },
+        { key: '4', label: '4', action: 'digit' },
+        { key: 'del', label: 'Del', action: 'delete' }
+      ],
+      [
+        { key: '5', label: '5', action: 'digit' },
+        { key: '6', label: '6', action: 'digit' },
+        { key: '7', label: '7', action: 'digit' },
+        { key: '123', label: '123', action: 'num' }
+      ],
+      [
+        { key: '8', label: '8', action: 'digit' },
+        { key: '9', label: '9', action: 'digit' },
+        { key: '0', label: '0', action: 'digit' },
+        { key: 'space', label: '空格', action: 'space' }
+      ]
+    ],
     keys: {
       full: [
         ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
@@ -451,10 +430,25 @@ export default {
     this.cvalDisplay = ""
   },
 
-  onT9Key(key) {
-    if (!key) return
+  onT9Key(item) {
+    if (!item) return
     this.doVibrate()
+
+    if (item.action === 'delete') {
+      this.onDeleteKey()
+      return
+    }
+    if (item.action === 'num') {
+      this.toggleNumMode()
+      return
+    }
+    if (item.action === 'space') {
+      this.onSpace()
+      return
+    }
+
     buildT9Map()
+    var key = item.key
 
     if (this.lang === 'cn') {
       this.digitSequence += key
@@ -714,63 +708,17 @@ export default {
   margin-bottom: 0;
 }
 
-.t9-key-row {
-  flex-direction: row;
-  justify-content: space-between;
-  width: 100%;
-  margin-bottom: 6px;
-}
-
-.t9-key {
-  flex: 1;
+.t9-btn {
+  width: 56px;
   height: 56px;
   border-radius: 12px;
-  border-width: 2px;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  margin-left: 3px;
-  margin-right: 3px;
-  max-width: 76px;
-}
-
-.t9-key-letters {
-  font-size: 14px;
-  font-weight: bold;
-  letter-spacing: 2px;
-}
-
-.t9-key-digit {
   font-size: 24px;
   font-weight: bold;
-  margin-top: 2px;
-}
-
-.t9-key-digit-only {
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.t9-key-func {
-  border-color: #2a2a5a;
-}
-
-.t9-key-del-icon {
-  font-size: 28px;
-}
-
-.t9-key-func-text {
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.t9-key-space {
-  flex: 2;
-  max-width: 158px;
-}
-
-.t9-key:active {
-  opacity: 0.7;
+  text-align: center;
+  margin-left: 4px;
+  margin-right: 4px;
+  flex: 1;
+  max-width: 76px;
 }
 
 @media (shape: capsule) {
@@ -835,34 +783,13 @@ export default {
     margin-left: 1px;
     margin-right: 1px;
   }
-  .t9-key {
-    height: 44px;
+  .t9-btn {
+    height: 48px;
+    font-size: 20px;
+    margin-left: 3px;
+    margin-right: 3px;
+    max-width: 64px;
     border-radius: 10px;
-    margin-left: 2px;
-    margin-right: 2px;
-    max-width: 60px;
-  }
-  .t9-key-letters {
-    font-size: 11px;
-    letter-spacing: 1px;
-  }
-  .t9-key-digit {
-    font-size: 18px;
-  }
-  .t9-key-digit-only {
-    font-size: 22px;
-  }
-  .t9-key-del-icon {
-    font-size: 22px;
-  }
-  .t9-key-func-text {
-    font-size: 12px;
-  }
-  .t9-key-space {
-    max-width: 124px;
-  }
-  .t9-key-row {
-    margin-bottom: 4px;
   }
 }
 
@@ -940,34 +867,13 @@ export default {
     margin-left: 4px;
     margin-right: 4px;
   }
-  .t9-key {
-    height: 40px;
-    border-radius: 8px;
+  .t9-btn {
+    height: 44px;
+    font-size: 18px;
     margin-left: 2px;
     margin-right: 2px;
     max-width: 56px;
-  }
-  .t9-key-letters {
-    font-size: 10px;
-    letter-spacing: 1px;
-  }
-  .t9-key-digit {
-    font-size: 16px;
-  }
-  .t9-key-digit-only {
-    font-size: 20px;
-  }
-  .t9-key-del-icon {
-    font-size: 20px;
-  }
-  .t9-key-func-text {
-    font-size: 11px;
-  }
-  .t9-key-space {
-    max-width: 116px;
-  }
-  .t9-key-row {
-    margin-bottom: 3px;
+    border-radius: 8px;
   }
 }
 
@@ -992,34 +898,13 @@ export default {
   .title {
     font-size: 16px;
   }
-  .t9-key {
-    height: 50px;
-    border-radius: 10px;
+  .t9-btn {
+    height: 52px;
+    font-size: 22px;
     margin-left: 3px;
     margin-right: 3px;
-    max-width: 64px;
-  }
-  .t9-key-letters {
-    font-size: 12px;
-    letter-spacing: 1px;
-  }
-  .t9-key-digit {
-    font-size: 20px;
-  }
-  .t9-key-digit-only {
-    font-size: 24px;
-  }
-  .t9-key-del-icon {
-    font-size: 24px;
-  }
-  .t9-key-func-text {
-    font-size: 14px;
-  }
-  .t9-key-space {
-    max-width: 132px;
-  }
-  .t9-key-row {
-    margin-bottom: 5px;
+    max-width: 68px;
+    border-radius: 10px;
   }
 }
 </style>
