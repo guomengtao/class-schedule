@@ -2,7 +2,6 @@
 /coverage
 /node_modules
 /sign
-/dist
 /build
 .husky/
 .trae/
