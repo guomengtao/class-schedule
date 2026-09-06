@@ -248,6 +248,7 @@ import prompt from "@system.prompt"
 import vibrator from "@system.vibrator"
 const store = require("../../data/store.js")
 const authStore = require("../../data/auth-store.js")
+const version = require("../../data/version.js")
 const crypto = require("../../lib/crypto.js")
 
 var ACTIVATION_URL = "https://app-auth.gudq.com/activate.html?deviceId="
