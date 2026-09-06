@@ -301,6 +301,19 @@ export default {
 
   goBack() {
     router.back()
+  },
+
+  saveSettings() {
+    var self = this
+    store.setTheme(this.currentThemeKey, function() {
+      store.setBaseFontSize(self.displaySize, function() {
+        store.setHideWeekend(self.hideWeekend, function() {
+          store.getTheme(function(t) {
+            self.theme = t
+          })
+        })
+      })
+    })
   }
 }
 </script>
