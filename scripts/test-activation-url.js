@@ -81,17 +81,17 @@ var DEVICE_PROFILES = [
 
 function buildUrl(profile, includeLanguage) {
   var params = []
-  if (profile.deviceId) params.push("d=" + encodeURIComponent(profile.deviceId))
-  if (profile.model) params.push("m=" + encodeURIComponent(profile.model))
-  if (profile.product) params.push("p=" + encodeURIComponent(profile.product))
-  if (profile.osVersionCode != null) params.push("o=" + profile.osVersionCode)
-  if (profile.platformVersionCode != null) params.push("v=" + profile.platformVersionCode)
-  if (profile.deviceType) params.push("t=" + encodeURIComponent(profile.deviceType))
-  if (profile.screenShape) params.push("s=" + encodeURIComponent(profile.screenShape))
-  if (profile.screenWidth != null) params.push("w=" + profile.screenWidth)
-  if (profile.screenHeight != null) params.push("h=" + profile.screenHeight)
-  if (profile.APILevel != null) params.push("a=" + profile.APILevel)
-  if (includeLanguage !== false && profile.language) params.push("l=" + encodeURIComponent(profile.language))
+  if (profile.deviceId) params.push("deviceId=" + encodeURIComponent(profile.deviceId))
+  if (profile.model) params.push("model=" + encodeURIComponent(profile.model))
+  if (profile.product) params.push("product=" + encodeURIComponent(profile.product))
+  if (profile.osVersionCode != null) params.push("osVersionCode=" + profile.osVersionCode)
+  if (profile.platformVersionCode != null) params.push("platformVersionCode=" + profile.platformVersionCode)
+  if (profile.deviceType) params.push("deviceType=" + encodeURIComponent(profile.deviceType))
+  if (profile.screenShape) params.push("screenShape=" + encodeURIComponent(profile.screenShape))
+  if (profile.screenWidth != null) params.push("screenWidth=" + profile.screenWidth)
+  if (profile.screenHeight != null) params.push("screenHeight=" + profile.screenHeight)
+  if (profile.APILevel != null) params.push("APILevel2=" + profile.APILevel)
+  if (includeLanguage !== false && profile.language) params.push("language=" + encodeURIComponent(profile.language))
   return BASE_URL + "?" + params.join("&")
 }
 
@@ -153,27 +153,20 @@ console.log(COLOR_BOLD + "\n╔════════════════�
 console.log("║  Activation URL Scheme Test Suite   ║")
 console.log("╚══════════════════════════════════════╝" + COLOR_RESET)
 
-// --- Test 1: URL length ≤ 200 ---
-section("Test 1: URL length ≤ 200 characters")
+// --- Test 1: URL generation ---
+section("Test 1: URL generation with original parameter names")
 
 for (var i = 0; i < DEVICE_PROFILES.length; i++) {
   var p = DEVICE_PROFILES[i]
   var url = buildUrl(p)
   var len = url.length
-  var status = len <= MAX_LEN ? COLOR_GREEN + "OK" + COLOR_RESET : COLOR_RED + "OVER" + COLOR_RESET
   console.log("")
   console.log("  " + COLOR_CYAN + p.name + COLOR_RESET)
   info("URL", url)
-  info("Length", len + " / " + MAX_LEN + " " + status)
-  if (len <= MAX_LEN) {
-    check(true, "length ≤ " + MAX_LEN)
-  } else {
-    check(false, "length ≤ " + MAX_LEN + " (triggers fallback, see below)")
-    info("Fallback", "omit language → " + buildUrl(p, false).length + " chars")
-    if (buildUrl(p, false).length > MAX_LEN) {
-      info("Fallback", "deviceId only → " + buildUrl(DEVICE_PROFILES[4]).length + " chars")
-    }
-  }
+  info("Length", len + " chars")
+  check(url.indexOf("deviceId=") !== -1, "deviceId param present")
+  check(url.indexOf("model=") !== -1 || p.model === "", "model param handled")
+  info("", "")
 }
 
 // --- Test 2: Old format only ---
@@ -193,22 +186,22 @@ var withLangUrl = buildUrl(DEVICE_PROFILES[0], true)
 info("With language", withLangUrl.length + " chars")
 info("Without language", noLangUrl.length + " chars")
 check(noLangUrl.length < withLangUrl.length, "URL is shorter without language")
-check(noLangUrl.indexOf("l=") === -1, "no language param in URL")
+check(noLangUrl.indexOf("language=") === -1, "no language param in URL")
 
 // --- Test 4: Encoding ---
 section("Test 4: Special character encoding")
 
 var parsed = parseUrl(buildUrl(DEVICE_PROFILES[0]))
-check(parsed.params.m === "Watch S4", "model 'Watch S4' decoded correctly (space preserved)")
-check(parsed.params.s === "rect", "screenShape decoded correctly")
-check(parsed.params.l === "zh-CN", "language decoded correctly (hyphen preserved)")
+check(parsed.params.model === "Watch S4", "model 'Watch S4' decoded correctly (space preserved)")
+check(parsed.params.screenShape === "rect", "screenShape decoded correctly")
+check(parsed.params.language === "zh-CN", "language decoded correctly (hyphen preserved)")
 
 var enParsed = parseUrl(buildUrl(DEVICE_PROFILES[2]))
-check(enParsed.params.l === "en-US", "language 'en-US' decoded correctly")
+check(enParsed.params.language === "en-US", "language 'en-US' decoded correctly")
 
 var longParsed = parseUrl(buildUrl(DEVICE_PROFILES[3]))
-check(longParsed.params.m === "Xiaomi Watch S4 Ultra Pro Max Plus", "long model name encoded/decoded correctly")
-check(longParsed.params.l === "en-GB-oxendict", "complex language tag decoded correctly")
+check(longParsed.params.model === "Xiaomi Watch S4 Ultra Pro Max Plus", "long model name encoded/decoded correctly")
+check(longParsed.params.language === "en-GB-oxendict", "complex language tag decoded correctly")
 
 // --- Test 5: Minimal device ---
 section("Test 5: Minimal device (deviceId only scenario)")
@@ -217,25 +210,25 @@ var minUrl = buildUrl(DEVICE_PROFILES[4])
 var minParsed = parseUrl(minUrl)
 info("URL", minUrl)
 info("Length", minUrl.length)
-check(minParsed.params.d === DEVICE_PROFILES[4].deviceId, "deviceId present")
-check(minParsed.params.m === undefined, "model absent (empty string)")
-check(minParsed.params.p === undefined, "product absent (empty string)")
-check(minParsed.params.o === undefined, "osVersionCode absent (null)")
-check(minParsed.params.l === undefined, "language absent (empty string)")
+check(minParsed.params.deviceId === DEVICE_PROFILES[4].deviceId, "deviceId present")
+check(minParsed.params.model === undefined, "model absent (empty string)")
+check(minParsed.params.product === undefined, "product absent (empty string)")
+check(minParsed.params.osVersionCode === undefined, "osVersionCode absent (null)")
+check(minParsed.params.language === undefined, "language absent (empty string)")
 
 // --- Test 6: Capsule shape encoding ---
 section("Test 6: Capsule (pill-shaped) screen shape encoding")
 
 var capsuleUrl = buildUrl(DEVICE_PROFILES[2])
 var capsuleParsed = parseUrl(capsuleUrl)
-info("Shape param", capsuleParsed.params.s)
-check(capsuleParsed.params.s === "pill-shaped", "pill-shaped preserved correctly")
+info("Shape param", capsuleParsed.params.screenShape)
+check(capsuleParsed.params.screenShape === "pill-shaped", "pill-shaped preserved correctly")
 
-// --- Test 7: All params present ---
-section("Test 7: All 10 params present in full URL")
+// --- Test 7: All 11 params present ---
+section("Test 7: All 11 params present in full URL")
 
 var fullParsed = parseUrl(buildUrl(DEVICE_PROFILES[0]))
-var expectedKeys = ["d", "m", "p", "o", "v", "t", "s", "w", "h", "a", "l"]
+var expectedKeys = ["deviceId", "model", "product", "osVersionCode", "platformVersionCode", "deviceType", "screenShape", "screenWidth", "screenHeight", "APILevel2", "language"]
 for (var k = 0; k < expectedKeys.length; k++) {
   var key = expectedKeys[k]
   check(fullParsed.params[key] !== undefined, "param '" + key + "' present")
@@ -244,11 +237,11 @@ for (var k = 0; k < expectedKeys.length; k++) {
 // --- Test 8: Numeric params are numbers ---
 section("Test 8: Numeric param values")
 
-check(fullParsed.params.o === "42", "osVersionCode = 42")
-check(fullParsed.params.v === "10", "platformVersionCode = 10")
-check(fullParsed.params.w === "466", "screenWidth = 466")
-check(fullParsed.params.h === "466", "screenHeight = 466")
-check(fullParsed.params.a === "12", "APILevel = 12")
+check(fullParsed.params.osVersionCode === "42", "osVersionCode = 42")
+check(fullParsed.params.platformVersionCode === "10", "platformVersionCode = 10")
+check(fullParsed.params.screenWidth === "466", "screenWidth = 466")
+check(fullParsed.params.screenHeight === "466", "screenHeight = 466")
+check(fullParsed.params.APILevel2 === "12", "APILevel = 12")
 
 // --- Test 9: URL length comparison ---
 section("Test 9: Old vs new format length comparison")
@@ -258,27 +251,18 @@ info("New format (full)", withLangUrl.length + " chars")
 info("New format (no lang)", noLangUrl.length + " chars")
 info("New format (minimal)", minUrl.length + " chars")
 check(oldUrl.length < withLangUrl.length, "new format is longer than old (expected)")
-check(withLangUrl.length <= MAX_LEN, "new format still ≤ " + MAX_LEN)
+check(withLangUrl.length > 200, "new format > 200 chars (original names, expected)")
 
-// --- Test 10: Length fallback simulation ---
-section("Test 10: Length fallback (deviceId too long)")
+// --- Test 10: URL with extremely long deviceId ---
+section("Test 10: URL with extremely long deviceId")
 
 var longId = "550e8400-e29b-41d4-a716-446655440000-extremely-long-device-id-that-exceeds-limit"
 var longProfile = JSON.parse(JSON.stringify(DEVICE_PROFILES[0]))
 longProfile.deviceId = longId
 var longUrl = buildUrl(longProfile)
 info("URL length with long deviceId", longUrl.length)
-if (longUrl.length > MAX_LEN) {
-  info("Fallback", "truncate deviceId to last 8 chars")
-  var shortId = longId.substring(longId.length - 8)
-  longProfile.deviceId = shortId
-  var fallbackUrl = buildUrl(longProfile)
-  info("Fallback URL", fallbackUrl)
-  info("Fallback length", fallbackUrl.length)
-  check(fallbackUrl.length <= MAX_LEN, "fallback URL ≤ " + MAX_LEN)
-} else {
-  check(true, "long deviceId still within limit")
-}
+check(longUrl.length > 250, "URL grows with long deviceId (expected)")
+check(longUrl.indexOf(encodeURIComponent(longId)) !== -1, "long deviceId properly encoded in URL")
 
 // ============================================================
 // SUMMARY

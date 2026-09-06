@@ -251,6 +251,7 @@ const version = require("../../data/version.js")
 const crypto = require("../../lib/crypto.js")
 
 var ACTIVATION_URL = "https://app-auth.gudq.com/activate.html?deviceId="
+var ACTIVATION_URL_V2 = "https://app-auth.gudq.com/a?deviceId="
 var AFDIAN_URL = "https://www.ifdian.net/item/54100fe4a1e011f1a3f452540025c377"
 
 function doVibrate() {
@@ -301,7 +302,8 @@ export default {
     verifyResult: '',
     verifyDetail: '',
     verifySuccess: false,
-    versionText: ''
+    versionText: '',
+    deviceInfoParams: ''
   },
 
   onInit() {
@@ -382,7 +384,8 @@ export default {
       device.getDeviceId({
         success: function(data) {
           self.deviceId = data.deviceId || '未知'
-          self.qrText = ACTIVATION_URL + self.deviceId
+          self.updateQrText()
+          self.fetchDeviceInfo()
         },
         fail: function(data, code) {
           self.deviceId = '获取失败(' + code + ')'
@@ -392,6 +395,48 @@ export default {
     } catch (e) {
       self.deviceId = '不可用'
       self.qrText = ACTIVATION_URL + 'demo'
+    }
+  },
+
+  fetchDeviceInfo() {
+    var self = this
+    try {
+      var device = require("@system.device")
+      device.getInfo({
+        success: function(ret) {
+          var params = []
+          if (ret.model) params.push('model=' + encodeURIComponent(ret.model))
+          if (ret.product) params.push('product=' + encodeURIComponent(ret.product))
+          if (ret.osVersionCode != null) params.push('osVersionCode=' + ret.osVersionCode)
+          if (ret.platformVersionCode != null) params.push('platformVersionCode=' + ret.platformVersionCode)
+          if (ret.deviceType) params.push('deviceType=' + encodeURIComponent(ret.deviceType))
+          if (ret.screenShape) params.push('screenShape=' + encodeURIComponent(ret.screenShape))
+          if (ret.screenWidth != null) params.push('screenWidth=' + ret.screenWidth)
+          if (ret.screenHeight != null) params.push('screenHeight=' + ret.screenHeight)
+          if (ret.APILevel != null) params.push('APILevel2=' + ret.APILevel)
+          if (ret.language) params.push('language=' + encodeURIComponent(ret.language))
+          self.deviceInfoParams = params.join('&')
+          self.updateQrText()
+        },
+        fail: function() {
+          self.deviceInfoParams = ''
+          self.updateQrText()
+        }
+      })
+    } catch (e) {
+      self.deviceInfoParams = ''
+      self.updateQrText()
+    }
+  },
+
+  updateQrText() {
+    var self = this
+    if (self.deviceId && self.deviceId !== '获取中...') {
+      var qr = ACTIVATION_URL_V2 + encodeURIComponent(self.deviceId)
+      if (self.deviceInfoParams) {
+        qr = qr + '&' + self.deviceInfoParams
+      }
+      self.qrText = qr
     }
   },
 
