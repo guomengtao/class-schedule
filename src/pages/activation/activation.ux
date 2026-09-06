@@ -10,10 +10,9 @@
         <div class="status-row">
           <text class="version-prefix" style="color: {{ theme.textSecondary }}">当前:</text>
           <text class="status-text" style="color: {{ statusColor }}">{{ statusText }}</text>
-        </div>
-        <div class="status-row">
           <text class="version-prefix" style="color: {{ theme.textSecondary }}">版本:</text>
           <text class="status-text" style="color: {{ theme.accent }}">v{{ versionText }}</text>
+          <text class="status-text" show="{{ expireTimeText }}" style="color: {{ theme.accent }}">{{ expireTimeText }}</text>
         </div>
         <div class="status-details" if="{{ statusDetail }}">
           <text class="status-detail-line" style="color: {{ theme.textSecondary }}">{{ statusDetail }}</text>
