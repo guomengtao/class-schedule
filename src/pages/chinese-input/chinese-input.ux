@@ -21,7 +21,7 @@
 
     <div class="keyboard" show="{{ !hideKeyboard }}">
 
-      <div show="{{ keyboardMode === 't9' && !numFlag }}">
+      <div show="{{ keyboardMode === 't9' && !numFlag }}" style="flex-direction: column; width: 100%">
         <div class="t9-key-row">
           <div class="t9-key" onclick="onT9Key('2')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
             <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">ABC</text>
@@ -74,7 +74,7 @@
         </div>
       </div>
 
-      <div show="{{ keyboardMode === 'full' && !numFlag }}">
+      <div show="{{ keyboardMode === 'full' && !numFlag }}" style="flex-direction: column; width: 100%">
         <div class="key-row">
           <text for="{{ item in keys.full[0] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
         </div>
@@ -87,7 +87,7 @@
         </div>
       </div>
 
-      <div show="{{ numFlag }}">
+      <div show="{{ numFlag }}" style="flex-direction: column; width: 100%">
         <div class="key-row">
           <text for="{{ item in keys.sign[0] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
         </div>
