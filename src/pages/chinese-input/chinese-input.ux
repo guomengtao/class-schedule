@@ -20,33 +20,91 @@
     </scroll>
 
     <div class="keyboard" show="{{ !hideKeyboard }}">
-      <div class="key-row" show="{{ !numFlag }}">
-        <text for="{{ item in keys.full[0] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-      </div>
-      <div class="key-row" show="{{ !numFlag }}">
-        <text for="{{ item in keys.full[1] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-      </div>
-      <div class="key-row" show="{{ !numFlag }}">
-        <text for="{{ item in keys.full[2] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-        <text class="key-btn key-del" onclick="onDeleteKey" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}">Del</text>
+
+      <div show="{{ keyboardMode === 't9' && !numFlag }}">
+        <div class="t9-key-row">
+          <div class="t9-key" onclick="onT9Key('2')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
+            <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">ABC</text>
+            <text class="t9-key-digit" style="color: {{ theme.text }}">2</text>
+          </div>
+          <div class="t9-key" onclick="onT9Key('3')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
+            <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">DEF</text>
+            <text class="t9-key-digit" style="color: {{ theme.text }}">3</text>
+          </div>
+          <div class="t9-key" onclick="onT9Key('4')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
+            <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">GHI</text>
+            <text class="t9-key-digit" style="color: {{ theme.text }}">4</text>
+          </div>
+          <div class="t9-key t9-key-func" onclick="onDeleteKey" style="background-color: {{ theme.deleteBg }}; border-color: {{ theme.borderLight }}">
+            <text class="t9-key-del-icon" style="color: {{ theme.deleteText }}">Del</text>
+          </div>
+        </div>
+        <div class="t9-key-row">
+          <div class="t9-key" onclick="onT9Key('5')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
+            <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">JKL</text>
+            <text class="t9-key-digit" style="color: {{ theme.text }}">5</text>
+          </div>
+          <div class="t9-key" onclick="onT9Key('6')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
+            <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">MNO</text>
+            <text class="t9-key-digit" style="color: {{ theme.text }}">6</text>
+          </div>
+          <div class="t9-key" onclick="onT9Key('7')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
+            <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">PQRS</text>
+            <text class="t9-key-digit" style="color: {{ theme.text }}">7</text>
+          </div>
+          <div class="t9-key t9-key-func" onclick="toggleNumMode" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
+            <text class="t9-key-func-text" style="color: {{ theme.accent }}">123</text>
+          </div>
+        </div>
+        <div class="t9-key-row">
+          <div class="t9-key" onclick="onT9Key('8')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
+            <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">TUV</text>
+            <text class="t9-key-digit" style="color: {{ theme.text }}">8</text>
+          </div>
+          <div class="t9-key" onclick="onT9Key('9')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
+            <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">WXYZ</text>
+            <text class="t9-key-digit" style="color: {{ theme.text }}">9</text>
+          </div>
+          <div class="t9-key" onclick="onT9Key('0')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
+            <text class="t9-key-digit-only" style="color: {{ theme.text }}">0</text>
+          </div>
+          <div class="t9-key t9-key-space" onclick="onSpace" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
+            <text class="t9-key-func-text" style="color: {{ theme.text }}">{{ lang === 'cn' ? '空格' : 'Space' }}</text>
+          </div>
+        </div>
       </div>
 
-      <div class="key-row" show="{{ numFlag }}">
-        <text for="{{ item in keys.sign[0] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+      <div show="{{ keyboardMode === 'full' && !numFlag }}">
+        <div class="key-row">
+          <text for="{{ item in keys.full[0] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+        </div>
+        <div class="key-row">
+          <text for="{{ item in keys.full[1] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+        </div>
+        <div class="key-row">
+          <text for="{{ item in keys.full[2] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+          <text class="key-btn key-del" onclick="onDeleteKey" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}">Del</text>
+        </div>
       </div>
-      <div class="key-row" show="{{ numFlag }}">
-        <text for="{{ item in keys.sign[1] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-      </div>
-      <div class="key-row" show="{{ numFlag }}">
-        <text for="{{ item in keys.sign[2] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-        <text class="key-btn key-del" onclick="onDeleteKey" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}">Del</text>
+
+      <div show="{{ numFlag }}">
+        <div class="key-row">
+          <text for="{{ item in keys.sign[0] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+        </div>
+        <div class="key-row">
+          <text for="{{ item in keys.sign[1] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+        </div>
+        <div class="key-row">
+          <text for="{{ item in keys.sign[2] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+          <text class="key-btn key-del" onclick="onDeleteKey" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}">Del</text>
+        </div>
       </div>
 
       <div class="key-row key-bottom">
         <text class="key-btn key-func" onclick="toggleNumMode" show="{{ lang === 'cn' || numFlag }}" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ numFlag ? 'ABC' : '123' }}</text>
-        <text class="key-btn key-func" onclick="toggleShift" show="{{ lang === 'en' && !numFlag }}" style="background-color: {{ shiftFlag ? theme.accent : theme.card }}; color: {{ shiftFlag ? theme.bg : theme.accent }}">Shift</text>
-        <text class="key-btn key-space" onclick="onSpace" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ lang === 'cn' ? '空格' : 'Space' }}</text>
-        <text class="key-btn key-func" onclick="toggleLang" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ lang === 'cn' ? 'EN' : '中' }}</text>
+        <text class="key-btn key-func" onclick="toggleShift" show="{{ lang === 'en' && !numFlag && keyboardMode === 'full' }}" style="background-color: {{ shiftFlag ? theme.accent : theme.card }}; color: {{ shiftFlag ? theme.bg : theme.accent }}">Shift</text>
+        <text class="key-btn key-func" onclick="toggleKeyboardMode" style="background-color: {{ keyboardMode === 't9' ? theme.accent : theme.card }}; color: {{ keyboardMode === 't9' ? theme.bg : theme.accent }}">{{ keyboardMode === 't9' ? '9键' : '全键' }}</text>
+        <text class="key-btn key-func" onclick="toggleLang" show="{{ keyboardMode === 'full' || !numFlag }}" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ lang === 'cn' ? 'EN' : '中' }}</text>
       </div>
     </div>
   </div>
@@ -57,13 +115,43 @@ import router from "@system.router"
 import vibrator from "@system.vibrator"
 const store = require("../../data/store.js")
 import { SimpleInputMethod } from "../../components/InputMethod/assets/dicUtil.js"
+import { syllables } from "../../components/InputMethod/assets/pinyin_syllables.js"
 
 var dictReady = false
+var t9MapReady = false
+var t9DigitToPinyin = {}
 
 function ensureDict() {
   if (!dictReady) {
     dictReady = true
     SimpleInputMethod.initDict()
+  }
+}
+
+function buildT9Map() {
+  if (t9MapReady) return
+  t9MapReady = true
+  var letterToDigit = {
+    'a': '2', 'b': '2', 'c': '2',
+    'd': '3', 'e': '3', 'f': '3',
+    'g': '4', 'h': '4', 'i': '4',
+    'j': '5', 'k': '5', 'l': '5',
+    'm': '6', 'n': '6', 'o': '6',
+    'p': '7', 'q': '7', 'r': '7', 's': '7',
+    't': '8', 'u': '8', 'v': '8',
+    'w': '9', 'x': '9', 'y': '9', 'z': '9'
+  }
+  for (var i = 0; i < syllables.length; i++) {
+    var syl = syllables[i]
+    var digits = ''
+    for (var j = 0; j < syl.length; j++) {
+      var d = letterToDigit[syl[j]]
+      if (d) digits += d
+    }
+    if (!t9DigitToPinyin[digits]) t9DigitToPinyin[digits] = []
+    if (t9DigitToPinyin[digits].indexOf(syl) === -1) {
+      t9DigitToPinyin[digits].push(syl)
+    }
   }
 }
 
@@ -104,6 +192,11 @@ export default {
     cval: "",
     cvalDisplay: "",
     lang: "cn",
+    keyboardMode: "t9",
+    digitSequence: "",
+    t9Buffer: "",
+    t9LastKey: "",
+    t9LastTime: 0,
     numFlag: false,
     shiftFlag: false,
     resultRow0: [],
@@ -207,6 +300,24 @@ export default {
 
   onDeleteKey() {
     this.doVibrate()
+    if (this.keyboardMode === 't9' && this.lang === 'cn') {
+      if (this.digitSequence.length > 0) {
+        this.digitSequence = this.digitSequence.slice(0, -1)
+        this.resolveT9AndUpdate()
+      } else {
+        this.inputValue = this.inputValue.slice(0, -1)
+      }
+      return
+    }
+    if (this.keyboardMode === 't9' && this.lang === 'en') {
+      if (this.t9Buffer) {
+        this.t9Buffer = ''
+        this.cvalDisplay = this.inputValue
+      } else {
+        this.inputValue = this.inputValue.slice(0, -1)
+      }
+      return
+    }
     if (this.cval.length > 0) {
       this.cval = this.cval.slice(0, -1)
       this.updateCandidates()
@@ -307,6 +418,9 @@ export default {
     this.doVibrate()
     this.numFlag = !this.numFlag
     this.cval = ""
+    this.digitSequence = ""
+    this.t9Buffer = ""
+    this.t9LastKey = ""
     this.resultRow0 = []
     this.cvalDisplay = ""
   },
@@ -315,6 +429,9 @@ export default {
     this.doVibrate()
     this.lang = this.lang === "cn" ? "en" : "cn"
     this.cval = ""
+    this.digitSequence = ""
+    this.t9Buffer = ""
+    this.t9LastKey = ""
     this.resultRow0 = []
     this.cvalDisplay = ""
     this.shiftFlag = false
@@ -323,6 +440,119 @@ export default {
   toggleShift() {
     this.doVibrate()
     this.shiftFlag = !this.shiftFlag
+  },
+
+  toggleKeyboardMode() {
+    this.doVibrate()
+    if (this.keyboardMode === 't9') {
+      this.keyboardMode = 'full'
+    } else {
+      this.keyboardMode = 't9'
+    }
+    this.cval = ""
+    this.digitSequence = ""
+    this.t9Buffer = ""
+    this.t9LastKey = ""
+    this.resultRow0 = []
+    this.cvalDisplay = ""
+  },
+
+  onT9Key(key) {
+    if (!key) return
+    this.doVibrate()
+    buildT9Map()
+
+    if (this.lang === 'cn') {
+      this.digitSequence += key
+      this.cvalDisplay = this.digitSequence
+      this.resolveT9AndUpdate()
+    } else {
+      this.onT9KeyEnglish(key)
+    }
+  },
+
+  resolveT9AndUpdate() {
+    var seq = this.digitSequence
+    if (!seq) {
+      this.cval = ''
+      this.resultRow0 = []
+      return
+    }
+
+    var pinyin = ''
+    if (t9DigitToPinyin[seq] && t9DigitToPinyin[seq].length > 0) {
+      pinyin = t9DigitToPinyin[seq][0]
+    } else {
+      for (var len = seq.length - 1; len >= 1; len--) {
+        var prefix = seq.slice(0, len)
+        var suffix = seq.slice(len)
+        if (t9DigitToPinyin[prefix] && t9DigitToPinyin[prefix].length > 0 &&
+            t9DigitToPinyin[suffix] && t9DigitToPinyin[suffix].length > 0) {
+          pinyin = t9DigitToPinyin[prefix][0] + t9DigitToPinyin[suffix][0]
+          break
+        }
+      }
+    }
+
+    if (pinyin) {
+      this.cval = pinyin
+      this.cvalDisplay = seq + ' ( ' + pinyin + ' )'
+      this.updateCandidates()
+    } else {
+      this.cval = ''
+      this.resultRow0 = []
+      this.cvalDisplay = seq
+    }
+  },
+
+  onT9KeyEnglish(key) {
+    var now = Date.now()
+    if (key === this.t9LastKey && (now - this.t9LastTime) < 800) {
+      var letters = {
+        '2': ['a', 'b', 'c'],
+        '3': ['d', 'e', 'f'],
+        '4': ['g', 'h', 'i'],
+        '5': ['j', 'k', 'l'],
+        '6': ['m', 'n', 'o'],
+        '7': ['p', 'q', 'r', 's'],
+        '8': ['t', 'u', 'v'],
+        '9': ['w', 'x', 'y', 'z'],
+        '0': [' ']
+      }[key]
+      if (letters) {
+        var current = this.t9Buffer
+        var idx = letters.indexOf(current)
+        if (idx >= 0 && idx < letters.length - 1) {
+          this.t9Buffer = letters[idx + 1]
+        } else {
+          this.t9Buffer = letters[0]
+        }
+        this.cvalDisplay = this.inputValue + this.t9Buffer
+      }
+    } else {
+      if (this.t9Buffer) {
+        if (this.inputValue.length < this.maxlen) {
+          this.inputValue += this.t9Buffer
+        }
+      }
+      var letters = {
+        '2': ['a', 'b', 'c'],
+        '3': ['d', 'e', 'f'],
+        '4': ['g', 'h', 'i'],
+        '5': ['j', 'k', 'l'],
+        '6': ['m', 'n', 'o'],
+        '7': ['p', 'q', 'r', 's'],
+        '8': ['t', 'u', 'v'],
+        '9': ['w', 'x', 'y', 'z'],
+        '0': [' ']
+      }[key]
+      if (letters) {
+        this.t9Buffer = letters[0]
+        this.cvalDisplay = this.inputValue + this.t9Buffer
+      }
+    }
+    this.t9LastKey = key
+    this.t9LastTime = now
   },
 
   onConfirm() {
@@ -490,6 +720,65 @@ export default {
   margin-bottom: 0;
 }
 
+.t9-key-row {
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+.t9-key {
+  flex: 1;
+  height: 56px;
+  border-radius: 12px;
+  border-width: 2px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-left: 3px;
+  margin-right: 3px;
+  max-width: 76px;
+}
+
+.t9-key-letters {
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.t9-key-digit {
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 2px;
+}
+
+.t9-key-digit-only {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.t9-key-func {
+  border-color: #2a2a5a;
+}
+
+.t9-key-del-icon {
+  font-size: 28px;
+}
+
+.t9-key-func-text {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.t9-key-space {
+  flex: 2;
+  max-width: 158px;
+}
+
+.t9-key:active {
+  opacity: 0.7;
+}
+
 @media (shape: capsule) {
   .input-page {
     padding: 44px 8px 12px 8px;
@@ -551,6 +840,35 @@ export default {
     font-size: 12px;
     margin-left: 1px;
     margin-right: 1px;
+  }
+  .t9-key {
+    height: 44px;
+    border-radius: 10px;
+    margin-left: 2px;
+    margin-right: 2px;
+    max-width: 60px;
+  }
+  .t9-key-letters {
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+  .t9-key-digit {
+    font-size: 18px;
+  }
+  .t9-key-digit-only {
+    font-size: 22px;
+  }
+  .t9-key-del-icon {
+    font-size: 22px;
+  }
+  .t9-key-func-text {
+    font-size: 12px;
+  }
+  .t9-key-space {
+    max-width: 124px;
+  }
+  .t9-key-row {
+    margin-bottom: 4px;
   }
 }
 
@@ -628,6 +946,35 @@ export default {
     margin-left: 4px;
     margin-right: 4px;
   }
+  .t9-key {
+    height: 40px;
+    border-radius: 8px;
+    margin-left: 2px;
+    margin-right: 2px;
+    max-width: 56px;
+  }
+  .t9-key-letters {
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+  .t9-key-digit {
+    font-size: 16px;
+  }
+  .t9-key-digit-only {
+    font-size: 20px;
+  }
+  .t9-key-del-icon {
+    font-size: 20px;
+  }
+  .t9-key-func-text {
+    font-size: 11px;
+  }
+  .t9-key-space {
+    max-width: 116px;
+  }
+  .t9-key-row {
+    margin-bottom: 3px;
+  }
 }
 
 @media (shape: circle) {
@@ -650,6 +997,35 @@ export default {
   }
   .title {
     font-size: 16px;
+  }
+  .t9-key {
+    height: 50px;
+    border-radius: 10px;
+    margin-left: 3px;
+    margin-right: 3px;
+    max-width: 64px;
+  }
+  .t9-key-letters {
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+  .t9-key-digit {
+    font-size: 20px;
+  }
+  .t9-key-digit-only {
+    font-size: 24px;
+  }
+  .t9-key-del-icon {
+    font-size: 24px;
+  }
+  .t9-key-func-text {
+    font-size: 14px;
+  }
+  .t9-key-space {
+    max-width: 132px;
+  }
+  .t9-key-row {
+    margin-bottom: 5px;
   }
 }
 </style>
