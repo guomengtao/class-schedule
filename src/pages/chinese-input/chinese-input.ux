@@ -7,58 +7,54 @@
     </div>
 
     <div class="display-area" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
-      <text class="display-text" style="{{ displayStyle }}; color: {{ theme.text }}">{{ inputValue || placeholder }}</text>
-      <text class="cursor" show="{{ showCursor }}" style="{{ displayStyle }}; color: {{ theme.accent }}">_</text>
+      <text class="display-text" style="font-size: {{ inputFontSize }}px; color: {{ theme.text }}">{{ inputValue || placeholder }}</text>
+      <text class="cursor" show="{{ showCursor }}" style="font-size: {{ inputFontSize }}px; color: {{ theme.accent }}">_</text>
     </div>
 
     <div class="pinyin-row" show="{{ !hideKeyboard && cval }}">
-      <text class="pinyin-text" style="{{ pinyinStyle }}; color: {{ theme.accent }}">{{ cvalDisplay }}</text>
+      <text class="pinyin-text" style="color: {{ theme.accent }}">{{ cvalDisplay }}</text>
     </div>
 
     <scroll class="candidate-row" show="{{ !hideKeyboard && resultRow0.length > 0 }}" scroll-x="{{true}}">
-      <text for="{{ item in resultRow0 }}" class="candidate-item" onclick="onSelectCandidate(item)" style="{{ candidateStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+      <text for="{{ item in resultRow0 }}" class="candidate-item" onclick="onSelectCandidate(item)" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
     </scroll>
 
     <div class="keyboard" show="{{ !hideKeyboard }}">
+      <div class="key-row" show="{{ !numFlag }}">
+        <text for="{{ item in keys.full[0] }}" class="key-btn" onclick="onKeyPress(item)" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+      </div>
+      <div class="key-row" show="{{ !numFlag }}">
+        <text for="{{ item in keys.full[1] }}" class="key-btn" onclick="onKeyPress(item)" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+      </div>
+      <div class="key-row" show="{{ !numFlag }}">
+        <text for="{{ item in keys.full[2] }}" class="key-btn" onclick="onKeyPress(item)" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+        <text class="key-btn key-del" onclick="onDeleteKey" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}">Del</text>
+      </div>
 
-        <div class="key-row" show="{{ keyboardMode === 't9' && !numFlag }}">
-          <text for="{{ item in t9Keys[0] }}" class="key-btn t9-btn" onclick="onT9Key(item)">{{ item.label }}</text>
-        </div>
-        <div class="key-row" show="{{ keyboardMode === 't9' && !numFlag }}">
-          <text for="{{ item in t9Keys[1] }}" class="key-btn t9-btn" onclick="onT9Key(item)">{{ item.label }}</text>
-        </div>
-        <div class="key-row" show="{{ keyboardMode === 't9' && !numFlag }}">
-          <text for="{{ item in t9Keys[2] }}" class="key-btn t9-btn" onclick="onT9Key(item)">{{ item.label }}</text>
-        </div>
-
-        <div class="key-row" show="{{ keyboardMode === 'full' && !numFlag }}">
-          <text for="{{ item in keys.full[0] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-        </div>
-        <div class="key-row" show="{{ keyboardMode === 'full' && !numFlag }}">
-          <text for="{{ item in keys.full[1] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-        </div>
-        <div class="key-row" show="{{ keyboardMode === 'full' && !numFlag }}">
-          <text for="{{ item in keys.full[2] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-          <text class="key-btn key-del" onclick="onDeleteKey" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}">Del</text>
-        </div>
-
-        <div class="key-row" show="{{ numFlag }}">
-          <text for="{{ item in keys.sign[0] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-        </div>
-        <div class="key-row" show="{{ numFlag }}">
-          <text for="{{ item in keys.sign[1] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-        </div>
-        <div class="key-row" show="{{ numFlag }}">
-          <text for="{{ item in keys.sign[2] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-          <text class="key-btn key-del" onclick="onDeleteKey" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}">Del</text>
-        </div>
+      <div class="key-row" show="{{ numFlag }}">
+        <text for="{{ item in keys.sign[0] }}" class="key-btn" onclick="onKeyPress(item)" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+      </div>
+      <div class="key-row" show="{{ numFlag }}">
+        <text for="{{ item in keys.sign[1] }}" class="key-btn" onclick="onKeyPress(item)" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+      </div>
+      <div class="key-row" show="{{ numFlag }}">
+        <text for="{{ item in keys.sign[2] }}" class="key-btn" onclick="onKeyPress(item)" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
+        <text class="key-btn key-del" onclick="onDeleteKey" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}">Del</text>
+      </div>
 
       <div class="key-row key-bottom">
         <text class="key-btn key-func" onclick="toggleNumMode" show="{{ lang === 'cn' || numFlag }}" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ numFlag ? 'ABC' : '123' }}</text>
-        <text class="key-btn key-func" onclick="toggleShift" show="{{ lang === 'en' && !numFlag && keyboardMode === 'full' }}" style="background-color: {{ shiftFlag ? theme.accent : theme.card }}; color: {{ shiftFlag ? theme.bg : theme.accent }}">Shift</text>
-        <text class="key-btn key-func" onclick="toggleKeyboardMode" style="background-color: {{ keyboardMode === 't9' ? theme.accent : theme.card }}; color: {{ keyboardMode === 't9' ? theme.bg : theme.accent }}">{{ keyboardMode === 't9' ? '9键' : '全键' }}</text>
-        <text class="key-btn key-func" onclick="toggleLang" show="{{ keyboardMode === 'full' || !numFlag }}" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ lang === 'cn' ? 'EN' : '中' }}</text>
+        <text class="key-btn key-func" onclick="toggleShift" show="{{ lang === 'en' && !numFlag }}" style="background-color: {{ shiftFlag ? theme.accent : theme.card }}; color: {{ shiftFlag ? theme.bg : theme.accent }}">Shift</text>
+        <text class="key-btn key-func" onclick="toggleLang" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ lang === 'cn' ? 'EN' : '中' }}</text>
       </div>
+    </div>
+
+    <div class="font-bar" show="{{ !hideKeyboard }}">
+      <text class="font-label" style="color: {{ theme.textSecondary }}">字体:</text>
+      <text class="font-btn" onclick="setInputFontSize(28)" style="background-color: {{ inputFontSize === 28 ? theme.accent : theme.card }}; color: {{ inputFontSize === 28 ? theme.bg : theme.text }}">28</text>
+      <text class="font-btn" onclick="setInputFontSize(36)" style="background-color: {{ inputFontSize === 36 ? theme.accent : theme.card }}; color: {{ inputFontSize === 36 ? theme.bg : theme.text }}">36</text>
+      <text class="font-btn" onclick="setInputFontSize(48)" style="background-color: {{ inputFontSize === 48 ? theme.accent : theme.card }}; color: {{ inputFontSize === 48 ? theme.bg : theme.text }}">48</text>
+      <text class="font-btn" onclick="setInputFontSize(62)" style="background-color: {{ inputFontSize === 62 ? theme.accent : theme.card }}; color: {{ inputFontSize === 62 ? theme.bg : theme.text }}">62</text>
     </div>
   </div>
 </template>
@@ -68,43 +64,13 @@ import router from "@system.router"
 import vibrator from "@system.vibrator"
 const store = require("../../data/store.js")
 import { SimpleInputMethod } from "../../components/InputMethod/assets/dicUtil.js"
-import { syllables } from "../../components/InputMethod/assets/pinyin_syllables.js"
 
 var dictReady = false
-var t9MapReady = false
-var t9DigitToPinyin = {}
 
 function ensureDict() {
   if (!dictReady) {
     dictReady = true
     SimpleInputMethod.initDict()
-  }
-}
-
-function buildT9Map() {
-  if (t9MapReady) return
-  t9MapReady = true
-  var letterToDigit = {
-    'a': '2', 'b': '2', 'c': '2',
-    'd': '3', 'e': '3', 'f': '3',
-    'g': '4', 'h': '4', 'i': '4',
-    'j': '5', 'k': '5', 'l': '5',
-    'm': '6', 'n': '6', 'o': '6',
-    'p': '7', 'q': '7', 'r': '7', 's': '7',
-    't': '8', 'u': '8', 'v': '8',
-    'w': '9', 'x': '9', 'y': '9', 'z': '9'
-  }
-  for (var i = 0; i < syllables.length; i++) {
-    var syl = syllables[i]
-    var digits = ''
-    for (var j = 0; j < syl.length; j++) {
-      var d = letterToDigit[syl[j]]
-      if (d) digits += d
-    }
-    if (!t9DigitToPinyin[digits]) t9DigitToPinyin[digits] = []
-    if (t9DigitToPinyin[digits].indexOf(syl) === -1) {
-      t9DigitToPinyin[digits].push(syl)
-    }
   }
 }
 
@@ -137,42 +103,14 @@ export default {
     hideKeyboard: true,
     showCursor: false,
     returnKey: "chinese_input_result",
-    baseFontSize: 48,
-    displayStyle: "",
-    candidateStyle: "",
-    pinyinStyle: "",
-    keyStyle: "",
+    inputFontSize: 36,
+    keyFontSize: 36,
     cval: "",
     cvalDisplay: "",
     lang: "cn",
-    keyboardMode: "t9",
-    digitSequence: "",
-    t9Buffer: "",
-    t9LastKey: "",
-    t9LastTime: 0,
     numFlag: false,
     shiftFlag: false,
     resultRow0: [],
-    t9Keys: [
-      [
-        { key: '2', label: '2', action: 'digit' },
-        { key: '3', label: '3', action: 'digit' },
-        { key: '4', label: '4', action: 'digit' },
-        { key: 'del', label: 'Del', action: 'delete' }
-      ],
-      [
-        { key: '5', label: '5', action: 'digit' },
-        { key: '6', label: '6', action: 'digit' },
-        { key: '7', label: '7', action: 'digit' },
-        { key: '123', label: '123', action: 'num' }
-      ],
-      [
-        { key: '8', label: '8', action: 'digit' },
-        { key: '9', label: '9', action: 'digit' },
-        { key: '0', label: '0', action: 'digit' },
-        { key: 'space', label: '空格', action: 'space' }
-      ]
-    ],
     keys: {
       full: [
         ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
@@ -193,8 +131,8 @@ export default {
       self.theme = t
     })
     store.getFontSizes(function(sizes) {
-      self.baseFontSize = sizes.display
-      self.applyFontSizes(sizes)
+      self.inputFontSize = sizes.display || 36
+      self.keyFontSize = sizes.key || 36
     })
   },
 
@@ -204,8 +142,8 @@ export default {
       self.theme = t
     })
     store.getFontSizes(function(sizes) {
-      self.baseFontSize = sizes.display
-      self.applyFontSizes(sizes)
+      self.inputFontSize = sizes.display || 36
+      self.keyFontSize = sizes.key || 36
     })
 
     var storage = require("@system.storage")
@@ -237,13 +175,6 @@ export default {
     }, 300)
   },
 
-  applyFontSizes(sizes) {
-    this.displayStyle = "font-size: " + sizes.display + "px"
-    this.candidateStyle = "font-size: " + sizes.candidate + "px"
-    this.pinyinStyle = "font-size: " + sizes.pinyin + "px"
-    this.keyStyle = "font-size: " + sizes.key + "px"
-  },
-
   showKeyboard() {
     this.hideKeyboard = false
     this.showCursor = true
@@ -252,6 +183,11 @@ export default {
 
   doVibrate() {
     vibrator.vibrate({ mode: "short" })
+  },
+
+  setInputFontSize(size) {
+    this.inputFontSize = size
+    this.keyFontSize = size
   },
 
   onKeyPress(item) {
@@ -273,24 +209,6 @@ export default {
 
   onDeleteKey() {
     this.doVibrate()
-    if (this.keyboardMode === 't9' && this.lang === 'cn') {
-      if (this.digitSequence.length > 0) {
-        this.digitSequence = this.digitSequence.slice(0, -1)
-        this.resolveT9AndUpdate()
-      } else {
-        this.inputValue = this.inputValue.slice(0, -1)
-      }
-      return
-    }
-    if (this.keyboardMode === 't9' && this.lang === 'en') {
-      if (this.t9Buffer) {
-        this.t9Buffer = ''
-        this.cvalDisplay = this.inputValue
-      } else {
-        this.inputValue = this.inputValue.slice(0, -1)
-      }
-      return
-    }
     if (this.cval.length > 0) {
       this.cval = this.cval.slice(0, -1)
       this.updateCandidates()
@@ -391,9 +309,6 @@ export default {
     this.doVibrate()
     this.numFlag = !this.numFlag
     this.cval = ""
-    this.digitSequence = ""
-    this.t9Buffer = ""
-    this.t9LastKey = ""
     this.resultRow0 = []
     this.cvalDisplay = ""
   },
@@ -402,9 +317,6 @@ export default {
     this.doVibrate()
     this.lang = this.lang === "cn" ? "en" : "cn"
     this.cval = ""
-    this.digitSequence = ""
-    this.t9Buffer = ""
-    this.t9LastKey = ""
     this.resultRow0 = []
     this.cvalDisplay = ""
     this.shiftFlag = false
@@ -413,134 +325,6 @@ export default {
   toggleShift() {
     this.doVibrate()
     this.shiftFlag = !this.shiftFlag
-  },
-
-  toggleKeyboardMode() {
-    this.doVibrate()
-    if (this.keyboardMode === 't9') {
-      this.keyboardMode = 'full'
-    } else {
-      this.keyboardMode = 't9'
-    }
-    this.cval = ""
-    this.digitSequence = ""
-    this.t9Buffer = ""
-    this.t9LastKey = ""
-    this.resultRow0 = []
-    this.cvalDisplay = ""
-  },
-
-  onT9Key(item) {
-    if (!item) return
-    this.doVibrate()
-
-    if (item.action === 'delete') {
-      this.onDeleteKey()
-      return
-    }
-    if (item.action === 'num') {
-      this.toggleNumMode()
-      return
-    }
-    if (item.action === 'space') {
-      this.onSpace()
-      return
-    }
-
-    buildT9Map()
-    var key = item.key
-
-    if (this.lang === 'cn') {
-      this.digitSequence += key
-      this.cvalDisplay = this.digitSequence
-      this.resolveT9AndUpdate()
-    } else {
-      this.onT9KeyEnglish(key)
-    }
-  },
-
-  resolveT9AndUpdate() {
-    var seq = this.digitSequence
-    if (!seq) {
-      this.cval = ''
-      this.resultRow0 = []
-      return
-    }
-
-    var pinyin = ''
-    if (t9DigitToPinyin[seq] && t9DigitToPinyin[seq].length > 0) {
-      pinyin = t9DigitToPinyin[seq][0]
-    } else {
-      for (var len = seq.length - 1; len >= 1; len--) {
-        var prefix = seq.slice(0, len)
-        var suffix = seq.slice(len)
-        if (t9DigitToPinyin[prefix] && t9DigitToPinyin[prefix].length > 0 &&
-            t9DigitToPinyin[suffix] && t9DigitToPinyin[suffix].length > 0) {
-          pinyin = t9DigitToPinyin[prefix][0] + t9DigitToPinyin[suffix][0]
-          break
-        }
-      }
-    }
-
-    if (pinyin) {
-      this.cval = pinyin
-      this.cvalDisplay = seq + ' ( ' + pinyin + ' )'
-      this.updateCandidates()
-    } else {
-      this.cval = ''
-      this.resultRow0 = []
-      this.cvalDisplay = seq
-    }
-  },
-
-  onT9KeyEnglish(key) {
-    var now = Date.now()
-    if (key === this.t9LastKey && (now - this.t9LastTime) < 800) {
-      var letters = {
-        '2': ['a', 'b', 'c'],
-        '3': ['d', 'e', 'f'],
-        '4': ['g', 'h', 'i'],
-        '5': ['j', 'k', 'l'],
-        '6': ['m', 'n', 'o'],
-        '7': ['p', 'q', 'r', 's'],
-        '8': ['t', 'u', 'v'],
-        '9': ['w', 'x', 'y', 'z'],
-        '0': [' ']
-      }[key]
-      if (letters) {
-        var current = this.t9Buffer
-        var idx = letters.indexOf(current)
-        if (idx >= 0 && idx < letters.length - 1) {
-          this.t9Buffer = letters[idx + 1]
-        } else {
-          this.t9Buffer = letters[0]
-        }
-        this.cvalDisplay = this.inputValue + this.t9Buffer
-      }
-    } else {
-      if (this.t9Buffer) {
-        if (this.inputValue.length < this.maxlen) {
-          this.inputValue += this.t9Buffer
-        }
-      }
-      var letters = {
-        '2': ['a', 'b', 'c'],
-        '3': ['d', 'e', 'f'],
-        '4': ['g', 'h', 'i'],
-        '5': ['j', 'k', 'l'],
-        '6': ['m', 'n', 'o'],
-        '7': ['p', 'q', 'r', 's'],
-        '8': ['t', 'u', 'v'],
-        '9': ['w', 'x', 'y', 'z'],
-        '0': [' ']
-      }[key]
-      if (letters) {
-        this.t9Buffer = letters[0]
-        this.cvalDisplay = this.inputValue + this.t9Buffer
-      }
-    }
-    this.t9LastKey = key
-    this.t9LastTime = now
   },
 
   onConfirm() {
@@ -602,7 +386,7 @@ export default {
 }
 
 .title {
-  font-size: 16px;
+  font-size: 36px;
   font-weight: bold;
   flex: 1;
   text-align: center;
@@ -628,12 +412,12 @@ export default {
 }
 
 .display-text {
-  font-size: 17px;
+  font-size: 36px;
   flex: 1;
 }
 
 .cursor {
-  font-size: 17px;
+  font-size: 36px;
   margin-left: 2px;
 }
 
@@ -644,7 +428,7 @@ export default {
 }
 
 .pinyin-text {
-  font-size: 14px;
+  font-size: 36px;
   font-weight: bold;
   lines: 1;
   text-overflow: ellipsis;
@@ -658,7 +442,7 @@ export default {
 }
 
 .candidate-item {
-  font-size: 16px;
+  font-size: 36px;
   padding: 4px 10px;
   margin-right: 4px;
   border-radius: 6px;
@@ -668,57 +452,66 @@ export default {
 .keyboard {
   flex-direction: column;
   margin-top: 4px;
+  width: 100%;
 }
 
 .key-row {
   flex-direction: row;
   justify-content: center;
+  width: 100%;
   margin-bottom: 4px;
 }
 
 .key-btn {
-  width: 30px;
-  height: 36px;
-  border-radius: 6px;
-  font-size: 15px;
+  font-size: 36px;
   font-weight: bold;
   text-align: center;
+  flex: 1;
+  height: 36px;
+  border-radius: 6px;
   margin-left: 2px;
   margin-right: 2px;
+  max-width: 60px;
 }
 
 .key-del {
-  width: 36px;
-  font-size: 11px;
+  max-width: 60px;
+  font-size: 36px;
+  flex: 1;
 }
 
 .key-func {
-  width: 42px;
-  font-size: 12px;
-}
-
-.key-space {
   flex: 1;
-  font-size: 13px;
-  margin-left: 6px;
-  margin-right: 6px;
+  max-width: 60px;
+  font-size: 36px;
 }
 
 .key-bottom {
   margin-bottom: 0;
 }
 
-.t9-btn {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  font-size: 24px;
+.font-bar {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0;
+  margin-top: 4px;
+}
+
+.font-label {
+  font-size: 36px;
+  margin-right: 6px;
+}
+
+.font-btn {
+  font-size: 36px;
   font-weight: bold;
   text-align: center;
-  margin-left: 4px;
-  margin-right: 4px;
-  flex: 1;
-  max-width: 76px;
+  width: 48px;
+  height: 36px;
+  border-radius: 6px;
+  margin-left: 3px;
+  margin-right: 3px;
 }
 
 @media (shape: capsule) {
@@ -736,7 +529,7 @@ export default {
     font-size: 12px;
   }
   .title {
-    font-size: 13px;
+    font-size: 36px;
   }
   .confirm-btn {
     width: 46px;
@@ -749,24 +542,24 @@ export default {
     min-height: 34px;
   }
   .display-text {
-    font-size: 14px;
+    font-size: 36px;
   }
   .cursor {
-    font-size: 14px;
+    font-size: 36px;
   }
   .pinyin-row {
     height: 20px;
     margin-bottom: 2px;
   }
   .pinyin-text {
-    font-size: 12px;
+    font-size: 36px;
   }
   .candidate-row {
     height: 32px;
     margin-bottom: 2px;
   }
   .candidate-item {
-    font-size: 13px;
+    font-size: 36px;
     padding: 2px 8px;
     margin-right: 2px;
   }
@@ -777,19 +570,30 @@ export default {
     margin-bottom: 2px;
   }
   .key-btn {
-    width: 26px;
+    font-size: 36px;
     height: 30px;
-    font-size: 12px;
     margin-left: 1px;
     margin-right: 1px;
+    max-width: 50px;
+    flex: 1;
   }
-  .t9-btn {
-    height: 48px;
-    font-size: 20px;
-    margin-left: 3px;
-    margin-right: 3px;
-    max-width: 64px;
-    border-radius: 10px;
+  .key-del {
+    font-size: 36px;
+    max-width: 50px;
+    flex: 1;
+  }
+  .key-func {
+    font-size: 36px;
+    max-width: 50px;
+    flex: 1;
+  }
+  .font-label {
+    font-size: 36px;
+  }
+  .font-btn {
+    font-size: 36px;
+    width: 40px;
+    height: 30px;
   }
 }
 
@@ -807,7 +611,7 @@ export default {
     font-size: 11px;
   }
   .title {
-    font-size: 13px;
+    font-size: 36px;
   }
   .confirm-btn {
     width: 44px;
@@ -820,24 +624,24 @@ export default {
     min-height: 32px;
   }
   .display-text {
-    font-size: 14px;
+    font-size: 36px;
   }
   .cursor {
-    font-size: 14px;
+    font-size: 36px;
   }
   .pinyin-row {
     height: 18px;
     margin-bottom: 2px;
   }
   .pinyin-text {
-    font-size: 12px;
+    font-size: 36px;
   }
   .candidate-row {
     height: 30px;
     margin-bottom: 2px;
   }
   .candidate-item {
-    font-size: 13px;
+    font-size: 36px;
     padding: 2px 8px;
     margin-right: 2px;
   }
@@ -848,32 +652,30 @@ export default {
     margin-bottom: 2px;
   }
   .key-btn {
-    width: 24px;
+    font-size: 36px;
     height: 28px;
-    font-size: 12px;
     margin-left: 1px;
     margin-right: 1px;
+    max-width: 44px;
+    flex: 1;
   }
   .key-del {
-    width: 28px;
-    font-size: 10px;
+    font-size: 36px;
+    max-width: 44px;
+    flex: 1;
   }
   .key-func {
-    width: 34px;
-    font-size: 10px;
+    font-size: 36px;
+    max-width: 44px;
+    flex: 1;
   }
-  .key-space {
-    font-size: 11px;
-    margin-left: 4px;
-    margin-right: 4px;
+  .font-label {
+    font-size: 36px;
   }
-  .t9-btn {
-    height: 44px;
-    font-size: 18px;
-    margin-left: 2px;
-    margin-right: 2px;
-    max-width: 56px;
-    border-radius: 8px;
+  .font-btn {
+    font-size: 36px;
+    width: 36px;
+    height: 28px;
   }
 }
 
@@ -896,15 +698,30 @@ export default {
     font-size: 13px;
   }
   .title {
-    font-size: 16px;
+    font-size: 36px;
   }
-  .t9-btn {
-    height: 52px;
-    font-size: 22px;
-    margin-left: 3px;
-    margin-right: 3px;
-    max-width: 68px;
-    border-radius: 10px;
+  .key-btn {
+    font-size: 36px;
+    max-width: 56px;
+    flex: 1;
+  }
+  .key-del {
+    font-size: 36px;
+    max-width: 56px;
+    flex: 1;
+  }
+  .key-func {
+    font-size: 36px;
+    max-width: 56px;
+    flex: 1;
+  }
+  .font-label {
+    font-size: 36px;
+  }
+  .font-btn {
+    font-size: 36px;
+    width: 44px;
+    height: 32px;
   }
 }
 </style>
