@@ -103,6 +103,18 @@
         </scroll>
       </div>
 
+      <div class="section" style="background-color: {{ theme.card }}">
+        <text class="section-title" style="color: {{ theme.accent }}">诗词滚动 - 将进酒</text>
+        <text class="section-desc" style="color: {{ theme.textSecondary }}">竖向滚动朗诵经典诗词，体验流畅滚动效果</text>
+        <scroll class="poem-scroll" scroll-y="true" onscroll="handlePoemScroll">
+          <div class="poem-author-row">
+            <text class="poem-author" style="color: {{ theme.accent }}">【唐】李白</text>
+          </div>
+          <text class="poem-line" for="{{ poemLines }}" style="color: {{ theme.text }}">{{ $item }}</text>
+        </scroll>
+        <text class="scroll-info" style="color: {{ theme.accent }}">诗词滚动位置: {{ poemScrollY }}</text>
+      </div>
+
       <div class="bottom-spacer"></div>
     </scroll>
 
@@ -113,6 +125,8 @@
              style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
       <input class="bar-btn" type="button" value="Scroll 方法" onclick="scrollToMethods"
              style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+      <input class="bar-btn" type="button" value="诗词" onclick="scrollToPoem"
+             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       <input class="bar-btn" type="button" value="返回首页" onclick="goBack"
              style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
@@ -138,9 +152,25 @@ export default {
     },
     scrollX: 0,
     scrollY: 0,
+    poemScrollY: 0,
     eventLog: '',
     rectInfo: '',
-    cityList: ['北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '南京', '重庆', '西安']
+    cityList: ['北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '南京', '重庆', '西安'],
+    poemLines: [
+      '君不见黄河之水天上来，奔流到海不复回。',
+      '君不见高堂明镜悲白发，朝如青丝暮成雪。',
+      '人生得意须尽欢，莫使金樽空对月。',
+      '天生我材必有用，千金散尽还复来。',
+      '烹羊宰牛且为乐，会须一饮三百杯。',
+      '岑夫子，丹丘生，将进酒，杯莫停。',
+      '与君歌一曲，请君为我倾耳听。',
+      '钟鼓馔玉不足贵，但愿长醉不愿醒。',
+      '古来圣贤皆寂寞，惟有饮者留其名。',
+      '陈王昔时宴平乐，斗酒十千恣欢谑。',
+      '主人何为言少钱，径须沽取对君酌。',
+      '五花马，千金裘，',
+      '呼儿将出换美酒，与尔同销万古愁。'
+    ]
   },
 
   onInit() {
@@ -171,6 +201,10 @@ export default {
   handleScroll(e) {
     this.scrollX = e.scrollX || 0
     this.scrollY = e.scrollY || 0
+  },
+
+  handlePoemScroll(e) {
+    this.poemScrollY = e.scrollY || 0
   },
 
   getScrollRectInfo() {
@@ -223,6 +257,13 @@ export default {
   scrollToMethods() {
     this.$element('scrollVertical').scrollTo({
       top: 400,
+      behavior: 'smooth'
+    })
+  },
+
+  scrollToPoem() {
+    this.$element('scrollVertical').scrollTo({
+      top: 600,
       behavior: 'smooth'
     })
   },
@@ -334,6 +375,32 @@ export default {
 .scroll-info {
   font-size: 11px;
   margin-top: 4px;
+}
+
+.poem-scroll {
+  height: 160px;
+  flex-direction: column;
+  background-color: #1a1a3e;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+}
+
+.poem-author-row {
+  flex-direction: row;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.poem-author {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.poem-line {
+  font-size: 13px;
+  line-height: 22px;
+  margin-bottom: 2px;
 }
 
 .btn-row {
