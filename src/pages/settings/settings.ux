@@ -28,21 +28,29 @@
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
-      <text class="group-title" style="color: {{ theme.text }}">字体大小</text>
-      <div class="scale-row">
-        <input class="scale-btn" type="button" value="−" onclick="decreaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
-        <text class="scale-value" style="color: {{ theme.accent }}">{{ displaySize }}px</text>
-        <input class="scale-btn" type="button" value="+" onclick="increaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
+      <div class="group-title-row" onclick="toggleFontSize">
+        <text class="group-title" style="color: {{ theme.text }}">字体大小</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">{{ displaySize }}px</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">{{ showFontSize ? '˅' : '›' }}</text>
+        </div>
       </div>
-      <div class="quick-row">
-        <input class="quick-btn {{ displaySize === 28 ? 'active' : '' }}" type="button" value="28" onclick="set28" style="background-color: {{ displaySize === 28 ? theme.accent : theme.border }}; color: {{ displaySize === 28 ? theme.bg : theme.textSecondary }}" />
-        <input class="quick-btn {{ displaySize === 36 ? 'active' : '' }}" type="button" value="36" onclick="set36" style="background-color: {{ displaySize === 36 ? theme.accent : theme.border }}; color: {{ displaySize === 36 ? theme.bg : theme.textSecondary }}" />
-        <input class="quick-btn {{ displaySize === 48 ? 'active' : '' }}" type="button" value="48" onclick="set48" style="background-color: {{ displaySize === 48 ? theme.accent : theme.border }}; color: {{ displaySize === 48 ? theme.bg : theme.textSecondary }}" />
-        <input class="quick-btn {{ displaySize === 62 ? 'active' : '' }}" type="button" value="62" onclick="set62" style="background-color: {{ displaySize === 62 ? theme.accent : theme.border }}; color: {{ displaySize === 62 ? theme.bg : theme.textSecondary }}" />
-        <input class="quick-btn {{ displaySize === 76 ? 'active' : '' }}" type="button" value="76" onclick="set76" style="background-color: {{ displaySize === 76 ? theme.accent : theme.border }}; color: {{ displaySize === 76 ? theme.bg : theme.textSecondary }}" />
-      </div>
-      <div class="preview-box" style="background-color: {{ theme.cardLight }}">
-        <text class="preview-text" style="font-size: {{ previewClassSize }}px; color: {{ theme.text }}">数学 08:00-08:45 301</text>
+      <div if="{{ showFontSize }}">
+        <div class="scale-row">
+          <input class="scale-btn" type="button" value="−" onclick="decreaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
+          <text class="scale-value" style="color: {{ theme.accent }}">{{ displaySize }}px</text>
+          <input class="scale-btn" type="button" value="+" onclick="increaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
+        </div>
+        <div class="quick-row">
+          <input class="quick-btn {{ displaySize === 28 ? 'active' : '' }}" type="button" value="28" onclick="set28" style="background-color: {{ displaySize === 28 ? theme.accent : theme.border }}; color: {{ displaySize === 28 ? theme.bg : theme.textSecondary }}" />
+          <input class="quick-btn {{ displaySize === 36 ? 'active' : '' }}" type="button" value="36" onclick="set36" style="background-color: {{ displaySize === 36 ? theme.accent : theme.border }}; color: {{ displaySize === 36 ? theme.bg : theme.textSecondary }}" />
+          <input class="quick-btn {{ displaySize === 48 ? 'active' : '' }}" type="button" value="48" onclick="set48" style="background-color: {{ displaySize === 48 ? theme.accent : theme.border }}; color: {{ displaySize === 48 ? theme.bg : theme.textSecondary }}" />
+          <input class="quick-btn {{ displaySize === 62 ? 'active' : '' }}" type="button" value="62" onclick="set62" style="background-color: {{ displaySize === 62 ? theme.accent : theme.border }}; color: {{ displaySize === 62 ? theme.bg : theme.textSecondary }}" />
+          <input class="quick-btn {{ displaySize === 76 ? 'active' : '' }}" type="button" value="76" onclick="set76" style="background-color: {{ displaySize === 76 ? theme.accent : theme.border }}; color: {{ displaySize === 76 ? theme.bg : theme.textSecondary }}" />
+        </div>
+        <div class="preview-box" style="background-color: {{ theme.cardLight }}">
+          <text class="preview-text" style="font-size: {{ previewClassSize }}px; color: {{ theme.text }}">数学 08:00-08:45 301</text>
+        </div>
       </div>
     </div>
 
@@ -163,7 +171,8 @@ export default {
     currentThemeKey: "blue",
     themes: [],
     versionText: "",
-    showPremiumDialog: false
+    showPremiumDialog: false,
+    showFontSize: false
   },
 
   onInit() {
@@ -221,6 +230,10 @@ export default {
         return
       }
     }
+  },
+
+  toggleFontSize() {
+    this.showFontSize = !this.showFontSize
   },
 
   selectTheme(themeKey) {
@@ -356,8 +369,14 @@ export default {
 .group-title {
   font-size: 13px;
   font-weight: bold;
-  margin-bottom: 8px;
   opacity: 0.8;
+}
+
+.group-title-row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
 .row {
