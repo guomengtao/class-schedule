@@ -73,22 +73,25 @@ device.getInfo({
 | `w` | screenWidth | `466` | ~4 | 屏幕宽度 |
 | `h` | screenHeight | `466` | ~4 | 屏幕高度 |
 | `a` | APILevel2 | `12` | ~3 | API 等级 |
+| `l` | language | `zh-CN` | ~5 | 系统语言 |
+
+> `language` 按需选用，中文用户可省略默认 `zh-CN`，进一步压缩 URL 长度。
 
 ### 3.3 URL 长度计算
 
 使用短参数名后，完整 URL 示例：
 
 ```
-https://app-auth.gudq.com/a?d=DEVICEID&m=Watch%20S4&p=vela_ws4&o=42&v=10&t=watch&s=rect&w=466&h=466&a=12
+https://app-auth.gudq.com/a?d=DEVICEID&m=Watch%20S4&p=vela_ws4&o=42&v=10&t=watch&s=rect&w=466&h=466&a=12&l=zh-CN
 ```
 
 | 组成部分 | 字符数 |
 |----------|--------|
 | 协议 + 域名 + 路径 | 35 |
 | 参数名 + 分隔符 | 27 |
-| 参数值（含编码） | ~95 |
+| 参数值（含编码） | ~100 |
 | deviceId (UUID) | 36 |
-| **总计** | **≈193** |
+| **总计** | **≈198** |
 
 ✅ 控制在 200 字符以内。
 
@@ -98,10 +101,10 @@ https://app-auth.gudq.com/a?d=DEVICEID&m=Watch%20S4&p=vela_ws4&o=42&v=10&t=watch
 
 | | 旧格式 | 新格式 |
 |---|---|---|
-| URL | `activate.html?deviceId=xxx` | `a?d=xxx&m=...&p=...&o=...&v=...&t=...&s=...&w=...&h=...&a=...` |
+| URL | `activate.html?deviceId=xxx` | `a?d=xxx&m=...&p=...&o=...&v=...&t=...&s=...&w=...&h=...&a=...&l=...` |
 | 路径 | `/activate.html` | `/a` |
-| 参数 | 仅 deviceId | deviceId + 8 个设备字段 |
-| 长度 | ~80 字符 | ~193 字符 |
+| 参数 | 仅 deviceId | deviceId + 9 个设备字段 |
+| 长度 | ~80 字符 | ~198 字符 |
 
 ## 四、兼容性策略
 
@@ -129,7 +132,8 @@ function handleActivate(req) {
     screenShape: req.query.s || '',
     screenWidth: req.query.w || '',
     screenHeight: req.query.h || '',
-    apiLevel: req.query.a || ''
+    apiLevel: req.query.a || '',
+    language: req.query.l || ''
   }
   // deviceId 必填，设备信息选填
   // 有设备信息时记录日志用于排障
@@ -169,6 +173,7 @@ fetchDeviceInfoV2() {
       if (ret.screenWidth != null) params.push('w=' + ret.screenWidth)
       if (ret.screenHeight != null) params.push('h=' + ret.screenHeight)
       if (ret.APILevel != null) params.push('a=' + ret.APILevel)
+      if (ret.language) params.push('l=' + encodeURIComponent(ret.language))
 
       self.deviceInfoParams = params.join('&')
       self.updateQrText()
