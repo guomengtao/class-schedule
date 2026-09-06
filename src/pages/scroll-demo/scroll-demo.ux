@@ -1,6 +1,6 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <div class="back-header">
+    <div class="header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack"
              style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">Scroll 滚动视图 Demo</text>
@@ -105,6 +105,17 @@
 
       <div class="bottom-spacer"></div>
     </scroll>
+
+    <div class="bottom-bar">
+      <input class="bar-btn" type="button" value="Scroll 吸附" onclick="scrollToSnap"
+             style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+      <input class="bar-btn" type="button" value="Scroll 事件" onclick="scrollToEvents"
+             style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+      <input class="bar-btn" type="button" value="Scroll 方法" onclick="scrollToMethods"
+             style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+      <input class="bar-btn" type="button" value="返回首页" onclick="goBack"
+             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
   </div>
 </template>
 
@@ -195,6 +206,27 @@ export default {
     })
   },
 
+  scrollToSnap() {
+    this.$element('scrollVertical').scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })
+  },
+
+  scrollToEvents() {
+    this.$element('scrollVertical').scrollTo({
+      top: 200,
+      behavior: 'smooth'
+    })
+  },
+
+  scrollToMethods() {
+    this.$element('scrollVertical').scrollTo({
+      top: 400,
+      behavior: 'smooth'
+    })
+  },
+
   goBack() {
     router.back()
   }
@@ -204,14 +236,13 @@ export default {
 <style>
 .page {
   flex-direction: column;
-  padding: 44px 8px 8px 8px;
   min-height: 100%;
 }
 
-.back-header {
+.header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 10px;
+  padding: 44px 8px 8px 8px;
 }
 
 .back-btn {
@@ -231,6 +262,7 @@ export default {
 
 .page-scroll {
   flex: 1;
+  padding: 0 8px;
 }
 
 .section {
@@ -338,6 +370,23 @@ export default {
 }
 
 .bottom-spacer {
-  height: 20px;
+  height: 60px;
+}
+
+.bottom-bar {
+  flex-direction: row;
+  padding: 6px 8px;
+  justify-content: space-between;
+}
+
+.bar-btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 22px;
+  font-size: 13px;
+  font-weight: bold;
+  text-align: center;
+  border-width: 0;
+  margin: 0 3px;
 }
 </style>
