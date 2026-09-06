@@ -17,22 +17,14 @@
     </div>
 
     <div class="info-section" if="{{ !loading && !errorMsg }}">
-      <div class="hero-card" style="background-color: {{ theme.card }}">
-        <text class="hero-icon">{{ deviceIcon }}</text>
-        <text class="hero-model" style="color: {{ theme.text }}">{{ deviceModel }}</text>
-        <text class="hero-sub" style="color: {{ theme.textSecondary }}">{{ deviceBrand }}</text>
-      </div>
-
       <div class="menu-item" for="{{ infoList }}" style="background-color: {{ theme.card }}">
         <text class="menu-label" style="color: {{ theme.text }}">{{ $item.label }}</text>
-        <div class="menu-right">
-          <text class="menu-value" style="color: {{ theme.textMuted }}">{{ $item.value || '未知' }}</text>
-        </div>
+        <text class="menu-value" style="color: {{ theme.textMuted }}">{{ $item.value || '未知' }}</text>
       </div>
     </div>
 
     <div class="footer-actions">
-      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">📌 固定到首页</text>
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">📌 固定到首页</text>
     </div>
   </div>
 </template>
@@ -53,12 +45,6 @@ var deviceTypeMap = {
   "watch": "手表",
   "band": "手环",
   "smartspeaker": "智能音箱"
-}
-
-var deviceIconMap = {
-  "watch": "⌚",
-  "band": "⌚",
-  "smartspeaker": "🔊"
 }
 
 function formatStorage(bytes) {
@@ -93,9 +79,6 @@ export default {
     },
     loading: true,
     errorMsg: "",
-    deviceIcon: "⌚",
-    deviceModel: "",
-    deviceBrand: "",
     infoList: []
   },
 
@@ -121,15 +104,17 @@ export default {
 
     device.getInfo({
       success: function(ret) {
-        self.deviceIcon = deviceIconMap[ret.deviceType] || "⌚"
-        self.deviceModel = ret.model || "未知设备"
-        self.deviceBrand = (ret.brand || "") + " · " + (deviceTypeMap[ret.deviceType] || "")
-
         self.infoList = [
+          { label: "设备型号", value: ret.model },
+          { label: "设备品牌", value: ret.brand },
           { label: "制造商", value: ret.manufacturer },
+          { label: "设备代号", value: ret.product },
+          { label: "设备类型", value: deviceTypeMap[ret.deviceType] || ret.deviceType },
           { label: "操作系统", value: ret.osType },
-          { label: "系统版本", value: ret.osVersionName },
-          { label: "平台版本", value: ret.platformVersionName },
+          { label: "系统版本名称", value: ret.osVersionName },
+          { label: "系统版本号", value: ret.osVersionCode },
+          { label: "平台版本名称", value: ret.platformVersionName },
+          { label: "平台版本号", value: ret.platformVersionCode },
           { label: "API Level", value: ret.APILevel },
           { label: "屏幕宽度", value: ret.screenWidth ? ret.screenWidth + "px" : "" },
           { label: "屏幕高度", value: ret.screenHeight ? ret.screenHeight + "px" : "" },
@@ -230,35 +215,11 @@ export default {
 
 .pin-link {
   text-align: center;
+  font-size: 13px;
 }
 
 .info-section {
   flex-direction: column;
-}
-
-.hero-card {
-  flex-direction: column;
-  align-items: center;
-  border-radius: 10px;
-  padding: 16px 12px;
-  margin-bottom: 8px;
-}
-
-.hero-icon {
-  font-size: 32px;
-  margin-bottom: 6px;
-}
-
-.hero-model {
-  font-size: 17px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.hero-sub {
-  font-size: 13px;
-  margin-top: 4px;
-  text-align: center;
 }
 
 .menu-item {
@@ -272,11 +233,6 @@ export default {
 
 .menu-label {
   font-size: 15px;
-}
-
-.menu-right {
-  flex-direction: row;
-  align-items: center;
 }
 
 .menu-value {
