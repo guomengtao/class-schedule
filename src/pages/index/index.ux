@@ -143,7 +143,6 @@ export default {
     statusTimeText: "",
     showCustomContent: false,
     customContent: "",
-    customContentList: [],
     showTime: true,
     showQuickAdd: true,
     showStatusBar: true,
@@ -214,9 +213,6 @@ export default {
     if (self.quickAdd && self.quickAdd.loadPreset) {
       self.quickAdd.loadPreset()
     }
-    if (modules.customContent && modules.customContent.refresh) {
-      modules.customContent.refresh(self)
-    }
 
     store.getCurrentScheduleIndex(function(idx) {
       database.setScheduleIndex(idx, function() {
@@ -250,9 +246,6 @@ export default {
     if (this.stopClockTimer && typeof this.stopClockTimer === 'function') this.stopClockTimer()
     if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
     if (this.stopProgressTimer && typeof this.stopProgressTimer === 'function') this.stopProgressTimer()
-    if (modules.customContent && modules.customContent.destroy) {
-      modules.customContent.destroy()
-    }
   },
 
   loadFontScale() {
@@ -274,6 +267,8 @@ export default {
       self.showDayNavZong = settings.showDayNavZong !== false
       self.showDayNavJin = settings.showDayNavJin !== false
       self.showDayNavMing = settings.showDayNavMing !== false
+      self.showCustomContent = settings.showCustomContent || false
+      self.customContent = settings.customContent || ""
       self.timeFormat = settings.timeFormat || { hour: true, minute: true, second: false }
     })
   },

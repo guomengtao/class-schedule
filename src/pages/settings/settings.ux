@@ -63,15 +63,6 @@
         </div>
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
-      <div class="row" onclick="openCustomContentManage">
-        <text class="row-label" style="color: {{ theme.text }}">自定义文字</text>
-        <div class="row-right">
-          <text class="row-value" if="{{ customContentCount > 0 }}" style="color: {{ theme.accent }}">{{ customContentCount }} 条</text>
-          <text class="row-hint" if="{{ customContentCount === 0 }}" style="color: {{ theme.textMuted }}">未设置</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
       <div class="row" onclick="openBackupRestore">
         <text class="row-label" style="color: {{ theme.text }}">数据备份与恢复</text>
         <div class="row-right">
@@ -172,8 +163,7 @@ export default {
     currentThemeKey: "blue",
     themes: [],
     versionText: "",
-    showPremiumDialog: false,
-    customContentCount: 0
+    showPremiumDialog: false
   },
 
   onInit() {
@@ -191,13 +181,11 @@ export default {
     })
     this.loadNickname()
     this.loadHideWeekend()
-    this.loadCustomContentCount()
     this.versionText = version.versionName
   },
 
   onShow() {
     this.loadNickname()
-    this.loadCustomContentCount()
   },
 
   updatePreviews() {
@@ -277,17 +265,6 @@ export default {
 
   openNicknameEdit() {
     router.push({ uri: "/pages/nickname-edit" })
-  },
-
-  loadCustomContentCount() {
-    var self = this
-    store.getCustomContents(function(list) {
-      self.customContentCount = list.length
-    })
-  },
-
-  openCustomContentManage() {
-    router.push({ uri: "/pages/custom-content-manage" })
   },
 
   openTestArea() {

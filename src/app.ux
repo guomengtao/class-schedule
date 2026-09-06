@@ -67,38 +67,6 @@ function migrateFontScale() {
   })
 }
 
-function migrateCustomContent() {
-  var storage = require("@system.storage")
-  storage.get({
-    key: "homepage_settings",
-    success: function(data) {
-      try {
-        var settings = JSON.parse(data)
-        if (settings && settings.customContent && typeof settings.customContent === 'string' && settings.customContent.trim()) {
-          storage.get({
-            key: "customContents",
-            success: function(ccData) {
-              var list = []
-              try { list = JSON.parse(ccData) } catch (e) { list = [] }
-              if (!Array.isArray(list) || list.length === 0) {
-                var newList = [{
-                  id: 1,
-                  text: settings.customContent.trim(),
-                  enabled: settings.showCustomContent !== false
-                }]
-                storage.set({
-                  key: "customContents",
-                  value: JSON.stringify(newList)
-                })
-              }
-            }
-          })
-        }
-      } catch (e) {}
-    }
-  })
-}
-
 export default {
   onCreate() {
     database.init()
@@ -109,7 +77,6 @@ export default {
       }
     })
     migrateFontScale()
-    migrateCustomContent()
     this.initBackgroundRunning()
   },
 

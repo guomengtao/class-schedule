@@ -13,25 +13,8 @@
 
       <div class="button-row">
         <input class="cancel-btn" type="button" value="取消" onclick="goBack" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
-        <input class="recommend-btn" type="button" value="推荐" onclick="showRecommend" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
         <input class="save-btn" type="button" value="保存" onclick="saveNickname" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
-    </div>
-
-    <div class="overlay-bottom-sheet" if="{{ showRecommendPanel }}" onclick="hideRecommend">
-      <div class="bottom-sheet" style="background-color: {{ theme.card }}" onclick="stopBubble">
-        <div class="sheet-handle" style="background-color: {{ theme.textMuted }}"></div>
-        <text class="sheet-title" style="color: {{ theme.accent }}">推荐昵称</text>
-        <text class="sheet-desc" style="color: {{ theme.textSecondary }}">点击选择一条推荐昵称，再点保存即可</text>
-        <div class="recommend-list">
-          <div for="{{ recommendWords }}" class="recommend-item" onclick="selectRecommend($item)" style="background-color: {{ theme.cardLight }}">
-            <text class="recommend-text" style="color: {{ theme.text }}">{{ $item }}</text>
-          </div>
-        </div>
-        <input class="sheet-cancel" type="button" value="关闭" onclick="hideRecommend"
-               style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
-      </div>
-    </div>
   </div>
 </template>
 
@@ -39,14 +22,11 @@
 import router from "@system.router"
 import prompt from "@system.prompt"
 const store = require("../../data/store.js")
-const recommendWords = require("../../common/recommend-words.js")
 
 export default {
   private: {
     currentName: "",
     savedName: "",
-    showRecommendPanel: false,
-    recommendWords: [],
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -78,7 +58,6 @@ export default {
       self.savedName = name || ""
       self.currentName = self.savedName
     })
-    this.recommendWords = recommendWords.getNicknameWords()
   },
 
   onShow() {
@@ -120,22 +99,6 @@ export default {
       prompt.showToast({ message: "昵称已保存" })
       router.back()
     })
-  },
-
-  showRecommend() {
-    this.showRecommendPanel = true
-  },
-
-  hideRecommend() {
-    this.showRecommendPanel = false
-  },
-
-  selectRecommend(word) {
-    this.currentName = word
-    this.showRecommendPanel = false
-  },
-
-  stopBubble() {
   },
 
   goBack() {
@@ -228,75 +191,6 @@ export default {
   font-size: 16px;
   font-weight: bold;
   text-align: center;
-}
-
-.recommend-btn {
-  width: 100px;
-  height: 44px;
-  border-radius: 10px;
-  font-size: 16px;
-  text-align: center;
-}
-
-.overlay-bottom-sheet {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.5);
-  justify-content: flex-end;
-}
-
-.bottom-sheet {
-  flex-direction: column;
-  border-radius: 16px 16px 0 0;
-  padding: 12px 16px 20px 16px;
-  max-height: 60%;
-}
-
-.sheet-handle {
-  width: 40px;
-  height: 4px;
-  border-radius: 2px;
-  align-self: center;
-  margin-bottom: 12px;
-}
-
-.sheet-title {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.sheet-desc {
-  font-size: 12px;
-  margin-bottom: 10px;
-}
-
-.recommend-list {
-  flex-direction: column;
-  max-height: 300px;
-  overflow: scroll;
-}
-
-.recommend-item {
-  padding: 10px 12px;
-  border-radius: 8px;
-  margin-bottom: 6px;
-}
-
-.recommend-text {
-  font-size: 14px;
-}
-
-.sheet-cancel {
-  width: 100%;
-  height: 40px;
-  border-radius: 10px;
-  font-size: 15px;
-  text-align: center;
-  margin-top: 10px;
 }
 
 @media (shape: circle) {

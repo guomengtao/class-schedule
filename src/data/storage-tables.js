@@ -36,12 +36,6 @@ var tables = [
     type: "value"
   },
   {
-    key: "customContents",
-    desc: "自定义文字列表，支持多条，每条含 id/text/enabled",
-    columns: ["value"],
-    type: "value"
-  },
-  {
     key: "remindSettings",
     desc: "提醒设置",
     columns: ["enabled", "advanceMinutes", "vibrationEnabled", "soundEnabled"],

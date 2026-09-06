@@ -6,7 +6,7 @@ var USED_CODES_KEY = "used_codes"
 var USED_REDEEM_KEY = "used_redeem"
 var DEFAULT_TRIAL_DAYS = 7
 
-var FORCE_AUTH_MODE = 'permanent'
+var FORCE_AUTH_MODE = null
 
 var MASTER_CODE = {
   enabled: true,

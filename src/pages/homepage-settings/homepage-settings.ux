@@ -91,6 +91,32 @@
       </div>
     </div>
 
+    <text class="group-title" style="color: {{ theme.textSecondary }}">自定义内容</text>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <div class="item-row">
+        <div class="item-left">
+          <div class="dot" style="background-color: {{ theme.accent }}"></div>
+          <div class="item-text">
+            <text class="item-label" style="color: {{ theme.text }}">自定义内容</text>
+            <text class="item-desc" style="color: {{ theme.textMuted }}">在首页显示自定义文字</text>
+          </div>
+        </div>
+        <div class="switch-track" style="background-color: {{ showCustomContent ? theme.accent : theme.border }}" onclick="toggleCustomContent">
+          <div class="switch-thumb" style="left: {{ showCustomContent ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
+        </div>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="input-row" onclick="showContentKeyboard">
+        <text class="input-text" style="color: {{ customContent && showCustomContent ? theme.text : theme.textMuted }}">{{ customContent || '点击输入自定义文字...' }}</text>
+        <text class="input-arrow" style="color: {{ theme.textMuted }}">></text>
+      </div>
+      <div class="preview-row" if="{{ customContent && showCustomContent }}">
+        <text class="preview-label" style="color: {{ theme.textSecondary }}">预览效果</text>
+        <text class="preview-text" style="color: {{ theme.accent }}">{{ customContent }}</text>
+      </div>
+    </div>
+
     <text class="group-title" style="color: {{ theme.textSecondary }}">时间显示</text>
 
     <div class="section" style="background-color: {{ theme.card }}">
@@ -159,6 +185,8 @@ export default {
   private: {
     theme: store.DEFAULT_THEME,
     showQuickAdd: true,
+    showCustomContent: false,
+    customContent: "",
     showStatusBar: true,
     showTime: true,
     showPinnedBar: true,
@@ -184,11 +212,26 @@ export default {
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this.loadSettings()
+
+    var storage = require("@system.storage")
+    storage.get({
+      key: "chinese_input_result",
+      success: function(data) {
+        if (data !== undefined && data !== null && data !== "") {
+          self.customContent = data
+          self.showCustomContent = true
+          self.saveSettings()
+          storage.delete({ key: "chinese_input_result" })
+        }
+      }
+    })
   },
   loadSettings() {
     var self = this
     store.getHomepageSettings(function(settings) {
       self.showQuickAdd = settings.showQuickAdd !== false
+      self.showCustomContent = settings.showCustomContent || false
+      self.customContent = settings.customContent || ""
       self.showStatusBar = settings.showStatusBar !== false
       self.showTime = settings.showTime !== false
       self.showPinnedBar = settings.showPinnedBar !== false
@@ -202,6 +245,8 @@ export default {
   saveSettings() {
     store.setHomepageSettings({
       showQuickAdd: this.showQuickAdd,
+      showCustomContent: this.showCustomContent,
+      customContent: this.customContent,
       showStatusBar: this.showStatusBar,
       showTime: this.showTime,
       showPinnedBar: this.showPinnedBar,
@@ -231,6 +276,8 @@ export default {
   goBack() {
     store.setHomepageSettings({
       showQuickAdd: this.showQuickAdd,
+      showCustomContent: this.showCustomContent,
+      customContent: this.customContent,
       showStatusBar: this.showStatusBar,
       showTime: this.showTime,
       showPinnedBar: this.showPinnedBar,
@@ -243,6 +290,10 @@ export default {
 
   toggleQuickAdd() {
     this.showQuickAdd = !this.showQuickAdd
+    this.saveSettings()
+  },
+  toggleCustomContent() {
+    this.showCustomContent = !this.showCustomContent
     this.saveSettings()
   },
   toggleStatusBar() {
@@ -268,6 +319,21 @@ export default {
   toggleDayNavMing() {
     this.showDayNavMing = !this.showDayNavMing
     this.saveSettings()
+  },
+  showContentKeyboard() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.set({ key: "chinese_input_title", value: "自定义内容", success: function() {
+      storage.set({ key: "chinese_input_placeholder", value: "点击输入自定义内容", success: function() {
+        storage.set({ key: "chinese_input_value", value: self.customContent || "", success: function() {
+          storage.set({ key: "chinese_input_maxlen", value: "20", success: function() {
+            storage.set({ key: "chinese_input_return_key", value: "chinese_input_result", success: function() {
+              router.push({ uri: "/pages/chinese-input" })
+            } })
+          } })
+        } })
+      } })
+    } })
   },
   toggleTimeUnit(unit) {
     this.timeFormat[unit] = !this.timeFormat[unit]

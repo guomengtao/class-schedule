@@ -347,7 +347,7 @@ module.exports = {
         btn:          Math.round(28 * r),
         btnHeight:    Math.round(72 * r),
         pickerValue:  Math.round(36 * r),
-        display:      Math.round(48 * r),
+        display:      Math.round(17 * r),
         candidate:    Math.round(16 * r),
         pinyin:       Math.round(14 * r),
         key:          Math.round(15 * r),
@@ -757,38 +757,6 @@ module.exports = {
       value: hide ? "true" : "false",
       success: function() { if (callback) callback() },
       fail: function() { if (callback) callback() }
-    })
-  },
-
-  getCustomContents: function(callback) {
-    storage.get({
-      key: "customContents",
-      success: function(data) {
-        if (data) {
-          try {
-            var list = JSON.parse(data)
-            callback(Array.isArray(list) ? list : [])
-          } catch (e) { callback([]) }
-        } else {
-          callback([])
-        }
-      },
-      fail: function() { callback([]) }
-    })
-  },
-
-  setCustomContents: function(list, callback) {
-    storage.set({
-      key: "customContents",
-      value: JSON.stringify(list),
-      success: function() { if (callback) callback() },
-      fail: function() { if (callback) callback() }
-    })
-  },
-
-  getEnabledCustomContents: function(callback) {
-    this.getCustomContents(function(list) {
-      callback(list.filter(function(item) { return item.enabled }))
     })
   }
 }
