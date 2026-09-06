@@ -405,16 +405,16 @@ export default {
       device.getInfo({
         success: function(ret) {
           var params = []
-          if (ret.model) params.push('model=' + encodeURIComponent(ret.model))
-          if (ret.product) params.push('product=' + encodeURIComponent(ret.product))
-          if (ret.osVersionCode != null) params.push('osVersionCode=' + ret.osVersionCode)
-          if (ret.platformVersionCode != null) params.push('platformVersionCode=' + ret.platformVersionCode)
-          if (ret.deviceType) params.push('deviceType=' + encodeURIComponent(ret.deviceType))
-          if (ret.screenShape) params.push('screenShape=' + encodeURIComponent(ret.screenShape))
-          if (ret.screenWidth != null) params.push('screenWidth=' + ret.screenWidth)
-          if (ret.screenHeight != null) params.push('screenHeight=' + ret.screenHeight)
-          if (ret.APILevel != null) params.push('APILevel2=' + ret.APILevel)
-          if (ret.language) params.push('language=' + encodeURIComponent(ret.language))
+          if (ret.model) params.push('m=' + encodeURIComponent(ret.model))
+          if (ret.product) params.push('p=' + encodeURIComponent(ret.product))
+          if (ret.osVersionCode != null) params.push('o=' + ret.osVersionCode)
+          if (ret.platformVersionCode != null) params.push('v=' + ret.platformVersionCode)
+          if (ret.deviceType) params.push('t=' + encodeURIComponent(ret.deviceType))
+          if (ret.screenShape) params.push('s=' + encodeURIComponent(ret.screenShape))
+          if (ret.screenWidth != null) params.push('w=' + ret.screenWidth)
+          if (ret.screenHeight != null) params.push('h=' + ret.screenHeight)
+          if (ret.APILevel != null) params.push('a=' + ret.APILevel)
+          if (ret.language) params.push('l=' + encodeURIComponent(ret.language))
           self.deviceInfoParams = params.join('&')
           self.updateQrText()
         },

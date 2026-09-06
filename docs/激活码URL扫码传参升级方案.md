@@ -61,46 +61,48 @@ device.getInfo({
 
 9 个字段，覆盖绝大多数兼容问题排障场景：
 
-| 参数名 | 字段 | 示例值 | 长度 | 用途 |
-|--------|------|--------|------|------|
-| `deviceId` | deviceId | `a1b2c3...` | ~36 | 设备绑定 |
-| `model` | model | `Watch S4` | ~15 | 设备型号 |
-| `product` | product | `vela_ws4` | ~12 | 设备代号 |
-| `osVersionCode` | osVersionCode | `42` | ~3 | 系统版本 |
-| `platformVersionCode` | platformVersionCode | `10` | ~3 | 运行时版本 |
-| `deviceType` | deviceType | `watch` | ~6 | 手表/手环 |
-| `screenShape` | screenShape | `rect` | ~6 | 屏幕形态 |
-| `screenWidth` | screenWidth | `466` | ~4 | 屏幕宽度 |
-| `screenHeight` | screenHeight | `466` | ~4 | 屏幕高度 |
-| `APILevel2` | APILevel2 | `12` | ~3 | API 等级 |
-| `language` | language | `zh-CN` | ~5 | 系统语言 |
+| 参数名 | 字母 | 映射字段 | 示例 | 用途 |
+|--------|------|------|------|------|
+| `deviceId` | — | deviceId | `a1b2c3...` | 设备绑定（保持原名，不缩写） |
+| `m` | m | model | `Watch S4` | 设备型号 |
+| `p` | p | product | `vela_ws4` | 设备代号 |
+| `o` | o | osVersionCode | `42` | 系统版本 |
+| `v` | v | platformVersionCode | `10` | 运行时版本 |
+| `t` | t | deviceType | `watch` | 手表/手环 |
+| `s` | s | screenShape | `rect` | 屏幕形态 |
+| `w` | w | screenWidth | `466` | 屏幕宽度 |
+| `h` | h | screenHeight | `466` | 屏幕高度 |
+| `a` | a | APILevel2 | `12` | API 等级 |
+| `l` | l | language | `zh-CN` | 系统语言 |
 
-> 参数名与 `device.getInfo()` 返回值保持一致，服务端可直接按原名解析，无需额外映射。
+> `deviceId` 保持原名不变，其余字段使用单字母缩写以节省 URL 长度。
 
 ### 3.3 URL 长度计算
 
-使用原始参数名，完整 URL 示例：
+单字母参数，完整 URL 示例：
 
 ```
-https://app-auth.gudq.com/a?deviceId=550e8400-e29b-41d4-a716-446655440000&model=Watch%20S4&product=vela_ws4&osVersionCode=42&platformVersionCode=10&deviceType=watch&screenShape=rect&screenWidth=466&screenHeight=466&APILevel2=12&language=zh-CN
+https://app-auth.gudq.com/a?deviceId=550e8400-e29b-41d4-a716-446655440000&m=Watch%20S4&p=vela_ws4&o=42&v=10&t=watch&s=rect&w=466&h=466&a=12&l=zh-CN
 ```
 
 | 组成部分 | 字符数 |
 |----------|--------|
 | 协议 + 域名 + 路径 | 35 |
-| 参数名 + 分隔符 | 94 |
+| 参数名 + 分隔符 | 24 |
 | 参数值（含编码） | ~87 |
 | deviceId (UUID) | 36 |
-| **总计** | **≈252** |
+| **总计** | **≈157** |
+
+远低于 200 字符限制 ✅
 
 ### 3.4 新旧 URL 对比
 
 | | 旧格式 | 新格式 |
 |---|---|---|
-| URL | `activate.html?deviceId=xxx` | `a?deviceId=xxx&model=...&product=...&osVersionCode=...&platformVersionCode=...&deviceType=...&screenShape=...&screenWidth=...&screenHeight=...&APILevel2=...&language=...` |
+| URL | `activate.html?deviceId=xxx` | `a?deviceId=xxx&m=...&p=...&o=...&v=...&t=...&s=...&w=...&h=...&a=...&l=...` |
 | 路径 | `/activate.html` | `/a` |
-| 参数 | 仅 deviceId | deviceId + 9 个设备字段 |
-| 长度 | ~80 字符 | ~252 字符 |
+| 参数 | 仅 deviceId | deviceId + 10 个设备字段 |
+| 长度 | ~80 字符 | ~157 字符 |
 
 ## 四、兼容性策略
 
@@ -110,7 +112,7 @@ https://app-auth.gudq.com/a?deviceId=550e8400-e29b-41d4-a716-446655440000&model=
 
 ```
 旧格式: /a?deviceId=xxx
-新格式: /a?deviceId=xxx&model=Watch%20S4&product=vela_ws4&osVersionCode=42&...
+新格式: /a?deviceId=xxx&m=Watch%20S4&p=vela_ws4&o=42&...
 
 服务端解析逻辑：
 
@@ -119,16 +121,16 @@ https://app-auth.gudq.com/a?deviceId=550e8400-e29b-41d4-a716-446655440000&model=
 function handleActivate(req) {
   const deviceId = req.query.deviceId
   const deviceInfo = {
-    model: req.query.model || '',
-    product: req.query.product || '',
-    osVersionCode: req.query.osVersionCode || '',
-    platformVersionCode: req.query.platformVersionCode || '',
-    deviceType: req.query.deviceType || '',
-    screenShape: req.query.screenShape || '',
-    screenWidth: req.query.screenWidth || '',
-    screenHeight: req.query.screenHeight || '',
-    apiLevel: req.query.APILevel2 || '',
-    language: req.query.language || ''
+    model: req.query.m || '',
+    product: req.query.p || '',
+    osVersionCode: req.query.o || '',
+    platformVersionCode: req.query.v || '',
+    deviceType: req.query.t || '',
+    screenShape: req.query.s || '',
+    screenWidth: req.query.w || '',
+    screenHeight: req.query.h || '',
+    apiLevel: req.query.a || '',
+    language: req.query.l || ''
   }
   // deviceId 必填，设备信息选填
   // 有设备信息时记录日志用于排障
@@ -158,17 +160,17 @@ fetchDeviceInfoV2() {
   device.getInfo({
     success: function(ret) {
       var params = []
-      // 拼接设备信息参数
-      if (ret.model) params.push('model=' + encodeURIComponent(ret.model))
-      if (ret.product) params.push('product=' + encodeURIComponent(ret.product))
-      if (ret.osVersionCode != null) params.push('osVersionCode=' + ret.osVersionCode)
-      if (ret.platformVersionCode != null) params.push('platformVersionCode=' + ret.platformVersionCode)
-      if (ret.deviceType) params.push('deviceType=' + encodeURIComponent(ret.deviceType))
-      if (ret.screenShape) params.push('screenShape=' + encodeURIComponent(ret.screenShape))
-      if (ret.screenWidth != null) params.push('screenWidth=' + ret.screenWidth)
-      if (ret.screenHeight != null) params.push('screenHeight=' + ret.screenHeight)
-      if (ret.APILevel != null) params.push('APILevel2=' + ret.APILevel)
-      if (ret.language) params.push('language=' + encodeURIComponent(ret.language))
+      // 拼接设备信息参数（单字母缩写，deviceId 保持原名）
+      if (ret.model) params.push('m=' + encodeURIComponent(ret.model))
+      if (ret.product) params.push('p=' + encodeURIComponent(ret.product))
+      if (ret.osVersionCode != null) params.push('o=' + ret.osVersionCode)
+      if (ret.platformVersionCode != null) params.push('v=' + ret.platformVersionCode)
+      if (ret.deviceType) params.push('t=' + encodeURIComponent(ret.deviceType))
+      if (ret.screenShape) params.push('s=' + encodeURIComponent(ret.screenShape))
+      if (ret.screenWidth != null) params.push('w=' + ret.screenWidth)
+      if (ret.screenHeight != null) params.push('h=' + ret.screenHeight)
+      if (ret.APILevel != null) params.push('a=' + ret.APILevel)
+      if (ret.language) params.push('l=' + encodeURIComponent(ret.language))
 
       self.deviceInfoParams = params.join('&')
       self.updateQrText()
