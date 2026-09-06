@@ -6,7 +6,7 @@
 
     <div class="header">
       <input class="nav-btn" type="button" value="&#9664;" onclick="prevDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="day-title" style="color: {{ theme.text }}">{{ currentDay }}</text>
+      <text class="day-title" style="font-size: {{ dayTitleSize }}px; color: {{ theme.text }}">{{ currentDay }}</text>
       <div class="day-nav-btns">
         <div class="day-nav-circle" onclick="goToWeekView" if="{{ showDayNavZong }}" style="background-color: {{ theme.cardLight }}">
           <text class="day-nav-text" style="color: {{ theme.accent }}">总</text>
@@ -53,10 +53,14 @@
       </div>
       <div for="{{ currentClasses }}" class="class-grid-item" onclick="goToClassDetail($item)" style="background-color: {{ theme.card }}">
         <div class="progress-bg" if="{{ isToday }}" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
-        <text class="grid-item-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-        <text class="grid-item-time" style="color: {{ theme.accent }}">{{ $item.time }}</text>
-        <text class="grid-item-teacher" if="{{ $item.teacher }}" style="color: {{ theme.textSecondary }}">{{ $item.teacher }}</text>
-        <text class="grid-item-location" if="{{ $item.location }}" style="color: {{ theme.textMuted }}">{{ $item.location }}</text>
+        <div class="class-card-accent" style="background-color: {{ theme.accent }}"></div>
+        <div class="class-card-body">
+          <text class="grid-item-name" style="color: {{ theme.text }}; font-size: {{ displaySize }}px">{{ $item.name }}</text>
+          <div class="class-card-meta">
+            <text class="grid-item-time" style="color: {{ theme.accent }}; font-size: {{ metaFontSize }}px">{{ $item.time }}</text>
+            <text class="grid-item-location" if="{{ $item.location }}" style="color: {{ theme.textMuted }}; font-size: {{ metaFontSize }}px">{{ $item.location }}</text>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -139,6 +143,7 @@ export default {
     statusTimeText: "",
     showCustomContent: false,
     customContent: "",
+    customContentList: [],
     showTime: true,
     showQuickAdd: true,
     showStatusBar: true,
@@ -153,6 +158,9 @@ export default {
     currentClasses: [],
     schedule: [],
     isToday: true,
+    displaySize: 28,
+    metaFontSize: 24,
+    dayTitleSize: 28,
     quickAdd: {
       expanded: false,
       courseNames: [],
@@ -183,6 +191,7 @@ export default {
       self.theme = t
     })
     self.loadHomepageSettings()
+    self.loadFontScale()
 
     database.init(function() {
       database.getAllCourses(function(schedule) {
@@ -198,11 +207,15 @@ export default {
     var self = this
     store.getTheme(function(t) { self.theme = t })
     self.loadHomepageSettings()
+    self.loadFontScale()
     if (self.loadPinnedPages && typeof self.loadPinnedPages === 'function') {
       self.loadPinnedPages()
     }
     if (self.quickAdd && self.quickAdd.loadPreset) {
       self.quickAdd.loadPreset()
+    }
+    if (modules.customContent && modules.customContent.refresh) {
+      modules.customContent.refresh(self)
     }
 
     store.getCurrentScheduleIndex(function(idx) {
@@ -237,6 +250,18 @@ export default {
     if (this.stopClockTimer && typeof this.stopClockTimer === 'function') this.stopClockTimer()
     if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
     if (this.stopProgressTimer && typeof this.stopProgressTimer === 'function') this.stopProgressTimer()
+    if (modules.customContent && modules.customContent.destroy) {
+      modules.customContent.destroy()
+    }
+  },
+
+  loadFontScale() {
+    var self = this
+    store.getFontSizes(function(sizes) {
+      self.displaySize = sizes.courseName
+      self.metaFontSize = sizes.courseTime
+      self.dayTitleSize = sizes.courseName
+    })
   },
 
   loadHomepageSettings() {
@@ -249,8 +274,6 @@ export default {
       self.showDayNavZong = settings.showDayNavZong !== false
       self.showDayNavJin = settings.showDayNavJin !== false
       self.showDayNavMing = settings.showDayNavMing !== false
-      self.showCustomContent = settings.showCustomContent || false
-      self.customContent = settings.customContent || ""
       self.timeFormat = settings.timeFormat || { hour: true, minute: true, second: false }
     })
   },
@@ -358,7 +381,6 @@ export default {
 }
 
 .day-title {
-  font-size: 28px;
   font-weight: bold;
   text-align: center;
   lines: 1;
@@ -475,11 +497,23 @@ export default {
   position: relative;
   width: 100%;
   min-height: 60px;
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
-  flex-direction: column;
+  border-radius: 12px;
+  padding: 0;
+  margin-bottom: 10px;
+  flex-direction: row;
   overflow: hidden;
+}
+
+.class-card-accent {
+  width: 5px;
+  flex-shrink: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+.class-card-body {
+  flex: 1;
+  flex-direction: column;
+  padding: 14px 16px 14px 14px;
 }
 
 .progress-bg {
@@ -491,29 +525,28 @@ export default {
 }
 
 .grid-item-name {
-  font-size: 15px;
   font-weight: bold;
-  margin-bottom: 2px;
+  margin-bottom: 6px;
   max-lines: 2;
   text-overflow: ellipsis;
   lines: 1;
 }
 
-.grid-item-time {
-  font-size: 12px;
-  margin-bottom: 2px;
-  lines: 1;
+.class-card-meta {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-.grid-item-teacher {
-  font-size: 11px;
-  margin-bottom: 1px;
+.grid-item-time {
+  margin-right: 14px;
   lines: 1;
+  flex-shrink: 0;
 }
 
 .grid-item-location {
-  font-size: 11px;
   lines: 1;
+  flex-shrink: 0;
 }
 
 .empty-card {

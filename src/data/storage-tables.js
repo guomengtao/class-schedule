@@ -30,8 +30,14 @@ var tables = [
     type: "value"
   },
   {
-    key: "fontScale",
-    desc: "字体缩放比例",
+    key: "baseFontSize",
+    desc: "用户选择的字体大小 (28|36|48|62|76)",
+    columns: ["value"],
+    type: "value"
+  },
+  {
+    key: "customContents",
+    desc: "自定义文字列表，支持多条，每条含 id/text/enabled",
     columns: ["value"],
     type: "value"
   },

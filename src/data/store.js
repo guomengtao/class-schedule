@@ -301,16 +301,64 @@ module.exports = {
       key: "fontScale",
       success: function(data) {
         var scale = parseFloat(data)
-        if (!scale || scale < 0.5) { scale = 28 / 48 }
+        if (!scale || scale < 0.5) { scale = 1.0 }
         callback(scale)
       },
-      fail: function() { callback(28 / 48) }
+      fail: function() { callback(1.0) }
+    })
+  },
+
+  setBaseFontSize: function(size, callback) {
+    storage.set({
+      key: "baseFontSize",
+      value: String(size),
+      success: function() { if (callback) callback() },
+      fail: function() { if (callback) callback() }
+    })
+  },
+
+  getBaseFontSize: function(callback) {
+    storage.get({
+      key: "baseFontSize",
+      success: function(data) {
+        var size = parseInt(data) || 48
+        if (size < 28) size = 28
+        if (size > 76) size = 76
+        callback(size)
+      },
+      fail: function() { callback(48) }
+    })
+  },
+
+  getFontSizes: function(callback) {
+    this.getBaseFontSize(function(size) {
+      var r = size / 48
+      if (r < 0.5) r = 0.583
+      if (r > 2.0) r = 1.583
+      callback({
+        courseName:   Math.round(28 * r),
+        courseTime:   Math.round(24 * r),
+        dayTitle:     Math.round(36 * r),
+        title:        Math.round(28 * r),
+        label:        Math.round(24 * r),
+        hint:         Math.round(20 * r),
+        input:        Math.round(26 * r),
+        inputHeight:  Math.round(80 * r),
+        btn:          Math.round(28 * r),
+        btnHeight:    Math.round(72 * r),
+        pickerValue:  Math.round(36 * r),
+        display:      Math.round(48 * r),
+        candidate:    Math.round(16 * r),
+        pinyin:       Math.round(14 * r),
+        key:          Math.round(15 * r),
+        preview:      Math.round(28 * r)
+      })
     })
   },
 
   getScaleSafe: function(callback) {
     this.getFontScale(function(scale) {
-      if (!scale || scale < 0.5) { scale = 28 / 48 }
+      if (!scale || scale < 0.5) { scale = 1.0 }
       callback(scale)
     })
   },
@@ -709,6 +757,38 @@ module.exports = {
       value: hide ? "true" : "false",
       success: function() { if (callback) callback() },
       fail: function() { if (callback) callback() }
+    })
+  },
+
+  getCustomContents: function(callback) {
+    storage.get({
+      key: "customContents",
+      success: function(data) {
+        if (data) {
+          try {
+            var list = JSON.parse(data)
+            callback(Array.isArray(list) ? list : [])
+          } catch (e) { callback([]) }
+        } else {
+          callback([])
+        }
+      },
+      fail: function() { callback([]) }
+    })
+  },
+
+  setCustomContents: function(list, callback) {
+    storage.set({
+      key: "customContents",
+      value: JSON.stringify(list),
+      success: function() { if (callback) callback() },
+      fail: function() { if (callback) callback() }
+    })
+  },
+
+  getEnabledCustomContents: function(callback) {
+    this.getCustomContents(function(list) {
+      callback(list.filter(function(item) { return item.enabled }))
     })
   }
 }

@@ -1,0 +1,409 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">自定义文字</text>
+    </div>
+
+    <div class="add-section" style="background-color: {{ theme.card }}">
+      <text class="section-label" style="color: {{ theme.textSecondary }}">添加新文字</text>
+      <div class="input-row">
+        <div class="input-display" onclick="showKeyboard" style="background-color: {{ theme.cardLight }}; border-color: {{ theme.accent }}">
+          <text class="input-text" style="color: {{ inputText ? theme.text : theme.textMuted }}; font-size: {{ displaySize }}px">{{ inputText || '点击输入自定义文字...' }}</text>
+        </div>
+        <div class="input-buttons">
+          <input class="add-btn" type="button" value="添加" onclick="addContent" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+          <input class="recommend-btn" type="button" value="推荐" onclick="showRecommend" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+        </div>
+      </div>
+    </div>
+
+    <div class="list-section" style="background-color: {{ theme.card }}">
+      <text class="section-label" style="color: {{ theme.textSecondary }}">已添加文字 ({{ contentList.length }} 条)</text>
+      <div class="empty-hint" if="{{ contentList.length === 0 }}">
+        <text class="empty-text" style="color: {{ theme.textMuted }}">还没有添加自定义文字</text>
+        <text class="empty-text" style="color: {{ theme.textMuted }}">上方输入文字后点击添加</text>
+      </div>
+      <div for="{{ contentList }}" class="content-item">
+        <div class="item-left">
+          <div class="switch-track" style="background-color: {{ $item.enabled ? theme.accent : theme.border }}" onclick="toggleItem($item.id)">
+            <div class="switch-thumb" style="left: {{ $item.enabled ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
+          </div>
+          <text class="item-text" style="color: {{ $item.enabled ? theme.text : theme.textMuted }}">{{ $item.text }}</text>
+        </div>
+        <input class="delete-btn" type="button" value="删除" onclick="deleteItem($item.id)" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}" />
+      </div>
+    </div>
+
+    <div class="overlay-bottom-sheet" if="{{ showRecommendPanel }}" onclick="hideRecommend">
+      <div class="bottom-sheet" style="background-color: {{ theme.card }}" onclick="stopBubble">
+        <div class="sheet-handle" style="background-color: {{ theme.textMuted }}"></div>
+        <text class="sheet-title" style="color: {{ theme.accent }}">推荐文字</text>
+        <text class="sheet-desc" style="color: {{ theme.textSecondary }}">点击选择一条推荐文字，再点击添加即可</text>
+        <div class="recommend-list">
+          <div for="{{ recommendWords }}" class="recommend-item" onclick="selectRecommend($item)" style="background-color: {{ theme.cardLight }}">
+            <text class="recommend-text" style="color: {{ theme.text }}">{{ $item }}</text>
+          </div>
+        </div>
+        <input class="sheet-cancel" type="button" value="关闭" onclick="hideRecommend"
+               style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import prompt from "@system.prompt"
+const store = require("../../data/store.js")
+const recommendWords = require("../../common/recommend-words.js")
+
+export default {
+  private: {
+    theme: store.DEFAULT_THEME,
+    inputText: "",
+    contentList: [],
+    recommendWords: [],
+    showRecommendPanel: false,
+    displaySize: 48
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+    store.getFontSizes(function(sizes) {
+      self.displaySize = sizes.display
+    })
+    this.loadContentList()
+    this.recommendWords = recommendWords.getCustomContentWords()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+    store.getFontSizes(function(sizes) {
+      self.displaySize = sizes.display
+    })
+
+    var storage = require("@system.storage")
+    storage.get({
+      key: "chinese_input_result",
+      success: function(data) {
+        if (data !== undefined && data !== null && data !== "") {
+          self.inputText = data
+          storage.delete({ key: "chinese_input_result" })
+        }
+      }
+    })
+  },
+
+  loadContentList() {
+    var self = this
+    store.getCustomContents(function(list) {
+      self.contentList = list
+    })
+  },
+
+  saveContentList() {
+    store.setCustomContents(this.contentList)
+  },
+
+  showKeyboard() {
+    var storage = require("@system.storage")
+    storage.set({ key: "chinese_input_title", value: "自定义文字" })
+    storage.set({ key: "chinese_input_placeholder", value: "输入自定义文字内容" })
+    storage.set({ key: "chinese_input_value", value: this.inputText || "" })
+    storage.set({ key: "chinese_input_maxlen", value: "20" })
+    storage.set({ key: "chinese_input_return_key", value: "chinese_input_result" })
+    router.push({ uri: "/pages/chinese-input" })
+  },
+
+  addContent() {
+    var text = this.inputText.trim()
+    if (!text) {
+      prompt.showToast({ message: "请输入文字内容" })
+      return
+    }
+    var maxId = 0
+    for (var i = 0; i < this.contentList.length; i++) {
+      if (this.contentList[i].id > maxId) maxId = this.contentList[i].id
+    }
+    this.contentList.push({
+      id: maxId + 1,
+      text: text,
+      enabled: true
+    })
+    this.inputText = ""
+    this.saveContentList()
+    prompt.showToast({ message: "已添加" })
+  },
+
+  toggleItem(id) {
+    for (var i = 0; i < this.contentList.length; i++) {
+      if (this.contentList[i].id === id) {
+        this.contentList[i].enabled = !this.contentList[i].enabled
+        break
+      }
+    }
+    this.saveContentList()
+  },
+
+  deleteItem(id) {
+    var self = this
+    prompt.showDialog({
+      title: "确认删除",
+      message: "确定要删除这条自定义文字吗？",
+      buttons: [
+        { text: "取消", color: "#888899" },
+        { text: "删除", color: "#e08080" }
+      ],
+      success: function(res) {
+        if (res.index === 1) {
+          var newList = []
+          for (var i = 0; i < self.contentList.length; i++) {
+            if (self.contentList[i].id !== id) {
+              newList.push(self.contentList[i])
+            }
+          }
+          self.contentList = newList
+          self.saveContentList()
+          prompt.showToast({ message: "已删除" })
+        }
+      }
+    })
+  },
+
+  showRecommend() {
+    this.showRecommendPanel = true
+  },
+
+  hideRecommend() {
+    this.showRecommendPanel = false
+  },
+
+  selectRecommend(word) {
+    this.inputText = word
+    this.showRecommendPanel = false
+  },
+
+  stopBubble() {
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 24px 8px 8px 8px;
+  min-height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+
+.back-btn {
+  width: 64px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.add-section {
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+}
+
+.section-label {
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  opacity: 0.8;
+}
+
+.input-row {
+  flex-direction: column;
+}
+
+.input-display {
+  width: 100%;
+  min-height: 56px;
+  border-radius: 10px;
+  border-width: 2px;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  padding: 8px 12px;
+}
+
+.input-text {
+  text-align: center;
+}
+
+.input-buttons {
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.add-btn {
+  width: 48%;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.recommend-btn {
+  width: 48%;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 15px;
+  text-align: center;
+}
+
+.list-section {
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+}
+
+.empty-hint {
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+}
+
+.empty-text {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.content-item {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom-width: 1px;
+  border-bottom-color: #0f3460;
+}
+
+.item-left {
+  flex-direction: row;
+  align-items: center;
+  flex: 1;
+  overflow: hidden;
+}
+
+.switch-track {
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.switch-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  position: absolute;
+  top: 2px;
+}
+
+.item-text {
+  font-size: 14px;
+  margin-left: 10px;
+  max-lines: 2;
+  flex: 1;
+}
+
+.delete-btn {
+  width: 48px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 12px;
+  text-align: center;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.overlay-bottom-sheet {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  justify-content: flex-end;
+}
+
+.bottom-sheet {
+  flex-direction: column;
+  border-radius: 16px 16px 0 0;
+  padding: 12px 16px 20px 16px;
+  max-height: 60%;
+}
+
+.sheet-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  align-self: center;
+  margin-bottom: 12px;
+}
+
+.sheet-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.sheet-desc {
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.recommend-list {
+  flex-direction: column;
+  max-height: 300px;
+  overflow: scroll;
+}
+
+.recommend-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+
+.recommend-text {
+  font-size: 14px;
+}
+
+.sheet-cancel {
+  width: 100%;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 15px;
+  text-align: center;
+  margin-top: 10px;
+}
+</style>

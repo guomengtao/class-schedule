@@ -69,7 +69,7 @@ var DATA_KEYS = [
   "allCourses_5", "allCourses_6", "allCourses_7", "allCourses_8", "allCourses_9",
   "scheduleNames", "currentScheduleIndex",
   "remindSettings", "homepage_settings",
-  "theme", "fontScale", "premium_unlocked",
+  "theme", "baseFontSize", "premium_unlocked",
   "course_preset_list"
 ]
 

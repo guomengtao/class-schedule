@@ -216,10 +216,10 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-    store.getFontScale(function(scale) {
-      self.applyFontScale(scale)
+    store.getFontSizes(function(sizes) {
+      self.applyFontSizes(sizes)
     })
-    this.applyFontScale(28 / 48)
+    this.applyFontSizes({title: 28, label: 24, hint: 20, input: 26, inputHeight: 80, btn: 28, btnHeight: 72, pickerValue: 36})
 
     this.loadCourses()
 
@@ -291,16 +291,15 @@ export default {
     this.day = dayNames[now.getDay()]
   },
 
-  applyFontScale(s) {
-    if (!s || s < 0.5) { s = 1.0 }
-    this.titleStyle = "font-size: " + Math.round(28 * s) + "px"
-    this.labelStyle = "font-size: " + Math.round(24 * s) + "px"
-    this.hintStyle = "font-size: " + Math.round(20 * s) + "px"
-    this.inputStyle = "font-size: " + Math.round(26 * s) + "px"
-    this.inputHeight = Math.round(80 * s)
-    this.btnStyle = "font-size: " + Math.round(28 * s) + "px"
-    this.btnHeight = Math.round(72 * s)
-    this.pickerValueStyle = "font-size: " + Math.round(36 * s) + "px"
+  applyFontSizes(s) {
+    this.titleStyle = "font-size: " + s.title + "px"
+    this.labelStyle = "font-size: " + s.label + "px"
+    this.hintStyle = "font-size: " + s.hint + "px"
+    this.inputStyle = "font-size: " + s.input + "px"
+    this.inputHeight = s.inputHeight
+    this.btnStyle = "font-size: " + s.btn + "px"
+    this.btnHeight = s.btnHeight
+    this.pickerValueStyle = "font-size: " + s.pickerValue + "px"
   },
 
   loadCourses() {

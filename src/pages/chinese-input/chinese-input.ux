@@ -96,7 +96,7 @@ export default {
     hideKeyboard: true,
     showCursor: false,
     returnKey: "chinese_input_result",
-    fontScale: 1.0,
+    baseFontSize: 48,
     displayStyle: "",
     candidateStyle: "",
     pinyinStyle: "",
@@ -126,9 +126,9 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-    store.getScaleSafe(function(scale) {
-      self.fontScale = scale
-      self.applyFontScale()
+    store.getFontSizes(function(sizes) {
+      self.baseFontSize = sizes.display
+      self.applyFontSizes(sizes)
     })
   },
 
@@ -137,9 +137,9 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-    store.getScaleSafe(function(scale) {
-      self.fontScale = scale
-      self.applyFontScale()
+    store.getFontSizes(function(sizes) {
+      self.baseFontSize = sizes.display
+      self.applyFontSizes(sizes)
     })
 
     var storage = require("@system.storage")
@@ -171,19 +171,11 @@ export default {
     }, 300)
   },
 
-  applyFontScale() {
-    var s = this.fontScale
-    if (!s || s < 0.5) { s = 1.0 }
-    var styles = store.buildFontStyles(s, {
-      displayStyle: 17,
-      candidateStyle: 16,
-      pinyinStyle: 14,
-      keyStyle: 15
-    })
-    this.displayStyle = styles.displayStyle
-    this.candidateStyle = styles.candidateStyle
-    this.pinyinStyle = styles.pinyinStyle
-    this.keyStyle = styles.keyStyle
+  applyFontSizes(sizes) {
+    this.displayStyle = "font-size: " + sizes.display + "px"
+    this.candidateStyle = "font-size: " + sizes.candidate + "px"
+    this.pinyinStyle = "font-size: " + sizes.pinyin + "px"
+    this.keyStyle = "font-size: " + sizes.key + "px"
   },
 
   showKeyboard() {

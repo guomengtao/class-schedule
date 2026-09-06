@@ -34,10 +34,10 @@
     "type": "string",
     "structure": "主题名称: blue | dark | ocean | sunset | forest | purple | auto"
   },
-  "fontScale": {
-    "desc": "字体缩放比例",
+  "baseFontSize": {
+    "desc": "用户选择的字体大小",
     "type": "number",
-    "structure": "缩放比例，如 1.0, 1.2, 1.5"
+    "structure": "28 | 36 | 48 | 62 | 76"
   },
   "remindSettings": {
     "desc": "提醒设置",

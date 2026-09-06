@@ -47,15 +47,69 @@ function stopResident() {
   }
 }
 
+function migrateFontScale() {
+  var storage = require("@system.storage")
+  storage.get({
+    key: "fontScale",
+    success: function(data) {
+      var oldScale = parseFloat(data)
+      if (oldScale && oldScale >= 0.5) {
+        var newSize = Math.round(48 * oldScale)
+        storage.set({
+          key: "baseFontSize",
+          value: String(newSize),
+          success: function() {
+            storage.delete({ key: "fontScale" })
+          }
+        })
+      }
+    }
+  })
+}
+
+function migrateCustomContent() {
+  var storage = require("@system.storage")
+  storage.get({
+    key: "homepage_settings",
+    success: function(data) {
+      try {
+        var settings = JSON.parse(data)
+        if (settings && settings.customContent && typeof settings.customContent === 'string' && settings.customContent.trim()) {
+          storage.get({
+            key: "customContents",
+            success: function(ccData) {
+              var list = []
+              try { list = JSON.parse(ccData) } catch (e) { list = [] }
+              if (!Array.isArray(list) || list.length === 0) {
+                var newList = [{
+                  id: 1,
+                  text: settings.customContent.trim(),
+                  enabled: settings.showCustomContent !== false
+                }]
+                storage.set({
+                  key: "customContents",
+                  value: JSON.stringify(newList)
+                })
+              }
+            }
+          })
+        }
+      } catch (e) {}
+    }
+  })
+}
+
 export default {
   onCreate() {
     database.init()
     authStore.initAuth()
-    store.getFontScale(function(scale) {
-      if (!scale || scale < 0.5) {
-        store.setFontScale(28 / 48)
+    store.getBaseFontSize(function(size) {
+      if (!size) {
+        store.setBaseFontSize(48)
       }
     })
+    migrateFontScale()
+    migrateCustomContent()
     this.initBackgroundRunning()
   },
 

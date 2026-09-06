@@ -63,6 +63,15 @@
         </div>
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="openCustomContentManage">
+        <text class="row-label" style="color: {{ theme.text }}">自定义文字</text>
+        <div class="row-right">
+          <text class="row-value" if="{{ customContentCount > 0 }}" style="color: {{ theme.accent }}">{{ customContentCount }} 条</text>
+          <text class="row-hint" if="{{ customContentCount === 0 }}" style="color: {{ theme.textMuted }}">未设置</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
       <div class="row" onclick="openBackupRestore">
         <text class="row-label" style="color: {{ theme.text }}">数据备份与恢复</text>
         <div class="row-right">
@@ -137,8 +146,7 @@ const sizeLevels = [28, 36, 48, 62, 76]
 export default {
   private: {
     nickname: "",
-    scale: 28 / 48,
-    displaySize: 28,
+    displaySize: 48,
     previewClassSize: 48,
     hideWeekend: true,
     theme: {
@@ -164,7 +172,8 @@ export default {
     currentThemeKey: "blue",
     themes: [],
     versionText: "",
-    showPremiumDialog: false
+    showPremiumDialog: false,
+    customContentCount: 0
   },
 
   onInit() {
@@ -176,29 +185,29 @@ export default {
       self.currentThemeKey = name || "blue"
     })
 
-    store.getFontScale(function(scale) {
-      if (!scale || scale < 0.5) { scale = 28 / 48 }
-      self.scale = scale
-      self.displaySize = Math.round(48 * scale)
+    store.getBaseFontSize(function(size) {
+      self.displaySize = size
       self.updatePreviews()
     })
     this.loadNickname()
     this.loadHideWeekend()
+    this.loadCustomContentCount()
     this.versionText = version.versionName
   },
 
   onShow() {
     this.loadNickname()
+    this.loadCustomContentCount()
   },
 
   updatePreviews() {
-    this.previewClassSize = Math.round(28 * this.scale)
+    var r = this.displaySize / 48
+    this.previewClassSize = Math.round(28 * r)
   },
 
   setSize(size) {
     this.displaySize = size
-    this.scale = size / 48
-    store.setFontScale(this.scale)
+    store.setBaseFontSize(size)
     this.updatePreviews()
   },
 
@@ -268,6 +277,17 @@ export default {
 
   openNicknameEdit() {
     router.push({ uri: "/pages/nickname-edit" })
+  },
+
+  loadCustomContentCount() {
+    var self = this
+    store.getCustomContents(function(list) {
+      self.customContentCount = list.length
+    })
+  },
+
+  openCustomContentManage() {
+    router.push({ uri: "/pages/custom-content-manage" })
   },
 
   openTestArea() {
