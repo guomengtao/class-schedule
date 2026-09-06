@@ -21,8 +21,7 @@
 
     <div class="keyboard" show="{{ !hideKeyboard }}">
 
-      <div show="{{ keyboardMode === 't9' && !numFlag }}" style="flex-direction: column; width: 100%">
-        <div class="t9-key-row">
+        <div class="t9-key-row" show="{{ keyboardMode === 't9' && !numFlag }}">
           <div class="t9-key" onclick="onT9Key('2')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
             <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">ABC</text>
             <text class="t9-key-digit" style="color: {{ theme.text }}">2</text>
@@ -39,7 +38,7 @@
             <text class="t9-key-del-icon" style="color: {{ theme.deleteText }}">Del</text>
           </div>
         </div>
-        <div class="t9-key-row">
+        <div class="t9-key-row" show="{{ keyboardMode === 't9' && !numFlag }}">
           <div class="t9-key" onclick="onT9Key('5')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
             <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">JKL</text>
             <text class="t9-key-digit" style="color: {{ theme.text }}">5</text>
@@ -56,7 +55,7 @@
             <text class="t9-key-func-text" style="color: {{ theme.accent }}">123</text>
           </div>
         </div>
-        <div class="t9-key-row">
+        <div class="t9-key-row" show="{{ keyboardMode === 't9' && !numFlag }}">
           <div class="t9-key" onclick="onT9Key('8')" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
             <text class="t9-key-letters" style="color: {{ theme.textSecondary }}">TUV</text>
             <text class="t9-key-digit" style="color: {{ theme.text }}">8</text>
@@ -72,33 +71,28 @@
             <text class="t9-key-func-text" style="color: {{ theme.text }}">{{ lang === 'cn' ? '空格' : 'Space' }}</text>
           </div>
         </div>
-      </div>
 
-      <div show="{{ keyboardMode === 'full' && !numFlag }}" style="flex-direction: column; width: 100%">
-        <div class="key-row">
+        <div class="key-row" show="{{ keyboardMode === 'full' && !numFlag }}">
           <text for="{{ item in keys.full[0] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
         </div>
-        <div class="key-row">
+        <div class="key-row" show="{{ keyboardMode === 'full' && !numFlag }}">
           <text for="{{ item in keys.full[1] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
         </div>
-        <div class="key-row">
+        <div class="key-row" show="{{ keyboardMode === 'full' && !numFlag }}">
           <text for="{{ item in keys.full[2] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
           <text class="key-btn key-del" onclick="onDeleteKey" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}">Del</text>
         </div>
-      </div>
 
-      <div show="{{ numFlag }}" style="flex-direction: column; width: 100%">
-        <div class="key-row">
+        <div class="key-row" show="{{ numFlag }}">
           <text for="{{ item in keys.sign[0] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
         </div>
-        <div class="key-row">
+        <div class="key-row" show="{{ numFlag }}">
           <text for="{{ item in keys.sign[1] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
         </div>
-        <div class="key-row">
+        <div class="key-row" show="{{ numFlag }}">
           <text for="{{ item in keys.sign[2] }}" class="key-btn" onclick="onKeyPress(item)" style="{{ keyStyle }}; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
           <text class="key-btn key-del" onclick="onDeleteKey" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}">Del</text>
         </div>
-      </div>
 
       <div class="key-row key-bottom">
         <text class="key-btn key-func" onclick="toggleNumMode" show="{{ lang === 'cn' || numFlag }}" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ numFlag ? 'ABC' : '123' }}</text>
