@@ -10,9 +10,11 @@
         <div class="status-row">
           <text class="version-prefix" style="color: {{ theme.textSecondary }}">当前:</text>
           <text class="status-text" style="color: {{ statusColor }}">{{ statusText }}</text>
+          <text class="status-text" show="{{ expireTimeText }}" style="color: {{ theme.accent }}">({{ expireTimeText }})</text>
+        </div>
+        <div class="status-row">
           <text class="version-prefix" style="color: {{ theme.textSecondary }}">版本:</text>
           <text class="status-text" style="color: {{ theme.accent }}">v{{ versionText }}</text>
-          <text class="status-text" show="{{ expireTimeText }}" style="color: {{ theme.accent }}">{{ expireTimeText }}</text>
         </div>
         <div class="status-details" if="{{ statusDetail }}">
           <text class="status-detail-line" style="color: {{ theme.textSecondary }}">{{ statusDetail }}</text>
@@ -31,7 +33,7 @@
         <text class="step-desc" style="color: {{ theme.textSecondary }}">在爱发电购买高级版兑换码，永久解锁全部高级功能，无后续费用</text>
         <div class="qr-section">
           <div class="qr-wrapper" style="background-color: #ffffff; border-color: {{ theme.accent }}">
-            <qrcode value="{{ afdianUrl }}" style="color: #000000; background-color: #ffffff; width: 140px; height: 140px;"></qrcode>
+            <qrcode value="{{ afdianUrl }}" style="color: #000000; background-color: #ffffff; width: 180px; height: 180px;"></qrcode>
           </div>
           <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码打开爱发电</text>
         </div>
@@ -56,7 +58,7 @@
         </div>
         <div class="qr-section" if="{{ qrText }}">
           <div class="qr-wrapper" style="background-color: #ffffff; border-color: {{ theme.accent }}">
-            <qrcode value="{{ qrText }}" style="color: #000000; background-color: #ffffff; width: 140px; height: 140px;"></qrcode>
+            <qrcode value="{{ qrText }}" style="color: #000000; background-color: #ffffff; width: 180px; height: 180px;"></qrcode>
           </div>
           <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码兑换激活码</text>
         </div>
