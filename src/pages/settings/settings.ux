@@ -491,7 +491,7 @@ export default {
 }
 
 .version-text {
-  font-size: 11px;
+  font-size: 36px;
   text-align: center;
   padding-top: 6px;
   padding-bottom: 12px;
