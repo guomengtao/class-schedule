@@ -82,16 +82,16 @@ device.getInfo({
 单字母参数，完整 URL 示例：
 
 ```
-https://app-auth.gudq.com/a?deviceId=550e8400-e29b-41d4-a716-446655440000&m=Watch%20S4&p=vela_ws4&o=42&v=10&t=watch&s=rect&w=466&h=466&a=12&l=zh-CN
+https://app-auth.gudq.com/activate.html?deviceId=550e8400-e29b-41d4-a716-446655440000&m=Watch%20S4&p=vela_ws4&o=42&v=10&t=watch&s=rect&w=466&h=466&a=12&l=zh-CN
 ```
 
 | 组成部分 | 字符数 |
 |----------|--------|
-| 协议 + 域名 + 路径 | 35 |
+| 协议 + 域名 + 路径 | 51 |
 | 参数名 + 分隔符 | 24 |
 | 参数值（含编码） | ~87 |
 | deviceId (UUID) | 36 |
-| **总计** | **≈157** |
+| **总计** | **≈163** |
 
 远低于 200 字符限制 ✅
 
@@ -99,10 +99,10 @@ https://app-auth.gudq.com/a?deviceId=550e8400-e29b-41d4-a716-446655440000&m=Watc
 
 | | 旧格式 | 新格式 |
 |---|---|---|
-| URL | `activate.html?deviceId=xxx` | `a?deviceId=xxx&m=...&p=...&o=...&v=...&t=...&s=...&w=...&h=...&a=...&l=...` |
-| 路径 | `/activate.html` | `/a` |
-| 参数 | 仅 deviceId | deviceId + 10 个设备字段 |
-| 长度 | ~80 字符 | ~157 字符 |
+| URL | `activate.html?deviceId=xxx` | `activate.html?deviceId=xxx&m=...&p=...&o=...&v=...&t=...&s=...&w=...&h=...&a=...&l=...` |
+| 路径 | `/activate.html` | `/activate.html`（不变） |
+| 参数 | 仅 deviceId | deviceId + 10 个单字母设备字段 |
+| 长度 | ~80 字符 | ~163 字符 |
 
 ## 四、兼容性策略
 
@@ -111,8 +111,8 @@ https://app-auth.gudq.com/a?deviceId=550e8400-e29b-41d4-a716-446655440000&m=Watc
 服务端 `/a` 接口同时支持两种格式：
 
 ```
-旧格式: /a?deviceId=xxx
-新格式: /a?deviceId=xxx&m=Watch%20S4&p=vela_ws4&o=42&...
+旧格式: /activate.html?deviceId=xxx
+新格式: /activate.html?deviceId=xxx&m=Watch%20S4&p=vela_ws4&o=42&...
 
 服务端解析逻辑：
 
@@ -149,8 +149,8 @@ function handleActivate(req) {
 在 `activation.ux` 中新增 `fetchDeviceInfo()` 方法，与现有 `fetchDeviceId()` 并行：
 
 ```js
-// 新增常量
-var ACTIVATION_URL_V2 = "https://app-auth.gudq.com/a?"
+// 新增常量（复用旧 URL 路径，仅追加单字母参数）
+var ACTIVATION_URL_V2 = "https://app-auth.gudq.com/activate.html?deviceId="
 
 // 新增方法：获取设备信息并生成新格式 QR
 fetchDeviceInfoV2() {
@@ -187,7 +187,7 @@ fetchDeviceInfoV2() {
 updateQrText() {
   var self = this
   if (self.deviceId && self.deviceId !== '获取中...') {
-    var qr = ACTIVATION_URL_V2 + 'deviceId=' + encodeURIComponent(self.deviceId)
+    var qr = ACTIVATION_URL + encodeURIComponent(self.deviceId)
     if (self.deviceInfoParams) {
       qr = qr + '&' + self.deviceInfoParams
     }
@@ -235,7 +235,7 @@ private: {
 updateQrText() {
   var self = this
   if (self.deviceId && self.deviceId !== '获取中...') {
-    var qr = ACTIVATION_URL_V2 + 'deviceId=' + encodeURIComponent(self.deviceId)
+    var qr = ACTIVATION_URL + encodeURIComponent(self.deviceId)
     if (self.deviceInfoParams) {
       qr = qr + '&' + self.deviceInfoParams
     }

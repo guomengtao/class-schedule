@@ -3,7 +3,7 @@
  * Usage: node scripts/test-activation-url.js
  */
 
-var BASE_URL = "https://app-auth.gudq.com/a"
+var BASE_URL = "https://app-auth.gudq.com/activate.html"
 var MAX_LEN = 200
 
 var DEVICE_PROFILES = [

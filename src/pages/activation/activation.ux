@@ -251,7 +251,6 @@ const version = require("../../data/version.js")
 const crypto = require("../../lib/crypto.js")
 
 var ACTIVATION_URL = "https://app-auth.gudq.com/activate.html?deviceId="
-var ACTIVATION_URL_V2 = "https://app-auth.gudq.com/a?deviceId="
 var AFDIAN_URL = "https://www.ifdian.net/item/54100fe4a1e011f1a3f452540025c377"
 
 function doVibrate() {
@@ -432,7 +431,7 @@ export default {
   updateQrText() {
     var self = this
     if (self.deviceId && self.deviceId !== '获取中...') {
-      var qr = ACTIVATION_URL_V2 + encodeURIComponent(self.deviceId)
+      var qr = ACTIVATION_URL + encodeURIComponent(self.deviceId)
       if (self.deviceInfoParams) {
         qr = qr + '&' + self.deviceInfoParams
       }
