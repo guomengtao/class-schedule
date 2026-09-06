@@ -51,10 +51,11 @@
 
     <div class="font-bar" show="{{ !hideKeyboard }}">
       <text class="font-label" style="color: {{ theme.textSecondary }}">字体:</text>
-      <text class="font-btn" onclick="setInputFontSize(28)" style="background-color: {{ inputFontSize === 28 ? theme.accent : theme.card }}; color: {{ inputFontSize === 28 ? theme.bg : theme.text }}">28</text>
-      <text class="font-btn" onclick="setInputFontSize(36)" style="background-color: {{ inputFontSize === 36 ? theme.accent : theme.card }}; color: {{ inputFontSize === 36 ? theme.bg : theme.text }}">36</text>
-      <text class="font-btn" onclick="setInputFontSize(48)" style="background-color: {{ inputFontSize === 48 ? theme.accent : theme.card }}; color: {{ inputFontSize === 48 ? theme.bg : theme.text }}">48</text>
-      <text class="font-btn" onclick="setInputFontSize(62)" style="background-color: {{ inputFontSize === 62 ? theme.accent : theme.card }}; color: {{ inputFontSize === 62 ? theme.bg : theme.text }}">62</text>
+      <text class="font-btn" onclick="setInputFontSize(28)" style="background-color: {{ baseFontSize === 28 ? theme.accent : theme.card }}; color: {{ baseFontSize === 28 ? theme.bg : theme.text }}">28</text>
+      <text class="font-btn" onclick="setInputFontSize(36)" style="background-color: {{ baseFontSize === 36 ? theme.accent : theme.card }}; color: {{ baseFontSize === 36 ? theme.bg : theme.text }}">36</text>
+      <text class="font-btn" onclick="setInputFontSize(48)" style="background-color: {{ baseFontSize === 48 ? theme.accent : theme.card }}; color: {{ baseFontSize === 48 ? theme.bg : theme.text }}">48</text>
+      <text class="font-btn" onclick="setInputFontSize(62)" style="background-color: {{ baseFontSize === 62 ? theme.accent : theme.card }}; color: {{ baseFontSize === 62 ? theme.bg : theme.text }}">62</text>
+      <text class="font-btn" onclick="setInputFontSize(76)" style="background-color: {{ baseFontSize === 76 ? theme.accent : theme.card }}; color: {{ baseFontSize === 76 ? theme.bg : theme.text }}">76</text>
     </div>
   </div>
 </template>
@@ -103,8 +104,9 @@ export default {
     hideKeyboard: true,
     showCursor: false,
     returnKey: "chinese_input_result",
-    inputFontSize: 36,
-    keyFontSize: 36,
+    inputFontSize: 28,
+    keyFontSize: 28,
+    baseFontSize: 28,
     cval: "",
     cvalDisplay: "",
     lang: "cn",
@@ -130,9 +132,12 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-    store.getFontSizes(function(sizes) {
-      self.inputFontSize = sizes.display || 36
-      self.keyFontSize = sizes.key || 36
+    store.getBaseFontSize(function(size) {
+      self.baseFontSize = size || 28
+      store.getFontSizes(function(sizes) {
+        self.inputFontSize = sizes.display || 28
+        self.keyFontSize = sizes.key || 28
+      })
     })
   },
 
@@ -141,9 +146,12 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-    store.getFontSizes(function(sizes) {
-      self.inputFontSize = sizes.display || 36
-      self.keyFontSize = sizes.key || 36
+    store.getBaseFontSize(function(size) {
+      self.baseFontSize = size || 28
+      store.getFontSizes(function(sizes) {
+        self.inputFontSize = sizes.display || 28
+        self.keyFontSize = sizes.key || 28
+      })
     })
 
     var storage = require("@system.storage")
@@ -186,8 +194,14 @@ export default {
   },
 
   setInputFontSize(size) {
-    this.inputFontSize = size
-    this.keyFontSize = size
+    var self = this
+    self.baseFontSize = size
+    store.setBaseFontSize(size, function() {
+      store.getFontSizes(function(sizes) {
+        self.inputFontSize = sizes.display || 28
+        self.keyFontSize = sizes.key || 28
+      })
+    })
   },
 
   onKeyPress(item) {
@@ -386,7 +400,7 @@ export default {
 }
 
 .title {
-  font-size: 36px;
+  font-size: 16px;
   font-weight: bold;
   flex: 1;
   text-align: center;
@@ -412,12 +426,12 @@ export default {
 }
 
 .display-text {
-  font-size: 36px;
+  font-size: 28px;
   flex: 1;
 }
 
 .cursor {
-  font-size: 36px;
+  font-size: 28px;
   margin-left: 2px;
 }
 
@@ -428,7 +442,7 @@ export default {
 }
 
 .pinyin-text {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: bold;
   lines: 1;
   text-overflow: ellipsis;
@@ -442,7 +456,7 @@ export default {
 }
 
 .candidate-item {
-  font-size: 36px;
+  font-size: 28px;
   padding: 4px 10px;
   margin-right: 4px;
   border-radius: 6px;
@@ -463,11 +477,11 @@ export default {
 }
 
 .key-btn {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: bold;
   text-align: center;
   flex: 1;
-  height: 36px;
+  min-height: 28px;
   border-radius: 6px;
   margin-left: 2px;
   margin-right: 2px;
@@ -476,14 +490,14 @@ export default {
 
 .key-del {
   max-width: 60px;
-  font-size: 36px;
+  font-size: 28px;
   flex: 1;
 }
 
 .key-func {
   flex: 1;
   max-width: 60px;
-  font-size: 36px;
+  font-size: 28px;
 }
 
 .key-bottom {
@@ -499,16 +513,16 @@ export default {
 }
 
 .font-label {
-  font-size: 36px;
+  font-size: 14px;
   margin-right: 6px;
 }
 
 .font-btn {
-  font-size: 36px;
+  font-size: 14px;
   font-weight: bold;
   text-align: center;
-  width: 48px;
-  height: 36px;
+  width: 36px;
+  min-height: 24px;
   border-radius: 6px;
   margin-left: 3px;
   margin-right: 3px;
@@ -529,7 +543,7 @@ export default {
     font-size: 12px;
   }
   .title {
-    font-size: 36px;
+    font-size: 14px;
   }
   .confirm-btn {
     width: 46px;
@@ -542,24 +556,24 @@ export default {
     min-height: 34px;
   }
   .display-text {
-    font-size: 36px;
+    font-size: 28px;
   }
   .cursor {
-    font-size: 36px;
+    font-size: 28px;
   }
   .pinyin-row {
     height: 20px;
     margin-bottom: 2px;
   }
   .pinyin-text {
-    font-size: 36px;
+    font-size: 28px;
   }
   .candidate-row {
     height: 32px;
     margin-bottom: 2px;
   }
   .candidate-item {
-    font-size: 36px;
+    font-size: 28px;
     padding: 2px 8px;
     margin-right: 2px;
   }
@@ -570,30 +584,30 @@ export default {
     margin-bottom: 2px;
   }
   .key-btn {
-    font-size: 36px;
-    height: 30px;
+    font-size: 28px;
+    min-height: 24px;
     margin-left: 1px;
     margin-right: 1px;
     max-width: 50px;
     flex: 1;
   }
   .key-del {
-    font-size: 36px;
+    font-size: 28px;
     max-width: 50px;
     flex: 1;
   }
   .key-func {
-    font-size: 36px;
+    font-size: 28px;
     max-width: 50px;
     flex: 1;
   }
   .font-label {
-    font-size: 36px;
+    font-size: 12px;
   }
   .font-btn {
-    font-size: 36px;
-    width: 40px;
-    height: 30px;
+    font-size: 12px;
+    width: 32px;
+    min-height: 22px;
   }
 }
 
@@ -611,7 +625,7 @@ export default {
     font-size: 11px;
   }
   .title {
-    font-size: 36px;
+    font-size: 13px;
   }
   .confirm-btn {
     width: 44px;
@@ -624,24 +638,24 @@ export default {
     min-height: 32px;
   }
   .display-text {
-    font-size: 36px;
+    font-size: 28px;
   }
   .cursor {
-    font-size: 36px;
+    font-size: 28px;
   }
   .pinyin-row {
     height: 18px;
     margin-bottom: 2px;
   }
   .pinyin-text {
-    font-size: 36px;
+    font-size: 28px;
   }
   .candidate-row {
     height: 30px;
     margin-bottom: 2px;
   }
   .candidate-item {
-    font-size: 36px;
+    font-size: 28px;
     padding: 2px 8px;
     margin-right: 2px;
   }
@@ -652,30 +666,30 @@ export default {
     margin-bottom: 2px;
   }
   .key-btn {
-    font-size: 36px;
-    height: 28px;
+    font-size: 28px;
+    min-height: 22px;
     margin-left: 1px;
     margin-right: 1px;
     max-width: 44px;
     flex: 1;
   }
   .key-del {
-    font-size: 36px;
+    font-size: 28px;
     max-width: 44px;
     flex: 1;
   }
   .key-func {
-    font-size: 36px;
+    font-size: 28px;
     max-width: 44px;
     flex: 1;
   }
   .font-label {
-    font-size: 36px;
+    font-size: 11px;
   }
   .font-btn {
-    font-size: 36px;
-    width: 36px;
-    height: 28px;
+    font-size: 11px;
+    width: 28px;
+    min-height: 20px;
   }
 }
 
@@ -698,30 +712,30 @@ export default {
     font-size: 13px;
   }
   .title {
-    font-size: 36px;
+    font-size: 16px;
   }
   .key-btn {
-    font-size: 36px;
+    font-size: 28px;
     max-width: 56px;
     flex: 1;
   }
   .key-del {
-    font-size: 36px;
+    font-size: 28px;
     max-width: 56px;
     flex: 1;
   }
   .key-func {
-    font-size: 36px;
+    font-size: 28px;
     max-width: 56px;
     flex: 1;
   }
   .font-label {
-    font-size: 36px;
+    font-size: 14px;
   }
   .font-btn {
-    font-size: 36px;
-    width: 44px;
-    height: 32px;
+    font-size: 14px;
+    width: 36px;
+    min-height: 24px;
   }
 }
 </style>
