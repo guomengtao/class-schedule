@@ -30,8 +30,8 @@
         </div>
         <text class="step-desc" style="color: {{ theme.textSecondary }}">在爱发电购买高级版兑换码，永久解锁全部高级功能，无后续费用</text>
         <div class="qr-section">
-          <div class="qr-wrapper" style="background-color: #ffffff">
-            <qrcode value="{{ afdianUrl }}" style="color: #000000; background-color: #ffffff; width: 120px; height: 120px;"></qrcode>
+          <div class="qr-wrapper" style="background-color: #ffffff; border-color: {{ theme.accent }}">
+            <qrcode value="{{ afdianUrl }}" style="color: #000000; background-color: #ffffff; width: 140px; height: 140px;"></qrcode>
           </div>
           <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码打开爱发电</text>
         </div>
@@ -55,8 +55,8 @@
           <text class="device-value" style="color: {{ theme.accent }}">{{ deviceId || '获取中...' }}</text>
         </div>
         <div class="qr-section" if="{{ qrText }}">
-          <div class="qr-wrapper" style="background-color: #ffffff">
-            <qrcode value="{{ qrText }}" style="color: #000000; background-color: #ffffff; width: 120px; height: 120px;"></qrcode>
+          <div class="qr-wrapper" style="background-color: #ffffff; border-color: {{ theme.accent }}">
+            <qrcode value="{{ qrText }}" style="color: #000000; background-color: #ffffff; width: 140px; height: 140px;"></qrcode>
           </div>
           <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码兑换激活码</text>
         </div>
@@ -831,8 +831,9 @@ export default {
 }
 
 .qr-wrapper {
-  border-radius: 12px;
-  padding: 8px;
+  border-radius: 8px;
+  padding: 6px;
+  border: 2px solid;
 }
 
 .qr-label {
