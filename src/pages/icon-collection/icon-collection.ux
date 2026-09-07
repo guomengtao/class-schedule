@@ -6,7 +6,7 @@
       <text class="title" style="color: {{ theme.text }}">Icon 收集</text>
     </div>
 
-    <text class="hint" style="color: {{ theme.textSecondary }}">Vela 快应用 Unicode 字符图标参考</text>
+    <text class="hint" style="color: {{ theme.textSecondary }}">点击图标标记为可访问，真机实测后勾选</text>
 
     <div class="tabs" style="background-color: {{ theme.card }}">
       <div for="cat in catNames" class="tab {{ activeIdx === $idx ? 'tab-active' : '' }}"
@@ -17,20 +17,24 @@
     </div>
 
     <div class="icon-grid">
-      <div for="icon in currentIcons" class="icon-card" style="background-color: {{ theme.card }}">
-        <text class="icon-glyph" style="color: {{ theme.accent }}; font-size: 32px;">{{ icon[0] }}</text>
+      <div for="icon in currentIcons" class="icon-card {{ isChecked(icon[2]) ? 'checked' : '' }}"
+           onclick="toggleIcon(icon[2])"
+           style="background-color: {{ isChecked(icon[2]) ? checkedBg : theme.card }}; border-color: {{ isChecked(icon[2]) ? checkedBorder : 'transparent' }}">
+        <text class="icon-glyph" style="color: {{ theme.accent }}; font-size: 28px;">{{ icon[0] }}</text>
         <text class="icon-name" style="color: {{ theme.text }}; font-size: 9px;">{{ icon[1] }}</text>
         <text class="icon-code" style="color: {{ theme.textMuted }}; font-size: 8px;">U+{{ icon[2] }}</text>
+        <text class="icon-check" style="color: {{ theme.accent }}; font-size: 10px;">{{ isChecked(icon[2]) ? '✓' : '' }}</text>
       </div>
     </div>
 
-    <div class="bottom-info" style="background-color: {{ theme.card }}">
+    <div class="bottom-bar" style="background-color: {{ theme.card }}">
       <text class="info-text" style="color: {{ theme.textSecondary }}; font-size: 10px;">
-        共 {{ totalCount }} 个 · 显示 {{ currentIcons.length }} 个
+        已确认 {{ checkedCount }} / {{ totalCount }}
       </text>
-      <text class="info-text" style="color: {{ theme.textMuted }}; font-size: 9px;">
-        手环系统字体支持，方框=不支持
-      </text>
+      <input class="confirm-btn" type="button" value="全部确认" onclick="checkAll"
+             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}; font-size: 12px;" />
+      <input class="confirm-btn" type="button" value="全部取消" onclick="uncheckAll"
+             style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}; font-size: 12px;" />
     </div>
   </div>
 </template>
@@ -100,6 +104,8 @@ var allIcons = [
   ]
 ]
 
+var checkedMap = {}
+
 export default {
   private: {
     theme: {
@@ -110,13 +116,15 @@ export default {
       text: "#ffffff",
       textSecondary: "#888899",
       textMuted: "#555566",
-      border: "#0f3460",
-      borderLight: "#2a2a5a"
+      border: "#0f3460"
     },
+    checkedBg: "#0d3320",
+    checkedBorder: "#2ecc71",
     catNames: catNames,
     activeIdx: 0,
     currentIcons: [],
-    totalCount: 0
+    totalCount: 0,
+    checkedCount: 0
   },
 
   onInit() {
@@ -137,6 +145,44 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
+  },
+
+  isChecked(code) {
+    return !!checkedMap[code]
+  },
+
+  toggleIcon(code) {
+    if (checkedMap[code]) {
+      checkedMap[code] = false
+    } else {
+      checkedMap[code] = true
+    }
+    this.updateCheckedCount()
+  },
+
+  updateCheckedCount() {
+    var count = 0
+    for (var key in checkedMap) {
+      if (checkedMap[key]) {
+        count++
+      }
+    }
+    this.checkedCount = count
+  },
+
+  checkAll() {
+    for (var i = 0; i < allIcons.length; i++) {
+      var icons = allIcons[i]
+      for (var j = 0; j < icons.length; j++) {
+        checkedMap[icons[j][2]] = true
+      }
+    }
+    this.checkedCount = this.totalCount
+  },
+
+  uncheckAll() {
+    checkedMap = {}
+    this.checkedCount = 0
   },
 
   switchCat(idx) {
@@ -179,7 +225,7 @@ export default {
 }
 
 .hint {
-  font-size: 11px;
+  font-size: 10px;
   margin-bottom: 6px;
   padding: 0 4px;
   text-align: center;
@@ -214,35 +260,55 @@ export default {
   width: 22%;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   border-radius: 8px;
-  padding: 8px 4px;
+  border-width: 2px;
+  border-style: solid;
+  padding: 6px 3px;
   margin: 1.5%;
+}
+
+.icon-card.checked {
+  border-width: 2px;
 }
 
 .icon-glyph {
   text-align: center;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .icon-name {
   text-align: center;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .icon-code {
   text-align: center;
 }
 
-.bottom-info {
-  flex-direction: column;
+.icon-check {
+  text-align: center;
+  margin-top: 2px;
+}
+
+.bottom-bar {
+  flex-direction: row;
   align-items: center;
+  justify-content: space-between;
   border-radius: 8px;
-  padding: 6px;
+  padding: 8px;
   margin-top: 4px;
 }
 
 .info-text {
+  flex: 1;
+  text-align: left;
+}
+
+.confirm-btn {
+  width: 80px;
+  height: 34px;
+  border-radius: 8px;
   text-align: center;
+  margin-left: 6px;
 }
 </style>
