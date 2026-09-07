@@ -10,11 +10,6 @@ function init(instance) {
   instance.loadPinnedPages = function() {
     var self = instance
     pinHelper.getList(function(list) {
-      for (var i = 0; i < list.length; i++) {
-        if (list[i].name && list[i].name.length > 10) {
-          list[i].name = list[i].name.substring(0, 10)
-        }
-      }
       self.pinnedPages = list
       self.hasPinned = list.length > 0
       console.log("[pinned-pages module] loaded " + list.length + " pages")

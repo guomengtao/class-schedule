@@ -1,107 +1,418 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <div class="header">
+    <div class="back-header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack"
              style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">Icon 收集</text>
+      <text class="count-text" style="color: {{ theme.accent }}">{{ checkedCount }} / {{ totalCount }}</text>
     </div>
 
-    <text class="hint" style="color: {{ theme.textSecondary }}">点击图标标记为可访问，真机实测后勾选</text>
-
-    <div class="tabs" style="background-color: {{ theme.card }}">
-      <div for="cat in catNames" class="tab {{ activeIdx === $idx ? 'tab-active' : '' }}"
-           onclick="switchCat($idx)"
-           style="background-color: {{ activeIdx === $idx ? theme.accent : theme.cardLight }}">
-        <text class="tab-text" style="color: {{ activeIdx === $idx ? theme.bg : theme.textSecondary }}; font-size: 10px;">{{ cat }}</text>
+    <div class="checked-section" if="{{ checkedIcons.length > 0 }}">
+      <text class="section-label" style="color: {{ theme.accent }}">已勾选</text>
+      <div class="icon-grid">
+        <div for="icon in checkedIcons" class="icon-card checked"
+             onclick="toggleIcon(icon[2])"
+             style="background-color: {{ checkedBg }}; border-color: {{ checkedBorder }}">
+          <text class="icon-glyph">{{ icon[0] }}</text>
+          <text class="icon-name">{{ icon[1] }}</text>
+          <text class="icon-code">U+{{ icon[2] }}</text>
+          <text class="icon-check">✓</text>
+        </div>
       </div>
     </div>
 
-    <div class="icon-grid">
-      <div for="icon in currentIcons" class="icon-card {{ icon[3] ? 'checked' : '' }}"
-           onclick="toggleIcon(icon[2])"
-           style="background-color: {{ icon[3] ? checkedBg : theme.card }}; border-color: {{ icon[3] ? checkedBorder : 'transparent' }}">
-        <text class="icon-glyph" style="color: {{ theme.accent }}; font-size: 28px;">{{ icon[0] }}</text>
-        <text class="icon-name" style="color: {{ theme.text }}; font-size: 9px;">{{ icon[1] }}</text>
-        <text class="icon-code" style="color: {{ theme.textMuted }}; font-size: 8px;">U+{{ icon[2] }}</text>
-        <text class="icon-check" style="color: {{ theme.accent }}; font-size: 10px;">{{ icon[3] ? '✓' : '' }}</text>
+    <div class="divider" if="{{ checkedIcons.length > 0 && uncheckedIcons.length > 0 }}"
+         style="border-color: {{ theme.border }}">
+      <text class="divider-text" style="color: {{ theme.textMuted }}; background-color: {{ theme.bg }}">────────────────</text>
+    </div>
+
+    <div class="unchecked-section" if="{{ uncheckedIcons.length > 0 }}">
+      <text class="section-label" style="color: {{ theme.textMuted }}">未勾选</text>
+      <div class="icon-grid">
+        <div for="icon in uncheckedIcons" class="icon-card"
+             onclick="toggleIcon(icon[2])"
+             style="background-color: {{ theme.card }}">
+          <text class="icon-glyph">{{ icon[0] }}</text>
+          <text class="icon-name">{{ icon[1] }}</text>
+          <text class="icon-code">U+{{ icon[2] }}</text>
+          <text class="icon-check"></text>
+        </div>
       </div>
     </div>
 
-    <div class="bottom-bar" style="background-color: {{ theme.card }}">
-      <text class="info-text" style="color: {{ theme.textSecondary }}; font-size: 10px;">
-        已确认 {{ checkedCount }} / {{ totalCount }}
-      </text>
-      <input class="confirm-btn" type="button" value="全部确认" onclick="checkAll"
-             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}; font-size: 12px;" />
-      <input class="confirm-btn" type="button" value="全部取消" onclick="uncheckAll"
-             style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}; font-size: 12px;" />
+    <div class="confirm-bar" if="{{ checkedIcons.length > 0 }}">
+      <input class="confirm-btn" type="button" value="确认勾选 ({{ checkedCount }})" onclick="confirmSelection"
+             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
-const store = require("../../data/store.js")
 
-var catNames = ["三角形", "箭头", "几何形状", "常用符号", "数学符号", "标点杂项", "方块元素", "数字圈"]
-
-var allIcons = [
-  [
-    ["▲","上三角实心","25B2"],["△","上三角空心","25B3"],["▴","上小三角实心","25B4"],["▵","上小三角空心","25B5"],
-    ["▼","下三角实心","25BC"],["▽","下三角空心","25BD"],["▾","下小三角实心","25BE"],["▿","下小三角空心","25BF"],
-    ["◀","左三角实心","25C0"],["◁","左三角空心","25C1"],["◂","左小三角实心","25C2"],["◃","左小三角空心","25C3"],
-    ["▶","右三角实心","25B6"],["▷","右三角空心","25B7"],["▸","右小三角实心","25B8"],["▹","右小三角空心","25B9"],
-    ["◢","左下三角","25E2"],["◣","右下三角","25E3"],["◤","左上三角","25E4"],["◥","右上三角","25E5"]
-  ],
-  [
-    ["←","左箭头","2190"],["→","右箭头","2192"],["↑","上箭头","2191"],["↓","下箭头","2193"],
-    ["↔","左右箭头","2194"],["↕","上下箭头","2195"],["↖","左上箭头","2196"],["↗","右上箭头","2197"],
-    ["↘","右下箭头","2198"],["↙","左下箭头","2199"],["⇐","双左箭头","21D0"],["⇒","双右箭头","21D2"],
-    ["⇑","双上箭头","21D1"],["⇓","双下箭头","21D3"],["↩","左弯箭头","21A9"],["↪","右弯箭头","21AA"],
-    ["↶","逆时针半圆","21B6"],["↷","顺时针半圆","21B7"],["↵","回车箭头","21B5"],["⇄","左右双箭","21C4"]
-  ],
-  [
-    ["■","方框实心","25A0"],["□","方框空心","25A1"],["▪","小方框实心","25AA"],["▫","小方框空心","25AB"],
-    ["▬","横矩形","25AC"],["▭","横矩形空心","25AD"],["▮","竖矩形","25AE"],["▯","竖矩形空心","25AF"],
-    ["●","圆实心","25CF"],["○","圆空心","25CB"],["◉","靶心圆","25C9"],["◎","双圆","25CE"],
-    ["◐","左半圆","25D0"],["◑","右半圆","25D1"],["◒","下半圆","25D2"],["◓","上半圆","25D3"],
-    ["◆","菱形实心","25C6"],["◇","菱形空心","25C7"],["◈","菱形内嵌","25C8"],["⬟","五边形","2B1F"]
-  ],
-  [
-    ["✓","对勾","2713"],["✔","粗对勾","2714"],["✗","叉号","2717"],["✘","粗叉号","2718"],
-    ["★","星实心","2605"],["☆","星空心","2606"],["♥","红心","2665"],["♦","方块","2666"],
-    ["♣","梅花","2663"],["♠","黑桃","2660"],["♂","男性符号","2642"],["♀","女性符号","2640"],
-    ["♪","八分音符","266A"],["♫","双八分音符","266B"],["☀","太阳","2600"],["☁","云","2601"],
-    ["☂","伞","2602"],["☃","雪人","2603"],["☎","电话","260E"],["☏","电话空心","260F"]
-  ],
-  [
-    ["∞","无穷","221E"],["≈","约等于","2248"],["≠","不等于","2260"],["≤","小于等于","2264"],
-    ["≥","大于等于","2265"],["±","正负号","00B1"],["×","乘号","00D7"],["÷","除号","00F7"],
-    ["°","度","00B0"],["√","根号","221A"],["∑","求和","2211"],["∏","求积","220F"],
-    ["∫","积分","222B"],["∂","偏微分","2202"],["∆","增量","2206"],["∝","正比于","221D"],
-    ["∠","角","2220"],["⊥","垂直","22A5"],["∥","平行","2225"],["‰","千分号","2030"]
-  ],
-  [
-    ["•","圆点","2022"],["‣","三角点","2023"],["…","省略号","2026"],["†","剑号","2020"],
-    ["‡","双剑号","2021"],["‽","疑问感叹号","203D"],["※","米字参考","203B"],["§","章节号","00A7"],
-    ["¶","段落号","00B6"],["©","版权","00A9"],["®","注册商标","00AE"],["™","商标","2122"],
-    ["№","编号","2116"],["℡","电话符号","2121"],["℗","录音版权","2117"],["←","左箭","2190"],
-    ["↑","上箭","2191"],["→","右箭","2192"],["↓","下箭","2193"],["↲","下左弯箭","21B2"]
-  ],
-  [
-    ["▁","下八分块","2581"],["▂","下四分块","2582"],["▃","下三八分块","2583"],["▄","下半块","2584"],
-    ["▅","下五八分块","2585"],["▆","下六八分块","2586"],["▇","下七八分块","2587"],["█","全块","2588"],
-    ["▉","左七八块","2589"],["▊","左六八块","258A"],["▋","左五八块","258B"],["▌","左半块","258C"],
-    ["▍","左三八块","258D"],["▎","左四分块","258E"],["▏","左八分块","258F"],["▐","右半块","2590"],
-    ["░","浅色","2591"],["▒","中色","2592"],["▓","深色","2593"],["▔","上八分块","2594"]
-  ],
-  [
-    ["①","圈1","2460"],["②","圈2","2461"],["③","圈3","2462"],["④","圈4","2463"],
-    ["⑤","圈5","2464"],["⑥","圈6","2465"],["⑦","圈7","2466"],["⑧","圈8","2467"],
-    ["⑨","圈9","2468"],["⑩","圈10","2469"],["❶","黑圈1","2776"],["❷","黑圈2","2777"],
-    ["❸","黑圈3","2778"],["❹","黑圈4","2779"],["❺","黑圈5","277A"],["❻","黑圈6","277B"],
-    ["❼","黑圈7","277C"],["❽","黑圈8","277D"],["❾","黑圈9","277E"],["❿","黑圈10","277F"]
-  ]
+var ALL_ICONS = [
+  ["▶", "播放", "25B6"],
+  ["⏸", "暂停", "23F8"],
+  ["⏹", "停止", "23F9"],
+  ["⏺", "录制", "23FA"],
+  ["⏏", "弹出", "23CF"],
+  ["⏭", "下一首", "23ED"],
+  ["⏮", "上一首", "23EE"],
+  ["⏯", "播放/暂停", "23EF"],
+  ["⏪", "快退", "23EA"],
+  ["⏩", "快进", "23E9"],
+  ["⏫", "快速上升", "23EB"],
+  ["⏬", "快速下降", "23EC"],
+  ["◀", "左", "25C0"],
+  ["▶", "右", "25B6"],
+  ["▲", "上", "25B2"],
+  ["▼", "下", "25BC"],
+  ["●", "圆形", "25CF"],
+  ["○", "空心圆", "25CB"],
+  ["◉", "靶心", "25C9"],
+  ["◎", "双圈", "25CE"],
+  ["◐", "半圆左", "25D0"],
+  ["◑", "半圆右", "25D1"],
+  ["◒", "半圆下", "25D2"],
+  ["◓", "半圆上", "25D3"],
+  ["⬤", "大实心圆", "2B24"],
+  ["⬥", "菱形", "2B25"],
+  ["⬦", "空心菱形", "2B26"],
+  ["◆", "实心菱形", "25C6"],
+  ["◇", "空心菱形", "25C7"],
+  ["◈", "菱形靶心", "25C8"],
+  ["■", "方形", "25A0"],
+  ["□", "空心方", "25A1"],
+  ["▪", "小方", "25AA"],
+  ["▫", "小空心方", "25AB"],
+  ["▬", "矩形", "25AC"],
+  ["▭", "空心矩形", "25AD"],
+  ["★", "星", "2605"],
+  ["☆", "空心星", "2606"],
+  ["☀", "太阳", "2600"],
+  ["☁", "云", "2601"],
+  ["☂", "伞", "2602"],
+  ["☃", "雪人", "2603"],
+  ["☄", "彗星", "2604"],
+  ["♡", "空心心", "2661"],
+  ["♥", "心", "2665"],
+  ["♦", "方块", "2666"],
+  ["♣", "梅花", "2663"],
+  ["♠", "黑桃", "2660"],
+  ["♤", "空心黑桃", "2664"],
+  ["♧", "空心梅花", "2667"],
+  ["♢", "空心方块", "2662"],
+  ["☚", "左手指", "261A"],
+  ["☛", "右手指", "261B"],
+  ["☜", "左手指上", "261C"],
+  ["☝", "上手指", "261D"],
+  ["☞", "右手指上", "261E"],
+  ["☟", "下手指", "261F"],
+  ["✂", "剪刀", "2702"],
+  ["✃", "剪刀2", "2703"],
+  ["✄", "剪刀3", "2704"],
+  ["✓", "对勾", "2713"],
+  ["✔", "粗对勾", "2714"],
+  ["✕", "叉", "2715"],
+  ["✖", "粗叉", "2716"],
+  ["✗", "叉2", "2717"],
+  ["✘", "粗叉2", "2718"],
+  ["✙", "加号圆", "2719"],
+  ["✚", "粗加号", "271A"],
+  ["✛", "加号", "271B"],
+  ["✜", "粗加号圆", "271C"],
+  ["✝", "十字", "271D"],
+  ["✞", "阴影十字", "271E"],
+  ["✟", "轮廓十字", "271F"],
+  ["✠", "马耳他十字", "2720"],
+  ["✡", "大卫之星", "2721"],
+  ["✢", "四角星", "2722"],
+  ["✣", "四角星2", "2723"],
+  ["✤", "四角星3", "2724"],
+  ["✥", "四角星4", "2725"],
+  ["✦", "四角星填充", "2726"],
+  ["✧", "四角星空心", "2727"],
+  ["✩", "应激星", "2729"],
+  ["✪", "圈星", "272A"],
+  ["✫", "空心星", "272B"],
+  ["✬", "黑心星", "272C"],
+  ["✭", "轮廓星", "272D"],
+  ["✮", "粗轮廓星", "272E"],
+  ["✯", "风车星", "272F"],
+  ["✰", "阴影星", "2730"],
+  ["✱", "粗星号", "2731"],
+  ["✲", "空心星号", "2732"],
+  ["✳", "八角星", "2733"],
+  ["✴", "八角星填充", "2734"],
+  ["✵", "八角星2", "2735"],
+  ["✶", "六角星", "2736"],
+  ["✷", "六角星2", "2737"],
+  ["✸", "六角星填充", "2738"],
+  ["✹", "十二角星", "2739"],
+  ["✺", "十六角星", "273A"],
+  ["✻", "泪滴星", "273B"],
+  ["✼", "泪滴星2", "273C"],
+  ["✽", "泪滴星3", "273D"],
+  ["✾", "花星", "273E"],
+  ["✿", "花", "273F"],
+  ["❀", "花2", "2740"],
+  ["❁", "花3", "2741"],
+  ["❂", "花4", "2742"],
+  ["❃", "花5", "2743"],
+  ["❄", "雪花", "2744"],
+  ["❅", "雪花2", "2745"],
+  ["❆", "雪花3", "2746"],
+  ["❇", "火花", "2747"],
+  ["❈", "火花2", "2748"],
+  ["❉", "火花3", "2749"],
+  ["❊", "火花4", "274A"],
+  ["❋", "火花5", "274B"],
+  ["❍", "阴影圆", "274D"],
+  ["❏", "上方形", "274F"],
+  ["❐", "下方形", "2750"],
+  ["❑", "右下方形", "2751"],
+  ["❒", "右上方形", "2752"],
+  ["❖", "黑菱形", "2756"],
+  ["⟐", "白菱形", "27D0"],
+  ["⟑", "双菱形", "27D1"],
+  ["⟒", "菱形点", "27D2"],
+  ["⟓", "菱形点2", "27D3"],
+  ["⟔", "菱形点3", "27D4"],
+  ["⟕", "菱形点4", "27D5"],
+  ["⟖", "菱形点5", "27D6"],
+  ["⟗", "菱形点6", "27D7"],
+  ["⟘", "菱形点7", "27D8"],
+  ["⟙", "菱形点8", "27D9"],
+  ["⟚", "菱形点9", "27DA"],
+  ["⟛", "菱形点10", "27DB"],
+  ["⟜", "菱形点11", "27DC"],
+  ["⟝", "菱形点12", "27DD"],
+  ["⟞", "菱形点13", "27DE"],
+  ["⟟", "菱形点14", "27DF"],
+  ["⟠", "菱形点15", "27E0"],
+  ["⟡", "菱形点16", "27E1"],
+  ["⟢", "菱形点17", "27E2"],
+  ["⟣", "菱形点18", "27E3"],
+  ["⟤", "菱形点19", "27E4"],
+  ["⟥", "菱形点20", "27E5"],
+  ["⟦", "菱形点21", "27E6"],
+  ["⟧", "菱形点22", "27E7"],
+  ["⟨", "左角括号", "27E8"],
+  ["⟩", "右角括号", "27E9"],
+  ["⟪", "左双角括号", "27EA"],
+  ["⟫", "右双角括号", "27EB"],
+  ["⟬", "左白角括号", "27EC"],
+  ["⟭", "右白角括号", "27ED"],
+  ["⟮", "左白角括号2", "27EE"],
+  ["⟯", "右白角括号2", "27EF"],
+  ["⟰", "上箭头", "27F0"],
+  ["⟱", "下箭头", "27F1"],
+  ["⟲", "左箭头", "27F2"],
+  ["⟳", "右箭头", "27F3"],
+  ["⟴", "左上箭头", "27F4"],
+  ["⟵", "右下箭头", "27F5"],
+  ["⟶", "左下箭头", "27F6"],
+  ["⟷", "右上箭头", "27F7"],
+  ["⟸", "左粗箭头", "27F8"],
+  ["⟹", "右粗箭头", "27F9"],
+  ["⟺", "左右粗箭头", "27FA"],
+  ["⟻", "左鱼尾箭头", "27FB"],
+  ["⟼", "右鱼尾箭头", "27FC"],
+  ["⟽", "左鱼尾", "27FD"],
+  ["⟾", "右鱼尾", "27FE"],
+  ["⟿", "左右鱼尾", "27FF"],
+  ["⚠", "警告", "26A0"],
+  ["⚡", "闪电", "26A1"],
+  ["☢", "辐射", "2622"],
+  ["☣", "生物危害", "2623"],
+  ["☤", "蛇杖", "2624"],
+  ["☥", "十字章", "2625"],
+  ["☦", "东正十字", "2626"],
+  ["☧", "洛林十字", "2627"],
+  ["☨", "耶路撒冷十字", "2628"],
+  ["☩", "十字", "2629"],
+  ["☪", "星月", "262A"],
+  ["☫", "波斯", "262B"],
+  ["☬", "阿迪沙克蒂", "262C"],
+  ["☭", "锤镰", "262D"],
+  ["☮", "和平", "262E"],
+  ["☯", "阴阳", "262F"],
+  ["☰", "乾", "2630"],
+  ["☱", "兑", "2631"],
+  ["☲", "离", "2632"],
+  ["☳", "震", "2633"],
+  ["☴", "巽", "2634"],
+  ["☵", "坎", "2635"],
+  ["☶", "艮", "2636"],
+  ["☷", "坤", "2637"],
+  ["☸", "法轮", "2638"],
+  ["☹", "皱眉", "2639"],
+  ["☺", "微笑", "263A"],
+  ["☻", "黑微笑", "263B"],
+  ["☼", "白太阳", "263C"],
+  ["☽", "上弦月", "263D"],
+  ["☾", "下弦月", "263E"],
+  ["☿", "水星", "263F"],
+  ["♀", "金星", "2640"],
+  ["♁", "地球", "2641"],
+  ["♂", "火星", "2642"],
+  ["♃", "木星", "2643"],
+  ["♄", "土星", "2644"],
+  ["♅", "天王星", "2645"],
+  ["♆", "海王星", "2646"],
+  ["♇", "冥王星", "2647"],
+  ["♈", "白羊座", "2648"],
+  ["♉", "金牛座", "2649"],
+  ["♊", "双子座", "264A"],
+  ["♋", "巨蟹座", "264B"],
+  ["♌", "狮子座", "264C"],
+  ["♍", "处女座", "264D"],
+  ["♎", "天秤座", "264E"],
+  ["♏", "天蝎座", "264F"],
+  ["♐", "射手座", "2650"],
+  ["♑", "摩羯座", "2651"],
+  ["♒", "水瓶座", "2652"],
+  ["♓", "双鱼座", "2653"],
+  ["♔", "白王", "2654"],
+  ["♕", "白后", "2655"],
+  ["♖", "白车", "2656"],
+  ["♗", "白象", "2657"],
+  ["♘", "白马", "2658"],
+  ["♙", "白兵", "2659"],
+  ["♚", "黑王", "265A"],
+  ["♛", "黑后", "265B"],
+  ["♜", "黑车", "265C"],
+  ["♝", "黑象", "265D"],
+  ["♞", "黑马", "265E"],
+  ["♟", "黑兵", "265F"],
+  ["♠", "黑桃", "2660"],
+  ["♡", "白心", "2661"],
+  ["♢", "白菱", "2662"],
+  ["♣", "梅花", "2663"],
+  ["♤", "白桃", "2664"],
+  ["♥", "红心", "2665"],
+  ["♦", "红菱", "2666"],
+  ["♧", "白梅", "2667"],
+  ["♨", "温泉", "2668"],
+  ["♩", "四分音符", "2669"],
+  ["♪", "八分音符", "266A"],
+  ["♫", "双八分音符", "266B"],
+  ["♬", "双十六分音符", "266C"],
+  ["♭", "降号", "266D"],
+  ["♮", "还原号", "266E"],
+  ["♯", "升号", "266F"],
+  ["♰", "西叙利亚十字", "2670"],
+  ["♱", "东叙利亚十字", "2671"],
+  ["♲", "回收", "2672"],
+  ["♳", "回收2", "2673"],
+  ["♴", "回收3", "2674"],
+  ["♵", "回收4", "2675"],
+  ["♶", "回收5", "2676"],
+  ["♷", "回收6", "2677"],
+  ["♸", "回收7", "2678"],
+  ["♹", "回收8", "2679"],
+  ["♺", "通用回收", "267A"],
+  ["♻", "黑回收", "267B"],
+  ["♼", "白回收", "267C"],
+  ["♽", "部分回收", "267D"],
+  ["♾", "永久纸", "267E"],
+  ["♿", "轮椅", "267F"],
+  ["⚀", "骰子1", "2680"],
+  ["⚁", "骰子2", "2681"],
+  ["⚂", "骰子3", "2682"],
+  ["⚃", "骰子4", "2683"],
+  ["⚄", "骰子5", "2684"],
+  ["⚅", "骰子6", "2685"],
+  ["⚆", "白圆点", "2686"],
+  ["⚇", "白圆点2", "2687"],
+  ["⚈", "黑圆点", "2688"],
+  ["⚉", "黑圆点2", "2689"],
+  ["⚊", "单线", "268A"],
+  ["⚋", "双线", "268B"],
+  ["⚌", "三线", "268C"],
+  ["⚍", "四线", "268D"],
+  ["⚎", "五线", "268E"],
+  ["⚏", "六线", "268F"],
+  ["⚐", "白旗", "2690"],
+  ["⚑", "黑旗", "2691"],
+  ["⚒", "锤镐", "2692"],
+  ["⚓", "锚", "2693"],
+  ["⚔", "剑", "2694"],
+  ["⚕", "蛇杖医", "2695"],
+  ["⚖", "天平", "2696"],
+  ["⚗", "蒸馏器", "2697"],
+  ["⚘", "花", "2698"],
+  ["⚙", "齿轮", "2699"],
+  ["⚚", "权杖", "269A"],
+  ["⚛", "原子", "269B"],
+  ["⚜", "百合", "269C"],
+  ["⚝", "轮廓星", "269D"],
+  ["⚞", "三线右", "269E"],
+  ["⚟", "三线左", "269F"],
+  ["⚠", "警告", "26A0"],
+  ["⚡", "闪电", "26A1"],
+  ["⚢", "双女", "26A2"],
+  ["⚣", "双男", "26A3"],
+  ["⚤", "男女", "26A4"],
+  ["⚥", "男女2", "26A5"],
+  ["⚦", "男带", "26A6"],
+  ["⚧", "跨性别", "26A7"],
+  ["⚨", "垂直男", "26A8"],
+  ["⚩", "水平男", "26A9"],
+  ["⚪", "中白圆", "26AA"],
+  ["⚫", "中黑圆", "26AB"],
+  ["⚬", "中小白圆", "26AC"],
+  ["⚭", "婚姻", "26AD"],
+  ["⚮", "离婚", "26AE"],
+  ["⚯", "未婚", "26AF"],
+  ["⚰", "棺材", "26B0"],
+  ["⚱", "骨灰盒", "26B1"],
+  ["⚲", "中性", "26B2"],
+  ["⚳", "谷神星", "26B3"],
+  ["⚴", "智神星", "26B4"],
+  ["⚵", "婚神星", "26B5"],
+  ["⚶", "灶神星", "26B6"],
+  ["⚷", "凯龙星", "26B7"],
+  ["⚸", "黑月", "26B8"],
+  ["⚹", "六分", "26B9"],
+  ["⚺", "半方", "26BA"],
+  ["⚻", "相位", "26BB"],
+  ["⚼", "相位2", "26BC"],
+  ["⚽", "足球", "26BD"],
+  ["⚾", "棒球", "26BE"],
+  ["⚿", "方结", "26BF"],
+  ["⛀", "白车", "26C0"],
+  ["⛁", "白王", "26C1"],
+  ["⛂", "白后", "26C2"],
+  ["⛃", "黑车", "26C3"],
+  ["⛤", "五角星", "26E4"],
+  ["⛥", "右手", "26E5"],
+  ["⛦", "左手", "26E6"],
+  ["⛧", "逆五角星", "26E7"],
+  ["⛨", "盾", "26E8"],
+  ["⛩", "神社", "26E9"],
+  ["⛪", "教堂", "26EA"],
+  ["⛫", "城堡", "26EB"],
+  ["⛬", "历史", "26EC"],
+  ["⛭", "齿轮2", "26ED"],
+  ["⛮", "齿轮3", "26EE"],
+  ["⛯", "地图", "26EF"],
+  ["⛰", "山", "26F0"],
+  ["⛱", "伞2", "26F1"],
+  ["⛲", "喷泉", "26F2"],
+  ["⛳", "旗", "26F3"],
+  ["⛴", "渡轮", "26F4"],
+  ["⛵", "帆船", "26F5"],
+  ["⛶", "方形", "26F6"],
+  ["⛷", "滑雪", "26F7"],
+  ["⛸", "滑冰", "26F8"],
+  ["⛹", "球", "26F9"],
+  ["⛺", "帐篷", "26FA"],
+  ["⛻", "银行", "26FB"],
+  ["⛼", "墓碑", "26FC"],
+  ["⛽", "加油站", "26FD"],
+  ["⛾", "杯", "26FE"],
+  ["⛿", "白旗2", "26FF"]
 ]
 
 function buildIconList(rawIcons) {
@@ -114,90 +425,62 @@ function buildIconList(rawIcons) {
 
 export default {
   private: {
-    theme: {
-      bg: "#1a1a2e",
-      card: "#16213e",
-      cardLight: "#0f3460",
-      accent: "#7ec8e3",
-      text: "#ffffff",
-      textSecondary: "#888899",
-      textMuted: "#555566",
-      border: "#0f3460"
-    },
-    checkedBg: "#0d3320",
-    checkedBorder: "#2ecc71",
-    catNames: catNames,
-    activeIdx: 0,
-    currentIcons: [],
-    totalCount: 0,
-    checkedCount: 0
+    theme: {},
+    checkedBg: "#2a3a2a",
+    checkedBorder: "#4caf50",
+    allIcons: [],
+    checkedIcons: [],
+    uncheckedIcons: [],
+    checkedCount: 0,
+    totalCount: 0
   },
 
   onInit() {
-    var self = this
-    var total = 0
-    for (var i = 0; i < allIcons.length; i++) {
-      total += allIcons[i].length
-    }
-    this.totalCount = total
-    this.currentIcons = buildIconList(allIcons[0])
-    store.getTheme(function(t) {
-      self.theme = t
-    })
-  },
-
-  onShow() {
-    var self = this
-    store.getTheme(function(t) {
-      self.theme = t
-    })
+    var icons = buildIconList(ALL_ICONS)
+    this.allIcons = icons
+    this.uncheckedIcons = icons
+    this.totalCount = icons.length
+    this.checkedCount = 0
   },
 
   toggleIcon(code) {
-    var icons = this.currentIcons
-    for (var i = 0; i < icons.length; i++) {
-      if (icons[i][2] === code) {
-        icons[i][3] = !icons[i][3]
+    var allIcons = this.allIcons
+    for (var i = 0; i < allIcons.length; i++) {
+      if (allIcons[i][2] === code) {
+        allIcons[i][3] = !allIcons[i][3]
         break
       }
     }
-    this.currentIcons = icons
-    this.updateCheckedCount()
+    this.allIcons = allIcons
+    this.rebuildLists()
   },
 
-  updateCheckedCount() {
-    var icons = this.currentIcons
-    var count = 0
-    for (var i = 0; i < icons.length; i++) {
-      if (icons[i][3]) {
-        count++
+  rebuildLists() {
+    var checked = []
+    var unchecked = []
+    var allIcons = this.allIcons
+    for (var i = 0; i < allIcons.length; i++) {
+      if (allIcons[i][3]) {
+        checked.push(allIcons[i])
+      } else {
+        unchecked.push(allIcons[i])
       }
     }
-    this.checkedCount = count
+    this.checkedIcons = checked
+    this.uncheckedIcons = unchecked
+    this.checkedCount = checked.length
   },
 
-  checkAll() {
-    var icons = this.currentIcons
-    for (var i = 0; i < icons.length; i++) {
-      icons[i][3] = true
+  confirmSelection() {
+    var checked = this.checkedIcons
+    var msg = ""
+    for (var i = 0; i < checked.length; i++) {
+      msg += checked[i][1] + " (U+" + checked[i][2] + ")"
+      if (i < checked.length - 1) {
+        msg += ", "
+      }
     }
-    this.currentIcons = icons
-    this.checkedCount = icons.length
-  },
-
-  uncheckAll() {
-    var icons = this.currentIcons
-    for (var i = 0; i < icons.length; i++) {
-      icons[i][3] = false
-    }
-    this.currentIcons = icons
-    this.checkedCount = 0
-  },
-
-  switchCat(idx) {
-    this.activeIdx = idx
-    this.currentIcons = buildIconList(allIcons[idx])
-    this.checkedCount = 0
+    console.log("[icon-collection] confirmed: " + msg)
   },
 
   goBack() {
@@ -209,72 +492,81 @@ export default {
 <style>
 .page {
   flex-direction: column;
-  padding: 44px 8px 8px 8px;
+  padding: 44px 6px 6px 6px;
   min-height: 100%;
 }
 
-.header {
+.back-header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 4px;
+  padding: 8px 0;
+  margin-bottom: 8px;
 }
 
 .back-btn {
-  width: 70px;
+  width: 80px;
   height: 36px;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 18px;
+  font-size: 15px;
   text-align: center;
+  border-width: 0;
 }
 
 .title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   flex: 1;
   text-align: center;
+  margin-left: -80px;
 }
 
-.hint {
-  font-size: 10px;
-  margin-bottom: 6px;
-  padding: 0 4px;
-  text-align: center;
+.count-text {
+  font-size: 14px;
+  margin-right: 4px;
 }
 
-.tabs {
-  flex-direction: row;
-  flex-wrap: wrap;
-  border-radius: 8px;
-  padding: 4px;
-  margin-bottom: 6px;
+.checked-section {
+  margin-bottom: 4px;
 }
 
-.tab {
-  padding: 4px 8px;
-  border-radius: 6px;
-  margin: 2px;
+.unchecked-section {
+  margin-bottom: 4px;
 }
 
-.tab-text {
+.section-label {
+  font-size: 14px;
   font-weight: bold;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+}
+
+.divider {
+  border-top-width: 1px;
+  margin: 8px 0;
+  align-items: center;
+}
+
+.divider-text {
+  font-size: 12px;
+  padding: 0 8px;
 }
 
 .icon-grid {
-  flex: 1;
   flex-direction: row;
   flex-wrap: wrap;
-  overflow: scroll;
 }
 
 .icon-card {
-  width: 22%;
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  margin: 2px;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
-  border-radius: 8px;
   border-width: 2px;
-  border-style: solid;
-  padding: 6px 3px;
-  margin: 1.5%;
+  border-color: transparent;
+  position: relative;
 }
 
 .icon-card.checked {
@@ -282,43 +574,61 @@ export default {
 }
 
 .icon-glyph {
-  text-align: center;
+  font-size: 20px;
   margin-bottom: 2px;
 }
 
 .icon-name {
+  font-size: 8px;
   text-align: center;
-  margin-bottom: 1px;
+  max-lines: 1;
+  text-overflow: ellipsis;
 }
 
 .icon-code {
+  font-size: 7px;
+  color: #888;
   text-align: center;
 }
 
 .icon-check {
-  text-align: center;
-  margin-top: 2px;
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 12px;
+  color: #4caf50;
 }
 
-.bottom-bar {
-  flex-direction: row;
+.confirm-bar {
+  padding: 8px 0;
   align-items: center;
-  justify-content: space-between;
-  border-radius: 8px;
-  padding: 8px;
-  margin-top: 4px;
-}
-
-.info-text {
-  flex: 1;
-  text-align: left;
 }
 
 .confirm-btn {
-  width: 80px;
-  height: 34px;
-  border-radius: 8px;
+  width: 100%;
+  height: 44px;
+  border-radius: 22px;
+  font-size: 18px;
+  font-weight: bold;
   text-align: center;
-  margin-left: 6px;
+  border-width: 0;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+}
+
+@media (shape: capsule) {
+  .page {
+    padding: 44px 8px 12px 8px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 6px 6px 6px;
+  }
 }
 </style>
