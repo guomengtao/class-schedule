@@ -1,0 +1,185 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack"
+             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">404</text>
+    </div>
+
+    <div class="body">
+      <text class="emoji" style="color: {{ theme.accent }}">!</text>
+      <text class="main-text" style="color: {{ theme.text }}">页面未找到</text>
+      <text class="sub-text" style="color: {{ theme.textSecondary }}">{{ reason }}</text>
+      <text class="countdown" style="color: {{ theme.textMuted }}">{{ countdown }} 秒后自动返回</text>
+    </div>
+
+    <div class="bottom">
+      <input class="action-btn" type="button" value="返回首页" onclick="goHome"
+             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="action-btn secondary" type="button" value="返回上级" onclick="goBack"
+             style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+var timer = null
+var AUTO_BACK_SECONDS = 5
+
+export default {
+  private: {
+    theme: {
+      bg: "#1a1a2e",
+      card: "#16213e",
+      cardLight: "#0f3460",
+      accent: "#7ec8e3",
+      text: "#ffffff",
+      textSecondary: "#888899",
+      textMuted: "#555566"
+    },
+    reason: "您访问的页面不存在或尚未开放",
+    countdown: AUTO_BACK_SECONDS
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    this.startCountdown()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+  },
+
+  startCountdown() {
+    var self = this
+    if (timer) {
+      clearInterval(timer)
+    }
+    this.countdown = AUTO_BACK_SECONDS
+    timer = setInterval(function() {
+      self.countdown = self.countdown - 1
+      if (self.countdown <= 0) {
+        clearInterval(timer)
+        timer = null
+        self.goBack()
+      }
+    }, 1000)
+  },
+
+  resetCountdown() {
+    this.countdown = AUTO_BACK_SECONDS
+  },
+
+  goBack() {
+    if (timer) {
+      clearInterval(timer)
+      timer = null
+    }
+    router.back()
+  },
+
+  goHome() {
+    if (timer) {
+      clearInterval(timer)
+      timer = null
+    }
+    router.replace({ uri: "/pages/index" })
+  },
+
+  onDestroy() {
+    if (timer) {
+      clearInterval(timer)
+      timer = null
+    }
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 8px 8px 8px;
+  min-height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.body {
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.emoji {
+  font-size: 48px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.main-text {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.sub-text {
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 16px;
+  padding: 0 20px;
+}
+
+.countdown {
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+.bottom {
+  flex-direction: column;
+  align-items: center;
+}
+
+.action-btn {
+  width: 80%;
+  height: 44px;
+  border-radius: 22px;
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.secondary {
+  border-width: 1px;
+  border-color: transparent;
+}
+</style>

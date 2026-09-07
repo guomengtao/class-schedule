@@ -9,27 +9,27 @@
     <text class="hint" style="color: {{ theme.textSecondary }}">Vela 快应用 Unicode 字符图标参考</text>
 
     <div class="tabs" style="background-color: {{ theme.card }}">
-      <div for="(idx, cat) in categories" class="tab {{ activeCategory === idx ? 'tab-active' : '' }}"
-           onclick="switchCategory(idx)"
-           style="background-color: {{ activeCategory === idx ? theme.accent : theme.cardLight }}; border-color: {{ theme.border }}">
-        <text class="tab-text" style="color: {{ activeCategory === idx ? theme.bg : theme.textSecondary }}; font-size: 10px;">{{ cat.name }}</text>
+      <div for="cat in catNames" class="tab {{ activeIdx === $idx ? 'tab-active' : '' }}"
+           onclick="switchCat($idx)"
+           style="background-color: {{ activeIdx === $idx ? theme.accent : theme.cardLight }}">
+        <text class="tab-text" style="color: {{ activeIdx === $idx ? theme.bg : theme.textSecondary }}; font-size: 10px;">{{ cat }}</text>
       </div>
     </div>
 
     <div class="icon-grid">
-      <div for="(idx, icon) in currentIcons" class="icon-card" style="background-color: {{ theme.card }}">
-        <text class="icon-glyph" style="color: {{ theme.accent }}; font-size: {{ iconSize }}px;">{{ icon.char }}</text>
-        <text class="icon-name" style="color: {{ theme.text }}; font-size: 9px;">{{ icon.name }}</text>
-        <text class="icon-code" style="color: {{ theme.textMuted }}; font-size: 8px;">U+{{ icon.code }}</text>
+      <div for="icon in currentIcons" class="icon-card" style="background-color: {{ theme.card }}">
+        <text class="icon-glyph" style="color: {{ theme.accent }}; font-size: 32px;">{{ icon[0] }}</text>
+        <text class="icon-name" style="color: {{ theme.text }}; font-size: 9px;">{{ icon[1] }}</text>
+        <text class="icon-code" style="color: {{ theme.textMuted }}; font-size: 8px;">U+{{ icon[2] }}</text>
       </div>
     </div>
 
     <div class="bottom-info" style="background-color: {{ theme.card }}">
       <text class="info-text" style="color: {{ theme.textSecondary }}; font-size: 10px;">
-        共 {{ totalCount }} 个字符 · 显示 {{ currentIcons.length }} 个
+        共 {{ totalCount }} 个 · 显示 {{ currentIcons.length }} 个
       </text>
       <text class="info-text" style="color: {{ theme.textMuted }}; font-size: 9px;">
-        手环系统字体支持，显示为方框则不支持
+        手环系统字体支持，方框=不支持
       </text>
     </div>
   </div>
@@ -39,207 +39,65 @@
 import router from "@system.router"
 const store = require("../../data/store.js")
 
-var iconData = [
-  {
-    name: "三角形",
-    icons: [
-      { char: "▲", name: "上三角实心", code: "25B2" },
-      { char: "△", name: "上三角空心", code: "25B3" },
-      { char: "▴", name: "上小三角实心", code: "25B4" },
-      { char: "▵", name: "上小三角空心", code: "25B5" },
-      { char: "▼", name: "下三角实心", code: "25BC" },
-      { char: "▽", name: "下三角空心", code: "25BD" },
-      { char: "▾", name: "下小三角实心", code: "25BE" },
-      { char: "▿", name: "下小三角空心", code: "25BF" },
-      { char: "◀", name: "左三角实心", code: "25C0" },
-      { char: "◁", name: "左三角空心", code: "25C1" },
-      { char: "◂", name: "左小三角实心", code: "25C2" },
-      { char: "◃", name: "左小三角空心", code: "25C3" },
-      { char: "▶", name: "右三角实心", code: "25B6" },
-      { char: "▷", name: "右三角空心", code: "25B7" },
-      { char: "▸", name: "右小三角实心", code: "25B8" },
-      { char: "▹", name: "右小三角空心", code: "25B9" },
-      { char: "◢", name: "左下三角", code: "25E2" },
-      { char: "◣", name: "右下三角", code: "25E3" },
-      { char: "◤", name: "左上三角", code: "25E4" },
-      { char: "◥", name: "右上三角", code: "25E5" }
-    ]
-  },
-  {
-    name: "箭头",
-    icons: [
-      { char: "←", name: "左箭头", code: "2190" },
-      { char: "→", name: "右箭头", code: "2192" },
-      { char: "↑", name: "上箭头", code: "2191" },
-      { char: "↓", name: "下箭头", code: "2193" },
-      { char: "↔", name: "左右箭头", code: "2194" },
-      { char: "↕", name: "上下箭头", code: "2195" },
-      { char: "↖", name: "左上箭头", code: "2196" },
-      { char: "↗", name: "右上箭头", code: "2197" },
-      { char: "↘", name: "右下箭头", code: "2198" },
-      { char: "↙", name: "左下箭头", code: "2199" },
-      { char: "⇐", name: "双左箭头", code: "21D0" },
-      { char: "⇒", name: "双右箭头", code: "21D2" },
-      { char: "⇑", name: "双上箭头", code: "21D1" },
-      { char: "⇓", name: "双下箭头", code: "21D3" },
-      { char: "↩", name: "左弯箭头", code: "21A9" },
-      { char: "↪", name: "右弯箭头", code: "21AA" },
-      { char: "↶", name: "逆时针半圆", code: "21B6" },
-      { char: "↷", name: "顺时针半圆", code: "21B7" },
-      { char: "↵", name: "回车箭头", code: "21B5" },
-      { char: "⇄", name: "左右双箭", code: "21C4" }
-    ]
-  },
-  {
-    name: "几何形状",
-    icons: [
-      { char: "■", name: "方框实心", code: "25A0" },
-      { char: "□", name: "方框空心", code: "25A1" },
-      { char: "▪", name: "小方框实心", code: "25AA" },
-      { char: "▫", name: "小方框空心", code: "25AB" },
-      { char: "▬", name: "横矩形", code: "25AC" },
-      { char: "▭", name: "横矩形空心", code: "25AD" },
-      { char: "▮", name: "竖矩形", code: "25AE" },
-      { char: "▯", name: "竖矩形空心", code: "25AF" },
-      { char: "●", name: "圆实心", code: "25CF" },
-      { char: "○", name: "圆空心", code: "25CB" },
-      { char: "◉", name: "靶心圆", code: "25C9" },
-      { char: "◎", name: "双圆", code: "25CE" },
-      { char: "◐", name: "左半圆", code: "25D0" },
-      { char: "◑", name: "右半圆", code: "25D1" },
-      { char: "◒", name: "下半圆", code: "25D2" },
-      { char: "◓", name: "上半圆", code: "25D3" },
-      { char: "◆", name: "菱形实心", code: "25C6" },
-      { char: "◇", name: "菱形空心", code: "25C7" },
-      { char: "◈", name: "菱形内嵌", code: "25C8" },
-      { char: "⬟", name: "五边形", code: "2B1F" }
-    ]
-  },
-  {
-    name: "常用符号",
-    icons: [
-      { char: "✓", name: "对勾", code: "2713" },
-      { char: "✔", name: "粗对勾", code: "2714" },
-      { char: "✗", name: "叉号", code: "2717" },
-      { char: "✘", name: "粗叉号", code: "2718" },
-      { char: "★", name: "星实心", code: "2605" },
-      { char: "☆", name: "星空心", code: "2606" },
-      { char: "♥", name: "红心", code: "2665" },
-      { char: "♦", name: "方块", code: "2666" },
-      { char: "♣", name: "梅花", code: "2663" },
-      { char: "♠", name: "黑桃", code: "2660" },
-      { char: "♂", name: "男性符号", code: "2642" },
-      { char: "♀", name: "女性符号", code: "2640" },
-      { char: "♪", name: "八分音符", code: "266A" },
-      { char: "♫", name: "双八分音符", code: "266B" },
-      { char: "☀", name: "太阳", code: "2600" },
-      { char: "☁", name: "云", code: "2601" },
-      { char: "☂", name: "伞", code: "2602" },
-      { char: "☃", name: "雪人", code: "2603" },
-      { char: "☎", name: "电话", code: "260E" },
-      { char: "☏", name: "电话空心", code: "260F" }
-    ]
-  },
-  {
-    name: "数学符号",
-    icons: [
-      { char: "∞", name: "无穷", code: "221E" },
-      { char: "≈", name: "约等于", code: "2248" },
-      { char: "≠", name: "不等于", code: "2260" },
-      { char: "≤", name: "小于等于", code: "2264" },
-      { char: "≥", name: "大于等于", code: "2265" },
-      { char: "±", name: "正负号", code: "00B1" },
-      { char: "×", name: "乘号", code: "00D7" },
-      { char: "÷", name: "除号", code: "00F7" },
-      { char: "°", name: "度", code: "00B0" },
-      { char: "√", name: "根号", code: "221A" },
-      { char: "∑", name: "求和", code: "2211" },
-      { char: "∏", name: "求积", code: "220F" },
-      { char: "∫", name: "积分", code: "222B" },
-      { char: "∂", name: "偏微分", code: "2202" },
-      { char: "∆", name: "增量", code: "2206" },
-      { char: "∝", name: "正比于", code: "221D" },
-      { char: "∠", name: "角", code: "2220" },
-      { char: "⊥", name: "垂直", code: "22A5" },
-      { char: "∥", name: "平行", code: "2225" },
-      { char: "‰", name: "千分号", code: "2030" }
-    ]
-  },
-  {
-    name: "标点杂项",
-    icons: [
-      { char: "•", name: "圆点", code: "2022" },
-      { char: "‣", name: "三角点", code: "2023" },
-      { char: "…", name: "省略号", code: "2026" },
-      { char: "†", name: "剑号", code: "2020" },
-      { char: "‡", name: "双剑号", code: "2021" },
-      { char: "‽", name: "疑问感叹号", code: "203D" },
-      { char: "※", name: "米字参考", code: "203B" },
-      { char: "§", name: "章节号", code: "00A7" },
-      { char: "¶", name: "段落号", code: "00B6" },
-      { char: "©", name: "版权", code: "00A9" },
-      { char: "®", name: "注册商标", code: "00AE" },
-      { char: "™", name: "商标", code: "2122" },
-      { char: "№", name: "编号", code: "2116" },
-      { char: "℡", name: "电话符号", code: "2121" },
-      { char: "℗", name: "录音版权", code: "2117" },
-      { char: "←", name: "左箭", code: "2190" },
-      { char: "↑", name: "上箭", code: "2191" },
-      { char: "→", name: "右箭", code: "2192" },
-      { char: "↓", name: "下箭", code: "2193" },
-      { char: "↲", name: "下左弯箭", code: "21B2" }
-    ]
-  },
-  {
-    name: "方块元素",
-    icons: [
-      { char: "▁", name: "下八分块", code: "2581" },
-      { char: "▂", name: "下四分块", code: "2582" },
-      { char: "▃", name: "下三八分块", code: "2583" },
-      { char: "▄", name: "下半块", code: "2584" },
-      { char: "▅", name: "下五八分块", code: "2585" },
-      { char: "▆", name: "下六八分块", code: "2586" },
-      { char: "▇", name: "下七八分块", code: "2587" },
-      { char: "█", name: "全块", code: "2588" },
-      { char: "▉", name: "左七八块", code: "2589" },
-      { char: "▊", name: "左六八块", code: "258A" },
-      { char: "▋", name: "左五八块", code: "258B" },
-      { char: "▌", name: "左半块", code: "258C" },
-      { char: "▍", name: "左三八块", code: "258D" },
-      { char: "▎", name: "左四分块", code: "258E" },
-      { char: "▏", name: "左八分块", code: "258F" },
-      { char: "▐", name: "右半块", code: "2590" },
-      { char: "░", name: "浅色", code: "2591" },
-      { char: "▒", name: "中色", code: "2592" },
-      { char: "▓", name: "深色", code: "2593" },
-      { char: "▔", name: "上八分块", code: "2594" }
-    ]
-  },
-  {
-    name: "数字圈",
-    icons: [
-      { char: "①", name: "圈1", code: "2460" },
-      { char: "②", name: "圈2", code: "2461" },
-      { char: "③", name: "圈3", code: "2462" },
-      { char: "④", name: "圈4", code: "2463" },
-      { char: "⑤", name: "圈5", code: "2464" },
-      { char: "⑥", name: "圈6", code: "2465" },
-      { char: "⑦", name: "圈7", code: "2466" },
-      { char: "⑧", name: "圈8", code: "2467" },
-      { char: "⑨", name: "圈9", code: "2468" },
-      { char: "⑩", name: "圈10", code: "2469" },
-      { char: "❶", name: "黑圈1", code: "2776" },
-      { char: "❷", name: "黑圈2", code: "2777" },
-      { char: "❸", name: "黑圈3", code: "2778" },
-      { char: "❹", name: "黑圈4", code: "2779" },
-      { char: "❺", name: "黑圈5", code: "277A" },
-      { char: "❻", name: "黑圈6", code: "277B" },
-      { char: "❼", name: "黑圈7", code: "277C" },
-      { char: "❽", name: "黑圈8", code: "277D" },
-      { char: "❾", name: "黑圈9", code: "277E" },
-      { char: "❿", name: "黑圈10", code: "277F" }
-    ]
-  }
+var catNames = ["三角形", "箭头", "几何形状", "常用符号", "数学符号", "标点杂项", "方块元素", "数字圈"]
+
+var allIcons = [
+  [
+    ["▲","上三角实心","25B2"],["△","上三角空心","25B3"],["▴","上小三角实心","25B4"],["▵","上小三角空心","25B5"],
+    ["▼","下三角实心","25BC"],["▽","下三角空心","25BD"],["▾","下小三角实心","25BE"],["▿","下小三角空心","25BF"],
+    ["◀","左三角实心","25C0"],["◁","左三角空心","25C1"],["◂","左小三角实心","25C2"],["◃","左小三角空心","25C3"],
+    ["▶","右三角实心","25B6"],["▷","右三角空心","25B7"],["▸","右小三角实心","25B8"],["▹","右小三角空心","25B9"],
+    ["◢","左下三角","25E2"],["◣","右下三角","25E3"],["◤","左上三角","25E4"],["◥","右上三角","25E5"]
+  ],
+  [
+    ["←","左箭头","2190"],["→","右箭头","2192"],["↑","上箭头","2191"],["↓","下箭头","2193"],
+    ["↔","左右箭头","2194"],["↕","上下箭头","2195"],["↖","左上箭头","2196"],["↗","右上箭头","2197"],
+    ["↘","右下箭头","2198"],["↙","左下箭头","2199"],["⇐","双左箭头","21D0"],["⇒","双右箭头","21D2"],
+    ["⇑","双上箭头","21D1"],["⇓","双下箭头","21D3"],["↩","左弯箭头","21A9"],["↪","右弯箭头","21AA"],
+    ["↶","逆时针半圆","21B6"],["↷","顺时针半圆","21B7"],["↵","回车箭头","21B5"],["⇄","左右双箭","21C4"]
+  ],
+  [
+    ["■","方框实心","25A0"],["□","方框空心","25A1"],["▪","小方框实心","25AA"],["▫","小方框空心","25AB"],
+    ["▬","横矩形","25AC"],["▭","横矩形空心","25AD"],["▮","竖矩形","25AE"],["▯","竖矩形空心","25AF"],
+    ["●","圆实心","25CF"],["○","圆空心","25CB"],["◉","靶心圆","25C9"],["◎","双圆","25CE"],
+    ["◐","左半圆","25D0"],["◑","右半圆","25D1"],["◒","下半圆","25D2"],["◓","上半圆","25D3"],
+    ["◆","菱形实心","25C6"],["◇","菱形空心","25C7"],["◈","菱形内嵌","25C8"],["⬟","五边形","2B1F"]
+  ],
+  [
+    ["✓","对勾","2713"],["✔","粗对勾","2714"],["✗","叉号","2717"],["✘","粗叉号","2718"],
+    ["★","星实心","2605"],["☆","星空心","2606"],["♥","红心","2665"],["♦","方块","2666"],
+    ["♣","梅花","2663"],["♠","黑桃","2660"],["♂","男性符号","2642"],["♀","女性符号","2640"],
+    ["♪","八分音符","266A"],["♫","双八分音符","266B"],["☀","太阳","2600"],["☁","云","2601"],
+    ["☂","伞","2602"],["☃","雪人","2603"],["☎","电话","260E"],["☏","电话空心","260F"]
+  ],
+  [
+    ["∞","无穷","221E"],["≈","约等于","2248"],["≠","不等于","2260"],["≤","小于等于","2264"],
+    ["≥","大于等于","2265"],["±","正负号","00B1"],["×","乘号","00D7"],["÷","除号","00F7"],
+    ["°","度","00B0"],["√","根号","221A"],["∑","求和","2211"],["∏","求积","220F"],
+    ["∫","积分","222B"],["∂","偏微分","2202"],["∆","增量","2206"],["∝","正比于","221D"],
+    ["∠","角","2220"],["⊥","垂直","22A5"],["∥","平行","2225"],["‰","千分号","2030"]
+  ],
+  [
+    ["•","圆点","2022"],["‣","三角点","2023"],["…","省略号","2026"],["†","剑号","2020"],
+    ["‡","双剑号","2021"],["‽","疑问感叹号","203D"],["※","米字参考","203B"],["§","章节号","00A7"],
+    ["¶","段落号","00B6"],["©","版权","00A9"],["®","注册商标","00AE"],["™","商标","2122"],
+    ["№","编号","2116"],["℡","电话符号","2121"],["℗","录音版权","2117"],["←","左箭","2190"],
+    ["↑","上箭","2191"],["→","右箭","2192"],["↓","下箭","2193"],["↲","下左弯箭","21B2"]
+  ],
+  [
+    ["▁","下八分块","2581"],["▂","下四分块","2582"],["▃","下三八分块","2583"],["▄","下半块","2584"],
+    ["▅","下五八分块","2585"],["▆","下六八分块","2586"],["▇","下七八分块","2587"],["█","全块","2588"],
+    ["▉","左七八块","2589"],["▊","左六八块","258A"],["▋","左五八块","258B"],["▌","左半块","258C"],
+    ["▍","左三八块","258D"],["▎","左四分块","258E"],["▏","左八分块","258F"],["▐","右半块","2590"],
+    ["░","浅色","2591"],["▒","中色","2592"],["▓","深色","2593"],["▔","上八分块","2594"]
+  ],
+  [
+    ["①","圈1","2460"],["②","圈2","2461"],["③","圈3","2462"],["④","圈4","2463"],
+    ["⑤","圈5","2464"],["⑥","圈6","2465"],["⑦","圈7","2466"],["⑧","圈8","2467"],
+    ["⑨","圈9","2468"],["⑩","圈10","2469"],["❶","黑圈1","2776"],["❷","黑圈2","2777"],
+    ["❸","黑圈3","2778"],["❹","黑圈4","2779"],["❺","黑圈5","277A"],["❻","黑圈6","277B"],
+    ["❼","黑圈7","277C"],["❽","黑圈8","277D"],["❾","黑圈9","277E"],["❿","黑圈10","277F"]
+  ]
 ]
 
 export default {
@@ -255,22 +113,20 @@ export default {
       border: "#0f3460",
       borderLight: "#2a2a5a"
     },
-    categories: iconData,
-    activeCategory: 0,
+    catNames: catNames,
+    activeIdx: 0,
     currentIcons: [],
-    iconSize: 32,
     totalCount: 0
   },
 
   onInit() {
     var self = this
     var total = 0
-    for (var i = 0; i < iconData.length; i++) {
-      total += iconData[i].icons.length
+    for (var i = 0; i < allIcons.length; i++) {
+      total += allIcons[i].length
     }
     this.totalCount = total
-    this.currentIcons = iconData[0].icons
-
+    this.currentIcons = allIcons[0]
     store.getTheme(function(t) {
       self.theme = t
     })
@@ -283,9 +139,9 @@ export default {
     })
   },
 
-  switchCategory(idx) {
-    this.activeCategory = idx
-    this.currentIcons = iconData[idx].icons
+  switchCat(idx) {
+    this.activeIdx = idx
+    this.currentIcons = allIcons[idx]
   },
 
   goBack() {
@@ -340,17 +196,11 @@ export default {
 .tab {
   padding: 4px 8px;
   border-radius: 6px;
-  border-width: 1px;
-  border-style: solid;
   margin: 2px;
 }
 
 .tab-text {
   font-weight: bold;
-}
-
-.tab-active {
-  border-width: 1px;
 }
 
 .icon-grid {

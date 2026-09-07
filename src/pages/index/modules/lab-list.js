@@ -13,7 +13,8 @@ var labItems = [
   { name: "多模块加载测试", desc: "多模块加载测试", uri: "/pages/lab-module-test" },
   { name: "命令行 Debug", desc: "测试 console.log/warn/error 输出", uri: "/pages/debug-demo" },
   { name: "底部固定菜单", desc: "固定头尾+滚动内容布局", uri: "/pages/bottom-nav-demo" },
-  { name: "Icon 收集", desc: "Unicode 字符图标参考", uri: "/pages/icon-collection" }
+  { name: "Icon 收集", desc: "Unicode 字符图标参考", uri: "/pages/icon-collection" },
+  { name: "404 页面", desc: "页面未找到测试页", uri: "/pages/not-found" }
 ]
 
 function init(instance) {
