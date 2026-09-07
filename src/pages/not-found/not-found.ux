@@ -51,7 +51,7 @@ export default {
       clearInterval(timer)
       timer = null
     }
-    router.replace({
+    router.push({
       uri: "/pages/index"
     })
   },
