@@ -1,0 +1,398 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack"
+             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">Icon 收集</text>
+    </div>
+
+    <text class="hint" style="color: {{ theme.textSecondary }}">Vela 快应用 Unicode 字符图标参考</text>
+
+    <div class="tabs" style="background-color: {{ theme.card }}">
+      <div for="(idx, cat) in categories" class="tab {{ activeCategory === idx ? 'tab-active' : '' }}"
+           onclick="switchCategory(idx)"
+           style="background-color: {{ activeCategory === idx ? theme.accent : theme.cardLight }}; border-color: {{ theme.border }}">
+        <text class="tab-text" style="color: {{ activeCategory === idx ? theme.bg : theme.textSecondary }}; font-size: 10px;">{{ cat.name }}</text>
+      </div>
+    </div>
+
+    <div class="icon-grid">
+      <div for="(idx, icon) in currentIcons" class="icon-card" style="background-color: {{ theme.card }}">
+        <text class="icon-glyph" style="color: {{ theme.accent }}; font-size: {{ iconSize }}px;">{{ icon.char }}</text>
+        <text class="icon-name" style="color: {{ theme.text }}; font-size: 9px;">{{ icon.name }}</text>
+        <text class="icon-code" style="color: {{ theme.textMuted }}; font-size: 8px;">U+{{ icon.code }}</text>
+      </div>
+    </div>
+
+    <div class="bottom-info" style="background-color: {{ theme.card }}">
+      <text class="info-text" style="color: {{ theme.textSecondary }}; font-size: 10px;">
+        共 {{ totalCount }} 个字符 · 显示 {{ currentIcons.length }} 个
+      </text>
+      <text class="info-text" style="color: {{ theme.textMuted }}; font-size: 9px;">
+        手环系统字体支持，显示为方框则不支持
+      </text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+var iconData = [
+  {
+    name: "三角形",
+    icons: [
+      { char: "▲", name: "上三角实心", code: "25B2" },
+      { char: "△", name: "上三角空心", code: "25B3" },
+      { char: "▴", name: "上小三角实心", code: "25B4" },
+      { char: "▵", name: "上小三角空心", code: "25B5" },
+      { char: "▼", name: "下三角实心", code: "25BC" },
+      { char: "▽", name: "下三角空心", code: "25BD" },
+      { char: "▾", name: "下小三角实心", code: "25BE" },
+      { char: "▿", name: "下小三角空心", code: "25BF" },
+      { char: "◀", name: "左三角实心", code: "25C0" },
+      { char: "◁", name: "左三角空心", code: "25C1" },
+      { char: "◂", name: "左小三角实心", code: "25C2" },
+      { char: "◃", name: "左小三角空心", code: "25C3" },
+      { char: "▶", name: "右三角实心", code: "25B6" },
+      { char: "▷", name: "右三角空心", code: "25B7" },
+      { char: "▸", name: "右小三角实心", code: "25B8" },
+      { char: "▹", name: "右小三角空心", code: "25B9" },
+      { char: "◢", name: "左下三角", code: "25E2" },
+      { char: "◣", name: "右下三角", code: "25E3" },
+      { char: "◤", name: "左上三角", code: "25E4" },
+      { char: "◥", name: "右上三角", code: "25E5" }
+    ]
+  },
+  {
+    name: "箭头",
+    icons: [
+      { char: "←", name: "左箭头", code: "2190" },
+      { char: "→", name: "右箭头", code: "2192" },
+      { char: "↑", name: "上箭头", code: "2191" },
+      { char: "↓", name: "下箭头", code: "2193" },
+      { char: "↔", name: "左右箭头", code: "2194" },
+      { char: "↕", name: "上下箭头", code: "2195" },
+      { char: "↖", name: "左上箭头", code: "2196" },
+      { char: "↗", name: "右上箭头", code: "2197" },
+      { char: "↘", name: "右下箭头", code: "2198" },
+      { char: "↙", name: "左下箭头", code: "2199" },
+      { char: "⇐", name: "双左箭头", code: "21D0" },
+      { char: "⇒", name: "双右箭头", code: "21D2" },
+      { char: "⇑", name: "双上箭头", code: "21D1" },
+      { char: "⇓", name: "双下箭头", code: "21D3" },
+      { char: "↩", name: "左弯箭头", code: "21A9" },
+      { char: "↪", name: "右弯箭头", code: "21AA" },
+      { char: "↶", name: "逆时针半圆", code: "21B6" },
+      { char: "↷", name: "顺时针半圆", code: "21B7" },
+      { char: "↵", name: "回车箭头", code: "21B5" },
+      { char: "⇄", name: "左右双箭", code: "21C4" }
+    ]
+  },
+  {
+    name: "几何形状",
+    icons: [
+      { char: "■", name: "方框实心", code: "25A0" },
+      { char: "□", name: "方框空心", code: "25A1" },
+      { char: "▪", name: "小方框实心", code: "25AA" },
+      { char: "▫", name: "小方框空心", code: "25AB" },
+      { char: "▬", name: "横矩形", code: "25AC" },
+      { char: "▭", name: "横矩形空心", code: "25AD" },
+      { char: "▮", name: "竖矩形", code: "25AE" },
+      { char: "▯", name: "竖矩形空心", code: "25AF" },
+      { char: "●", name: "圆实心", code: "25CF" },
+      { char: "○", name: "圆空心", code: "25CB" },
+      { char: "◉", name: "靶心圆", code: "25C9" },
+      { char: "◎", name: "双圆", code: "25CE" },
+      { char: "◐", name: "左半圆", code: "25D0" },
+      { char: "◑", name: "右半圆", code: "25D1" },
+      { char: "◒", name: "下半圆", code: "25D2" },
+      { char: "◓", name: "上半圆", code: "25D3" },
+      { char: "◆", name: "菱形实心", code: "25C6" },
+      { char: "◇", name: "菱形空心", code: "25C7" },
+      { char: "◈", name: "菱形内嵌", code: "25C8" },
+      { char: "⬟", name: "五边形", code: "2B1F" }
+    ]
+  },
+  {
+    name: "常用符号",
+    icons: [
+      { char: "✓", name: "对勾", code: "2713" },
+      { char: "✔", name: "粗对勾", code: "2714" },
+      { char: "✗", name: "叉号", code: "2717" },
+      { char: "✘", name: "粗叉号", code: "2718" },
+      { char: "★", name: "星实心", code: "2605" },
+      { char: "☆", name: "星空心", code: "2606" },
+      { char: "♥", name: "红心", code: "2665" },
+      { char: "♦", name: "方块", code: "2666" },
+      { char: "♣", name: "梅花", code: "2663" },
+      { char: "♠", name: "黑桃", code: "2660" },
+      { char: "♂", name: "男性符号", code: "2642" },
+      { char: "♀", name: "女性符号", code: "2640" },
+      { char: "♪", name: "八分音符", code: "266A" },
+      { char: "♫", name: "双八分音符", code: "266B" },
+      { char: "☀", name: "太阳", code: "2600" },
+      { char: "☁", name: "云", code: "2601" },
+      { char: "☂", name: "伞", code: "2602" },
+      { char: "☃", name: "雪人", code: "2603" },
+      { char: "☎", name: "电话", code: "260E" },
+      { char: "☏", name: "电话空心", code: "260F" }
+    ]
+  },
+  {
+    name: "数学符号",
+    icons: [
+      { char: "∞", name: "无穷", code: "221E" },
+      { char: "≈", name: "约等于", code: "2248" },
+      { char: "≠", name: "不等于", code: "2260" },
+      { char: "≤", name: "小于等于", code: "2264" },
+      { char: "≥", name: "大于等于", code: "2265" },
+      { char: "±", name: "正负号", code: "00B1" },
+      { char: "×", name: "乘号", code: "00D7" },
+      { char: "÷", name: "除号", code: "00F7" },
+      { char: "°", name: "度", code: "00B0" },
+      { char: "√", name: "根号", code: "221A" },
+      { char: "∑", name: "求和", code: "2211" },
+      { char: "∏", name: "求积", code: "220F" },
+      { char: "∫", name: "积分", code: "222B" },
+      { char: "∂", name: "偏微分", code: "2202" },
+      { char: "∆", name: "增量", code: "2206" },
+      { char: "∝", name: "正比于", code: "221D" },
+      { char: "∠", name: "角", code: "2220" },
+      { char: "⊥", name: "垂直", code: "22A5" },
+      { char: "∥", name: "平行", code: "2225" },
+      { char: "‰", name: "千分号", code: "2030" }
+    ]
+  },
+  {
+    name: "标点杂项",
+    icons: [
+      { char: "•", name: "圆点", code: "2022" },
+      { char: "‣", name: "三角点", code: "2023" },
+      { char: "…", name: "省略号", code: "2026" },
+      { char: "†", name: "剑号", code: "2020" },
+      { char: "‡", name: "双剑号", code: "2021" },
+      { char: "‽", name: "疑问感叹号", code: "203D" },
+      { char: "※", name: "米字参考", code: "203B" },
+      { char: "§", name: "章节号", code: "00A7" },
+      { char: "¶", name: "段落号", code: "00B6" },
+      { char: "©", name: "版权", code: "00A9" },
+      { char: "®", name: "注册商标", code: "00AE" },
+      { char: "™", name: "商标", code: "2122" },
+      { char: "№", name: "编号", code: "2116" },
+      { char: "℡", name: "电话符号", code: "2121" },
+      { char: "℗", name: "录音版权", code: "2117" },
+      { char: "←", name: "左箭", code: "2190" },
+      { char: "↑", name: "上箭", code: "2191" },
+      { char: "→", name: "右箭", code: "2192" },
+      { char: "↓", name: "下箭", code: "2193" },
+      { char: "↲", name: "下左弯箭", code: "21B2" }
+    ]
+  },
+  {
+    name: "方块元素",
+    icons: [
+      { char: "▁", name: "下八分块", code: "2581" },
+      { char: "▂", name: "下四分块", code: "2582" },
+      { char: "▃", name: "下三八分块", code: "2583" },
+      { char: "▄", name: "下半块", code: "2584" },
+      { char: "▅", name: "下五八分块", code: "2585" },
+      { char: "▆", name: "下六八分块", code: "2586" },
+      { char: "▇", name: "下七八分块", code: "2587" },
+      { char: "█", name: "全块", code: "2588" },
+      { char: "▉", name: "左七八块", code: "2589" },
+      { char: "▊", name: "左六八块", code: "258A" },
+      { char: "▋", name: "左五八块", code: "258B" },
+      { char: "▌", name: "左半块", code: "258C" },
+      { char: "▍", name: "左三八块", code: "258D" },
+      { char: "▎", name: "左四分块", code: "258E" },
+      { char: "▏", name: "左八分块", code: "258F" },
+      { char: "▐", name: "右半块", code: "2590" },
+      { char: "░", name: "浅色", code: "2591" },
+      { char: "▒", name: "中色", code: "2592" },
+      { char: "▓", name: "深色", code: "2593" },
+      { char: "▔", name: "上八分块", code: "2594" }
+    ]
+  },
+  {
+    name: "数字圈",
+    icons: [
+      { char: "①", name: "圈1", code: "2460" },
+      { char: "②", name: "圈2", code: "2461" },
+      { char: "③", name: "圈3", code: "2462" },
+      { char: "④", name: "圈4", code: "2463" },
+      { char: "⑤", name: "圈5", code: "2464" },
+      { char: "⑥", name: "圈6", code: "2465" },
+      { char: "⑦", name: "圈7", code: "2466" },
+      { char: "⑧", name: "圈8", code: "2467" },
+      { char: "⑨", name: "圈9", code: "2468" },
+      { char: "⑩", name: "圈10", code: "2469" },
+      { char: "❶", name: "黑圈1", code: "2776" },
+      { char: "❷", name: "黑圈2", code: "2777" },
+      { char: "❸", name: "黑圈3", code: "2778" },
+      { char: "❹", name: "黑圈4", code: "2779" },
+      { char: "❺", name: "黑圈5", code: "277A" },
+      { char: "❻", name: "黑圈6", code: "277B" },
+      { char: "❼", name: "黑圈7", code: "277C" },
+      { char: "❽", name: "黑圈8", code: "277D" },
+      { char: "❾", name: "黑圈9", code: "277E" },
+      { char: "❿", name: "黑圈10", code: "277F" }
+    ]
+  }
+]
+
+export default {
+  private: {
+    theme: {
+      bg: "#1a1a2e",
+      card: "#16213e",
+      cardLight: "#0f3460",
+      accent: "#7ec8e3",
+      text: "#ffffff",
+      textSecondary: "#888899",
+      textMuted: "#555566",
+      border: "#0f3460",
+      borderLight: "#2a2a5a"
+    },
+    categories: iconData,
+    activeCategory: 0,
+    currentIcons: [],
+    iconSize: 32,
+    totalCount: 0
+  },
+
+  onInit() {
+    var self = this
+    var total = 0
+    for (var i = 0; i < iconData.length; i++) {
+      total += iconData[i].icons.length
+    }
+    this.totalCount = total
+    this.currentIcons = iconData[0].icons
+
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+  },
+
+  switchCategory(idx) {
+    this.activeCategory = idx
+    this.currentIcons = iconData[idx].icons
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 8px 8px 8px;
+  min-height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.hint {
+  font-size: 11px;
+  margin-bottom: 6px;
+  padding: 0 4px;
+  text-align: center;
+}
+
+.tabs {
+  flex-direction: row;
+  flex-wrap: wrap;
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 6px;
+}
+
+.tab {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border-width: 1px;
+  border-style: solid;
+  margin: 2px;
+}
+
+.tab-text {
+  font-weight: bold;
+}
+
+.tab-active {
+  border-width: 1px;
+}
+
+.icon-grid {
+  flex: 1;
+  flex-direction: row;
+  flex-wrap: wrap;
+  overflow: scroll;
+}
+
+.icon-card {
+  width: 22%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 8px 4px;
+  margin: 1.5%;
+}
+
+.icon-glyph {
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.icon-name {
+  text-align: center;
+  margin-bottom: 2px;
+}
+
+.icon-code {
+  text-align: center;
+}
+
+.bottom-info {
+  flex-direction: column;
+  align-items: center;
+  border-radius: 8px;
+  padding: 6px;
+  margin-top: 4px;
+}
+
+.info-text {
+  text-align: center;
+}
+</style>

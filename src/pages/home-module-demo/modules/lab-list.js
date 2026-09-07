@@ -19,6 +19,7 @@ var ALL_PAGES = [
   { name: "弹窗遮罩 Demo", uri: "/pages/overlay-demo" },
   { name: "命令行 Debug", uri: "/pages/debug-demo" },
   { name: "底部固定菜单", uri: "/pages/bottom-nav-demo" },
+  { name: "Icon 收集", uri: "/pages/icon-collection" },
   { name: "遮罩模块测试", uri: "/pages/premium-test" },
   { name: "弹窗直接测试", uri: "/pages/overlay-test" },
   { name: "数据备份与恢复", uri: "/pages/backup-restore" },
