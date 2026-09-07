@@ -169,9 +169,6 @@
       },
       "pages/icon-collection": {
         "component": "icon-collection"
-      },
-      "pages/not-found": {
-        "component": "not-found"
       }
     }
   }
