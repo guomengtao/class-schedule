@@ -1,6 +1,6 @@
 SUCCESS:
 Running: aiot build 
-🔷 [09-07 11:11:01] [toolkit]: start build:  {
+🔷 [09-07 11:23:02] [toolkit]: start build:  {
   "projectPath": "/Users/Banner/Documents/guomengtao/tom/class/class",
   "options": {
     "sourceRoot": "./src",
@@ -22,28 +22,28 @@ Running: aiot build
   "arch": "arm64",
   "toolkit": "2.0.5"
 }
-🟠 [09-07 11:11:02] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/app.ux:84:9 'self' is assigned a value but never used.
-🟠 [09-07 11:11:02] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/components/InputMethod/InputMethod.ux:28:16 ./assets/full/ suggested value (absolute path relative to src) /components/InputMethod/assets/full/
-🟠 [09-07 11:11:02] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/components/InputMethod/InputMethod.ux:223:16 ./assets/arc/ suggested value (absolute path relative to src) /components/InputMethod/assets/arc/
-🟠 [09-07 11:11:03] [toolkit]: src/pages/lab-module-test/index.ux:228 ### StyleToTypescript ### Selector type unsupport Descendant Selector
-🟠 [09-07 11:11:03] [toolkit]: src/pages/lab-module-test/index.ux:232 ### StyleToTypescript ### Selector type unsupport Descendant Selector
-🟠 [09-07 11:11:04] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/pages/settings/settings.ux:139:8 'prompt' is defined but never used.
-🟠 [09-07 11:11:04] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/pages/vibration-lab/vibration-lab.ux:508:9 'self' is assigned a value but never used.
-🟠 [09-07 11:11:04] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/pages/week-view/week-view.ux:43:5 'fullDayNames' is assigned a value but never used.
-🔷 [09-07 11:11:04] [toolkit]: afterCompile: undefined
-🔷 [09-07 11:11:04] [toolkit]: afterCompile: Create a soft link to the node_modules folder
-🔷 [09-07 11:11:04] [toolkit]: afterCompile: Compile javascript project
-🔷 [09-07 11:11:04] [toolkit]: webpack complete
-🔷 [09-07 11:11:04] [toolkit]: afterCompile: Copy resource files
-🔷 [09-07 11:11:04] [toolkit]: afterCompile: Compress resource files
-🔷 [09-07 11:11:04] [toolkit]: afterCompile: Generate jsc bytecode
-🔷 [09-07 11:11:04] [toolkit]: afterCompile: Generate protobuf json
-🔷 [09-07 11:11:04] [toolkit]: afterCompile: compile lite card
-🔷 [09-07 11:11:04] [toolkit]: afterCompile: Package the project into an RPK file
-🔷 [09-07 11:11:04] [toolkit]: privatekeyPath is  /Users/Banner/Documents/guomengtao/tom/class/.temp_class/sign/private.pem 
+🟠 [09-07 11:23:03] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/app.ux:84:9 'self' is assigned a value but never used.
+🟠 [09-07 11:23:03] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/components/InputMethod/InputMethod.ux:28:16 ./assets/full/ suggested value (absolute path relative to src) /components/InputMethod/assets/full/
+🟠 [09-07 11:23:03] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/components/InputMethod/InputMethod.ux:223:16 ./assets/arc/ suggested value (absolute path relative to src) /components/InputMethod/assets/arc/
+🟠 [09-07 11:23:06] [toolkit]: src/pages/lab-module-test/index.ux:228 ### StyleToTypescript ### Selector type unsupport Descendant Selector
+🟠 [09-07 11:23:06] [toolkit]: src/pages/lab-module-test/index.ux:232 ### StyleToTypescript ### Selector type unsupport Descendant Selector
+🟠 [09-07 11:23:06] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/pages/settings/settings.ux:139:8 'prompt' is defined but never used.
+🟠 [09-07 11:23:07] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/pages/vibration-lab/vibration-lab.ux:508:9 'self' is assigned a value but never used.
+🟠 [09-07 11:23:07] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/pages/week-view/week-view.ux:43:5 'fullDayNames' is assigned a value but never used.
+🔷 [09-07 11:23:07] [toolkit]: afterCompile: undefined
+🔷 [09-07 11:23:07] [toolkit]: afterCompile: Create a soft link to the node_modules folder
+🔷 [09-07 11:23:07] [toolkit]: afterCompile: Compile javascript project
+🔷 [09-07 11:23:07] [toolkit]: webpack complete
+🔷 [09-07 11:23:07] [toolkit]: afterCompile: Copy resource files
+🔷 [09-07 11:23:07] [toolkit]: afterCompile: Compress resource files
+🔷 [09-07 11:23:07] [toolkit]: afterCompile: Generate jsc bytecode
+🔷 [09-07 11:23:07] [toolkit]: afterCompile: Generate protobuf json
+🔷 [09-07 11:23:07] [toolkit]: afterCompile: compile lite card
+🔷 [09-07 11:23:07] [toolkit]: afterCompile: Package the project into an RPK file
+🔷 [09-07 11:23:07] [toolkit]: privatekeyPath is  /Users/Banner/Documents/guomengtao/tom/class/.temp_class/sign/private.pem 
 certificatePath is  /Users/Banner/Documents/guomengtao/tom/class/.temp_class/sign/certificate.pem
-✅ [09-07 11:11:05] [toolkit]: Project build and generate files：/Users/Banner/Documents/guomengtao/tom/class/.temp_class/dist/com.application.watch.classschedule.debug.1.4.33.rpk
-🔷 [09-07 11:11:05] [toolkit]: afterCompile: Generate diff json
-🔷 [09-07 11:11:05] [toolkit]: afterCompile: Migrate temporary project
-🔷 [09-07 11:11:05] [toolkit]: afterCompile: Check resource
-✅ [09-07 11:11:05] [toolkit]: build success: 3664ms
+✅ [09-07 11:23:08] [toolkit]: Project build and generate files：/Users/Banner/Documents/guomengtao/tom/class/.temp_class/dist/com.application.watch.classschedule.debug.1.4.33.rpk
+🔷 [09-07 11:23:08] [toolkit]: afterCompile: Generate diff json
+🔷 [09-07 11:23:08] [toolkit]: afterCompile: Migrate temporary project
+🔷 [09-07 11:23:08] [toolkit]: afterCompile: Check resource
+✅ [09-07 11:23:08] [toolkit]: build success: 6214ms

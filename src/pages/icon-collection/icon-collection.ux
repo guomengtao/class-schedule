@@ -17,13 +17,13 @@
     </div>
 
     <div class="icon-grid">
-      <div for="icon in currentIcons" class="icon-card {{ isChecked(icon[2]) ? 'checked' : '' }}"
+      <div for="icon in currentIcons" class="icon-card {{ icon[3] ? 'checked' : '' }}"
            onclick="toggleIcon(icon[2])"
-           style="background-color: {{ isChecked(icon[2]) ? checkedBg : theme.card }}; border-color: {{ isChecked(icon[2]) ? checkedBorder : 'transparent' }}">
+           style="background-color: {{ icon[3] ? checkedBg : theme.card }}; border-color: {{ icon[3] ? checkedBorder : 'transparent' }}">
         <text class="icon-glyph" style="color: {{ theme.accent }}; font-size: 28px;">{{ icon[0] }}</text>
         <text class="icon-name" style="color: {{ theme.text }}; font-size: 9px;">{{ icon[1] }}</text>
         <text class="icon-code" style="color: {{ theme.textMuted }}; font-size: 8px;">U+{{ icon[2] }}</text>
-        <text class="icon-check" style="color: {{ theme.accent }}; font-size: 10px;">{{ isChecked(icon[2]) ? '✓' : '' }}</text>
+        <text class="icon-check" style="color: {{ theme.accent }}; font-size: 10px;">{{ icon[3] ? '✓' : '' }}</text>
       </div>
     </div>
 
@@ -104,7 +104,13 @@ var allIcons = [
   ]
 ]
 
-var checkedMap = {}
+function buildIconList(rawIcons) {
+  var result = []
+  for (var i = 0; i < rawIcons.length; i++) {
+    result.push([rawIcons[i][0], rawIcons[i][1], rawIcons[i][2], false])
+  }
+  return result
+}
 
 export default {
   private: {
@@ -134,7 +140,7 @@ export default {
       total += allIcons[i].length
     }
     this.totalCount = total
-    this.currentIcons = allIcons[0]
+    this.currentIcons = buildIconList(allIcons[0])
     store.getTheme(function(t) {
       self.theme = t
     })
@@ -147,23 +153,23 @@ export default {
     })
   },
 
-  isChecked(code) {
-    return !!checkedMap[code]
-  },
-
   toggleIcon(code) {
-    if (checkedMap[code]) {
-      checkedMap[code] = false
-    } else {
-      checkedMap[code] = true
+    var icons = this.currentIcons
+    for (var i = 0; i < icons.length; i++) {
+      if (icons[i][2] === code) {
+        icons[i][3] = !icons[i][3]
+        break
+      }
     }
+    this.currentIcons = icons
     this.updateCheckedCount()
   },
 
   updateCheckedCount() {
+    var icons = this.currentIcons
     var count = 0
-    for (var key in checkedMap) {
-      if (checkedMap[key]) {
+    for (var i = 0; i < icons.length; i++) {
+      if (icons[i][3]) {
         count++
       }
     }
@@ -171,23 +177,27 @@ export default {
   },
 
   checkAll() {
-    for (var i = 0; i < allIcons.length; i++) {
-      var icons = allIcons[i]
-      for (var j = 0; j < icons.length; j++) {
-        checkedMap[icons[j][2]] = true
-      }
+    var icons = this.currentIcons
+    for (var i = 0; i < icons.length; i++) {
+      icons[i][3] = true
     }
-    this.checkedCount = this.totalCount
+    this.currentIcons = icons
+    this.checkedCount = icons.length
   },
 
   uncheckAll() {
-    checkedMap = {}
+    var icons = this.currentIcons
+    for (var i = 0; i < icons.length; i++) {
+      icons[i][3] = false
+    }
+    this.currentIcons = icons
     this.checkedCount = 0
   },
 
   switchCat(idx) {
     this.activeIdx = idx
-    this.currentIcons = allIcons[idx]
+    this.currentIcons = buildIconList(allIcons[idx])
+    this.checkedCount = 0
   },
 
   goBack() {
