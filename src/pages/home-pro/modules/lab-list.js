@@ -12,7 +12,7 @@ var labItems = [
   { name: "组件化测试", desc: "组件化测试", uri: "/pages/comp-demo" },
   { name: "多模块加载测试", desc: "多模块加载测试", uri: "/pages/lab-module-test" },
   { name: "命令行 Debug", desc: "测试 console.log/warn/error 输出", uri: "/pages/debug-demo" },
-  { name: "Scroll 滚动", desc: "scroll 组件滚动吸附/事件/方法", uri: "/pages/scroll-demo" }
+  { name: "底部固定菜单", desc: "固定头尾+滚动内容布局", uri: "/pages/bottom-nav-demo" }
 ]
 
 function init(instance) {
