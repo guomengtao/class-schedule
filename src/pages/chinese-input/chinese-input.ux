@@ -199,9 +199,7 @@ export default {
       success: function(data) { if (data) self.returnKey = data }
     })
 
-    setTimeout(function() {
-      self.showKeyboard()
-    }, 300)
+    self.showKeyboard()
   },
 
   showKeyboard() {
@@ -370,12 +368,7 @@ export default {
   },
 
   onCancel() {
-    if (!this.hideKeyboard) {
-      this.hideKeyboard = true
-      this.showCursor = false
-    } else {
-      this.returnResult(null)
-    }
+    this.returnResult(null)
   },
 
   returnResult(result) {
