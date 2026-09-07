@@ -1,61 +1,29 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <div class="header" style="background-color: {{ theme.card }}; border-bottom: 1px solid {{ theme.border }}">
-      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack"
+    <div class="header" style="background-color: {{ theme.card }}">
+      <input class="back-btn" type="button" value="返回" onclick="goBack"
              style="background-color: {{ theme.bg }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">底部固定菜单 Demo</text>
     </div>
 
     <scroll class="content-scroll" scroll-y="true">
-      <div class="welcome-card" style="background-color: {{ theme.card }}">
-        <div class="welcome-icon-row">
-          <text class="welcome-icon">📜</text>
-        </div>
-        <text class="welcome-text" style="color: {{ theme.text }}">共收录 9 首经典诗词</text>
-        <text class="welcome-sub" style="color: {{ theme.textSecondary }}">点击底部「诗词」随机切换</text>
+      <div class="poem-section" style="background-color: {{ theme.card }}">
+        <text class="poem-title" style="color: {{ theme.accent }}">{{ currentPoem.title }}</text>
+        <text class="poem-author" style="color: {{ theme.textSecondary }}">{{ currentPoem.author }}</text>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <text class="poem-line" for="{{ currentPoem.lines }}" style="color: {{ theme.text }}">{{ $item }}</text>
       </div>
-
-      <div class="poem-card" style="background-color: {{ theme.card }}">
-        <div class="poem-header">
-          <div class="poem-accent-bar" style="background-color: {{ theme.accent }}"></div>
-          <div class="poem-header-text">
-            <text class="poem-title" style="color: {{ theme.text }}">{{ currentPoem.title }}</text>
-            <text class="poem-author" style="color: {{ theme.textSecondary }}">{{ currentPoem.author }}</text>
-          </div>
-        </div>
-        <div class="poem-divider" style="background-color: {{ theme.border }}"></div>
-        <div class="poem-body">
-          <div class="poem-line-row" for="{{ currentPoem.lines }}">
-            <text class="poem-line-num" style="color: {{ theme.textMuted }}">{{ $idx + 1 }}</text>
-            <text class="poem-line-text" style="color: {{ theme.text }}">{{ $item }}</text>
-          </div>
-        </div>
-      </div>
-
-      <div class="bottom-spacer"></div>
     </scroll>
 
-    <div class="bottom-bar" style="background-color: {{ theme.card }}; border-top: 1px solid {{ theme.border }}">
-      <div class="bar-item" onclick="switchTab('home')">
-        <text class="bar-icon">{{ activeTab === 'home' ? '🏠' : '🏡' }}</text>
-        <text class="bar-label" style="color: {{ activeTab === 'home' ? theme.accent : theme.textMuted }}">首页</text>
-        <div class="bar-dot" if="{{ activeTab === 'home' }}" style="background-color: {{ theme.accent }}"></div>
-      </div>
-      <div class="bar-item" onclick="switchTab('poems')">
-        <text class="bar-icon">{{ activeTab === 'poems' ? '📖' : '📕' }}</text>
-        <text class="bar-label" style="color: {{ activeTab === 'poems' ? theme.accent : theme.textMuted }}">诗词</text>
-        <div class="bar-dot" if="{{ activeTab === 'poems' }}" style="background-color: {{ theme.accent }}"></div>
-      </div>
-      <div class="bar-item" onclick="switchTab('search')">
-        <text class="bar-icon">{{ activeTab === 'search' ? '🔍' : '🔎' }}</text>
-        <text class="bar-label" style="color: {{ activeTab === 'search' ? theme.accent : theme.textMuted }}">搜索</text>
-        <div class="bar-dot" if="{{ activeTab === 'search' }}" style="background-color: {{ theme.accent }}"></div>
-      </div>
-      <div class="bar-item" onclick="switchTab('settings')">
-        <text class="bar-icon">{{ activeTab === 'settings' ? '⚙️' : '🔧' }}</text>
-        <text class="bar-label" style="color: {{ activeTab === 'settings' ? theme.accent : theme.textMuted }}">设置</text>
-        <div class="bar-dot" if="{{ activeTab === 'settings' }}" style="background-color: {{ theme.accent }}"></div>
-      </div>
+    <div class="bottom-bar" style="background-color: {{ theme.card }}">
+      <input class="nav-btn" type="button" value="首页" onclick="switchTab('home')"
+             style="background-color: {{ theme.bg }}; color: {{ theme.textMuted }}" />
+      <input class="nav-btn" type="button" value="诗词" onclick="switchTab('poems')"
+             style="background-color: {{ theme.bg }}; color: {{ theme.textMuted }}" />
+      <input class="nav-btn" type="button" value="搜索" onclick="switchTab('search')"
+             style="background-color: {{ theme.bg }}; color: {{ theme.textMuted }}" />
+      <input class="nav-btn" type="button" value="设置" onclick="switchTab('settings')"
+             style="background-color: {{ theme.bg }}; color: {{ theme.textMuted }}" />
     </div>
   </div>
 </template>
@@ -177,15 +145,12 @@ export default {
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
-      cardLight: '#0f3460',
       accent: '#7ec8e3',
       text: '#ffffff',
       textSecondary: '#888899',
       textMuted: '#555566',
-      border: '#0f3460',
-      borderLight: '#2a2a5a'
+      border: '#0f3460'
     },
-    activeTab: 'home',
     currentPoem: poems[0]
   },
 
@@ -204,7 +169,6 @@ export default {
   },
 
   switchTab(tab) {
-    this.activeTab = tab
     if (tab === 'poems') {
       var idx = Math.floor(Math.random() * poems.length)
       this.currentPoem = poems[idx]
@@ -231,12 +195,11 @@ export default {
 }
 
 .back-btn {
-  width: 70px;
+  width: 60px;
   height: 36px;
   border-radius: 8px;
   font-size: 14px;
   text-align: center;
-  border-width: 0;
 }
 
 .title {
@@ -252,105 +215,38 @@ export default {
   padding: 8px;
 }
 
-.welcome-card {
+.poem-section {
   flex-direction: column;
-  align-items: center;
-  border-radius: 14px;
-  padding: 20px 14px;
-  margin-bottom: 10px;
-}
-
-.welcome-icon-row {
+  border-radius: 12px;
+  padding: 16px 14px;
   margin-bottom: 8px;
-}
-
-.welcome-icon {
-  font-size: 32px;
-}
-
-.welcome-text {
-  font-size: 15px;
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.welcome-sub {
-  font-size: 12px;
-}
-
-.poem-card {
-  flex-direction: column;
-  border-radius: 14px;
-  padding: 0;
-  margin-bottom: 10px;
-  overflow: hidden;
   flex-shrink: 0;
-}
-
-.poem-header {
-  flex-direction: row;
-  align-items: stretch;
-  padding: 0;
-}
-
-.poem-accent-bar {
-  width: 4px;
-  min-height: 60px;
-  border-radius: 2px;
-  margin: 14px 0;
-  flex-shrink: 0;
-}
-
-.poem-header-text {
-  flex-direction: column;
-  flex: 1;
-  padding: 14px 14px 0 14px;
 }
 
 .poem-title {
   font-size: 18px;
   font-weight: bold;
+  text-align: center;
   margin-bottom: 4px;
 }
 
 .poem-author {
   font-size: 13px;
+  text-align: center;
+  margin-bottom: 10px;
 }
 
-.poem-divider {
+.divider {
   height: 1px;
-  margin: 10px 14px 0 14px;
+  margin-bottom: 12px;
 }
 
-.poem-body {
-  flex-direction: column;
-  padding: 12px 14px 16px 14px;
-}
-
-.poem-line-row {
-  flex-direction: row;
-  align-items: flex-start;
-  margin-bottom: 4px;
-  flex-shrink: 0;
-}
-
-.poem-line-num {
-  width: 24px;
-  font-size: 11px;
-  text-align: right;
-  margin-right: 8px;
-  flex-shrink: 0;
-}
-
-.poem-line-text {
-  flex: 1;
+.poem-line {
+  width: 100%;
   font-size: 14px;
-  line-height: 24px;
+  line-height: 26px;
+  margin-bottom: 2px;
   flex-shrink: 0;
-}
-
-.bottom-spacer {
-  height: 8px;
 }
 
 .bottom-bar {
@@ -361,28 +257,14 @@ export default {
   flex-shrink: 0;
 }
 
-.bar-item {
+.nav-btn {
   flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 0;
-}
-
-.bar-icon {
-  font-size: 20px;
-  margin-bottom: 2px;
-}
-
-.bar-label {
-  font-size: 11px;
+  height: 44px;
+  border-radius: 22px;
+  font-size: 14px;
   font-weight: bold;
-}
-
-.bar-dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 2px;
-  margin-top: 2px;
+  text-align: center;
+  border-width: 0;
+  margin: 0 3px;
 }
 </style>
