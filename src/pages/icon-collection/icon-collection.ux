@@ -2,12 +2,16 @@
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
       <input class="back-btn" type="button" value="◀ 返回" onclick="goBack"
-             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       <text class="title" style="color: {{ theme.text }}">Icon 收集</text>
       <text class="count-text" style="color: {{ theme.accent }}">{{ checkedCount }} / {{ totalCount }}</text>
     </div>
 
-    <div class="checked-section" if="{{ checkedIcons.length > 0 }}">
+    <div class="loading-box" if="{{ loading }}" style="background-color: {{ theme.card }}">
+      <text class="loading-text" style="color: {{ theme.textMuted }}">加载中...</text>
+    </div>
+
+    <div class="checked-section" if="{{ !loading && checkedIcons.length > 0 }}">
       <text class="section-label" style="color: {{ theme.accent }}">已勾选</text>
       <div class="icon-grid">
         <div for="icon in checkedIcons" class="icon-card checked"
@@ -21,12 +25,12 @@
       </div>
     </div>
 
-    <div class="divider" if="{{ checkedIcons.length > 0 && uncheckedIcons.length > 0 }}"
+    <div class="divider" if="{{ !loading && checkedIcons.length > 0 && uncheckedIcons.length > 0 }}"
          style="border-color: {{ theme.border }}">
       <text class="divider-text" style="color: {{ theme.textMuted }}; background-color: {{ theme.bg }}">────────────────</text>
     </div>
 
-    <div class="unchecked-section" if="{{ uncheckedIcons.length > 0 }}">
+    <div class="unchecked-section" if="{{ !loading && uncheckedIcons.length > 0 }}">
       <text class="section-label" style="color: {{ theme.textMuted }}">未勾选</text>
       <div class="icon-grid">
         <div for="icon in uncheckedIcons" class="icon-card"
@@ -426,6 +430,7 @@ function buildIconList(rawIcons) {
 export default {
   private: {
     theme: {},
+    loading: true,
     checkedBg: "#2a3a2a",
     checkedBorder: "#4caf50",
     allIcons: [],
@@ -436,11 +441,13 @@ export default {
   },
 
   onInit() {
+    var self = this
     var icons = buildIconList(ALL_ICONS)
-    this.allIcons = icons
-    this.uncheckedIcons = icons
-    this.totalCount = icons.length
-    this.checkedCount = 0
+    self.allIcons = icons
+    self.uncheckedIcons = icons
+    self.totalCount = icons.length
+    self.checkedCount = 0
+    self.loading = false
   },
 
   toggleIcon(code) {
@@ -612,6 +619,19 @@ export default {
   font-weight: bold;
   text-align: center;
   border-width: 0;
+}
+
+.loading-box {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  padding: 60px 16px;
+  flex: 1;
+}
+
+.loading-text {
+  font-size: 16px;
 }
 
 @media (shape: circle) {

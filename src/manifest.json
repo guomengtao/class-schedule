@@ -169,6 +169,9 @@
       },
       "pages/icon-collection": {
         "component": "icon-collection"
+      },
+      "pages/this-page-not-exist": {
+        "component": "this-page-not-exist"
       }
     }
   }
