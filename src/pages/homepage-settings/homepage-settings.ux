@@ -171,7 +171,7 @@
         </div>
         <input class="modal-btn-primary" type="button" value="立即解锁" onclick="goToPremium"
                style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        <input class="modal-btn-secondary" type="button" value="暂不需要" onclick="goBack"
+        <input class="modal-btn-secondary" type="button" value="暂不需要" onclick="dismissDialog"
                style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
       </div>
     </div>
@@ -286,6 +286,10 @@ export default {
       showDayNavMing: this.showDayNavMing,
       timeFormat: this.timeFormat
     }, function() { router.back() })
+  },
+
+  dismissDialog() {
+    this.showDialog = false
   },
 
   toggleQuickAdd() {

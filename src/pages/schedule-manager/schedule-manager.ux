@@ -78,7 +78,7 @@
       </div>
       <input class="sheet-btn" type="button" value="立即解锁" onclick="goToPremium"
              style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      <input class="sheet-cancel" type="button" value="暂不需要" onclick="goBack"
+      <input class="sheet-cancel" type="button" value="暂不需要" onclick="dismissDialog"
              style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
     </div>
   </div>
@@ -500,6 +500,10 @@ export default {
       return
     }
     router.back()
+  },
+
+  dismissDialog() {
+    this.showDialog = false
   },
 
   pinToHome() {

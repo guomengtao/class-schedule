@@ -81,7 +81,6 @@ export default {
   },
 
   initBackgroundRunning() {
-    var self = this
     store.getBackgroundRunningConfig(function(config) {
       if (config && config.running) {
         startResident()

@@ -60,9 +60,8 @@ export default {
   },
 
   doCancel() {
-    console.log("[PREMIUM-UI] doCancel: user clicked cancel / tapped outside, go back")
+    console.log("[PREMIUM-UI] doCancel: user clicked cancel / tapped outside, close dialog")
     this.hide()
-    router.back()
   },
 
   stopBubble() {

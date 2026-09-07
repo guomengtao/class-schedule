@@ -1,0 +1,292 @@
+<template>
+  <div class="page-root" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack"
+             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">Icon 收集</text>
+    </div>
+
+    <text class="stats" style="color: {{ theme.textSecondary }}">已确认: {{ confirmedCount }} / {{ totalCount }}</text>
+
+    <div class="tabs-scroll">
+      <div class="tabs">
+        <div class="tab {{ currentCategory === idx ? 'active' : '' }}"
+             for="categories" onclick="switchCategory($idx)"
+             style="background-color: {{ currentCategory === $idx ? theme.accent : theme.card }}; color: {{ currentCategory === $idx ? theme.bg : theme.textSecondary }}">
+          <text>{{ $item.name }}</text>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="icon-card {{ isConfirmed($item) ? 'confirmed' : '' }}"
+           for="pageIcons" onclick="toggleIcon($item)"
+           style="background-color: {{ isConfirmed($item) ? theme.cardLight : theme.card }}; border-color: {{ isConfirmed($item) ? theme.accent : theme.border }}">
+        <text class="icon-char">{{ $item }}</text>
+        <text class="check-mark" style="color: {{ isConfirmed($item) ? theme.accent : theme.textMuted }}">{{ isConfirmed($item) ? '☑' : '☐' }}</text>
+      </div>
+    </div>
+
+    <div class="pagination">
+      <input class="page-btn" type="button" value="◀" onclick="prevPage"
+             style="background-color: {{ currentPage > 0 ? theme.accent : theme.border }}; color: {{ currentPage > 0 ? theme.bg : theme.textMuted }}" />
+      <text class="page-info" style="color: {{ theme.textSecondary }}">{{ currentPage + 1 }} / {{ totalPages }}</text>
+      <input class="page-btn" type="button" value="▶" onclick="nextPage"
+             style="background-color: {{ currentPage < totalPages - 1 ? theme.accent : theme.border }}; color: {{ currentPage < totalPages - 1 ? theme.bg : theme.textMuted }}" />
+    </div>
+
+    <div class="save-row">
+      <input class="save-btn" type="button" value="保存确认结果" onclick="saveConfirmed"
+             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import storage from "@system.storage"
+var ICON_CATEGORIES = require("./icon-data.js")
+var store = require("../../data/store.js")
+
+var STORAGE_KEY = "icon_collect_confirmed"
+var PAGE_SIZE = 20
+
+export default {
+  private: {
+    theme: {},
+    categories: ICON_CATEGORIES,
+    currentCategory: 0,
+    currentPage: 0,
+    pageIcons: [],
+    confirmedIcons: [],
+    confirmedCount: 0,
+    totalCount: 0,
+    totalPages: 0
+  },
+
+  onInit() {
+    this.theme = store.getTheme()
+    this.loadConfirmed()
+  },
+
+  loadConfirmed() {
+    var self = this
+    storage.get({
+      key: STORAGE_KEY,
+      success: function(data) {
+        if (data) {
+          self.confirmedIcons = data.split(",")
+        } else {
+          self.confirmedIcons = []
+        }
+        self.countTotal()
+        self.renderPage()
+      },
+      fail: function() {
+        self.confirmedIcons = []
+        self.countTotal()
+        self.renderPage()
+      }
+    })
+  },
+
+  countTotal() {
+    var total = 0
+    for (var i = 0; i < ICON_CATEGORIES.length; i++) {
+      total += ICON_CATEGORIES[i].icons.length
+    }
+    this.totalCount = total
+    this.confirmedCount = this.confirmedIcons.length
+  },
+
+  renderPage() {
+    var cat = ICON_CATEGORIES[this.currentCategory]
+    var start = this.currentPage * PAGE_SIZE
+    var end = Math.min(start + PAGE_SIZE, cat.icons.length)
+    this.pageIcons = cat.icons.slice(start, end)
+    this.totalPages = Math.ceil(cat.icons.length / PAGE_SIZE)
+  },
+
+  isConfirmed(icon) {
+    return this.confirmedIcons.indexOf(icon) >= 0
+  },
+
+  switchCategory(idx) {
+    this.currentCategory = idx
+    this.currentPage = 0
+    this.renderPage()
+  },
+
+  toggleIcon(icon) {
+    var idx = this.confirmedIcons.indexOf(icon)
+    if (idx >= 0) {
+      this.confirmedIcons.splice(idx, 1)
+    } else {
+      this.confirmedIcons.push(icon)
+    }
+    this.confirmedCount = this.confirmedIcons.length
+  },
+
+  prevPage() {
+    if (this.currentPage > 0) {
+      this.currentPage--
+      this.renderPage()
+    }
+  },
+
+  nextPage() {
+    if (this.currentPage < this.totalPages - 1) {
+      this.currentPage++
+      this.renderPage()
+    }
+  },
+
+  saveConfirmed() {
+    var self = this
+    storage.set({
+      key: STORAGE_KEY,
+      value: self.confirmedIcons.join(","),
+      success: function() {
+        self.showToast("已保存 " + self.confirmedIcons.length + " 个图标")
+      },
+      fail: function() {
+        self.showToast("保存失败")
+      }
+    })
+  },
+
+  showToast(msg) {
+    var self = this
+    self.toastMsg = msg
+    self.toastShow = true
+    setTimeout(function() {
+      self.toastShow = false
+    }, 1500)
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page-root {
+  flex-direction: column;
+  height: 100%;
+  padding: 12px;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.back-btn {
+  width: 80px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.title {
+  flex: 1;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.stats {
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.tabs-scroll {
+  margin-bottom: 8px;
+}
+
+.tabs {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.tab {
+  padding: 4px 10px;
+  margin: 2px 3px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.tab.active {
+  font-weight: bold;
+}
+
+.grid {
+  flex-direction: row;
+  flex-wrap: wrap;
+  flex: 1;
+  overflow-y: scroll;
+}
+
+.icon-card {
+  width: 22%;
+  margin: 1.5%;
+  padding: 8px 4px;
+  border-radius: 8px;
+  border-width: 2px;
+  align-items: center;
+  flex-direction: column;
+}
+
+.icon-card.confirmed {
+  border-width: 2px;
+}
+
+.icon-char {
+  font-size: 28px;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.check-mark {
+  font-size: 14px;
+}
+
+.pagination {
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.page-btn {
+  width: 50px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.page-info {
+  width: 80px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.save-row {
+  align-items: center;
+}
+
+.save-btn {
+  width: 200px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 15px;
+  text-align: center;
+  font-weight: bold;
+}
+</style>

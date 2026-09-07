@@ -281,7 +281,7 @@ export default {
   },
 
   openTestArea() {
-    router.push({ uri: "/pages/test-area" })
+    router.push({ uri: "/pages/lab" })
   },
 
   openActivation() {
