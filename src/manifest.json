@@ -64,6 +64,7 @@
   },
   "router": {
     "entry": "pages/index",
+    "notFound": "pages/not-found",
     "pages": {
       "pages/index": {
         "component": "index"
@@ -163,9 +164,6 @@
       },
       "pages/debug-demo": {
         "component": "debug-demo"
-      },
-      "pages/scroll-demo": {
-        "component": "scroll-demo"
       },
       "pages/bottom-nav-demo": {
         "component": "bottom-nav-demo"
