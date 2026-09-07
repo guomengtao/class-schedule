@@ -43,9 +43,9 @@
       </div>
 
       <div class="key-row key-bottom">
-        <text class="key-btn key-func" onclick="toggleNumMode" show="{{ lang === 'cn' || numFlag }}" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ numFlag ? 'ABC' : '123' }}</text>
-        <text class="key-btn key-func" onclick="toggleShift" show="{{ lang === 'en' && !numFlag }}" style="background-color: {{ shiftFlag ? theme.accent : theme.card }}; color: {{ shiftFlag ? theme.bg : theme.accent }}">Shift</text>
-        <text class="key-btn key-func" onclick="toggleLang" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ lang === 'cn' ? 'EN' : '中' }}</text>
+        <text class="key-btn key-func" onclick="toggleNumMode" show="{{ lang === 'cn' || numFlag }}" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ numFlag ? 'ABC' : '123' }}</text>
+        <text class="key-btn key-func" onclick="toggleShift" show="{{ lang === 'en' && !numFlag }}" style="font-size: {{ keyFontSize }}px; background-color: {{ shiftFlag ? theme.accent : theme.card }}; color: {{ shiftFlag ? theme.bg : theme.accent }}">Shift</text>
+        <text class="key-btn key-func" onclick="toggleLang" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ lang === 'cn' ? 'EN' : '中' }}</text>
       </div>
     </div>
 
@@ -408,30 +408,30 @@ export default {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  height: 36px;
-  margin-bottom: 6px;
+  height: 52px;
+  margin-bottom: 8px;
 }
 
 .back-btn {
-  width: 64px;
-  height: 30px;
+  width: 80px;
+  height: 40px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 26px;
   text-align: center;
 }
 
 .title {
-  font-size: 16px;
+  font-size: 32px;
   font-weight: bold;
   flex: 1;
   text-align: center;
 }
 
 .confirm-btn {
-  width: 64px;
-  height: 30px;
+  width: 80px;
+  height: 40px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 26px;
   font-weight: bold;
   text-align: center;
 }
@@ -490,7 +490,7 @@ export default {
   flex-direction: row;
   justify-content: center;
   width: 100%;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .key-btn {
@@ -511,10 +511,8 @@ export default {
 
 .key-func {
   flex: 1;
-  max-width: 60px;
+  max-width: 80px;
   min-height: 28px;
-  lines: 1;
-  text-overflow: ellipsis;
   font-weight: bold;
   text-align: center;
   border-radius: 6px;
@@ -555,22 +553,22 @@ export default {
     padding: 44px 8px 12px 8px;
   }
   .header {
-    height: 30px;
-    margin-bottom: 4px;
+    height: 46px;
+    margin-bottom: 6px;
     justify-content: center;
   }
   .back-btn {
-    width: 46px;
-    height: 26px;
-    font-size: 12px;
+    width: 60px;
+    height: 34px;
+    font-size: 24px;
   }
   .title {
-    font-size: 14px;
+    font-size: 28px;
   }
   .confirm-btn {
-    width: 46px;
-    height: 26px;
-    font-size: 12px;
+    width: 60px;
+    height: 34px;
+    font-size: 24px;
   }
   .display-area {
     padding: 6px 8px;
@@ -595,7 +593,7 @@ export default {
     margin-top: 2px;
   }
   .key-row {
-    margin-bottom: 2px;
+    margin-bottom: 6px;
   }
   .key-btn {
     min-height: 24px;
@@ -610,10 +608,8 @@ export default {
   }
   .key-func {
     min-height: 24px;
-    max-width: 50px;
+    max-width: 70px;
     flex: 1;
-    lines: 1;
-    text-overflow: ellipsis;
   }
   .font-label {
     font-size: 12px;
@@ -630,21 +626,21 @@ export default {
     padding: 44px 6px 10px 6px;
   }
   .header {
-    height: 28px;
-    margin-bottom: 4px;
+    height: 40px;
+    margin-bottom: 6px;
   }
   .back-btn {
-    width: 44px;
-    height: 24px;
-    font-size: 11px;
+    width: 56px;
+    height: 30px;
+    font-size: 22px;
   }
   .title {
-    font-size: 13px;
+    font-size: 26px;
   }
   .confirm-btn {
-    width: 44px;
-    height: 24px;
-    font-size: 11px;
+    width: 56px;
+    height: 30px;
+    font-size: 22px;
   }
   .display-area {
     padding: 6px 8px;
@@ -669,7 +665,7 @@ export default {
     margin-top: 2px;
   }
   .key-row {
-    margin-bottom: 2px;
+    margin-bottom: 6px;
   }
   .key-btn {
     min-height: 22px;
@@ -684,10 +680,8 @@ export default {
   }
   .key-func {
     min-height: 22px;
-    max-width: 44px;
+    max-width: 60px;
     flex: 1;
-    lines: 1;
-    text-overflow: ellipsis;
   }
   .font-label {
     font-size: 11px;
