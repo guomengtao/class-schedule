@@ -19,6 +19,16 @@
       <text for="{{ item in resultRow0 }}" class="candidate-item" onclick="onSelectCandidate(item)" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
     </scroll>
 
+    <div class="font-bar" show="{{ !hideKeyboard }}">
+      <text class="font-label" style="color: {{ theme.textSecondary }}">字体:</text>
+      <text class="font-btn" onclick="setInputFontSize(20)" style="background-color: {{ baseFontSize === 20 ? theme.accent : theme.card }}; color: {{ baseFontSize === 20 ? theme.bg : theme.text }}">20</text>
+      <text class="font-btn" onclick="setInputFontSize(24)" style="background-color: {{ baseFontSize === 24 ? theme.accent : theme.card }}; color: {{ baseFontSize === 24 ? theme.bg : theme.text }}">24</text>
+      <text class="font-btn" onclick="setInputFontSize(28)" style="background-color: {{ baseFontSize === 28 ? theme.accent : theme.card }}; color: {{ baseFontSize === 28 ? theme.bg : theme.text }}">28</text>
+      <text class="font-btn" onclick="setInputFontSize(36)" style="background-color: {{ baseFontSize === 36 ? theme.accent : theme.card }}; color: {{ baseFontSize === 36 ? theme.bg : theme.text }}">36</text>
+      <text class="font-btn" onclick="setInputFontSize(48)" style="background-color: {{ baseFontSize === 48 ? theme.accent : theme.card }}; color: {{ baseFontSize === 48 ? theme.bg : theme.text }}">48</text>
+      <text class="font-btn" onclick="setInputFontSize(60)" style="background-color: {{ baseFontSize === 60 ? theme.accent : theme.card }}; color: {{ baseFontSize === 60 ? theme.bg : theme.text }}">60</text>
+    </div>
+
     <div class="keyboard" show="{{ !hideKeyboard }}">
       <div class="key-row" show="{{ !numFlag }}">
         <text for="{{ item in keys.full[0] }}" class="key-btn" onclick="onKeyPress(item)" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
@@ -49,15 +59,7 @@
       </div>
     </div>
 
-    <div class="font-bar" show="{{ !hideKeyboard }}">
-      <text class="font-label" style="color: {{ theme.textSecondary }}">字体:</text>
-      <text class="font-btn" onclick="setInputFontSize(20)" style="background-color: {{ baseFontSize === 20 ? theme.accent : theme.card }}; color: {{ baseFontSize === 20 ? theme.bg : theme.text }}">20</text>
-      <text class="font-btn" onclick="setInputFontSize(24)" style="background-color: {{ baseFontSize === 24 ? theme.accent : theme.card }}; color: {{ baseFontSize === 24 ? theme.bg : theme.text }}">24</text>
-      <text class="font-btn" onclick="setInputFontSize(28)" style="background-color: {{ baseFontSize === 28 ? theme.accent : theme.card }}; color: {{ baseFontSize === 28 ? theme.bg : theme.text }}">28</text>
-      <text class="font-btn" onclick="setInputFontSize(36)" style="background-color: {{ baseFontSize === 36 ? theme.accent : theme.card }}; color: {{ baseFontSize === 36 ? theme.bg : theme.text }}">36</text>
-      <text class="font-btn" onclick="setInputFontSize(48)" style="background-color: {{ baseFontSize === 48 ? theme.accent : theme.card }}; color: {{ baseFontSize === 48 ? theme.bg : theme.text }}">48</text>
-      <text class="font-btn" onclick="setInputFontSize(60)" style="background-color: {{ baseFontSize === 60 ? theme.accent : theme.card }}; color: {{ baseFontSize === 60 ? theme.bg : theme.text }}">60</text>
-    </div>
+    <text class="footer-text" style="color: {{ theme.textSecondary }}">中文输入法</text>
   </div>
 </template>
 
@@ -413,7 +415,7 @@ export default {
 }
 
 .back-btn {
-  width: 80px;
+  width: 100px;
   height: 40px;
   border-radius: 8px;
   font-size: 26px;
@@ -482,7 +484,7 @@ export default {
 
 .keyboard {
   flex-direction: column;
-  margin-top: 4px;
+  margin-top: 2px;
   width: 100%;
 }
 
@@ -490,7 +492,7 @@ export default {
   flex-direction: row;
   justify-content: center;
   width: 100%;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .key-btn {
@@ -528,8 +530,8 @@ export default {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  padding: 8px 0 12px 0;
-  margin-top: 8px;
+  padding: 4px 0 4px 0;
+  margin-bottom: 4px;
 }
 
 .font-label {
@@ -548,6 +550,12 @@ export default {
   margin-right: 3px;
 }
 
+.footer-text {
+  font-size: 11px;
+  text-align: center;
+  padding-top: 4px;
+}
+
 @media (shape: capsule) {
   .input-page {
     padding: 44px 8px 12px 8px;
@@ -558,7 +566,7 @@ export default {
     justify-content: center;
   }
   .back-btn {
-    width: 60px;
+    width: 80px;
     height: 34px;
     font-size: 24px;
   }
@@ -593,7 +601,7 @@ export default {
     margin-top: 2px;
   }
   .key-row {
-    margin-bottom: 6px;
+    margin-bottom: 3px;
   }
   .key-btn {
     min-height: 24px;
@@ -619,6 +627,10 @@ export default {
     width: 32px;
     min-height: 22px;
   }
+  .footer-text {
+    font-size: 10px;
+    padding-top: 3px;
+  }
 }
 
 @media (shape: rect) {
@@ -630,7 +642,7 @@ export default {
     margin-bottom: 6px;
   }
   .back-btn {
-    width: 56px;
+    width: 70px;
     height: 30px;
     font-size: 22px;
   }
@@ -665,7 +677,7 @@ export default {
     margin-top: 2px;
   }
   .key-row {
-    margin-bottom: 6px;
+    margin-bottom: 3px;
   }
   .key-btn {
     min-height: 22px;
@@ -691,6 +703,10 @@ export default {
     width: 28px;
     min-height: 20px;
   }
+  .footer-text {
+    font-size: 9px;
+    padding-top: 2px;
+  }
 }
 
 @media (shape: circle) {
@@ -702,7 +718,7 @@ export default {
     justify-content: center;
   }
   .back-btn {
-    width: 56px;
+    width: 80px;
     height: 30px;
     font-size: 13px;
   }
@@ -713,6 +729,9 @@ export default {
   }
   .title {
     font-size: 16px;
+  }
+  .key-row {
+    margin-bottom: 3px;
   }
   .key-btn {
     font-size: 28px;
@@ -736,6 +755,10 @@ export default {
     font-size: 14px;
     width: 36px;
     min-height: 24px;
+  }
+  .footer-text {
+    font-size: 10px;
+    padding-top: 3px;
   }
 }
 </style>
