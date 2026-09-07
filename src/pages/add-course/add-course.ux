@@ -587,17 +587,17 @@ export default {
 }
 
 .back-btn {
-  width: 90px;
-  height: 50px;
-  border-radius: 10px;
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
   background-color: #16213e;
-  font-size: 18px;
+  font-size: 14px;
   color: #7ec8e3;
   text-align: center;
 }
 
 .header-title {
-  font-size: 28px;
+  font-size: 18px;
   font-weight: bold;
   color: #ffffff;
   margin-left: 12px;
@@ -874,11 +874,11 @@ export default {
   }
   .back-btn {
     width: 60px;
-    height: 40px;
-    font-size: 15px;
+    height: 36px;
+    font-size: 14px;
   }
   .header-title {
-    font-size: 22px;
+    font-size: 18px;
   }
   .step-indicator {
     margin-bottom: 12px;
@@ -924,7 +924,7 @@ export default {
     font-size: 14px;
   }
   .header-title {
-    font-size: 20px;
+    font-size: 18px;
   }
   .step-dot {
     width: 14px;
@@ -976,7 +976,7 @@ export default {
     font-size: 14px;
   }
   .header-title {
-    font-size: 20px;
+    font-size: 18px;
   }
   .step-dot {
     width: 14px;

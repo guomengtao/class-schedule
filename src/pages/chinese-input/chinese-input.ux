@@ -1,7 +1,7 @@
 <template>
   <div class="input-page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="&#9664; 返回" onclick="onCancel" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <input class="back-btn" type="button" value="返回" onclick="onCancel" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">{{ title }}</text>
       <input class="confirm-btn" type="button" value="确认" onclick="onConfirm" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
@@ -415,25 +415,25 @@ export default {
 }
 
 .back-btn {
-  width: 100px;
-  height: 40px;
+  width: 70px;
+  height: 36px;
   border-radius: 8px;
-  font-size: 26px;
+  font-size: 14px;
   text-align: center;
 }
 
 .title {
-  font-size: 32px;
+  font-size: 18px;
   font-weight: bold;
   flex: 1;
   text-align: center;
 }
 
 .confirm-btn {
-  width: 80px;
-  height: 40px;
+  width: 56px;
+  height: 36px;
   border-radius: 8px;
-  font-size: 26px;
+  font-size: 14px;
   font-weight: bold;
   text-align: center;
 }
@@ -568,15 +568,15 @@ export default {
   .back-btn {
     width: 80px;
     height: 34px;
-    font-size: 24px;
+    font-size: 14px;
   }
   .title {
-    font-size: 28px;
+    font-size: 18px;
   }
   .confirm-btn {
     width: 60px;
     height: 34px;
-    font-size: 24px;
+    font-size: 14px;
   }
   .display-area {
     padding: 6px 8px;
@@ -644,15 +644,15 @@ export default {
   .back-btn {
     width: 70px;
     height: 30px;
-    font-size: 22px;
+    font-size: 14px;
   }
   .title {
-    font-size: 26px;
+    font-size: 18px;
   }
   .confirm-btn {
     width: 56px;
     height: 30px;
-    font-size: 22px;
+    font-size: 14px;
   }
   .display-area {
     padding: 6px 8px;
@@ -720,15 +720,15 @@ export default {
   .back-btn {
     width: 80px;
     height: 30px;
-    font-size: 13px;
+    font-size: 14px;
   }
   .confirm-btn {
     width: 44px;
     height: 30px;
-    font-size: 13px;
+    font-size: 14px;
   }
   .title {
-    font-size: 16px;
+    font-size: 18px;
   }
   .key-row {
     margin-bottom: 3px;
