@@ -1,6 +1,6 @@
 <template>
-  <div id="root" class="root">
-    <text class="title">Debug Panel</text>
+  <div id="root" class="root" style="background-color: {{ theme.bg }}">
+    <text class="title">Debug + Theme</text>
     <div class="info-list">
       <div class="info-row">
         <text class="label">设备:</text>
@@ -19,12 +19,12 @@
         <text class="value">{{ devicePixelRatio }}</text>
       </div>
       <div class="info-row">
-        <text class="label">平台:</text>
-        <text class="value">{{ platformVersion }}</text>
+        <text class="label">主题:</text>
+        <text class="value" style="color: {{ theme.accent }}">{{ theme.name }}</text>
       </div>
       <div class="info-row">
         <text class="label">状态:</text>
-        <text class="value" style="color: {{ errorMsg ? '#ff4444' : '#44ff44' }}">{{ errorMsg || 'OK' }}</text>
+        <text class="value" style="color: {{ errorMsg ? '#ff4444' : '#44ff44' }}">{{ errorMsg || 'store OK' }}</text>
       </div>
     </div>
     <input class="btn" type="button" value="打开设置" onclick="openSettings" />
@@ -35,6 +35,7 @@
 <script>
 import router from "@system.router"
 import device from "@system.device"
+const store = require("../../data/store.js")
 
 export default {
   private: {
@@ -44,7 +45,19 @@ export default {
     screenShape: "?",
     devicePixelRatio: "?",
     platformVersion: "?",
-    errorMsg: ""
+    errorMsg: "",
+    theme: {
+      bg: "#1a1a2e",
+      card: "#16213e",
+      cardLight: "#0f3460",
+      accent: "#7ec8e3",
+      text: "#ffffff",
+      textSecondary: "#888899",
+      textMuted: "#555566",
+      border: "#0f3460",
+      borderLight: "#2a2a5a",
+      name: "default"
+    }
   },
 
   onInit() {
@@ -61,12 +74,16 @@ export default {
           console.log("[debug] device: " + JSON.stringify(info))
         },
         fail: function(err) {
-          self.errorMsg = "device.getInfo failed: " + (err || "unknown")
+          self.errorMsg = "device.getInfo: " + (err || "unknown")
           console.error("[debug] " + self.errorMsg)
         }
       })
+      store.getTheme(function(t) {
+        self.theme = t
+        console.log("[debug] theme: " + JSON.stringify(t))
+      })
     } catch (e) {
-      self.errorMsg = "device.getInfo exception: " + (e.message || e)
+      self.errorMsg = "exception: " + (e.message || e)
       console.error("[debug] " + self.errorMsg)
     }
   },
