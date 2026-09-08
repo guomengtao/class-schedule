@@ -1,14 +1,20 @@
 <template>
   <div id="root" class="root">
     <text class="title">9 Pro</text>
-    <text class="subtitle">screen test</text>
+    <text class="subtitle">router test</text>
+    <input class="btn" type="button" value="打开设置" onclick="openSettings" />
   </div>
 </template>
 
 <script>
+import router from "@system.router"
+
 export default {
   onShow() {
     this.$forceUpdate()
+  },
+  openSettings() {
+    router.push({ uri: "/pages/settings" })
   }
 }
 </script>
@@ -24,25 +30,26 @@ export default {
 }
 
 .title {
-  font-size: 56px;
+  font-size: 48px;
   color: #7ec8e3;
   text-align: center;
   font-weight: bold;
 }
 
 .subtitle {
-  font-size: 20px;
+  font-size: 18px;
   color: #888899;
   text-align: center;
-  margin-top: 8px;
+  margin-bottom: 20px;
 }
 
-@media (shape: rect) {
-  .title {
-    font-size: 64px;
-  }
-  .subtitle {
-    font-size: 24px;
-  }
+.btn {
+  width: 200px;
+  height: 50px;
+  font-size: 22px;
+  text-align: center;
+  border-radius: 12px;
+  background-color: #7ec8e3;
+  color: #1a1a2e;
 }
 </style>
