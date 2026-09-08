@@ -3,7 +3,15 @@
     <div class="debug-bar">
       <text class="debug-text">{{ screenShape }} {{ screenWidth }}x{{ screenHeight }} | {{ errorMsg || 'OK' }}</text>
     </div>
-    <text class="title">V5.3 QuickAdd</text>
+    <text class="title">V5.4 StatusBar</text>
+
+    <div class="status-bar" if="{{ showStatusBar }}" style="background-color: {{ theme.cardLight }}">
+      <div class="left-accent" style="background-color: {{ theme.accent }}"></div>
+      <text class="status-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
+      <text class="status-middle" style="color: {{ theme.text }}">{{ statusMainText }}</text>
+      <text class="status-right" if="{{ statusTimeText }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
+    </div>
+
     <div class="class-list">
       <div if="{{ isLoading }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">加载中...</text>
@@ -52,6 +60,7 @@ const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 const classList = require("./modules/class-list.js")
 const quickAdd = require("./modules/quick-add.js")
+const statusBar = require("./modules/status-bar.js")
 
 export default {
   private: {
@@ -65,6 +74,10 @@ export default {
     isLoading: true,
     currentClasses: [],
     schedule: [],
+    statusTag: "",
+    statusMainText: "",
+    statusTimeText: "",
+    showStatusBar: true,
     quickAdd: {
       expanded: false,
       courseNames: [],
@@ -109,6 +122,7 @@ export default {
           try {
             classList.init(self)
             quickAdd.init(self)
+            statusBar.init(self)
             if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
               self.loadDayClasses()
             }
@@ -162,6 +176,38 @@ export default {
   font-weight: bold;
   margin-bottom: 12px;
   text-align: center;
+}
+
+.status-bar {
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.left-accent {
+  width: 4px;
+  height: 100%;
+  border-radius: 2px;
+  margin-right: 8px;
+}
+
+.status-tag {
+  font-size: 14px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-right: 8px;
+}
+
+.status-middle {
+  font-size: 16px;
+  flex: 1;
+}
+
+.status-right {
+  font-size: 14px;
 }
 
 .class-list {
