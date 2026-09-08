@@ -85,6 +85,8 @@
       </div>
     </div>
 
+    
+
     <div class="bottom-buttons">
       <input class="add-btn" type="button" value="+ 添加课程" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
@@ -669,75 +671,5 @@ export default {
 
 .left-accent-6 {
   height: 28px;
-}
-
-@media (shape: rect) {
-  .schedule-page {
-    padding: 6px 10px 6px 10px;
-  }
-
-  .header {
-    padding: 6px 4px;
-  }
-
-  .class-grid-item {
-    min-height: 50px;
-    border-radius: 10px;
-    margin-bottom: 6px;
-  }
-
-  .class-card-body {
-    padding: 10px 12px 10px 10px;
-  }
-
-  .clock-text {
-    font-size: 16px;
-  }
-
-  .empty-card {
-    padding: 14px;
-  }
-
-  .empty-text {
-    font-size: 15px;
-  }
-
-  .add-btn {
-    height: 40px;
-    border-radius: 20px;
-    font-size: 16px;
-  }
-
-  .style-btn {
-    height: 40px;
-    border-radius: 20px;
-    font-size: 16px;
-  }
-
-  .nav-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 20px;
-  }
-
-  .day-nav-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 20px;
-  }
-
-  .day-nav-text {
-    font-size: 16px;
-  }
-
-  .pinned-item {
-    padding: 3px 10px;
-    border-radius: 14px;
-  }
-
-  .pinned-text {
-    font-size: 14px;
-  }
 }
 </style>
