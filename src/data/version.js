@@ -1,1 +1,1 @@
-module.exports = { versionName: "1.4.67", versionCode: 567 }
+module.exports = { versionName: "1.4.69", versionCode: 569 }
