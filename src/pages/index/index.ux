@@ -1,30 +1,25 @@
 <template>
   <div id="root" class="root" style="background-color: {{ theme.bg }}">
-    <text class="title">Debug + Theme</text>
-    <div class="info-list">
-      <div class="info-row">
-        <text class="label">设备:</text>
-        <text class="value">{{ deviceInfo.brand }} {{ deviceInfo.model }}</text>
+    <div class="debug-bar">
+      <text class="debug-text">{{ screenShape }} {{ screenWidth }}x{{ screenHeight }} | {{ errorMsg || 'OK' }}</text>
+    </div>
+    <text class="title">V5.2 ClassList</text>
+    <div class="class-list">
+      <div if="{{ isLoading }}" class="empty-card">
+        <text class="empty-text" style="color: {{ theme.textMuted }}">加载中...</text>
       </div>
-      <div class="info-row">
-        <text class="label">屏幕:</text>
-        <text class="value">{{ screenWidth }} x {{ screenHeight }}</text>
+      <div if="{{ !isLoading && currentClasses.length === 0 }}" class="empty-card">
+        <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
       </div>
-      <div class="info-row">
-        <text class="label">形状:</text>
-        <text class="value">{{ screenShape }}</text>
-      </div>
-      <div class="info-row">
-        <text class="label">DPR:</text>
-        <text class="value">{{ devicePixelRatio }}</text>
-      </div>
-      <div class="info-row">
-        <text class="label">主题:</text>
-        <text class="value" style="color: {{ theme.accent }}">{{ theme.name }}</text>
-      </div>
-      <div class="info-row">
-        <text class="label">状态:</text>
-        <text class="value" style="color: {{ errorMsg ? '#ff4444' : '#44ff44' }}">{{ errorMsg || 'store OK' }}</text>
+      <div for="{{ currentClasses }}" class="class-grid-item" style="background-color: {{ theme.card }}">
+        <div class="class-card-accent" style="background-color: {{ theme.accent }}"></div>
+        <div class="class-card-body">
+          <text class="grid-item-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+          <div class="class-card-meta">
+            <text class="grid-item-time" style="color: {{ theme.accent }}">{{ $item.time }}</text>
+            <text class="grid-item-location" if="{{ $item.location }}" style="color: {{ theme.textMuted }}">{{ $item.location }}</text>
+          </div>
+        </div>
       </div>
     </div>
     <input class="btn" type="button" value="打开设置" onclick="openSettings" />
@@ -36,6 +31,8 @@
 import router from "@system.router"
 import device from "@system.device"
 const store = require("../../data/store.js")
+const database = require("../../data/database.js")
+const classList = require("./modules/class-list.js")
 
 export default {
   private: {
@@ -46,6 +43,9 @@ export default {
     devicePixelRatio: "?",
     platformVersion: "?",
     errorMsg: "",
+    isLoading: true,
+    currentClasses: [],
+    schedule: [],
     theme: {
       bg: "#1a1a2e",
       card: "#16213e",
@@ -55,8 +55,7 @@ export default {
       textSecondary: "#888899",
       textMuted: "#555566",
       border: "#0f3460",
-      borderLight: "#2a2a5a",
-      name: "default"
+      borderLight: "#2a2a5a"
     }
   },
 
@@ -75,16 +74,28 @@ export default {
         },
         fail: function(err) {
           self.errorMsg = "device.getInfo: " + (err || "unknown")
-          console.error("[debug] " + self.errorMsg)
         }
       })
       store.getTheme(function(t) {
         self.theme = t
-        console.log("[debug] theme: " + JSON.stringify(t))
+      })
+      database.init(function() {
+        database.getAllCourses(function(schedule) {
+          self.schedule = schedule
+          try {
+            classList.init(self)
+            if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
+              self.loadDayClasses()
+            }
+          } catch (e) {
+            self.errorMsg = "classList: " + (e.message || e)
+          }
+          self.isLoading = false
+        })
       })
     } catch (e) {
       self.errorMsg = "exception: " + (e.message || e)
-      console.error("[debug] " + self.errorMsg)
+      self.isLoading = false
     }
   },
 
@@ -105,37 +116,85 @@ export default {
   flex-direction: column;
   align-items: center;
   background-color: #1a1a2e;
-  padding: 20px 12px;
+  padding: 12px 12px;
+}
+
+.debug-bar {
+  width: 100%;
+  padding: 2px 6px;
+  background-color: #333333;
+  margin-bottom: 8px;
+}
+.debug-text {
+  font-size: 12px;
+  color: #00ff00;
+  lines: 1;
 }
 
 .title {
-  font-size: 32px;
+  font-size: 24px;
   color: #7ec8e3;
   font-weight: bold;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   text-align: center;
 }
 
-.info-list {
+.class-list {
   width: 100%;
-  margin-bottom: 16px;
-}
-
-.info-row {
-  flex-direction: row;
-  padding: 6px 0;
-}
-
-.label {
-  font-size: 18px;
-  color: #888899;
-  width: 80px;
-}
-
-.value {
-  font-size: 18px;
-  color: #ffffff;
   flex: 1;
+  margin-bottom: 12px;
+}
+
+.empty-card {
+  width: 100%;
+  padding: 20px;
+  align-items: center;
+}
+
+.empty-text {
+  font-size: 18px;
+  text-align: center;
+}
+
+.class-grid-item {
+  width: 100%;
+  min-height: 60px;
+  border-radius: 12px;
+  padding: 0;
+  margin-bottom: 10px;
+  flex-direction: row;
+  overflow: hidden;
+  position: relative;
+}
+
+.class-card-accent {
+  width: 6px;
+  border-radius: 3px 0 0 3px;
+}
+
+.class-card-body {
+  flex: 1;
+  flex-direction: column;
+  padding: 12px;
+}
+
+.grid-item-name {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.class-card-meta {
+  flex-direction: row;
+}
+
+.grid-item-time {
+  font-size: 16px;
+  margin-right: 12px;
+}
+
+.grid-item-location {
+  font-size: 16px;
 }
 
 .btn {
@@ -146,12 +205,13 @@ export default {
   border-radius: 10px;
   background-color: #7ec8e3;
   color: #1a1a2e;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .hint {
   font-size: 14px;
   color: #ffaa00;
   text-align: center;
+  margin-bottom: 8px;
 }
 </style>
