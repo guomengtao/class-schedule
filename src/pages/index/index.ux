@@ -3,7 +3,11 @@
     <div class="debug-bar">
       <text class="debug-text">{{ screenShape }} {{ screenWidth }}x{{ screenHeight }} | {{ errorMsg || 'OK' }}</text>
     </div>
-    <text class="title">V5.6 PinnedPages</text>
+    <text class="title">V5.7 Clock</text>
+
+    <div class="clock-row" if="{{ showTime }}">
+      <text class="clock-text" style="color: {{ theme.textSecondary }}">{{ currentTime }}</text>
+    </div>
 
     <div class="pinned-bar" if="{{ showPinnedBar && hasPinned }}" style="background-color: {{ theme.cardLight }}">
       <div class="left-accent" style="background-color: {{ theme.accent }}"></div>
@@ -79,6 +83,7 @@ const quickAdd = require("./modules/quick-add.js")
 const statusBar = require("./modules/status-bar.js")
 const customContent = require("./modules/custom-content.js")
 const pinnedPages = require("./modules/pinned-pages.js")
+const clock = require("./modules/clock.js")
 
 export default {
   private: {
@@ -101,6 +106,8 @@ export default {
     showPinnedBar: true,
     pinnedPages: [],
     hasPinned: false,
+    showTime: true,
+    currentTime: "",
     quickAdd: {
       expanded: false,
       courseNames: [],
@@ -148,6 +155,7 @@ export default {
             statusBar.init(self)
             customContent.init(self)
             pinnedPages.init(self)
+            clock.init(self)
             if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
               self.loadDayClasses()
             }
@@ -253,6 +261,18 @@ export default {
 
 .pinned-text {
   font-size: 14px;
+}
+
+.clock-row {
+  width: 100%;
+  align-items: center;
+  padding: 6px 0;
+  margin-bottom: 8px;
+}
+
+.clock-text {
+  font-size: 28px;
+  font-weight: bold;
 }
 
 .left-accent {
