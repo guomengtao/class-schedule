@@ -3,7 +3,7 @@
     <div class="debug-bar">
       <text class="debug-text">{{ screenShape }} {{ screenWidth }}x{{ screenHeight }} | {{ errorMsg || 'OK' }}</text>
     </div>
-    <text class="title">V5.2 ClassList</text>
+    <text class="title">V5.3 QuickAdd</text>
     <div class="class-list">
       <div if="{{ isLoading }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">加载中...</text>
@@ -22,6 +22,24 @@
         </div>
       </div>
     </div>
+
+    <div class="quick-add" style="background-color: {{ theme.card }}">
+      <div class="quick-add-header" onclick="quickAdd.toggle">
+        <text class="quick-add-title" style="color: {{ theme.accent }}">快速添加</text>
+        <div class="quick-add-info">
+          <text class="quick-add-arrow" style="color: {{ theme.accent }}">{{ quickAdd.expanded ? '▲' : '▼' }}</text>
+        </div>
+      </div>
+      <div class="quick-add-row-scroll" if="{{ quickAdd.expanded }}">
+        <text class="quick-add-empty" if="{{ quickAdd.courseNames.length === 0 }}" style="color: {{ theme.textMuted }}">暂无已添加课程</text>
+        <div class="quick-add-tags" if="{{ quickAdd.courseNames.length > 0 }}">
+          <div for="{{ quickAdd.courseNames }}" class="quick-add-tag" onclick="quickAdd.addCourse($item)" style="background-color: {{ theme.cardLight }}">
+            <text class="quick-add-tag-text" style="color: {{ theme.text }}">{{ $item }}</text>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <input class="btn" type="button" value="打开设置" onclick="openSettings" />
     <text class="hint">如果页面只显示左上角，请截图反馈</text>
   </div>
@@ -33,6 +51,7 @@ import device from "@system.device"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 const classList = require("./modules/class-list.js")
+const quickAdd = require("./modules/quick-add.js")
 
 export default {
   private: {
@@ -46,6 +65,12 @@ export default {
     isLoading: true,
     currentClasses: [],
     schedule: [],
+    quickAdd: {
+      expanded: false,
+      courseNames: [],
+      toggle: function() {},
+      addCourse: function() {}
+    },
     theme: {
       bg: "#1a1a2e",
       card: "#16213e",
@@ -70,7 +95,6 @@ export default {
           self.screenShape = info.screenShape || "?"
           self.devicePixelRatio = info.devicePixelRatio || "?"
           self.platformVersion = info.platformVersion || "?"
-          console.log("[debug] device: " + JSON.stringify(info))
         },
         fail: function(err) {
           self.errorMsg = "device.getInfo: " + (err || "unknown")
@@ -84,11 +108,12 @@ export default {
           self.schedule = schedule
           try {
             classList.init(self)
+            quickAdd.init(self)
             if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
               self.loadDayClasses()
             }
           } catch (e) {
-            self.errorMsg = "classList: " + (e.message || e)
+            self.errorMsg = "module: " + (e.message || e)
           }
           self.isLoading = false
         })
@@ -142,7 +167,7 @@ export default {
 .class-list {
   width: 100%;
   flex: 1;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .empty-card {
@@ -195,6 +220,58 @@ export default {
 
 .grid-item-location {
   font-size: 16px;
+}
+
+.quick-add {
+  width: 100%;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.quick-add-header {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quick-add-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.quick-add-info {
+  flex-direction: row;
+  align-items: center;
+}
+
+.quick-add-arrow {
+  font-size: 14px;
+}
+
+.quick-add-row-scroll {
+  margin-top: 8px;
+}
+
+.quick-add-empty {
+  font-size: 14px;
+  padding: 8px 0;
+}
+
+.quick-add-tags {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.quick-add-tag {
+  padding: 6px 12px;
+  border-radius: 8px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+
+.quick-add-tag-text {
+  font-size: 14px;
 }
 
 .btn {
