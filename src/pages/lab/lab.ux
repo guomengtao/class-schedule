@@ -67,7 +67,7 @@
 <script>
 import router from "@system.router"
 const store = require("../../data/store.js")
-var labList = require("../home-module-demo/modules/lab-list.js")
+var labList = require("../../data/lab-list.js")
 
 export default {
   private: {

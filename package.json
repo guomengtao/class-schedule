@@ -13,7 +13,7 @@
     "build": "node scripts/build.js",
     "build:dev": "npm run clean && aiot build",
     "prerelease": "node scripts/bump-version.js",
-    "release": "aiot release",
+    "release": "aiot release --enable-jsc",
     "lint": "eslint --format codeframe --fix --ext .ux,.js src/",
     "postinstall": "patch-package"
   },

@@ -6,7 +6,7 @@
       <input class="confirm-btn" type="button" value="确认" onclick="onConfirm" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
-    <div if="{{ ready }}">
+    <div class="content-body" if="{{ ready }}">
       <div class="display-area" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
         <text class="display-text" style="font-size: {{ inputFontSize }}px; color: {{ theme.text }}">{{ inputValue || placeholder }}</text>
         <text class="cursor" show="{{ showCursor }}" style="font-size: {{ inputFontSize }}px; color: {{ theme.accent }}">_</text>
@@ -377,6 +377,11 @@ export default {
   height: 100%;
 }
 
+.content-body {
+  flex-direction: column;
+  flex: 1;
+}
+
 .header {
   flex-direction: row;
   justify-content: space-between;
@@ -455,6 +460,7 @@ export default {
 
 .keyboard {
   flex-direction: column;
+  align-items: stretch;
   margin-top: 2px;
   width: 100%;
 }
@@ -464,6 +470,7 @@ export default {
   justify-content: center;
   width: 100%;
   margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .key-btn {
@@ -484,13 +491,15 @@ export default {
 
 .key-func {
   flex: 1;
-  max-width: 80px;
+  max-width: 60px;
   min-height: 28px;
   font-weight: bold;
   text-align: center;
   border-radius: 6px;
   margin-left: 2px;
   margin-right: 2px;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .key-bottom {
@@ -501,8 +510,8 @@ export default {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  padding: 4px 0 4px 0;
-  margin-top: 4px;
+  padding: 8px 0 12px 0;
+  margin-top: 8px;
 }
 
 .font-label {

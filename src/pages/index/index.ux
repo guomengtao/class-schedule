@@ -185,6 +185,7 @@ export default {
   onInit() {
     console.log("[index] onInit start")
     var self = this
+    self._initialized = false
     self.isLoading = true
     store.getTheme(function(t) {
       self.theme = t
@@ -195,14 +196,17 @@ export default {
     database.init(function() {
       database.getAllCourses(function(schedule) {
         self.schedule = schedule
-        self.isLoading = false
         console.log("[index] data loaded, " + schedule.length + " days")
         self.initAllModules()
+        self._initialized = true
+        self.isLoading = false
       })
     })
   },
 
   onShow() {
+    if (this._initialized) return
+
     var self = this
     store.getTheme(function(t) { self.theme = t })
     self.loadHomepageSettings()

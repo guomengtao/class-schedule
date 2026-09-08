@@ -85,7 +85,7 @@ export default {
     storage.set({ key: "chinese_input_value", value: this.currentName || "" })
     storage.set({ key: "chinese_input_maxlen", value: "5" })
     storage.set({ key: "chinese_input_return_key", value: "chinese_input_result" })
-    router.push({ uri: "/pages/chinese-input" })
+    router.push({ uri: "/pages/chinese-input-full" })
   },
 
   saveNickname() {

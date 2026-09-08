@@ -1,27 +1,13 @@
-var storage = require("@system.storage")
+import storage from "@system.storage"
 var STORAGE_KEY = "lab_settings"
 
 var ALL_PAGES = [
   { name: "已钉首页",  uri: "/pages/pinned-pages" },
   { name: "数据表展示", uri: "/pages/storage-viewer" },
-  { name: "首页模块版", uri: "/pages/home-module-demo" },
   { name: "二维码生成器", uri: "/pages/qrcode-generator" },
   { name: "震动实验室", uri: "/pages/vibration-lab" },
-  { name: "勾选 Demo", uri: "/pages/check-demo" },
   { name: "课程表管理 V2", uri: "/pages/schedule-manager" },
   { name: "设备信息", uri: "/pages/device-info" },
-  { name: "手风琴 Demo", uri: "/pages/accordion-demo" },
-  { name: "组件化测试", uri: "/pages/comp-demo" },
-  { name: "多模块加载测试", uri: "/pages/lab-module-test" },
-  { name: "首页 Pro", uri: "/pages/home-pro" },
-  { name: "今日课程", uri: "/pages/today-demo" },
-  { name: "首页课程Demo", uri: "/pages/homepage-classes-demo" },
-  { name: "弹窗遮罩 Demo", uri: "/pages/overlay-demo" },
-  { name: "命令行 Debug", uri: "/pages/debug-demo" },
-  { name: "底部固定菜单", uri: "/pages/bottom-nav-demo" },
-  { name: "Icon 收集", uri: "/pages/icon-collect" },
-  { name: "遮罩模块测试", uri: "/pages/premium-test" },
-  { name: "弹窗直接测试", uri: "/pages/overlay-test" },
   { name: "数据备份与恢复", uri: "/pages/backup-restore" },
   { name: "中文输入", uri: "/pages/chinese-input" },
   { name: "统计", uri: "/pages/statistics" },
@@ -69,7 +55,7 @@ function buildDesc(uri) {
 }
 
 function init(instance, callback) {
-  var pinHelper = require("../../../data/pin-helper.js")
+  var pinHelper = require("./pin-helper.js")
 
   getStorage(function(settings) {
     var hidden = settings.hidden || []
@@ -142,7 +128,7 @@ function getAvailablePages(activeItems, callback) {
 }
 
 function togglePin(instance, idx, callback) {
-  var pinHelper = require("../../../data/pin-helper.js")
+  var pinHelper = require("./pin-helper.js")
   var item = instance.labItems[idx]
   if (!item) return
 
@@ -199,12 +185,12 @@ function deleteItem(instance, idx, callback) {
     }
     var order = []
     for (var i = 0; i < items.length; i++) {
-      order.push(items[i].uri)
+      if (i !== idx) {
+        order.push(items[i].uri)
+      }
     }
-    saveSettings({ hidden: hidden, order: order }, function() {
-      items.splice(idx, 1)
-      if (callback) callback()
-    })
+    items.splice(idx, 1)
+    saveSettings({ hidden: hidden, order: order }, callback)
   })
 }
 
@@ -215,21 +201,30 @@ function addItem(instance, uri, callback) {
     if (idx !== -1) {
       hidden.splice(idx, 1)
     }
-    saveSettings({ hidden: hidden, order: settings.order || [] }, function() {
-      for (var i = 0; i < ALL_PAGES.length; i++) {
-        if (ALL_PAGES[i].uri === uri) {
-          var newItem = {
-            name: ALL_PAGES[i].name,
-            desc: buildDesc(uri),
-            uri: uri,
-            pinned: false
-          }
-          instance.labItems.push(newItem)
-          break
+
+    var newItem = null
+    for (var i = 0; i < ALL_PAGES.length; i++) {
+      if (ALL_PAGES[i].uri === uri) {
+        newItem = {
+          name: ALL_PAGES[i].name,
+          desc: buildDesc(ALL_PAGES[i].uri),
+          uri: ALL_PAGES[i].uri,
+          pinned: false
         }
+        break
       }
-      if (callback) callback()
-    })
+    }
+
+    if (newItem) {
+      instance.labItems.push(newItem)
+    }
+
+    var order = []
+    for (var j = 0; j < instance.labItems.length; j++) {
+      order.push(instance.labItems[j].uri)
+    }
+
+    saveSettings({ hidden: hidden, order: order }, callback)
   })
 }
 

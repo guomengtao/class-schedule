@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.4.74",
-  "versionCode": 574,
+  "versionName": "1.4.85",
+  "versionCode": 585,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -92,6 +92,9 @@
       "pages/chinese-input": {
         "component": "chinese-input"
       },
+      "pages/chinese-input-full": {
+        "component": "chinese-input-full"
+      },
       "pages/statistics": {
         "component": "statistics"
       },
@@ -119,59 +122,14 @@
       "pages/activation": {
         "component": "activation"
       },
-      "pages/check-demo": {
-        "component": "check-demo"
-      },
       "pages/backup-restore": {
         "component": "backup-restore"
-      },
-      "pages/comp-demo": {
-        "component": "index"
-      },
-      "pages/accordion-demo": {
-        "component": "accordion-demo"
-      },
-      "pages/lab-module-test": {
-        "component": "index"
       },
       "pages/pinned-pages": {
         "component": "pinned-pages"
       },
       "pages/storage-viewer": {
         "component": "storage-viewer"
-      },
-      "pages/home-module-demo": {
-        "component": "index"
-      },
-      "pages/home-pro": {
-        "component": "index"
-      },
-      "pages/today-demo": {
-        "component": "index"
-      },
-      "pages/homepage-classes-demo": {
-        "component": "index"
-      },
-      "pages/premium-test": {
-        "component": "premium-test"
-      },
-      "pages/overlay-test": {
-        "component": "overlay-test"
-      },
-      "pages/overlay-demo": {
-        "component": "overlay-demo"
-      },
-      "pages/debug-demo": {
-        "component": "debug-demo"
-      },
-      "pages/scroll-demo": {
-        "component": "scroll-demo"
-      },
-      "pages/bottom-nav-demo": {
-        "component": "bottom-nav-demo"
-      },
-      "pages/icon-collect": {
-        "component": "icon-collect"
       }
     }
   }

@@ -1,5 +1,7 @@
 import { getDict } from './dic.js'
 import { syllables } from './pinyin_syllables.js'
+import { getWords } from './dic_words.js'
+import { getInitialsIndex } from './dic_words_initials.js'
 
 // 辅助：从词库取值（支持单值和数组），去重推入 wordHits
 function pushWordHits(val, arr) {
@@ -34,23 +36,20 @@ SimpleInputMethod.initDict = function() {
     this.dict.syllableSet.add(key)
   }
 
-  // 整词词库：异步动态 import，避免词库被 webpack 内联到每个页面造成重复打包
+  // 整词词库：静态 import 同步加载，避免动态 import() 在 QuickApp JSC 运行时白屏
   this._loadWordDict()
 }
 
 SimpleInputMethod._loadWordDict = function() {
   if (this._wordDictLoading) return
   this._wordDictLoading = true
-  Promise.all([
-    import('./dic_words.js'),
-    import('./dic_words_initials.js')
-  ]).then(function(modules) {
-    this.dict.words = modules[0].getWords()
-    this.dict.initialsIndex = modules[1].getInitialsIndex()
+  try {
+    this.dict.words = getWords()
+    this.dict.initialsIndex = getInitialsIndex()
     this._buildForwardIndex()
-  }.bind(this)).catch(function() {
+  } catch (e) {
     this._wordDictLoading = false
-  }.bind(this))
+  }
 }
 
 // 前向索引(首2字母 → 词键列表)分片构建。构建完成前 getMultiHanzi 的 forward 匹配短暂空转，
