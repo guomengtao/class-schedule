@@ -1,14 +1,10 @@
 <template>
   <div id="schedule-page" class="schedule-page" style="background-color: {{ theme.bg }}">
-    <div class="debug-bar">
-      <text class="debug-text">{{ screenShape }} {{ screenWidth }}x{{ screenHeight }} | {{ errorMsg || 'V6.1 OK' }}</text>
-    </div>
-
     <div class="clock-row" if="{{ showTime }}">
       <text class="clock-text" style="color: {{ theme.textSecondary }}">{{ currentTime }}</text>
     </div>
 
-    <div class="header" if="{{ showDayNav }}">
+    <div class="header">
       <input class="nav-btn" type="button" value="&#9664;" onclick="prevDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="day-title" style="font-size: {{ dayTitleSize }}px; color: {{ theme.text }}">{{ currentDay }}</text>
       <div class="day-nav-btns">
@@ -89,12 +85,12 @@
       </div>
     </div>
 
-    <div class="bottom-buttons" if="{{ showBottomButtons }}">
+    <div class="bottom-buttons">
       <input class="add-btn" type="button" value="+ 添加课程" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
     </div>
 
-    <div class="week-indicator" onclick="openScheduleManager" if="{{ showWeekIndicator }}">
+    <div class="week-indicator" onclick="openScheduleManager">
       <text class="week-text" style="color: {{ theme.accent }}">⇄ {{ currentScheduleName }}</text>
     </div>
   </div>
@@ -102,56 +98,66 @@
 
 <script>
 import router from "@system.router"
-import device from "@system.device"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
-const classList = require("./modules/class-list.js")
-const quickAdd = require("./modules/quick-add.js")
-const statusBar = require("./modules/status-bar.js")
-const customContent = require("./modules/custom-content.js")
-const pinnedPages = require("./modules/pinned-pages.js")
-const clock = require("./modules/clock.js")
-const dayNav = require("./modules/day-nav.js")
-const bottomButtons = require("./modules/bottom-buttons.js")
-const weekIndicator = require("./modules/week-indicator.js")
+
+var modules = {}
+var moduleNames = [
+  { key: "clock" },
+  { key: "quickAdd" },
+  { key: "dayNav" },
+  { key: "statusBar" },
+  { key: "customContent" },
+  { key: "pinnedPages" },
+  { key: "bottomButtons" },
+  { key: "classList" }
+]
+
+function loadModule(key, mod) {
+  if (mod && mod.init) {
+    modules[key] = mod
+  } else {
+    modules[key] = null
+  }
+}
+
+loadModule("clock", require("./modules/clock.js"))
+loadModule("quickAdd", require("./modules/quick-add.js"))
+loadModule("dayNav", require("./modules/day-nav.js"))
+loadModule("statusBar", require("./modules/status-bar.js"))
+loadModule("customContent", require("./modules/custom-content.js"))
+loadModule("pinnedPages", require("./modules/pinned-pages.js"))
+loadModule("bottomButtons", require("./modules/bottom-buttons.js"))
+loadModule("classList", require("./modules/class-list.js"))
 
 export default {
   private: {
-    deviceInfo: { brand: "?", model: "?" },
-    screenWidth: "?",
-    screenHeight: "?",
-    screenShape: "?",
-    devicePixelRatio: "?",
-    platformVersion: "?",
-    errorMsg: "",
     isLoading: true,
-    currentClasses: [],
-    schedule: [],
     currentTime: "",
     currentDay: "",
     currentDayIndex: -1,
     statusTag: "",
     statusMainText: "",
     statusTimeText: "",
-    showStatusBar: true,
     showCustomContent: false,
     customContent: "",
-    showPinnedBar: true,
-    pinnedPages: [],
-    hasPinned: false,
     showTime: true,
-    showDayNav: true,
+    showQuickAdd: true,
+    showStatusBar: true,
+    _statusBarSetting: true,
+    showPinnedBar: true,
     showDayNavZong: true,
     showDayNavJin: true,
     showDayNavMing: true,
-    showBottomButtons: true,
-    showQuickAdd: true,
-    showWeekIndicator: true,
+    timeFormat: { hour: true, minute: true, second: false },
+    pinnedPages: [],
+    hasPinned: false,
+    currentClasses: [],
+    schedule: [],
     isToday: true,
     displaySize: 28,
     metaFontSize: 24,
     dayTitleSize: 28,
-    currentScheduleName: "课程表1",
     quickAdd: {
       expanded: false,
       courseNames: [],
@@ -160,137 +166,184 @@ export default {
       toggle: function() {},
       addCourse: function() {}
     },
+    currentScheduleName: "课程表1",
     theme: {
-      bg: "#1a1a2e",
-      card: "#16213e",
-      cardLight: "#0f3460",
-      accent: "#7ec8e3",
-      text: "#ffffff",
-      textSecondary: "#888899",
-      textMuted: "#555566",
-      border: "#0f3460",
-      borderLight: "#2a2a5a"
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a'
     }
   },
 
   onInit() {
+    console.log("[index] onInit start")
     var self = this
-    try {
-      device.getInfo({
-        success: function(info) {
-          self.deviceInfo = { brand: info.brand || "?", model: info.model || "?" }
-          self.screenWidth = info.screenWidth || "?"
-          self.screenHeight = info.screenHeight || "?"
-          self.screenShape = info.screenShape || "?"
-          self.devicePixelRatio = info.devicePixelRatio || "?"
-          self.platformVersion = info.platformVersion || "?"
-        },
-        fail: function(err) {
-          self.errorMsg = "device: " + (err || "unknown")
-        }
-      })
-    } catch (e) {
-      self.errorMsg = "device error: " + (e.message || e)
-    }
-
-    try {
-      store.getTheme(function(t) { self.theme = t })
-    } catch (e) {
-      self.errorMsg = "theme: " + (e.message || e)
-    }
-
-    try {
-      self.loadHomepageSettings()
-    } catch (e) {
-      self.errorMsg = "homepage: " + (e.message || e)
-    }
-
-    try {
-      self.loadFontScale()
-    } catch (e) {
-      self.errorMsg = "fontScale: " + (e.message || e)
-    }
+    self.isLoading = true
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    self.loadHomepageSettings()
+    self.loadFontScale()
 
     database.init(function() {
       database.getAllCourses(function(schedule) {
         self.schedule = schedule
-        try {
-          classList.init(self)
-          quickAdd.init(self)
-          statusBar.init(self)
-          customContent.init(self)
-          pinnedPages.init(self)
-          clock.init(self)
-          dayNav.init(self)
-          bottomButtons.init(self)
-          weekIndicator.init(self)
-          if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
-            self.loadDayClasses()
-          }
-        } catch (e) {
-          self.errorMsg = "module: " + (e.message || e)
-        }
         self.isLoading = false
+        console.log("[index] data loaded, " + schedule.length + " days")
+        self.initAllModules()
       })
     })
   },
 
   onShow() {
     var self = this
-    try {
-      store.getTheme(function(t) { self.theme = t })
-      self.loadHomepageSettings()
-      self.loadFontScale()
-      if (self.loadPinnedPages && typeof self.loadPinnedPages === 'function') {
-        self.loadPinnedPages()
-      }
-      if (self.quickAdd && self.quickAdd.loadPreset) {
-        self.quickAdd.loadPreset()
-      }
-    } catch (e) {
-      self.errorMsg = "onShow: " + (e.message || e)
+    store.getTheme(function(t) { self.theme = t })
+    self.loadHomepageSettings()
+    self.loadFontScale()
+    if (self.loadPinnedPages && typeof self.loadPinnedPages === 'function') {
+      self.loadPinnedPages()
     }
+    if (self.quickAdd && self.quickAdd.loadPreset) {
+      self.quickAdd.loadPreset()
+    }
+
+    store.getCurrentScheduleIndex(function(idx) {
+      database.setScheduleIndex(idx, function() {
+        store.getScheduleNames(function(names) {
+          if (names && idx < names.length) {
+            self.currentScheduleName = names[idx]
+          } else {
+            self.currentScheduleName = '课程表' + (idx + 1)
+          }
+        })
+        database.getAllCoursesWithIndex(idx, function(schedule) {
+          if (!schedule || schedule.length === 0) {
+            database.getAllCourses(function(fallback) {
+              self.schedule = fallback
+              if (self.refreshClasses && typeof self.refreshClasses === 'function') {
+                self.refreshClasses()
+              }
+            })
+            return
+          }
+          self.schedule = schedule
+          if (self.refreshClasses && typeof self.refreshClasses === 'function') {
+            self.refreshClasses()
+          }
+        })
+      })
+    })
+
     this.$forceUpdate()
   },
 
   onDestroy() {
-    try {
-      if (this.stopClockTimer && typeof this.stopClockTimer === 'function') this.stopClockTimer()
-      if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
-      if (this.stopProgressTimer && typeof this.stopProgressTimer === 'function') this.stopProgressTimer()
-    } catch (e) {}
+    if (this.stopClockTimer && typeof this.stopClockTimer === 'function') this.stopClockTimer()
+    if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
+    if (this.stopProgressTimer && typeof this.stopProgressTimer === 'function') this.stopProgressTimer()
   },
 
   loadFontScale() {
     var self = this
-    try {
-      store.getFontSizes(function(sizes) {
-        if (sizes) {
-          self.displaySize = sizes.courseName || 28
-          self.metaFontSize = sizes.courseTime || 24
-          self.dayTitleSize = sizes.courseName || 28
-        }
-      })
-    } catch (e) {}
+    store.getFontSizes(function(sizes) {
+      self.displaySize = sizes.courseName
+      self.metaFontSize = sizes.courseTime
+      self.dayTitleSize = sizes.courseName
+    })
   },
 
   loadHomepageSettings() {
     var self = this
-    try {
-      store.getHomepageSettings(function(settings) {
-        if (settings) {
-          self.showTime = settings.showTime !== false
-          self.showQuickAdd = settings.showQuickAdd !== false
-          self.showStatusBar = settings.showStatusBar !== false
-          self.showPinnedBar = settings.showPinnedBar !== false
-          self.showDayNavZong = settings.showDayNavZong !== false
-          self.showDayNavJin = settings.showDayNavJin !== false
-          self.showDayNavMing = settings.showDayNavMing !== false
-          self.showCustomContent = settings.showCustomContent || false
-          self.customContent = settings.customContent || ""
+    store.getHomepageSettings(function(settings) {
+      self.showTime = settings.showTime !== false
+      self.showQuickAdd = settings.showQuickAdd !== false
+      self._statusBarSetting = settings.showStatusBar !== false
+      self.showPinnedBar = settings.showPinnedBar !== false
+      self.showDayNavZong = settings.showDayNavZong !== false
+      self.showDayNavJin = settings.showDayNavJin !== false
+      self.showDayNavMing = settings.showDayNavMing !== false
+      self.showCustomContent = settings.showCustomContent || false
+      self.customContent = settings.customContent || ""
+      self.timeFormat = settings.timeFormat || { hour: true, minute: true, second: false }
+    })
+  },
+
+  initAllModules() {
+    var self = this
+    console.log("[index] starting " + moduleNames.length + " modules...")
+    for (var i = 0; i < moduleNames.length; i++) {
+      var m = moduleNames[i]
+      var mod = modules[m.key]
+      if (mod && mod.init) {
+        try {
+          mod.init(self)
+          console.log("[index] [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " OK")
+        } catch (e) {
+          console.error("[index] [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " FAIL: " + (e.message || e))
         }
+      } else {
+        console.warn("[index] [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " SKIP")
+      }
+    }
+
+    if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
+      try { self.loadDayClasses() } catch (e) { console.error("[index] loadDayClasses: " + (e.message || e)) }
+    }
+    if (self.startProgressTimer && typeof self.startProgressTimer === 'function') {
+      try { self.startProgressTimer() } catch (e) { console.error("[index] startProgressTimer: " + (e.message || e)) }
+    }
+    if (self.updateStatus && typeof self.updateStatus === 'function') {
+      try { self.updateStatus() } catch (e) { console.error("[index] updateStatus: " + (e.message || e)) }
+      if (self.startStatusTimer && typeof self.startStatusTimer === 'function') {
+        try { self.startStatusTimer() } catch (e) { console.error("[index] startStatusTimer: " + (e.message || e)) }
+      }
+    }
+    console.log("[index] initAllModules done")
+
+    if (self.updateHideWeekend && typeof self.updateHideWeekend === 'function') {
+      try { self.updateHideWeekend() } catch (e) { console.error("[index] updateHideWeekend: " + (e.message || e)) }
+    }
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  goToWeekView() {
+    var storage = require("@system.storage")
+    store.getCurrentScheduleIndex(function(idx) {
+      storage.set({
+        key: "weekview_index",
+        value: String(idx),
+        success: function() { router.push({ uri: "/pages/week-view" }) },
+        fail: function() { router.push({ uri: "/pages/week-view" }) }
       })
-    } catch (e) {}
+    })
+  },
+
+  goToTomorrow() {
+    var self = this
+    store.getHideWeekend(function(hide) {
+      var dayNames = hide ? ["星期一", "星期二", "星期三", "星期四", "星期五"] : ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+      var todayIdx = new Date().getDay()
+      if (hide && (todayIdx === 0 || todayIdx === 6)) {
+        todayIdx = 0
+      } else if (hide) {
+        todayIdx = todayIdx - 1
+      }
+      var tomorrowIdx = todayIdx + 1
+      if (tomorrowIdx >= dayNames.length) tomorrowIdx = 0
+      if (self.currentDayIndex === tomorrowIdx) return
+      self.currentDayIndex = tomorrowIdx
+      self.currentDay = dayNames[tomorrowIdx]
+      if (self.loadDayClasses && typeof self.loadDayClasses === 'function') self.loadDayClasses()
+      if (self.updateStatus && typeof self.updateStatus === 'function') self.updateStatus()
+    })
   }
 }
 </script>
@@ -303,17 +356,6 @@ export default {
   height: 100%;
   box-sizing: border-box;
   padding: 8px 8px 8px 8px;
-}
-
-.debug-bar {
-  width: 100%;
-  padding: 2px 4px;
-  margin-bottom: 2px;
-}
-
-.debug-text {
-  font-size: 12px;
-  text-align: center;
 }
 
 .header {
