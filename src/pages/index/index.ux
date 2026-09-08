@@ -1,19 +1,48 @@
 <template>
-  <div style="width: 100%; height: 100%; flex-direction: column; justify-content: center; align-items: center; background-color: #1a1a2e;">
-    <text style="font-size: 48px; color: #ffffff; text-align: center;">Hello World</text>
+  <div id="root" class="root">
+    <text class="title">9 Pro</text>
+    <text class="subtitle">screen test</text>
   </div>
 </template>
 
 <script>
 export default {
-  onInit() {
-    console.log("[test-v1] onInit")
-  },
   onShow() {
-    console.log("[test-v1] onShow")
+    this.$forceUpdate()
   }
 }
 </script>
 
 <style>
+.root {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #1a1a2e;
+}
+
+.title {
+  font-size: 56px;
+  color: #7ec8e3;
+  text-align: center;
+  font-weight: bold;
+}
+
+.subtitle {
+  font-size: 20px;
+  color: #888899;
+  text-align: center;
+  margin-top: 8px;
+}
+
+@media (shape: rect) {
+  .title {
+    font-size: 64px;
+  }
+  .subtitle {
+    font-size: 24px;
+  }
+}
 </style>
