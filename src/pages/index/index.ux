@@ -3,7 +3,18 @@
     <div class="debug-bar">
       <text class="debug-text">{{ screenShape }} {{ screenWidth }}x{{ screenHeight }} | {{ errorMsg || 'OK' }}</text>
     </div>
-    <text class="title">V5.5 CustomContent</text>
+    <text class="title">V5.6 PinnedPages</text>
+
+    <div class="pinned-bar" if="{{ showPinnedBar && hasPinned }}" style="background-color: {{ theme.cardLight }}">
+      <div class="left-accent" style="background-color: {{ theme.accent }}"></div>
+      <div class="pinned-content">
+        <div class="pinned-row">
+          <div for="{{ pinnedPages }}" class="pinned-item" onclick="openPinnedPage($item.uri)" style="background-color: {{ theme.card }}">
+            <text class="pinned-text" style="color: {{ theme.accent }}">{{ $item.name }}</text>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="custom-content-bar" if="{{ showCustomContent && customContent }}" style="background-color: {{ theme.cardLight }}">
       <div class="left-accent" style="background-color: {{ theme.accent }}"></div>
@@ -67,6 +78,7 @@ const classList = require("./modules/class-list.js")
 const quickAdd = require("./modules/quick-add.js")
 const statusBar = require("./modules/status-bar.js")
 const customContent = require("./modules/custom-content.js")
+const pinnedPages = require("./modules/pinned-pages.js")
 
 export default {
   private: {
@@ -86,6 +98,9 @@ export default {
     showStatusBar: true,
     showCustomContent: false,
     customContent: "",
+    showPinnedBar: true,
+    pinnedPages: [],
+    hasPinned: false,
     quickAdd: {
       expanded: false,
       courseNames: [],
@@ -132,6 +147,7 @@ export default {
             quickAdd.init(self)
             statusBar.init(self)
             customContent.init(self)
+            pinnedPages.init(self)
             if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
               self.loadDayClasses()
             }
@@ -208,6 +224,35 @@ export default {
 .custom-content-text {
   font-size: 16px;
   flex: 1;
+}
+
+.pinned-bar {
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.pinned-content {
+  flex: 1;
+}
+
+.pinned-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.pinned-item {
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-right: 6px;
+  margin-bottom: 4px;
+}
+
+.pinned-text {
+  font-size: 14px;
 }
 
 .left-accent {
