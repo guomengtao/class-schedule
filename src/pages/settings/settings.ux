@@ -228,7 +228,7 @@ export default {
 
     store.getBaseFontSize(function(size) {
       self.displaySize = size
-    })
+    }, true)
     this.loadNickname()
     this.loadHideWeekend()
     this.loadDefaultHomepage()

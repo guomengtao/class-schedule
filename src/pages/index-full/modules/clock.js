@@ -23,14 +23,23 @@ function init(instance) {
   instance.updateClock = function() {
     var now = new Date()
     var fmt = instance.timeFormat || { hour: true, minute: true, second: false }
-    var parts = []
-    if (fmt.year) parts.push(now.getFullYear().toString())
-    if (fmt.month) parts.push(_pad(now.getMonth() + 1))
-    if (fmt.day) parts.push(_pad(now.getDate()))
-    if (fmt.hour !== false) parts.push(_pad(now.getHours()))
-    if (fmt.minute !== false) parts.push(_pad(now.getMinutes()))
-    if (fmt.second) parts.push(_pad(now.getSeconds()))
-    instance.currentTime = parts.join(":")
+    var dateParts = []
+    var timeParts = []
+    if (fmt.year) dateParts.push(now.getFullYear().toString())
+    if (fmt.month) dateParts.push(_pad(now.getMonth() + 1))
+    if (fmt.day) dateParts.push(_pad(now.getDate()))
+    if (fmt.hour !== false) timeParts.push(_pad(now.getHours()))
+    if (fmt.minute !== false) timeParts.push(_pad(now.getMinutes()))
+    if (fmt.second) timeParts.push(_pad(now.getSeconds()))
+    var text = ""
+    if (dateParts.length > 0) {
+      text += dateParts.join("-")
+    }
+    if (timeParts.length > 0) {
+      if (text) text += " "
+      text += timeParts.join(":")
+    }
+    instance.currentTime = text
   }
 
   function _pad(n) {

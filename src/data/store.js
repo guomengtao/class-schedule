@@ -338,13 +338,13 @@ module.exports = {
     })
   },
 
-  getBaseFontSize: function(callback) {
-    if (_cache.baseFontSize !== undefined) {
+  getBaseFontSize: function(callback, forceRefresh) {
+    if (!forceRefresh && _cache.baseFontSize !== undefined) {
       console.log("[store] getBaseFontSize: from cache = " + _cache.baseFontSize)
       callback(_cache.baseFontSize)
       return
     }
-    console.log("[store] getBaseFontSize: reading from storage")
+    console.log("[store] getBaseFontSize: reading from storage" + (forceRefresh ? " (forced)" : ""))
     storage.get({
       key: "baseFontSize",
       success: function(data) {
@@ -653,8 +653,8 @@ module.exports = {
     })
   },
 
-  getHomepageSettings: function(callback) {
-    if (_cache.homepageSettings) {
+  getHomepageSettings: function(callback, forceRefresh) {
+    if (!forceRefresh && _cache.homepageSettings) {
       callback(_cache.homepageSettings)
       return
     }

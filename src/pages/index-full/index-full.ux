@@ -44,7 +44,7 @@
       </div>
     </div>
 
-    <div class="class-list">
+    <scroll class="class-list" scroll-y="true">
       <div if="{{ isLoading }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">加载中...</text>
       </div>
@@ -62,7 +62,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </scroll>
 
     <div class="quick-add" if="{{ showQuickAdd }}" style="background-color: {{ theme.card }}">
       <div class="quick-add-header" onclick="quickAdd.toggle">
@@ -187,19 +187,22 @@ export default {
     var self = this
     self.initialized = false
     self.isLoading = true
-    store.getTheme(function(t) {
-      self.theme = t
-    })
+    store.getTheme(function(t) { self.theme = t })
     self.loadHomepageSettings()
-    self.loadFontScale()
 
     database.init(function() {
       database.getAllCourses(function(schedule) {
         self.schedule = schedule
         console.log("[index] data loaded, " + schedule.length + " days")
-        self.initAllModules()
-        self.initialized = true
-        self.isLoading = false
+        store.getBaseFontSize(function(size) {
+          console.log("[index] onInit: baseFontSize=" + size)
+          self.displaySize = size
+          self.metaFontSize = Math.round(size * 0.71)
+          self.dayTitleSize = size
+          self.initAllModules()
+          self.initialized = true
+          self.isLoading = false
+        })
       })
     })
   },
@@ -269,8 +272,8 @@ export default {
       if (self.refreshClasses && typeof self.refreshClasses === 'function') {
         self.refreshClasses()
       }
-      try { self.$forceUpdate() } catch (e) { console.error("[index-full] $forceUpdate error: " + e) }
-    })
+      try { self.$forceUpdate() } catch (e) {}
+    }, true)
   },
 
   loadHomepageSettings() {
@@ -286,7 +289,10 @@ export default {
       self.showCustomContent = settings.showCustomContent || false
       self.customContent = settings.customContent || ""
       self.timeFormat = settings.timeFormat || { hour: true, minute: true, second: false }
-    })
+      if (typeof self.updateClock === 'function') {
+        self.updateClock()
+      }
+    }, true)
   },
 
   initAllModules() {
@@ -380,11 +386,13 @@ export default {
   align-items: center;
   padding: 8px 4px;
   margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .clock-row {
   padding: 2px 0;
   margin-bottom: 2px;
+  flex-shrink: 0;
 }
 
 .clock-text {
@@ -434,6 +442,7 @@ export default {
   padding: 8px;
   border-radius: 8px;
   margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .custom-content-text {
@@ -449,6 +458,7 @@ export default {
   padding: 8px;
   border-radius: 8px;
   margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .status-tag {
@@ -474,6 +484,7 @@ export default {
   padding: 4px 8px;
   border-radius: 8px;
   margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .pinned-content {
@@ -498,6 +509,7 @@ export default {
 }
 
 .class-list {
+  flex: 1;
   flex-direction: column;
   margin-bottom: 4px;
 }
@@ -575,6 +587,7 @@ export default {
   border-radius: 10px;
   margin-bottom: 4px;
   flex-direction: column;
+  flex-shrink: 0;
 }
 
 .quick-add-header {
@@ -639,6 +652,7 @@ export default {
   flex-direction: row;
   justify-content: space-between;
   margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .add-btn {
@@ -666,6 +680,7 @@ export default {
   padding: 12px 8px;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .week-text {
