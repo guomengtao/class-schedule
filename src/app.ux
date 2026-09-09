@@ -59,11 +59,15 @@ function migrateFontScale() {
           key: "baseFontSize",
           value: String(newSize),
           success: function() {
-            storage.delete({ key: "fontScale" })
+            storage.delete({
+            key: "fontScale",
+            fail: function() {}
+          })
           }
         })
       }
-    }
+    },
+    fail: function() {}
   })
 }
 

@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.4.86",
-  "versionCode": 586,
+  "versionName": "1.4.143",
+  "versionCode": 643,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -63,10 +63,13 @@
     }
   },
   "router": {
-    "entry": "pages/index",
+    "entry": "pages/welcome",
     "pages": {
-      "pages/index": {
-        "component": "index"
+      "pages/welcome": {
+        "component": "welcome"
+      },
+      "pages/index-full": {
+        "component": "index-full"
       },
       "pages/detail": {
         "component": "detail"
@@ -88,6 +91,9 @@
       },
       "pages/course-manager": {
         "component": "course-manager"
+      },
+      "pages/custom-content-edit": {
+        "component": "custom-content-edit"
       },
       "pages/chinese-input": {
         "component": "chinese-input"
@@ -130,6 +136,15 @@
       },
       "pages/storage-viewer": {
         "component": "storage-viewer"
+      },
+      "pages/countdown-demo": {
+        "component": "countdown-demo"
+      },
+      "pages/week-overview-demo": {
+        "component": "week-overview-demo"
+      },
+      "pages/donate": {
+        "component": "donate"
       }
     }
   }

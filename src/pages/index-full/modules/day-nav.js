@@ -11,8 +11,8 @@ function getRealTodayIndex() {
 
 function init(instance) {
   console.log("[day-nav] init called")
-  instance._dayNames = fullDayNames
-  instance._hideWeekend = false
+  instance.dayNavNames = fullDayNames
+  instance.hideWeekend = false
 
   var todayIdx = getRealTodayIndex()
   instance.currentDay = fullDayNames[todayIdx]
@@ -20,7 +20,7 @@ function init(instance) {
 
   instance.prevDay = function() {
     var self = instance
-    var names = self._dayNames || fullDayNames
+    var names = self.dayNavNames || fullDayNames
     if (self.currentDayIndex > 0) {
       self.currentDayIndex--
     } else {
@@ -33,7 +33,7 @@ function init(instance) {
 
   instance.nextDay = function() {
     var self = instance
-    var names = self._dayNames || fullDayNames
+    var names = self.dayNavNames || fullDayNames
     if (self.currentDayIndex < names.length - 1) {
       self.currentDayIndex++
     } else {
@@ -46,11 +46,11 @@ function init(instance) {
 
   instance.goToToday = function() {
     var self = instance
-    var names = self._dayNames || fullDayNames
+    var names = self.dayNavNames || fullDayNames
     var todayIdx = getRealTodayIndex()
-    if (self._hideWeekend && (todayIdx === 0 || todayIdx === 6)) {
+    if (self.hideWeekend && (todayIdx === 0 || todayIdx === 6)) {
       todayIdx = 0
-    } else if (self._hideWeekend) {
+    } else if (self.hideWeekend) {
       todayIdx = todayIdx - 1
     }
     if (self.currentDayIndex === todayIdx) return
@@ -63,8 +63,8 @@ function init(instance) {
   instance.updateHideWeekend = function() {
     var self = instance
     store.getHideWeekend(function(hide) {
-      self._hideWeekend = hide
-      self._dayNames = hide ? weekdayNames : fullDayNames
+      self.hideWeekend = hide
+      self.dayNavNames = hide ? weekdayNames : fullDayNames
       var todayIdx = getRealTodayIndex()
       if (hide && (todayIdx === 0 || todayIdx === 6)) {
         todayIdx = 0
@@ -73,7 +73,7 @@ function init(instance) {
       }
       if (self.currentDayIndex !== todayIdx) {
         self.currentDayIndex = todayIdx
-        self.currentDay = self._dayNames[todayIdx]
+        self.currentDay = self.dayNavNames[todayIdx]
         if (self.loadDayClasses) self.loadDayClasses()
         if (self.updateStatus) self.updateStatus()
       }

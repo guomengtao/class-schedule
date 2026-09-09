@@ -107,7 +107,7 @@
         </div>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="input-row" onclick="showContentKeyboard">
+      <div class="input-row" onclick="openCustomContentEdit">
         <text class="input-text" style="color: {{ customContent && showCustomContent ? theme.text : theme.textMuted }}">{{ customContent || '点击输入自定义文字...' }}</text>
         <text class="input-arrow" style="color: {{ theme.textMuted }}">></text>
       </div>
@@ -221,9 +221,13 @@ export default {
           self.customContent = data
           self.showCustomContent = true
           self.saveSettings()
-          storage.delete({ key: "chinese_input_result" })
+          storage.delete({
+            key: "chinese_input_result",
+            fail: function() {}
+          })
         }
-      }
+      },
+      fail: function() {}
     })
   },
   loadSettings() {
@@ -324,6 +328,10 @@ export default {
     this.showDayNavMing = !this.showDayNavMing
     this.saveSettings()
   },
+  openCustomContentEdit() {
+    router.push({ uri: "/pages/custom-content-edit" })
+  },
+
   showContentKeyboard() {
     var self = this
     var storage = require("@system.storage")

@@ -72,9 +72,13 @@ export default {
       success: function(data) {
         if (data !== undefined && data !== null) {
           self.currentName = data
-          storage.delete({ key: "chinese_input_result" })
+          storage.delete({
+            key: "chinese_input_result",
+            fail: function() {}
+          })
         }
-      }
+      },
+      fail: function() {}
     })
   },
 

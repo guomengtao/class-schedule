@@ -154,25 +154,30 @@ export default {
 
     storage.get({
       key: "chinese_input_title",
-      success: function(data) { if (data) self.title = data }
+      success: function(data) { if (data) self.title = data },
+      fail: function() {}
     })
     storage.get({
       key: "chinese_input_placeholder",
-      success: function(data) { if (data) self.placeholder = data }
+      success: function(data) { if (data) self.placeholder = data },
+      fail: function() {}
     })
     storage.get({
       key: "chinese_input_value",
       success: function(data) {
         if (data !== undefined && data !== null) self.inputValue = data
-      }
+      },
+      fail: function() {}
     })
     storage.get({
       key: "chinese_input_maxlen",
-      success: function(data) { if (data) self.maxlen = parseInt(data) || 5 }
+      success: function(data) { if (data) self.maxlen = parseInt(data) || 5 },
+      fail: function() {}
     })
     storage.get({
       key: "chinese_input_return_key",
-      success: function(data) { if (data) self.returnKey = data }
+      success: function(data) { if (data) self.returnKey = data },
+      fail: function() {}
     })
   },
 

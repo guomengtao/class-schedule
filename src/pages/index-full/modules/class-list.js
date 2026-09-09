@@ -16,7 +16,7 @@ function parseTime(timeStr) {
 function init(instance) {
   instance.currentClasses = []
   instance.currentScheduleName = "课程表1"
-  instance._progressTimer = null
+  instance.progressTimer = null
 
   store.getCurrentScheduleIndex(function(idx) {
     store.getScheduleNames(function(names) {
@@ -39,6 +39,8 @@ function init(instance) {
     }
     var rawClasses = dayData ? dayData.classes : []
     var classes = []
+    var currentFontSize = self.displaySize
+    var currentMetaFontSize = self.metaFontSize
     for (var j = 0; j < rawClasses.length; j++) {
       var src = rawClasses[j]
       classes.push({
@@ -48,7 +50,9 @@ function init(instance) {
         teacher: src.teacher || "",
         location: src.location || "",
         progress: 0,
-        progressColor: "transparent"
+        progressColor: "transparent",
+        fontSize: currentFontSize,
+        metaFontSize: currentMetaFontSize
       })
     }
     classes.sort(function(a, b) {
@@ -101,16 +105,16 @@ function init(instance) {
   }
 
   instance.startProgressTimer = function() {
-    if (instance._progressTimer) clearInterval(instance._progressTimer)
-    instance._progressTimer = setInterval(function() {
+    if (instance.progressTimer) clearInterval(instance.progressTimer)
+    instance.progressTimer = setInterval(function() {
       instance.updateClassProgress()
     }, 60000)
   }
 
   instance.stopProgressTimer = function() {
-    if (instance._progressTimer) {
-      clearInterval(instance._progressTimer)
-      instance._progressTimer = null
+    if (instance.progressTimer) {
+      clearInterval(instance.progressTimer)
+      instance.progressTimer = null
     }
   }
 

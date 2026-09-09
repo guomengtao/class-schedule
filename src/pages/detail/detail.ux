@@ -277,16 +277,24 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-    this.loadCoursesWithData()
 
+    self._locationChanged = false
     var storage = require("@system.storage")
     storage.get({
       key: "chinese_input_result",
       success: function(data) {
         if (data !== undefined && data !== null && data !== "") {
           self.courseLocation = data
-          storage.delete({ key: "chinese_input_result" })
+          self._locationChanged = true
+          storage.delete({
+            key: "chinese_input_result",
+            fail: function() {}
+          })
         }
+        self.loadCoursesWithData()
+      },
+      fail: function() {
+        self.loadCoursesWithData()
       }
     })
   },
@@ -361,7 +369,9 @@ export default {
             var c = classes[i]
             self.courseName = c.name || ""
             self.courseTime = c.time || ""
-            self.courseLocation = c.location || ""
+            if (!self._locationChanged) {
+              self.courseLocation = c.location || ""
+            }
             self.courseTeacher = c.teacher || ""
 
             var tp = parseTimeParts(c.time)
@@ -381,7 +391,8 @@ export default {
               self.courseIndex = foundIndex
             } else {
               self.courseIndex = 0
-              self.courseName = c.name
+              self.courseName = self.presetCourses[0].name
+              self.courseTeacher = self.presetCourses[0].teacher
             }
             found = true
             break

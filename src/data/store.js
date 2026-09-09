@@ -1,6 +1,8 @@
 var storage = require("@system.storage")
 var authStore = require("./auth-store")
 
+var _cache = {}
+
 var DEFAULT_NAMES = ["课程表1"]
 
 var DEFAULT_NICKNAMES = [
@@ -241,31 +243,47 @@ module.exports = {
   THEMES: THEMES,
 
   getTheme: function(callback) {
+    if (_cache.theme) {
+      callback(_cache.theme, _cache.themeName)
+      return
+    }
     storage.get({
       key: "appTheme",
       success: function(data) {
         var name = data || 'blue'
-        callback(THEMES[name] || THEMES.blue, name)
+        _cache.theme = THEMES[name] || THEMES.blue
+        _cache.themeName = name
+        callback(_cache.theme, name)
       },
       fail: function() {
+        _cache.theme = THEMES.blue
+        _cache.themeName = 'blue'
         callback(THEMES.blue, 'blue')
       }
     })
   },
 
   getThemeName: function(callback) {
+    if (_cache.themeName) {
+      callback(_cache.themeName)
+      return
+    }
     storage.get({
       key: "appTheme",
       success: function(data) {
-        callback(data || 'blue')
+        _cache.themeName = data || 'blue'
+        callback(_cache.themeName)
       },
       fail: function() {
+        _cache.themeName = 'blue'
         callback('blue')
       }
     })
   },
 
   setTheme: function(name, callback) {
+    delete _cache.theme
+    delete _cache.themeName
     storage.set({
       key: "appTheme",
       value: name || 'blue',
@@ -309,33 +327,52 @@ module.exports = {
   },
 
   setBaseFontSize: function(size, callback) {
+    console.log("[store] setBaseFontSize: " + size)
+    _cache.baseFontSize = size
+    delete _cache.fontSizes
     storage.set({
       key: "baseFontSize",
       value: String(size),
-      success: function() { if (callback) callback() },
-      fail: function() { if (callback) callback() }
+      success: function() { console.log("[store] setBaseFontSize: saved"); if (callback) callback() },
+      fail: function() { console.log("[store] setBaseFontSize: save failed"); if (callback) callback() }
     })
   },
 
   getBaseFontSize: function(callback) {
+    if (_cache.baseFontSize !== undefined) {
+      console.log("[store] getBaseFontSize: from cache = " + _cache.baseFontSize)
+      callback(_cache.baseFontSize)
+      return
+    }
+    console.log("[store] getBaseFontSize: reading from storage")
     storage.get({
       key: "baseFontSize",
       success: function(data) {
         var size = parseInt(data) || 48
-        if (size < 28) size = 28
+        if (size < 20) size = 20
         if (size > 76) size = 76
+        _cache.baseFontSize = size
+        console.log("[store] getBaseFontSize: from storage = " + size)
         callback(size)
       },
-      fail: function() { callback(48) }
+      fail: function() {
+        _cache.baseFontSize = 48
+        console.log("[store] getBaseFontSize: storage failed, default 48")
+        callback(48)
+      }
     })
   },
 
   getFontSizes: function(callback) {
+    if (_cache.fontSizes) {
+      callback(_cache.fontSizes)
+      return
+    }
     this.getBaseFontSize(function(size) {
       var r = size / 48
       if (r < 0.5) r = 0.583
       if (r > 2.0) r = 1.583
-      callback({
+      var sizes = {
         courseName:   Math.round(28 * r),
         courseTime:   Math.round(24 * r),
         dayTitle:     Math.round(36 * r),
@@ -352,7 +389,9 @@ module.exports = {
         pinyin:       Math.round(14 * r),
         key:          Math.round(15 * r),
         preview:      Math.round(28 * r)
-      })
+      }
+      _cache.fontSizes = sizes
+      callback(sizes)
     })
   },
 
@@ -615,6 +654,10 @@ module.exports = {
   },
 
   getHomepageSettings: function(callback) {
+    if (_cache.homepageSettings) {
+      callback(_cache.homepageSettings)
+      return
+    }
     var defaultSettings = {
       showQuickAdd: true,
       showCustomContent: true,
@@ -633,21 +676,27 @@ module.exports = {
       success: function(data) {
         if (data) {
           try {
-            callback(JSON.parse(data))
+            var settings = JSON.parse(data)
+            _cache.homepageSettings = settings
+            callback(settings)
           } catch (e) {
+            _cache.homepageSettings = defaultSettings
             callback(defaultSettings)
           }
         } else {
+          _cache.homepageSettings = defaultSettings
           callback(defaultSettings)
         }
       },
       fail: function() {
+        _cache.homepageSettings = defaultSettings
         callback(defaultSettings)
       }
     })
   },
 
   setHomepageSettings: function(settings, callback) {
+    delete _cache.homepageSettings
     storage.set({
       key: "homepage_settings",
       value: JSON.stringify(settings),
@@ -755,6 +804,47 @@ module.exports = {
     storage.set({
       key: "hideWeekend",
       value: hide ? "true" : "false",
+      success: function() { if (callback) callback() },
+      fail: function() { if (callback) callback() }
+    })
+  },
+
+  getDefaultHomepage: function(callback) {
+    if (_cache.defaultHomepage) {
+      callback(_cache.defaultHomepage)
+      return
+    }
+    storage.get({
+      key: "defaultHomepage",
+      success: function(data) {
+        if (data) {
+          try {
+            var settings = JSON.parse(data)
+            if (!settings.targetPage) settings.targetPage = "index-full"
+            if (settings.autoSeconds === undefined) settings.autoSeconds = 3
+            _cache.defaultHomepage = settings
+            callback(settings)
+          } catch (e) {
+            _cache.defaultHomepage = { targetPage: "index-full", autoSeconds: 3 }
+            callback({ targetPage: "index-full", autoSeconds: 3 })
+          }
+        } else {
+          _cache.defaultHomepage = { targetPage: "index-full", autoSeconds: 3 }
+          callback({ targetPage: "index-full", autoSeconds: 3 })
+        }
+      },
+      fail: function() {
+        _cache.defaultHomepage = { targetPage: "index-full", autoSeconds: 3 }
+        callback({ targetPage: "index-full", autoSeconds: 3 })
+      }
+    })
+  },
+
+  setDefaultHomepage: function(settings, callback) {
+    delete _cache.defaultHomepage
+    storage.set({
+      key: "defaultHomepage",
+      value: JSON.stringify(settings),
       success: function() { if (callback) callback() },
       fail: function() { if (callback) callback() }
     })

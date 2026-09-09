@@ -55,10 +55,10 @@
         <div class="progress-bg" if="{{ isToday }}" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
         <div class="class-card-accent" style="background-color: {{ theme.accent }}"></div>
         <div class="class-card-body">
-          <text class="grid-item-name" style="color: {{ theme.text }}; font-size: {{ displaySize }}px">{{ $item.name }}</text>
+          <text class="grid-item-name" style="color: {{ theme.text }}; font-size: {{ $item.fontSize }}px">{{ $item.name }}</text>
           <div class="class-card-meta">
-            <text class="grid-item-time" style="color: {{ theme.accent }}; font-size: {{ metaFontSize }}px">{{ $item.time }}</text>
-            <text class="grid-item-location" if="{{ $item.location }}" style="color: {{ theme.textMuted }}; font-size: {{ metaFontSize }}px">{{ $item.location }}</text>
+            <text class="grid-item-time" style="color: {{ theme.accent }}; font-size: {{ $item.metaFontSize }}px">{{ $item.time }}</text>
+            <text class="grid-item-location" if="{{ $item.location }}" style="color: {{ theme.textMuted }}; font-size: {{ $item.metaFontSize }}px">{{ $item.location }}</text>
           </div>
         </div>
       </div>
@@ -146,7 +146,7 @@ export default {
     showTime: true,
     showQuickAdd: true,
     showStatusBar: true,
-    _statusBarSetting: true,
+    statusBarSetting: true,
     showPinnedBar: true,
     showDayNavZong: true,
     showDayNavJin: true,
@@ -157,9 +157,9 @@ export default {
     currentClasses: [],
     schedule: [],
     isToday: true,
-    displaySize: 28,
-    metaFontSize: 24,
-    dayTitleSize: 28,
+    displaySize: 48,
+    metaFontSize: 34,
+    dayTitleSize: 48,
     quickAdd: {
       expanded: false,
       courseNames: [],
@@ -185,7 +185,7 @@ export default {
   onInit() {
     console.log("[index] onInit start")
     var self = this
-    self._initialized = false
+    self.initialized = false
     self.isLoading = true
     store.getTheme(function(t) {
       self.theme = t
@@ -198,19 +198,21 @@ export default {
         self.schedule = schedule
         console.log("[index] data loaded, " + schedule.length + " days")
         self.initAllModules()
-        self._initialized = true
+        self.initialized = true
         self.isLoading = false
       })
     })
   },
 
   onShow() {
-    if (this._initialized) return
-
     var self = this
+    if (!self.initialized) return
     store.getTheme(function(t) { self.theme = t })
     self.loadHomepageSettings()
     self.loadFontScale()
+    if (modules.customContent && modules.customContent.refresh) {
+      modules.customContent.refresh(self)
+    }
     if (self.loadPinnedPages && typeof self.loadPinnedPages === 'function') {
       self.loadPinnedPages()
     }
@@ -245,21 +247,29 @@ export default {
       })
     })
 
-    this.$forceUpdate()
+    try { this.$forceUpdate() } catch (e) {}
   },
 
   onDestroy() {
     if (this.stopClockTimer && typeof this.stopClockTimer === 'function') this.stopClockTimer()
     if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
     if (this.stopProgressTimer && typeof this.stopProgressTimer === 'function') this.stopProgressTimer()
+    if (modules.customContent && modules.customContent.destroy) {
+      modules.customContent.destroy()
+    }
   },
 
   loadFontScale() {
     var self = this
-    store.getFontSizes(function(sizes) {
-      self.displaySize = sizes.courseName
-      self.metaFontSize = sizes.courseTime
-      self.dayTitleSize = sizes.courseName
+    store.getBaseFontSize(function(size) {
+      console.log("[index-full] loadFontScale: baseFontSize=" + size)
+      self.displaySize = size
+      self.metaFontSize = Math.round(size * 0.71)
+      self.dayTitleSize = size
+      if (self.refreshClasses && typeof self.refreshClasses === 'function') {
+        self.refreshClasses()
+      }
+      try { self.$forceUpdate() } catch (e) { console.error("[index-full] $forceUpdate error: " + e) }
     })
   },
 
@@ -268,7 +278,7 @@ export default {
     store.getHomepageSettings(function(settings) {
       self.showTime = settings.showTime !== false
       self.showQuickAdd = settings.showQuickAdd !== false
-      self._statusBarSetting = settings.showStatusBar !== false
+      self.statusBarSetting = settings.showStatusBar !== false
       self.showPinnedBar = settings.showPinnedBar !== false
       self.showDayNavZong = settings.showDayNavZong !== false
       self.showDayNavJin = settings.showDayNavJin !== false

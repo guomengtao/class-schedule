@@ -14,7 +14,7 @@ function init(instance) {
   instance.statusTag = "暂无"
   instance.statusMainText = "今日无课程安排"
   instance.statusTimeText = ""
-  instance._statusTimer = null
+  instance.statusTimer = null
 
   instance.updateStatus = function() {
     var self = instance
@@ -71,12 +71,12 @@ function init(instance) {
       self.statusTag = "上课中"
       self.statusMainText = current.name
       self.statusTimeText = Math.ceil(current.endMin - nowMinutes) + "min"
-      self.showStatusBar = (self._statusBarSetting !== false)
+      self.showStatusBar = (self.statusBarSetting !== false)
     } else if (next) {
       self.statusTag = "即将上课"
       self.statusMainText = next.name
       self.statusTimeText = Math.ceil(next.startMin - nowMinutes) + "min后"
-      self.showStatusBar = (self._statusBarSetting !== false)
+      self.showStatusBar = (self.statusBarSetting !== false)
     } else {
       self.showStatusBar = false
     }
@@ -86,15 +86,15 @@ function init(instance) {
     var self = instance
     self.stopStatusTimer()
     self.updateStatus()
-    self._statusTimer = setInterval(function() {
+    self.statusTimer = setInterval(function() {
       self.updateStatus()
     }, 60000)
   }
 
   instance.stopStatusTimer = function() {
-    if (instance._statusTimer) {
-      clearInterval(instance._statusTimer)
-      instance._statusTimer = null
+    if (instance.statusTimer) {
+      clearInterval(instance.statusTimer)
+      instance.statusTimer = null
     }
   }
 

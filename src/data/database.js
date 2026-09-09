@@ -6,6 +6,10 @@ var ready = false
 var pendingCallbacks = []
 var currentScheduleIndex = 0
 
+var _cache = {}
+var _cacheDirty = {}
+var _migrationDone = false
+
 function log(msg) {
   console.log("[DB] " + msg)
 }
@@ -19,6 +23,27 @@ function formatError(operation, detail) {
 }
 
 function migrateOldData(callback) {
+  if (_migrationDone) {
+    callback()
+    return
+  }
+  storage.get({
+    key: "migration_v2_done",
+    success: function(done) {
+      if (done === "1") {
+        _migrationDone = true
+        callback()
+        return
+      }
+      _doMigrate(callback)
+    },
+    fail: function() {
+      _doMigrate(callback)
+    }
+  })
+}
+
+function _doMigrate(callback) {
   var targetKey = STORAGE_KEY + "_0"
   storage.get({
     key: STORAGE_KEY,
@@ -31,26 +56,36 @@ function migrateOldData(callback) {
               storage.set({
                 key: targetKey,
                 value: val,
-                success: function() { callback() },
-                fail: function() { callback() }
+                success: function() { _markMigrationDone(callback) },
+                fail: function() { _markMigrationDone(callback) }
               })
             } else {
-              callback()
+              _markMigrationDone(callback)
             }
           },
           fail: function() {
             storage.set({
               key: targetKey,
               value: val,
-              success: function() { callback() },
-              fail: function() { callback() }
+              success: function() { _markMigrationDone(callback) },
+              fail: function() { _markMigrationDone(callback) }
             })
           }
         })
       } else {
-        callback()
+        _markMigrationDone(callback)
       }
     },
+    fail: function() { _markMigrationDone(callback) }
+  })
+}
+
+function _markMigrationDone(callback) {
+  _migrationDone = true
+  storage.set({
+    key: "migration_v2_done",
+    value: "1",
+    success: function() { callback() },
     fail: function() { callback() }
   })
 }
@@ -83,8 +118,10 @@ function flushCallbacks() {
 function initStorage(callback) {
   log("initStorage: starting")
   loadScheduleIndex(function() {
+    log("initStorage: loadScheduleIndex done, calling migrateOldData")
     migrateOldData(function() {
       ready = true
+      log("initStorage: migrateOldData done, database ready, flushing " + pendingCallbacks.length + " pending callbacks")
       flushCallbacks()
       if (callback) callback()
     })
@@ -101,7 +138,22 @@ function ensureReady(callback) {
   initStorage()
 }
 
+function invalidateCache(index) {
+  if (index !== undefined) {
+    delete _cache[index]
+    _cacheDirty[index] = true
+  } else {
+    _cache = {}
+    _cacheDirty = {}
+  }
+}
+
 function getAllCoursesStorageWithIndex(index, callback) {
+  if (!_cacheDirty[index] && _cache[index] !== undefined) {
+    log("getAllCoursesStorageWithIndex: cache hit, index=" + index)
+    callback(_cache[index])
+    return
+  }
   var key = STORAGE_KEY + "_" + index
   log("getAllCoursesStorageWithIndex, key=" + key)
   storage.get({
@@ -111,17 +163,25 @@ function getAllCoursesStorageWithIndex(index, callback) {
       if (val) {
         try {
           var data = JSON.parse(val)
+          _cache[index] = data
+          _cacheDirty[index] = false
           callback(data)
         } catch (e) {
           logErr("getAllCoursesStorageWithIndex parse failed: " + e)
+          _cache[index] = []
+          _cacheDirty[index] = false
           callback([])
         }
       } else {
         if (index === 0) {
           var seed = JSON.parse(JSON.stringify(scheduleData.schedule))
           saveToStorageWithIndex(0, seed)
+          _cache[index] = seed
+          _cacheDirty[index] = false
           callback(seed)
         } else {
+          _cache[index] = []
+          _cacheDirty[index] = false
           callback([])
         }
       }
@@ -131,8 +191,12 @@ function getAllCoursesStorageWithIndex(index, callback) {
       if (index === 0) {
         var seed = JSON.parse(JSON.stringify(scheduleData.schedule))
         saveToStorageWithIndex(0, seed)
+        _cache[index] = seed
+        _cacheDirty[index] = false
         callback(seed)
       } else {
+        _cache[index] = []
+        _cacheDirty[index] = false
         callback([])
       }
     }
@@ -415,6 +479,7 @@ module.exports = {
 
   insertCourse: function(course, callback) {
     log("insertCourse called: " + JSON.stringify(course))
+    invalidateCache(currentScheduleIndex)
     ensureReady(function() {
       insertCourseStorage(course, callback)
     })
@@ -422,6 +487,7 @@ module.exports = {
 
   updateCourse: function(course, callback) {
     log("updateCourse called: " + JSON.stringify(course))
+    invalidateCache(currentScheduleIndex)
     ensureReady(function() {
       updateCourseStorage(course, callback)
     })
@@ -429,6 +495,7 @@ module.exports = {
 
   deleteCourse: function(id, day, callback) {
     log("deleteCourse called: " + id + " " + day)
+    invalidateCache(currentScheduleIndex)
     ensureReady(function() {
       deleteCourseStorage(id, day, callback)
     })

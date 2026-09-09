@@ -114,9 +114,13 @@ export default {
           } else if (self.isAdding) {
             self.doAddCourse(data)
           }
-          storage.delete({ key: "chinese_input_result" })
+          storage.delete({
+            key: "chinese_input_result",
+            fail: function() {}
+          })
         }
-      }
+      },
+      fail: function() {}
     })
   },
 

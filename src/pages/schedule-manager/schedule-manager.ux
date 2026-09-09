@@ -143,9 +143,13 @@ export default {
       success: function(data) {
         if (data !== undefined && data !== null && data !== "") {
           self.editName = data
-          storage.delete({ key: "chinese_input_result" })
+          storage.delete({
+            key: "chinese_input_result",
+            fail: function() {}
+          })
         }
-      }
+      },
+      fail: function() {}
     })
 
     this.loadData()

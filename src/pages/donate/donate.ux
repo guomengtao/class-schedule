@@ -1,0 +1,368 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">打赏支持</text>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab-item {{ currentTab === 0 ? 'active' : '' }}" onclick="switchTab(0)" style="background-color: {{ currentTab === 0 ? '#07C160' : theme.card }}">
+        <text class="tab-text" style="color: {{ currentTab === 0 ? '#ffffff' : theme.textSecondary }}">微信</text>
+      </div>
+      <div class="tab-item {{ currentTab === 1 ? 'active' : '' }}" onclick="switchTab(1)" style="background-color: {{ currentTab === 1 ? '#1677FF' : theme.card }}">
+        <text class="tab-text" style="color: {{ currentTab === 1 ? '#ffffff' : theme.textSecondary }}">支付宝</text>
+      </div>
+      <div class="tab-item {{ currentTab === 2 ? 'active' : '' }}" onclick="switchTab(2)" style="background-color: {{ currentTab === 2 ? '#FF6B35' : theme.card }}">
+        <text class="tab-text" style="color: {{ currentTab === 2 ? '#ffffff' : theme.textSecondary }}">爱发电</text>
+      </div>
+    </div>
+
+    <div class="qr-section">
+      <div class="qr-card" style="background-color: {{ theme.card }}">
+        <text class="platform-name" style="color: {{ platformColor }}">{{ platformName }}</text>
+        <text class="platform-desc" style="color: {{ theme.textSecondary }}">{{ platformDesc }}</text>
+
+        <div class="qr-wrapper">
+          <qrcode value="{{ qrText }}" style="color: #000000; background-color: #ffffff; width: {{ qrSize }}px; height: {{ qrSize }}px;"></qrcode>
+        </div>
+
+        <text class="scan-hint" style="color: {{ theme.textMuted }}">请用手机扫码 {{ platformName }}</text>
+        <text class="scan-sub-hint" style="color: {{ theme.textMuted }}">如扫码困难，请靠近屏幕</text>
+      </div>
+    </div>
+
+    <div class="thanks-section">
+      <text class="thanks-icon">❤️</text>
+      <text class="thanks-text" style="color: {{ theme.textSecondary }}">感谢您的支持，每一份打赏都是对开发者的鼓励</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import device from "@system.device"
+const store = require("../../data/store.js")
+
+var WECHAT_URL = "wxp://f2f0i7FYfQ5xBhxQtXDwsQpkyGZLB7UsjrRjsrXn02Qx8NQHjn8WlZEnozT2BURX_JRy"
+var ALIPAY_URL = "https://qr.alipay.com/fkx11582syvbdeymczggr3c"
+var AFDIAN_URL = "https://ifdian.net/a/peipeijin/plan"
+
+var PLATFORMS = [
+  { name: "微信", desc: "微信扫一扫，向我付款", color: "#07C160" },
+  { name: "支付宝", desc: "支付宝扫一扫，向我转账", color: "#1677FF" },
+  { name: "爱发电", desc: "浏览器扫码，访问我的主页", color: "#FF6B35" }
+]
+
+var QR_TEXTS = [WECHAT_URL, ALIPAY_URL, AFDIAN_URL]
+
+export default {
+  private: {
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a',
+      keyBg: '#1a1a3e',
+      keyBorder: '#2a2a5a',
+      btnSecondary: '#333355',
+      btnSecondaryText: '#a0a0b0',
+      deleteBg: '#2a1a3e',
+      deleteText: '#e08080',
+      icon: '🔵',
+      progressOngoing: 'rgba(126,200,227,0.2)',
+      progressDone: 'rgba(74,138,154,0.25)'
+    },
+    currentTab: 0,
+    qrText: WECHAT_URL,
+    qrSize: 180,
+    platformName: "微信",
+    platformDesc: "微信扫一扫，向我付款",
+    platformColor: "#07C160"
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    device.getInfo({
+      success: function(data) {
+        var shape = data.screenShape || "circle"
+        if (shape === "rect") {
+          self.qrSize = 140
+        } else if (shape === "capsule") {
+          self.qrSize = 130
+        } else {
+          self.qrSize = 180
+        }
+      },
+      fail: function() {
+        self.qrSize = 180
+      }
+    })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+  },
+
+  switchTab(index) {
+    this.currentTab = index
+    this.qrText = QR_TEXTS[index]
+    this.platformName = PLATFORMS[index].name
+    this.platformDesc = PLATFORMS[index].desc
+    this.platformColor = PLATFORMS[index].color
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 8px 8px 8px;
+  min-height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.tab-bar {
+  flex-direction: row;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tab-item {
+  flex: 1;
+  height: 40px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 12px;
+  margin: 0 3px;
+}
+
+.tab-item.active {
+  transform: scale(1.05);
+}
+
+.tab-text {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.qr-section {
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.qr-card {
+  flex-direction: column;
+  align-items: center;
+  border-radius: 16px;
+  padding: 16px;
+  width: 100%;
+}
+
+.platform-name {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.platform-desc {
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.qr-wrapper {
+  padding: 10px;
+  background-color: #ffffff;
+  border-radius: 14px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.scan-hint {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.scan-sub-hint {
+  font-size: 11px;
+}
+
+.thanks-section {
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0 8px 0;
+}
+
+.thanks-icon {
+  font-size: 24px;
+  margin-bottom: 6px;
+}
+
+.thanks-text {
+  font-size: 13px;
+  text-align: center;
+  line-height: 18px;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+  .qr-card {
+    padding: 12px;
+  }
+}
+
+@media (shape: capsule) {
+  .page {
+    padding: 44px 6px 6px 6px;
+  }
+  .header {
+    margin-bottom: 4px;
+  }
+  .title {
+    font-size: 15px;
+  }
+  .back-btn {
+    width: 60px;
+    height: 30px;
+    font-size: 12px;
+  }
+  .tab-bar {
+    margin-bottom: 6px;
+  }
+  .tab-item {
+    height: 30px;
+    margin: 0 2px;
+  }
+  .tab-text {
+    font-size: 12px;
+  }
+  .qr-card {
+    padding: 8px;
+  }
+  .platform-name {
+    font-size: 16px;
+    margin-bottom: 2px;
+  }
+  .platform-desc {
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+  .qr-wrapper {
+    padding: 6px;
+    margin-bottom: 6px;
+  }
+  .scan-hint {
+    font-size: 11px;
+  }
+  .scan-sub-hint {
+    font-size: 10px;
+  }
+  .thanks-section {
+    padding: 6px 0 4px 0;
+  }
+  .thanks-icon {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+  .thanks-text {
+    font-size: 11px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 4px 4px 4px;
+  }
+  .header {
+    margin-bottom: 4px;
+  }
+  .title {
+    font-size: 15px;
+  }
+  .back-btn {
+    width: 60px;
+    height: 30px;
+    font-size: 12px;
+  }
+  .tab-bar {
+    margin-bottom: 6px;
+  }
+  .tab-item {
+    height: 30px;
+    margin: 0 2px;
+  }
+  .tab-text {
+    font-size: 12px;
+  }
+  .qr-card {
+    padding: 8px;
+  }
+  .platform-name {
+    font-size: 16px;
+    margin-bottom: 2px;
+  }
+  .platform-desc {
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+  .qr-wrapper {
+    padding: 6px;
+    margin-bottom: 6px;
+  }
+  .scan-hint {
+    font-size: 11px;
+  }
+  .scan-sub-hint {
+    font-size: 10px;
+  }
+  .thanks-section {
+    padding: 6px 0 4px 0;
+  }
+  .thanks-icon {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+  .thanks-text {
+    font-size: 11px;
+  }
+}
+</style>

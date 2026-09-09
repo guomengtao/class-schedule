@@ -1,0 +1,165 @@
+<template>
+  <import name="input-method" src="../../components/InputMethod"></import>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">输入键盘</text>
+    </div>
+
+    <div class="display-area" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+      <text class="display-text" style="color: {{ theme.text }}">{{ inputText || '点击输入文字' }}</text>
+    </div>
+
+    <input-method
+      id="keyboard"
+      hide="{{ hideKeyboard }}"
+      maxlength="{{ 20 }}"
+      screentype="{{ screenType }}"
+      oncomplete="onInputComplete"
+      ondelete="onInputDelete">
+    </input-method>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import device from "@system.device"
+const store = require("../../data/store.js")
+
+export default {
+  private: {
+    inputText: "",
+    screenType: "circle",
+    hideKeyboard: true,
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a',
+      keyBg: '#1a1a3e',
+      keyBorder: '#2a2a5a',
+      btnSecondary: '#333355',
+      btnSecondaryText: '#a0a0b0',
+      deleteBg: '#2a1a3e',
+      deleteText: '#e08080',
+      icon: '🔵',
+      progressOngoing: 'rgba(126,200,227,0.2)',
+      progressDone: 'rgba(74,138,154,0.25)'
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    device.getInfo({
+      success: function(data) {
+        self.screenType = data.screenShape || "circle"
+        self.showKeyboard()
+      },
+      fail: function() {
+        self.showKeyboard()
+      }
+    })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+  },
+
+  showKeyboard() {
+    this.hideKeyboard = false
+  },
+
+  onInputComplete(e) {
+    if (e && e.detail && e.detail.content) {
+      this.inputText += e.detail.content
+    }
+  },
+
+  onInputDelete() {
+    this.inputText = this.inputText.slice(0, -1)
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  padding: 44px 8px 8px 8px;
+}
+
+.back-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.display-area {
+  flex-direction: row;
+  align-items: center;
+  border-radius: 10px;
+  border-width: 2px;
+  padding: 8px 12px;
+  margin: 0 8px 8px 8px;
+  min-height: 40px;
+}
+
+.display-text {
+  font-size: 18px;
+  flex: 1;
+}
+
+@media (shape: circle) {
+  .header {
+    padding: 44px 36px 8px 36px;
+  }
+  .display-area {
+    margin: 0 36px 8px 36px;
+  }
+}
+
+@media (shape: capsule) {
+  .header {
+    padding: 44px 8px 8px 8px;
+  }
+}
+
+@media (shape: rect) {
+  .header {
+    padding: 44px 6px 8px 6px;
+  }
+  .display-area {
+    margin: 0 6px 8px 6px;
+  }
+}
+</style>

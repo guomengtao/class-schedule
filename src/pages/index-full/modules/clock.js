@@ -2,21 +2,21 @@ console.log("[clock] loading...")
 
 function init(instance) {
   instance.currentTime = ""
-  instance._clockTimer = null
+  instance.clockTimer = null
 
   instance.startClockTimer = function() {
     var self = instance
     self.stopClockTimer()
-    self._clockTimer = setInterval(function() {
+    self.clockTimer = setInterval(function() {
       self.updateClock()
     }, 1000)
     self.updateClock()
   }
 
   instance.stopClockTimer = function() {
-    if (instance._clockTimer) {
-      clearInterval(instance._clockTimer)
-      instance._clockTimer = null
+    if (instance.clockTimer) {
+      clearInterval(instance.clockTimer)
+      instance.clockTimer = null
     }
   }
 

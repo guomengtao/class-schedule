@@ -8,7 +8,7 @@
 
     <div class="group" style="background-color: {{ theme.card }}">
       <div class="row" onclick="openNicknameEdit">
-        <text class="row-label" style="color: {{ theme.text }}">昵称</text>
+        <text class="row-label" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">昵称</text>
         <div class="row-right">
           <text class="row-value" if="{{ nickname }}" style="color: {{ theme.accent }}">{{ nickname }}</text>
           <text class="row-hint" if="{{ !nickname }}" style="color: {{ theme.textMuted }}">点击设置</text>
@@ -42,6 +42,7 @@
           <input class="scale-btn" type="button" value="+" onclick="increaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
         </div>
         <div class="quick-row">
+          <input class="quick-btn {{ displaySize === 20 ? 'active' : '' }}" type="button" value="20" onclick="set20" style="background-color: {{ displaySize === 20 ? theme.accent : theme.border }}; color: {{ displaySize === 20 ? theme.bg : theme.textSecondary }}" />
           <input class="quick-btn {{ displaySize === 28 ? 'active' : '' }}" type="button" value="28" onclick="set28" style="background-color: {{ displaySize === 28 ? theme.accent : theme.border }}; color: {{ displaySize === 28 ? theme.bg : theme.textSecondary }}" />
           <input class="quick-btn {{ displaySize === 36 ? 'active' : '' }}" type="button" value="36" onclick="set36" style="background-color: {{ displaySize === 36 ? theme.accent : theme.border }}; color: {{ displaySize === 36 ? theme.bg : theme.textSecondary }}" />
           <input class="quick-btn {{ displaySize === 48 ? 'active' : '' }}" type="button" value="48" onclick="set48" style="background-color: {{ displaySize === 48 ? theme.accent : theme.border }}; color: {{ displaySize === 48 ? theme.bg : theme.textSecondary }}" />
@@ -49,7 +50,43 @@
           <input class="quick-btn {{ displaySize === 76 ? 'active' : '' }}" type="button" value="76" onclick="set76" style="background-color: {{ displaySize === 76 ? theme.accent : theme.border }}; color: {{ displaySize === 76 ? theme.bg : theme.textSecondary }}" />
         </div>
         <div class="preview-box" style="background-color: {{ theme.cardLight }}">
-          <text class="preview-text" style="font-size: {{ previewClassSize }}px; color: {{ theme.text }}">数学 08:00-08:45 301</text>
+          <text class="preview-text" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">数学 08:00-08:45 301</text>
+        </div>
+      </div>
+    </div>
+
+    <div class="group" style="background-color: {{ theme.card }}">
+      <div class="group-title-row" onclick="toggleDefaultHomepage">
+        <text class="group-title" style="color: {{ theme.text }}">默认首页</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">{{ defaultHomepageLabel }}</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">{{ showDefaultHomepage ? 'v' : '›' }}</text>
+        </div>
+      </div>
+      <div if="{{ showDefaultHomepage }}" class="default-homepage-body">
+        <text class="section-label" style="color: {{ theme.textSecondary }}">目标页面</text>
+        <div class="page-options">
+          <div class="page-option {{ defaultTargetPage === 'index-full' ? 'active' : '' }}" onclick="selectTargetPage('index-full')" style="background-color: {{ defaultTargetPage === 'index-full' ? theme.accent : theme.cardLight }}">
+            <text class="page-option-text" style="color: {{ defaultTargetPage === 'index-full' ? theme.bg : theme.text }}">标准页</text>
+          </div>
+          <div class="page-option {{ defaultTargetPage === 'week-view' ? 'active' : '' }}" onclick="selectTargetPage('week-view')" style="background-color: {{ defaultTargetPage === 'week-view' ? theme.accent : theme.cardLight }}">
+            <text class="page-option-text" style="color: {{ defaultTargetPage === 'week-view' ? theme.bg : theme.text }}">总课表</text>
+          </div>
+        </div>
+        <text class="section-label" style="color: {{ theme.textSecondary }}">倒计时跳转</text>
+        <div class="page-options">
+          <div class="page-option {{ defaultAutoSeconds === 0 ? 'active' : '' }}" onclick="selectAutoSeconds(0)" style="background-color: {{ defaultAutoSeconds === 0 ? theme.accent : theme.cardLight }}">
+            <text class="page-option-text" style="color: {{ defaultAutoSeconds === 0 ? theme.bg : theme.text }}">0秒</text>
+          </div>
+          <div class="page-option {{ defaultAutoSeconds === 3 ? 'active' : '' }}" onclick="selectAutoSeconds(3)" style="background-color: {{ defaultAutoSeconds === 3 ? theme.accent : theme.cardLight }}">
+            <text class="page-option-text" style="color: {{ defaultAutoSeconds === 3 ? theme.bg : theme.text }}">3秒</text>
+          </div>
+          <div class="page-option {{ defaultAutoSeconds === 5 ? 'active' : '' }}" onclick="selectAutoSeconds(5)" style="background-color: {{ defaultAutoSeconds === 5 ? theme.accent : theme.cardLight }}">
+            <text class="page-option-text" style="color: {{ defaultAutoSeconds === 5 ? theme.bg : theme.text }}">5秒</text>
+          </div>
+          <div class="page-option {{ defaultAutoSeconds === -1 ? 'active' : '' }}" onclick="selectAutoSeconds(-1)" style="background-color: {{ defaultAutoSeconds === -1 ? theme.accent : theme.cardLight }}">
+            <text class="page-option-text" style="color: {{ defaultAutoSeconds === -1 ? theme.bg : theme.text }}">不跳转</text>
+          </div>
         </div>
       </div>
     </div>
@@ -57,14 +94,14 @@
     <div class="group" style="background-color: {{ theme.card }}">
       <text class="group-title" style="color: {{ theme.text }}">课程表设置</text>
       <div class="row">
-        <text class="row-label" style="color: {{ theme.text }}">隐藏周六日</text>
+        <text class="row-label" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">隐藏周六日</text>
         <input class="toggle-btn" type="button" value="{{ hideWeekend ? '开' : '关' }}" onclick="toggleHideWeekend" style="background-color: {{ hideWeekend ? theme.accent : theme.border }}; color: {{ hideWeekend ? theme.bg : theme.textSecondary }}" />
       </div>
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
       <div class="row" onclick="openHomepageSettings">
-        <text class="row-label" style="color: {{ theme.text }}">首页设置</text>
+        <text class="row-label" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">首页设置</text>
         <div class="row-right">
           <text class="row-hint" style="color: {{ theme.textMuted }}">栏目与时间格式</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
@@ -72,7 +109,7 @@
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
       <div class="row" onclick="openBackupRestore">
-        <text class="row-label" style="color: {{ theme.text }}">数据备份与恢复</text>
+        <text class="row-label" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">数据备份与恢复</text>
         <div class="row-right">
           <text class="row-hint" style="color: {{ theme.textMuted }}">备份与换设备恢复</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
@@ -80,7 +117,7 @@
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
       <div class="row" onclick="openTestArea">
-        <text class="row-label" style="color: {{ theme.text }}">功能实验室</text>
+        <text class="row-label" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">功能实验室</text>
         <div class="row-right">
           <text class="row-hint" style="color: {{ theme.textMuted }}">实验性功能</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
@@ -88,7 +125,7 @@
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
       <div class="row" onclick="openActivation">
-        <text class="row-label" style="color: {{ theme.text }}">高级版</text>
+        <text class="row-label" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">高级版</text>
         <div class="row-right">
           <text class="row-hint" style="color: {{ theme.textMuted }}">解锁全部功能</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
@@ -98,7 +135,7 @@
 
     <div class="group" style="background-color: {{ theme.card }}">
       <div class="row" onclick="openResetData">
-        <text class="row-label" style="color: {{ theme.deleteText }}">恢复默认数据</text>
+        <text class="row-label" style="font-size: {{ displaySize }}px; color: {{ theme.deleteText }}">恢复默认数据</text>
         <div class="row-right">
           <text class="row-hint" style="color: {{ theme.textMuted }}">重置为Demo课程</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
@@ -111,6 +148,7 @@
     </div>
 
     <text class="version-text" style="color: {{ theme.textMuted }}">v{{ versionText }}</text>
+    <text class="welcome-link" onclick="goToWelcome" style="color: {{ theme.accent }}">欢迎页</text>
 
     <unlock-dialog id="unlockDialog"></unlock-dialog>
 
@@ -140,7 +178,7 @@ import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 const version = require("../../data/version.js")
 
-const sizeLevels = [28, 36, 48, 62, 76]
+const sizeLevels = [20, 28, 36, 48, 62, 76]
 
 export default {
   private: {
@@ -172,7 +210,11 @@ export default {
     themes: [],
     versionText: "",
     showPremiumDialog: false,
-    showFontSize: false
+    showFontSize: false,
+    showDefaultHomepage: false,
+    defaultTargetPage: "index-full",
+    defaultAutoSeconds: 3,
+    defaultHomepageLabel: "标准页"
   },
 
   onInit() {
@@ -186,10 +228,10 @@ export default {
 
     store.getBaseFontSize(function(size) {
       self.displaySize = size
-      self.updatePreviews()
     })
     this.loadNickname()
     this.loadHideWeekend()
+    this.loadDefaultHomepage()
     this.versionText = version.versionName
   },
 
@@ -205,9 +247,9 @@ export default {
   setSize(size) {
     this.displaySize = size
     store.setBaseFontSize(size)
-    this.updatePreviews()
   },
 
+  set20() { this.setSize(20) },
   set28() { this.setSize(28) },
   set36() { this.setSize(36) },
   set48() { this.setSize(48) },
@@ -276,6 +318,54 @@ export default {
     store.setHideWeekend(this.hideWeekend)
   },
 
+  toggleDefaultHomepage() {
+    this.showDefaultHomepage = !this.showDefaultHomepage
+  },
+
+  selectTargetPage(page) {
+    this.defaultTargetPage = page
+    this.updateDefaultHomepageLabel()
+    this.saveDefaultHomepage()
+  },
+
+  selectAutoSeconds(seconds) {
+    this.defaultAutoSeconds = seconds
+    this.updateDefaultHomepageLabel()
+    this.saveDefaultHomepage()
+  },
+
+  loadDefaultHomepage() {
+    var self = this
+    store.getDefaultHomepage(function(settings) {
+      self.defaultTargetPage = settings.targetPage || "index-full"
+      self.defaultAutoSeconds = settings.autoSeconds
+      if (self.defaultAutoSeconds === undefined) self.defaultAutoSeconds = 3
+      self.updateDefaultHomepageLabel()
+    })
+  },
+
+  updateDefaultHomepageLabel() {
+    var pageName = this.defaultTargetPage === "week-view" ? "总课表" : "标准页"
+    var autoLabel = ""
+    if (this.defaultAutoSeconds === 0) {
+      autoLabel = " · 立即跳转"
+    } else if (this.defaultAutoSeconds === 3) {
+      autoLabel = " · 3秒后跳转"
+    } else if (this.defaultAutoSeconds === 5) {
+      autoLabel = " · 5秒后跳转"
+    } else {
+      autoLabel = " · 手动进入"
+    }
+    this.defaultHomepageLabel = pageName + autoLabel
+  },
+
+  saveDefaultHomepage() {
+    store.setDefaultHomepage({
+      targetPage: this.defaultTargetPage,
+      autoSeconds: this.defaultAutoSeconds
+    })
+  },
+
   openNicknameEdit() {
     router.push({ uri: "/pages/nickname-edit" })
   },
@@ -310,6 +400,10 @@ export default {
 
   openResetData() {
     router.push({ uri: "/pages/reset-data" })
+  },
+
+  goToWelcome() {
+    router.push({ uri: "/pages/welcome" })
   },
 
   goBack() {
@@ -393,7 +487,6 @@ export default {
 }
 
 .row-label {
-  font-size: 14px;
   flex-shrink: 0;
 }
 
@@ -529,9 +622,15 @@ export default {
 }
 
 .version-text {
-  font-size: 36px;
+  font-size: 16px;
   text-align: center;
   padding-top: 6px;
+  padding-bottom: 4px;
+}
+
+.welcome-link {
+  font-size: 16px;
+  text-align: center;
   padding-bottom: 12px;
 }
 
@@ -600,6 +699,33 @@ export default {
   width: 100%;
   height: 28px;
   border-radius: 14px;
+  font-size: 12px;
+}
+
+.default-homepage-body {
+  padding: 4px 0;
+}
+
+.section-label {
+  font-size: 12px;
+  margin: 6px 0 4px 0;
+}
+
+.page-options {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.page-option {
+  height: 30px;
+  border-radius: 8px;
+  padding: 0 10px;
+  margin: 0 4px 4px 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-option-text {
   font-size: 12px;
 }
 
