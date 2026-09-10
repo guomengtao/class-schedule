@@ -8,7 +8,7 @@
 
     <div class="group" style="background-color: {{ theme.card }}">
       <div class="row" onclick="openNicknameEdit">
-        <text class="row-label" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">昵称</text>
+        <text class="row-label" style="color: {{ theme.text }}">昵称</text>
         <div class="row-right">
           <text class="row-value" if="{{ nickname }}" style="color: {{ theme.accent }}">{{ nickname }}</text>
           <text class="row-hint" if="{{ !nickname }}" style="color: {{ theme.textMuted }}">点击设置</text>
@@ -40,14 +40,6 @@
           <input class="scale-btn" type="button" value="−" onclick="decreaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
           <text class="scale-value" style="color: {{ theme.accent }}">{{ displaySize }}px</text>
           <input class="scale-btn" type="button" value="+" onclick="increaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
-        </div>
-        <div class="quick-row">
-          <input class="quick-btn {{ displaySize === 20 ? 'active' : '' }}" type="button" value="20" onclick="set20" style="background-color: {{ displaySize === 20 ? theme.accent : theme.border }}; color: {{ displaySize === 20 ? theme.bg : theme.textSecondary }}" />
-          <input class="quick-btn {{ displaySize === 28 ? 'active' : '' }}" type="button" value="28" onclick="set28" style="background-color: {{ displaySize === 28 ? theme.accent : theme.border }}; color: {{ displaySize === 28 ? theme.bg : theme.textSecondary }}" />
-          <input class="quick-btn {{ displaySize === 36 ? 'active' : '' }}" type="button" value="36" onclick="set36" style="background-color: {{ displaySize === 36 ? theme.accent : theme.border }}; color: {{ displaySize === 36 ? theme.bg : theme.textSecondary }}" />
-          <input class="quick-btn {{ displaySize === 48 ? 'active' : '' }}" type="button" value="48" onclick="set48" style="background-color: {{ displaySize === 48 ? theme.accent : theme.border }}; color: {{ displaySize === 48 ? theme.bg : theme.textSecondary }}" />
-          <input class="quick-btn {{ displaySize === 62 ? 'active' : '' }}" type="button" value="62" onclick="set62" style="background-color: {{ displaySize === 62 ? theme.accent : theme.border }}; color: {{ displaySize === 62 ? theme.bg : theme.textSecondary }}" />
-          <input class="quick-btn {{ displaySize === 76 ? 'active' : '' }}" type="button" value="76" onclick="set76" style="background-color: {{ displaySize === 76 ? theme.accent : theme.border }}; color: {{ displaySize === 76 ? theme.bg : theme.textSecondary }}" />
         </div>
         <div class="preview-box" style="background-color: {{ theme.cardLight }}">
           <text class="preview-text" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">数学 08:00-08:45 301</text>
@@ -94,12 +86,12 @@
     <div class="group" style="background-color: {{ theme.card }}">
       <text class="group-title" style="color: {{ theme.text }}">课程表设置</text>
       <div class="row">
-        <text class="row-label" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">隐藏周六日</text>
+        <text class="row-label" style="color: {{ theme.text }}">隐藏周六日</text>
         <input class="toggle-btn" type="button" value="{{ hideWeekend ? '开' : '关' }}" onclick="toggleHideWeekend" style="background-color: {{ hideWeekend ? theme.accent : theme.border }}; color: {{ hideWeekend ? theme.bg : theme.textSecondary }}" />
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
       <div class="row" onclick="openTemplatePicker">
-        <text class="row-label" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">总览课表风格</text>
+        <text class="row-label" style="color: {{ theme.text }}">总览课表风格</text>
         <div class="row-right">
           <text class="row-hint" style="color: {{ theme.accent }}">{{ currentTemplateName }}</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
@@ -109,7 +101,7 @@
 
     <div class="group" style="background-color: {{ theme.card }}">
       <div class="row" onclick="openHomepageSettings">
-        <text class="row-label" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">首页设置</text>
+        <text class="row-label" style="color: {{ theme.text }}">首页设置</text>
         <div class="row-right">
           <text class="row-hint" style="color: {{ theme.textMuted }}">栏目与时间格式</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
@@ -117,7 +109,7 @@
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
       <div class="row" onclick="openBackupRestore">
-        <text class="row-label" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">数据备份与恢复</text>
+        <text class="row-label" style="color: {{ theme.text }}">数据备份与恢复</text>
         <div class="row-right">
           <text class="row-hint" style="color: {{ theme.textMuted }}">备份与换设备恢复</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
@@ -125,7 +117,7 @@
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
       <div class="row" onclick="openTestArea">
-        <text class="row-label" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">功能实验室</text>
+        <text class="row-label" style="color: {{ theme.text }}">功能实验室</text>
         <div class="row-right">
           <text class="row-hint" style="color: {{ theme.textMuted }}">实验性功能</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
@@ -133,7 +125,7 @@
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
       <div class="row" onclick="openActivation">
-        <text class="row-label" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">高级版</text>
+        <text class="row-label" style="color: {{ theme.text }}">高级版</text>
         <div class="row-right">
           <text class="row-hint" style="color: {{ theme.textMuted }}">解锁全部功能</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
@@ -143,7 +135,7 @@
 
     <div class="group" style="background-color: {{ theme.card }}">
       <div class="row" onclick="openResetData">
-        <text class="row-label" style="font-size: {{ displaySize }}px; color: {{ theme.deleteText }}">恢复默认数据</text>
+        <text class="row-label" style="color: {{ theme.deleteText }}">恢复默认数据</text>
         <div class="row-right">
           <text class="row-hint" style="color: {{ theme.textMuted }}">重置为Demo课程</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
@@ -260,11 +252,6 @@ export default {
   },
 
   set20() { this.setSize(20) },
-  set28() { this.setSize(28) },
-  set36() { this.setSize(36) },
-  set48() { this.setSize(48) },
-  set62() { this.setSize(62) },
-  set76() { this.setSize(76) },
 
   decreaseFont() {
     for (var i = sizeLevels.length - 1; i >= 0; i--) {
@@ -478,7 +465,7 @@ export default {
 }
 
 .header-title {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: bold;
   margin-left: 8px;
 }
@@ -515,6 +502,7 @@ export default {
 }
 
 .row-label {
+  font-size: 14px;
   flex-shrink: 0;
 }
 
@@ -537,7 +525,7 @@ export default {
 }
 
 .arrow {
-  font-size: 18px;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
@@ -567,7 +555,7 @@ export default {
 }
 
 .theme-name {
-  font-size: 10px;
+  font-size: 11px;
   margin-top: 2px;
   text-align: center;
 }
@@ -593,25 +581,6 @@ export default {
   font-weight: bold;
   width: 56px;
   text-align: center;
-}
-
-.quick-row {
-  flex-direction: row;
-  justify-content: center;
-  margin-bottom: 8px;
-}
-
-.quick-btn {
-  width: 44px;
-  height: 28px;
-  border-radius: 6px;
-  font-size: 11px;
-  text-align: center;
-  margin: 0 2px;
-}
-
-.quick-btn.active {
-  font-weight: bold;
 }
 
 .preview-box {
@@ -644,20 +613,20 @@ export default {
   width: 100%;
   height: 42px;
   border-radius: 10px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: bold;
   text-align: center;
 }
 
 .version-text {
-  font-size: 16px;
+  font-size: 13px;
   text-align: center;
   padding-top: 6px;
   padding-bottom: 4px;
 }
 
 .welcome-link {
-  font-size: 16px;
+  font-size: 13px;
   text-align: center;
   padding-bottom: 12px;
 }

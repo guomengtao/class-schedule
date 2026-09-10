@@ -38,13 +38,10 @@
     <!-- footer: template buttons -->
     <div class="wv-footer" style="background-color:{{ theme.card }}">
       <div class="wv-tpl-row">
-        <text class="wv-tpl {{ currentTplId === 'minimal-char' ? 'wv-tpl-on' : '' }}" onclick="switchTemplate('minimal-char')" style="background-color:{{ currentTplId === 'minimal-char' ? '#e67e22' : theme.borderLight }};color:{{ currentTplId === 'minimal-char' ? '#fff' : theme.textSecondary }}">单字</text>
-        <text class="wv-tpl {{ currentTplId === 'standard-block' ? 'wv-tpl-on' : '' }}" onclick="switchTemplate('standard-block')" style="background-color:{{ currentTplId === 'standard-block' ? '#3498db' : theme.borderLight }};color:{{ currentTplId === 'standard-block' ? '#fff' : theme.textSecondary }}">标准</text>
-        <text class="wv-tpl {{ currentTplId === 'compact-grid' ? 'wv-tpl-on' : '' }}" onclick="switchTemplate('compact-grid')" style="background-color:{{ currentTplId === 'compact-grid' ? '#2ecc71' : theme.borderLight }};color:{{ currentTplId === 'compact-grid' ? '#fff' : theme.textSecondary }}">紧凑</text>
-        <text class="wv-tpl {{ currentTplId === 'minimal-en' ? 'wv-tpl-on' : '' }}" onclick="switchTemplate('minimal-en')" style="background-color:{{ currentTplId === 'minimal-en' ? '#9b59b6' : theme.borderLight }};color:{{ currentTplId === 'minimal-en' ? '#fff' : theme.textSecondary }}">英文</text>
-        <text class="wv-tpl {{ currentTplId === 'color-pastel' ? 'wv-tpl-on' : '' }}" onclick="switchTemplate('color-pastel')" style="background-color:{{ currentTplId === 'color-pastel' ? '#e74c3c' : theme.borderLight }};color:{{ currentTplId === 'color-pastel' ? '#fff' : theme.textSecondary }}">柔和</text>
+        <div for="{{ templateList }}" class="wv-tpl {{ $item.id === currentTplId ? 'wv-tpl-on' : '' }}" onclick="switchTemplate($item.id)" style="background-color:{{ $item.id === currentTplId ? $item.activeColor : theme.borderLight }};color:{{ $item.id === currentTplId ? '#fff' : theme.textSecondary }};border-color:{{ $item.id === currentTplId ? $item.activeColor : 'transparent' }}">
+          <text class="wv-tpl-text">{{ $item.label }}</text>
+        </div>
       </div>
-      <text class="wv-stat" style="color:{{ theme.textSecondary }}">{{ totalCourses }} 节 · {{ totalDays }} 天</text>
     </div>
   </div>
 </template>
@@ -183,6 +180,13 @@ export default {
     initDone: false,
     firstLoad: true,
     currentTplId: "minimal-char",
+    templateList: [
+      { id: "minimal-char", label: "单字", activeColor: "#e67e22" },
+      { id: "standard-block", label: "标准", activeColor: "#3498db" },
+      { id: "compact-grid", label: "紧凑", activeColor: "#2ecc71" },
+      { id: "minimal-en", label: "英文", activeColor: "#9b59b6" },
+      { id: "color-pastel", label: "柔和", activeColor: "#e74c3c" }
+    ],
     // template config
     showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
     showDayCount: false, showTotal: false,
@@ -810,7 +814,7 @@ export default {
 
 /* ── footer ── */
 .wv-footer {
-  padding: 6px 0;
+  padding: 6px 0 4px 0;
   align-items: center;
 }
 
@@ -818,31 +822,35 @@ export default {
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  margin-bottom: 4px;
   padding: 0 6px;
   width: 100%;
 }
 
 .wv-tpl {
-  font-size: 11px;
-  padding: 4px 10px;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  height: 30px;
+  padding: 0 8px;
   margin: 0 3px;
-  border-radius: 14px;
-  text-align: center;
-  height: 28px;
-  letter-spacing: 0.3px;
+  border-radius: 15px;
+  border-width: 1.5px;
+  border-style: solid;
+  border-color: transparent;
 }
 
 .wv-tpl-on {
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-  font-weight: bold;
-  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
-.wv-stat {
+.wv-tpl-text {
   font-size: 11px;
+  letter-spacing: 0.5px;
   text-align: center;
-  width: 100%;
+}
+
+.wv-tpl-on .wv-tpl-text {
+  font-weight: bold;
 }
 
 /* ── circle shape ── */
@@ -892,19 +900,18 @@ export default {
     font-size: 9px;
   }
   .wv-footer {
-    padding: 4px 0;
+    padding: 4px 0 2px 0;
   }
   .wv-tpl-row {
     padding: 0 2px;
   }
   .wv-tpl {
-    font-size: 9px;
-    padding: 3px 5px;
+    height: 24px;
+    padding: 0 5px;
     margin: 0 2px;
-    height: 22px;
   }
-  .wv-stat {
-    font-size: 10px;
+  .wv-tpl-text {
+    font-size: 9px;
   }
 }
 </style>
