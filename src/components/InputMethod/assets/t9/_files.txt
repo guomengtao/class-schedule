@@ -1,8 +1,0 @@
-123.png: 2385 bytes
-a.png: 2020 bytes
-back2.png: 1791 bytes
-bigA.png: 2030 bytes
-cn.png: 1905 bytes
-del.png: 2349 bytes
-en.png: 1990 bytes
-space.png: 1726 bytes

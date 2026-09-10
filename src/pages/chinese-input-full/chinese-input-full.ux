@@ -69,7 +69,7 @@ function setFontSizeStore(size, callback) {
 
 export default {
   components: {
-    InputMethod: "../../components/InputMethod/index.ux"
+    InputMethod: "../../components/InputMethod/InputMethod.ux"
   },
 
   private: {

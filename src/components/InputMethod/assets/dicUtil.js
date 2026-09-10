@@ -1,7 +1,8 @@
 import { getDict } from './dic.js'
-import { syllables } from './pinyin_syllables.js'
+import { getDictJp } from './dic_jp.js'
 import { getWords } from './dic_words.js'
 import { getInitialsIndex } from './dic_words_initials.js'
+import { syllables } from './pinyin_syllables.js'
 
 // 辅助：从词库取值（支持单值和数组），去重推入 wordHits
 function pushWordHits(val, arr) {
@@ -27,6 +28,7 @@ SimpleInputMethod.initDict = function() {
   this.dict.py2hz = getDict()
   this.dict.py2hz2 = {}
   this.dict.py2hz2['i'] = 'i' // 特殊处理
+  this.dict.romaji2kanji = getDictJp()
 
   // 合法音节集合 + 首字母索引：一次遍历 dic.js
   this.dict.syllableSet = new Set(syllables)
@@ -36,20 +38,14 @@ SimpleInputMethod.initDict = function() {
     this.dict.syllableSet.add(key)
   }
 
-  // 整词词库：静态 import 同步加载，避免动态 import() 在 QuickApp JSC 运行时白屏
-  this._loadWordDict()
-}
+  // 整词词库（惰性创建）
+  this.dict.words = getWords()
 
-SimpleInputMethod._loadWordDict = function() {
-  if (this._wordDictLoading) return
-  this._wordDictLoading = true
-  try {
-    this.dict.words = getWords()
-    this.dict.initialsIndex = getInitialsIndex()
-    this._buildForwardIndex()
-  } catch (e) {
-    this._wordDictLoading = false
-  }
+  // 简拼索引：预计算倒排索引直接赋值（生成脚本产出，init 不再逐词切分）
+  this.dict.initialsIndex = getInitialsIndex()
+  // forwardIndex 分片构建：每片 200 词，剩余排 setTimeout(0) 继续。
+  // 一次性遍历 3000 词是长任务，会占住主线程可感卡顿；分片后首片立即返回，后续零碎完成。
+  this._buildForwardIndex()
 }
 
 // 前向索引(首2字母 → 词键列表)分片构建。构建完成前 getMultiHanzi 的 forward 匹配短暂空转，
@@ -77,11 +73,17 @@ SimpleInputMethod._buildForwardIndex = function() {
 }
 
 SimpleInputMethod.getSingleHanzi = function(pinyin, lang = 'cn') {
+  // 根据 lang 决定走哪张表
   if (lang === 'cn') {
     return this.dict.py2hz2[pinyin]
     || this.dict.py2hz[pinyin]
     || ''
   }
+  else if (lang === 'jp') {
+    return this.dict.romaji2kanji[pinyin]
+    || ''
+  }
+  // en 模式不查候选
   return ''
 }
 
