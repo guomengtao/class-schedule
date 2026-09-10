@@ -2,18 +2,18 @@
   <div class="edit-page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
       <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="header-title" style="color: {{ theme.text }}">编辑昵称</text>
+      <text class="header-title" style="color: {{ theme.text }}">Edit Nickname</text>
     </div>
 
     <div class="edit-content">
-      <text class="input-label" style="color: {{ theme.textSecondary }}">请输入昵称</text>
+      <text class="input-label" style="color: {{ theme.textSecondary }}">Enter Nickname</text>
       <div class="nickname-display" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
-        <text class="nickname-text" style="color: {{ theme.text }}">{{ currentName || '点击输入昵称' }}</text>
+        <text class="nickname-text" style="color: {{ theme.text }}">{{ currentName || 'tap to nickname' }}</text>
       </div>
 
       <div class="button-row">
-        <input class="cancel-btn" type="button" value="取消" onclick="goBack" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
-        <input class="save-btn" type="button" value="保存" onclick="saveNickname" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="cancel-btn" type="button" value="Cancel" onclick="goBack" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+        <input class="save-btn" type="button" value="Save" onclick="saveNickname" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
   </div>
 </template>
@@ -84,8 +84,8 @@ export default {
 
   showKeyboard() {
     var storage = require("@system.storage")
-    storage.set({ key: "chinese_input_title", value: "编辑昵称" })
-    storage.set({ key: "chinese_input_placeholder", value: "点击输入昵称" })
+    storage.set({ key: "chinese_input_title", value: "Edit Nickname" })
+    storage.set({ key: "chinese_input_placeholder", value: "tap to input" })
     storage.set({ key: "chinese_input_value", value: this.currentName || "" })
     storage.set({ key: "chinese_input_maxlen", value: "5" })
     storage.set({ key: "chinese_input_return_key", value: "chinese_input_result" })
@@ -100,7 +100,7 @@ export default {
     var self = this
     store.setNickname(newName, function() {
       self.savedName = newName
-      prompt.showToast({ message: "昵称已保存" })
+      prompt.showToast({ message: "Nickname saved" })
       router.back()
     })
   },

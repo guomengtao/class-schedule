@@ -1,36 +1,50 @@
 <template>
-  <div class="week-view-page" style="background-color: {{ theme.bg }}">
-    <div class="header">
-      <input class="back-btn" type="button" value="返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="header-title" style="color: {{ theme.text }}">课程总览</text>
+  <div class="wv-page" style="background-color:{{ theme.bg }}">
+    <!-- header -->
+    <div class="wv-header">
+      <input class="wv-back" type="button" value="返回" onclick="goBack" style="background-color:{{ theme.card }};color:{{ theme.accent }}" />
+      <text class="wv-title" style="color:{{ theme.text }}">总课表</text>
     </div>
 
-    <text class="schedule-name" style="color: {{ theme.accent }}">{{ scheduleName }}（{{ totalCourses }}门）</text>
+    <!-- schedule name + count -->
+    <text class="wv-subtitle" style="color:{{ theme.accent }}">{{ scheduleName }}{{ showTotal ? '（'+totalCourses+'）' : '' }}</text>
 
-    <div class="grid-wrapper">
-      <div class="week-header">
-        <text class="week-header-spacer"></text>
-        <text class="week-day {{ $idx === todayIndex ? 'today-day' : '' }}" for="{{ weekDays }}" style="color: {{ $idx === todayIndex ? theme.accent : theme.textSecondary }}">{{ $item }} {{ dayCounts[$idx] }}</text>
+    <!-- grid area -->
+    <div class="wv-grid">
+      <!-- day header -->
+      <div class="wv-day-row">
+        <text if="{{ showRowNum }}" class="wv-day-spacer" style="width:{{ rowNumWidth }}px"></text>
+        <text if="{{ !showRowNum }}" class="wv-day-spacer" style="width:0px"></text>
+        <text class="wv-day-cell {{ $idx === todayIndex ? 'wv-today' : '' }}" for="{{ weekDays }}" style="color:{{ $idx === todayIndex ? theme.accent : theme.textSecondary }}">{{ $item }}{{ showDayCount ? ' '+dayCounts[$idx] : '' }}</text>
       </div>
 
-      <div class="grid-scroll">
-        <div class="grid-container">
-          <div for="{{ timeSlots }}" class="time-row">
-            <text class="time-label" style="color: {{ theme.textSecondary }}">{{ $item.time }}</text>
-            <div class="course-row">
-              <div for="{{ $item.cells }}" class="course-cell {{ $item.isCurrent ? 'current-course' : '' }}" onclick="showDetail($item.day, $item.course)" style="background-color: {{ $item.course ? theme.cardLight : 'transparent' }}">
-                <text class="course-char" if="{{ $item.course }}" style="color: {{ theme.accent }}">{{ $item.course.displayChar }}</text>
-                <text class="course-extra" if="{{ $item.course && $item.course.extraCount > 0 }}" style="color: {{ theme.textMuted }}">+{{ $item.course.extraCount }}</text>
-                <text class="course-empty" if="{{ !$item.course }}" style="color: {{ theme.textMuted }}">·</text>
-              </div>
+      <!-- scroll body -->
+      <scroll class="wv-body" scroll-y="true">
+        <div for="{{ timeSlots }}" class="wv-row" style="min-height:{{ rowHeight }}px">
+          <text if="{{ showRowNum }}" class="wv-time" style="width:{{ rowNumWidth }}px;color:{{ theme.textSecondary }}">{{ $item.time }}</text>
+          <div class="wv-cells">
+            <div for="{{ $item.cells }}" class="wv-cell {{ $item.isCurrent ? 'wv-now' : '' }} {{ !$item.course ? 'wv-cell-empty' : '' }}" onclick="showDetail($item.day, $item.course)" style="background-color:{{ getCellBg($item.course) }};border-radius:{{ cellRadius }};height:{{ cellHeight }}px">
+              <text if="{{ $item.course }}" class="wv-name" style="color:{{ getCellTextColor($item.course) }};font-size:{{ nameFontSize }}px;font-weight:{{ nameFontWeight }}">{{ getDisplayName($item.course) }}</text>
+              <text if="{{ $item.course && showRoom && $item.course.location }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.location }}</text>
+              <text if="{{ $item.course && showTeacher && $item.course.teacher }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.teacher }}</text>
+              <text if="{{ $item.course && $item.course.extraCount > 0 }}" class="wv-extra" style="color:{{ theme.textMuted }}">+{{ $item.course.extraCount }}</text>
+              <text if="{{ !$item.course }}" class="wv-empty" style="color:{{ theme.textMuted }}">·</text>
             </div>
           </div>
         </div>
-      </div>
+      </scroll>
     </div>
 
-    <div class="footer" style="background-color: {{ theme.card }}">
-      <text class="footer-text" style="color: {{ theme.textSecondary }}">共 {{ totalCourses }} 门课程 · {{ totalDays }} 天有课</text>
+    <!-- footer: template buttons -->
+    <div class="wv-footer" style="background-color:{{ theme.card }}">
+      <div class="wv-tpl-row">
+        <text class="wv-tpl {{ currentTplId === 'minimal-char' ? 'wv-tpl-on' : '' }}" onclick="switchTemplate('minimal-char')" style="background-color:{{ currentTplId === 'minimal-char' ? '#e67e22' : theme.borderLight }};color:{{ currentTplId === 'minimal-char' ? '#fff' : theme.textSecondary }}">单字</text>
+        <text class="wv-tpl {{ currentTplId === 'standard-block' ? 'wv-tpl-on' : '' }}" onclick="switchTemplate('standard-block')" style="background-color:{{ currentTplId === 'standard-block' ? '#3498db' : theme.borderLight }};color:{{ currentTplId === 'standard-block' ? '#fff' : theme.textSecondary }}">标准</text>
+        <text class="wv-tpl {{ currentTplId === 'compact-grid' ? 'wv-tpl-on' : '' }}" onclick="switchTemplate('compact-grid')" style="background-color:{{ currentTplId === 'compact-grid' ? '#2ecc71' : theme.borderLight }};color:{{ currentTplId === 'compact-grid' ? '#fff' : theme.textSecondary }}">紧凑</text>
+        <text class="wv-tpl {{ currentTplId === 'minimal-en' ? 'wv-tpl-on' : '' }}" onclick="switchTemplate('minimal-en')" style="background-color:{{ currentTplId === 'minimal-en' ? '#9b59b6' : theme.borderLight }};color:{{ currentTplId === 'minimal-en' ? '#fff' : theme.textSecondary }}">英文</text>
+        <text class="wv-tpl {{ currentTplId === 'color-pastel' ? 'wv-tpl-on' : '' }}" onclick="switchTemplate('color-pastel')" style="background-color:{{ currentTplId === 'color-pastel' ? '#e74c3c' : theme.borderLight }};color:{{ currentTplId === 'color-pastel' ? '#fff' : theme.textSecondary }}">柔和</text>
+      </div>
+      <text class="wv-stat" style="color:{{ theme.textSecondary }}">{{ totalCourses }} 节 · {{ totalDays }} 天</text>
     </div>
   </div>
 </template>
@@ -40,14 +54,122 @@ import router from "@system.router"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 
-var fullDayNames = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+// --- debug logger ---
+var log = (function() {
+  var seq = 0
+  return function(msg, data) {
+    seq++
+    var line = "[WV:" + seq + "] " + msg
+    if (data !== undefined) {
+      try { line += " " + JSON.stringify(data) } catch(e) { line += " " + String(data) }
+    }
+    console.log(line)
+  }
+})()
+
+// map Chinese day names (from DB) to English (used internally)
+var DAY_NAME_MAP = {
+  "星期一": "Monday", "星期二": "Tuesday", "星期三": "Wednesday",
+  "星期四": "Thursday", "星期五": "Friday", "星期六": "Saturday", "星期日": "Sunday",
+  "Monday": "Monday", "Tuesday": "Tuesday", "Wednesday": "Wednesday",
+  "Thursday": "Thursday", "Friday": "Friday", "Saturday": "Saturday", "Sunday": "Sunday"
+}
+
+var SUBJECT_COLORS = {
+  "math": "rgba(74,144,217,0.3)",
+  "eng": "rgba(80,184,108,0.3)",
+  "chn": "rgba(155,89,182,0.3)",
+  "phy": "rgba(230,126,34,0.3)",
+  "pe": "rgba(231,76,60,0.3)",
+  "chem": "rgba(26,188,156,0.3)",
+  "bio": "rgba(243,156,18,0.3)",
+  "history": "rgba(52,152,219,0.3)",
+  "geo": "rgba(233,30,99,0.3)",
+  "default": "rgba(100,100,120,0.2)"
+}
+
+var SUBJECT_TEXT_COLORS = {
+  "math": "#6aaaff",
+  "eng": "#6ae6a0",
+  "chn": "#c08ae0",
+  "phy": "#f0a050",
+  "pe": "#f06060",
+  "chem": "#50d0b0",
+  "bio": "#f0c040",
+  "history": "#60b0f0",
+  "geo": "#f060a0",
+  "default": "#aaaac0"
+}
+
+function guessSubjectKey(name) {
+  if (!name) return "default"
+  var n = name.toLowerCase()
+  if (n.indexOf("math") !== -1 || n.indexOf("数") !== -1) return "math"
+  if (n.indexOf("eng") !== -1 || n.indexOf("英") !== -1) return "eng"
+  if (n.indexOf("chn") !== -1 || n.indexOf("语") !== -1 || n.indexOf("文") !== -1) return "chn"
+  if (n.indexOf("phy") !== -1 || n.indexOf("物") !== -1) return "phy"
+  if (n.indexOf("pe") !== -1 || n.indexOf("体") !== -1 || n.indexOf("体育") !== -1) return "pe"
+  if (n.indexOf("chem") !== -1 || n.indexOf("化") !== -1) return "chem"
+  if (n.indexOf("bio") !== -1 || n.indexOf("生") !== -1) return "bio"
+  if (n.indexOf("history") !== -1 || n.indexOf("史") !== -1 || n.indexOf("历史") !== -1) return "history"
+  if (n.indexOf("geo") !== -1 || n.indexOf("地") !== -1) return "geo"
+  return "default"
+}
+
+var TEMPLATE_CONFIGS = {
+  "minimal-char": {
+    showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
+    showDayCount: false, showTotal: false,
+    nameDisplay: "char",
+    dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
+    cellRadius: "12px", rowHeight: 40, cellHeight: 36, rowNumWidth: 0,
+    nameFontSize: 18, nameFontWeight: "bold", infoFontSize: 0,
+    useColorScheme: true, denseMode: false
+  },
+  "minimal-en": {
+    showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
+    showDayCount: false, showTotal: false,
+    nameDisplay: "en-abbr",
+    dayLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    cellRadius: "8px", rowHeight: 38, cellHeight: 34, rowNumWidth: 0,
+    nameFontSize: 13, nameFontWeight: "bold", infoFontSize: 0,
+    useColorScheme: true, denseMode: false
+  },
+  "standard-block": {
+    showRowNum: true, showRoom: true, showTeacher: false, showTime: true,
+    showDayCount: true, showTotal: true,
+    nameDisplay: "full",
+    dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
+    cellRadius: "6px", rowHeight: 48, cellHeight: 44, rowNumWidth: 50,
+    nameFontSize: 12, nameFontWeight: "normal", infoFontSize: 9,
+    useColorScheme: true, denseMode: false
+  },
+  "compact-grid": {
+    showRowNum: true, showRoom: false, showTeacher: false, showTime: false,
+    showDayCount: true, showTotal: true,
+    nameDisplay: "full",
+    dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
+    cellRadius: "3px", rowHeight: 30, cellHeight: 26, rowNumWidth: 40,
+    nameFontSize: 10, nameFontWeight: "normal", infoFontSize: 0,
+    useColorScheme: true, denseMode: true
+  },
+  "color-pastel": {
+    showRowNum: true, showRoom: true, showTeacher: false, showTime: true,
+    showDayCount: true, showTotal: true,
+    nameDisplay: "full",
+    dayLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    cellRadius: "10px", rowHeight: 48, cellHeight: 44, rowNumWidth: 50,
+    nameFontSize: 12, nameFontWeight: "normal", infoFontSize: 9,
+    useColorScheme: false, denseMode: false
+  }
+}
 
 export default {
   private: {
-    allWeekDays: ["一", "二", "三", "四", "五", "六", "日"],
-    allDayNames: ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"],
-    weekDays: ["一", "二", "三", "四", "五", "六", "日"],
-    displayDayNames: ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"],
+    allWeekDays: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
+    allDayNames: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    weekDays: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
+    displayDayNames: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
     scheduleName: "",
     timeSlots: [],
     totalCourses: 0,
@@ -58,7 +180,22 @@ export default {
     todayIndex: 0,
     currentCourseDay: "",
     currentCourseTime: "",
-    _initDone: false,
+    initDone: false,
+    firstLoad: true,
+    currentTplId: "minimal-char",
+    // template config
+    showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
+    showDayCount: false, showTotal: false,
+    nameDisplay: "char",
+    cellRadius: "12px",
+    rowHeight: 40,
+    cellHeight: 36,
+    rowNumWidth: 0,
+    nameFontSize: 18,
+    nameFontWeight: "bold",
+    infoFontSize: 0,
+    useColorScheme: true,
+    templateDayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -75,7 +212,7 @@ export default {
       btnSecondaryText: '#a0a0b0',
       deleteBg: '#2a1a3e',
       deleteText: '#e08080',
-      icon: '🔵',
+      icon: '\uD83D\uDD35',
       progressOngoing: 'rgba(126,200,227,0.2)',
       progressDone: 'rgba(74,138,154,0.25)'
     }
@@ -83,19 +220,21 @@ export default {
 
   onInit() {
     var self = this
-    self._firstLoad = true
+    log("onInit start")
+    self.firstLoad = true
     var now = new Date()
     var dayIdx = now.getDay()
     self.todayIndex = dayIdx === 0 ? 6 : dayIdx - 1
+    log("todayIndex=" + self.todayIndex + " dayIdx=" + dayIdx)
     store.getTheme(function(t) {
       self.theme = t
     })
     store.getHideWeekend(function(hide) {
       self.hideWeekend = hide
       self.applyWeekendFilter()
-      self._hideWeekendLoaded = true
-      if (self._weekViewIndexLoaded) {
-        self._initDone = true
+      self.hideWeekendLoaded = true
+      if (self.weekViewIndexLoaded) {
+        self.initDone = true
         self.loadData()
       }
     })
@@ -103,26 +242,30 @@ export default {
     storage.get({
       key: "weekview_index",
       success: function(data) {
-        if (data) {
-          self.viewIndex = parseInt(data) || 0
-        }
-        self._weekViewIndexLoaded = true
-        if (self._hideWeekendLoaded) {
-          self._initDone = true
+        self.viewIndex = parseInt(data) || 0
+        log("onInit viewIndex loaded=" + self.viewIndex)
+        self.weekViewIndexLoaded = true
+        if (self.hideWeekendLoaded) {
+          self.initDone = true
           self.loadData()
         }
       },
       fail: function() {
-        self._weekViewIndexLoaded = true
-        if (self._hideWeekendLoaded) {
-          self._initDone = true
+        log("onInit viewIndex not found, use 0")
+        self.weekViewIndexLoaded = true
+        if (self.hideWeekendLoaded) {
+          self.initDone = true
           self.loadData()
         }
       }
     })
+    store.getWeekViewTemplate(function(id) {
+      self.applyTemplate(id || "minimal-char")
+    })
     setTimeout(function() {
-      if (!self._initDone) {
-        self._initDone = true
+      if (!self.initDone) {
+        log("onInit timeout fallback, forcing loadData")
+        self.initDone = true
         self.loadData()
       }
     }, 800)
@@ -130,55 +273,99 @@ export default {
 
   onShow() {
     var self = this
+    log("onShow start")
     store.getTheme(function(t) {
       self.theme = t
     })
     store.getHideWeekend(function(hide) {
       self.hideWeekend = hide
       self.applyWeekendFilter()
-      if (self._firstLoad) {
-        self._firstLoad = false
+      if (self.firstLoad) {
+        log("onShow firstLoad=false, skip reload")
+        self.firstLoad = false
         return
       }
       var storage = require("@system.storage")
       storage.get({
         key: "weekview_index",
         success: function(data) {
-          if (data) {
-            self.viewIndex = parseInt(data) || 0
-          }
-          self.loadData()
+          self.viewIndex = parseInt(data) || 0
+          log("onShow viewIndex=" + self.viewIndex)
+          self.loadTemplateAndReload()
         },
         fail: function() {
-          self.loadData()
+          self.loadTemplateAndReload()
         }
       })
     })
   },
 
+  loadTemplateAndReload() {
+    var self = this
+    store.getWeekViewTemplate(function(id) {
+      self.applyTemplate(id || "minimal-char")
+      self.loadData()
+    })
+  },
+
+  switchTemplate(id) {
+    var self = this
+    log("switchTemplate -> " + id)
+    self.applyTemplate(id)
+    store.setWeekViewTemplate(id)
+    self.loadData()
+  },
+
+  applyTemplate(id) {
+    var cfg = TEMPLATE_CONFIGS[id] || TEMPLATE_CONFIGS["minimal-char"]
+    log("applyTemplate id=" + id + " nameDisplay=" + cfg.nameDisplay)
+    this.currentTplId = id
+    this.showRowNum = cfg.showRowNum
+    this.showRoom = cfg.showRoom
+    this.showTeacher = cfg.showTeacher
+    this.showTime = cfg.showTime
+    this.showDayCount = cfg.showDayCount !== false
+    this.showTotal = cfg.showTotal !== false
+    this.nameDisplay = cfg.nameDisplay
+    this.cellRadius = cfg.cellRadius
+    this.rowHeight = cfg.rowHeight
+    this.cellHeight = cfg.cellHeight
+    this.rowNumWidth = cfg.rowNumWidth
+    this.nameFontSize = cfg.nameFontSize
+    this.nameFontWeight = cfg.nameFontWeight
+    this.infoFontSize = cfg.infoFontSize
+    this.useColorScheme = cfg.useColorScheme
+    this.templateDayLabels = cfg.dayLabels || ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"]
+    this.applyWeekendFilter()
+  },
+
   applyWeekendFilter() {
+    var fullLabels = this.templateDayLabels || ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"]
     if (this.hideWeekend) {
-      this.weekDays = ["一", "二", "三", "四", "五"]
-      this.displayDayNames = ["星期一", "星期二", "星期三", "星期四", "星期五"]
+      this.weekDays = fullLabels.slice(0, 5)
+      this.displayDayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
       if (this.todayIndex >= 5) {
         this.todayIndex = -1
       }
     } else {
-      this.weekDays = ["一", "二", "三", "四", "五", "六", "日"]
-      this.displayDayNames = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+      this.weekDays = fullLabels
+      this.displayDayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
       var now = new Date()
       var dayIdx = now.getDay()
       this.todayIndex = dayIdx === 0 ? 6 : dayIdx - 1
     }
+    log("applyWeekendFilter hide=" + this.hideWeekend + " days=" + this.weekDays.join(",") + " todayIdx=" + this.todayIndex)
   },
 
   loadData() {
     var self = this
+    log("loadData start viewIndex=" + self.viewIndex)
 
     store.getScheduleNames(function(names) {
       store.getCurrentScheduleIndex(function() {
         if (names && names.length > self.viewIndex) {
           self.scheduleName = names[self.viewIndex]
+          log("loadData scheduleName=" + self.scheduleName)
         }
       })
     })
@@ -187,7 +374,9 @@ export default {
     database.getAllCoursesWithIndex(this.viewIndex, function(schedule) {
       if (dataLoaded) return
       dataLoaded = true
+      log("loadData getAllCoursesWithIndex returned, len=" + (schedule ? schedule.length : "null"))
       if (!schedule) {
+        log("loadData schedule is null, fallback to getAllCourses")
         database.getAllCourses(function(fallback) {
           self.renderSchedule(fallback)
         })
@@ -198,7 +387,20 @@ export default {
       for (var d = 0; d < schedule.length; d++) {
         var dayData = schedule[d]
         if (dayData && dayData.day) {
-          allCourses[dayData.day] = dayData.classes || []
+          var enDay = DAY_NAME_MAP[dayData.day] || dayData.day
+          allCourses[enDay] = dayData.classes || []
+        }
+      }
+      log("loadData allCourses keys=" + Object.keys(allCourses).join(","))
+
+      // dump every course
+      for (var dk in allCourses) {
+        if (allCourses.hasOwnProperty(dk)) {
+          var cls = allCourses[dk]
+          for (var ci = 0; ci < cls.length; ci++) {
+            var c = cls[ci]
+            log("loadData course " + dk + " #" + ci + " raw=" + JSON.stringify(c))
+          }
         }
       }
 
@@ -208,8 +410,10 @@ export default {
           totalCourses += allCourses[key].length
         }
       }
+      log("loadData totalCourses=" + totalCourses)
 
       if (totalCourses === 0) {
+        log("loadData no courses found, fallback to getAllCourses")
         database.getAllCourses(function(fallback) {
           self.renderSchedule(fallback)
         })
@@ -222,6 +426,7 @@ export default {
     setTimeout(function() {
       if (!dataLoaded) {
         dataLoaded = true
+        log("loadData timeout 1500ms fallback")
         database.getAllCourses(function(fallback) {
           self.renderSchedule(fallback)
         })
@@ -230,20 +435,44 @@ export default {
   },
 
   renderSchedule(schedule) {
+    log("renderSchedule len=" + (schedule ? schedule.length : "null"))
     var allCourses = {}
     if (schedule) {
       for (var d = 0; d < schedule.length; d++) {
         var dayData = schedule[d]
         if (dayData && dayData.day) {
-          allCourses[dayData.day] = dayData.classes || []
+          var enDay = DAY_NAME_MAP[dayData.day] || dayData.day
+          allCourses[enDay] = dayData.classes || []
         }
       }
     }
+    // dump fallback courses
+    for (var dk in allCourses) {
+      if (allCourses.hasOwnProperty(dk)) {
+        var cls = allCourses[dk]
+        for (var ci = 0; ci < cls.length; ci++) {
+          log("renderSchedule course " + dk + " #" + ci + " raw=" + JSON.stringify(cls[ci]))
+        }
+      }
+    }
+    log("renderSchedule days=" + Object.keys(allCourses).join(","))
     this.renderScheduleData(allCourses)
   },
 
   renderScheduleData(allCourses) {
     var self = this
+    log("renderScheduleData displayDayNames=" + JSON.stringify(self.displayDayNames) + " allCourses keys=" + Object.keys(allCourses).join(","))
+    // log per-day course list
+    var dayNames = self.displayDayNames
+    for (var d = 0; d < dayNames.length; d++) {
+      var day = dayNames[d]
+      var courses = allCourses[day] || []
+      if (courses.length > 0) {
+        var names = courses.map(function(c) { return (c.name || "?") + "@" + (c.time || "?") }).join(", ")
+        log("renderScheduleData day=" + day + " " + courses.length + " courses: " + names)
+      }
+    }
+
     self.detectCurrentCourse(allCourses)
     self.buildTimeSlots(allCourses)
 
@@ -257,14 +486,48 @@ export default {
     }
     self.totalCourses = total
     self.totalDays = totalDays
+    log("renderScheduleData total=" + total + " days=" + totalDays)
 
     var dayCounts = []
-    var dayNames = self.displayDayNames
     for (var dn = 0; dn < dayNames.length; dn++) {
       var dayCourses = allCourses[dayNames[dn]]
       dayCounts.push(dayCourses ? dayCourses.length : 0)
     }
     self.dayCounts = dayCounts
+    log("renderScheduleData dayCounts=" + JSON.stringify(dayCounts))
+  },
+
+  getDisplayName(course) {
+    if (!course) return ""
+    var name = course.name || "?"
+    var result
+    if (this.nameDisplay === "char") {
+      result = name.charAt(0)
+    } else if (this.nameDisplay === "en-abbr") {
+      result = name.substring(0, 3)
+    } else {
+      result = name
+    }
+    // log("getDisplayName mode=" + this.nameDisplay + " in=" + name + " out=" + result)
+    return result
+  },
+
+  getCellBg(course) {
+    if (!course) return "transparent"
+    if (!this.useColorScheme) {
+      return this.theme.cardLight || "#0f3460"
+    }
+    var key = guessSubjectKey(course.name)
+    return SUBJECT_COLORS[key] || SUBJECT_COLORS["default"]
+  },
+
+  getCellTextColor(course) {
+    if (!course) return "transparent"
+    if (!this.useColorScheme) {
+      return this.theme.accent || "#7ec8e3"
+    }
+    var key = guessSubjectKey(course.name)
+    return SUBJECT_TEXT_COLORS[key] || SUBJECT_TEXT_COLORS["default"]
   },
 
   buildTimeSlots(allCourses) {
@@ -313,7 +576,6 @@ export default {
             course: {
               id: firstCourse.id,
               name: firstCourse.name,
-              char: self.getFirstChar(firstCourse.name),
               displayChar: self.getFirstChar(firstCourse.name),
               extraCount: matched.length > 1 ? matched.length - 1 : 0,
               time: firstCourse.time,
@@ -337,6 +599,7 @@ export default {
     }
 
     this.timeSlots = timeSlots
+    log("buildTimeSlots slots=" + timeSlots.length + " times=" + timeKeys.join(","))
   },
 
   getFirstChar(name) {
@@ -401,14 +664,16 @@ export default {
 </script>
 
 <style>
-.week-view-page {
+/* ── page ── */
+.wv-page {
   flex-direction: column;
   background-color: #1a1a2e;
   padding: 44px 8px 8px 8px;
   height: 100%;
 }
 
-.header {
+/* ── header ── */
+.wv-header {
   flex-direction: row;
   align-items: center;
   justify-content: center;
@@ -416,7 +681,7 @@ export default {
   position: relative;
 }
 
-.back-btn {
+.wv-back {
   width: 56px;
   height: 34px;
   border-radius: 8px;
@@ -426,35 +691,37 @@ export default {
   text-align: center;
 }
 
-.header-title {
+.wv-title {
   font-size: 18px;
   font-weight: bold;
   color: #ffffff;
   text-align: center;
 }
 
-.schedule-name {
+.wv-subtitle {
   font-size: 13px;
-  color: #7ec8e3;
   text-align: center;
   margin-bottom: 6px;
 }
 
-.grid-wrapper {
+/* ── grid ── */
+.wv-grid {
   flex: 1;
   flex-direction: column;
+  overflow: hidden;
+  position: relative;
 }
 
-.week-header {
+.wv-day-row {
   flex-direction: row;
   margin-bottom: 4px;
 }
 
-.week-header-spacer {
+.wv-day-spacer {
   width: 50px;
 }
 
-.week-day {
+.wv-day-cell {
   flex: 1;
   text-align: center;
   font-size: 12px;
@@ -462,241 +729,182 @@ export default {
   color: #5577aa;
 }
 
-.week-day.today-day {
+.wv-day-cell.wv-today {
   font-size: 14px;
   color: #7ec8e3;
   text-decoration: underline;
 }
 
-.grid-scroll {
+.wv-body {
   flex: 1;
   flex-direction: column;
-  overflow: auto;
 }
 
-.grid-container {
-  flex-direction: column;
-}
-
-.time-row {
+.wv-row {
   flex-direction: row;
   align-items: center;
   margin-bottom: 1px;
   min-height: 34px;
+  flex-shrink: 0;
 }
 
-.time-label {
+.wv-time {
   width: 50px;
   font-size: 9px;
   color: #445566;
   text-align: right;
   padding-right: 6px;
+  flex-shrink: 0;
 }
 
-.course-row {
+.wv-cells {
   flex: 1;
   flex-direction: row;
+  overflow: visible;
 }
 
-.course-cell {
+.wv-cell {
   flex: 1;
   height: 32px;
   margin: 1px;
   border-radius: 6px;
   justify-content: center;
   align-items: center;
-  background-color: transparent;
+  overflow: visible;
 }
 
-.course-cell.current-course {
+.wv-cell-empty {
+  background-color: transparent;
+  opacity: 0.3;
+}
+
+.wv-cell.wv-now {
   background-color: rgba(126, 200, 227, 0.12);
   margin: 1px;
 }
 
-.course-char {
+.wv-name {
   font-size: 20px;
   font-weight: bold;
-  color: #7ec8e3;
   text-align: center;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
-.course-extra {
+.wv-info {
   font-size: 9px;
-  color: #555566;
+  text-align: center;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.wv-extra {
+  font-size: 9px;
   text-align: center;
 }
 
-.course-empty {
+.wv-empty {
   font-size: 10px;
-  color: #1a2030;
   text-align: center;
 }
 
-.footer {
+/* ── footer ── */
+.wv-footer {
   padding: 6px 0;
   align-items: center;
 }
 
-.footer-text {
+.wv-tpl-row {
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 4px;
+  padding: 0 6px;
+  width: 100%;
+}
+
+.wv-tpl {
   font-size: 11px;
-  color: #555566;
+  padding: 4px 10px;
+  margin: 0 3px;
+  border-radius: 14px;
+  text-align: center;
+  height: 28px;
+  letter-spacing: 0.3px;
+}
+
+.wv-tpl-on {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  font-weight: bold;
+  transform: scale(1.05);
+}
+
+.wv-stat {
+  font-size: 11px;
   text-align: center;
   width: 100%;
 }
 
+/* ── circle shape ── */
 @media (shape: circle) {
-  .week-view-page {
+  .wv-page {
     padding: 44px 36px 44px 36px;
   }
-  .header {
+  .wv-header {
     margin-bottom: 4px;
     padding: 0 20px;
     justify-content: center;
   }
-  .back-btn {
+  .wv-back {
     width: 44px;
     height: 28px;
     font-size: 12px;
   }
-  .header-title {
+  .wv-title {
     font-size: 16px;
   }
-  .schedule-name {
+  .wv-subtitle {
     font-size: 12px;
   }
-  .week-header-spacer {
+  .wv-day-spacer {
     width: 42px;
   }
-  .week-day {
+  .wv-day-cell {
     font-size: 11px;
   }
-  .week-day.today-day {
+  .wv-day-cell.wv-today {
     font-size: 12px;
   }
-  .time-row {
+  .wv-row {
     min-height: 28px;
   }
-  .time-label {
+  .wv-time {
     width: 42px;
     font-size: 8px;
   }
-  .course-cell {
+  .wv-cell {
     height: 28px;
   }
-  .course-char {
+  .wv-name {
     font-size: 16px;
   }
-  .course-empty {
+  .wv-empty {
     font-size: 9px;
   }
-  .footer {
+  .wv-footer {
     padding: 4px 0;
   }
-  .footer-text {
-    font-size: 10px;
+  .wv-tpl-row {
+    padding: 0 2px;
   }
-}
-
-@media (shape: capsule) {
-  .week-view-page {
-    padding: 44px 8px 12px 8px;
-  }
-  .header {
-    margin-bottom: 6px;
-    justify-content: center;
-  }
-  .back-btn {
-    width: 44px;
-    height: 30px;
-    font-size: 13px;
-  }
-  .header-title {
-    font-size: 15px;
-  }
-  .schedule-name {
-    font-size: 11px;
-  }
-  .week-header-spacer {
-    width: 40px;
-  }
-  .week-day {
-    font-size: 10px;
-  }
-  .week-day.today-day {
-    font-size: 11px;
-  }
-  .time-row {
-    min-height: 28px;
-  }
-  .time-label {
-    width: 40px;
+  .wv-tpl {
     font-size: 9px;
+    padding: 3px 5px;
+    margin: 0 2px;
+    height: 22px;
   }
-  .course-cell {
-    height: 26px;
-  }
-  .course-char {
-    font-size: 14px;
-  }
-  .course-empty {
-    font-size: 9px;
-  }
-  .footer {
-    padding: 4px 0;
-  }
-  .footer-text {
+  .wv-stat {
     font-size: 10px;
-  }
-}
-
-@media (shape: rect) {
-  .week-view-page {
-    padding: 44px 6px 6px 6px;
-  }
-  .header {
-    margin-bottom: 4px;
-  }
-  .back-btn {
-    width: 40px;
-    height: 28px;
-    font-size: 12px;
-  }
-  .header-title {
-    font-size: 15px;
-  }
-  .schedule-name {
-    font-size: 11px;
-  }
-  .week-header-spacer {
-    width: 36px;
-  }
-  .week-day {
-    font-size: 10px;
-  }
-  .week-day.today-day {
-    font-size: 11px;
-  }
-  .time-row {
-    min-height: 26px;
-  }
-  .time-label {
-    width: 36px;
-    font-size: 8px;
-  }
-  .course-cell {
-    height: 24px;
-  }
-  .course-char {
-    font-size: 14px;
-  }
-  .course-empty {
-    font-size: 8px;
-  }
-  .footer {
-    padding: 4px 0;
-  }
-  .footer-text {
-    font-size: 9px;
   }
 }
 </style>

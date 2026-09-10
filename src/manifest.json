@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.4.145",
-  "versionCode": 645,
+  "versionName": "1.4.148",
+  "versionCode": 648,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -142,6 +142,15 @@
       },
       "pages/week-overview-demo": {
         "component": "week-overview-demo"
+      },
+      "pages/week-grid-demo": {
+        "component": "week-grid-demo"
+      },
+      "pages/week-grid-simple": {
+        "component": "week-grid-simple"
+      },
+      "pages/template-picker": {
+        "component": "template-picker"
       },
       "pages/donate": {
         "component": "donate"

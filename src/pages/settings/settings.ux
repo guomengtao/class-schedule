@@ -97,6 +97,14 @@
         <text class="row-label" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">隐藏周六日</text>
         <input class="toggle-btn" type="button" value="{{ hideWeekend ? '开' : '关' }}" onclick="toggleHideWeekend" style="background-color: {{ hideWeekend ? theme.accent : theme.border }}; color: {{ hideWeekend ? theme.bg : theme.textSecondary }}" />
       </div>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="openTemplatePicker">
+        <text class="row-label" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">总览课表风格</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.accent }}">{{ currentTemplateName }}</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
@@ -214,7 +222,8 @@ export default {
     showDefaultHomepage: false,
     defaultTargetPage: "index-full",
     defaultAutoSeconds: 3,
-    defaultHomepageLabel: "标准页"
+    defaultHomepageLabel: "标准页",
+    currentTemplateName: "Minimal Char"
   },
 
   onInit() {
@@ -232,6 +241,7 @@ export default {
     this.loadNickname()
     this.loadHideWeekend()
     this.loadDefaultHomepage()
+    this.loadTemplateName()
     this.versionText = version.versionName
   },
 
@@ -400,6 +410,24 @@ export default {
 
   openResetData() {
     router.push({ uri: "/pages/reset-data" })
+  },
+
+  loadTemplateName() {
+    var self = this
+    store.getWeekViewTemplate(function(id) {
+      var names = {
+        "minimal-char": "Minimal Char",
+        "minimal-en": "Minimal EN",
+        "standard-block": "Standard Block",
+        "compact-grid": "Compact Grid",
+        "color-pastel": "Color Pastel"
+      }
+      self.currentTemplateName = names[id] || "Minimal Char"
+    })
+  },
+
+  openTemplatePicker() {
+    router.push({ uri: "/pages/template-picker" })
   },
 
   goToWelcome() {

@@ -848,5 +848,26 @@ module.exports = {
       success: function() { if (callback) callback() },
       fail: function() { if (callback) callback() }
     })
+  },
+
+  getWeekViewTemplate: function(callback) {
+    storage.get({
+      key: "weekview_template",
+      success: function(data) {
+        callback(data || "minimal-char")
+      },
+      fail: function() {
+        callback("minimal-char")
+      }
+    })
+  },
+
+  setWeekViewTemplate: function(templateId, callback) {
+    storage.set({
+      key: "weekview_template",
+      value: templateId,
+      success: function() { if (callback) callback() },
+      fail: function() { if (callback) callback() }
+    })
   }
 }

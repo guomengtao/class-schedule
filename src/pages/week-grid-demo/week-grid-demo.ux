@@ -1,0 +1,280 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="back" onclick="goBack"
+             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">Weekly Schedule</text>
+    </div>
+
+    <scroll class="scroll-wrap">
+      <div class="grid-wrap">
+        <!-- header row: day labels -->
+        <div class="grid-row">
+          <text class="cell cell-time cell-header" style="color: {{ theme.textMuted }}"></text>
+          <text class="cell cell-day cell-header" for="day in days" style="color: {{ theme.accent }}; font-weight: bold;">{{day}}</text>
+        </div>
+
+        <!-- schedule rows -->
+        <div class="grid-row" for="(rowIdx, row) in schedule">
+          <text class="cell cell-time" style="color: {{ theme.textMuted }}">{{ rowIdx + 1 }}</text>
+          <div class="cell cell-slot" for="(colIdx, cls) in row" style="padding: 2px;">
+            <div if="{{cls.name}}" class="class-block" style="background-color: {{ cls.color }};">
+              <text class="class-name">{{ cls.name }}</text>
+              <text class="class-room" show="{{cls.room}}">{{ cls.room }}</text>
+            </div>
+          </div>
+        </div>
+      </div>
+    </scroll>
+
+    <div class="legend-bar" style="background-color: {{ theme.card }};">
+      <div class="legend-item" for="item in subjects">
+        <div class="legend-dot" style="background-color: {{ item.color }};"></div>
+        <text class="legend-label" style="color: {{ theme.textSecondary }}">{{ item.name }}</text>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+var COLORS = {
+  math: "#4A90D9",
+  eng: "#50B86C",
+  chn: "#9B59B6",
+  phy: "#E67E22",
+  pe: "#E74C3C",
+  chem: "#1ABC9C",
+  bio: "#F39C12",
+  history: "#3498DB"
+}
+
+var SUBJECTS = [
+  { name: "Math", key: "math", color: COLORS.math },
+  { name: "Eng", key: "eng", color: COLORS.eng },
+  { name: "Chn", key: "chn", color: COLORS.chn },
+  { name: "Phy", key: "phy", color: COLORS.phy },
+  { name: "PE", key: "pe", color: COLORS.pe },
+  { name: "Chem", key: "chem", color: COLORS.chem }
+]
+
+export default {
+  private: {
+    theme: {},
+    days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    subjects: SUBJECTS,
+    schedule: [
+      [
+        { name: "Math", room: "A101", color: COLORS.math },
+        { name: "Eng", room: "B203", color: COLORS.eng },
+        {},
+        { name: "Chn", room: "C305", color: COLORS.chn },
+        { name: "Phy", room: "A201", color: COLORS.phy }
+      ],
+      [
+        { name: "Eng", room: "B203", color: COLORS.eng },
+        { name: "Math", room: "A101", color: COLORS.math },
+        { name: "Phy", room: "A201", color: COLORS.phy },
+        {},
+        { name: "Math", room: "A101", color: COLORS.math }
+      ],
+      [
+        {},
+        { name: "Chn", room: "C305", color: COLORS.chn },
+        { name: "Math", room: "A101", color: COLORS.math },
+        { name: "Eng", room: "B203", color: COLORS.eng },
+        {}
+      ],
+      [
+        { name: "PE", room: "Gym", color: COLORS.pe },
+        {},
+        { name: "Eng", room: "B203", color: COLORS.eng },
+        { name: "Math", room: "A101", color: COLORS.math },
+        { name: "Chn", room: "C305", color: COLORS.chn }
+      ],
+      [
+        { name: "Chem", room: "Lab", color: COLORS.chem },
+        { name: "Phy", room: "A201", color: COLORS.phy },
+        { name: "Chn", room: "C305", color: COLORS.chn },
+        {},
+        { name: "PE", room: "Gym", color: COLORS.pe }
+      ]
+    ]
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 6px 6px 6px;
+  min-height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+
+.back-btn {
+  width: 54px;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.title {
+  flex: 1;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  margin: 0 8px;
+}
+
+.scroll-wrap {
+  flex: 1;
+}
+
+.grid-wrap {
+  width: 100%;
+  flex-direction: column;
+  padding: 0 2px;
+}
+
+.grid-row {
+  flex-direction: row;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.cell {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.cell-header {
+  height: 32px;
+  font-size: 13px;
+}
+
+.cell-time {
+  width: 32px;
+  height: 44px;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.cell-day {
+  flex: 1;
+  height: 32px;
+}
+
+.cell-slot {
+  flex: 1;
+  height: 44px;
+}
+
+.class-block {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.class-name {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.class-room {
+  color: rgba(255,255,255,0.7);
+  font-size: 9px;
+  margin-top: 1px;
+}
+
+.legend-bar {
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 8px 4px;
+  border-radius: 10px;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.legend-item {
+  flex-direction: row;
+  align-items: center;
+  margin: 2px 6px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  margin-right: 4px;
+}
+
+.legend-label {
+  font-size: 11px;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 24px 44px 24px;
+  }
+  .header {
+    padding: 0 8px;
+  }
+  .back-btn {
+    width: 44px;
+    height: 30px;
+    font-size: 12px;
+  }
+  .grid-wrap {
+    padding: 0;
+  }
+  .cell-time {
+    width: 28px;
+    height: 38px;
+    font-size: 10px;
+  }
+  .cell-day {
+    height: 28px;
+    font-size: 12px;
+  }
+  .cell-slot {
+    height: 38px;
+  }
+  .class-name {
+    font-size: 11px;
+  }
+  .class-room {
+    font-size: 8px;
+  }
+  .legend-bar {
+    padding: 6px 2px;
+  }
+}
+</style>

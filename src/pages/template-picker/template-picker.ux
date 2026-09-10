@@ -1,0 +1,187 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="back" onclick="goBack"
+             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">Schedule Style</text>
+    </div>
+
+    <scroll class="scroll-wrap">
+      <div class="list">
+        <div class="card" for="(idx, tpl) in templateList" onclick="selectTemplate(tpl.id)"
+             style="background-color: {{ theme.card }}; border-color: {{ selectedId === tpl.id ? theme.accent : 'transparent' }}">
+          <div class="card-left">
+            <text class="radio-dot {{ selectedId === tpl.id ? 'active' : '' }}"
+                  style="color: {{ selectedId === tpl.id ? theme.accent : theme.textMuted }}">{{ selectedId === tpl.id ? '●' : '○' }}</text>
+            <div class="card-info">
+              <text class="card-name" style="color: {{ theme.text }}">{{ tpl.name }}</text>
+              <text class="card-desc" style="color: {{ theme.textSecondary }}">{{ tpl.desc }}</text>
+            </div>
+          </div>
+          <text class="card-check" if="{{ selectedId === tpl.id }}" style="color: {{ theme.accent }}">✓</text>
+        </div>
+      </div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+var TEMPLATES = [
+  { id: "minimal-char", name: "Minimal Char", desc: "Single Chinese character per subject, pure color blocks, no extra info" },
+  { id: "minimal-en", name: "Minimal EN", desc: "English 3-letter abbreviation, clean blocks" },
+  { id: "standard-block", name: "Standard Block", desc: "Full name + classroom + time, row numbers" },
+  { id: "compact-grid", name: "Compact Grid", desc: "High density layout, show more courses at once" },
+  { id: "color-pastel", name: "Color Pastel", desc: "Soft pastel color scheme, gentle on eyes" }
+]
+
+export default {
+  private: {
+    theme: {},
+    templateList: TEMPLATES,
+    selectedId: "minimal-char"
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    store.getWeekViewTemplate(function(id) {
+      self.selectedId = id || "minimal-char"
+    })
+  },
+
+  selectTemplate(id) {
+    var self = this
+    self.selectedId = id
+    store.setWeekViewTemplate(id, function() {
+      router.back()
+    })
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 8px 8px 8px;
+  min-height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+
+.back-btn {
+  width: 54px;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.title {
+  flex: 1;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  margin: 0 8px;
+}
+
+.scroll-wrap {
+  flex: 1;
+}
+
+.list {
+  flex-direction: column;
+  width: 100%;
+  padding: 0 2px;
+}
+
+.card {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px;
+  margin-bottom: 6px;
+  border-radius: 12px;
+  border-width: 2px;
+}
+
+.card-left {
+  flex-direction: row;
+  align-items: center;
+  flex: 1;
+}
+
+.radio-dot {
+  font-size: 20px;
+  width: 24px;
+  margin-right: 10px;
+  text-align: center;
+}
+
+.radio-dot.active {
+  font-size: 22px;
+}
+
+.card-info {
+  flex-direction: column;
+  flex: 1;
+}
+
+.card-name {
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.card-desc {
+  font-size: 11px;
+  margin-top: 2px;
+  lines: 2;
+  text-overflow: ellipsis;
+}
+
+.card-check {
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 28px 44px 28px;
+  }
+  .header {
+    padding: 0 10px;
+    margin-bottom: 8px;
+  }
+  .back-btn {
+    width: 44px;
+    height: 30px;
+    font-size: 12px;
+  }
+  .title {
+    font-size: 14px;
+  }
+  .card {
+    padding: 12px 12px;
+  }
+  .card-name {
+    font-size: 14px;
+  }
+  .card-desc {
+    font-size: 10px;
+  }
+}
+</style>

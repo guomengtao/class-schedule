@@ -8,6 +8,8 @@ var ALL_PAGES = [
   { name: "震动实验室", uri: "/pages/vibration-lab" },
   { name: "输入键盘", uri: "/pages/countdown-demo" },
   { name: "周课程总览", uri: "/pages/week-overview-demo" },
+  { name: "极简课表", uri: "/pages/week-grid-demo" },
+  { name: "单字极简课表", uri: "/pages/week-grid-simple" },
   { name: "打赏支持", uri: "/pages/donate" },
   { name: "课程表管理 V2", uri: "/pages/schedule-manager" },
   { name: "设备信息", uri: "/pages/device-info" },
