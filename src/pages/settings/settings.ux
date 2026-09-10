@@ -131,6 +131,14 @@
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="openDonate">
+        <text class="row-label" style="color: {{ theme.text }}">打赏支持</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">微信/支付宝/爱发电</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
@@ -373,6 +381,10 @@ export default {
 
   openActivation() {
     router.push({ uri: "/pages/activation" })
+  },
+
+  openDonate() {
+    router.push({ uri: "/pages/donate" })
   },
 
   goToPremium() {
