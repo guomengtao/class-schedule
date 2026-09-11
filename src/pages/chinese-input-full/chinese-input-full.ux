@@ -2,7 +2,7 @@
   <div class="input-page" style="background-color: {{ theme.bg }}">
     <div class="content-body">
       <div class="header">
-        <input class="back-btn" type="button" value="back" onclick="onCancel" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+        <input class="back-btn" type="button" value="◀" onclick="onCancel" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
         <text class="title" style="color: {{ theme.text }}">{{ title }}</text>
         <input class="confirm-btn" type="button" value="OK" onclick="onConfirm" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
@@ -214,6 +214,7 @@ export default {
   border-radius: 10px;
   font-size: 14px;
   text-align: center;
+  line-height: 20px;
 }
 
 .title {
@@ -223,6 +224,7 @@ export default {
   text-align: center;
   margin-left: 12px;
   margin-right: 12px;
+  line-height: 24px;
 }
 
 .confirm-btn {
@@ -231,6 +233,7 @@ export default {
   border-radius: 10px;
   font-size: 14px;
   text-align: center;
+  line-height: 20px;
 }
 
 .display-area {
@@ -273,6 +276,7 @@ export default {
 .font-label {
   font-size: 13px;
   margin-right: 6px;
+  line-height: 18px;
 }
 
 .font-btn {
@@ -283,10 +287,12 @@ export default {
   font-size: 13px;
   text-align: center;
   font-weight: bold;
+  line-height: 18px;
 }
 
 .footer-text {
   font-size: 12px;
+  line-height: 18px;
   text-align: center;
   padding-bottom: 4px;
   flex-shrink: 0;

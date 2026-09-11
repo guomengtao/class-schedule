@@ -133,7 +133,7 @@ export default {
 }
 
 .sheet-desc {
-  font-size: 11px;
+  font-size: 12px;
   text-align: center;
   margin-bottom: 10px;
   line-height: 16px;

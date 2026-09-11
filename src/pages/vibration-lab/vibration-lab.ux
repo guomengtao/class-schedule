@@ -116,7 +116,7 @@
       <div class="saved-item" for="{{ savedPresets }}" onclick="loadPreset($idx)" style="background-color: {{ theme.border }}">
         <text class="saved-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
         <text class="saved-info" style="color: {{ theme.textSecondary }}">{{ $item.duration }}ms / {{ $item.interval }}ms / {{ $item.count }}次</text>
-        <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '✕' }}" onclick="deletePreset($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === $idx ? '#ffffff' : theme.deleteText }}" />
+        <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '✕' }}" onclick="deletePreset($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === $idx ? theme.text : theme.deleteText }}" />
       </div>
     </div>
 
@@ -720,7 +720,7 @@ export default {
 }
 
 .preset-info {
-  font-size: 11px;
+  font-size: 12px;
   margin-top: 2px;
 }
 
@@ -873,12 +873,12 @@ export default {
 }
 
 .vibe-desc {
-  font-size: 11px;
+  font-size: 12px;
   margin-top: 2px;
 }
 
 .vibe-hint {
-  font-size: 11px;
+  font-size: 12px;
   text-align: center;
   margin-top: 6px;
 }
@@ -953,7 +953,7 @@ export default {
     font-size: 13px;
   }
   .preset-info {
-    font-size: 10px;
+    font-size: 12px;
   }
   .saved-item {
     padding: 8px;
@@ -962,7 +962,7 @@ export default {
     font-size: 13px;
   }
   .saved-info {
-    font-size: 11px;
+    font-size: 12px;
   }
   .delete-btn {
     width: 28px;
@@ -1036,7 +1036,7 @@ export default {
   .quick-btn {
     width: 44px;
     height: 28px;
-    font-size: 11px;
+    font-size: 12px;
   }
 }
 
@@ -1069,7 +1069,7 @@ export default {
     font-size: 15px;
   }
   .hero-desc {
-    font-size: 11px;
+    font-size: 12px;
   }
   .play-btn {
     width: 80px;
@@ -1100,7 +1100,7 @@ export default {
   .quick-btn {
     width: 42px;
     height: 26px;
-    font-size: 11px;
+    font-size: 12px;
   }
   .preset-item {
     padding: 8px 4px;
@@ -1109,7 +1109,7 @@ export default {
     font-size: 12px;
   }
   .preset-info {
-    font-size: 9px;
+    font-size: 12px;
   }
   .saved-item {
     padding: 8px;
@@ -1118,7 +1118,7 @@ export default {
     font-size: 12px;
   }
   .saved-info {
-    font-size: 10px;
+    font-size: 12px;
   }
   .delete-btn {
     width: 26px;

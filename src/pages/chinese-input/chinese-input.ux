@@ -408,6 +408,7 @@ export default {
   border-radius: 8px;
   font-size: 14px;
   text-align: center;
+  line-height: 20px;
 }
 
 .title {
@@ -415,6 +416,7 @@ export default {
   font-weight: bold;
   flex: 1;
   text-align: center;
+  line-height: 24px;
 }
 
 .confirm-btn {
@@ -422,6 +424,7 @@ export default {
   height: 36px;
   border-radius: 8px;
   font-size: 14px;
+  line-height: 20px;
   font-weight: bold;
   text-align: center;
 }
@@ -543,7 +546,7 @@ export default {
 }
 
 .footer-text {
-  font-size: 11px;
+  font-size: 12px;
   text-align: center;
   padding-top: 4px;
 }
@@ -620,7 +623,7 @@ export default {
     min-height: 22px;
   }
   .footer-text {
-    font-size: 10px;
+    font-size: 12px;
     padding-top: 3px;
   }
 }
@@ -688,15 +691,15 @@ export default {
     flex: 1;
   }
   .font-label {
-    font-size: 11px;
+    font-size: 12px;
   }
   .font-btn {
-    font-size: 11px;
+    font-size: 12px;
     width: 28px;
     min-height: 20px;
   }
   .footer-text {
-    font-size: 9px;
+    font-size: 12px;
     padding-top: 2px;
   }
 }
@@ -749,7 +752,7 @@ export default {
     min-height: 24px;
   }
   .footer-text {
-    font-size: 10px;
+    font-size: 12px;
     padding-top: 3px;
   }
 }

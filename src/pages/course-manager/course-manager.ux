@@ -8,7 +8,7 @@
 
     <div class="clear-bar" if="{{ courseList.length > 0 }}">
       <text class="clear-hint" style="color: {{ theme.deleteText }}">{{ clearAllConfirm ? '再次点击确认' : '清除全部' }}</text>
-      <input class="clear-btn" type="button" value="{{ clearAllConfirm ? '确认' : '清除' }}" onclick="clearAllCourses" style="background-color: {{ clearAllConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ clearAllConfirm ? '#ffffff' : theme.deleteText }}" />
+      <input class="clear-btn" type="button" value="{{ clearAllConfirm ? '确认' : '清除' }}" onclick="clearAllCourses" style="background-color: {{ clearAllConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ clearAllConfirm ? theme.text : theme.deleteText }}" />
     </div>
 
     <scroll class="course-list-scroll" scroll-y="{{true}}">
@@ -18,8 +18,9 @@
         </div>
         <text class="course-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
         <input class="edit-btn" type="button" value="编辑" onclick="startRename($idx)" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}" onclick="deleteCourse($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === $idx ? '#ffffff' : theme.deleteText }}" />
+        <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}" onclick="deleteCourse($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === $idx ? theme.text : theme.deleteText }}" />
       </div>
+      <text if="{{ courseList.length === 0 }}" class="empty-hint" style="color: {{ theme.textMuted }}; text-align: center; padding: 40px 10px;">暂无课程</text>
     </scroll>
   </div>
 </template>
@@ -305,6 +306,7 @@ export default {
   font-size: 28px;
   text-align: center;
   flex-shrink: 0;
+  line-height: 36px;
 }
 
 .title {
@@ -312,6 +314,7 @@ export default {
   font-weight: bold;
   flex: 1;
   text-align: center;
+  line-height: 44px;
 }
 
 .add-btn {
@@ -322,6 +325,7 @@ export default {
   font-weight: bold;
   text-align: center;
   flex-shrink: 0;
+  line-height: 32px;
 }
 
 .clear-bar {
@@ -337,6 +341,7 @@ export default {
   flex: 1;
   max-lines: 1;
   text-overflow: ellipsis;
+  line-height: 32px;
 }
 
 .clear-btn {
@@ -348,6 +353,7 @@ export default {
   text-align: center;
   flex-shrink: 0;
   margin-left: 8px;
+  line-height: 32px;
 }
 
 .course-list-scroll {
@@ -379,6 +385,7 @@ export default {
   font-weight: bold;
   color: #ffffff;
   text-align: center;
+  line-height: 32px;
 }
 
 .course-name {
@@ -387,6 +394,7 @@ export default {
   font-weight: bold;
   max-lines: 1;
   text-overflow: ellipsis;
+  line-height: 40px;
 }
 
 .edit-btn {
@@ -396,6 +404,7 @@ export default {
   font-size: 24px;
   font-weight: bold;
   text-align: center;
+  line-height: 32px;
   flex-shrink: 0;
   margin-left: 8px;
 }

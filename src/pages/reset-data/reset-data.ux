@@ -30,7 +30,7 @@
       <input class="action-btn {{ presetConfirm ? 'danger' : '' }}" type="button"
              value="{{ presetConfirm ? '确认恢复？' : '恢复默认课程' }}"
              onclick="handleResetPresets"
-             style="background-color: {{ presetConfirm ? theme.deleteText : theme.accent }}; color: {{ presetConfirm ? '#ffffff' : theme.bg }}" />
+             style="background-color: {{ presetConfirm ? theme.deleteText : theme.accent }}; color: {{ presetConfirm ? theme.text : theme.bg }}" />
 
       <text class="reset-hint" if="{{ presetConfirm }}" style="color: {{ theme.deleteText }}">再次点击确认</text>
       <text class="reset-hint" if="{{ !presetConfirm }}" style="color: {{ theme.textMuted }}">需二次确认</text>
@@ -45,7 +45,7 @@
       <input class="action-btn {{ fullConfirm ? 'danger' : '' }}" type="button"
              value="{{ fullConfirm ? '确认重置？' : '一键重置全部' }}"
              onclick="handleResetAll"
-             style="background-color: {{ fullConfirm ? theme.deleteText : theme.accent }}; color: {{ fullConfirm ? '#ffffff' : theme.bg }}" />
+             style="background-color: {{ fullConfirm ? theme.deleteText : theme.accent }}; color: {{ fullConfirm ? theme.text : theme.bg }}" />
 
       <text class="reset-hint" if="{{ fullConfirm }}" style="color: {{ theme.deleteText }}">再次点击确认</text>
       <text class="reset-hint" if="{{ !fullConfirm }}" style="color: {{ theme.textMuted }}">需二次确认</text>
@@ -60,7 +60,7 @@
       <input class="action-btn {{ emptyConfirm ? 'danger' : '' }}" type="button"
              value="{{ emptyConfirm ? '确认清空？' : '重置为空' }}"
              onclick="handleResetEmpty"
-             style="background-color: {{ emptyConfirm ? theme.deleteText : theme.accent }}; color: {{ emptyConfirm ? '#ffffff' : theme.bg }}" />
+             style="background-color: {{ emptyConfirm ? theme.deleteText : theme.accent }}; color: {{ emptyConfirm ? theme.text : theme.bg }}" />
 
       <text class="reset-hint" if="{{ emptyConfirm }}" style="color: {{ theme.deleteText }}">再次点击确认</text>
       <text class="reset-hint" if="{{ !emptyConfirm }}" style="color: {{ theme.textMuted }}">需二次确认</text>

@@ -112,7 +112,7 @@
         <input class="save-btn" type="button" value="更新" onclick="updateCourse" style="height: 48px; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
       <div class="delete-section">
-        <input class="delete-btn" type="button" value="{{ deleteConfirm ? '确认' : '删除' }}" onclick="deleteCourse" style="height: 48px; background-color: {{ deleteConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirm ? '#ffffff' : theme.deleteText }}" />
+        <input class="delete-btn" type="button" value="{{ deleteConfirm ? '确认' : '删除' }}" onclick="deleteCourse" style="height: 48px; background-color: {{ deleteConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirm ? theme.text : theme.deleteText }}" />
       </div>
     </div>
   </div>
@@ -604,7 +604,6 @@ export default {
 <style>
 .edit-course-page {
   flex-direction: column;
-  background-color: #1a1a2e;
   padding: 44px 10px 12px 10px;
   height: 100%;
 }
@@ -634,6 +633,7 @@ export default {
   border-radius: 8px;
   font-size: 28px;
   text-align: center;
+  line-height: 36px;
 }
 
 .title {
@@ -641,6 +641,7 @@ export default {
   font-weight: bold;
   flex: 1;
   text-align: center;
+  line-height: 44px;
 }
 
 .step-indicator {
@@ -672,12 +673,14 @@ export default {
   font-weight: bold;
   margin-bottom: 8px;
   text-align: center;
+  line-height: 42px;
 }
 
 .step-hint {
   font-size: 28px;
   margin-bottom: 14px;
   text-align: center;
+  line-height: 36px;
 }
 
 .swiper-wrapper {
@@ -712,6 +715,8 @@ export default {
   font-size: 36px;
   font-weight: bold;
   text-align: center;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .stepper-time {

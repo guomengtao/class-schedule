@@ -1,7 +1,7 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="back" onclick="goBack"
+      <input class="back-btn" type="button" value="◀" onclick="goBack"
              style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">Schedule</text>
     </div>
@@ -116,6 +116,7 @@ export default {
   border-radius: 8px;
   font-size: 13px;
   text-align: center;
+  line-height: 18px;
 }
 
 .title {
@@ -124,6 +125,7 @@ export default {
   font-weight: bold;
   text-align: center;
   margin: 0 8px;
+  line-height: 22px;
 }
 
 .scroll-wrap {
@@ -152,6 +154,7 @@ export default {
   text-align: center;
   font-size: 13px;
   height: 28px;
+  line-height: 18px;
 }
 
 .cell-wrap {
@@ -174,6 +177,7 @@ export default {
   color: #ffffff;
   font-size: 18px;
   font-weight: bold;
+  line-height: 24px;
 }
 
 @media (shape: circle) {

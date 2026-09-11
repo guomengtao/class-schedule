@@ -522,7 +522,6 @@ export default {
 <style>
 .add-course-page {
   flex-direction: column;
-  background-color: #1a1a2e;
   padding: 44px 10px 12px 10px;
   height: 100%;
 }
@@ -619,6 +618,8 @@ export default {
   font-size: 36px;
   font-weight: bold;
   text-align: center;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .stepper-time {

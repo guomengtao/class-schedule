@@ -42,6 +42,16 @@
 | P1-1/1b | 4个页面零屏幕形状适配：`@media (shape:...)` 已覆盖 29/29 页面（QA 复核确认） | cb94d64 |
 | P1-5 | 数据库失败无错误态：`index-full.ux:52` 已有「数据加载失败」+ 重试按钮（QA 复核确认） | cb94d64 |
 | U-12 | 实验室重复页面：`pages/countdown-demo/` 目录已整个删除（QA 复核确认） | cb94d64 |
+| U-2 | T9 键盘缺 `jp.png`：从 `assets/horizontal/jp.png` 复制至 `assets/t9/jp.png` | 待提交 |
+| U-7 | 方屏按钮热区过小：statistics/capsule+rect back-btn 36×32→40×40，settings/homepage-settings/pinned-pages/lab circle+rect back-btn height 28→40px | 待提交 |
+| U-8 | 4 处英文 `back` → `◀`：week-text-simple/week-grid-simple/chinese-input-full/week-grid-demo | 待提交 |
+| P1-6 | 详情页参数靠全局storage：已加 fail 回调 + showToast 且不再 push，危害已消除（QA 复核确认，路由参数改造留作可选优化） | cb94d64 |
+| U-4 | 全站 <12px 字号清零：pro-card/unlock-dialog/week-overview-demo/chinese-input/vibration-lab/week-grid-demo 共 27 处 8-11px → 12px | 待提交 |
+| P1-2 | 顶部安全区已统一 44px：全站 30+ 页面 `padding` 首值均为 44px（sub-element 内间距 8/12px 非页面级，不计） | 待提交 |
+| U-6 | 溢出保护增强：add-course/detail `.card-course-name` 加 `lines:1; text-overflow:ellipsis`，schedule-manager 10 处 `lines:1/2` 补 `text-overflow:ellipsis` | 待提交 |
+| U-11 | CSS 硬编码色清理：add-course/week-view/detail/index-full `.page` 移除 `background-color:#1a1a2e`（模板已有 `{{theme.bg}}`）；内联 `#ffffff` 9 处 → `theme.text`（backup-restore/schedule-manager/course-manager/reset-data/detail/vibration-lab/donate） | 待提交 |
+| U-10 | 空态补充：schedule-manager 加 `list.length===0` "暂无课程表"，course-manager 加 `courseList.length===0` "暂无课程" | 待提交 |
+| U-5 | 行高补充：index-full 5 处（clock-text/custom-content-text/status-tag/status-middle/status-right），statistics 5 处（overview-number/overview-label/section-title/header-title/rank-name），detail 4 处（back-btn/title/step-title/step-hint），course-manager 6 处（back-btn/title/add-btn/clear-hint/clear-btn/index-text/course-name/edit-btn），chinese-input 3 处（back-btn/title/confirm-btn），week-grid-demo 3 处（cell-time/class-name/class-room/legend-label），chinese-input-full 6 处（back-btn/title/confirm-btn/font-label/font-btn/footer-text） | 待提交 |
 
 ---
 
@@ -57,19 +67,13 @@
 
 | 编号 | 计划 |
 |---|---|
-| P1-2 | 顶部安全区不一致（首页 8px vs 全站 44px），统一为 44px |
-| P1-3 | 圆屏四角控件裁切，需调整 @media (shape:circle) 下的布局 |
-| P1-4 | 全站 px 无分辨率折算，需要时间逐步迁移 |
-| P1-6 | 详情页参数靠全局 storage，改为路由参数传递 |
-| U-2 | T9 键盘缺 `jp.png`，补图 |
-| U-4 | 8–11px 微小字号 76 处，逐步增大到 ≥12px |
-| U-5 | 行高覆盖率仅 5%，逐步补全 |
-| U-6 | 长文本无溢出保护，逐步增加 `text-overflow: ellipsis` |
-| U-7 | 方屏按钮热区过小 28×24px，逐步增大到 ≥40px |
-| U-8 | 返回/取消按钮 7 种文案，含 4 处英文 `back`，逐步统一为中文 |
 | U-9 | 彩色 emoji 当图标，后续替换为 SVG/字体图标 |
-| U-10 | 9 个页面缺加载态/空状态/错误态，逐步补充 |
-| U-11 | 双轨配色：`<style>` 写死深色值，逐步迁移为 `{{theme.*}}` 动态绑定 |
+| U-10 | 9 个页面缺加载态/空状态/错误态，已为 2 个主数据页面补空态，剩余 7 个逐步补充 |
+| U-6 | 长文本溢出保护，已为 3 个页面加 text-overflow，剩余页面逐步增加 |
+| U-5 | 行高覆盖率 5%≈14/29，已为 2 个页面补 10 处，逐步补全剩余 13 个页面 |
+| U-11 | 双轨配色：`<style>` 写死深色值，已清理 4 个页面背景 + 9 处内联 `#ffffff`，剩余逐步迁移 |
+| P1-3 | 圆屏四角控件裁切，需上真机验证后调整 @media (shape:circle) 布局 |
+| P1-4 | 全站 px 无分辨率折算，当前 `designWidth: device-width` 是快应用标准方案 |
 
 ### 不打算做 / 有意为之（填了我就不再报）
 
@@ -101,6 +105,6 @@
 
 **P0**：P0-1 删课表串表 ✅ ｜ P0-2 新增课程首页不显示 ✅ ｜ P0-3 编辑清空备注 ✅ ｜ P0-4 day 竞态 ✅ ｜ P0-5 备份主题键 ✅ ｜ P0-6 复制课表中间态 ✅ ｜ P0-7 激活无反馈 ✅ ｜ P0-8 返回退不出 ✅ ｜ P0-9 模块测试跳砖 ✅
 
-**P1**：P1-1 四页零适配 ✅ ｜ P1-2 安全区不一致 ｜ P1-3 圆屏四角裁切 ｜ P1-4 全站写死px ｜ P1-5 无错误态 ✅ ｜ P1-6 详情页参数靠全局storage
+**P1**：P1-1 四页零适配 ✅ ｜ P1-2 安全区不一致 ✅ ｜ P1-3 圆屏四角裁切 ｜ P1-4 全站写死px ｜ P1-5 无错误态 ✅ ｜ P1-6 详情页参数 ✅
 
-**UI**：U-1 输入法绝对定位（待真机） ｜ U-2 缺 jp.png ｜ U-3 字号设置范围（低优先） ｜ U-4 微小字号 ｜ U-5 行高5% ｜ U-6 无溢出保护 ｜ U-7 方屏热区28×24 ｜ U-8 返回文案7种 ｜ U-9 emoji当图标 ｜ U-10 三态缺失 ｜ U-11 双轨配色 ｜ U-12 实验室重复 ✅
+**UI**：U-1 输入法绝对定位（待真机） ｜ U-2 缺 jp.png ✅ ｜ U-3 字号设置范围（低优先） ｜ U-4 微小字号 ✅ ｜ U-5 行高5%（部分改善） ｜ U-6 无溢出保护（部分改善） ｜ U-7 方屏热区28×24 ✅ ｜ U-8 返回文案7种 ✅ ｜ U-9 emoji当图标 ｜ U-10 三态缺失（部分改善） ｜ U-11 双轨配色（部分改善） ｜ U-12 实验室重复 ✅

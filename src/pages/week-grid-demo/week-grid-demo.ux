@@ -1,7 +1,7 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="back" onclick="goBack"
+      <input class="back-btn" type="button" value="◀" onclick="goBack"
              style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">Weekly Schedule</text>
     </div>
@@ -177,8 +177,9 @@ export default {
 .cell-time {
   width: 32px;
   height: 44px;
-  font-size: 11px;
+  font-size: 12px;
   flex-shrink: 0;
+  line-height: 18px;
 }
 
 .cell-day {
@@ -204,12 +205,14 @@ export default {
   color: #ffffff;
   font-size: 13px;
   font-weight: bold;
+  line-height: 18px;
 }
 
 .class-room {
   color: rgba(255,255,255,0.7);
-  font-size: 9px;
+  font-size: 12px;
   margin-top: 1px;
+  line-height: 18px;
 }
 
 .legend-bar {
@@ -237,7 +240,8 @@ export default {
 }
 
 .legend-label {
-  font-size: 11px;
+  font-size: 12px;
+  line-height: 18px;
 }
 
 @media (shape: circle) {
@@ -258,7 +262,7 @@ export default {
   .cell-time {
     width: 28px;
     height: 38px;
-    font-size: 10px;
+    font-size: 12px;
   }
   .cell-day {
     height: 28px;
@@ -268,10 +272,10 @@ export default {
     height: 38px;
   }
   .class-name {
-    font-size: 11px;
+    font-size: 12px;
   }
   .class-room {
-    font-size: 8px;
+    font-size: 12px;
   }
   .legend-bar {
     padding: 6px 2px;

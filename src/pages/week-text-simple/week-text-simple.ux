@@ -1,7 +1,7 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="back" onclick="goBack"
+      <input class="back-btn" type="button" value="◀" onclick="goBack"
              style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">纯文课表</text>
     </div>

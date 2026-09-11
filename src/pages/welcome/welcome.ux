@@ -164,10 +164,12 @@ export default {
   font-size: 36px;
   font-weight: bold;
   margin-bottom: 8px;
+  line-height: 44px;
 }
 
 .app-subtitle {
   font-size: 16px;
+  line-height: 22px;
 }
 
 .countdown-area {
@@ -180,11 +182,13 @@ export default {
 .countdown-text {
   font-size: 56px;
   font-weight: bold;
+  line-height: 64px;
 }
 
 .countdown-hint {
   font-size: 14px;
   margin-top: 4px;
+  line-height: 20px;
 }
 
 .action-area {
@@ -202,6 +206,7 @@ export default {
   text-align: center;
   border-width: 0;
   margin-bottom: 16px;
+  line-height: 28px;
 }
 
 .settings-btn {
@@ -211,6 +216,7 @@ export default {
   font-size: 16px;
   text-align: center;
   border-width: 0;
+  line-height: 22px;
 }
 
 @media (shape: circle) {

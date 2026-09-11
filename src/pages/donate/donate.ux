@@ -7,13 +7,13 @@
 
     <div class="tab-bar">
       <div class="tab-item {{ currentTab === 0 ? 'active' : '' }}" onclick="switchTab(0)" style="background-color: {{ currentTab === 0 ? '#07C160' : theme.card }}">
-        <text class="tab-text" style="color: {{ currentTab === 0 ? '#ffffff' : theme.textSecondary }}">微信</text>
+        <text class="tab-text" style="color: {{ currentTab === 0 ? theme.text : theme.textSecondary }}">微信</text>
       </div>
       <div class="tab-item {{ currentTab === 1 ? 'active' : '' }}" onclick="switchTab(1)" style="background-color: {{ currentTab === 1 ? '#1677FF' : theme.card }}">
-        <text class="tab-text" style="color: {{ currentTab === 1 ? '#ffffff' : theme.textSecondary }}">支付宝</text>
+        <text class="tab-text" style="color: {{ currentTab === 1 ? theme.text : theme.textSecondary }}">支付宝</text>
       </div>
       <div class="tab-item {{ currentTab === 2 ? 'active' : '' }}" onclick="switchTab(2)" style="background-color: {{ currentTab === 2 ? '#FF6B35' : theme.card }}">
-        <text class="tab-text" style="color: {{ currentTab === 2 ? '#ffffff' : theme.textSecondary }}">爱发电</text>
+        <text class="tab-text" style="color: {{ currentTab === 2 ? theme.text : theme.textSecondary }}">爱发电</text>
       </div>
     </div>
 

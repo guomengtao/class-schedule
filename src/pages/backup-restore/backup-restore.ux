@@ -26,7 +26,7 @@ rinuo@qq.com<template>
                style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
         <input class="row-delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}"
                onclick="handleDeleteBackup($idx)"
-               style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : 'transparent' }}; color: {{ deleteConfirmIndex === $idx ? '#ffffff' : theme.deleteText }}; border-color: {{ theme.deleteText }}" />
+               style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : 'transparent' }}; color: {{ deleteConfirmIndex === $idx ? theme.text : theme.deleteText }}; border-color: {{ theme.deleteText }}" />
       </div>
     </div>
 

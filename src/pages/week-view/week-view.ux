@@ -693,7 +693,6 @@ export default {
 /* ── page ── */
 .wv-page {
   flex-direction: column;
-  background-color: #1a1a2e;
   padding: 44px 10px 12px 10px;
   height: 100%;
 }
