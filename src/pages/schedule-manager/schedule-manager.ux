@@ -856,6 +856,9 @@ export default {
   .footer-actions {
     padding: 12px 0 6px 0;
   }
+  .overlay-bottom-sheet {
+    padding: 44px 36px 44px 36px;
+  }
 }
 
 @media (shape: capsule) {

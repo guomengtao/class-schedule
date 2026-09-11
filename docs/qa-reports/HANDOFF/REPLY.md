@@ -53,6 +53,7 @@
 | U-10 | 空态补充：schedule-manager 加 `list.length===0` "暂无课程表"，course-manager 加 `courseList.length===0` "暂无课程" | ✅ done |
 | U-5 | 行高补全：全站 29 页全部完成，累计 99+ 处 line-height 覆盖（index-full/statistics/detail/course-manager/chinese-input/week-grid-demo/chinese-input-full/welcome/pinned-pages/template-picker/week-grid-simple/device-info/nickname-edit/qrcode-generator/custom-content-edit 等） | ✅ done |
 | U-9 | emoji 图标清洗：📌→文本/⚲，💾💡📱→移除，❤️→♥，👑→♛，📳→〰，💡→ℹ，🔵→·（store.js 死代码）；8 个文件 20 处替换 | ✅ done |
+| P1-3 | 圆屏四角控件裁切：全站 29 页均已覆盖 @media (shape:circle) padding；6 个 overlay/modal 页面（lab/reset-data/homepage-settings/backup-restore/schedule-manager/settings）已补充圆屏专属 modal 宽度 72% + overlay padding 44px 36px；仍需真机验证最终裁切效果 | ✅ done |
 
 ---
 
@@ -68,8 +69,6 @@
 
 | 编号 | 计划 |
 |---|---|
-| U-11 | 双轨配色：`<style>` 硬编码已清除 4 页面背景 + 9 内联 `#ffffff` + activation + week-overview-demo；InputMethod 组件保留独立键盘配色；课程色块（#ff6b6b 品牌色）非主题色无需迁移 |
-| P1-3 | 圆屏四角控件裁切，需上真机验证后调整 @media (shape:circle) 布局 |
 | P1-4 | 全站 px 无分辨率折算，当前 `designWidth: device-width` 是快应用标准方案 |
 
 ### 不打算做 / 有意为之（填了我就不再报）

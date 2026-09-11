@@ -773,6 +773,9 @@ export default {
   .version-text {
     font-size: 20px;
   }
+  .overlay-bottom-sheet {
+    padding: 44px 36px 44px 36px;
+  }
 }
 
 @media (shape: capsule) {

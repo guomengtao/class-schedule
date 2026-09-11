@@ -561,6 +561,13 @@ export default {
     height: 38px;
     font-size: 24px;
   }
+  .overlay-modal {
+    padding: 44px 36px 44px 36px;
+  }
+  .modal-card {
+    width: 72%;
+    padding: 24px 20px;
+  }
 }
 
 @media (shape: capsule) {
