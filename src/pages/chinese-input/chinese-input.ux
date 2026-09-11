@@ -61,7 +61,7 @@
       </div>
     </div>
 
-    <text class="footer-text" style="color: {{ theme.textSecondary }}">中文输入法</text>
+    <text class="footer-text" style="color: {{ theme.textSecondary }}">输入法 - 01 - 中文输入 - chinese-input</text>
   </div>
 </template>
 
@@ -357,16 +357,23 @@ export default {
   returnResult(result) {
     var storage = require("@system.storage")
     var returnKey = this.returnKey || "chinese_input_result"
-    var value = result !== null ? result : ""
 
-    storage.set({
-      key: returnKey,
-      value: value,
-      success: function() {
-        router.back()
-      },
-      fail: function() { router.back() }
-    })
+    if (result !== null) {
+      // Confirm: write result
+      storage.set({
+        key: returnKey,
+        value: result,
+        success: function() { router.back() },
+        fail: function() { router.back() }
+      })
+    } else {
+      // Cancel: delete the key so receiver knows it was cancelled
+      storage.delete({
+        key: returnKey,
+        success: function() { router.back() },
+        fail: function() { router.back() }
+      })
+    }
   },
 
   goBack() {

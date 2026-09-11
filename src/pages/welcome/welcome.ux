@@ -1,7 +1,7 @@
 <template>
   <div class="home-page" style="background-color: {{ theme.bg }}">
     <div class="logo-area">
-      <text class="app-name" style="color: {{ theme.accent }}">Ev 课程表</text>
+      <text class="app-name" style="color: {{ theme.accent }}">Ev课程表</text>
       <text class="app-subtitle" style="color: {{ theme.textSecondary }}">你的随身课程助手</text>
     </div>
 
@@ -52,15 +52,17 @@ export default {
     var self = this
     store.getTheme(function(t) {
       self.theme = t
-    })
-    this.loadDefaultHomepage()
+    }, true)
+    if (!self._hasEntered) {
+      this.loadDefaultHomepage(true)
+    }
   },
 
   onDestroy() {
     this.stopCountdown()
   },
 
-  loadDefaultHomepage() {
+  loadDefaultHomepage(forceRefresh) {
     var self = this
     store.getDefaultHomepage(function(settings) {
       self.targetPage = settings.targetPage || "index-full"
@@ -69,7 +71,7 @@ export default {
       self.targetPageLabel = self.targetPage === "week-view" ? "总课表" : "标准页"
       console.log("[INDEX] loadDefaultHomepage: autoSeconds=" + self.autoSeconds + " targetPage=" + self.targetPage)
       self.startCountdownIfNeeded()
-    })
+    }, forceRefresh)
   },
 
   startCountdownIfNeeded() {
@@ -114,16 +116,24 @@ export default {
   },
 
   doEnter() {
+    if (this._hasEntered) {
+      return
+    }
+    this._hasEntered = true
     var router = require("@system.router")
     var uri = "/pages/" + this.targetPage
-    router.push({ uri: uri })
+    router.replace({ uri: uri })
   },
 
   enterSchedule() {
+    if (this._hasEntered) {
+      return
+    }
+    this._hasEntered = true
     this.stopCountdown()
     var router = require("@system.router")
     var uri = "/pages/" + this.targetPage
-    router.push({ uri: uri })
+    router.replace({ uri: uri })
   },
 
   openSettings() {
@@ -201,5 +211,57 @@ export default {
   font-size: 16px;
   text-align: center;
   border-width: 0;
+}
+
+@media (shape: circle) {
+  .home-page {
+    padding: 44px 36px;
+  }
+  .app-name {
+    font-size: 28px;
+    margin-bottom: 4px;
+  }
+  .app-subtitle {
+    font-size: 14px;
+  }
+  .countdown-text {
+    font-size: 44px;
+  }
+  .countdown-hint {
+    font-size: 12px;
+  }
+  .enter-btn {
+    width: 180px;
+    height: 46px;
+    border-radius: 23px;
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+  .settings-btn {
+    width: 140px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 14px;
+  }
+}
+
+@media (shape: capsule) {
+  .home-page {
+    padding: 44px 12px 20px 12px;
+  }
+  .app-name {
+    font-size: 30px;
+  }
+  .enter-btn {
+    width: 200px;
+    height: 48px;
+    font-size: 19px;
+  }
+}
+
+@media (shape: rect) {
+  .home-page {
+    padding: 44px 8px 20px 8px;
+  }
 }
 </style>

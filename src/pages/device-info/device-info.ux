@@ -1,13 +1,13 @@
 <template>
   <div class="device-info-page" style="background-color: {{ theme.bg }}">
-    <div class="back-header">
-      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="header-title" style="color: {{ theme.text }}">设备信息</text>
+    <div class="header">
+      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">设备信息</text>
     </div>
 
     <div class="loading" if="{{ loading }}" style="background-color: {{ theme.card }}">
       <text class="loading-icon">⬡</text>
-      <text class="loading-text" style="color: {{ theme.textMuted }}">正在获取设备信息...</text>
+      <text class="loading-text" style="color: {{ theme.textMuted }}">获取中...</text>
     </div>
 
     <div class="error-card" if="{{ errorMsg }}" style="background-color: {{ theme.card }}">
@@ -24,7 +24,7 @@
     </div>
 
     <div class="footer-actions">
-      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">📌 固定到首页</text>
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">📌钉首页</text>
     </div>
   </div>
 </template>
@@ -181,41 +181,42 @@ export default {
 <style>
 .device-info-page {
   flex-direction: column;
-  padding: 44px 8px 8px 8px;
+  padding: 44px 10px 12px 10px;
   min-height: 100%;
 }
 
-.back-header {
+.header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 10px;
-  padding: 0;
+  height: 48px;
+  margin-bottom: 14px;
 }
 
 .back-btn {
-  width: 70px;
-  height: 36px;
+  width: 48px;
+  height: 40px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 28px;
   text-align: center;
 }
 
-.header-title {
-  font-size: 18px;
+.title {
+  font-size: 36px;
   font-weight: bold;
   flex: 1;
   text-align: center;
+  margin-right: 56px;
 }
 
 .footer-actions {
   flex-direction: row;
   justify-content: center;
-  padding: 16px 0 8px 0;
+  padding: 16px 0 10px 0;
 }
 
 .pin-link {
   text-align: center;
-  font-size: 13px;
+  font-size: 24px;
 }
 
 .info-section {
@@ -226,61 +227,61 @@ export default {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  border-radius: 10px;
-  padding: 14px 12px;
+  border-radius: 12px;
+  padding: 14px 14px;
   margin-bottom: 8px;
 }
 
 .menu-label {
-  font-size: 15px;
+  font-size: 32px;
 }
 
 .menu-value {
-  font-size: 13px;
+  font-size: 28px;
   text-align: right;
   margin-left: 12px;
 }
 
 .loading {
   flex-direction: column;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 50px 16px;
   align-items: center;
 }
 
 .loading-icon {
-  font-size: 28px;
+  font-size: 36px;
   margin-bottom: 10px;
 }
 
 .loading-text {
-  font-size: 15px;
+  font-size: 28px;
 }
 
 .error-card {
   flex-direction: column;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 20px 16px;
   margin-bottom: 8px;
   align-items: center;
 }
 
 .error-icon {
-  font-size: 28px;
+  font-size: 36px;
   margin-bottom: 8px;
 }
 
 .error-text {
-  font-size: 14px;
+  font-size: 28px;
   text-align: center;
   margin-bottom: 10px;
 }
 
 .retry-btn {
   width: 80px;
-  height: 36px;
+  height: 38px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 24px;
   text-align: center;
 }
 
@@ -288,21 +289,121 @@ export default {
   .device-info-page {
     padding: 44px 36px 44px 36px;
   }
-  .back-header {
-    padding: 0 20px;
-    justify-content: center;
+  .header {
+    margin-bottom: 12px;
+  }
+  .back-btn {
+    width: 44px;
+    height: 40px;
+    font-size: 28px;
+  }
+  .title {
+    font-size: 36px;
+    margin-right: 54px;
+  }
+  .menu-item {
+    padding: 12px 12px;
+  }
+  .menu-label {
+    font-size: 28px;
+  }
+  .menu-value {
+    font-size: 24px;
+  }
+  .loading-text {
+    font-size: 24px;
+  }
+  .error-text {
+    font-size: 24px;
+  }
+  .retry-btn {
+    height: 34px;
+    font-size: 20px;
+  }
+  .pin-link {
+    font-size: 24px;
   }
 }
 
 @media (shape: capsule) {
   .device-info-page {
-    padding: 44px 8px 12px 8px;
+    padding: 44px 10px 12px 10px;
+  }
+  .header {
+    height: 40px;
+    margin-bottom: 10px;
+  }
+  .back-btn {
+    width: 36px;
+    height: 32px;
+    font-size: 24px;
+  }
+  .title {
+    font-size: 28px;
+    margin-right: 44px;
+  }
+  .menu-item {
+    padding: 12px 12px;
+  }
+  .menu-label {
+    font-size: 28px;
+  }
+  .menu-value {
+    font-size: 24px;
+  }
+  .loading-text {
+    font-size: 24px;
+  }
+  .error-text {
+    font-size: 24px;
+  }
+  .retry-btn {
+    height: 34px;
+    font-size: 20px;
+  }
+  .pin-link {
+    font-size: 20px;
   }
 }
 
 @media (shape: rect) {
   .device-info-page {
-    padding: 44px 6px 6px 6px;
+    padding: 44px 8px 8px 8px;
+  }
+  .header {
+    height: 36px;
+    margin-bottom: 10px;
+  }
+  .back-btn {
+    width: 36px;
+    height: 32px;
+    font-size: 24px;
+  }
+  .title {
+    font-size: 28px;
+    margin-right: 44px;
+  }
+  .menu-item {
+    padding: 10px 10px;
+  }
+  .menu-label {
+    font-size: 28px;
+  }
+  .menu-value {
+    font-size: 24px;
+  }
+  .loading-text {
+    font-size: 24px;
+  }
+  .error-text {
+    font-size: 24px;
+  }
+  .retry-btn {
+    height: 32px;
+    font-size: 20px;
+  }
+  .pin-link {
+    font-size: 20px;
   }
 }
 </style>

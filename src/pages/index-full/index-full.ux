@@ -48,7 +48,11 @@
       <div if="{{ isLoading }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">加载中...</text>
       </div>
-      <div if="{{ !isLoading && currentClasses.length === 0 }}" class="empty-card">
+      <div if="{{ loadError }}" class="empty-card">
+        <text class="empty-text" style="color: {{ theme.textMuted }}">数据加载失败</text>
+        <input class="retry-btn" type="button" value="点击重试" onclick="retryLoad" style="margin-top: 12px; height: 44px; background-color: {{ theme.accent }}; color: {{ theme.bg }}; border-radius: 22px; font-size: 18px; padding: 0 20px;" />
+      </div>
+      <div if="{{ !isLoading && !loadError && currentClasses.length === 0 }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
       </div>
       <div for="{{ currentClasses }}" class="class-grid-item" onclick="goToClassDetail($item)" style="background-color: {{ theme.card }}">
@@ -135,6 +139,7 @@ loadModule("classList", require("./modules/class-list.js"))
 export default {
   private: {
     isLoading: true,
+    loadError: false,
     currentTime: "",
     currentDay: "",
     currentDayIndex: -1,
@@ -183,25 +188,33 @@ export default {
   },
 
   onInit() {
-    console.log("[index] onInit start")
     var self = this
     self.initialized = false
     self.isLoading = true
+    self.loadError = false
     store.getTheme(function(t) { self.theme = t })
     self.loadHomepageSettings()
 
+    self._loadTimeout = setTimeout(function() {
+      if (self.isLoading) {
+        self.loadError = true
+        self.isLoading = false
+        try { self.$forceUpdate() } catch (e) {}
+      }
+    }, 8000)
+
     database.init(function() {
       database.getAllCourses(function(schedule) {
+        if (self._loadTimeout) clearTimeout(self._loadTimeout)
         self.schedule = schedule
-        console.log("[index] data loaded, " + schedule.length + " days")
         store.getBaseFontSize(function(size) {
-          console.log("[index] onInit: baseFontSize=" + size)
           self.displaySize = size
           self.metaFontSize = Math.round(size * 0.71)
           self.dayTitleSize = size
           self.initAllModules()
           self.initialized = true
           self.isLoading = false
+          self.loadError = false
         })
       })
     })
@@ -212,7 +225,6 @@ export default {
     if (!self.initialized) return
     store.getTheme(function(t) { self.theme = t })
     self.loadHomepageSettings()
-    self.loadFontScale()
     if (modules.customContent && modules.customContent.refresh) {
       modules.customContent.refresh(self)
     }
@@ -223,6 +235,7 @@ export default {
       self.quickAdd.loadPreset()
     }
 
+    // Chain: schedule index → font size → schedule data → refresh UI
     store.getCurrentScheduleIndex(function(idx) {
       database.setScheduleIndex(idx, function() {
         store.getScheduleNames(function(names) {
@@ -232,21 +245,29 @@ export default {
             self.currentScheduleName = '课程表' + (idx + 1)
           }
         })
-        database.getAllCoursesWithIndex(idx, function(schedule) {
-          if (!schedule || schedule.length === 0) {
-            database.getAllCourses(function(fallback) {
-              self.schedule = fallback
-              if (self.refreshClasses && typeof self.refreshClasses === 'function') {
-                self.refreshClasses()
-              }
-            })
-            return
-          }
-          self.schedule = schedule
-          if (self.refreshClasses && typeof self.refreshClasses === 'function') {
-            self.refreshClasses()
-          }
-        })
+        store.getBaseFontSize(function(size) {
+          self.displaySize = size
+          self.metaFontSize = Math.round(size * 0.71)
+          self.dayTitleSize = size
+          // After font size is loaded, fetch fresh schedule data
+          database.getAllCoursesWithIndex(idx, function(schedule) {
+            if (!schedule || schedule.length === 0) {
+              database.getAllCourses(function(fallback) {
+                self.schedule = fallback
+                if (self.refreshClasses && typeof self.refreshClasses === 'function') {
+                  self.refreshClasses()
+                }
+                try { self.$forceUpdate() } catch (e) {}
+              })
+              return
+            }
+            self.schedule = schedule
+            if (self.refreshClasses && typeof self.refreshClasses === 'function') {
+              self.refreshClasses()
+            }
+            try { self.$forceUpdate() } catch (e) {}
+          }, true)
+        }, true)
       })
     })
 
@@ -254,6 +275,7 @@ export default {
   },
 
   onDestroy() {
+    if (this._loadTimeout) clearTimeout(this._loadTimeout)
     if (this.stopClockTimer && typeof this.stopClockTimer === 'function') this.stopClockTimer()
     if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
     if (this.stopProgressTimer && typeof this.stopProgressTimer === 'function') this.stopProgressTimer()
@@ -265,7 +287,6 @@ export default {
   loadFontScale() {
     var self = this
     store.getBaseFontSize(function(size) {
-      console.log("[index-full] loadFontScale: baseFontSize=" + size)
       self.displaySize = size
       self.metaFontSize = Math.round(size * 0.71)
       self.dayTitleSize = size
@@ -297,14 +318,12 @@ export default {
 
   initAllModules() {
     var self = this
-    console.log("[index] starting " + moduleNames.length + " modules...")
     for (var i = 0; i < moduleNames.length; i++) {
       var m = moduleNames[i]
       var mod = modules[m.key]
       if (mod && mod.init) {
         try {
           mod.init(self)
-          console.log("[index] [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " OK")
         } catch (e) {
           console.error("[index] [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " FAIL: " + (e.message || e))
         }
@@ -325,7 +344,6 @@ export default {
         try { self.startStatusTimer() } catch (e) { console.error("[index] startStatusTimer: " + (e.message || e)) }
       }
     }
-    console.log("[index] initAllModules done")
 
     if (self.updateHideWeekend && typeof self.updateHideWeekend === 'function') {
       try { self.updateHideWeekend() } catch (e) { console.error("[index] updateHideWeekend: " + (e.message || e)) }
@@ -334,6 +352,43 @@ export default {
 
   goBack() {
     router.back()
+  },
+
+  onBackPress() {
+    var app = require("@system.app")
+    app.exit()
+    return true
+  },
+
+  retryLoad() {
+    var self = this
+    self.isLoading = true
+    self.loadError = false
+    try { self.$forceUpdate() } catch (e) {}
+
+    self._loadTimeout = setTimeout(function() {
+      if (self.isLoading) {
+        self.loadError = true
+        self.isLoading = false
+        try { self.$forceUpdate() } catch (e) {}
+      }
+    }, 8000)
+
+    database.init(function() {
+      database.getAllCourses(function(schedule) {
+        if (self._loadTimeout) clearTimeout(self._loadTimeout)
+        self.schedule = schedule
+        store.getBaseFontSize(function(size) {
+          self.displaySize = size
+          self.metaFontSize = Math.round(size * 0.71)
+          self.dayTitleSize = size
+          self.initAllModules()
+          self.initialized = true
+          self.isLoading = false
+          self.loadError = false
+        })
+      })
+    })
   },
 
   goToWeekView() {
@@ -377,7 +432,7 @@ export default {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  padding: 8px 8px 8px 8px;
+  padding: 44px 8px 8px 8px;
 }
 
 .header {
@@ -700,5 +755,44 @@ export default {
 
 .left-accent-6 {
   height: 28px;
+}
+
+@media (shape: circle) {
+  .schedule-page {
+    padding: 44px 36px 44px 36px;
+  }
+  .nav-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    font-size: 18px;
+  }
+  .day-nav-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    margin-left: 2px;
+  }
+  .add-btn,
+  .style-btn {
+    height: 36px;
+    border-radius: 18px;
+    font-size: 16px;
+  }
+  .bottom-buttons {
+    margin-bottom: 8px;
+  }
+}
+
+@media (shape: capsule) {
+  .schedule-page {
+    padding: 44px 8px 12px 8px;
+  }
+}
+
+@media (shape: rect) {
+  .schedule-page {
+    padding: 44px 6px 6px 6px;
+  }
 }
 </style>

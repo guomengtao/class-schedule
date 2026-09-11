@@ -114,7 +114,7 @@ SimpleInputMethod.segmentPinyin = function(pinyin) {
   while (i < pinyin.length && i < maxLen) {
     let matched = ''
     for (let len = Math.min(6, pinyin.length - i); len >= 1; len--) {
-      const s = pinyin.substr(i, len)
+      const s = pinyin.slice(i, i + len)
       if (set.has(s)) { matched = s; break }
     }
     if (!matched) break
@@ -122,7 +122,7 @@ SimpleInputMethod.segmentPinyin = function(pinyin) {
     i += matched.length
     pos.push(i)
   }
-  let rest = pinyin.substr(i)
+  let rest = pinyin.slice(i)
   // 末段若是叹词单字音，且前面有 ≥2 音节 → 视为不完整前缀移到 rest
   const DUMMY_ENDING = { m: 1, n: 1, ng: 1, hm: 1, hng: 1 }
   if (!rest && result.length >= 2) {
@@ -210,7 +210,7 @@ SimpleInputMethod.matchMixedWords = function(pinyin) {
   while (i < pinyin.length) {
     let matched = ''
     for (let len = Math.min(6, pinyin.length - i); len >= 1; len--) {
-      const s = pinyin.substr(i, len)
+      const s = pinyin.slice(i, i + len)
       if (set.has(s)) { matched = s; break }
     }
     if (matched) { tokens.push(matched); i += matched.length }
@@ -266,7 +266,7 @@ SimpleInputMethod.getSegmentedDisplay = function(pinyin) {
   while (ii < len) {
     let mtch = ''
     for (let l = Math.min(6, len - ii); l >= 1; l--) {
-      if (set.has(pinyin.substr(ii, l))) { mtch = pinyin.substr(ii, l); break }
+      if (set.has(pinyin.slice(ii, ii + l))) { mtch = pinyin.slice(ii, ii + l); break }
     }
     if (mtch) { tokens.push(mtch); ii += mtch.length }
     else { tokens.push(pinyin[ii]); ii += 1 }
@@ -291,13 +291,13 @@ SimpleInputMethod.getMultiHanzi = function(pinyin, lang = 'cn') {
   if (wordHits.length === 0) {
     const max = Math.min(pinyin.length, 12)
     for (let len = max; len >= 2; len--) {
-      const head = pinyin.substr(0, len)
+      const head = pinyin.slice(0, len)
       if (wmap[head]) { pushWordHits(wmap[head], wordHits); matchSource = 'prefix'; break }
     }
   }
   // 前向前缀匹配（首2字母索引，避免全表遍历；限流前6条防止海量候选）
   if (wordHits.length === 0 && pinyin.length >= 2 && !this.dict.syllableSet.has(pinyin)) {
-    const pref = pinyin.substr(0, 2)
+    const pref = pinyin.slice(0, 2)
     const fwdIdx = this.dict.forwardIndex || {}
     const candidates = fwdIdx[pref] || []
     let fwdCount = 0
@@ -468,7 +468,7 @@ SimpleInputMethod.getHanzi = function(pinyin, lang = 'cn') {
   } else {
     let max = Math.min(pinyin.length, 6)
     for (let len = max; len >= 1; len--) {
-      let head = pinyin.substr(0, len)
+      let head = pinyin.slice(0, len)
       let rs = this.getSingleHanzi(head, lang)
       if (rs) {
         chars = rs.split('')

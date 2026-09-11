@@ -26,7 +26,7 @@ function loadAndRotate(instance) {
             instance._customContentList = list
             instance._customContentIndex = 0
             instance.customContent = list[0]
-            instance.showCustomContent = true
+            checkSettingsToggle(instance)
             if (list.length > 1) {
               startRotation(instance)
             }
@@ -38,6 +38,32 @@ function loadAndRotate(instance) {
     },
     fail: function() {
       loadLegacy(instance)
+    }
+  })
+}
+
+function checkSettingsToggle(instance) {
+  var storage = require("@system.storage")
+  storage.get({
+    key: "homepage_settings",
+    success: function(data) {
+      if (data) {
+        try {
+          var settings = JSON.parse(data)
+          if (settings.showCustomContent === false) {
+            instance.showCustomContent = false
+          } else {
+            instance.showCustomContent = true
+          }
+        } catch (e) {
+          instance.showCustomContent = true
+        }
+      } else {
+        instance.showCustomContent = true
+      }
+    },
+    fail: function() {
+      instance.showCustomContent = true
     }
   })
 }

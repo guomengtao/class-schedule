@@ -1,7 +1,7 @@
 <import name="unlock-dialog" src="../../components/unlock-dialog"></import>
 <template>
   <stack class="page-root">
-  <div class="page" style="background-color: {{ theme.bg }}">
+  <scroll class="page" scroll-y="true" style="background-color: {{ theme.bg }}">
     <div class="header">
       <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">课程表管理</text>
@@ -63,7 +63,7 @@
     <div class="footer-actions">
       <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">📌 固定到首页</text>
     </div>
-  </div>
+  </scroll>
 
   <div class="overlay-bottom-sheet" if="{{ showDialog }}" onclick="stopBubble">
     <div class="bottom-sheet" style="background-color: {{ theme.card }}" onclick="stopBubble">
@@ -286,6 +286,21 @@ export default {
     }
 
     database.getAllCoursesWithIndex(index, function(sourceData) {
+      if (!sourceData || sourceData.length === 0) {
+        prompt.showToast({ message: "源课表无数据，无法复制" })
+        return
+      }
+
+      var totalCourses = 0
+      for (var d = 0; d < sourceData.length; d++) {
+        totalCourses += sourceData[d].classes.length
+      }
+
+      if (totalCourses === 0) {
+        prompt.showToast({ message: "源课表无课程，无法复制" })
+        return
+      }
+
       var names = []
       for (var i = 0; i < self.list.length; i++) {
         names.push(self.list[i].name)
@@ -294,22 +309,8 @@ export default {
 
       store.setScheduleNames(names, function() {
         database.setScheduleIndex(newIndex, function() {
-          if (!sourceData || sourceData.length === 0) {
-            self.loadData()
-            return
-          }
-
-          var totalCourses = 0
-          for (var d = 0; d < sourceData.length; d++) {
-            totalCourses += sourceData[d].classes.length
-          }
-
-          if (totalCourses === 0) {
-            self.loadData()
-            return
-          }
-
-          var inserted = 0
+          var processed = 0
+          var hasError = false
           for (var d = 0; d < sourceData.length; d++) {
             var dayData = sourceData[d]
             for (var c = 0; c < dayData.classes.length; c++) {
@@ -324,12 +325,11 @@ export default {
                 notes: course.notes || ""
               }
               database.insertCourse(newCourse, function(err) {
-                if (!err) {
-                  inserted++
-                }
-                if (inserted === totalCourses) {
+                if (err) hasError = true
+                processed++
+                if (processed >= totalCourses) {
                   database.setScheduleIndex(self.currentIndex, function() {
-                    prompt.showToast({ message: "课程表已复制" })
+                    prompt.showToast({ message: hasError ? "复制部分失败" : "课程表已复制" })
                     self.loadData()
                   })
                 }
@@ -410,27 +410,32 @@ export default {
     var self = this
     var needSwitch = (index === this.currentIndex)
     var deletedName = this.list[index].name
+    var totalBeforeDelete = this.list.length
 
-    this.list.splice(index, 1)
+    // Shift course data in storage first (delete + shift allCourses keys)
+    database.deleteScheduleAndShift(index, totalBeforeDelete, function() {
+      // Now safe to update in-memory list
+      self.list.splice(index, 1)
 
-    if (needSwitch) {
-      this.currentIndex = 0
-    } else if (index < this.currentIndex) {
-      this.currentIndex = this.currentIndex - 1
-    }
-
-    var names = []
-    for (var i = 0; i < this.list.length; i++) {
-      names.push(this.list[i].name)
-    }
-
-    store.setScheduleNames(names, function() {
-      prompt.showToast({ message: "已删除 " + deletedName })
       if (needSwitch) {
-        database.setScheduleIndex(0, function() {})
+        self.currentIndex = 0
       } else if (index < self.currentIndex) {
-        database.setScheduleIndex(self.currentIndex, function() {})
+        self.currentIndex = self.currentIndex - 1
       }
+
+      var names = []
+      for (var i = 0; i < self.list.length; i++) {
+        names.push(self.list[i].name)
+      }
+
+      store.setScheduleNames(names, function() {
+        prompt.showToast({ message: "已删除 " + deletedName })
+        if (needSwitch) {
+          database.setScheduleIndex(0, function() {})
+        } else if (index < self.currentIndex) {
+          database.setScheduleIndex(self.currentIndex, function() {})
+        }
+      })
     })
   },
 
@@ -512,6 +517,13 @@ export default {
 
   pinToHome() {
     pinHelper.pinPage("课程表管理", "/pages/schedule-manager")
+  },
+
+  onDestroy() {
+    if (this.deleteTimer) {
+      clearTimeout(this.deleteTimer)
+      this.deleteTimer = null
+    }
   }
 }
 </script>
@@ -527,6 +539,7 @@ export default {
   flex-direction: row;
   align-items: center;
   margin-bottom: 12px;
+  flex-shrink: 0;
 }
 
 .back-btn {
@@ -543,16 +556,19 @@ export default {
   font-weight: bold;
   flex: 1;
   text-align: center;
+  lines: 1;
 }
 
 .footer-actions {
   flex-direction: row;
   justify-content: center;
   padding: 16px 0 8px 0;
+  flex-shrink: 0;
 }
 
 .pin-link {
   text-align: center;
+  lines: 1;
 }
 
 .rename-bar {
@@ -561,6 +577,7 @@ export default {
   margin-bottom: 12px;
   padding: 8px 12px;
   border-radius: 10px;
+  flex-shrink: 0;
 }
 
 .rename-display {
@@ -576,6 +593,7 @@ export default {
 
 .rename-text {
   font-size: 18px;
+  lines: 1;
 }
 
 .rename-ok-btn {
@@ -602,11 +620,13 @@ export default {
   border-radius: 12px;
   padding: 12px 14px;
   margin-bottom: 12px;
+  flex-shrink: 0;
 }
 
 .item-row {
   flex-direction: row;
   align-items: center;
+  min-height: 44px;
 }
 
 .item-left {
@@ -629,23 +649,27 @@ export default {
 .check {
   font-size: 18px;
   font-weight: bold;
+  lines: 1;
 }
 
 .name {
   font-size: 16px;
   font-weight: bold;
   margin-left: 10px;
+  lines: 1;
 }
 
 .course-count {
   font-size: 14px;
   margin-left: 6px;
+  lines: 1;
 }
 
 .expand-arrow {
   font-size: 12px;
   padding: 4px;
   flex-shrink: 0;
+  lines: 1;
 }
 
 .actions {
@@ -675,11 +699,13 @@ export default {
 
 .action-btn-text {
   font-size: 15px;
+  lines: 1;
 }
 
 .add-section {
   margin-top: 10px;
   padding-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .add-btn {
@@ -727,6 +753,7 @@ export default {
   font-weight: bold;
   margin-bottom: 6px;
   text-align: center;
+  lines: 1;
 }
 
 .sheet-desc {
@@ -734,6 +761,7 @@ export default {
   text-align: center;
   margin-bottom: 14px;
   line-height: 18px;
+  lines: 2;
 }
 
 .benefit-list {
@@ -746,6 +774,7 @@ export default {
 .benefit-item {
   font-size: 13px;
   margin-bottom: 6px;
+  lines: 1;
 }
 
 .sheet-btn {
@@ -762,5 +791,75 @@ export default {
   height: 28px;
   border-radius: 14px;
   font-size: 12px;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-btn {
+    width: 40px;
+    height: 30px;
+    font-size: 16px;
+  }
+  .title {
+    font-size: 17px;
+  }
+  .item {
+    padding: 8px 10px;
+    margin-bottom: 8px;
+  }
+  .name {
+    font-size: 14px;
+    margin-left: 6px;
+  }
+  .course-count {
+    font-size: 12px;
+  }
+  .action-btn {
+    height: 30px;
+    margin-right: 4px;
+  }
+  .action-btn-text {
+    font-size: 13px;
+  }
+  .rename-display {
+    font-size: 15px;
+    height: 36px;
+  }
+  .rename-text {
+    font-size: 15px;
+  }
+  .rename-ok-btn,
+  .rename-cancel-btn {
+    width: 48px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .add-btn {
+    height: 38px;
+    font-size: 14px;
+  }
+  .footer-actions {
+    padding: 12px 0 6px 0;
+  }
+}
+
+@media (shape: capsule) {
+  .title {
+    font-size: 18px;
+  }
+  .name {
+    font-size: 15px;
+  }
+  .action-btn-text {
+    font-size: 14px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 8px 8px 8px;
+  }
 }
 </style>

@@ -3,17 +3,17 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="title" style="color: {{ theme.text }}">导出课程表</text>
+      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">导出</text>
     </div>
 
     <div class="subtitle-section" style="background-color: {{ theme.card }}">
-      <text class="subtitle-text" style="color: {{ theme.textSecondary }}">通过二维码方式导出课程表，手机扫码即可获取完整课程信息并可复制保留</text>
+      <text class="subtitle-text" style="color: {{ theme.textSecondary }}">扫码导出课程，手机可复制保存</text>
     </div>
 
     <div class="pro-inline-wrap" if="{{ !isPro }}">
       <div class="preview-hint" style="background-color: {{ theme.card }}">
-        <text class="preview-hint-text" style="color: {{ theme.textMuted }}">课程表导出预览（Pro 解锁完整功能）</text>
+        <text class="preview-hint-text" style="color: {{ theme.textMuted }}">导出预览（Pro解锁）</text>
       </div>
       <pro-card id="proCard"></pro-card>
     </div>
@@ -28,34 +28,34 @@
         <div class="qr-wrapper" style="background-color: #ffffff">
           <qrcode value="{{ qrText }}" style="color: #000000; background-color: #ffffff; width: 200px; height: 200px;"></qrcode>
         </div>
-        <text class="qr-hint" style="color: {{ theme.textSecondary }}">请用手机扫描上方二维码</text>
+        <text class="qr-hint" style="color: {{ theme.textSecondary }}">扫码查看</text>
       </div>
 
       <div class="instructions-section" style="background-color: {{ theme.card }}">
-        <text class="instructions-title" style="color: {{ theme.text }}">扫码导出说明</text>
-        <text class="instructions-text" style="color: {{ theme.textSecondary }}">1. 打开手机相机或任意扫码应用</text>
-        <text class="instructions-text" style="color: {{ theme.textSecondary }}">2. 对准手环屏幕上的二维码扫描</text>
-        <text class="instructions-text" style="color: {{ theme.textSecondary }}">3. 手机将显示完整的课程表文字信息</text>
-        <text class="instructions-text" style="color: {{ theme.textSecondary }}">4. 在手机上可长按文字选择复制，粘贴到备忘录或微信保存</text>
+        <text class="instructions-title" style="color: {{ theme.text }}">使用说明</text>
+        <text class="instructions-text" style="color: {{ theme.textSecondary }}">1. 打开相机扫码</text>
+        <text class="instructions-text" style="color: {{ theme.textSecondary }}">2. 扫描手环二维码</text>
+        <text class="instructions-text" style="color: {{ theme.textSecondary }}">3. 显示课程信息</text>
+        <text class="instructions-text" style="color: {{ theme.textSecondary }}">4. 长按复制保存</text>
       </div>
 
       <div class="preview-section" style="background-color: {{ theme.card }}">
-        <text class="preview-title" style="color: {{ theme.text }}">已编码内容预览</text>
-        <text class="preview-text" style="color: {{ theme.textSecondary }}">简洁模式：课程取首字，按天按时间顺序排列，控制在100字以内</text>
+        <text class="preview-title" style="color: {{ theme.text }}">内容预览</text>
+        <text class="preview-text" style="color: {{ theme.textSecondary }}">课程首字，按时排列</text>
         <div class="preview-content" style="background-color: {{ theme.cardLight }}">
           <text class="preview-code" style="color: {{ theme.text }}">{{ qrText }}</text>
         </div>
       </div>
 
       <div class="loading-section" if="{{ !qrText }}" style="background-color: {{ theme.card }}">
-        <text class="loading-text" style="color: {{ theme.textMuted }}">正在加载课程数据...</text>
+        <text class="loading-text" style="color: {{ theme.textMuted }}">加载中...</text>
       </div>
     </scroll>
 
     <unlock-dialog id="unlockDialog"></unlock-dialog>
 
     <div class="footer-actions">
-      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">📌 固定到首页</text>
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">📌钉首页</text>
     </div>
   </div>
 </template>
@@ -232,45 +232,36 @@ export default {
 .header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 8px;
-  padding: 6px 0;
+  height: 48px;
+  margin-bottom: 12px;
 }
 
 .back-btn {
-  width: 80px;
+  width: 48px;
   height: 40px;
-  border-radius: 10px;
-  font-size: 18px;
+  border-radius: 8px;
+  font-size: 28px;
   text-align: center;
   flex-shrink: 0;
 }
 
 .title {
-  font-size: 22px;
+  font-size: 36px;
   font-weight: bold;
   flex: 1;
   text-align: center;
-}
-
-.footer-actions {
-  flex-direction: row;
-  justify-content: center;
-  padding: 16px 0 8px 0;
-}
-
-.pin-link {
-  text-align: center;
+  margin-right: 56px;
 }
 
 .subtitle-section {
   border-radius: 12px;
-  padding: 10px 16px;
-  margin-bottom: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
 }
 
 .subtitle-text {
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 28px;
+  line-height: 36px;
 }
 
 .content-scroll {
@@ -282,17 +273,17 @@ export default {
   flex-direction: row;
   align-items: center;
   border-radius: 12px;
-  padding: 12px 16px;
+  padding: 14px 16px;
   margin-bottom: 12px;
 }
 
 .schedule-name-label {
-  font-size: 16px;
+  font-size: 28px;
   margin-right: 6px;
 }
 
 .schedule-name-value {
-  font-size: 20px;
+  font-size: 32px;
   font-weight: bold;
 }
 
@@ -310,43 +301,43 @@ export default {
 }
 
 .qr-hint {
-  font-size: 14px;
+  font-size: 24px;
   margin-top: 10px;
 }
 
 .instructions-section {
   flex-direction: column;
   border-radius: 12px;
-  padding: 14px 16px;
+  padding: 16px;
   margin-bottom: 12px;
 }
 
 .instructions-title {
-  font-size: 18px;
+  font-size: 28px;
   font-weight: bold;
   margin-bottom: 10px;
 }
 
 .instructions-text {
-  font-size: 15px;
-  line-height: 24px;
+  font-size: 24px;
+  line-height: 32px;
 }
 
 .preview-section {
   flex-direction: column;
   border-radius: 12px;
-  padding: 14px 16px;
+  padding: 16px;
   margin-bottom: 12px;
 }
 
 .preview-title {
-  font-size: 18px;
+  font-size: 28px;
   font-weight: bold;
   margin-bottom: 6px;
 }
 
 .preview-text {
-  font-size: 14px;
+  font-size: 24px;
   margin-bottom: 10px;
 }
 
@@ -356,8 +347,8 @@ export default {
 }
 
 .preview-code {
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 20px;
+  line-height: 28px;
 }
 
 .loading-section {
@@ -368,7 +359,18 @@ export default {
 }
 
 .loading-text {
-  font-size: 16px;
+  font-size: 28px;
+}
+
+.footer-actions {
+  flex-direction: row;
+  justify-content: center;
+  padding: 20px 0 8px 0;
+}
+
+.pin-link {
+  font-size: 24px;
+  text-align: center;
 }
 
 @media (shape: capsule) {
@@ -376,37 +378,36 @@ export default {
     padding: 44px 8px 12px 8px;
   }
   .header {
-    padding: 4px 4px;
-    margin-bottom: 4px;
+    height: 40px;
+    margin-bottom: 8px;
     justify-content: center;
   }
   .back-btn {
-    width: 50px;
-    height: 28px;
-    font-size: 12px;
+    width: 36px;
+    height: 32px;
+    font-size: 24px;
   }
   .title {
-    font-size: 15px;
-    flex: 1;
-    text-align: center;
+    font-size: 28px;
+    margin-right: 44px;
   }
   .subtitle-section {
-    padding: 8px 12px;
-    margin-bottom: 6px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
   }
   .subtitle-text {
-    font-size: 12px;
-    line-height: 16px;
+    font-size: 24px;
+    line-height: 30px;
   }
   .schedule-name-section {
-    padding: 8px 12px;
+    padding: 10px 14px;
     margin-bottom: 8px;
   }
   .schedule-name-label {
-    font-size: 13px;
+    font-size: 24px;
   }
   .schedule-name-value {
-    font-size: 16px;
+    font-size: 28px;
   }
   .qr-section {
     margin-bottom: 8px;
@@ -415,20 +416,46 @@ export default {
     padding: 10px;
   }
   .qr-hint {
-    font-size: 12px;
+    font-size: 20px;
     margin-top: 6px;
   }
   .instructions-section {
-    padding: 10px 12px;
+    padding: 12px 14px;
     margin-bottom: 8px;
   }
   .instructions-title {
-    font-size: 14px;
+    font-size: 24px;
     margin-bottom: 6px;
   }
   .instructions-text {
-    font-size: 13px;
-    line-height: 20px;
+    font-size: 20px;
+    line-height: 26px;
+  }
+  .preview-section {
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .preview-title {
+    font-size: 24px;
+  }
+  .preview-text {
+    font-size: 20px;
+  }
+  .preview-content {
+    padding: 8px;
+  }
+  .preview-code {
+    font-size: 18px;
+    line-height: 24px;
+  }
+  .loading-section {
+    padding: 16px 12px;
+  }
+  .loading-text {
+    font-size: 24px;
+  }
+  .pin-link {
+    font-size: 20px;
   }
 }
 
@@ -437,36 +464,35 @@ export default {
     padding: 44px 6px 6px 6px;
   }
   .header {
-    padding: 4px 0;
-    margin-bottom: 4px;
+    height: 36px;
+    margin-bottom: 8px;
   }
   .back-btn {
-    width: 50px;
-    height: 28px;
-    font-size: 12px;
+    width: 36px;
+    height: 32px;
+    font-size: 24px;
   }
   .title {
-    font-size: 15px;
-    flex: 1;
-    text-align: center;
+    font-size: 28px;
+    margin-right: 44px;
   }
   .subtitle-section {
-    padding: 8px 12px;
-    margin-bottom: 6px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
   }
   .subtitle-text {
-    font-size: 12px;
-    line-height: 16px;
+    font-size: 24px;
+    line-height: 30px;
   }
   .schedule-name-section {
-    padding: 8px 12px;
+    padding: 10px 14px;
     margin-bottom: 8px;
   }
   .schedule-name-label {
-    font-size: 13px;
+    font-size: 24px;
   }
   .schedule-name-value {
-    font-size: 16px;
+    font-size: 28px;
   }
   .qr-section {
     margin-bottom: 8px;
@@ -475,42 +501,46 @@ export default {
     padding: 10px;
   }
   .qr-hint {
-    font-size: 12px;
+    font-size: 20px;
     margin-top: 6px;
   }
   .instructions-section {
-    padding: 10px 12px;
+    padding: 12px 14px;
     margin-bottom: 8px;
   }
   .instructions-title {
-    font-size: 14px;
+    font-size: 24px;
     margin-bottom: 6px;
   }
   .instructions-text {
-    font-size: 13px;
-    line-height: 20px;
+    font-size: 20px;
+    line-height: 26px;
   }
   .preview-section {
-    padding: 10px 12px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
   }
   .preview-title {
-    font-size: 14px;
+    font-size: 24px;
   }
   .preview-text {
-    font-size: 12px;
+    font-size: 20px;
   }
   .preview-content {
     padding: 8px;
   }
   .preview-code {
-    font-size: 12px;
-    line-height: 16px;
+    font-size: 18px;
+    line-height: 24px;
   }
   .loading-section {
     padding: 16px 12px;
   }
   .loading-text {
-    font-size: 13px;
+    font-size: 24px;
+  }
+  .pin-link {
+    font-size: 20px;
   }
 }
 
@@ -523,14 +553,12 @@ export default {
     justify-content: center;
   }
   .back-btn {
-    width: 56px;
-    height: 30px;
-    font-size: 13px;
+    width: 44px;
+    font-size: 28px;
   }
   .title {
-    font-size: 16px;
-    flex: 1;
-    text-align: center;
+    font-size: 36px;
+    margin-right: 52px;
   }
 }
 .pro-inline-wrap {
@@ -540,12 +568,12 @@ export default {
 
 .preview-hint {
   border-radius: 12px;
-  padding: 10px 16px;
+  padding: 12px 16px;
   margin-bottom: 8px;
 }
 
 .preview-hint-text {
-  font-size: 13px;
+  font-size: 24px;
   text-align: center;
 }
 </style>

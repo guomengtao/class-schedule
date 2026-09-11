@@ -1,9 +1,9 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="back" onclick="goBack"
+      <input class="back-btn" type="button" value="◀" onclick="goBack"
              style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="title" style="color: {{ theme.text }}">Schedule Style</text>
+      <text class="title" style="color: {{ theme.text }}">模板选择</text>
     </div>
 
     <scroll class="scroll-wrap">
@@ -71,31 +71,30 @@ export default {
 <style>
 .page {
   flex-direction: column;
-  padding: 44px 8px 8px 8px;
+  padding: 44px 10px 12px 10px;
   min-height: 100%;
 }
 
 .header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 10px;
-  padding: 0 4px;
+  margin-bottom: 14px;
 }
 
 .back-btn {
-  width: 54px;
-  height: 34px;
+  width: 48px;
+  height: 40px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 28px;
   text-align: center;
 }
 
 .title {
   flex: 1;
-  font-size: 16px;
+  font-size: 36px;
   font-weight: bold;
   text-align: center;
-  margin: 0 8px;
+  margin-right: 48px;
 }
 
 .scroll-wrap {
@@ -105,15 +104,14 @@ export default {
 .list {
   flex-direction: column;
   width: 100%;
-  padding: 0 2px;
 }
 
 .card {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 14px;
-  margin-bottom: 6px;
+  padding: 16px 14px;
+  margin-bottom: 10px;
   border-radius: 12px;
   border-width: 2px;
 }
@@ -125,14 +123,10 @@ export default {
 }
 
 .radio-dot {
-  font-size: 20px;
-  width: 24px;
-  margin-right: 10px;
+  font-size: 24px;
+  width: 28px;
+  margin-right: 12px;
   text-align: center;
-}
-
-.radio-dot.active {
-  font-size: 22px;
 }
 
 .card-info {
@@ -141,47 +135,90 @@ export default {
 }
 
 .card-name {
-  font-size: 15px;
+  font-size: 32px;
   font-weight: bold;
 }
 
 .card-desc {
-  font-size: 11px;
-  margin-top: 2px;
+  font-size: 28px;
+  margin-top: 4px;
   lines: 2;
   text-overflow: ellipsis;
 }
 
 .card-check {
-  font-size: 18px;
+  font-size: 24px;
   font-weight: bold;
-  margin-left: 8px;
+  margin-left: 10px;
 }
 
 @media (shape: circle) {
   .page {
-    padding: 44px 28px 44px 28px;
+    padding: 44px 36px 44px 36px;
   }
   .header {
-    padding: 0 10px;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
   }
   .back-btn {
     width: 44px;
-    height: 30px;
-    font-size: 12px;
+    height: 40px;
+    font-size: 28px;
   }
   .title {
-    font-size: 14px;
+    font-size: 36px;
+    margin-right: 44px;
   }
   .card {
-    padding: 12px 12px;
+    padding: 14px 12px;
   }
   .card-name {
-    font-size: 14px;
+    font-size: 28px;
   }
   .card-desc {
-    font-size: 10px;
+    font-size: 24px;
+  }
+  .radio-dot {
+    font-size: 24px;
+    width: 28px;
+  }
+}
+
+@media (shape: capsule) {
+  .page {
+    padding: 44px 24px 12px 24px;
+  }
+  .back-btn {
+    width: 36px;
+    height: 32px;
+    font-size: 24px;
+  }
+  .title {
+    font-size: 36px;
+    margin-right: 36px;
+  }
+  .card {
+    padding: 14px 12px;
+  }
+  .card-name {
+    font-size: 28px;
+  }
+  .card-desc {
+    font-size: 24px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 16px 12px 16px;
+  }
+  .back-btn {
+    width: 48px;
+    height: 40px;
+    font-size: 28px;
+  }
+  .title {
+    font-size: 36px;
+    margin-right: 48px;
   }
 }
 </style>

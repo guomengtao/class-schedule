@@ -2,38 +2,39 @@
   <div class="wv-page" style="background-color:{{ theme.bg }}">
     <!-- header -->
     <div class="wv-header">
-      <input class="wv-back" type="button" value="返回" onclick="goBack" style="background-color:{{ theme.card }};color:{{ theme.accent }}" />
+      <input class="wv-back" type="button" value="◀" onclick="goBack" style="background-color:{{ theme.card }};color:{{ theme.accent }}" />
       <text class="wv-title" style="color:{{ theme.text }}">总课表</text>
     </div>
 
     <!-- schedule name + count -->
-    <text class="wv-subtitle" style="color:{{ theme.accent }}">{{ scheduleName }}{{ showTotal ? '（'+totalCourses+'）' : '' }}</text>
+    <text class="wv-subtitle" style="color:{{ theme.accent }}">{{ scheduleName }}</text>
 
     <!-- grid area -->
-    <div class="wv-grid">
-      <!-- day header -->
-      <div class="wv-day-row">
-        <text if="{{ showRowNum }}" class="wv-day-spacer" style="width:{{ rowNumWidth }}px"></text>
-        <text if="{{ !showRowNum }}" class="wv-day-spacer" style="width:0px"></text>
-        <text class="wv-day-cell {{ $idx === todayIndex ? 'wv-today' : '' }}" for="{{ weekDays }}" style="color:{{ $idx === todayIndex ? theme.accent : theme.textSecondary }}">{{ $item }}{{ showDayCount ? ' '+dayCounts[$idx] : '' }}</text>
-      </div>
+    <scroll class="wv-grid-scroll" scroll-x="true" scroll-y="true">
+      <div class="wv-scroll-inner" style="min-width:{{ gridContentWidth }}px">
+        <!-- day header -->
+        <div class="wv-day-row">
+          <text if="{{ showRowNum }}" class="wv-day-spacer" style="width:{{ rowNumWidth }}px"></text>
+          <text if="{{ !showRowNum }}" class="wv-day-spacer" style="width:0px"></text>
+          <text class="wv-day-cell {{ $idx === todayIndex ? 'wv-today' : '' }}" for="{{ weekDays }}" style="width:{{ cellWidth }}px;color:{{ $idx === todayIndex ? theme.accent : theme.textSecondary }};font-size:{{ transparentCells ? '20px' : '' }}">{{ $item }}</text>
+        </div>
 
-      <!-- scroll body -->
-      <scroll class="wv-body" scroll-y="true">
+        <!-- course rows -->
         <div for="{{ timeSlots }}" class="wv-row" style="min-height:{{ rowHeight }}px">
-          <text if="{{ showRowNum }}" class="wv-time" style="width:{{ rowNumWidth }}px;color:{{ theme.textSecondary }}">{{ $item.time }}</text>
+          <text if="{{ showRowNum }}" class="wv-time" style="width:{{ rowNumWidth }}px;color:{{ theme.textSecondary }}">{{ rowNumMode === 'index' ? ($idx + 1) : $item.time }}</text>
+          <text if="{{ !showRowNum }}" class="wv-time" style="width:0px"></text>
           <div class="wv-cells">
-            <div for="{{ $item.cells }}" class="wv-cell {{ $item.isCurrent ? 'wv-now' : '' }} {{ !$item.course ? 'wv-cell-empty' : '' }}" onclick="showDetail($item.day, $item.course)" style="background-color:{{ getCellBg($item.course) }};border-radius:{{ cellRadius }};height:{{ cellHeight }}px">
-              <text if="{{ $item.course }}" class="wv-name" style="color:{{ getCellTextColor($item.course) }};font-size:{{ nameFontSize }}px;font-weight:{{ nameFontWeight }}">{{ getDisplayName($item.course) }}</text>
+            <div for="{{ $item.cells }}" class="wv-cell {{ $item.isCurrent ? 'wv-now' : '' }} {{ !$item.course ? 'wv-cell-empty' : '' }} {{ transparentCells ? 'wv-cell-text' : '' }}" onclick="showDetail($item.day, $item.course)" style="width:{{ cellWidth }}px;background-color:{{ getCellBg($item.course) }};border-radius:{{ cellRadius }};height:{{ cellHeight }}px">
+              <text if="{{ $item.course }}" class="wv-name" style="color:{{ getCellTextColor($item.course) }};font-size:{{ nameFontSize }}px;line-height:{{ nameLineHeight }}px;font-weight:{{ nameFontWeight }}">{{ getDisplayName($item.course) }}</text>
               <text if="{{ $item.course && showRoom && $item.course.location }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.location }}</text>
               <text if="{{ $item.course && showTeacher && $item.course.teacher }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.teacher }}</text>
               <text if="{{ $item.course && $item.course.extraCount > 0 }}" class="wv-extra" style="color:{{ theme.textMuted }}">+{{ $item.course.extraCount }}</text>
-              <text if="{{ !$item.course }}" class="wv-empty" style="color:{{ theme.textMuted }}">·</text>
+              <text if="{{ !$item.course && !transparentCells }}" class="wv-empty" style="color:{{ theme.textMuted }}">·</text>
             </div>
           </div>
         </div>
-      </scroll>
-    </div>
+      </div>
+    </scroll>
 
     <!-- footer: template buttons -->
     <div class="wv-footer" style="background-color:{{ theme.card }}">
@@ -50,6 +51,7 @@
 import router from "@system.router"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
+const prompt = require("@system.prompt")
 
 // --- debug logger ---
 var log = (function() {
@@ -119,26 +121,26 @@ var TEMPLATE_CONFIGS = {
     showDayCount: false, showTotal: false,
     nameDisplay: "char",
     dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
-    cellRadius: "12px", rowHeight: 40, cellHeight: 36, rowNumWidth: 0,
-    nameFontSize: 18, nameFontWeight: "bold", infoFontSize: 0,
-    useColorScheme: true, denseMode: false
+    cellRadius: "12px", rowHeight: 54, cellHeight: 50, rowNumWidth: 0,
+    nameFontSize: 20, nameLineHeight: 28, nameFontWeight: "bold", infoFontSize: 0,
+    useColorScheme: true, denseMode: false, cellWidth: 50
   },
   "minimal-en": {
     showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
     showDayCount: false, showTotal: false,
     nameDisplay: "en-abbr",
     dayLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    cellRadius: "8px", rowHeight: 38, cellHeight: 34, rowNumWidth: 0,
-    nameFontSize: 13, nameFontWeight: "bold", infoFontSize: 0,
+    cellRadius: "8px", rowHeight: 54, cellHeight: 50, rowNumWidth: 0,
+    nameFontSize: 20, nameLineHeight: 28, nameFontWeight: "bold", infoFontSize: 0,
     useColorScheme: true, denseMode: false
   },
   "standard-block": {
-    showRowNum: true, showRoom: true, showTeacher: false, showTime: true,
-    showDayCount: true, showTotal: true,
+    showRowNum: true, showRoom: false, showTeacher: false, showTime: true,
+    showDayCount: false, showTotal: true,
     nameDisplay: "full",
     dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
-    cellRadius: "6px", rowHeight: 48, cellHeight: 44, rowNumWidth: 50,
-    nameFontSize: 12, nameFontWeight: "normal", infoFontSize: 9,
+    cellRadius: "6px", rowHeight: 72, cellHeight: 64, rowNumWidth: 50,
+    nameFontSize: 20, nameLineHeight: 28, nameFontWeight: "normal", infoFontSize: 0,
     useColorScheme: true, denseMode: false
   },
   "compact-grid": {
@@ -146,18 +148,18 @@ var TEMPLATE_CONFIGS = {
     showDayCount: true, showTotal: true,
     nameDisplay: "full",
     dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
-    cellRadius: "3px", rowHeight: 30, cellHeight: 26, rowNumWidth: 40,
-    nameFontSize: 10, nameFontWeight: "normal", infoFontSize: 0,
-    useColorScheme: true, denseMode: true
+    cellRadius: "3px", rowHeight: 52, cellHeight: 48, rowNumWidth: 40,
+    nameFontSize: 20, nameLineHeight: 28, nameFontWeight: "normal", infoFontSize: 0,
+    useColorScheme: true, denseMode: true, cellWidth: 50, rowNumMode: "index"
   },
   "color-pastel": {
-    showRowNum: true, showRoom: true, showTeacher: false, showTime: true,
-    showDayCount: true, showTotal: true,
+    showRowNum: true, showRoom: false, showTeacher: false, showTime: true,
+    showDayCount: false, showTotal: true,
     nameDisplay: "full",
     dayLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    cellRadius: "10px", rowHeight: 48, cellHeight: 44, rowNumWidth: 50,
-    nameFontSize: 12, nameFontWeight: "normal", infoFontSize: 9,
-    useColorScheme: false, denseMode: false
+    cellRadius: "10px", rowHeight: 72, cellHeight: 64, rowNumWidth: 50,
+    nameFontSize: 20, nameLineHeight: 28, nameFontWeight: "normal", infoFontSize: 0,
+    useColorScheme: false, denseMode: false, rowNumMode: "index"
   }
 }
 
@@ -196,9 +198,14 @@ export default {
     cellHeight: 36,
     rowNumWidth: 0,
     nameFontSize: 18,
+    nameLineHeight: 26,
     nameFontWeight: "bold",
     infoFontSize: 0,
+    cellWidth: 60,
+    gridContentWidth: 500,
+    rowNumMode: "time",
     useColorScheme: true,
+    transparentCells: false,
     templateDayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
     theme: {
       bg: '#1a1a2e',
@@ -336,11 +343,16 @@ export default {
     this.cellHeight = cfg.cellHeight
     this.rowNumWidth = cfg.rowNumWidth
     this.nameFontSize = cfg.nameFontSize
+    this.nameLineHeight = cfg.nameLineHeight || (cfg.nameFontSize + 6)
     this.nameFontWeight = cfg.nameFontWeight
+    this.cellWidth = cfg.cellWidth || Math.max(100, this.nameFontSize * 5)
+    this.rowNumMode = cfg.rowNumMode || "time"
     this.infoFontSize = cfg.infoFontSize
     this.useColorScheme = cfg.useColorScheme
+    this.transparentCells = cfg.transparentCells === true
     this.templateDayLabels = cfg.dayLabels || ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"]
     this.applyWeekendFilter()
+    this.gridContentWidth = this.rowNumWidth + this.weekDays.length * this.cellWidth
   },
 
   applyWeekendFilter() {
@@ -518,6 +530,7 @@ export default {
 
   getCellBg(course) {
     if (!course) return "transparent"
+    if (this.transparentCells) return "transparent"
     if (!this.useColorScheme) {
       return this.theme.cardLight || "#0f3460"
     }
@@ -527,6 +540,7 @@ export default {
 
   getCellTextColor(course) {
     if (!course) return "transparent"
+    if (this.transparentCells) return this.theme.text || "#ffffff"
     if (!this.useColorScheme) {
       return this.theme.accent || "#7ec8e3"
     }
@@ -650,14 +664,22 @@ export default {
     var storage = require("@system.storage")
     storage.set({
       key: "detail_classId",
-      value: String(course.id)
-    })
-    storage.set({
-      key: "detail_day",
-      value: day
-    })
-    router.push({
-      uri: "/pages/detail"
+      value: String(course.id),
+      success: function() {
+        storage.set({
+          key: "detail_day",
+          value: day,
+          success: function() {
+            router.push({ uri: "/pages/detail" })
+          },
+          fail: function() {
+            prompt.showToast({ message: "请重试" })
+          }
+        })
+      },
+      fail: function() {
+        prompt.showToast({ message: "请重试" })
+      }
     })
   },
 
@@ -672,7 +694,7 @@ export default {
 .wv-page {
   flex-direction: column;
   background-color: #1a1a2e;
-  padding: 44px 8px 8px 8px;
+  padding: 44px 10px 12px 10px;
   height: 100%;
 }
 
@@ -681,100 +703,92 @@ export default {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   position: relative;
 }
 
 .wv-back {
-  width: 56px;
-  height: 34px;
+  width: 48px;
+  height: 40px;
   border-radius: 8px;
-  background-color: #16213e;
-  font-size: 14px;
-  color: #7ec8e3;
+  font-size: 28px;
   text-align: center;
 }
 
 .wv-title {
-  font-size: 18px;
+  font-size: 36px;
   font-weight: bold;
-  color: #ffffff;
   text-align: center;
+  flex: 1;
 }
 
 .wv-subtitle {
-  font-size: 13px;
+  font-size: 24px;
   text-align: center;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 /* ── grid ── */
-.wv-grid {
+.wv-grid-scroll {
   flex: 1;
   flex-direction: column;
-  overflow: hidden;
-  position: relative;
+}
+
+.wv-scroll-inner {
+  flex-direction: column;
 }
 
 .wv-day-row {
   flex-direction: row;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
 }
 
 .wv-day-spacer {
   width: 50px;
+  flex-shrink: 0;
 }
 
 .wv-day-cell {
-  flex: 1;
   text-align: center;
-  font-size: 12px;
+  font-size: 20px;
   font-weight: bold;
-  color: #5577aa;
+  flex-shrink: 0;
+  text-overflow: clip;
 }
 
 .wv-day-cell.wv-today {
-  font-size: 14px;
-  color: #7ec8e3;
+  font-size: 24px;
   text-decoration: underline;
-}
-
-.wv-body {
-  flex: 1;
-  flex-direction: column;
 }
 
 .wv-row {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 1px;
+  margin-bottom: 2px;
   min-height: 34px;
   flex-shrink: 0;
 }
 
 .wv-time {
   width: 50px;
-  font-size: 9px;
-  color: #445566;
+  font-size: 20px;
   text-align: right;
   padding-right: 6px;
   flex-shrink: 0;
 }
 
 .wv-cells {
-  flex: 1;
   flex-direction: row;
-  overflow: visible;
 }
 
 .wv-cell {
-  flex: 1;
   height: 32px;
   margin: 1px;
   border-radius: 6px;
   justify-content: center;
   align-items: center;
-  overflow: visible;
+  flex-shrink: 0;
 }
 
 .wv-cell-empty {
@@ -782,39 +796,64 @@ export default {
   opacity: 0.3;
 }
 
+.wv-cell-text {
+  background-color: transparent !important;
+  margin: 2px 1px;
+  opacity: 1;
+}
+
+.wv-cell-text.wv-cell-empty {
+  opacity: 0;
+}
+
+.wv-cell-text .wv-name {
+  text-align: center;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
+
 .wv-cell.wv-now {
   background-color: rgba(126, 200, 227, 0.12);
   margin: 1px;
 }
 
+.wv-cell-text.wv-now {
+  background-color: transparent !important;
+}
+
+.wv-cell-text.wv-now .wv-name {
+  color: #7ec8e3 !important;
+  font-weight: 500;
+}
+
 .wv-name {
   font-size: 20px;
+  line-height: 28px;
   font-weight: bold;
   text-align: center;
-  lines: 1;
   text-overflow: ellipsis;
 }
 
 .wv-info {
-  font-size: 9px;
+  font-size: 20px;
+  line-height: 24px;
   text-align: center;
-  lines: 1;
   text-overflow: ellipsis;
 }
 
 .wv-extra {
-  font-size: 9px;
+  font-size: 20px;
   text-align: center;
 }
 
 .wv-empty {
-  font-size: 10px;
+  font-size: 20px;
   text-align: center;
 }
 
 /* ── footer ── */
 .wv-footer {
-  padding: 6px 0 4px 0;
+  padding: 8px 0 6px 0;
   align-items: center;
 }
 
@@ -822,7 +861,7 @@ export default {
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  padding: 0 6px;
+  padding: 0 8px;
   width: 100%;
 }
 
@@ -830,10 +869,10 @@ export default {
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  height: 30px;
-  padding: 0 8px;
+  height: 36px;
+  padding: 0 10px;
   margin: 0 3px;
-  border-radius: 15px;
+  border-radius: 18px;
   border-width: 1.5px;
   border-style: solid;
   border-color: transparent;
@@ -841,16 +880,13 @@ export default {
 
 .wv-tpl-on {
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  font-weight: bold;
 }
 
 .wv-tpl-text {
-  font-size: 11px;
+  font-size: 24px;
   letter-spacing: 0.5px;
   text-align: center;
-}
-
-.wv-tpl-on .wv-tpl-text {
-  font-weight: bold;
 }
 
 /* ── circle shape ── */
@@ -859,59 +895,107 @@ export default {
     padding: 44px 36px 44px 36px;
   }
   .wv-header {
-    margin-bottom: 4px;
-    padding: 0 20px;
-    justify-content: center;
+    margin-bottom: 8px;
   }
   .wv-back {
     width: 44px;
-    height: 28px;
-    font-size: 12px;
+    height: 40px;
+    font-size: 28px;
   }
   .wv-title {
-    font-size: 16px;
+    font-size: 36px;
   }
   .wv-subtitle {
-    font-size: 12px;
+    font-size: 24px;
   }
   .wv-day-spacer {
     width: 42px;
   }
   .wv-day-cell {
-    font-size: 11px;
+    font-size: 20px;
   }
   .wv-day-cell.wv-today {
-    font-size: 12px;
+    font-size: 24px;
   }
   .wv-row {
     min-height: 28px;
   }
   .wv-time {
     width: 42px;
-    font-size: 8px;
+    font-size: 20px;
   }
   .wv-cell {
     height: 28px;
   }
   .wv-name {
-    font-size: 16px;
+    font-size: 20px;
   }
   .wv-empty {
-    font-size: 9px;
+    font-size: 20px;
   }
   .wv-footer {
-    padding: 4px 0 2px 0;
+    padding: 6px 0 4px 0;
   }
   .wv-tpl-row {
-    padding: 0 2px;
+    padding: 0 4px;
   }
   .wv-tpl {
-    height: 24px;
-    padding: 0 5px;
+    height: 32px;
+    padding: 0 8px;
     margin: 0 2px;
   }
   .wv-tpl-text {
-    font-size: 9px;
+    font-size: 24px;
+  }
+}
+
+@media (shape: capsule) {
+  .wv-page {
+    padding: 44px 10px 12px 10px;
+  }
+  .wv-header {
+    margin-bottom: 8px;
+  }
+  .wv-back {
+    width: 36px;
+    height: 32px;
+    font-size: 24px;
+  }
+  .wv-title {
+    font-size: 34px;
+  }
+  .wv-tpl {
+    height: 30px;
+    padding: 0 6px;
+    margin: 0 2px;
+  }
+  .wv-tpl-text {
+    font-size: 24px;
+  }
+}
+
+@media (shape: rect) {
+  .wv-page {
+    padding: 44px 10px 12px 10px;
+  }
+  .wv-header {
+    margin-bottom: 8px;
+  }
+  .wv-back {
+    width: 44px;
+    height: 36px;
+    font-size: 28px;
+  }
+  .wv-title {
+    font-size: 34px;
+  }
+  .wv-tpl {
+    height: 32px;
+    padding: 0 6px;
+    margin: 0 2px;
+  }
+  .wv-tpl-text {
+    font-size: 24px;
   }
 }
 </style>

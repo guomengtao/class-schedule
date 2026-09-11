@@ -317,7 +317,7 @@ export default {
   font-size: 12px;
   font-weight: 600;
   color: #ff9500;
-  background: #332600;
+  background-color: #332600;
   padding: 4px 10px;
   border-radius: 20px;
 }
@@ -367,7 +367,7 @@ export default {
   border-width: 1px;
   border-color: #222233;
   border-style: dashed;
-  background: #0a0a0a;
+  background-color: #0a0a0a;
 }
 
 .course-cell.current {

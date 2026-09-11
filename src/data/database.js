@@ -479,25 +479,31 @@ module.exports = {
 
   insertCourse: function(course, callback) {
     log("insertCourse called: " + JSON.stringify(course))
-    invalidateCache(currentScheduleIndex)
     ensureReady(function() {
-      insertCourseStorage(course, callback)
+      insertCourseStorage(course, function(err) {
+        if (!err) invalidateCache(currentScheduleIndex)
+        if (callback) callback(err)
+      })
     })
   },
 
   updateCourse: function(course, callback) {
     log("updateCourse called: " + JSON.stringify(course))
-    invalidateCache(currentScheduleIndex)
     ensureReady(function() {
-      updateCourseStorage(course, callback)
+      updateCourseStorage(course, function(err) {
+        if (!err) invalidateCache(currentScheduleIndex)
+        if (callback) callback(err)
+      })
     })
   },
 
   deleteCourse: function(id, day, callback) {
     log("deleteCourse called: " + id + " " + day)
-    invalidateCache(currentScheduleIndex)
     ensureReady(function() {
-      deleteCourseStorage(id, day, callback)
+      deleteCourseStorage(id, day, function(err) {
+        if (!err) invalidateCache(currentScheduleIndex)
+        if (callback) callback(err)
+      })
     })
   },
 
@@ -521,9 +527,10 @@ module.exports = {
     return currentScheduleIndex
   },
 
-  getAllCoursesWithIndex: function(index, callback) {
-    log("getAllCoursesWithIndex: " + index)
+  getAllCoursesWithIndex: function(index, callback, forceRefresh) {
+    log("getAllCoursesWithIndex: " + index + (forceRefresh ? " (force)" : ""))
     ensureReady(function() {
+      if (forceRefresh) invalidateCache(index)
       getAllCoursesStorageWithIndex(index, function(data) {
         callback(data)
       })
@@ -569,14 +576,23 @@ module.exports = {
   clearScheduleByIndex: function(index, callback) {
     log("clearScheduleByIndex: " + index)
     ensureReady(function() {
-      clearScheduleByIndexStorage(index, callback)
+      clearScheduleByIndexStorage(index, function(err) {
+        if (!err) invalidateCache(index)
+        if (callback) callback(err)
+      })
     })
   },
 
   deleteScheduleAndShift: function(index, totalBeforeDelete, callback) {
     log("deleteScheduleAndShift: " + index + " total=" + totalBeforeDelete)
     ensureReady(function() {
-      deleteScheduleAndShiftStorage(index, totalBeforeDelete, callback)
+      deleteScheduleAndShiftStorage(index, totalBeforeDelete, function(err) {
+        if (!err) {
+          invalidateCache(index)
+          invalidateCache(index - 1)
+        }
+        if (callback) callback(err)
+      })
     })
   },
 
@@ -667,6 +683,7 @@ module.exports = {
     }
 
     function finalizeReset(hadError) {
+      invalidateCache()
       storage.set({
         key: "scheduleNames",
         value: JSON.stringify(names),

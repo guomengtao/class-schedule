@@ -1,12 +1,12 @@
 <template>
   <div class="page-root" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack"
+      <input class="back-btn" type="button" value="◀" onclick="goBack"
              style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="title" style="color: {{ theme.text }}">功能实验室</text>
+      <text class="title" style="color: {{ theme.text }}">实验室</text>
     </div>
 
-    <text class="hint" style="color: {{ theme.textSecondary }}">新功能体验区，欢迎反馈建议</text>
+    <text class="hint" style="color: {{ theme.textSecondary }}">实验功能</text>
 
     <div class="list-scroll">
       <div class="list-row" for="(idx, item) in labItems" style="background-color: {{ theme.card }}">
@@ -16,39 +16,17 @@
           <text class="row-name" style="color: {{ theme.text }}">{{ item.name }}</text>
           <text class="row-desc" style="color: {{ theme.textMuted }}">{{ item.desc }}</text>
         </div>
-        <div class="row-actions">
-          <input class="action-btn sort-btn" type="button" value="▲" onclick="onMoveUp(idx)"
-                 style="color: {{ theme.textMuted }}" />
-          <input class="action-btn sort-btn" type="button" value="▼" onclick="onMoveDown(idx)"
-                 style="color: {{ theme.textMuted }}" />
-          <input class="action-btn del-btn" type="button" value="✕" onclick="onDelete(idx)"
-                 style="color: {{ theme.deleteText }}" />
-        </div>
+        <input class="action-btn del-btn" type="button" value="✕" onclick="onDelete(idx)"
+               style="color: {{ theme.deleteText }}" />
       </div>
     </div>
 
-    <div class="add-section">
-      <div class="add-header" onclick="toggleAddPanel" style="background-color: {{ theme.card }}">
-        <text class="add-label" style="color: {{ theme.accent }}">+ 添加页面</text>
-        <text class="add-arrow" style="color: {{ theme.textMuted }}">{{ showAddPanel ? '▼' : '▶' }}</text>
-      </div>
-      <div class="add-list" if="{{ showAddPanel }}">
-        <div class="add-row" for="item in availablePages" onclick="onAddItem(item.uri)"
-             style="background-color: {{ theme.cardLight }}">
-          <text class="add-name" style="color: {{ theme.text }}">{{ item.name }}</text>
-          <text class="add-desc" style="color: {{ theme.textMuted }}">{{ item.desc }}</text>
-        </div>
-        <text class="no-more" if="{{ availablePages.length === 0 }}"
-              style="color: {{ theme.textMuted }}">没有更多可添加的页面</text>
-      </div>
-    </div>
-
-    <text class="dev-hint" onclick="onDevExpireClick" style="color: {{ theme.textSecondary }}">丰富欢迎用户提交意见建议</text>
+    <text class="dev-hint" style="color: {{ theme.textSecondary }}">反馈建议</text>
 
     <div class="overlay-modal" show="{{ showDialog }}">
       <div class="modal-card" style="background-color: {{ theme.card }}">
         <text class="modal-title" style="color: {{ theme.accent }}">解锁高级功能</text>
-        <text class="modal-desc" style="color: {{ theme.textSecondary }}">一次性解锁，永久使用全部高级功能</text>
+        <text class="modal-desc" style="color: {{ theme.textSecondary }}">解锁高级功能</text>
         <div class="benefit-list">
           <text class="benefit-item" style="color: {{ theme.text }}">✓ 多课表管理</text>
           <text class="benefit-item" style="color: {{ theme.text }}">✓ 数据备份与恢复</text>
@@ -72,8 +50,6 @@ var labList = require("../../data/lab-list.js")
 export default {
   private: {
     labItems: [],
-    availablePages: [],
-    showAddPanel: false,
     labStatus: "loading",
     showDialog: false,
     theme: {
@@ -116,9 +92,7 @@ export default {
 
   loadList() {
     var self = this
-    labList.init(self, function() {
-      self.refreshAvailable()
-    })
+    labList.init(self, function() {})
   },
 
   onOpenItem(idx) {
@@ -133,48 +107,9 @@ export default {
     labList.togglePin(self, idx, function() {})
   },
 
-  onMoveUp(idx) {
-    labList.moveUp(this, idx)
-  },
-
-  onMoveDown(idx) {
-    labList.moveDown(this, idx)
-  },
-
   onDelete(idx) {
     var self = this
-    labList.deleteItem(self, idx, function() {
-      self.refreshAvailable()
-    })
-  },
-
-  toggleAddPanel() {
-    var self = this
-    if (!this.showAddPanel) {
-      labList.getAvailablePages(this.labItems, function(pages) {
-        self.availablePages = pages
-        self.showAddPanel = true
-      })
-    } else {
-      this.showAddPanel = false
-    }
-  },
-
-  onAddItem(uri) {
-    var self = this
-    labList.addItem(self, uri, function() {
-      self.showAddPanel = false
-      self.refreshAvailable()
-    })
-  },
-
-  refreshAvailable() {
-    var self = this
-    if (this.showAddPanel) {
-      labList.getAvailablePages(this.labItems, function(pages) {
-        self.availablePages = pages
-      })
-    }
+    labList.deleteItem(self, idx, function() {})
   },
 
   checkAndShowOverlay() {
@@ -209,35 +144,37 @@ export default {
   width: 100%;
   height: 100%;
   flex-direction: column;
-  padding: 44px 8px 8px 8px;
+  padding: 44px 10px 16px 10px;
 }
 
 .header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 18px;
 }
 
 .back-btn {
-  width: 70px;
-  height: 36px;
+  width: 64px;
+  height: 34px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   text-align: center;
 }
 
 .title {
-  font-size: 18px;
+  font-size: 36px;
   font-weight: bold;
   flex: 1;
   text-align: center;
+  margin-right: 64px;
+  line-height: 48px;
 }
 
 .hint {
-  font-size: 12px;
-  margin-bottom: 8px;
-  padding: 0 4px;
-  line-height: 1.4;
+  font-size: 28px;
+  margin-bottom: 14px;
+  padding: 0 6px;
+  line-height: 38px;
 }
 
 .list-scroll {
@@ -249,15 +186,15 @@ export default {
 .list-row {
   flex-direction: row;
   align-items: center;
-  border-radius: 8px;
-  padding: 10px 8px;
-  margin-bottom: 4px;
+  border-radius: 12px;
+  padding: 24px 16px;
+  margin-bottom: 14px;
 }
 
 .pin-check {
-  width: 24px;
-  height: 24px;
-  margin-right: 6px;
+  width: 28px;
+  height: 28px;
+  margin-right: 12px;
   flex-shrink: 0;
 }
 
@@ -268,107 +205,41 @@ export default {
 }
 
 .row-name {
-  font-size: 14px;
-  margin-bottom: 2px;
+  font-size: 32px;
+  margin-bottom: 8px;
+  line-height: 50px;
 }
 
 .row-desc {
-  font-size: 10px;
-}
-
-.row-actions {
-  flex-direction: row;
-  align-items: center;
-  flex-shrink: 0;
-  margin-left: 4px;
+  font-size: 28px;
+  line-height: 42px;
 }
 
 .action-btn {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 24px;
   text-align: center;
-  margin-left: 2px;
+  margin-left: 6px;
   background-color: transparent;
   border: 1px solid transparent;
 }
 
-.sort-btn {
-  border: none;
-  width: 24px;
-  height: 24px;
-  font-size: 10px;
-}
-
 .del-btn {
   border: none;
-  width: 24px;
-  height: 24px;
-  font-size: 14px;
+  width: 28px;
+  height: 28px;
+  font-size: 24px;
   font-weight: bold;
-}
-
-.add-section {
-  margin-top: 6px;
-  flex-shrink: 0;
-}
-
-.add-header {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 8px;
-  padding: 10px 12px;
-}
-
-.add-label {
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.add-arrow {
-  font-size: 12px;
-}
-
-.add-list {
-  flex-direction: column;
-  max-height: 200px;
-  overflow: scroll;
-  margin-top: 4px;
-}
-
-.add-row {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 6px;
-  padding: 8px 12px;
-  margin-bottom: 2px;
-}
-
-.add-name {
-  font-size: 13px;
-  flex: 1;
-}
-
-.add-desc {
-  font-size: 10px;
-  margin-left: 8px;
-}
-
-.no-more {
-  text-align: center;
-  font-size: 11px;
-  padding: 8px;
 }
 
 .dev-hint {
-  font-size: 13px;
+  font-size: 24px;
   text-align: center;
-  padding: 8px 12px;
-  line-height: 1.5;
+  padding: 14px;
   flex-shrink: 0;
+  line-height: 34px;
 }
 
 .overlay-modal {
@@ -377,7 +248,7 @@ export default {
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.35);
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -387,42 +258,42 @@ export default {
 .modal-card {
   width: 80%;
   border-radius: 16px;
-  padding: 24px 20px;
+  padding: 28px 24px;
   flex-direction: column;
   align-items: center;
 }
 
 .modal-title {
-  font-size: 18px;
+  font-size: 36px;
   font-weight: bold;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   text-align: center;
 }
 
 .modal-desc {
-  font-size: 13px;
+  font-size: 28px;
   text-align: center;
-  margin-bottom: 16px;
-  line-height: 20px;
+  margin-bottom: 20px;
+  line-height: 38px;
 }
 
 .benefit-list {
   width: 100%;
   flex-direction: column;
   padding-left: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 24px;
 }
 
 .benefit-item {
-  font-size: 13px;
-  margin-bottom: 6px;
+  font-size: 32px;
+  margin-bottom: 10px;
 }
 
 .modal-btn-primary {
   width: 100%;
-  height: 40px;
-  border-radius: 20px;
-  font-size: 15px;
+  height: 48px;
+  border-radius: 24px;
+  font-size: 28px;
   font-weight: bold;
   text-align: center;
   margin-bottom: 10px;
@@ -430,9 +301,9 @@ export default {
 
 .modal-btn-secondary {
   width: 100%;
-  height: 36px;
-  border-radius: 18px;
-  font-size: 13px;
+  height: 42px;
+  border-radius: 21px;
+  font-size: 28px;
   text-align: center;
 }
 
@@ -440,17 +311,85 @@ export default {
   .page-root {
     padding: 44px 36px 44px 36px;
   }
+  .header {
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+  .back-btn {
+    width: 52px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .title {
+    font-size: 36px;
+    line-height: 48px;
+  }
+  .list-row {
+    padding: 20px 14px;
+    margin-bottom: 12px;
+  }
+  .row-name {
+    font-size: 30px;
+    line-height: 46px;
+  }
+  .row-desc {
+    font-size: 26px;
+    line-height: 40px;
+  }
 }
 
 @media (shape: capsule) {
   .page-root {
-    padding: 44px 8px 12px 8px;
+    padding: 44px 10px 14px 10px;
+  }
+  .header {
+    margin-bottom: 14px;
+  }
+  .title {
+    line-height: 40px;
+  }
+  .list-row {
+    padding: 18px 12px;
+    margin-bottom: 10px;
+  }
+  .row-name {
+    font-size: 28px;
+    line-height: 42px;
+  }
+  .row-desc {
+    font-size: 24px;
+    line-height: 38px;
   }
 }
 
 @media (shape: rect) {
   .page-root {
-    padding: 44px 6px 6px 6px;
+    padding: 44px 8px 10px 8px;
+  }
+  .header {
+    margin-bottom: 10px;
+  }
+  .back-btn {
+    width: 50px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .title {
+    font-size: 36px;
+    margin-right: 50px;
+    line-height: 48px;
+  }
+  .list-row {
+    padding: 18px 12px;
+    margin-bottom: 10px;
+  }
+  .row-name {
+    font-size: 28px;
+    line-height: 42px;
+  }
+  .row-desc {
+    font-size: 24px;
+    line-height: 38px;
   }
 }
 </style>

@@ -1,23 +1,17 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="header-title" style="color: {{ theme.text }}">高级版</text>
     </div>
 
     <scroll class="page-scroll" scroll-y="{{true}}">
       <div class="status-card" style="background-color: {{ theme.card }}">
-        <div class="status-row">
-          <text class="version-prefix" style="color: {{ theme.textSecondary }}">当前:</text>
-          <text class="status-text" style="color: {{ statusColor }}">{{ statusText }}</text>
-          <text class="status-text" show="{{ expireTimeText }}" style="color: {{ theme.accent }}">({{ expireTimeText }})</text>
-        </div>
-        <div class="status-row">
-          <text class="version-prefix" style="color: {{ theme.textSecondary }}">版本:</text>
-          <text class="status-text" style="color: {{ theme.accent }}">v{{ versionText }}</text>
-        </div>
+        <text class="status-main" style="color: {{ statusColor }}">{{ statusText }}</text>
+        <text class="status-expiry" show="{{ expireTimeText }}" style="color: {{ theme.textSecondary }}">有效期 {{ expireTimeText }}</text>
+        <text class="status-version" style="color: {{ theme.textSecondary }}">版本 v{{ versionText }}</text>
         <div class="status-details" if="{{ statusDetail }}">
-          <text class="status-detail-line" style="color: {{ theme.textSecondary }}">{{ statusDetail }}</text>
+          <text class="status-detail-line" style="color: {{ theme.textMuted }}">{{ statusDetail }}</text>
         </div>
       </div>
 
@@ -30,15 +24,12 @@
           </div>
           <text class="step-title" style="color: {{ theme.text }}">购买高级版兑换码</text>
         </div>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">在爱发电购买高级版兑换码，永久解锁全部高级功能，无后续费用</text>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">爱发电购买，永久解锁全部高级功能</text>
         <div class="qr-section">
           <div class="qr-wrapper" style="background-color: #ffffff; border-color: {{ theme.accent }}">
             <qrcode value="{{ afdianUrl }}" style="color: #000000; background-color: #ffffff; width: 180px; height: 180px;"></qrcode>
           </div>
-          <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码打开爱发电</text>
-        </div>
-        <div class="url-box" style="background-color: {{ theme.bg }}">
-          <text class="url-text" style="color: {{ theme.accent }}">{{ afdianUrl }}</text>
+          <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码购买</text>
         </div>
       </div>
 
@@ -51,22 +42,19 @@
           </div>
           <text class="step-title" style="color: {{ theme.text }}">获取激活码</text>
         </div>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">购买后扫描下方二维码，输入兑换码即可获取18位激活码</text>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">扫码输入兑换码获取</text>
         <div class="device-row">
-          <text class="device-label" style="color: {{ theme.textSecondary }}">本机设备ID</text>
-          <text class="device-value" style="color: {{ theme.accent }}">{{ deviceId || '获取中...' }}</text>
+          <text class="device-label" style="color: {{ theme.textSecondary }}">设备ID</text>
+          <text class="device-value" style="color: {{ theme.accent }}">{{ deviceIdDisplay }}</text>
         </div>
         <div class="qr-section" if="{{ qrText }}">
           <div class="qr-wrapper" style="background-color: #ffffff; border-color: {{ theme.accent }}">
             <qrcode value="{{ qrText }}" style="color: #000000; background-color: #ffffff; width: 180px; height: 180px;"></qrcode>
           </div>
-          <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码兑换激活码</text>
+          <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码兑换</text>
         </div>
         <div class="qr-section" if="{{ !qrText }}">
           <text class="qr-loading" style="color: {{ theme.textMuted }}">正在生成二维码...</text>
-        </div>
-        <div class="url-box" if="{{ qrText }}" style="background-color: {{ theme.bg }}">
-          <text class="url-text" style="color: {{ theme.textMuted }}">{{ qrText }}</text>
         </div>
       </div>
 
@@ -79,7 +67,7 @@
           </div>
           <text class="step-title" style="color: {{ theme.text }}">输入激活码</text>
         </div>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">请输入18位激活码，逐位点选输入</text>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">点选输入18位激活码</text>
 
         <div class="cells-grid" style="background-color: {{ theme.card }}">
           <div class="cells-row">
@@ -191,7 +179,7 @@
           </div>
         </div>
 
-        <input class="verify-btn" type="button" value="验证激活码" onclick="doVerify" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="verify-btn" type="button" value="验证" onclick="doVerify" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
 
         <div class="result-box" show="{{ verifyResult }}" style="background-color: {{ theme.bg }}; border-color: {{ verifySuccess ? theme.accent : '#e74c3c' }}">
           <text class="result-label" style="color: {{ theme.textSecondary }}">验证结果</text>
@@ -200,7 +188,7 @@
         </div>
       </div>
 
-      <text class="section-title" style="color: {{ theme.text }}">激活历史</text>
+      <text class="section-title" style="color: {{ theme.text }}">历史</text>
       <div class="history-list" style="background-color: {{ theme.card }}">
         <div for="{{ historyList }}" class="history-item">
           <div class="history-row">
@@ -218,22 +206,22 @@
           <div class="history-divider"></div>
         </div>
         <div class="history-empty" if="{{ historyList.length === 0 }}">
-          <text class="history-empty-text" style="color: {{ theme.textMuted }}">暂无激活记录</text>
+          <text class="history-empty-text" style="color: {{ theme.textMuted }}">无记录</text>
         </div>
       </div>
 
-      <text class="section-title" style="color: {{ theme.text }}">设备信息</text>
+      <text class="section-title" style="color: {{ theme.text }}">信息</text>
       <div class="device-card" style="background-color: {{ theme.card }}">
         <div class="device-info-row">
           <text class="device-info-label" style="color: {{ theme.textSecondary }}">设备ID</text>
-          <text class="device-info-value" style="color: {{ theme.accent }}">{{ deviceId || '获取中...' }}</text>
+          <text class="device-info-value" style="color: {{ theme.accent }}">{{ deviceIdDisplay }}</text>
         </div>
         <div class="device-info-row">
-          <text class="device-info-label" style="color: {{ theme.textSecondary }}">首次安装</text>
+          <text class="device-info-label" style="color: {{ theme.textSecondary }}">安装</text>
           <text class="device-info-value" style="color: {{ theme.text }}">{{ installTimeText }}</text>
         </div>
         <div class="device-info-row" if="{{ expireTimeText }}">
-          <text class="device-info-label" style="color: {{ theme.textSecondary }}">到期时间</text>
+          <text class="device-info-label" style="color: {{ theme.textSecondary }}">到期</text>
           <text class="device-info-value" style="color: {{ theme.text }}">{{ expireTimeText }}</text>
         </div>
       </div>
@@ -293,6 +281,7 @@ export default {
     expireTimeText: '',
     afdianUrl: AFDIAN_URL,
     deviceId: '',
+    deviceIdDisplay: '获取中...',
     qrText: '',
     cell0: null, cell1: null, cell2: null, cell3: null,
     cell4: null, cell5: null, cell6: null, cell7: null,
@@ -385,16 +374,19 @@ export default {
       device.getDeviceId({
         success: function(data) {
           self.deviceId = data.deviceId || '未知'
+          self.deviceIdDisplay = (data.deviceId || '未知').slice(-6)
           self.updateQrText()
           self.fetchDeviceInfo()
         },
         fail: function(data, code) {
           self.deviceId = '获取失败(' + code + ')'
+          self.deviceIdDisplay = '获取失败(' + code + ')'
           self.qrText = ACTIVATION_URL + 'unknown'
         }
       })
     } catch (e) {
       self.deviceId = '不可用'
+      self.deviceIdDisplay = '不可用'
       self.qrText = ACTIVATION_URL + 'demo'
     }
   },
@@ -436,6 +428,9 @@ export default {
       var qr = ACTIVATION_URL + encodeURIComponent(self.deviceId)
       if (self.deviceInfoParams) {
         qr = qr + '&' + self.deviceInfoParams
+      }
+      if (self.versionText) {
+        qr = qr + '&r=' + encodeURIComponent(self.versionText)
       }
       self.qrText = qr
     }
@@ -519,6 +514,11 @@ export default {
             prompt.showToast({ message: masterResult.message || '激活成功' })
             self.loadStatus()
             self.loadHistory()
+          } else {
+            self.verifySuccess = false
+            self.verifyResult = '激活失败'
+            self.verifyDetail = '保存激活状态失败，请重试'
+            prompt.showToast({ message: '保存失败，请重试' })
           }
         })
         return
@@ -584,6 +584,11 @@ export default {
             prompt.showToast({ message: '激活成功，' + durationLabel })
             self.loadStatus()
             self.loadHistory()
+          } else {
+            self.verifySuccess = false
+            self.verifyResult = '激活失败'
+            self.verifyDetail = '保存激活状态失败，请重试'
+            prompt.showToast({ message: '保存失败，请重试' })
           }
         })
       })
@@ -595,7 +600,7 @@ export default {
 <style>
 .page {
   flex-direction: column;
-  padding: 44px 8px 8px 8px;
+  padding: 44px 10px 12px 10px;
   min-height: 100%;
 }
 
@@ -608,54 +613,54 @@ export default {
   flex-direction: row;
   align-items: center;
   padding: 0;
-  margin-bottom: 10px;
+  margin-bottom: 14px;
 }
 
 .back-btn {
-  width: 70px;
-  height: 36px;
+  width: 64px;
+  height: 34px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   text-align: center;
 }
 
 .header-title {
-  font-size: 18px;
+  font-size: 36px;
   font-weight: bold;
-  margin-left: 8px;
+  margin-left: 12px;
 }
 
 .status-card {
   flex-direction: column;
   border-radius: 12px;
-  padding: 14px 12px;
-  margin-bottom: 8px;
+  padding: 22px 14px;
+  margin-bottom: 14px;
+  align-items: center;
 }
 
-.status-row {
-  flex-direction: row;
-  align-items: center;
+.status-main {
+  font-size: 40px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.status-expiry {
+  font-size: 28px;
   margin-bottom: 4px;
 }
 
-.version-prefix {
-  font-size: 14px;
-  margin-right: 6px;
-}
-
-.status-text {
-  font-size: 18px;
-  font-weight: bold;
+.status-version {
+  font-size: 24px;
 }
 
 .status-details {
   flex-direction: column;
-  padding-left: 30px;
-  margin-bottom: 6px;
+  padding-left: 0;
+  margin-top: 6px;
 }
 
 .status-detail-line {
-  font-size: 13px;
+  font-size: 28px;
   margin-bottom: 2px;
 }
 
@@ -674,22 +679,22 @@ export default {
 }
 
 .section-title {
-  font-size: 15px;
+  font-size: 28px;
   font-weight: bold;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   padding-left: 4px;
 }
 
 .history-list {
   flex-direction: column;
   border-radius: 12px;
-  padding: 8px 12px;
-  margin-bottom: 8px;
+  padding: 14px 14px;
+  margin-bottom: 14px;
 }
 
 .history-item {
   flex-direction: column;
-  padding: 8px 0;
+  padding: 10px 0;
 }
 
 .history-row {
@@ -701,7 +706,7 @@ export default {
 .history-divider {
   height: 1px;
   background-color: rgba(255,255,255,0.05);
-  margin-top: 8px;
+  margin-top: 10px;
   width: 100%;
 }
 
@@ -710,12 +715,12 @@ export default {
 }
 
 .history-date {
-  font-size: 12px;
-  margin-bottom: 2px;
+  font-size: 24px;
+  margin-bottom: 4px;
 }
 
 .history-type {
-  font-size: 14px;
+  font-size: 28px;
   font-weight: bold;
 }
 
@@ -725,111 +730,111 @@ export default {
 }
 
 .history-duration {
-  font-size: 14px;
+  font-size: 28px;
   font-weight: bold;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .history-status {
-  font-size: 12px;
+  font-size: 24px;
 }
 
 .history-empty {
-  padding: 16px;
+  padding: 20px;
   align-items: center;
 }
 
 .history-empty-text {
-  font-size: 13px;
+  font-size: 28px;
 }
 
 .device-card {
   flex-direction: column;
   border-radius: 12px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
+  padding: 18px 14px;
+  margin-bottom: 14px;
 }
 
 .device-info-row {
   flex-direction: row;
   justify-content: space-between;
-  padding: 4px 0;
+  padding: 6px 0;
 }
 
 .device-info-label {
-  font-size: 13px;
+  font-size: 28px;
 }
 
 .device-info-value {
-  font-size: 13px;
+  font-size: 32px;
   font-weight: bold;
 }
 
 .step-card {
   flex-direction: column;
   border-radius: 12px;
-  padding: 14px 12px;
-  margin-bottom: 4px;
+  padding: 18px 14px;
+  margin-bottom: 8px;
 }
 
 .step-header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
 .step-badge {
-  width: 26px;
-  height: 26px;
-  border-radius: 13px;
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
   justify-content: center;
   align-items: center;
-  margin-right: 8px;
+  margin-right: 10px;
 }
 
 .step-badge-text {
-  font-size: 14px;
+  font-size: 24px;
   font-weight: bold;
 }
 
 .step-title {
-  font-size: 16px;
+  font-size: 32px;
   font-weight: bold;
 }
 
 .step-desc {
-  font-size: 12px;
-  line-height: 18px;
-  margin-bottom: 10px;
+  font-size: 28px;
+  line-height: 38px;
+  margin-bottom: 14px;
 }
 
 .step-arrow {
-  font-size: 16px;
+  font-size: 28px;
   text-align: center;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .device-row {
   flex-direction: row;
   align-items: center;
-  padding: 6px 0;
-  margin-bottom: 6px;
+  padding: 10px 0;
+  margin-bottom: 10px;
 }
 
 .device-label {
-  font-size: 13px;
-  width: 72px;
+  font-size: 28px;
+  width: 80px;
 }
 
 .device-value {
-  font-size: 15px;
+  font-size: 32px;
   font-weight: bold;
 }
 
 .qr-section {
   flex-direction: column;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
 .qr-wrapper {
@@ -839,31 +844,20 @@ export default {
 }
 
 .qr-label {
-  font-size: 11px;
-  margin-top: 6px;
+  font-size: 24px;
+  margin-top: 8px;
 }
 
 .qr-loading {
-  font-size: 13px;
-  padding: 16px 0;
-}
-
-.url-box {
-  border-radius: 6px;
-  padding: 6px 10px;
-  margin-bottom: 2px;
-}
-
-.url-text {
-  font-size: 10px;
-  word-break: break-all;
+  font-size: 28px;
+  padding: 20px 0;
 }
 
 .cells-grid {
   flex-direction: column;
   border-radius: 12px;
-  padding: 8px;
-  margin-bottom: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
 }
 
 .cells-row {
@@ -872,11 +866,11 @@ export default {
 }
 
 .cell {
-  width: 28px;
-  height: 30px;
+  width: 32px;
+  height: 36px;
   border-radius: 6px;
   border-width: 1px;
-  margin: 2px;
+  margin: 3px;
   justify-content: center;
   align-items: center;
 }
@@ -887,26 +881,26 @@ export default {
 }
 
 .cell-text {
-  font-size: 15px;
+  font-size: 28px;
   font-weight: bold;
 }
 
 .keypad {
   flex-direction: column;
   border-radius: 12px;
-  padding: 8px;
-  margin-bottom: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
 }
 
 .keypad-row {
   flex-direction: row;
   justify-content: center;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .keypad-btn {
-  width: 52px;
-  height: 36px;
+  width: 56px;
+  height: 42px;
   border-radius: 8px;
   border-width: 1px;
   border-style: solid;
@@ -917,15 +911,16 @@ export default {
 }
 
 .keypad-text {
-  font-size: 18px;
+  font-size: 28px;
   font-weight: bold;
 }
 
 .verify-btn {
   width: 100%;
-  height: 40px;
-  border-radius: 8px;
-  font-size: 15px;
+  height: 44px;
+  border-radius: 12px;
+  font-size: 28px;
+  font-weight: bold;
   text-align: center;
   align-self: center;
 }
@@ -934,27 +929,27 @@ export default {
   flex-direction: column;
   border-radius: 8px;
   border-width: 2px;
-  padding: 8px;
-  margin-top: 8px;
+  padding: 12px;
+  margin-top: 12px;
 }
 
 .result-label {
-  font-size: 12px;
-  margin-bottom: 4px;
+  font-size: 28px;
+  margin-bottom: 6px;
 }
 
 .result-code {
-  font-size: 16px;
+  font-size: 32px;
   font-weight: bold;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .result-detail {
-  font-size: 11px;
+  font-size: 24px;
 }
 
 .bottom-spacer {
-  height: 20px;
+  height: 30px;
 }
 
 @media (shape: circle) {
@@ -969,13 +964,13 @@ export default {
 
 @media (shape: capsule) {
   .page {
-    padding: 44px 8px 12px 8px;
+    padding: 44px 10px 12px 10px;
   }
 }
 
 @media (shape: rect) {
   .page {
-    padding: 44px 6px 6px 6px;
+    padding: 44px 8px 8px 8px;
   }
 }
 </style>

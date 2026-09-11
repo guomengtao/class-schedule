@@ -242,8 +242,8 @@ var THEMES = {
 module.exports = {
   THEMES: THEMES,
 
-  getTheme: function(callback) {
-    if (_cache.theme) {
+  getTheme: function(callback, forceRefresh) {
+    if (!forceRefresh && _cache.theme) {
       callback(_cache.theme, _cache.themeName)
       return
     }
@@ -809,8 +809,8 @@ module.exports = {
     })
   },
 
-  getDefaultHomepage: function(callback) {
-    if (_cache.defaultHomepage) {
+  getDefaultHomepage: function(callback, forceRefresh) {
+    if (!forceRefresh && _cache.defaultHomepage) {
       callback(_cache.defaultHomepage)
       return
     }

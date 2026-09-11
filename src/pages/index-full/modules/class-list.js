@@ -1,6 +1,7 @@
 console.log("[class-list] loading...")
 
 var store = require("../../../data/store.js")
+var prompt = require("@system.prompt")
 
 var fullDayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
@@ -134,10 +135,12 @@ function init(instance) {
           key: "detail_day",
           value: instance.currentDay,
           success: function() { router.push({ uri: "/pages/detail" }) },
-          fail: function() { router.push({ uri: "/pages/detail" }) }
+          fail: function() { prompt.showToast({ message: "请重试" }) }
         })
       },
-      fail: function() { router.push({ uri: "/pages/detail" }) }
+      fail: function() {
+        prompt.showToast({ message: "请重试" })
+      }
     })
   }
 

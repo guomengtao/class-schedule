@@ -13,13 +13,13 @@
       </div>
 
       <div class="keyboard-container">
-        <component-InputMethod
+        <component-inputmethod
           hide="{{hideKeyboard}}"
           maxlength="{{maxlen}}"
-          screentype="circle"
+          screentype="{{ screenType }}"
           oncomplete="onCharacter"
           ondelete="onDeleteChar"
-        ></component-InputMethod>
+        ></component-inputmethod>
       </div>
 
       <div class="font-bar">
@@ -33,13 +33,14 @@
       </div>
     </div>
 
-    <text class="footer-text" style="color: {{ theme.textSecondary }}">Keyboard Input</text>
+    <text class="footer-text" style="color: {{ theme.textSecondary }}">输入法 - 02 - 完整输入 - chinese-input-full</text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
 import storage from "@system.storage"
+import device from "@system.device"
 const store = require("../../data/store.js")
 
 var FONT_KEY = "inputFontSize"
@@ -77,6 +78,7 @@ export default {
     placeholder: "tap to input",
     inputValue: "",
     maxlen: 5,
+    screenType: "circle",
     theme: store.DEFAULT_THEME,
     hideKeyboard: true,
     showCursor: false,
@@ -86,6 +88,15 @@ export default {
   },
 
   onInit() {
+    var self = this
+    device.getInfo({
+      success: function(data) {
+        self.screenType = data.screenShape || "circle"
+      },
+      fail: function() {
+        self.screenType = "circle"
+      }
+    })
   },
 
   onShow() {

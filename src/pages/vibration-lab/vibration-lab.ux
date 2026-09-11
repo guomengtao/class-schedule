@@ -40,14 +40,6 @@
       </div>
     </div>
 
-    <div class="lab-nav" style="background-color: {{ theme.card }}">
-      <div class="lab-nav-item" onclick="goToModuleTest">
-        <text class="lab-nav-icon">🧪</text>
-        <text class="lab-nav-label" style="color: {{ theme.accent }}">多模块加载测试</text>
-        <text class="lab-nav-arrow" style="color: {{ theme.textSecondary }}">▶</text>
-      </div>
-    </div>
-
     <div class="hero" style="background-color: {{ theme.card }}">
       <text class="hero-icon">📳</text>
       <text class="hero-name" style="color: {{ theme.text }}">{{ currentName }}</text>
@@ -505,7 +497,6 @@ export default {
 
   fallbackVibratePattern(pattern) {
     var idx = 0
-    var self = this
     function loop() {
       if (idx >= pattern.count) return
       var mode = pattern.duration > 300 ? "long" : "short"
@@ -523,14 +514,16 @@ export default {
     router.back()
   },
 
-  goToModuleTest() {
-    router.push({
-      uri: "/pages/lab-module-test"
-    })
-  },
-
   pinToHome() {
     pinHelper.pinPage("震动实验室", "/pages/vibration-lab")
+  },
+
+  onDestroy() {
+    this.stopVibration()
+    if (this.deleteTimer) {
+      clearTimeout(this.deleteTimer)
+      this.deleteTimer = null
+    }
   }
 }
 </script>

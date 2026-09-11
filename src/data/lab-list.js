@@ -3,13 +3,12 @@ var STORAGE_KEY = "lab_settings"
 
 var ALL_PAGES = [
   { name: "已钉首页",  uri: "/pages/pinned-pages" },
-  { name: "数据表展示", uri: "/pages/storage-viewer" },
   { name: "二维码生成器", uri: "/pages/qrcode-generator" },
   { name: "震动实验室", uri: "/pages/vibration-lab" },
-  { name: "输入键盘", uri: "/pages/countdown-demo" },
   { name: "周课程总览", uri: "/pages/week-overview-demo" },
   { name: "极简课表", uri: "/pages/week-grid-demo" },
   { name: "单字极简课表", uri: "/pages/week-grid-simple" },
+  { name: "纯文极简课表", uri: "/pages/week-text-simple" },
   { name: "打赏支持", uri: "/pages/donate" },
   { name: "课程表管理 V2", uri: "/pages/schedule-manager" },
   { name: "设备信息", uri: "/pages/device-info" },

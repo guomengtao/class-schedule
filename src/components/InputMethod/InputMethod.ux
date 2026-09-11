@@ -353,7 +353,7 @@ function doSearchDic(word, lang, cb) {
 
 function deleteLast(t) {
   if (t) {
-    return t.substr(0, t.length - 1);
+    return t.slice(0, -1);
   }
   return "";
 }
@@ -444,13 +444,15 @@ export default {
     },
   },
   onInit() {
-    if (this.maxlength) {
-      const tempCvalList = [];
-      for (let i = 0; i < this.maxlength; i++) {
-        tempCvalList.push(i);
-      }
-      this.cvalList = tempCvalList;
+    var ml = parseInt(this.maxlength);
+    if (isNaN(ml) || ml < 1) { ml = 5; }
+    if (ml > 50) { ml = 50; }
+    this.maxlength = ml;
+    const tempCvalList = [];
+    for (let i = 0; i < ml; i++) {
+      tempCvalList.push(i);
     }
+    this.cvalList = tempCvalList;
     if (this.screentype === "rect" || this.screentype === "pill-shaped") {
       this.adjustScreenWidth();
     }
@@ -469,6 +471,10 @@ export default {
     this.$watch("keyboardtype", "watchKeyboardTypePropsChange");
   },
   addAllTxt(txt) {
+    var max = this.maxlength
+    if (max > 0 && txt.length > max) {
+      txt = txt.slice(0, max)
+    }
     this.$emit("complete", { content: txt });
   },
   onRsSelect(txt) {
@@ -748,7 +754,7 @@ export default {
     this.clearWaiting();
     this.resetResultList();
   },
-  watchHidePropsChange(newV, oldV) {
+  watchHidePropsChange(newV) {
     this.$emit("visibilityChange", { visible: newV });
     // 键盘从隐藏切到显示(hide:true→false)：首次弹出才把键盘子树建入 DOM（keyboardCreated 置 true 保活，
     // 之后 hide 切换只走 show 显隐、不再重建）。同时懒初始化字典（幂等）。
@@ -763,7 +769,7 @@ export default {
     this.__dictInitStarted = true
     SimpleInputMethod.initDict()
   },
-  watchMaxLengthPropsChange(newV, oldV) {
+  watchMaxLengthPropsChange(newV) {
     if (newV) {
       const tempCvalList = [];
       for (let i = 0; i < newV; i++) {
@@ -772,7 +778,7 @@ export default {
       this.cvalList = tempCvalList;
     }
   },
-  watchKeyboardTypePropsChange(newV, oldV) {
+  watchKeyboardTypePropsChange(newV) {
     if (newV === "T9" && this.lang === "jp") {
       this.lang = "cn";
       this.cval = "";
@@ -803,6 +809,9 @@ export default {
     device.getInfo({
       success: (data) => {
         this.screenWidth = data.screenWidth;
+      },
+      fail: () => {
+        this.screenWidth = 336;
       }
     })
   }

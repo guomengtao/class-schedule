@@ -1,27 +1,27 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">自定义内容</text>
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
-      <text class="section-title" style="color: {{ theme.textSecondary }}">预览效果</text>
+      <text class="section-title" style="color: {{ theme.textSecondary }}">预览</text>
       <div class="preview-card" style="background-color: {{ theme.cardLight }}">
         <div class="preview-accent" style="background-color: {{ theme.accent }}"></div>
-        <text class="preview-text" style="color: {{ theme.text }}">{{ previewText || '选择文字后预览' }}</text>
+        <text class="preview-text" style="color: {{ theme.text }}">{{ previewText || '预览文字' }}</text>
       </div>
       <div class="preview-info" show="{{ hasSelection }}">
-        <text class="preview-info-text" style="color: {{ theme.textSecondary }}">第 {{ previewIndex + 1 }}/{{ selectedCount }} 条</text>
+        <text class="preview-info-text" style="color: {{ theme.textSecondary }}">{{ previewIndex + 1 }}/{{ selectedCount }}</text>
       </div>
       <div class="preview-actions">
-        <input class="edit-btn" type="button" value="编辑内容" onclick="editContent" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        <input class="clear-btn" type="button" value="清空选择" onclick="clearAll" show="{{ hasSelection }}" style="background-color: {{ theme.cardLight }}; color: {{ theme.textSecondary }}" />
+        <input class="edit-btn" type="button" value="编辑" onclick="editContent" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="clear-btn" type="button" value="清空" onclick="clearAll" show="{{ hasSelection }}" style="background-color: {{ theme.cardLight }}; color: {{ theme.textSecondary }}" />
       </div>
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
-      <text class="section-title" style="color: {{ theme.textSecondary }}">快捷选择 (多选) — 已选 {{ selectedCount }} 条</text>
+      <text class="section-title" style="color: {{ theme.textSecondary }}">已选 {{ selectedCount }} 条</text>
       <div class="preset-grid">
         <div class="preset-item" for="item in presetItems" onclick="togglePreset(item)" style="background-color: {{ item.selected ? theme.accent : theme.cardLight }}">
           <text class="preset-text" style="color: {{ item.selected ? theme.bg : theme.text }}">{{ item.text }}</text>
@@ -359,60 +359,61 @@ export default {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  padding: 28px 8px 8px 8px;
+  padding: 44px 10px 12px 10px;
 }
 
 .header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 14px;
 }
 
 .back-btn {
-  width: 70px;
-  height: 36px;
+  width: 48px;
+  height: 40px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 28px;
   text-align: center;
 }
 
 .title {
-  font-size: 18px;
+  font-size: 36px;
   font-weight: bold;
   flex: 1;
   text-align: center;
+  margin-right: 64px;
 }
 
 .section {
   flex-direction: column;
   border-radius: 12px;
-  padding: 10px;
-  margin-bottom: 6px;
+  padding: 14px;
+  margin-bottom: 10px;
 }
 
 .section-title {
-  font-size: 13px;
-  margin-bottom: 6px;
+  font-size: 24px;
+  margin-bottom: 10px;
 }
 
 .preview-card {
   flex-direction: row;
   align-items: center;
-  padding: 10px 12px;
+  padding: 14px 14px;
   border-radius: 10px;
-  min-height: 44px;
+  min-height: 50px;
 }
 
 .preview-accent {
   width: 4px;
-  height: 24px;
+  height: 28px;
   border-radius: 2px;
-  margin-right: 8px;
+  margin-right: 10px;
   flex-shrink: 0;
 }
 
 .preview-text {
-  font-size: 18px;
+  font-size: 32px;
   flex: 1;
   lines: 1;
   text-overflow: ellipsis;
@@ -421,35 +422,35 @@ export default {
 .preview-info {
   flex-direction: row;
   justify-content: center;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .preview-info-text {
-  font-size: 12px;
+  font-size: 20px;
 }
 
 .preview-actions {
   flex-direction: row;
-  margin-top: 6px;
+  margin-top: 10px;
 }
 
 .edit-btn {
   flex: 1;
-  height: 38px;
-  border-radius: 8px;
-  font-size: 15px;
+  height: 48px;
+  border-radius: 10px;
+  font-size: 28px;
   font-weight: bold;
   text-align: center;
   border-width: 0;
 }
 
 .clear-btn {
-  width: 80px;
-  height: 38px;
-  border-radius: 8px;
-  font-size: 13px;
+  width: 90px;
+  height: 48px;
+  border-radius: 10px;
+  font-size: 24px;
   text-align: center;
-  margin-left: 6px;
+  margin-left: 8px;
   border-width: 0;
 }
 
@@ -459,16 +460,16 @@ export default {
 }
 
 .preset-item {
-  height: 34px;
-  border-radius: 8px;
-  padding: 0 10px;
-  margin: 0 5px 5px 0;
+  height: 42px;
+  border-radius: 10px;
+  padding: 0 14px;
+  margin: 0 6px 6px 0;
   align-items: center;
   justify-content: center;
 }
 
 .preset-text {
-  font-size: 13px;
+  font-size: 28px;
   lines: 1;
 }
 
@@ -477,15 +478,165 @@ export default {
 }
 
 .interval-item {
-  height: 34px;
-  border-radius: 8px;
-  padding: 0 12px;
+  height: 42px;
+  border-radius: 10px;
+  padding: 0 14px;
   margin: 0 6px 6px 0;
   align-items: center;
   justify-content: center;
 }
 
 .interval-text {
-  font-size: 13px;
+  font-size: 28px;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+  .header {
+    margin-bottom: 12px;
+  }
+  .back-btn {
+    width: 44px;
+    height: 40px;
+    font-size: 28px;
+  }
+  .title {
+    font-size: 36px;
+    margin-right: 44px;
+  }
+  .section {
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-size: 24px;
+  }
+  .preview-text {
+    font-size: 28px;
+  }
+  .preview-info-text {
+    font-size: 20px;
+  }
+  .edit-btn {
+    height: 42px;
+    font-size: 24px;
+  }
+  .clear-btn {
+    width: 80px;
+    height: 42px;
+    font-size: 24px;
+  }
+  .preset-item {
+    height: 38px;
+    padding: 0 12px;
+  }
+  .preset-text {
+    font-size: 24px;
+  }
+  .interval-item {
+    height: 38px;
+    padding: 0 12px;
+  }
+  .interval-text {
+    font-size: 24px;
+  }
+}
+
+@media (shape: capsule) {
+  .page {
+    padding: 44px 10px 12px 10px;
+  }
+  .header {
+    margin-bottom: 10px;
+  }
+  .back-btn {
+    width: 36px;
+    height: 32px;
+    font-size: 24px;
+  }
+  .title {
+    font-size: 36px;
+    margin-right: 36px;
+  }
+  .section-title {
+    font-size: 24px;
+  }
+  .preview-text {
+    font-size: 28px;
+  }
+  .preview-info-text {
+    font-size: 20px;
+  }
+  .edit-btn {
+    height: 42px;
+    font-size: 24px;
+  }
+  .clear-btn {
+    width: 80px;
+    height: 42px;
+    font-size: 24px;
+  }
+  .preset-item {
+    height: 36px;
+  }
+  .preset-text {
+    font-size: 24px;
+  }
+  .interval-item {
+    height: 36px;
+  }
+  .interval-text {
+    font-size: 24px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 10px 12px 10px;
+  }
+  .header {
+    margin-bottom: 10px;
+  }
+  .back-btn {
+    width: 44px;
+    height: 36px;
+    font-size: 28px;
+  }
+  .title {
+    font-size: 36px;
+    margin-right: 44px;
+  }
+  .section-title {
+    font-size: 24px;
+  }
+  .preview-text {
+    font-size: 28px;
+  }
+  .preview-info-text {
+    font-size: 20px;
+  }
+  .edit-btn {
+    height: 42px;
+    font-size: 24px;
+  }
+  .clear-btn {
+    width: 80px;
+    height: 42px;
+    font-size: 24px;
+  }
+  .preset-item {
+    height: 36px;
+  }
+  .preset-text {
+    font-size: 24px;
+  }
+  .interval-item {
+    height: 36px;
+  }
+  .interval-text {
+    font-size: 24px;
+  }
 }
 </style>
