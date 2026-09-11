@@ -52,6 +52,7 @@
 | U-11 | CSS 硬编码色清理：add-course/week-view/detail/index-full `.page` 移除 `background-color:#1a1a2e`（模板已有 `{{theme.bg}}`）；内联 `#ffffff` 9 处 → `theme.text`（backup-restore/schedule-manager/course-manager/reset-data/detail/vibration-lab/donate）；activation `.cell-active` 移除 `border-color:#ff8c00`（inline 已有 theme 变量）；week-overview-demo `.week-indicator` 加 inline `style="color:{{theme.accent}};background-color:{{theme.border}}"` | ✅ done |
 | U-10 | 空态补充：schedule-manager 加 `list.length===0` "暂无课程表"，course-manager 加 `courseList.length===0` "暂无课程" | ✅ done |
 | U-5 | 行高补全：全站 29 页全部完成，累计 99+ 处 line-height 覆盖（index-full/statistics/detail/course-manager/chinese-input/week-grid-demo/chinese-input-full/welcome/pinned-pages/template-picker/week-grid-simple/device-info/nickname-edit/qrcode-generator/custom-content-edit 等） | ✅ done |
+| U-9 | emoji 图标清洗：📌→文本/⚲，💾💡📱→移除，❤️→♥，👑→♛，📳→〰，💡→ℹ，🔵→·（store.js 死代码）；8 个文件 20 处替换 | ✅ done |
 
 ---
 
@@ -67,7 +68,6 @@
 
 | 编号 | 计划 |
 |---|---|
-| U-9 | 彩色 emoji 当图标，后续替换为 SVG/字体图标 |
 | U-11 | 双轨配色：`<style>` 硬编码已清除 4 页面背景 + 9 内联 `#ffffff` + activation + week-overview-demo；InputMethod 组件保留独立键盘配色；课程色块（#ff6b6b 品牌色）非主题色无需迁移 |
 | P1-3 | 圆屏四角控件裁切，需上真机验证后调整 @media (shape:circle) 布局 |
 | P1-4 | 全站 px 无分辨率折算，当前 `designWidth: device-width` 是快应用标准方案 |

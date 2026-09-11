@@ -19,7 +19,7 @@
     </div>
 
     <div class="empty-state" if="{{ !inputText }}">
-      <text class="empty-icon">📱</text>
+      <text class="empty-icon"></text>
       <text class="empty-text" style="color: {{ theme.textMuted }}">输入或选择内容</text>
     </div>
 
@@ -44,7 +44,7 @@
     <unlock-dialog id="unlockDialog"></unlock-dialog>
 
     <div class="footer-actions">
-      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">📌钉首页</text>
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">钉首页</text>
     </div>
   </div>
 </template>
@@ -83,7 +83,7 @@ export default {
       btnSecondaryText: '#a0a0b0',
       deleteBg: '#2a1a3e',
       deleteText: '#e08080',
-      icon: '🔵',
+      icon: '·',
       progressOngoing: 'rgba(126,200,227,0.2)',
       progressDone: 'rgba(74,138,154,0.25)'
     },

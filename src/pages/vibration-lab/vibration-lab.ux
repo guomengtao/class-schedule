@@ -7,7 +7,7 @@
     </div>
 
     <div class="notice-banner" style="background-color: {{ theme.cardLight }}; border-color: {{ theme.accent }}">
-      <text class="notice-icon">💡</text>
+      <text class="notice-icon">ℹ</text>
       <text class="notice-text" style="color: {{ theme.textSecondary }}">温馨提示：震动提醒功能仅在屏幕亮屏时有效，息屏后系统无法触发震动。</text>
     </div>
 
@@ -41,7 +41,7 @@
     </div>
 
     <div class="hero" style="background-color: {{ theme.card }}">
-      <text class="hero-icon">📳</text>
+      <text class="hero-icon">〰</text>
       <text class="hero-name" style="color: {{ theme.text }}">{{ currentName }}</text>
       <text class="hero-desc" style="color: {{ theme.textSecondary }}">强度 {{ duration }}ms · 间隔 {{ interval }}ms · {{ count }}次</text>
       <div class="hero-btns">
@@ -121,13 +121,13 @@
     </div>
 
     <div class="save-section">
-      <input class="save-btn" type="button" value="💾 保存当前为方案" onclick="savePreset" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="save-btn" type="button" value="保存当前为方案" onclick="savePreset" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
     <unlock-dialog id="unlockDialog"></unlock-dialog>
 
     <div class="footer-actions">
-      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">📌 固定到首页</text>
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">固定到首页</text>
     </div>
   </div>
 </template>
@@ -173,7 +173,7 @@ export default {
       btnSecondaryText: '#a0a0b0',
       deleteBg: '#2a1a3e',
       deleteText: '#e08080',
-      icon: '🔵',
+      icon: '·',
       progressOngoing: 'rgba(126,200,227,0.2)',
       progressDone: 'rgba(74,138,154,0.25)'
     },

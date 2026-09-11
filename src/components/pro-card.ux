@@ -1,7 +1,7 @@
 <template>
   <div class="pro-card-inline" style="background-color: {{ theme.card }}">
     <div class="pro-card-top">
-      <text class="pro-icon">👑</text>
+      <text class="pro-icon">♛</text>
       <text class="pro-title" style="color: {{ theme.accent }}">{{ title }}</text>
     </div>
 

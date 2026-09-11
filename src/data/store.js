@@ -44,7 +44,7 @@ var THEMES = {
     btnSecondaryText: '#a0a0b0',
     deleteBg: '#2a1a3e',
     deleteText: '#e08080',
-    icon: '🔵',
+    icon: '·',
     progressOngoing: 'rgba(126,200,227,0.2)',
     progressDone: 'rgba(74,138,154,0.25)'
   },
@@ -722,7 +722,7 @@ module.exports = {
     btnSecondaryText: '#a0a0b0',
     deleteBg: '#2a1a3e',
     deleteText: '#e08080',
-    icon: '🔵',
+    icon: '·',
     progressOngoing: 'rgba(126,200,227,0.2)',
     progressDone: 'rgba(74,138,154,0.25)'
   },

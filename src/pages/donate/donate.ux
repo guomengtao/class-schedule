@@ -32,7 +32,7 @@
     </div>
 
     <div class="thanks-section">
-      <text class="thanks-icon">❤️</text>
+      <text class="thanks-icon">♥</text>
       <text class="thanks-text" style="color: {{ theme.textSecondary }}">感谢支持，每一份打赏都是鼓励</text>
     </div>
   </div>
@@ -73,7 +73,7 @@ export default {
       btnSecondaryText: '#a0a0b0',
       deleteBg: '#2a1a3e',
       deleteText: '#e08080',
-      icon: '🔵',
+      icon: '·',
       progressOngoing: 'rgba(126,200,227,0.2)',
       progressDone: 'rgba(74,138,154,0.25)'
     },

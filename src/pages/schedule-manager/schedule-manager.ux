@@ -63,7 +63,7 @@
     <unlock-dialog id="unlockDialog"></unlock-dialog>
 
     <div class="footer-actions">
-      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">📌 固定到首页</text>
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">固定到首页</text>
     </div>
   </scroll>
 

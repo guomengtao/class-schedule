@@ -55,7 +55,7 @@
     <unlock-dialog id="unlockDialog"></unlock-dialog>
 
     <div class="footer-actions">
-      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">📌钉首页</text>
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">钉首页</text>
     </div>
   </div>
 </template>

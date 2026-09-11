@@ -8,7 +8,7 @@
     <text class="section-desc" style="color: {{ theme.textSecondary }}">已固定的页面，点击快速访问，点击方框取消固定</text>
 
     <div class="empty-hint" if="pinnedList.length === 0" style="background-color: {{ theme.card }}">
-      <text class="empty-icon">📌</text>
+      <text class="empty-icon">⚲</text>
       <text class="empty-text" style="color: {{ theme.textMuted }}">暂无固定页面</text>
       <text class="empty-sub" style="color: {{ theme.textSecondary }}">在实验室中可将页面固定到首页</text>
     </div>
@@ -27,7 +27,7 @@
     </div>
 
     <div class="footer-actions">
-      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">📌 {{ isThisPinned ? '已固定' : '固定到首页' }}</text>
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">{{ isThisPinned ? '已固定' : '固定到首页' }}</text>
     </div>
   </div>
 </template>
@@ -57,7 +57,7 @@ export default {
       btnSecondaryText: '#a0a0b0',
       deleteBg: '#2a1a3e',
       deleteText: '#e08080',
-      icon: '🔵',
+      icon: '·',
       progressOngoing: 'rgba(126,200,227,0.2)',
       progressDone: 'rgba(74,138,154,0.25)'
     }
