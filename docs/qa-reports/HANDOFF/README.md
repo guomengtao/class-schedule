@@ -48,4 +48,6 @@ git push    git@github.com:guomengtao/class-schedule.git main
 
 ## 状态图例（STATUS.md 用）
 
-🔴 未修 ｜ 🟡 已修待验 ｜ 🟢 已验证修复 ｜ ⏸ 挂起（等作者回答） ｜ ⚪ 已关闭（有意为之 / 不是问题）
+🔴 未修 ｜ 🟠 处理中 ｜ 🟡 已修待验 ｜ 🟢 已验证修复 ｜ ⏸ 挂起（等作者回答） ｜ ⚪ 已关闭（有意为之 / 不是问题）
+
+作者填 `REPLY.md` 三区的哪一类，我这边就记成对应的标记 —— 对照表见 `REPLY.md` 开头。
