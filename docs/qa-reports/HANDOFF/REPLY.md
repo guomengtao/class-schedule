@@ -52,11 +52,11 @@
 | U-11 | CSS 硬编码色清理：add-course/week-view/detail/index-full `.page` 移除 `background-color:#1a1a2e`（模板已有 `{{theme.bg}}`）；内联 `#ffffff` 9 处 → `theme.text`（backup-restore/schedule-manager/course-manager/reset-data/detail/vibration-lab/donate）；activation `.cell-active` 移除 `border-color:#ff8c00`（inline 已有 theme 变量）；week-overview-demo `.week-indicator` 加 inline `style="color:{{theme.accent}};background-color:{{theme.border}}"` | ✅ done |
 | U-10 | 空态补充：schedule-manager 加 `list.length===0` "暂无课程表"，course-manager 加 `courseList.length===0` "暂无课程" | ✅ done |
 | U-5 | 行高补全：全站 29 页全部完成，累计 99+ 处 line-height 覆盖（index-full/statistics/detail/course-manager/chinese-input/week-grid-demo/chinese-input-full/welcome/pinned-pages/template-picker/week-grid-simple/device-info/nickname-edit/qrcode-generator/custom-content-edit 等） | ✅ done |
-| U-9 | emoji 图标清洗：📌→文本/⚲，💾💡📱→移除，❤️→♥，👑→♛，📳→〰，💡→ℹ，🔵→·（store.js 死代码）；8 个文件 20 处替换 | ✅ done |
+| U-9 | emoji 图标清洗：📌→文本/⚲，💾💡📱→移除，❤️→♥，👑→♛，📳→〰，💡→ℹ，🔵→·（store.js 死代码）8 个文件 20 处；主题色板 store.js 9 个 emoji + 8 页 fallback theme 🔵 → `●` 17 处全站清零 | ✅ done |
 | P1-3 | 圆屏四角控件裁切：全站 29 页均已覆盖 @media (shape:circle) padding；6 个 overlay/modal 页面（lab/reset-data/homepage-settings/backup-restore/schedule-manager/settings）已补充圆屏专属 modal 宽度 72% + overlay padding 44px 36px；仍需真机验证最终裁切效果 | ✅ done |
 | **P0-10** | 编辑/删除「假成功」：`database.js` `updateCourseStorage` + `deleteCourseStorage` 各加 `hit` 标记，id 未命中时 `callback(formatError(...))` 不再静默成功 | `5dc8fba` |
 | **P1-7** | 实验室「课程详情」入口已删除：`lab-list.js:26` 移除，同时堵上 P0-10 主入口 | `5dc8fba` |
-| **U-1** | 输入法 3 处箭头函数 → `function`：`InputMethod.ux:810/813` `device.getInfo` success/fail 回调、`dicUtil.js:59` `step`，零风险消除老内核整段不执行隐患 | `5dc8fba` |
+| **U-1** | 输入法 3 处箭头函数 → `function`：`InputMethod.ux:810/813` `device.getInfo` success/fail 回调、`dicUtil.js:59` `step`，零风险消除老内核整段不执行隐患 | `793c6dc` |
 
 ---
 
