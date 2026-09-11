@@ -11,7 +11,7 @@
         <text class="date-main" style="color: {{ theme.text }}">{{ dateMain }}</text>
         <text class="date-sub" style="color: {{ theme.textMuted }}">第{{ weekNumber }}周</text>
       </div>
-      <text class="week-indicator">{{ todayDayName }}</text>
+      <text class="week-indicator" style="color: {{ theme.accent }}; background-color: {{ theme.border }}">{{ todayDayName }}</text>
     </div>
 
     <div class="week-header">

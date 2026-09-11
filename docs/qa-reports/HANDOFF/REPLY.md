@@ -42,15 +42,15 @@
 | P1-1/1b | 4个页面零屏幕形状适配：`@media (shape:...)` 已覆盖 29/29 页面（QA 复核确认） | cb94d64 |
 | P1-5 | 数据库失败无错误态：`index-full.ux:52` 已有「数据加载失败」+ 重试按钮（QA 复核确认） | cb94d64 |
 | U-12 | 实验室重复页面：`pages/countdown-demo/` 目录已整个删除（QA 复核确认） | cb94d64 |
-| U-2 | T9 键盘缺 `jp.png`：从 `assets/horizontal/jp.png` 复制至 `assets/t9/jp.png` | 待提交 |
-| U-7 | 方屏按钮热区过小：statistics/capsule+rect back-btn 36×32→40×40，settings/homepage-settings/pinned-pages/lab circle+rect back-btn height 28→40px | 待提交 |
-| U-8 | 4 处英文 `back` → `◀`：week-text-simple/week-grid-simple/chinese-input-full/week-grid-demo | 待提交 |
+| U-2 | T9 键盘缺 `jp.png`：从 `assets/horizontal/jp.png` 复制至 `assets/t9/jp.png` | ✅ done |
+| U-7 | 方屏按钮热区过小：statistics/capsule+rect back-btn 36×32→40×40，settings/homepage-settings/pinned-pages/lab circle+rect back-btn height 28→40px | ✅ done |
+| U-8 | 4 处英文 `back` → `◀`：week-text-simple/week-grid-simple/chinese-input-full/week-grid-demo | ✅ done |
 | P1-6 | 详情页参数靠全局storage：已加 fail 回调 + showToast 且不再 push，危害已消除（QA 复核确认，路由参数改造留作可选优化） | cb94d64 |
-| U-4 | 全站 <12px 字号清零：pro-card/unlock-dialog/week-overview-demo/chinese-input/vibration-lab/week-grid-demo 共 27 处 8-11px → 12px | 待提交 |
-| P1-2 | 顶部安全区已统一 44px：全站 30+ 页面 `padding` 首值均为 44px（sub-element 内间距 8/12px 非页面级，不计） | 待提交 |
-| U-6 | 溢出保护增强：add-course/detail `.card-course-name` 加 `lines:1; text-overflow:ellipsis`，schedule-manager 10 处 `lines:1/2` 补 `text-overflow:ellipsis` | 待提交 |
-| U-11 | CSS 硬编码色清理：add-course/week-view/detail/index-full `.page` 移除 `background-color:#1a1a2e`（模板已有 `{{theme.bg}}`）；内联 `#ffffff` 9 处 → `theme.text`（backup-restore/schedule-manager/course-manager/reset-data/detail/vibration-lab/donate） | 待提交 |
-| U-10 | 空态补充：schedule-manager 加 `list.length===0` "暂无课程表"，course-manager 加 `courseList.length===0` "暂无课程" | 待提交 |
+| U-4 | 全站 <12px 字号清零：pro-card/unlock-dialog/week-overview-demo/chinese-input/vibration-lab/week-grid-demo 共 27 处 8-11px → 12px | ✅ done |
+| P1-2 | 顶部安全区已统一 44px：全站 30+ 页面 `padding` 首值均为 44px（sub-element 内间距 8/12px 非页面级，不计） | ✅ done |
+| U-6 | 溢出保护增强：add-course/detail `.card-course-name` 加 `lines:1; text-overflow:ellipsis`，schedule-manager 10 处 `lines:1/2` 补 `text-overflow:ellipsis` | ✅ done |
+| U-11 | CSS 硬编码色清理：add-course/week-view/detail/index-full `.page` 移除 `background-color:#1a1a2e`（模板已有 `{{theme.bg}}`）；内联 `#ffffff` 9 处 → `theme.text`（backup-restore/schedule-manager/course-manager/reset-data/detail/vibration-lab/donate）；activation `.cell-active` 移除 `border-color:#ff8c00`（inline 已有 theme 变量）；week-overview-demo `.week-indicator` 加 inline `style="color:{{theme.accent}};background-color:{{theme.border}}"` | ✅ done |
+| U-10 | 空态补充：schedule-manager 加 `list.length===0` "暂无课程表"，course-manager 加 `courseList.length===0` "暂无课程" | ✅ done |
 | U-5 | 行高补全：全站 29 页全部完成，累计 99+ 处 line-height 覆盖（index-full/statistics/detail/course-manager/chinese-input/week-grid-demo/chinese-input-full/welcome/pinned-pages/template-picker/week-grid-simple/device-info/nickname-edit/qrcode-generator/custom-content-edit 等） | ✅ done |
 
 ---
@@ -68,7 +68,7 @@
 | 编号 | 计划 |
 |---|---|
 | U-9 | 彩色 emoji 当图标，后续替换为 SVG/字体图标 |
-| U-11 | 双轨配色：`<style>` 写死深色值，已清理 4 个页面背景 + 9 处内联 `#ffffff`，剩余逐步迁移 |
+| U-11 | 双轨配色：`<style>` 硬编码已清除 4 页面背景 + 9 内联 `#ffffff` + activation + week-overview-demo；InputMethod 组件保留独立键盘配色；课程色块（#ff6b6b 品牌色）非主题色无需迁移 |
 | P1-3 | 圆屏四角控件裁切，需上真机验证后调整 @media (shape:circle) 布局 |
 | P1-4 | 全站 px 无分辨率折算，当前 `designWidth: device-width` 是快应用标准方案 |
 

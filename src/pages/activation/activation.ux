@@ -877,7 +877,6 @@ export default {
 
 .cell-active {
   border-width: 2px;
-  border-color: #ff8c00;
 }
 
 .cell-text {
