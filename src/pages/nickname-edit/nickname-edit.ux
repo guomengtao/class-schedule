@@ -213,6 +213,7 @@ export default {
   border-radius: 8px;
   font-size: 28px;
   text-align: center;
+  line-height: 36px;
 }
 
 .header-title {
@@ -220,6 +221,7 @@ export default {
   font-weight: bold;
   margin-left: 8px;
   flex: 1;
+  line-height: 44px;
 }
 
 .toggle-btn {
@@ -229,6 +231,7 @@ export default {
   font-size: 24px;
   text-align: center;
   margin-right: 6px;
+  line-height: 32px;
 }
 
 .save-btn {
@@ -238,6 +241,7 @@ export default {
   font-size: 24px;
   font-weight: bold;
   text-align: center;
+  line-height: 32px;
 }
 
 .edit-content {
@@ -261,17 +265,20 @@ export default {
   lines: 1;
   text-overflow: ellipsis;
   max-width: 80%;
+  line-height: 40px;
 }
 
 .cursor {
   font-size: 32px;
   margin-left: 2px;
+  line-height: 40px;
 }
 
 .input-hint {
   font-size: 24px;
   margin-top: 8px;
   text-align: center;
+  line-height: 32px;
 }
 
 .keyboard-area {

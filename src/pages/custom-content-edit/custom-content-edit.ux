@@ -374,6 +374,7 @@ export default {
   border-radius: 8px;
   font-size: 28px;
   text-align: center;
+  line-height: 36px;
 }
 
 .title {
@@ -382,6 +383,7 @@ export default {
   flex: 1;
   text-align: center;
   margin-right: 64px;
+  line-height: 44px;
 }
 
 .section {
@@ -394,6 +396,7 @@ export default {
 .section-title {
   font-size: 24px;
   margin-bottom: 10px;
+  line-height: 32px;
 }
 
 .preview-card {
@@ -417,6 +420,7 @@ export default {
   flex: 1;
   lines: 1;
   text-overflow: ellipsis;
+  line-height: 40px;
 }
 
 .preview-info {
@@ -427,6 +431,7 @@ export default {
 
 .preview-info-text {
   font-size: 20px;
+  line-height: 28px;
 }
 
 .preview-actions {
@@ -442,6 +447,7 @@ export default {
   font-weight: bold;
   text-align: center;
   border-width: 0;
+  line-height: 36px;
 }
 
 .clear-btn {
@@ -452,6 +458,7 @@ export default {
   text-align: center;
   margin-left: 8px;
   border-width: 0;
+  line-height: 32px;
 }
 
 .preset-grid {
@@ -471,6 +478,7 @@ export default {
 .preset-text {
   font-size: 28px;
   lines: 1;
+  line-height: 36px;
 }
 
 .interval-row {
@@ -488,6 +496,7 @@ export default {
 
 .interval-text {
   font-size: 28px;
+  line-height: 36px;
 }
 
 @media (shape: circle) {

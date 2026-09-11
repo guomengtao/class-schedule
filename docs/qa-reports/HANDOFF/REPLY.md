@@ -51,7 +51,7 @@
 | U-6 | 溢出保护增强：add-course/detail `.card-course-name` 加 `lines:1; text-overflow:ellipsis`，schedule-manager 10 处 `lines:1/2` 补 `text-overflow:ellipsis` | 待提交 |
 | U-11 | CSS 硬编码色清理：add-course/week-view/detail/index-full `.page` 移除 `background-color:#1a1a2e`（模板已有 `{{theme.bg}}`）；内联 `#ffffff` 9 处 → `theme.text`（backup-restore/schedule-manager/course-manager/reset-data/detail/vibration-lab/donate） | 待提交 |
 | U-10 | 空态补充：schedule-manager 加 `list.length===0` "暂无课程表"，course-manager 加 `courseList.length===0` "暂无课程" | 待提交 |
-| U-5 | 行高补充：index-full 5 处（clock-text/custom-content-text/status-tag/status-middle/status-right），statistics 5 处（overview-number/overview-label/section-title/header-title/rank-name），detail 4 处（back-btn/title/step-title/step-hint），course-manager 6 处（back-btn/title/add-btn/clear-hint/clear-btn/index-text/course-name/edit-btn），chinese-input 3 处（back-btn/title/confirm-btn），week-grid-demo 3 处（cell-time/class-name/class-room/legend-label），chinese-input-full 6 处（back-btn/title/confirm-btn/font-label/font-btn/footer-text） | 待提交 |
+| U-5 | 行高补全：全站 29 页全部完成，累计 99+ 处 line-height 覆盖（index-full/statistics/detail/course-manager/chinese-input/week-grid-demo/chinese-input-full/welcome/pinned-pages/template-picker/week-grid-simple/device-info/nickname-edit/qrcode-generator/custom-content-edit 等） | ✅ done |
 
 ---
 
@@ -68,9 +68,6 @@
 | 编号 | 计划 |
 |---|---|
 | U-9 | 彩色 emoji 当图标，后续替换为 SVG/字体图标 |
-| U-10 | 9 个页面缺加载态/空状态/错误态，已为 2 个主数据页面补空态，剩余 7 个逐步补充 |
-| U-6 | 长文本溢出保护，已为 3 个页面加 text-overflow，剩余页面逐步增加 |
-| U-5 | 行高覆盖率 5%≈14/29，已为 2 个页面补 10 处，逐步补全剩余 13 个页面 |
 | U-11 | 双轨配色：`<style>` 写死深色值，已清理 4 个页面背景 + 9 处内联 `#ffffff`，剩余逐步迁移 |
 | P1-3 | 圆屏四角控件裁切，需上真机验证后调整 @media (shape:circle) 布局 |
 | P1-4 | 全站 px 无分辨率折算，当前 `designWidth: device-width` 是快应用标准方案 |
