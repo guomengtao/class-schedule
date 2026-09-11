@@ -56,6 +56,7 @@
 | P1-3 | 圆屏四角控件裁切：全站 29 页均已覆盖 @media (shape:circle) padding；6 个 overlay/modal 页面（lab/reset-data/homepage-settings/backup-restore/schedule-manager/settings）已补充圆屏专属 modal 宽度 72% + overlay padding 44px 36px；仍需真机验证最终裁切效果 | ✅ done |
 | **P0-10** | 编辑/删除「假成功」：`database.js` `updateCourseStorage` + `deleteCourseStorage` 各加 `hit` 标记，id 未命中时 `callback(formatError(...))` 不再静默成功 | `5dc8fba` |
 | **P1-7** | 实验室「课程详情」入口已删除：`lab-list.js:26` 移除，同时堵上 P0-10 主入口 | `5dc8fba` |
+| **U-1** | 输入法 3 处箭头函数 → `function`：`InputMethod.ux:810/813` `device.getInfo` success/fail 回调、`dicUtil.js:59` `step`，零风险消除老内核整段不执行隐患 | `5dc8fba` |
 
 ---
 

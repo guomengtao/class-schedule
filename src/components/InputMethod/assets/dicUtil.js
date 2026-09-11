@@ -56,7 +56,7 @@ SimpleInputMethod._buildForwardIndex = function() {
   const keys = Object.keys(wmap)
   const CHUNK = 200
   let i = 0
-  const step = () => {
+  var step = function() {
     const end = Math.min(i + CHUNK, keys.length)
     for (; i < end; i++) {
       const key = keys[i]

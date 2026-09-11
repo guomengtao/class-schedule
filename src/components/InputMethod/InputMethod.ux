@@ -807,10 +807,10 @@ export default {
   },
   adjustScreenWidth(){
     device.getInfo({
-      success: (data) => {
+      success: function(data) {
         this.screenWidth = data.screenWidth;
       },
-      fail: () => {
+      fail: function() {
         this.screenWidth = 336;
       }
     })
