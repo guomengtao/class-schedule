@@ -288,11 +288,13 @@ function updateCourseStorage(course, callback) {
           return
         }
       }
+      var hit = false
       for (var i = 0; i < schedule.length; i++) {
         if (schedule[i].day === course.day) {
           var classes = schedule[i].classes
           for (var j = 0; j < classes.length; j++) {
             if (classes[j].id === course.id) {
+              hit = true
               classes[j].name = course.name
               classes[j].time = course.time
               classes[j].teacher = course.teacher
@@ -303,6 +305,11 @@ function updateCourseStorage(course, callback) {
           }
           break
         }
+      }
+      if (!hit) {
+        logErr("updateCourseStorage course not found: " + course.id)
+        callback(formatError("updateCourseStorage", "课程不存在"))
+        return
       }
       saveToStorageWithIndex(currentScheduleIndex, schedule, function(err) {
         log("updateCourseStorage " + (err ? "failed" : "success"))
@@ -329,6 +336,7 @@ function deleteCourseStorage(id, day, callback) {
           return
         }
       }
+      var hit = false
       for (var i = 0; i < schedule.length; i++) {
         if (schedule[i].day === day) {
           var classes = schedule[i].classes
@@ -338,9 +346,17 @@ function deleteCourseStorage(id, day, callback) {
               filtered.push(classes[j])
             }
           }
+          if (filtered.length < classes.length) {
+            hit = true
+          }
           schedule[i].classes = filtered
           break
         }
+      }
+      if (!hit) {
+        logErr("deleteCourseStorage course not found: " + id + " day " + day)
+        callback(formatError("deleteCourseStorage", "课程不存在"))
+        return
       }
       saveToStorageWithIndex(currentScheduleIndex, schedule, function(err) {
         log("deleteCourseStorage " + (err ? "failed" : "success"))
