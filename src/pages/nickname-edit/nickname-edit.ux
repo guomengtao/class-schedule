@@ -4,19 +4,17 @@
     <div class="back-header">
       <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="header-title" style="color: {{ theme.text }}">编辑昵称</text>
-      <input class="toggle-btn" type="button" value="{{ useInputMethod ? '舒适' : '标准' }}" onclick="toggleInputMethod" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
       <input class="save-btn" type="button" value="保存" onclick="saveNickname" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
     <div class="edit-content">
       <div class="nickname-display" onclick="onDisplayClick" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
         <text class="nickname-text" style="color: {{ theme.text }}">{{ currentName || '输入昵称' }}</text>
-        <text class="cursor" show="{{ showCursor && useInputMethod }}" style="color: {{ theme.accent }}">|</text>
+        <text class="cursor" show="{{ showCursor }}" style="color: {{ theme.accent }}">|</text>
       </div>
-      <text class="input-hint" show="{{ !useInputMethod }}" style="color: {{ theme.textMuted }}">跳转至输入页</text>
-    </div>
+      </div>
 
-    <div class="keyboard-area" show="{{ showKeyboard && useInputMethod }}">
+    <div class="keyboard-area" show="{{ showKeyboard }}">
       <input-method
         hide="{{ hideKeyboard }}"
         keyboardtype="QWERTY"
@@ -45,7 +43,6 @@ export default {
     hideKeyboard: false,
     showCursor: false,
     screenType: "circle",
-    useInputMethod: true,
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -93,24 +90,6 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-
-    // Read result from chinese-input-full page if we switched away
-    if (!this.useInputMethod) {
-      var storage = require("@system.storage")
-      storage.get({
-        key: "chinese_input_result",
-        success: function(data) {
-          if (data !== undefined && data !== null && data !== "") {
-            self.currentName = data
-            storage.delete({
-              key: "chinese_input_result",
-              fail: function() {}
-            })
-          }
-        },
-        fail: function() {}
-      })
-    }
   },
 
   showKeyboardFn() {
@@ -125,30 +104,8 @@ export default {
     this.showCursor = true
   },
 
-  toggleInputMethod() {
-    this.useInputMethod = !this.useInputMethod
-    if (this.useInputMethod) {
-      // Switch to inline keyboard
-      this.showKeyboard = true
-      this.hideKeyboard = false
-      this.showCursor = true
-    }
-  },
-
   onDisplayClick() {
-    if (this.useInputMethod) {
-      // Inline mode: just ensure keyboard is visible
-      this.showKeyboard()
-    } else {
-      // Page mode: navigate to chinese-input-full
-      var storage = require("@system.storage")
-      storage.set({ key: "chinese_input_title", value: "编辑昵称" })
-      storage.set({ key: "chinese_input_placeholder", value: "点击输入昵称" })
-      storage.set({ key: "chinese_input_value", value: this.currentName || "" })
-      storage.set({ key: "chinese_input_maxlen", value: "5" })
-      storage.set({ key: "chinese_input_return_key", value: "chinese_input_result" })
-      router.push({ uri: "/pages/chinese-input-full" })
-    }
+    this.showKeyboard()
   },
 
   onInputComplete(e) {
@@ -224,16 +181,6 @@ export default {
   line-height: 44px;
 }
 
-.toggle-btn {
-  width: 56px;
-  height: 34px;
-  border-radius: 8px;
-  font-size: 24px;
-  text-align: center;
-  margin-right: 6px;
-  line-height: 32px;
-}
-
 .save-btn {
   width: 56px;
   height: 34px;
@@ -274,13 +221,6 @@ export default {
   line-height: 40px;
 }
 
-.input-hint {
-  font-size: 24px;
-  margin-top: 8px;
-  text-align: center;
-  line-height: 32px;
-}
-
 .keyboard-area {
   flex: 1;
   flex-direction: column;
@@ -306,12 +246,6 @@ export default {
     font-size: 36px;
     margin-left: 4px;
   }
-  .toggle-btn {
-    width: 50px;
-    height: 30px;
-    font-size: 20px;
-    margin-right: 4px;
-  }
   .save-btn {
     width: 50px;
     height: 30px;
@@ -328,9 +262,6 @@ export default {
   }
   .cursor {
     font-size: 28px;
-  }
-  .input-hint {
-    font-size: 24px;
   }
   .keyboard-area {
     margin-top: 6px;
@@ -355,12 +286,6 @@ export default {
     font-size: 28px;
     margin-left: 4px;
   }
-  .toggle-btn {
-    width: 50px;
-    height: 30px;
-    font-size: 20px;
-    margin-right: 4px;
-  }
   .save-btn {
     width: 50px;
     height: 30px;
@@ -377,9 +302,6 @@ export default {
   }
   .cursor {
     font-size: 28px;
-  }
-  .input-hint {
-    font-size: 20px;
   }
   .keyboard-area {
     margin-top: 6px;
@@ -403,12 +325,6 @@ export default {
     font-size: 28px;
     margin-left: 4px;
   }
-  .toggle-btn {
-    width: 48px;
-    height: 30px;
-    font-size: 20px;
-    margin-right: 4px;
-  }
   .save-btn {
     width: 48px;
     height: 30px;
@@ -425,9 +341,6 @@ export default {
   }
   .cursor {
     font-size: 28px;
-  }
-  .input-hint {
-    font-size: 20px;
   }
   .keyboard-area {
     margin-top: 6px;

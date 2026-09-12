@@ -1,56 +1,29 @@
 <template>
   <div class="input-page" style="background-color: {{ theme.bg }}">
-    <div class="header">
-      <input class="back-btn" type="button" value="返回" onclick="onCancel" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="title" style="color: {{ theme.text }}">{{ title }}</text>
-      <input class="confirm-btn" type="button" value="确认" onclick="onConfirm" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-    </div>
+    <div class="content-body">
+      <div class="header">
+        <input class="back-btn" type="button" value="返回" onclick="onCancel" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+        <text class="title" style="color: {{ theme.text }}">{{ title }}</text>
+        <input class="confirm-btn" type="button" value="确认" onclick="onConfirm" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      </div>
 
-    <div class="content-body" if="{{ ready }}">
       <div class="display-area" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
         <text class="display-text" style="font-size: {{ inputFontSize }}px; color: {{ theme.text }}">{{ inputValue || placeholder }}</text>
         <text class="cursor" show="{{ showCursor }}" style="font-size: {{ inputFontSize }}px; color: {{ theme.accent }}">_</text>
       </div>
 
-      <div class="pinyin-row" show="{{ !hideKeyboard && cval }}">
-        <text class="pinyin-text" style="color: {{ theme.accent }}">{{ cvalDisplay }}</text>
+      <div class="keyboard-container">
+        <component-inputmethod
+          hide="{{ hideKeyboard }}"
+          maxlength="{{ maxlen }}"
+          screentype="{{ screenType }}"
+          vibratemode="short"
+          oncomplete="onCharacter"
+          ondelete="onDeleteChar"
+        ></component-inputmethod>
       </div>
 
-      <scroll class="candidate-row" show="{{ !hideKeyboard && resultRow0.length > 0 }}" scroll-x="{{true}}">
-        <text for="{{ item in resultRow0 }}" class="candidate-item" onclick="onSelectCandidate(item)" style="background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-      </scroll>
-
-      <div class="keyboard" show="{{ !hideKeyboard }}">
-        <div class="key-row" show="{{ !numFlag }}">
-          <text for="{{ item in keys.full[0] }}" class="key-btn" onclick="onKeyPress(item)" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-        </div>
-        <div class="key-row" show="{{ !numFlag }}">
-          <text for="{{ item in keys.full[1] }}" class="key-btn" onclick="onKeyPress(item)" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-        </div>
-        <div class="key-row" show="{{ !numFlag }}">
-          <text for="{{ item in keys.full[2] }}" class="key-btn" onclick="onKeyPress(item)" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-          <text class="key-btn key-del" onclick="onDeleteKey" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}">Del</text>
-        </div>
-
-        <div class="key-row" show="{{ numFlag }}">
-          <text for="{{ item in keys.sign[0] }}" class="key-btn" onclick="onKeyPress(item)" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-        </div>
-        <div class="key-row" show="{{ numFlag }}">
-          <text for="{{ item in keys.sign[1] }}" class="key-btn" onclick="onKeyPress(item)" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-        </div>
-        <div class="key-row" show="{{ numFlag }}">
-          <text for="{{ item in keys.sign[2] }}" class="key-btn" onclick="onKeyPress(item)" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.card }}; color: {{ theme.text }}">{{ item }}</text>
-          <text class="key-btn key-del" onclick="onDeleteKey" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}">Del</text>
-        </div>
-
-        <div class="key-row key-bottom">
-          <text class="key-btn key-func" onclick="toggleNumMode" show="{{ lang === 'cn' || numFlag }}" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ numFlag ? 'ABC' : '123' }}</text>
-          <text class="key-btn key-func" onclick="toggleShift" show="{{ lang === 'en' && !numFlag }}" style="font-size: {{ keyFontSize }}px; background-color: {{ shiftFlag ? theme.accent : theme.card }}; color: {{ shiftFlag ? theme.bg : theme.accent }}">Shift</text>
-          <text class="key-btn key-func" onclick="toggleLang" style="font-size: {{ keyFontSize }}px; background-color: {{ theme.card }}; color: {{ theme.accent }}">{{ lang === 'cn' ? 'EN' : '中' }}</text>
-        </div>
-      </div>
-
-      <div class="font-bar" show="{{ !hideKeyboard }}">
+      <div class="font-bar">
         <text class="font-label" style="color: {{ theme.textSecondary }}">字体:</text>
         <text class="font-btn" onclick="setInputFontSize(20)" style="background-color: {{ baseFontSize === 20 ? theme.accent : theme.card }}; color: {{ baseFontSize === 20 ? theme.bg : theme.text }}">20</text>
         <text class="font-btn" onclick="setInputFontSize(24)" style="background-color: {{ baseFontSize === 24 ? theme.accent : theme.card }}; color: {{ baseFontSize === 24 ? theme.bg : theme.text }}">24</text>
@@ -60,28 +33,17 @@
         <text class="font-btn" onclick="setInputFontSize(60)" style="background-color: {{ baseFontSize === 60 ? theme.accent : theme.card }}; color: {{ baseFontSize === 60 ? theme.bg : theme.text }}">60</text>
       </div>
     </div>
-
-    <text class="footer-text" style="color: {{ theme.textSecondary }}">输入法 - 01 - 中文输入 - chinese-input</text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
-import vibrator from "@system.vibrator"
 import storage from "@system.storage"
+import device from "@system.device"
 const store = require("../../data/store.js")
-import { SimpleInputMethod } from "../../components/InputMethod/assets/dicUtil.js"
 
-var dictReady = false
 var INPUT_FONT_KEY = "inputFontSize"
 var INPUT_FONT_DEFAULT = 36
-
-function ensureDict() {
-  if (!dictReady) {
-    dictReady = true
-    SimpleInputMethod.initDict()
-  }
-}
 
 function getInputFontSize(callback) {
   storage.get({
@@ -106,52 +68,44 @@ function setInputFontSizeStore(size, callback) {
 }
 
 export default {
+  components: {
+    InputMethod: "../../components/InputMethod/InputMethod.ux"
+  },
+
   private: {
     title: "输入",
     placeholder: "点击输入",
     inputValue: "",
     maxlen: 5,
+    screenType: "circle",
     theme: store.DEFAULT_THEME,
     hideKeyboard: true,
     showCursor: false,
-    ready: false,
     returnKey: "chinese_input_result",
     inputFontSize: 0,
-    keyFontSize: 0,
-    baseFontSize: 0,
-    cval: "",
-    cvalDisplay: "",
-    lang: "cn",
-    numFlag: false,
-    shiftFlag: false,
-    resultRow0: [],
-    keys: {
-      full: [
-        ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-        ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-        ["Z", "X", "C", "V", "B", "N", "M"]
-      ],
-      sign: [
-        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-        ["-", "/", ":", ";", "(", ")", "$", "&", "@", "\""],
-        [".", ",", "?", "!", "'"]
-      ]
-    }
+    baseFontSize: 0
   },
 
   onInit() {
+    var self = this
+    device.getInfo({
+      success: function(data) {
+        self.screenType = data.screenShape || "circle"
+      },
+      fail: function() {
+        self.screenType = "circle"
+      }
+    })
   },
 
   onShow() {
     var self = this
 
-    self.ready = false
     self.hideKeyboard = true
 
     getInputFontSize(function(size) {
       self.baseFontSize = size
       self.applyFontSize(size)
-      self.ready = true
       self.showKeyboard()
     })
 
@@ -187,11 +141,6 @@ export default {
   showKeyboard() {
     this.hideKeyboard = false
     this.showCursor = true
-    ensureDict()
-  },
-
-  doVibrate() {
-    vibrator.vibrate({ mode: "short" })
   },
 
   setInputFontSize(size) {
@@ -205,144 +154,17 @@ export default {
   applyFontSize(size) {
     if (!size || size < 20) size = INPUT_FONT_DEFAULT
     this.inputFontSize = size
-    this.keyFontSize = Math.round(size * 0.6)
   },
 
-  onKeyPress(item) {
-    if (!item) return
-    this.doVibrate()
-
-    if (this.lang === "cn" && !this.numFlag) {
-      this.cval += item.toLowerCase()
-      this.updateCandidates()
-    } else {
-      if (this.inputValue.length >= this.maxlen) return
-      var char = item
-      if (this.lang === "en" && !this.numFlag && !this.shiftFlag) {
-        char = item.toLowerCase()
-      }
-      this.inputValue += char
-    }
-  },
-
-  onDeleteKey() {
-    this.doVibrate()
-    if (this.cval.length > 0) {
-      this.cval = this.cval.slice(0, -1)
-      this.updateCandidates()
-    } else {
-      this.inputValue = this.inputValue.slice(0, -1)
-    }
-  },
-
-  onSpace() {
-    this.doVibrate()
+  onCharacter(ev) {
+    var text = ev.detail.content
+    if (!text) return
     if (this.inputValue.length >= this.maxlen) return
-    this.inputValue += " "
+    this.inputValue += text
   },
 
-  onSelectCandidate(item) {
-    if (!item) return
-    this.doVibrate()
-
-    if (this.inputValue.length >= this.maxlen) return
-
-    var consumed = false
-    if (item.length === 1 && this._sylTopChars && this._sylTopChars.length > 0 && this.cval.length > 0) {
-      for (var si = 0; si < this._sylTopChars.length; si++) {
-        var sc = this._sylTopChars[si]
-        if (sc.char === item && sc.offset > 0 && sc.offset <= this.cval.length) {
-          this.cval = this.cval.slice(sc.offset)
-          this.inputValue += item
-          consumed = true
-          break
-        }
-      }
-    }
-
-    if (!consumed && this._matchedLen > 0 && this.cval.length > this._matchedLen) {
-      this.cval = this.cval.slice(this._matchedLen)
-      this.inputValue += item
-      consumed = true
-    }
-
-    if (!consumed) {
-      this.cval = ""
-      this.inputValue += item
-    }
-
-    this.updateCandidates()
-  },
-
-  updateCandidates() {
-    var self = this
-    this.cvalDisplay = SimpleInputMethod.getSegmentedDisplay(this.cval)
-
-    if (!this.cval || this.lang !== "cn") {
-      this.resultRow0 = []
-      this._sylTopChars = []
-      this._matchedLen = 0
-      return
-    }
-
-    var result = SimpleInputMethod.getHanzi(this.cval, "cn")
-    var chars = result.chars || []
-    this._matchedLen = result.matched ? result.matched.length : 0
-
-    var multi = result.multi || { words: [], composed: "", sylTopChars: [] }
-    var words = (multi.words || []).slice()
-    if (words.length === 0 && multi.composed && multi.composed.length >= 2) {
-      words = [multi.composed]
-    } else if (multi.composed && multi.composed.length >= 2 && words.indexOf(multi.composed) === -1) {
-      words.push(multi.composed)
-    }
-
-    var sylTopChars = (multi.sylTopChars || []).filter(function(sc) { return sc.char && sc.offset > 0 })
-    self._sylTopChars = sylTopChars
-
-    var sylOnlyChars = sylTopChars.map(function(sc) { return sc.char })
-    var seen = {}
-    var uniqueSylChars = []
-    for (var si = 0; si < sylOnlyChars.length; si++) {
-      if (!seen[sylOnlyChars[si]]) { seen[sylOnlyChars[si]] = 1; uniqueSylChars.push(sylOnlyChars[si]) }
-    }
-    for (var sj = 0; sj < uniqueSylChars.length; sj++) {
-      if (words.indexOf(uniqueSylChars[sj]) === -1) { words.push(uniqueSylChars[sj]) }
-    }
-
-    var row0 = []
-    var cap = parseInt(this.maxlen) || 5
-    for (var i = 0; i < words.length && row0.length < cap; i++) {
-      row0.push(words[i])
-    }
-    for (var j = 0; j < chars.length && row0.length < cap; j++) {
-      if (words.indexOf(chars[j]) === -1) {
-        row0.push(chars[j])
-      }
-    }
-    this.resultRow0 = row0
-  },
-
-  toggleNumMode() {
-    this.doVibrate()
-    this.numFlag = !this.numFlag
-    this.cval = ""
-    this.resultRow0 = []
-    this.cvalDisplay = ""
-  },
-
-  toggleLang() {
-    this.doVibrate()
-    this.lang = this.lang === "cn" ? "en" : "cn"
-    this.cval = ""
-    this.resultRow0 = []
-    this.cvalDisplay = ""
-    this.shiftFlag = false
-  },
-
-  toggleShift() {
-    this.doVibrate()
-    this.shiftFlag = !this.shiftFlag
+  onDeleteChar() {
+    this.inputValue = this.inputValue.slice(0, -1)
   },
 
   onConfirm() {
@@ -355,11 +177,9 @@ export default {
   },
 
   returnResult(result) {
-    var storage = require("@system.storage")
     var returnKey = this.returnKey || "chinese_input_result"
 
     if (result !== null) {
-      // Confirm: write result
       storage.set({
         key: returnKey,
         value: result,
@@ -367,17 +187,12 @@ export default {
         fail: function() { router.back() }
       })
     } else {
-      // Cancel: delete the key so receiver knows it was cancelled
       storage.delete({
         key: returnKey,
         success: function() { router.back() },
         fail: function() { router.back() }
       })
     }
-  },
-
-  goBack() {
-    this.onCancel()
   }
 }
 </script>
@@ -385,8 +200,8 @@ export default {
 <style>
 .input-page {
   flex-direction: column;
-  padding: 44px 8px 12px 8px;
-  height: 100%;
+  padding: 44px 8px 8px 8px;
+  min-height: 100%;
 }
 
 .content-body {
@@ -396,37 +211,38 @@ export default {
 
 .header {
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
-  height: 52px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  padding: 4px 0;
 }
 
 .back-btn {
   width: 70px;
-  height: 36px;
-  border-radius: 8px;
+  height: 40px;
+  border-radius: 10px;
   font-size: 14px;
   text-align: center;
   line-height: 20px;
 }
 
 .title {
+  flex: 1;
   font-size: 18px;
   font-weight: bold;
-  flex: 1;
   text-align: center;
+  margin-left: 12px;
+  margin-right: 12px;
   line-height: 24px;
 }
 
 .confirm-btn {
   width: 56px;
-  height: 36px;
-  border-radius: 8px;
+  height: 40px;
+  border-radius: 10px;
   font-size: 14px;
-  line-height: 20px;
   font-weight: bold;
   text-align: center;
+  line-height: 20px;
 }
 
 .display-area {
@@ -435,90 +251,23 @@ export default {
   border-radius: 10px;
   border-width: 2px;
   padding: 8px 12px;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
   min-height: 40px;
 }
 
 .display-text {
   flex: 1;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .cursor {
   margin-left: 2px;
 }
 
-.pinyin-row {
-  min-height: 22px;
-  padding: 2px 0;
-  margin-bottom: 2px;
-  padding-left: 8px;
-}
-
-.pinyin-text {
-  font-weight: bold;
-  lines: 1;
-  text-overflow: ellipsis;
-}
-
-.candidate-row {
-  min-height: 36px;
-  margin-bottom: 4px;
-  padding: 4px 4px;
-}
-
-.candidate-item {
-  padding: 4px 10px;
-  margin-right: 4px;
-  border-radius: 6px;
-  text-align: center;
-}
-
-.keyboard {
-  flex-direction: column;
-  align-items: stretch;
-  margin-top: 2px;
-  width: 100%;
-}
-
-.key-row {
-  flex-direction: row;
-  justify-content: center;
-  width: 100%;
-  margin-bottom: 4px;
-  flex-shrink: 0;
-}
-
-.key-btn {
-  font-weight: bold;
-  text-align: center;
+.keyboard-container {
   flex: 1;
-  min-height: 28px;
-  border-radius: 6px;
-  margin-left: 2px;
-  margin-right: 2px;
-  max-width: 60px;
-}
-
-.key-del {
-  max-width: 60px;
-  flex: 1;
-}
-
-.key-func {
-  flex: 1;
-  max-width: 60px;
-  min-height: 28px;
-  font-weight: bold;
-  text-align: center;
-  border-radius: 6px;
-  margin-left: 2px;
-  margin-right: 2px;
-  lines: 1;
-  text-overflow: ellipsis;
-}
-
-.key-bottom {
-  margin-bottom: 0;
+  min-height: 280px;
 }
 
 .font-bar {
@@ -527,6 +276,7 @@ export default {
   justify-content: center;
   padding: 8px 0 12px 0;
   margin-top: 8px;
+  flex-shrink: 0;
 }
 
 .font-label {
@@ -545,20 +295,12 @@ export default {
   margin-right: 3px;
 }
 
-.footer-text {
-  font-size: 12px;
-  text-align: center;
-  padding-top: 4px;
-}
-
 @media (shape: capsule) {
   .input-page {
     padding: 44px 8px 12px 8px;
   }
   .header {
-    height: 46px;
-    margin-bottom: 6px;
-    justify-content: center;
+    margin-bottom: 8px;
   }
   .back-btn {
     width: 80px;
@@ -575,44 +317,8 @@ export default {
   }
   .display-area {
     padding: 6px 8px;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
     min-height: 34px;
-  }
-  .pinyin-row {
-    min-height: 20px;
-    padding: 2px 0;
-    margin-bottom: 2px;
-  }
-  .candidate-row {
-    min-height: 32px;
-    margin-bottom: 2px;
-    padding: 4px 4px;
-  }
-  .candidate-item {
-    padding: 2px 8px;
-    margin-right: 2px;
-  }
-  .keyboard {
-    margin-top: 2px;
-  }
-  .key-row {
-    margin-bottom: 3px;
-  }
-  .key-btn {
-    min-height: 24px;
-    margin-left: 1px;
-    margin-right: 1px;
-    max-width: 50px;
-    flex: 1;
-  }
-  .key-del {
-    max-width: 50px;
-    flex: 1;
-  }
-  .key-func {
-    min-height: 24px;
-    max-width: 70px;
-    flex: 1;
   }
   .font-label {
     font-size: 12px;
@@ -622,10 +328,6 @@ export default {
     width: 32px;
     min-height: 22px;
   }
-  .footer-text {
-    font-size: 12px;
-    padding-top: 3px;
-  }
 }
 
 @media (shape: rect) {
@@ -633,7 +335,6 @@ export default {
     padding: 44px 6px 10px 6px;
   }
   .header {
-    height: 40px;
     margin-bottom: 6px;
   }
   .back-btn {
@@ -654,42 +355,6 @@ export default {
     margin-bottom: 2px;
     min-height: 32px;
   }
-  .pinyin-row {
-    min-height: 18px;
-    padding: 2px 0;
-    margin-bottom: 2px;
-  }
-  .candidate-row {
-    min-height: 30px;
-    margin-bottom: 2px;
-    padding: 4px 4px;
-  }
-  .candidate-item {
-    padding: 2px 8px;
-    margin-right: 2px;
-  }
-  .keyboard {
-    margin-top: 2px;
-  }
-  .key-row {
-    margin-bottom: 3px;
-  }
-  .key-btn {
-    min-height: 22px;
-    margin-left: 1px;
-    margin-right: 1px;
-    max-width: 44px;
-    flex: 1;
-  }
-  .key-del {
-    max-width: 44px;
-    flex: 1;
-  }
-  .key-func {
-    min-height: 22px;
-    max-width: 60px;
-    flex: 1;
-  }
   .font-label {
     font-size: 12px;
   }
@@ -697,10 +362,6 @@ export default {
     font-size: 12px;
     width: 28px;
     min-height: 20px;
-  }
-  .footer-text {
-    font-size: 12px;
-    padding-top: 2px;
   }
 }
 
@@ -725,24 +386,6 @@ export default {
   .title {
     font-size: 18px;
   }
-  .key-row {
-    margin-bottom: 3px;
-  }
-  .key-btn {
-    font-size: 28px;
-    max-width: 56px;
-    flex: 1;
-  }
-  .key-del {
-    font-size: 28px;
-    max-width: 56px;
-    flex: 1;
-  }
-  .key-func {
-    font-size: 28px;
-    max-width: 56px;
-    flex: 1;
-  }
   .font-label {
     font-size: 14px;
   }
@@ -750,10 +393,6 @@ export default {
     font-size: 14px;
     width: 36px;
     min-height: 24px;
-  }
-  .footer-text {
-    font-size: 12px;
-    padding-top: 3px;
   }
 }
 </style>
