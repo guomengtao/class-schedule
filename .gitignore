@@ -6,3 +6,5 @@
 .husky/
 .trae/
 .DS_Store
+_rpk_check/
+/dist
