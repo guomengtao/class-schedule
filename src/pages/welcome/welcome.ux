@@ -50,12 +50,11 @@ export default {
 
   onShow() {
     var self = this
+    self._hasEntered = false
     store.getTheme(function(t) {
       self.theme = t
     }, true)
-    if (!self._hasEntered) {
-      this.loadDefaultHomepage(true)
-    }
+    this.loadDefaultHomepage(true)
   },
 
   onDestroy() {
@@ -116,24 +115,35 @@ export default {
   },
 
   doEnter() {
-    if (this._hasEntered) {
-      return
-    }
-    this._hasEntered = true
-    var router = require("@system.router")
-    var uri = "/pages/" + this.targetPage
-    router.replace({ uri: uri })
-  },
-
-  enterSchedule() {
-    if (this._hasEntered) {
-      return
-    }
-    this._hasEntered = true
+    var that = this
     this.stopCountdown()
     var router = require("@system.router")
     var uri = "/pages/" + this.targetPage
-    router.replace({ uri: uri })
+    router.replace({
+      uri: uri,
+      success: function() {
+        that._hasEntered = true
+      },
+      fail: function() {
+        that._hasEntered = false
+      }
+    })
+  },
+
+  enterSchedule() {
+    this.stopCountdown()
+    var that = this
+    var router = require("@system.router")
+    var uri = "/pages/" + this.targetPage
+    router.replace({
+      uri: uri,
+      success: function() {
+        that._hasEntered = true
+      },
+      fail: function() {
+        that._hasEntered = false
+      }
+    })
   },
 
   openSettings() {
