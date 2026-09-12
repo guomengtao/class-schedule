@@ -158,6 +158,7 @@ export default {
   height: 100%;
   flex-direction: column;
   padding: 44px 8px 8px 8px;
+  position: relative;
 }
 
 .header {
