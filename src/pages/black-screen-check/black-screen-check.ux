@@ -1,0 +1,262 @@
+<template>
+  <div class="page-root" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <input class="back-btn" type="button" value="◀" onclick="goBack"
+             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="title" style="color: {{ theme.text }}">黑屏检测</text>
+    </div>
+
+    <text class="hint" style="color: {{ theme.textSecondary }}">逐个测试，返回后观察是否黑屏。已测项目会变灰标记。</text>
+
+    <div class="items">
+      <div class="item" style="background-color: {{ testedItems['bs-demo1'] ? theme.cardLight : theme.card }}"
+           onclick="openDemo('bs-demo1')">
+        <text class="item-num" style="color: {{ testedItems['bs-demo1'] ? theme.textMuted : theme.accent }}">1</text>
+        <text class="item-name" style="color: {{ testedItems['bs-demo1'] ? theme.textMuted : theme.text }}">min-height:100% 塌缩</text>
+        <text class="item-status" style="color: {{ testedItems['bs-demo1'] ? theme.accent : theme.textMuted }}">
+          {{ testedItems['bs-demo1'] ? '✓' : '›' }}
+        </text>
+      </div>
+
+      <div class="item" style="background-color: {{ testedItems['bs-demo2'] ? theme.cardLight : theme.card }}"
+           onclick="openDemo('bs-demo2')">
+        <text class="item-num" style="color: {{ testedItems['bs-demo2'] ? theme.textMuted : theme.accent }}">2</text>
+        <text class="item-name" style="color: {{ testedItems['bs-demo2'] ? theme.textMuted : theme.text }}">@media shape 适配缺失</text>
+        <text class="item-status" style="color: {{ testedItems['bs-demo2'] ? theme.accent : theme.textMuted }}">
+          {{ testedItems['bs-demo2'] ? '✓' : '›' }}
+        </text>
+      </div>
+
+      <div class="item" style="background-color: {{ testedItems['bs-demo3'] ? theme.cardLight : theme.card }}"
+           onclick="openDemo('bs-demo3')">
+        <text class="item-num" style="color: {{ testedItems['bs-demo3'] ? theme.textMuted : theme.accent }}">3</text>
+        <text class="item-name" style="color: {{ testedItems['bs-demo3'] ? theme.textMuted : theme.text }}">激活页同款结构</text>
+        <text class="item-status" style="color: {{ testedItems['bs-demo3'] ? theme.accent : theme.textMuted }}">
+          {{ testedItems['bs-demo3'] ? '✓' : '›' }}
+        </text>
+      </div>
+
+      <div class="item" style="background-color: {{ testedItems['bs-demo4'] ? theme.cardLight : theme.card }}"
+           onclick="openDemo('bs-demo4')">
+        <text class="item-num" style="color: {{ testedItems['bs-demo4'] ? theme.textMuted : theme.accent }}">4</text>
+        <text class="item-name" style="color: {{ testedItems['bs-demo4'] ? theme.textMuted : theme.text }}">right/bottom 浮层定位</text>
+        <text class="item-status" style="color: {{ testedItems['bs-demo4'] ? theme.accent : theme.textMuted }}">
+          {{ testedItems['bs-demo4'] ? '✓' : '›' }}
+        </text>
+      </div>
+
+      <div class="item" style="background-color: {{ testedItems['bs-demo5'] ? theme.cardLight : theme.card }}"
+           onclick="openDemo('bs-demo5')">
+        <text class="item-num" style="color: {{ testedItems['bs-demo5'] ? theme.textMuted : theme.accent }}">5</text>
+        <text class="item-name" style="color: {{ testedItems['bs-demo5'] ? theme.textMuted : theme.text }}">条件渲染 无forceUpdate</text>
+        <text class="item-status" style="color: {{ testedItems['bs-demo5'] ? theme.accent : theme.textMuted }}">
+          {{ testedItems['bs-demo5'] ? '✓' : '›' }}
+        </text>
+      </div>
+    </div>
+
+    <input class="reset-btn" type="button" value="重置标记" onclick="resetAll"
+           style="background-color: {{ theme.borderLight }}; color: {{ theme.textSecondary }}" />
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+export default {
+  private: {
+    testedItems: {
+      'bs-demo1': false,
+      'bs-demo2': false,
+      'bs-demo3': false,
+      'bs-demo4': false,
+      'bs-demo5': false
+    },
+    theme: {
+      bg: "#1a1a2e",
+      card: "#16213e",
+      cardLight: "#0f3460",
+      accent: "#7ec8e3",
+      text: "#ffffff",
+      textSecondary: "#888899",
+      textMuted: "#555566",
+      border: "#0f3460",
+      borderLight: "#2a2a5a"
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  openDemo(name) {
+    this.testedItems[name] = true
+    router.push({ uri: "/pages/" + name })
+  },
+
+  resetAll() {
+    var self = this
+    var reset = {
+      'bs-demo1': false,
+      'bs-demo2': false,
+      'bs-demo3': false,
+      'bs-demo4': false,
+      'bs-demo5': false
+    }
+    self.testedItems = reset
+  }
+}
+</script>
+
+<style>
+.page-root {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  padding: 44px 6px 10px 6px;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.back-btn {
+  width: 48px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 11px;
+  text-align: center;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+  margin-right: 48px;
+}
+
+.hint {
+  font-size: 17px;
+  margin-bottom: 10px;
+  padding: 0 4px;
+  line-height: 24px;
+}
+
+.items {
+  flex: 1;
+  flex-direction: column;
+}
+
+.item {
+  flex-direction: row;
+  align-items: center;
+  border-radius: 8px;
+  padding: 12px 10px;
+  margin-bottom: 6px;
+}
+
+.item-num {
+  font-size: 20px;
+  font-weight: bold;
+  width: 26px;
+  text-align: center;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.item-name {
+  font-size: 20px;
+  flex: 1;
+  line-height: 28px;
+}
+
+.item-status {
+  font-size: 20px;
+  font-weight: bold;
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+
+.reset-btn {
+  width: 100%;
+  height: 30px;
+  border-radius: 6px;
+  font-size: 18px;
+  text-align: center;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+@media (shape: circle) {
+  .page-root {
+    padding: 44px 36px 44px 36px;
+  }
+  .header {
+    margin-bottom: 14px;
+  }
+  .back-btn {
+    width: 64px;
+    height: 40px;
+    font-size: 24px;
+  }
+  .title {
+    font-size: 30px;
+    margin-right: 64px;
+  }
+  .hint {
+    font-size: 22px;
+    line-height: 30px;
+  }
+  .item {
+    padding: 16px 14px;
+    margin-bottom: 8px;
+  }
+  .item-num {
+    font-size: 26px;
+    width: 34px;
+    margin-right: 10px;
+  }
+  .item-name {
+    font-size: 26px;
+    line-height: 36px;
+  }
+  .item-status {
+    font-size: 28px;
+    margin-left: 6px;
+  }
+  .reset-btn {
+    height: 36px;
+    font-size: 22px;
+    margin-top: 8px;
+  }
+}
+
+@media (shape: capsule) {
+  .page-root {
+    padding: 44px 6px 10px 6px;
+  }
+}
+
+@media (shape: rect) {
+  .page-root {
+    padding: 44px 6px 6px 6px;
+  }
+  .back-btn {
+    width: 50px;
+    height: 40px;
+    font-size: 24px;
+  }
+  .title {
+    font-size: 28px;
+  }
+}
+</style>

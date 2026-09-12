@@ -139,6 +139,14 @@
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="openBlackScreenCheck">
+        <text class="row-label" style="color: {{ theme.text }}">黑屏检测</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">诊断</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
@@ -380,6 +388,10 @@ export default {
 
   openActivation() {
     router.push({ uri: "/pages/activation" })
+  },
+
+  openBlackScreenCheck() {
+    router.push({ uri: "/pages/black-screen-check" })
   },
 
   openDonate() {

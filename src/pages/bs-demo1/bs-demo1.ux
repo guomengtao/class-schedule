@@ -1,0 +1,231 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="color: {{ theme.text }}">Demo1: min-height</text>
+    </div>
+
+    <text class="info" style="color: {{ theme.accent }}">测试: 根容器用 min-height:100% (Vela不支持)</text>
+    <text class="desc" style="color: {{ theme.textSecondary }}">如果此页黑屏 → min-height:100% 是元凶之一</text>
+
+    <div class="content-card" style="background-color: {{ theme.card }}">
+      <text class="card-title" style="color: {{ theme.text }}">观察区域</text>
+      <text class="card-text" style="color: {{ theme.textSecondary }}">此卡片应填满整个屏幕宽度</text>
+      <text class="card-text" style="color: {{ theme.textSecondary }}">如果只在左上角一小块出现 → 容器塌缩</text>
+    </div>
+
+    <div class="content-card" style="background-color: {{ theme.card }}">
+      <text class="card-title" style="color: {{ theme.text }}">第二块区域</text>
+      <text class="card-text" style="color: {{ theme.textSecondary }}">正常应显示在上一块下方</text>
+      <text class="card-text" style="color: {{ theme.textMuted }}">如果看不到 → 页面渲染异常</text>
+    </div>
+
+    <div class="content-card" style="background-color: {{ theme.card }}">
+      <text class="card-title" style="color: {{ theme.text }}">底部标记</text>
+      <text class="card-text" style="color: {{ theme.accent }}">如果你能看到这行 → 页面正常渲染</text>
+    </div>
+
+    <div class="nav-bar" style="background-color: {{ theme.card }}">
+      <text class="nav-page" style="color: {{ theme.textMuted }}">1 / 5</text>
+      <input class="nav-btn" type="button" value="下一项 ›" onclick="goNext"
+             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+export default {
+  private: {
+    theme: {
+      bg: "#1a1a2e",
+      card: "#16213e",
+      accent: "#7ec8e3",
+      text: "#ffffff",
+      textSecondary: "#888899",
+      textMuted: "#555566"
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  goNext() {
+    router.push({ uri: "/pages/bs-demo2" })
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 6px 10px 6px;
+  min-height: 100%;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.back-btn {
+  width: 48px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 11px;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.info {
+  font-size: 20px;
+  margin-bottom: 6px;
+  padding: 0 4px;
+}
+
+.desc {
+  font-size: 17px;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.content-card {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 14px 10px;
+  margin-bottom: 10px;
+}
+
+.card-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.card-text {
+  font-size: 18px;
+  margin-bottom: 4px;
+  line-height: 26px;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-header {
+    margin-bottom: 14px;
+  }
+  .back-btn {
+    width: 64px;
+    height: 40px;
+    font-size: 24px;
+  }
+  .header-title {
+    font-size: 30px;
+    margin-left: 12px;
+  }
+  .info {
+    font-size: 24px;
+  }
+  .desc {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+  .content-card {
+    padding: 18px 14px;
+    margin-bottom: 14px;
+  }
+  .card-title {
+    font-size: 28px;
+  }
+  .card-text {
+    font-size: 24px;
+    line-height: 34px;
+  }
+}
+
+@media (shape: capsule) {
+  .page {
+    padding: 44px 6px 10px 6px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 6px 6px 6px;
+  }
+  .back-btn {
+    width: 50px;
+    height: 40px;
+    font-size: 24px;
+  }
+  .header-title {
+    font-size: 26px;
+  }
+  .nav-btn {
+    width: 90px;
+    height: 36px;
+    font-size: 20px;
+  }
+  .nav-page {
+    font-size: 22px;
+  }
+}
+
+.nav-bar {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 8px 10px;
+  flex-shrink: 0;
+}
+
+.nav-btn {
+  width: 80px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.nav-page {
+  font-size: 18px;
+  margin-left: 8px;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+@media (shape: circle) {
+  .nav-bar {
+    padding: 12px 14px;
+  }
+  .nav-btn {
+    width: 100px;
+    height: 36px;
+    font-size: 18px;
+  }
+  .nav-page {
+    font-size: 24px;
+  }
+}
+</style>

@@ -1,0 +1,337 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="color: {{ theme.text }}">Demo3: 激活页同款</text>
+    </div>
+
+    <scroll class="page-scroll" scroll-y="{{true}}">
+      <div class="status-card" style="background-color: {{ theme.card }}">
+        <text class="status-main" style="color: {{ theme.accent }}">测试激活页结构</text>
+        <text class="status-text" style="color: {{ theme.textSecondary }}">此页结构复制自 activation.ux</text>
+        <text class="status-text" style="color: {{ theme.textMuted }}">min-height:100% + scroll + 复杂布局</text>
+      </div>
+
+      <text class="section-title" style="color: {{ theme.text }}">步骤一</text>
+
+      <div class="step-card" style="background-color: {{ theme.card }}">
+        <div class="step-header">
+          <div class="step-badge" style="background-color: {{ theme.accent }}">
+            <text class="step-badge-text" style="color: {{ theme.bg }}">1</text>
+          </div>
+          <text class="step-title" style="color: {{ theme.text }}">观察页面布局</text>
+        </div>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">如果只看到左上角一小块内容 → 与 activation 页同bug</text>
+        <text class="step-desc" style="color: {{ theme.textMuted }}">如果内容正常展开全屏 → activation 黑屏与页面结构无关</text>
+      </div>
+
+      <div class="step-arrow" style="color: {{ theme.textMuted }}"><text>▼</text></div>
+
+      <div class="step-card" style="background-color: {{ theme.card }}">
+        <div class="step-header">
+          <div class="step-badge" style="background-color: {{ theme.accent }}">
+            <text class="step-badge-text" style="color: {{ theme.bg }}">2</text>
+          </div>
+          <text class="step-title" style="color: {{ theme.text }}">检查滚动区域</text>
+        </div>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">向下滚动查看是否显示完整</text>
+      </div>
+
+      <div class="step-arrow" style="color: {{ theme.textMuted }}"><text>▼</text></div>
+
+      <div class="step-card" style="background-color: {{ theme.card }}">
+        <div class="step-header">
+          <div class="step-badge" style="background-color: {{ theme.accent }}">
+            <text class="step-badge-text" style="color: {{ theme.bg }}">3</text>
+          </div>
+          <text class="step-title" style="color: {{ theme.text }}">底部标记</text>
+        </div>
+        <text class="step-desc" style="color: {{ theme.accent }}">如果看到这行 → 页面整体正常</text>
+      </div>
+
+      <div class="bottom-spacer"></div>
+    </scroll>
+
+    <div class="nav-bar" style="background-color: {{ theme.card }}">
+      <input class="nav-btn" type="button" value="‹ 上一项" onclick="goPrev"
+             style="background-color: {{ theme.border }}; color: {{ theme.textSecondary }}" />
+      <text class="nav-page" style="color: {{ theme.textMuted }}">3 / 5</text>
+      <input class="nav-btn" type="button" value="下一项 ›" onclick="goNext"
+             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+export default {
+  private: {
+    theme: {
+      bg: "#1a1a2e",
+      card: "#16213e",
+      cardLight: "#0f3460",
+      accent: "#7ec8e3",
+      text: "#ffffff",
+      textSecondary: "#888899",
+      textMuted: "#555566",
+      border: "#0f3460"
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  goPrev() {
+    router.push({ uri: "/pages/bs-demo2" })
+  },
+
+  goNext() {
+    router.push({ uri: "/pages/bs-demo4" })
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 6px 10px 6px;
+  min-height: 100%;
+}
+
+.page-scroll {
+  flex: 1;
+  flex-direction: column;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.back-btn {
+  width: 48px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 11px;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.status-card {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 16px 12px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.status-main {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.status-text {
+  font-size: 18px;
+  margin-bottom: 4px;
+  line-height: 26px;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+
+.step-card {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 14px 10px;
+  margin-bottom: 0;
+}
+
+.step-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.step-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 13px;
+  justify-content: center;
+  align-items: center;
+  margin-right: 8px;
+}
+
+.step-badge-text {
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.step-title {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.step-desc {
+  font-size: 18px;
+  margin-top: 4px;
+  line-height: 26px;
+  padding-left: 34px;
+}
+
+.step-arrow {
+  text-align: center;
+  padding: 3px;
+  margin-bottom: 3px;
+}
+
+.bottom-spacer {
+  height: 24px;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-header {
+    margin-bottom: 14px;
+  }
+  .back-btn {
+    width: 64px;
+    height: 40px;
+    font-size: 24px;
+  }
+  .header-title {
+    font-size: 30px;
+    margin-left: 12px;
+  }
+  .status-card {
+    padding: 22px 14px;
+    margin-bottom: 14px;
+  }
+  .status-main {
+    font-size: 32px;
+  }
+  .status-text {
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .section-title {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+  .step-card {
+    padding: 18px 14px;
+  }
+  .step-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+    margin-right: 10px;
+  }
+  .step-badge-text {
+    font-size: 18px;
+  }
+  .step-title {
+    font-size: 26px;
+  }
+  .step-desc {
+    font-size: 22px;
+    line-height: 30px;
+    padding-left: 42px;
+  }
+  .bottom-spacer {
+    height: 30px;
+  }
+}
+
+@media (shape: capsule) {
+  .page {
+    padding: 44px 6px 10px 6px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 6px 6px 6px;
+  }
+  .back-btn {
+    width: 50px;
+    height: 40px;
+    font-size: 24px;
+  }
+  .header-title {
+    font-size: 26px;
+  }
+  .nav-btn {
+    width: 90px;
+    height: 36px;
+    font-size: 20px;
+  }
+  .nav-page {
+    font-size: 22px;
+  }
+}
+
+.nav-bar {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 8px 10px;
+  flex-shrink: 0;
+}
+
+.nav-btn {
+  width: 80px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.nav-page {
+  font-size: 18px;
+  margin-left: 8px;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+@media (shape: circle) {
+  .nav-bar {
+    padding: 12px 14px;
+  }
+  .nav-btn {
+    width: 100px;
+    height: 36px;
+    font-size: 18px;
+  }
+  .nav-page {
+    font-size: 24px;
+  }
+}
+</style>

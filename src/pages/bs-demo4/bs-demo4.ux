@@ -1,0 +1,386 @@
+<template>
+  <div class="page-root" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="color: {{ theme.text }}">Demo4: 四边定位</text>
+    </div>
+
+    <text class="info" style="color: {{ theme.accent }}">测试: 浮层用 right/bottom 定位 (无显式宽高)</text>
+    <text class="desc" style="color: {{ theme.textSecondary }}">点击下方按钮显示弹窗，弹窗使用 right:0; bottom:0 定位</text>
+
+    <div class="content-card" style="background-color: {{ theme.card }}">
+      <text class="card-title" style="color: {{ theme.text }}">正常内容区域</text>
+      <text class="card-text" style="color: {{ theme.textSecondary }}">页面内容应全屏显示</text>
+    </div>
+
+    <input class="test-btn" type="button" value="显示弹窗" onclick="showSheet"
+           style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+
+    <input class="test-btn" type="button" value="测试全屏覆盖" onclick="showOverlay"
+           style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+
+    <div class="sheet-overlay" show="{{ showSheetOverlay }}" style="background-color: rgba(0,0,0,0.5)">
+      <div class="sheet-box" style="background-color: {{ theme.card }}">
+        <text class="sheet-title" style="color: {{ theme.accent }}">四边定位弹窗</text>
+        <text class="sheet-desc" style="color: {{ theme.textSecondary }}">此遮罩使用 right/bottom 定位</text>
+        <text class="sheet-desc" style="color: {{ theme.textMuted }}">如果塌缩到左上角 → Vela不支持四边定位</text>
+        <input class="close-btn" type="button" value="关闭" onclick="hideSheet"
+               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      </div>
+    </div>
+
+    <div class="overlay-full" show="{{ showFullOverlay }}" style="background-color: rgba(0,0,0,0.5)">
+      <div class="overlay-box" style="background-color: {{ theme.card }}">
+        <text class="overlay-title" style="color: {{ theme.accent }}">全屏覆盖弹窗</text>
+        <text class="overlay-desc" style="color: {{ theme.textSecondary }}">此遮罩使用 width:100%; height:100%</text>
+        <text class="overlay-desc" style="color: {{ theme.textMuted }}">对比四边定位与显式宽高的差异</text>
+        <input class="close-btn" type="button" value="关闭" onclick="hideFullOverlay"
+               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      </div>
+    </div>
+
+    <div class="nav-bar" style="background-color: {{ theme.card }}">
+      <input class="nav-btn" type="button" value="‹ 上一项" onclick="goPrev"
+             style="background-color: {{ theme.border }}; color: {{ theme.textSecondary }}" />
+      <text class="nav-page" style="color: {{ theme.textMuted }}">4 / 5</text>
+      <input class="nav-btn" type="button" value="下一项 ›" onclick="goNext"
+             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+export default {
+  private: {
+    showSheetOverlay: false,
+    showFullOverlay: false,
+    theme: {
+      bg: "#1a1a2e",
+      card: "#16213e",
+      cardLight: "#0f3460",
+      accent: "#7ec8e3",
+      text: "#ffffff",
+      textSecondary: "#888899",
+      textMuted: "#555566"
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+  },
+
+  showSheet() {
+    this.showSheetOverlay = true
+  },
+
+  hideSheet() {
+    this.showSheetOverlay = false
+  },
+
+  showOverlay() {
+    this.showFullOverlay = true
+  },
+
+  hideFullOverlay() {
+    this.showFullOverlay = false
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  goPrev() {
+    router.push({ uri: "/pages/bs-demo3" })
+  },
+
+  goNext() {
+    router.push({ uri: "/pages/bs-demo5" })
+  }
+}
+</script>
+
+<style>
+.page-root {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  padding: 44px 6px 12px 6px;
+  position: relative;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.back-btn {
+  width: 48px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 11px;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.info {
+  font-size: 20px;
+  margin-bottom: 6px;
+  padding: 0 4px;
+}
+
+.desc {
+  font-size: 17px;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.content-card {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 14px 10px;
+  margin-bottom: 10px;
+}
+
+.card-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.card-text {
+  font-size: 18px;
+  margin-bottom: 4px;
+  line-height: 26px;
+}
+
+.test-btn {
+  width: 100%;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.sheet-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.sheet-box {
+  width: 80%;
+  border-radius: 12px;
+  padding: 20px 16px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sheet-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.sheet-desc {
+  font-size: 18px;
+  margin-bottom: 6px;
+  text-align: center;
+  line-height: 26px;
+}
+
+.overlay-full {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.overlay-box {
+  width: 80%;
+  border-radius: 12px;
+  padding: 20px 16px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.overlay-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.overlay-desc {
+  font-size: 18px;
+  margin-bottom: 6px;
+  text-align: center;
+  line-height: 26px;
+}
+
+.close-btn {
+  width: 60%;
+  height: 34px;
+  border-radius: 17px;
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+@media (shape: circle) {
+  .page-root {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-header {
+    margin-bottom: 14px;
+  }
+  .back-btn {
+    width: 64px;
+    height: 40px;
+    font-size: 24px;
+  }
+  .header-title {
+    font-size: 30px;
+    margin-left: 12px;
+  }
+  .info {
+    font-size: 24px;
+  }
+  .desc {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+  .content-card {
+    padding: 18px 14px;
+    margin-bottom: 14px;
+  }
+  .card-title {
+    font-size: 28px;
+  }
+  .card-text {
+    font-size: 24px;
+    line-height: 34px;
+  }
+  .test-btn {
+    height: 44px;
+    font-size: 28px;
+  }
+  .sheet-box {
+    padding: 24px 18px;
+  }
+  .sheet-title {
+    font-size: 32px;
+    margin-bottom: 14px;
+  }
+  .sheet-desc {
+    font-size: 24px;
+    line-height: 34px;
+  }
+  .overlay-box {
+    padding: 24px 18px;
+  }
+  .overlay-title {
+    font-size: 32px;
+    margin-bottom: 14px;
+  }
+  .overlay-desc {
+    font-size: 24px;
+    line-height: 34px;
+  }
+  .close-btn {
+    height: 40px;
+    font-size: 26px;
+  }
+}
+
+@media (shape: capsule) {
+  .page-root {
+    padding: 44px 6px 10px 6px;
+  }
+}
+
+@media (shape: rect) {
+  .page-root {
+    padding: 44px 6px 6px 6px;
+  }
+  .back-btn {
+    width: 50px;
+    height: 40px;
+    font-size: 24px;
+  }
+  .header-title {
+    font-size: 26px;
+  }
+  .nav-btn {
+    width: 90px;
+    height: 36px;
+    font-size: 20px;
+  }
+  .nav-page {
+    font-size: 22px;
+  }
+}
+
+.nav-bar {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 8px 10px;
+  flex-shrink: 0;
+}
+
+.nav-btn {
+  width: 80px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.nav-page {
+  font-size: 18px;
+  margin-left: 8px;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+@media (shape: circle) {
+  .nav-bar {
+    padding: 12px 14px;
+  }
+  .nav-btn {
+    width: 100px;
+    height: 36px;
+    font-size: 18px;
+  }
+  .nav-page {
+    font-size: 24px;
+  }
+}
+</style>

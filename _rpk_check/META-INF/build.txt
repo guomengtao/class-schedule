@@ -1,7 +1,0 @@
-originType=undefined
-toolkit=2.0.5
-timeStamp=2026-09-12T13:21:26.100Z
-node=v23.11.0
-platform=darwin
-arch=arm64
-component=true
