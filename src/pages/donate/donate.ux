@@ -314,7 +314,7 @@ export default {
   }
   .back-btn {
     width: 36px;
-    height: 32px;
+    height: 38px;
     font-size: 24px;
   }
   .title {
@@ -368,7 +368,7 @@ export default {
   }
   .back-btn {
     width: 36px;
-    height: 32px;
+    height: 38px;
     font-size: 24px;
   }
   .title {

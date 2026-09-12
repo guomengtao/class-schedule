@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.4.201",
-  "versionCode": 701,
+  "versionName": "1.4.202",
+  "versionCode": 702,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -45,6 +45,9 @@
     {
       "name": "system.resident",
       "permissionDesc": "用于保持应用在后台继续运行"
+    },
+    {
+      "name": "system.app"
     }
   ],
   "permissions": [
