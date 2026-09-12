@@ -137,18 +137,6 @@
       "pages/pinned-pages": {
         "component": "pinned-pages"
       },
-      "pages/week-overview-demo": {
-        "component": "week-overview-demo"
-      },
-      "pages/week-grid-demo": {
-        "component": "week-grid-demo"
-      },
-      "pages/week-grid-simple": {
-        "component": "week-grid-simple"
-      },
-      "pages/week-text-simple": {
-        "component": "week-text-simple"
-      },
       "pages/template-picker": {
         "component": "template-picker"
       },
