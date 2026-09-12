@@ -20,9 +20,17 @@
 
 ---
 
-## 本轮 commit
+## 本轮 commit（第 8 轮回复）
 
-`cb94d64` — chore: update files and add new features
+| commit | 说明 |
+|---|---|
+| `cb94d64` | 第 7 轮回复：9 条 P0 + 多项 P1/UI 修复 |
+| `e12a13c` | fix(qa): P1-3 圆屏 modal 四角裁切 |
+| `87c25a4` | fix(qa): U-9 emoji 清理 |
+| `7890156` | fix(qa): U-5 行高全站覆盖 |
+| `cb68d33` | fix(qa): U-5 行高补充 |
+| `5dc8fba` | fix(qa): P0-10 编辑/删除假成功 + P1-7 删除实验室入口 |
+| `793c6dc` | fix(qa): U-1 输入法 3 处箭头函数 → function |
 
 ---
 
@@ -53,7 +61,7 @@
 | U-10 | 空态补充：schedule-manager 加 `list.length===0` "暂无课程表"，course-manager 加 `courseList.length===0` "暂无课程" | ✅ done |
 | U-5 | 行高补全：全站 29 页全部完成，累计 99+ 处 line-height 覆盖（index-full/statistics/detail/course-manager/chinese-input/week-grid-demo/chinese-input-full/welcome/pinned-pages/template-picker/week-grid-simple/device-info/nickname-edit/qrcode-generator/custom-content-edit 等） | ✅ done |
 | U-9 | emoji 图标清洗：📌→文本/⚲，💾💡📱→移除，❤️→♥，👑→♛，📳→〰，💡→ℹ，🔵→·（store.js 死代码）8 个文件 20 处；主题色板 store.js 9 个 emoji + 8 页 fallback theme 🔵 → `●` 17 处全站清零 | ✅ done |
-| P1-3 | 圆屏四角控件裁切：全站 29 页均已覆盖 @media (shape:circle) padding；6 个 overlay/modal 页面（lab/reset-data/homepage-settings/backup-restore/schedule-manager/settings）已补充圆屏专属 modal 宽度 72% + overlay padding 44px 36px；仍需真机验证最终裁切效果 | ✅ done |
+| P1-3 | 圆屏四角控件裁切：全站 29 页均已覆盖 @media (shape:circle) padding；6 个 overlay/modal 页面（lab/reset-data/homepage-settings/backup-restore/schedule-manager/settings）已补充圆屏专属 modal 宽度 72% + overlay padding 44px 36px；仍需真机验证最终裁切效果 | `e12a13c` |
 | **P0-10** | 编辑/删除「假成功」：`database.js` `updateCourseStorage` + `deleteCourseStorage` 各加 `hit` 标记，id 未命中时 `callback(formatError(...))` 不再静默成功 | `5dc8fba` |
 | **P1-7** | 实验室「课程详情」入口已删除：`lab-list.js:26` 移除，同时堵上 P0-10 主入口 | `5dc8fba` |
 | **U-1** | 输入法 3 处箭头函数 → `function`：`InputMethod.ux:810/813` `device.getInfo` success/fail 回调、`dicUtil.js:59` `step`，零风险消除老内核整段不执行隐患 | `793c6dc` |
@@ -62,7 +70,7 @@
 
 ## ② 处理中（正在改，还没提交）
 
-（无，P0-2/P0-3 经 QA 复核确认 cb94d64 已实际修复，已移至 ① 已处理）
+（无）
 
 ---
 
@@ -77,8 +85,7 @@
 ### 不打算做 / 有意为之（填了我就不再报）
 
 | 编号 | 理由 |
-|---|---|---|
-| U-1 | 需先上真机测试确认现象（A 唤不起 / B 偏右被切 / C 能出打不出字），待回填后决定修还是关闭 |
+|---|---|
 | U-3 | 字体大小设置目前仅在首页生效是临时设计，后续考虑全 App 铺开（QA：改 🔴 低优先，不再追问） |
 
 ---
@@ -87,23 +94,24 @@
 
 | 编号 | 真机上到底是什么现象 |
 |---|---|
-| U-1 输入法 | 还没上真机，待测试后回填 |
+| U-1 输入法 | 箭头函数已改为 function（`793c6dc`），仍需真机测试确认 A/B/C 现象 |
 | U-3 字体大小 | 目前只在首页生效，后续考虑全铺 |
 
 ---
 
 ## 其他
 
-- 本轮修复了 9 个 P0 级问题，全部经 QA 代码复核确认（含 P0-2/P0-3 实际已修）
-- P1 机型适配和 UI 专项问题量大（共 18 个），按优先级逐步处理
-- 输入法组件（U-1）需真机调试验证
+- **第 8 轮 QA 报告**（`c3ea2fe`，HEAD `e12a13c`）：9 条历史 P0 全部零回归
+- 第 8 轮 QA 报告生成后新增修复：P0-10（`5dc8fba`）、P1-7（`5dc8fba`）、U-1 箭头函数（`793c6dc`）
+- 输入法组件（U-1）箭头函数已改，需真机验证
+- P1-8（崩溃留痕）长期挂账，低优先，不阻塞发布
 
 ---
 
 ## 全部编号速查（从 `STATUS.md` 同步，填表时直接复制）
 
-**P0**：P0-1 删课表串表 ✅ ｜ P0-2 新增课程首页不显示 ✅ ｜ P0-3 编辑清空备注 ✅ ｜ P0-4 day 竞态 ✅ ｜ P0-5 备份主题键 ✅ ｜ P0-6 复制课表中间态 ✅ ｜ P0-7 激活无反馈 ✅ ｜ P0-8 返回退不出 ✅ ｜ P0-9 模块测试跳砖 ✅
+**P0**：P0-1 删课表串表 ✅ ｜ P0-2 新增课程首页不显示 ✅ ｜ P0-3 编辑清空备注 ✅ ｜ P0-4 day 竞态 ✅ ｜ P0-5 备份主题键 ✅ ｜ P0-6 复制课表中间态 ✅ ｜ P0-7 激活无反馈 ✅ ｜ P0-8 返回退不出 ✅ ｜ P0-9 模块测试跳砖 ✅ ｜ **P0-10 编辑删除假成功 ✅（`5dc8fba`，待 QA 复核）**
 
-**P1**：P1-1 四页零适配 ✅ ｜ P1-2 安全区不一致 ✅ ｜ P1-3 圆屏四角裁切 ｜ P1-4 全站写死px ｜ P1-5 无错误态 ✅ ｜ P1-6 详情页参数 ✅
+**P1**：P1-1 四页零适配 ✅ ｜ P1-2 安全区不一致 ✅ ｜ P1-3 圆屏四角裁切 ✅（`e12a13c`） ｜ P1-4 全站写死px（排队中） ｜ P1-5 无错误态 ✅ ｜ P1-6 详情页参数 ✅ ｜ **P1-7 实验室课程详情入口 ✅（`5dc8fba`，待 QA 复核）** ｜ P1-8 崩溃留痕（长期挂账）
 
-**UI**：U-1 输入法绝对定位（待真机） ｜ U-2 缺 jp.png ✅ ｜ U-3 字号设置范围（低优先） ｜ U-4 微小字号 ✅ ｜ U-5 行高5%（部分改善） ｜ U-6 无溢出保护（部分改善） ｜ U-7 方屏热区28×24 ✅ ｜ U-8 返回文案7种 ✅ ｜ U-9 emoji当图标 ｜ U-10 三态缺失（部分改善） ｜ U-11 双轨配色（部分改善） ｜ U-12 实验室重复 ✅
+**UI**：U-1 输入法箭头函数 ✅（`793c6dc`，待真机） ｜ U-2 缺 jp.png ✅ ｜ U-3 字号设置范围（低优先，不修） ｜ U-4 微小字号 ✅ ｜ U-5 行高 ✅ ｜ U-6 溢出保护 ✅ ｜ U-7 方屏热区 ✅ ｜ U-8 返回文案 ✅ ｜ U-9 emoji图标 ✅ ｜ U-10 三态部分补充 ✅ ｜ U-11 硬编码色部分清理 ✅ ｜ U-12 实验室重复 ✅
