@@ -228,6 +228,7 @@ export default {
   padding: 44px 8px 8px 8px;
   height: 100%;
   position: relative;
+}
 
 .header {
   flex-direction: row;

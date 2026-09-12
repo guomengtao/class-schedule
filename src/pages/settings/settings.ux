@@ -781,7 +781,198 @@ export default {
 
 @media (shape: capsule) {
   .settings-page {
-    padding: 44px 8px 12px 8px;
+    padding: 44px 6px 10px 6px;
+  }
+
+  .back-header {
+    margin-bottom: 12px;
+  }
+
+  .back-btn {
+    width: 48px;
+    height: 28px;
+    border-radius: 6px;
+    font-size: 11px;
+  }
+
+  .header-title {
+    font-size: 28px;
+  }
+
+  .group {
+    padding: 14px 10px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+  }
+
+  .group-title {
+    font-size: 24px;
+  }
+
+  .group-title-row {
+    margin-bottom: 12px;
+  }
+
+  .row {
+    padding: 12px 0;
+  }
+
+  .row-label {
+    font-size: 26px;
+  }
+
+  .row-value {
+    font-size: 22px;
+    margin-right: 4px;
+  }
+
+  .row-hint {
+    display: none;
+  }
+
+  .arrow {
+    font-size: 24px;
+  }
+
+  .divider {
+    margin: 6px 0;
+  }
+
+  .theme-grid {
+    margin-top: 12px;
+  }
+
+  .theme-item {
+    width: 25%;
+    padding: 10px 0;
+    border-radius: 6px;
+    border-width: 1px;
+  }
+
+  .theme-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 10px;
+  }
+
+  .theme-name {
+    font-size: 20px;
+    margin-top: 2px;
+  }
+
+  .scale-row {
+    margin-bottom: 12px;
+  }
+
+  .scale-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    font-size: 20px;
+  }
+
+  .scale-value {
+    font-size: 24px;
+    width: 60px;
+  }
+
+  .preview-box {
+    padding: 10px;
+    border-radius: 6px;
+  }
+
+  .toggle-btn {
+    width: 50px;
+    height: 30px;
+    border-radius: 6px;
+    font-size: 22px;
+  }
+
+  .save-area {
+    margin-top: 18px;
+    padding-bottom: 8px;
+  }
+
+  .save-btn {
+    height: 40px;
+    border-radius: 10px;
+    font-size: 24px;
+  }
+
+  .version-text {
+    font-size: 20px;
+    padding-top: 12px;
+    padding-bottom: 8px;
+  }
+
+  .welcome-link {
+    font-size: 22px;
+    padding-bottom: 16px;
+  }
+
+  .bottom-sheet {
+    padding: 12px 14px 20px 14px;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .sheet-handle {
+    width: 30px;
+    height: 3px;
+    margin-bottom: 14px;
+  }
+
+  .sheet-title {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+
+  .sheet-desc {
+    font-size: 22px;
+    margin-bottom: 16px;
+    line-height: 28px;
+  }
+
+  .benefit-list {
+    padding-left: 8px;
+    margin-bottom: 20px;
+  }
+
+  .benefit-item {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .sheet-btn {
+    height: 36px;
+    border-radius: 18px;
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .sheet-cancel {
+    height: 30px;
+    border-radius: 15px;
+    font-size: 22px;
+  }
+
+  .default-homepage-body {
+    padding: 6px 0;
+  }
+
+  .section-label {
+    font-size: 22px;
+    margin: 10px 0 8px 0;
+  }
+
+  .page-option {
+    height: 34px;
+    border-radius: 6px;
+    padding: 0 12px;
+    margin: 0 8px 8px 0;
+  }
+
+  .page-option-text {
+    font-size: 22px;
   }
 }
 
