@@ -27,7 +27,7 @@
         <text class="step-desc" style="color: {{ theme.textSecondary }}">爱发电购买，永久解锁全部高级功能</text>
         <div class="qr-section">
           <div class="qr-wrapper" style="background-color: #ffffff; border-color: {{ theme.accent }}">
-            <qrcode value="{{ afdianUrl }}" style="color: #000000; background-color: #ffffff; width: 180px; height: 180px;"></qrcode>
+            <qrcode class="qr-code" value="{{ afdianUrl }}" style="color: #000000; background-color: #ffffff;"></qrcode>
           </div>
           <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码购买</text>
         </div>
@@ -49,7 +49,7 @@
         </div>
         <div class="qr-section" if="{{ qrText }}">
           <div class="qr-wrapper" style="background-color: #ffffff; border-color: {{ theme.accent }}">
-            <qrcode value="{{ qrText }}" style="color: #000000; background-color: #ffffff; width: 180px; height: 180px;"></qrcode>
+            <qrcode class="qr-code" value="{{ qrText }}" style="color: #000000; background-color: #ffffff;"></qrcode>
           </div>
           <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码兑换</text>
         </div>
@@ -843,6 +843,11 @@ export default {
   border: 2px solid;
 }
 
+.qr-code {
+  width: 180px;
+  height: 180px;
+}
+
 .qr-label {
   font-size: 24px;
   margin-top: 8px;
@@ -963,7 +968,246 @@ export default {
 
 @media (shape: capsule) {
   .page {
-    padding: 44px 10px 12px 10px;
+    padding: 44px 6px 10px 6px;
+    position: relative;
+  }
+
+  .back-header {
+    margin-bottom: 8px;
+  }
+
+  .back-btn {
+    width: 48px;
+    height: 26px;
+    border-radius: 6px;
+    font-size: 11px;
+  }
+
+  .header-title {
+    font-size: 28px;
+  }
+
+  .status-card {
+    padding: 14px 8px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+  }
+
+  .status-main {
+    font-size: 28px;
+    margin-bottom: 4px;
+  }
+
+  .status-expiry {
+    font-size: 20px;
+    margin-bottom: 2px;
+  }
+
+  .status-version {
+    font-size: 18px;
+  }
+
+  .status-detail-line {
+    font-size: 20px;
+  }
+
+  .section-title {
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+
+  .step-card {
+    padding: 12px 8px;
+    margin-bottom: 4px;
+    border-radius: 10px;
+  }
+
+  .step-header {
+    margin-bottom: 6px;
+  }
+
+  .step-badge {
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    margin-right: 6px;
+  }
+
+  .step-badge-text {
+    font-size: 18px;
+  }
+
+  .step-title {
+    font-size: 24px;
+  }
+
+  .step-desc {
+    font-size: 20px;
+    line-height: 28px;
+    margin-bottom: 8px;
+  }
+
+  .step-arrow {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+
+  .device-row {
+    padding: 6px 0;
+    margin-bottom: 6px;
+  }
+
+  .device-label {
+    font-size: 20px;
+    width: 64px;
+  }
+
+  .device-value {
+    font-size: 22px;
+  }
+
+  .qr-wrapper {
+    border-radius: 6px;
+    padding: 4px;
+    border-width: 1px;
+  }
+
+  .qr-code {
+    width: 130px;
+    height: 130px;
+  }
+
+  .qr-label {
+    font-size: 18px;
+    margin-top: 4px;
+  }
+
+  .qr-loading {
+    font-size: 20px;
+    padding: 12px 0;
+  }
+
+  .cells-grid {
+    padding: 6px;
+    margin-bottom: 6px;
+    border-radius: 10px;
+  }
+
+  .cell {
+    width: 22px;
+    height: 26px;
+    border-radius: 4px;
+    margin: 2px;
+  }
+
+  .cell-text {
+    font-size: 18px;
+  }
+
+  .keypad {
+    padding: 8px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+  }
+
+  .keypad-row {
+    margin-bottom: 4px;
+  }
+
+  .keypad-btn {
+    width: 44px;
+    height: 32px;
+    border-radius: 6px;
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+
+  .keypad-text {
+    font-size: 22px;
+  }
+
+  .verify-btn {
+    height: 36px;
+    border-radius: 8px;
+    font-size: 22px;
+  }
+
+  .result-box {
+    padding: 8px;
+    margin-top: 8px;
+    border-radius: 6px;
+  }
+
+  .result-label {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+
+  .result-code {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+
+  .result-detail {
+    font-size: 18px;
+  }
+
+  .history-list {
+    padding: 10px 8px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+  }
+
+  .history-item {
+    padding: 6px 0;
+  }
+
+  .history-date {
+    font-size: 18px;
+    margin-bottom: 2px;
+  }
+
+  .history-type {
+    font-size: 22px;
+  }
+
+  .history-duration {
+    font-size: 20px;
+    margin-bottom: 2px;
+  }
+
+  .history-status {
+    font-size: 18px;
+  }
+
+  .history-empty-text {
+    font-size: 20px;
+  }
+
+  .history-divider {
+    margin-top: 6px;
+  }
+
+  .device-card {
+    padding: 12px 8px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+  }
+
+  .device-info-row {
+    padding: 3px 0;
+  }
+
+  .device-info-label {
+    font-size: 20px;
+  }
+
+  .device-info-value {
+    font-size: 22px;
+  }
+
+  .bottom-spacer {
+    height: 16px;
   }
 }
 
