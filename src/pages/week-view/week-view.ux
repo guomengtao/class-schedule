@@ -42,7 +42,9 @@
       </scroll>
 
       <!-- schedule name at bottom -->
-      <text class="wv-subtitle" style="color:{{ theme.accent }}">{{ scheduleName }}</text>
+      <div class="week-indicator">
+        <text class="week-text" style="color:{{ theme.accent }}">⇄ {{ scheduleName }}</text>
+      </div>
     </div>
   </div>
 </template>
@@ -721,11 +723,16 @@ export default {
   flex: 1;
 }
 
-.wv-subtitle {
-  font-size: 24px;
+.week-indicator {
+  padding: 12px 8px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.week-text {
+  font-size: 16px;
   text-align: center;
-  lines: 1;
-  margin-bottom: 0;
 }
 
 /* ── grid ── */
@@ -906,9 +913,6 @@ export default {
   }
   .wv-title {
     font-size: 36px;
-  }
-  .wv-subtitle {
-    font-size: 24px;
   }
   .wv-day-spacer {
     width: 42px;
