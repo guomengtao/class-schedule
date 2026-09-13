@@ -318,7 +318,7 @@ export default {
   }
 }
 
-@media (shape: capsule) {
+@media (shape: capsule), (shape: pill-shaped) {
   .page-root {
     padding: 44px 6px 10px 6px;
   }

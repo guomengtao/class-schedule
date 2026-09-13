@@ -261,7 +261,7 @@ export default {
   }
 }
 
-@media (shape: capsule) {
+@media (shape: capsule), (shape: pill-shaped) {
   .home-page {
     padding: 44px 12px 20px 12px;
   }

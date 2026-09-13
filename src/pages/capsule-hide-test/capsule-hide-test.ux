@@ -2,53 +2,88 @@
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
       <input class="back-btn" type="button" value="<" onclick="goBack"
-             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
-      <text class="header-title" style="color: {{ theme.text }}">胶囊屏隐藏测试</text>
+        style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
     </div>
 
-    <text class="section-hint" style="color: {{ theme.textSecondary }}">胶囊屏隐藏 → 方屏可见</text>
+    <div class="info-bar" style="background-color: {{ theme.card }}">
+      <text class="info-label" style="color: {{ theme.textMuted }}">设备:</text>
+      <text class="info-value" style="color: {{ theme.accent }}">{{ screenTypeLabel }}</text>
+    </div>
 
     <div class="list-scroll">
-      <div class="list-row capsule-hide" style="background-color: {{ theme.card }}">
-        <text class="row-name" style="color: {{ theme.text }}">a</text>
-        <div class="row-right">
-          <text class="row-desc" style="color: {{ theme.textMuted }}">胶囊屏隐藏此项</text>
-          <text class="row-arrow" style="color: {{ theme.textMuted }}">></text>
-        </div>
+      <div class="list-row" for="item in mainItems" style="background-color: {{ theme.card }}">
+        <text class="row-name" style="color: {{ theme.text }}">{{ item.en }}</text>
+        <text class="row-cn capsule-hide" style="color: {{ theme.textMuted }}">{{ item.cn }}</text>
+      </div>
+
+      <div class="list-row" for="item in extraItems" style="background-color: {{ theme.card }}">
+        <text class="row-name" style="color: {{ theme.text }}">{{ item.en }}</text>
+        <text class="row-cn capsule-hide" style="color: {{ theme.textMuted }}">{{ item.cn }}</text>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-const store = require("../../data/store.js")
 import router from "@system.router"
+import device from "@system.device"
+const store = require("../../data/store.js")
 
 export default {
   private: {
-    theme: {
-      bg: "#1a1a2e",
-      card: "#16213e",
-      accent: "#7ec8e3",
-      text: "#ffffff",
-      textSecondary: "#888899",
-      textMuted: "#555566"
-    }
+    mainItems: [
+      { en: "dog", cn: "狗" },
+      { en: "cat", cn: "猫" }
+    ],
+    extraItems: [
+      { en: "fox", cn: "狐狸" }
+    ],
+    screenType: "unknown",
+    screenTypeLabel: "检测中...",
+    theme: { bg: "#1a1a2e", card: "#16213e", accent: "#7ec8e3", text: "#ffffff", textMuted: "#555566" }
   },
 
   onInit() {
     var self = this
+    console.log("[DEBUG] ========== capsule-hide-test onInit START ==========")
     store.getTheme(function(t) { self.theme = t })
+
+    device.getInfo({
+      success: function(data) {
+        console.log("[DEBUG] device.getInfo SUCCESS, raw data:", JSON.stringify(data))
+        self.screenType = data.screenShape || "unknown"
+        self.screenTypeLabel = self.translateShape(self.screenType)
+        console.log("[DEBUG] screenShape =", data.screenShape)
+        console.log("[DEBUG] translateShape result =", self.screenTypeLabel)
+        console.log("[DEBUG] screenWidth =", data.screenWidth, "screenHeight =", data.screenHeight)
+        console.log("[DEBUG] isRound =", data.isRound, "shape =", data.shape)
+        console.log("[DEBUG] @media condition: (shape: capsule) OR (shape: pill-shaped)")
+        var matchShape = (self.screenType === "capsule" || self.screenType === "pill-shaped")
+        console.log("[DEBUG] shape:", self.screenType, "-> match =", matchShape)
+        console.log("[DEBUG] FINAL: .capsule-hide should hide =", matchShape)
+        console.log("[DEBUG] ========== capsule-hide-test onInit END ==========")
+      },
+      fail: function(err) {
+        console.log("[DEBUG] device.getInfo FAIL, err:", JSON.stringify(err))
+        self.screenTypeLabel = "获取失败"
+      }
+    })
   },
 
   onShow() {
     var self = this
+    console.log("[DEBUG] onShow triggered, current screenType =", self.screenType)
     store.getTheme(function(t) { self.theme = t })
   },
 
-  goBack() {
-    router.back()
-  }
+  translateShape(shape) {
+    if (shape === "capsule" || shape === "pill-shaped") return "胶囊屏"
+    if (shape === "rect") return "方形屏"
+    if (shape === "circle") return "圆形屏"
+    return shape
+  },
+
+  goBack() { router.back() }
 }
 </script>
 
@@ -57,119 +92,27 @@ export default {
   width: 100%;
   height: 100%;
   flex-direction: column;
-  padding: 44px 16px 16px 16px;
+  padding: 8px 16px 16px 16px;
 }
+.back-header { flex-direction: row; align-items: center; margin-bottom: 12px; }
+.back-btn { width: 48px; height: 36px; border-radius: 8px; font-size: 20px; text-align: center; flex-shrink: 0; }
 
-.back-header {
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 16px;
+.info-bar {
+  flex-direction: row; align-items: center;
+  border-radius: 10px; padding: 10px 14px; margin-bottom: 12px;
 }
+.info-label { font-size: 26px; }
+.info-value { font-size: 28px; font-weight: bold; }
 
-.back-btn {
-  width: 48px;
-  height: 36px;
-  border-radius: 8px;
-  font-size: 20px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.header-title {
-  font-size: 36px;
-  font-weight: bold;
-  margin-left: 12px;
-  line-height: 44px;
-}
-
-.section-hint {
-  font-size: 28px;
-  margin-bottom: 12px;
-  line-height: 38px;
-}
-
-.list-scroll {
-  flex: 1;
-  flex-direction: column;
-  overflow: scroll;
-}
-
+.list-scroll { flex: 1; flex-direction: column; }
 .list-row {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 8px;
-  min-height: 56px;
+  flex-direction: row; align-items: center; justify-content: space-between;
+  border-radius: 12px; padding: 16px; margin-bottom: 8px;
 }
+.row-name { font-size: 32px; }
+.row-cn { font-size: 28px; }
 
-.row-name {
-  font-size: 32px;
-  flex-shrink: 0;
-  max-lines: 1;
-  line-height: 38px;
-}
-
-.row-right {
-  flex-direction: row;
-  align-items: center;
-  flex-shrink: 1;
-  overflow: hidden;
-}
-
-.row-desc {
-  font-size: 28px;
-  margin-right: 6px;
-  max-lines: 1;
-  line-height: 34px;
-}
-
-.row-arrow {
-  font-size: 28px;
-  flex-shrink: 0;
-}
-
-@media (shape: capsule) {
-  .capsule-hide {
-    display: none;
-  }
-}
-
-@media (shape: circle) {
-  .page {
-    padding: 44px 36px 44px 36px;
-  }
-  .back-header {
-    margin-bottom: 16px;
-  }
-  .back-btn {
-    width: 52px;
-    height: 40px;
-    font-size: 24px;
-  }
-  .header-title {
-    font-size: 36px;
-    line-height: 48px;
-  }
-  .list-row {
-    padding: 18px 16px;
-    margin-bottom: 10px;
-  }
-}
-
-@media (shape: rect) {
-  .page {
-    padding: 44px 16px 16px 16px;
-  }
-  .back-btn {
-    width: 50px;
-    height: 40px;
-    font-size: 24px;
-  }
-  .header-title {
-    font-size: 36px;
-    line-height: 48px;
-  }
+@media (shape: capsule), (shape: pill-shaped) {
+  .capsule-hide { display: none; }
 }
 </style>

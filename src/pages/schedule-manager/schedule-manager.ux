@@ -862,7 +862,7 @@ export default {
   }
 }
 
-@media (shape: capsule) {
+@media (shape: capsule), (shape: pill-shaped) {
   .title {
     font-size: 18px;
   }

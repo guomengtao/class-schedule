@@ -189,7 +189,7 @@ export default {
   }
 }
 
-@media (shape: capsule) {
+@media (shape: capsule), (shape: pill-shaped) {
   .page {
     padding: 44px 24px 12px 24px;
   }
