@@ -17,27 +17,10 @@
       "name": "system.storage"
     },
     {
-      "name": "system.sqlite"
-    },
-    {
-      "name": "system.vibrator"
-    },
-    {
       "name": "system.prompt"
     },
     {
       "name": "system.device"
-    },
-    {
-      "name": "system.configuration"
-    },
-    {
-      "name": "system.alarm",
-      "permissionDesc": "用于在课程开始时震动提醒您"
-    },
-    {
-      "name": "system.calendar",
-      "permissionDesc": "用于将课程信息同步到系统日历"
     },
     {
       "name": "system.request"
@@ -57,13 +40,7 @@
   ],
   "config": {
     "logLevel": "log",
-    "designWidth": "device-width",
-    "background": {
-      "features": [
-        "system.request",
-        "system.resident"
-      ]
-    }
+    "designWidth": "device-width"
   },
   "router": {
     "entry": "pages/welcome",
