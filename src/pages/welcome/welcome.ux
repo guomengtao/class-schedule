@@ -263,7 +263,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .home-page {
-    padding: 44px 12px 20px 12px;
+    padding: 120px 12px 120px 12px;
   }
   .app-name {
     font-size: 30px;

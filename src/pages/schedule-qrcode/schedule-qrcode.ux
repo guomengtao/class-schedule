@@ -376,7 +376,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
-    padding: 44px 8px 12px 8px;
+    padding: 120px 8px 120px 8px;
   }
   .header {
     height: 40px;
@@ -385,7 +385,7 @@ export default {
   }
   .back-btn {
     width: 36px;
-    height: 32px;
+    height: 40pxpx;
     font-size: 24px;
   }
   .title {
@@ -398,7 +398,7 @@ export default {
   }
   .subtitle-text {
     font-size: 24px;
-    line-height: 30px;
+    line-height: 40pxpx;
   }
   .schedule-name-section {
     padding: 10px 14px;

@@ -67,20 +67,19 @@
     </div>
   </scroll>
 
-  <div class="overlay-bottom-sheet" if="{{ showDialog }}" onclick="stopBubble">
-    <div class="bottom-sheet" style="background-color: {{ theme.card }}" onclick="stopBubble">
-      <div class="sheet-handle" style="background-color: {{ theme.textMuted }}"></div>
-      <text class="sheet-title" style="color: {{ theme.accent }}">解锁高级功能</text>
-      <text class="sheet-desc" style="color: {{ theme.textSecondary }}">新增课程表需要升级到高级版</text>
+  <div class="overlay-modal" if="{{ showDialog }}" onclick="dismissDialog">
+    <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
+      <text class="modal-title" style="color: {{ theme.accent }}">解锁高级版</text>
+      <text class="modal-desc" style="color: {{ theme.textSecondary }}">新增课表需要高级版，支持多课表管理 · 云备份恢复</text>
       <div class="benefit-list">
         <text class="benefit-item" style="color: {{ theme.text }}">✓ 多课表管理</text>
         <text class="benefit-item" style="color: {{ theme.text }}">✓ 数据备份与恢复</text>
         <text class="benefit-item" style="color: {{ theme.text }}">✓ 首页自定义</text>
         <text class="benefit-item" style="color: {{ theme.text }}">✓ 多套主题</text>
       </div>
-      <input class="sheet-btn" type="button" value="立即解锁" onclick="goToPremium"
+      <input class="modal-btn-primary" type="button" value="立即解锁" onclick="goToPremium"
              style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      <input class="sheet-cancel" type="button" value="暂不需要" onclick="dismissDialog"
+      <input class="modal-btn-secondary" type="button" value="取消" onclick="dismissDialog"
              style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
     </div>
   </div>
@@ -733,78 +732,67 @@ export default {
   position: relative;
 }
 
-.overlay-bottom-sheet {
+.overlay-modal {
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.35);
+  background-color: rgba(0, 0, 0, 0.5);
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
-.bottom-sheet {
-  width: 100%;
-  border-radius: 16px 16px 0 0;
-  padding: 8px 16px 16px 16px;
+.modal-card {
+  width: 80%;
+  border-radius: 16px;
+  padding: 20px 18px;
   flex-direction: column;
   align-items: center;
 }
 
-.sheet-handle {
-  width: 36px;
-  height: 4px;
-  border-radius: 2px;
-  margin-bottom: 12px;
-}
-
-.sheet-title {
-  font-size: 16px;
+.modal-title {
+  font-size: 34px;
   font-weight: bold;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   text-align: center;
-  lines: 1;
-  text-overflow: ellipsis;
 }
 
-.sheet-desc {
-  font-size: 12px;
+.modal-desc {
+  font-size: 26px;
   text-align: center;
-  margin-bottom: 14px;
-  line-height: 18px;
-  lines: 2;
-  text-overflow: ellipsis;
+  margin-bottom: 16px;
+  line-height: 34px;
 }
 
 .benefit-list {
   width: 100%;
   flex-direction: column;
   padding-left: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .benefit-item {
-  font-size: 13px;
+  font-size: 26px;
   margin-bottom: 6px;
-  lines: 1;
-  text-overflow: ellipsis;
 }
 
-.sheet-btn {
+.modal-btn-primary {
   width: 100%;
-  height: 34px;
-  border-radius: 17px;
-  font-size: 13px;
+  height: 42px;
+  border-radius: 21px;
+  font-size: 28px;
   font-weight: bold;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
-.sheet-cancel {
+.modal-btn-secondary {
   width: 100%;
-  height: 28px;
-  border-radius: 14px;
-  font-size: 12px;
+  height: 36px;
+  border-radius: 18px;
+  font-size: 26px;
 }
 
 @media (shape: circle) {
@@ -857,20 +845,134 @@ export default {
   .footer-actions {
     padding: 12px 0 6px 0;
   }
-  .overlay-bottom-sheet {
+  .overlay-modal {
     padding: 44px 36px 44px 36px;
   }
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 120px 8px 120px 8px;
+  }
+  .header {
+    margin-bottom: 8px;
+  }
+  .back-btn {
+    width: 52px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 20px;
+  }
   .title {
-    font-size: 18px;
+    font-size: 30px;
+    line-height: 40px;
+  }
+  .item {
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  .item-row {
+    min-height: 56px;
+  }
+  .box {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+  }
+  .check {
+    font-size: 22px;
   }
   .name {
-    font-size: 15px;
+    font-size: 28px;
+    line-height: 38px;
+    margin-left: 8px;
+  }
+  .course-count {
+    font-size: 20px;
+  }
+  .expand-arrow {
+    font-size: 18px;
+  }
+  .actions {
+    padding-top: 8px;
+    margin-top: 8px;
+  }
+  .action-btn {
+    height: 48px;
+    border-radius: 24px;
   }
   .action-btn-text {
-    font-size: 14px;
+    font-size: 24px;
+    line-height: 40pxpx;
+  }
+  .add-section {
+    margin-top: 8px;
+  }
+  .add-btn {
+    height: 52px;
+    border-radius: 26px;
+    font-size: 28px;
+    line-height: 38px;
+  }
+  .rename-bar {
+    padding: 6px 10px;
+    margin-bottom: 10px;
+  }
+  .rename-display {
+    height: 48px;
+    font-size: 26px;
+  }
+  .rename-text {
+    font-size: 26px;
+  }
+  .rename-ok-btn,
+  .rename-cancel-btn {
+    width: 60px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 22px;
+  }
+  .footer-actions {
+    padding: 10px 0 6px 0;
+  }
+  .pin-link {
+    font-size: 22px;
+  }
+  .modal-card {
+    width: 90%;
+    max-height: 60%;
+    border-radius: 16px;
+    padding: 20px 16px;
+  }
+  .modal-title {
+    font-size: 28px;
+    line-height: 40px;
+    margin-bottom: 10px;
+  }
+  .modal-desc {
+    font-size: 22px;
+    line-height: 40pxpx;
+    margin-bottom: 12px;
+  }
+  .benefit-list {
+    margin-bottom: 12px;
+    padding-left: 8px;
+  }
+  .benefit-item {
+    font-size: 22px;
+    line-height: 40pxpx;
+    margin-bottom: 4px;
+  }
+  .modal-btn-primary {
+    height: 52px;
+    border-radius: 26px;
+    font-size: 26px;
+    margin-bottom: 10px;
+  }
+  .modal-btn-secondary {
+    height: 44px;
+    border-radius: 22px;
+    font-size: 24px;
   }
 }
 

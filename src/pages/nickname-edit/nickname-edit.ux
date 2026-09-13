@@ -270,7 +270,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .edit-page {
-    padding: 44px 10px 12px 10px;
+    padding: 120px 10px 120px 10px;
   }
   .back-header {
     height: 40px;
@@ -279,7 +279,7 @@ export default {
   }
   .back-btn {
     width: 36px;
-    height: 32px;
+    height: 40pxpx;
     font-size: 24px;
   }
   .header-title {
@@ -288,7 +288,7 @@ export default {
   }
   .save-btn {
     width: 50px;
-    height: 30px;
+    height: 40pxpx;
     font-size: 20px;
   }
   .edit-content {

@@ -1,0 +1,35 @@
+Page                           Status                    RootClass            DefaultPadding           
+----------------------------------------------------------------------------------------------------
+activation                     OK_120PX                  page                 44px 10px 12px 10px      
+add-course                     OK_120PX                  ?                    ?                        
+backup-restore                 OK_120PX                  page                 44px 10px 16px 10px      
+black-screen-check             OK_120PX                  page-root            44px 6px 10px 6px        
+bs-demo1                       OK_120PX                  page                 44px 6px 10px 6px        
+bs-demo2                       NO_CAPSULE_MEDIA                                                        
+bs-demo3                       OK_120PX                  page                 44px 6px 10px 6px        
+bs-demo4                       OK_120PX                  page-root            44px 6px 12px 6px        
+bs-demo5                       OK_120PX                  page                 44px 6px 12px 6px        
+capsule-hide-test              NO_PADDING_OVERRIDE       page                 8px 16px 16px 16px       
+chinese-input                  OK_120PX                  ?                    ?                        
+chinese-input-full             OK_120PX                  ?                    ?                        
+course-manager                 OK_120PX                  ?                    ?                        
+custom-content-edit            OK_120PX                  page                 44px 10px 12px 10px      
+detail                         OK_120PX                  ?                    ?                        
+device-info                    OK_120PX                  ?                    ?                        
+donate                         OK_120PX                  page                 44px 10px 12px 10px      
+homepage-settings              OK_120PX                  page                 44px 10px 12px 10px      
+index-full                     OK_120PX                  ?                    ?                        
+lab                            OK_120PX                  page-root            44px 10px 16px 10px      
+lab-settings                   OK_120PX                  page                 44px 16px 16px 16px      
+nickname-edit                  OK_120PX                  ?                    ?                        
+pinned-pages                   OK_120PX                  ?                    ?                        
+qrcode-generator               OK_120PX                  page                 44px 8px 8px 8px         
+reset-data                     OK_120PX                  ?                    ?                        
+schedule-manager               PARTIAL_HAS_PAD           page                 44px 12px 12px 12px      
+schedule-qrcode                OK_120PX                  page                 44px 8px 8px 8px         
+settings                       OK_120PX                  ?                    ?                        
+statistics                     OK_120PX                  ?                    ?                        
+template-picker                OK_120PX                  page                 44px 10px 12px 10px      
+vibration-lab                  OK_120PX                  page                 44px 8px 8px 8px         
+week-view                      OK_120PX                  ?                    ?                        
+welcome                        OK_120PX                  ?                    ?                        

@@ -18,8 +18,13 @@
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
-      <text class="group-title" style="color: {{ theme.text }}">主题配色</text>
-      <div class="theme-grid">
+      <div class="group-title-row" onclick="toggleTheme">
+        <text class="group-title" style="color: {{ theme.text }}">主题配色</text>
+        <div class="row-right">
+          <text class="arrow" style="color: {{ theme.textMuted }}">{{ showTheme ? 'v' : '›' }}</text>
+        </div>
+      </div>
+      <div if="{{ showTheme }}" class="theme-grid">
         <div for="{{ themes }}" class="theme-item {{ currentThemeKey === $item.key ? 'active' : '' }}" onclick="selectTheme($item.key)" style="border-color: {{ currentThemeKey === $item.key ? theme.accent : 'transparent' }}">
           <div class="theme-dot" style="background-color: {{ $item.accent }}"></div>
           <text class="theme-name" style="color: {{ currentThemeKey === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.name }}</text>
@@ -77,24 +82,31 @@
             <text class="page-option-text" style="color: {{ defaultAutoSeconds === 5 ? theme.bg : theme.text }}">5秒</text>
           </div>
           <div class="page-option {{ defaultAutoSeconds === -1 ? 'active' : '' }}" onclick="selectAutoSeconds(-1)" style="background-color: {{ defaultAutoSeconds === -1 ? theme.accent : theme.cardLight }}">
-            <text class="page-option-text" style="color: {{ defaultAutoSeconds === -1 ? theme.bg : theme.text }}">不跳转</text>
+            <text class="page-option-text" style="color: {{ defaultAutoSeconds === -1 ? theme.bg : theme.text }}">不跳</text>
           </div>
         </div>
       </div>
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
-      <text class="group-title" style="color: {{ theme.text }}">课程表设置</text>
-      <div class="row">
-        <text class="row-label" style="color: {{ theme.text }}">隐藏周末</text>
-        <input class="toggle-btn" type="button" value="{{ hideWeekend ? '开' : '关' }}" onclick="toggleHideWeekend" style="background-color: {{ hideWeekend ? theme.accent : theme.border }}; color: {{ hideWeekend ? theme.bg : theme.textSecondary }}" />
-      </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
-      <div class="row" onclick="openTemplatePicker">
-        <text class="row-label" style="color: {{ theme.text }}">课表风格</text>
+      <div class="group-title-row" onclick="toggleSchedule">
+        <text class="group-title" style="color: {{ theme.text }}">课程表设置</text>
         <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.accent }}">{{ currentTemplateName }}</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">{{ showSchedule ? 'v' : '›' }}</text>
+        </div>
+      </div>
+      <div if="{{ showSchedule }}">
+        <div class="row">
+          <text class="row-label" style="color: {{ theme.text }}">隐藏周末</text>
+          <input class="toggle-btn" type="button" value="{{ hideWeekend ? '开' : '关' }}" onclick="toggleHideWeekend" style="background-color: {{ hideWeekend ? theme.accent : theme.border }}; color: {{ hideWeekend ? theme.bg : theme.textSecondary }}" />
+        </div>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="openTemplatePicker">
+          <text class="row-label" style="color: {{ theme.text }}">课表风格</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.accent }}">{{ currentTemplateName }}</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
         </div>
       </div>
     </div>
@@ -176,20 +188,13 @@
 
     <unlock-dialog id="unlockDialog"></unlock-dialog>
 
-    <div class="overlay-bottom-sheet" if="{{ showPremiumDialog }}" onclick="dismissPremiumDialog">
-      <div class="bottom-sheet" style="background-color: {{ theme.card }}" onclick="stopBubble">
-        <div class="sheet-handle" style="background-color: {{ theme.textMuted }}"></div>
-        <text class="sheet-title" style="color: {{ theme.accent }}">解锁高级功能</text>
-        <text class="sheet-desc" style="color: {{ theme.textSecondary }}">升级解锁多套主题</text>
-        <div class="benefit-list">
-          <text class="benefit-item" style="color: {{ theme.text }}">✓ 多课表管理</text>
-          <text class="benefit-item" style="color: {{ theme.text }}">✓ 数据备份与恢复</text>
-          <text class="benefit-item" style="color: {{ theme.text }}">✓ 首页自定义</text>
-          <text class="benefit-item" style="color: {{ theme.text }}">✓ 多套主题</text>
-        </div>
-        <input class="sheet-btn" type="button" value="立即解锁" onclick="goToPremium"
+    <div class="overlay-modal" if="{{ showPremiumDialog }}" onclick="dismissPremiumDialog">
+      <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
+        <text class="modal-title" style="color: {{ theme.accent }}">解锁高级版</text>
+        <text class="modal-desc" style="color: {{ theme.textSecondary }}">多课表管理 · 云备份恢复 · 自定义主题，一次性解锁永久使用</text>
+        <input class="modal-btn-primary" type="button" value="立即解锁" onclick="goToPremium"
                style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        <input class="sheet-cancel" type="button" value="暂不需要" onclick="dismissPremiumDialog"
+        <input class="modal-btn-secondary" type="button" value="取消" onclick="dismissPremiumDialog"
                style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
       </div>
     </div>
@@ -235,6 +240,8 @@ export default {
     showPremiumDialog: false,
     showFontSize: false,
     showDefaultHomepage: false,
+    showTheme: false,
+    showSchedule: false,
     defaultTargetPage: "index-full",
     defaultAutoSeconds: 3,
     defaultHomepageLabel: "标准页",
@@ -340,6 +347,14 @@ export default {
 
   toggleDefaultHomepage() {
     this.showDefaultHomepage = !this.showDefaultHomepage
+  },
+
+  toggleTheme() {
+    this.showTheme = !this.showTheme
+  },
+
+  toggleSchedule() {
+    this.showSchedule = !this.showSchedule
   },
 
   selectTargetPage(page) {
@@ -668,59 +683,41 @@ export default {
   padding-bottom: 20px;
 }
 
-.overlay-bottom-sheet {
+.overlay-modal {
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.35);
+  background-color: rgba(0, 0, 0, 0.5);
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: center;
+  align-items: center;
 }
 
-.bottom-sheet {
-  width: 100%;
-  border-radius: 16px 16px 0 0;
-  padding: 14px 20px 24px 20px;
+.modal-card {
+  width: 80%;
+  border-radius: 16px;
+  padding: 20px 18px;
   flex-direction: column;
   align-items: center;
 }
 
-.sheet-handle {
-  width: 36px;
-  height: 4px;
-  border-radius: 2px;
-  margin-bottom: 18px;
-}
-
-.sheet-title {
-  font-size: 36px;
+.modal-title {
+  font-size: 34px;
   font-weight: bold;
   margin-bottom: 10px;
   text-align: center;
 }
 
-.sheet-desc {
-  font-size: 28px;
+.modal-desc {
+  font-size: 26px;
   text-align: center;
-  margin-bottom: 20px;
-  line-height: 36px;
+  margin-bottom: 18px;
+  line-height: 34px;
 }
 
-.benefit-list {
-  width: 100%;
-  flex-direction: column;
-  padding-left: 12px;
-  margin-bottom: 26px;
-}
-
-.benefit-item {
-  font-size: 32px;
-  margin-bottom: 10px;
-}
-
-.sheet-btn {
+.modal-btn-primary {
   width: 100%;
   height: 42px;
   border-radius: 21px;
@@ -729,7 +726,7 @@ export default {
   margin-bottom: 8px;
 }
 
-.sheet-cancel {
+.modal-btn-secondary {
   width: 100%;
   height: 36px;
   border-radius: 18px;
@@ -805,7 +802,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .settings-page {
-    padding: 44px 6px 10px 6px;
+    padding: 120px 6px 120px 6px;
   }
 
   .back-header {
@@ -813,14 +810,15 @@ export default {
   }
 
   .back-btn {
-    width: 48px;
-    height: 28px;
-    border-radius: 6px;
-    font-size: 11px;
+    width: 52px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 20px;
   }
 
   .header-title {
-    font-size: 28px;
+    font-size: 30px;
+    line-height: 42px;
   }
 
   .group {
@@ -830,7 +828,7 @@ export default {
   }
 
   .group-title {
-    font-size: 24px;
+    font-size: 28px;
   }
 
   .group-title-row {
@@ -839,19 +837,22 @@ export default {
 
   .row {
     padding: 12px 0;
+    min-height: 52px;
   }
 
   .row-label {
-    font-size: 26px;
+    font-size: 28px;
+    flex-shrink: 0;
   }
 
   .row-value {
-    font-size: 22px;
+    font-size: 24px;
     margin-right: 4px;
   }
 
   .row-hint {
-    display: none;
+    font-size: 20px;
+    margin-right: 4px;
   }
 
   .arrow {
@@ -889,10 +890,10 @@ export default {
   }
 
   .scale-btn {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    font-size: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 24px;
   }
 
   .scale-value {
@@ -906,10 +907,10 @@ export default {
   }
 
   .toggle-btn {
-    width: 50px;
-    height: 30px;
-    border-radius: 6px;
-    font-size: 22px;
+    width: 64px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 24px;
   }
 
   .save-area {
@@ -918,8 +919,8 @@ export default {
   }
 
   .save-btn {
-    height: 40px;
-    border-radius: 10px;
+    height: 52px;
+    border-radius: 26px;
     font-size: 24px;
   }
 
@@ -930,73 +931,70 @@ export default {
   }
 
   .welcome-link {
-    font-size: 22px;
+    font-size: 20px;
     padding-bottom: 16px;
   }
 
-  .bottom-sheet {
-    padding: 12px 14px 20px 14px;
-    border-radius: 14px 14px 0 0;
+  .overlay-modal {
+    justify-content: center;
+    padding: 0 10px;
   }
 
-  .sheet-handle {
-    width: 30px;
-    height: 3px;
-    margin-bottom: 14px;
+  .modal-card {
+    width: 90%;
+    border-radius: 12px;
+    padding: 14px 14px;
   }
 
-  .sheet-title {
-    font-size: 28px;
+  .modal-title {
+    font-size: 30px;
     margin-bottom: 8px;
   }
 
-  .sheet-desc {
+  .modal-desc {
     font-size: 22px;
-    margin-bottom: 16px;
-    line-height: 28px;
+    margin-bottom: 14px;
+    line-height: 40pxpx;
   }
 
-  .benefit-list {
-    padding-left: 8px;
-    margin-bottom: 20px;
-  }
-
-  .benefit-item {
+  .modal-btn-primary {
+    height: 52px;
+    border-radius: 26px;
     font-size: 24px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 
-  .sheet-btn {
-    height: 36px;
-    border-radius: 18px;
-    font-size: 24px;
-    margin-bottom: 8px;
-  }
-
-  .sheet-cancel {
-    height: 30px;
-    border-radius: 15px;
+  .modal-btn-secondary {
+    height: 52px;
+    border-radius: 26px;
     font-size: 22px;
   }
 
   .default-homepage-body {
-    padding: 6px 0;
+    padding: 10px 4px;
+  }
+
+  .page-options {
+    flex-direction: column;
   }
 
   .section-label {
     font-size: 22px;
-    margin: 10px 0 8px 0;
+    margin: 10px 0 6px 0;
   }
 
   .page-option {
-    height: 34px;
-    border-radius: 6px;
-    padding: 0 12px;
-    margin: 0 8px 8px 0;
+    width: 100%;
+    height: 44px;
+    border-radius: 10px;
+    padding: 0 16px;
+    margin: 0 0 8px 0;
+    align-items: center;
+    justify-content: center;
   }
 
   .page-option-text {
-    font-size: 22px;
+    font-size: 26px;
   }
 }
 

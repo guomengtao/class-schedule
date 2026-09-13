@@ -297,36 +297,52 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .input-page {
-    padding: 44px 8px 12px 8px;
+    padding: 120px 8px 120px 8px;
   }
   .header {
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
   .back-btn {
-    width: 80px;
-    height: 34px;
-    font-size: 14px;
+    width: 52px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 20px;
+    line-height: 40pxpx;
   }
   .title {
-    font-size: 18px;
+    font-size: 30px;
+    line-height: 40px;
   }
   .confirm-btn {
     width: 60px;
-    height: 34px;
-    font-size: 14px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 20px;
+    line-height: 40pxpx;
   }
   .display-area {
-    padding: 6px 8px;
-    margin-bottom: 4px;
-    min-height: 34px;
+    padding: 6px 10px;
+    margin-bottom: 6px;
+    min-height: 48px;
+  }
+  .display-text {
+    font-size: 28px;
+    line-height: 38px;
+  }
+  .font-bar {
+    padding: 6px 0 10px 0;
+    margin-top: 6px;
   }
   .font-label {
-    font-size: 12px;
+    font-size: 22px;
+    margin-right: 8px;
   }
   .font-btn {
-    font-size: 12px;
-    width: 32px;
-    min-height: 22px;
+    font-size: 22px;
+    width: 48px;
+    min-height: 40pxpx;
+    border-radius: 16px;
+    margin-left: 4px;
   }
 }
 

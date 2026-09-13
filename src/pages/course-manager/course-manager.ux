@@ -481,7 +481,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .manager-page {
-    padding: 44px 10px 12px 10px;
+    padding: 120px 10px 120px 10px;
   }
   .header {
     height: 40px;
@@ -489,7 +489,7 @@ export default {
   }
   .back-btn {
     width: 36px;
-    height: 32px;
+    height: 40pxpx;
     font-size: 24px;
   }
   .title {
@@ -497,7 +497,7 @@ export default {
   }
   .add-btn {
     width: 62px;
-    height: 34px;
+    height: 40pxpx;
     font-size: 20px;
   }
   .course-item {
@@ -506,7 +506,7 @@ export default {
   }
   .item-index {
     width: 28px;
-    height: 28px;
+    height: 40pxpx;
     border-radius: 14px;
     margin-right: 8px;
   }
@@ -518,12 +518,12 @@ export default {
   }
   .edit-btn {
     width: 48px;
-    height: 28px;
+    height: 40pxpx;
     font-size: 20px;
   }
   .delete-btn {
     width: 48px;
-    height: 28px;
+    height: 40pxpx;
     font-size: 20px;
   }
   .clear-hint {
@@ -531,7 +531,7 @@ export default {
   }
   .clear-btn {
     width: 54px;
-    height: 28px;
+    height: 40pxpx;
     font-size: 20px;
   }
 }

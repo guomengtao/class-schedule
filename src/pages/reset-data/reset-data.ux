@@ -67,10 +67,10 @@
       <text class="result-text" if="{{ emptyDone }}" style="color: {{ theme.accent }}">已清空</text>
     </div>
 
-    <div class="overlay-modal" show="{{ showDialog }}">
-      <div class="modal-card" style="background-color: {{ theme.card }}">
-        <text class="modal-title" style="color: {{ theme.accent }}">解锁高级功能</text>
-        <text class="modal-desc" style="color: {{ theme.textSecondary }}">一次性解锁，永久使用</text>
+    <div class="overlay-modal" show="{{ showDialog }}" onclick="dismissDialog">
+      <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
+        <text class="modal-title" style="color: {{ theme.accent }}">解锁高级版</text>
+        <text class="modal-desc" style="color: {{ theme.textSecondary }}">多课表管理 · 云备份恢复 · 自定义主题，一次性解锁永久使用</text>
         <div class="benefit-list">
           <text class="benefit-item" style="color: {{ theme.text }}">✓ 多课表管理</text>
           <text class="benefit-item" style="color: {{ theme.text }}">✓ 数据备份与恢复</text>
@@ -79,7 +79,7 @@
         </div>
         <input class="modal-btn-primary" type="button" value="立即解锁" onclick="goToPremium"
                style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        <input class="modal-btn-secondary" type="button" value="暂不需要" onclick="dismissDialog"
+        <input class="modal-btn-secondary" type="button" value="取消" onclick="dismissDialog"
                style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
       </div>
     </div>
@@ -244,6 +244,9 @@ export default {
 
   dismissDialog() {
     this.showDialog = false
+  },
+
+  stopBubble() {
   },
 
   onDestroy() {
@@ -572,7 +575,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .reset-page {
-    padding: 44px 10px 12px 10px;
+    padding: 120px 10px 120px 10px;
   }
   .header {
     margin-bottom: 10px;
@@ -581,55 +584,65 @@ export default {
   }
   .back-btn {
     width: 52px;
-    height: 30px;
-    font-size: 13px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 20px;
   }
   .title {
-    font-size: 34px;
+    font-size: 30px;
+    line-height: 40px;
     margin-right: 52px;
   }
   .warning-section {
     padding: 14px 12px;
     margin-bottom: 8px;
+    border-radius: 12px;
   }
   .warning-title {
     font-size: 28px;
+    line-height: 38px;
     margin-bottom: 8px;
   }
   .warning-text {
     font-size: 24px;
-    line-height: 34px;
+    line-height: 40pxpx;
   }
   .preview-section {
     padding: 12px;
     margin-bottom: 8px;
+    border-radius: 12px;
   }
   .section-title {
     font-size: 28px;
+    line-height: 38px;
     margin-bottom: 8px;
   }
   .course-tag-name {
     font-size: 24px;
+    line-height: 40pxpx;
   }
   .course-tag-num {
-    font-size: 20px;
-    width: 18px;
+    font-size: 22px;
+    width: 24px;
   }
   .action-section {
     padding: 12px;
     margin-bottom: 8px;
+    border-radius: 12px;
   }
   .action-desc {
     font-size: 24px;
-    line-height: 34px;
+    line-height: 40pxpx;
   }
   .action-warn {
-    font-size: 20px;
-    line-height: 28px;
+    font-size: 22px;
+    line-height: 40pxpx;
   }
   .action-btn {
-    height: 44px;
-    font-size: 24px;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 26px;
+    line-height: 36px;
   }
   .reset-hint {
     font-size: 20px;
@@ -637,21 +650,40 @@ export default {
   .result-text {
     font-size: 24px;
   }
+  .modal-card {
+    width: 90%;
+    max-height: 60%;
+    border-radius: 16px;
+    padding: 20px 16px;
+  }
   .modal-title {
-    font-size: 34px;
+    font-size: 28px;
+    line-height: 40px;
+    margin-bottom: 10px;
   }
   .modal-desc {
-    font-size: 24px;
+    font-size: 22px;
+    line-height: 40pxpx;
+    margin-bottom: 12px;
+  }
+  .benefit-list {
+    margin-bottom: 12px;
+    padding-left: 8px;
   }
   .benefit-item {
-    font-size: 24px;
+    font-size: 22px;
+    line-height: 40pxpx;
+    margin-bottom: 4px;
   }
   .modal-btn-primary {
-    height: 44px;
-    font-size: 24px;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 26px;
+    margin-bottom: 10px;
   }
   .modal-btn-secondary {
-    height: 38px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 24px;
   }
 }
@@ -743,47 +775,54 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .reset-page {
-    padding: 44px 10px 12px 10px;
+    padding: 120px 10px 120px 10px;
   }
   .header {
-    height: 40px;
+    height: 48px;
   }
   .back-btn {
-    width: 36px;
-    height: 32px;
-    font-size: 24px;
+    width: 52px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 20px;
   }
   .title {
-    font-size: 28px;
-    margin-right: 44px;
+    font-size: 30px;
+    line-height: 40px;
+    margin-right: 52px;
   }
   .warning-title {
     font-size: 28px;
+    line-height: 38px;
   }
   .warning-text {
     font-size: 24px;
-    line-height: 34px;
+    line-height: 40pxpx;
   }
   .section-title {
     font-size: 28px;
+    line-height: 38px;
   }
   .course-tag-name {
     font-size: 24px;
+    line-height: 40pxpx;
   }
   .course-tag-num {
-    font-size: 20px;
+    font-size: 22px;
   }
   .action-desc {
     font-size: 24px;
-    line-height: 34px;
+    line-height: 40pxpx;
   }
   .action-warn {
-    font-size: 20px;
-    line-height: 28px;
+    font-size: 22px;
+    line-height: 40pxpx;
   }
   .action-btn {
-    height: 44px;
-    font-size: 24px;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 26px;
+    line-height: 36px;
   }
   .reset-hint {
     font-size: 20px;
@@ -792,20 +831,25 @@ export default {
     font-size: 24px;
   }
   .modal-title {
-    font-size: 32px;
+    font-size: 28px;
+    line-height: 40px;
   }
   .modal-desc {
-    font-size: 24px;
+    font-size: 22px;
+    line-height: 40pxpx;
   }
   .benefit-item {
-    font-size: 24px;
+    font-size: 22px;
+    line-height: 40pxpx;
   }
   .modal-btn-primary {
-    height: 44px;
-    font-size: 24px;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 26px;
   }
   .modal-btn-secondary {
-    height: 38px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 24px;
   }
 }

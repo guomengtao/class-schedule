@@ -790,7 +790,54 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .schedule-page {
-    padding: 44px 8px 12px 8px;
+    padding: 120px 6px 120px 6px;
+  }
+  .clock-row {
+    padding: 4px 0;
+    margin-bottom: 4px;
+  }
+  .clock-text {
+    font-size: 20px;
+    line-height: 40pxpx;
+  }
+  .nav-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
+    font-size: 24px;
+  }
+  .day-nav-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
+    margin-left: 4px;
+  }
+  .day-nav-text {
+    font-size: 20px;
+  }
+  .custom-content-text {
+    font-size: 20px;
+    line-height: 40pxpx;
+  }
+  .status-bar {
+    padding: 6px 8px;
+    margin-bottom: 6px;
+  }
+  .status-tag {
+    font-size: 18px;
+    padding: 2px 6px;
+    line-height: 26px;
+  }
+  .status-middle {
+    font-size: 20px;
+    line-height: 40pxpx;
+  }
+  .status-right {
+    font-size: 18px;
+  }
+  .section-label {
+    font-size: 18px;
+    padding: 6px 4px;
   }
 }
 

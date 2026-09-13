@@ -165,7 +165,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
-    padding: 44px 6px 10px 6px;
+    padding: 120px 6px 120px 6px;
   }
 }
 

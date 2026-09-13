@@ -24,7 +24,7 @@
           </div>
           <text class="step-title" style="color: {{ theme.text }}">购买高级版兑换码</text>
         </div>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">爱发电购买，永久解锁全部高级功能</text>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">爱发电购买</text>
         <div class="qr-section">
           <div class="qr-wrapper" style="background-color: #ffffff; border-color: {{ theme.accent }}">
             <qrcode class="qr-code" value="{{ afdianUrl }}" style="color: #000000; background-color: #ffffff;"></qrcode>
@@ -42,7 +42,7 @@
           </div>
           <text class="step-title" style="color: {{ theme.text }}">获取激活码</text>
         </div>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">扫码输入兑换码获取</text>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">扫码获取</text>
         <div class="device-row">
           <text class="device-label" style="color: {{ theme.textSecondary }}">设备ID</text>
           <text class="device-value" style="color: {{ theme.accent }}">{{ deviceIdDisplay }}</text>
@@ -67,7 +67,7 @@
           </div>
           <text class="step-title" style="color: {{ theme.text }}">输入激活码</text>
         </div>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">点选输入18位激活码</text>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">输入激活码</text>
 
         <div class="cells-grid" style="background-color: {{ theme.card }}">
           <div class="cells-row">
@@ -841,11 +841,12 @@ export default {
   border-radius: 8px;
   padding: 6px;
   border: 2px solid;
+  width: 100%;
 }
 
 .qr-code {
-  width: 180px;
-  height: 180px;
+  width: 100%;
+  height: auto;
 }
 
 .qr-label {
@@ -968,7 +969,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
-    padding: 44px 6px 10px 6px;
+    padding: 120px 6px 120px 6px;
     position: relative;
   }
 
@@ -977,78 +978,84 @@ export default {
   }
 
   .back-btn {
-    width: 48px;
-    height: 26px;
-    border-radius: 6px;
-    font-size: 11px;
+    width: 52px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 20px;
   }
 
   .header-title {
-    font-size: 28px;
+    font-size: 30px;
+    line-height: 40px;
   }
 
   .status-card {
-    padding: 14px 8px;
+    padding: 14px 10px;
     margin-bottom: 8px;
-    border-radius: 10px;
+    border-radius: 12px;
   }
 
   .status-main {
-    font-size: 28px;
+    font-size: 30px;
+    line-height: 40px;
     margin-bottom: 4px;
   }
 
   .status-expiry {
-    font-size: 20px;
+    font-size: 22px;
+    line-height: 40pxpx;
     margin-bottom: 2px;
   }
 
   .status-version {
-    font-size: 18px;
-  }
-
-  .status-detail-line {
     font-size: 20px;
   }
 
-  .section-title {
+  .status-detail-line {
     font-size: 22px;
+    line-height: 40pxpx;
+  }
+
+  .section-title {
+    font-size: 24px;
+    line-height: 40pxpx;
     margin-bottom: 6px;
   }
 
   .step-card {
-    padding: 12px 8px;
+    padding: 10px 10px;
     margin-bottom: 4px;
-    border-radius: 10px;
+    border-radius: 12px;
   }
 
   .step-header {
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
 
   .step-badge {
-    width: 24px;
-    height: 24px;
-    border-radius: 12px;
-    margin-right: 6px;
+    width: 28px;
+    height: 40pxpx;
+    border-radius: 14px;
+    margin-right: 8px;
   }
 
   .step-badge-text {
-    font-size: 18px;
+    font-size: 20px;
   }
 
   .step-title {
-    font-size: 24px;
+    font-size: 26px;
+    line-height: 36px;
   }
 
   .step-desc {
-    font-size: 20px;
-    line-height: 28px;
-    margin-bottom: 8px;
+    font-size: 22px;
+    line-height: 40pxpx;
+    margin-bottom: 6px;
   }
 
   .step-arrow {
-    font-size: 22px;
+    font-size: 24px;
     margin-bottom: 4px;
   }
 
@@ -1058,8 +1065,8 @@ export default {
   }
 
   .device-label {
-    font-size: 20px;
-    width: 64px;
+    font-size: 22px;
+    width: 72px;
   }
 
   .device-value {
@@ -1070,16 +1077,17 @@ export default {
     border-radius: 6px;
     padding: 4px;
     border-width: 1px;
+    width: 100%;
   }
 
   .qr-code {
-    width: 130px;
-    height: 130px;
+    width: 100%;
+    height: auto;
   }
 
   .qr-label {
     font-size: 18px;
-    margin-top: 4px;
+    margin-top: 3px;
   }
 
   .qr-loading {
@@ -1116,7 +1124,7 @@ export default {
 
   .keypad-btn {
     width: 44px;
-    height: 32px;
+    height: 40pxpx;
     border-radius: 6px;
     margin-left: 5px;
     margin-right: 5px;

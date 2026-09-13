@@ -1,0 +1,30 @@
+Pages scanned: 47
+Files modified: 26
+Total rule changes: 27
+
+  - activation
+  - add-course
+  - backup-restore
+  - black-screen-check
+  - bs-demo1
+  - bs-demo3
+  - bs-demo4
+  - bs-demo5
+  - chinese-input
+  - chinese-input-full
+  - course-manager
+  - custom-content-edit
+  - detail
+  - device-info
+  - homepage-settings
+  - lab
+  - nickname-edit
+  - pinned-pages
+  - qrcode-generator
+  - reset-data
+  - schedule-qrcode
+  - statistics
+  - template-picker
+  - vibration-lab
+  - week-view
+  - welcome

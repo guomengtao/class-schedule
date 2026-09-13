@@ -978,7 +978,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
-    padding: 44px 8px 12px 8px;
+    padding: 120px 8px 120px 8px;
   }
   .header {
     margin-bottom: 8px;
@@ -987,11 +987,13 @@ export default {
   }
   .back-btn {
     width: 52px;
-    height: 30px;
-    font-size: 13px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 20px;
   }
   .title {
-    font-size: 15px;
+    font-size: 30px;
+    line-height: 40px;
     flex: 1;
     text-align: center;
   }
@@ -1000,44 +1002,52 @@ export default {
     margin-bottom: 6px;
   }
   .hero-icon {
-    font-size: 28px;
+    font-size: 36px;
   }
   .hero-name {
-    font-size: 16px;
+    font-size: 28px;
+    line-height: 38px;
   }
   .hero-desc {
-    font-size: 12px;
+    font-size: 22px;
+    line-height: 40pxpx;
   }
   .play-btn {
-    width: 80px;
-    height: 32px;
-    font-size: 13px;
+    width: 88px;
+    height: 44px;
+    border-radius: 22px;
+    font-size: 22px;
   }
   .stop-btn {
-    width: 60px;
-    height: 32px;
-    font-size: 13px;
+    width: 72px;
+    height: 44px;
+    border-radius: 22px;
+    font-size: 22px;
   }
   .section {
-    padding: 8px;
+    padding: 10px;
     margin-bottom: 6px;
   }
   .section-title {
-    font-size: 13px;
+    font-size: 24px;
+    line-height: 40pxpx;
   }
   .step-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 16px;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 22px;
   }
   .step-value {
-    font-size: 18px;
-    width: 70px;
+    font-size: 26px;
+    line-height: 36px;
+    width: 80px;
   }
   .quick-btn {
-    width: 44px;
-    height: 28px;
-    font-size: 12px;
+    width: 52px;
+    height: 36px;
+    border-radius: 18px;
+    font-size: 22px;
   }
 }
 
