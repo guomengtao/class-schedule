@@ -121,6 +121,7 @@ export default {
   openInput() {
     var storage = require("@system.storage")
     storage.set({ key: "chinese_input_return_key", value: "qrcode_text" })
+    storage.set({ key: "chinese_input_maxlen", value: "100" })
     router.push({ uri: "/pages/chinese-input" })
   },
 

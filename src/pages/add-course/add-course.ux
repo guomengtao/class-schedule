@@ -862,7 +862,10 @@ export default {
     lines: 1;
     margin: 0 4px;
   }
-
+  .course-card {
+    width: 160px;
+    max-width: 100%;
+  }
 }
 
 @media (shape: rect) {

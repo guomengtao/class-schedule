@@ -26,7 +26,7 @@
 
       <div class="qr-section">
         <div class="qr-wrapper" style="background-color: #ffffff">
-          <qrcode value="{{ qrText }}" style="color: #000000; background-color: #ffffff; width: 200px; height: 200px;"></qrcode>
+          <qrcode value="{{ qrText }}" style="color: #000000; background-color: #ffffff; width: 160px; height: 160px;"></qrcode>
         </div>
         <text class="qr-hint" style="color: {{ theme.textSecondary }}">扫码查看</text>
       </div>

@@ -31,6 +31,7 @@
 | `cb68d33` | fix(qa): U-5 行高补充 |
 | `5dc8fba` | fix(qa): P0-10 编辑/删除假成功 + P1-7 删除实验室入口 |
 | `793c6dc` | fix(qa): U-1 输入法 3 处箭头函数 → function |
+| *待提交* | 第 9 轮：UX 巡检修复（UX-15/16/17/18/20） |
 
 ---
 
@@ -65,6 +66,11 @@
 | **P0-10** | 编辑/删除「假成功」：`database.js` `updateCourseStorage` + `deleteCourseStorage` 各加 `hit` 标记，id 未命中时 `callback(formatError(...))` 不再静默成功 | `5dc8fba` |
 | **P1-7** | 实验室「课程详情」入口已删除：`lab-list.js:26` 移除，同时堵上 P0-10 主入口 | `5dc8fba` |
 | **U-1** | 输入法 3 处箭头函数 → `function`：`InputMethod.ux:810/813` `device.getInfo` success/fail 回调、`dicUtil.js:59` `step`，零风险消除老内核整段不执行隐患 | `793c6dc` |
+| **UX-17** | 二维码生成器补 `chinese_input_maxlen=100`，chinese-input/chinese-input-full 触顶 showToast "已达输入上限" | *待提交* |
+| **UX-15** | `onVibrate()` 加 try/catch 防未声明 feature 导致按键报错 | *待提交* |
+| **UX-18** | `adjustScreenWidth()` 回调 this→self，补 `$watch("screentype")` | *待提交* |
+| **UX-20** | welcome 胶囊屏按钮 200→160px，schedule-qrcode qr 200→160px，add-course/detail .course-card 胶囊屏 + width:160px/max-width:100% | *待提交* |
+| **UX-16** | 12 个二级页根块 `min-height:100%` → `width:100%;height:100%;box-sizing:border-box` | *待提交* |
 
 ---
 

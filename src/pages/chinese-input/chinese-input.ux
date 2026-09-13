@@ -40,6 +40,7 @@
 import router from "@system.router"
 import storage from "@system.storage"
 import device from "@system.device"
+import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 
 var INPUT_FONT_KEY = "inputFontSize"
@@ -159,7 +160,10 @@ export default {
   onCharacter(ev) {
     var text = ev.detail.content
     if (!text) return
-    if (this.inputValue.length >= this.maxlen) return
+    if (this.inputValue.length >= this.maxlen) {
+      prompt.showToast({ message: "已达输入上限" })
+      return
+    }
     this.inputValue += text
   },
 
@@ -201,7 +205,9 @@ export default {
 .input-page {
   flex-direction: column;
   padding: 44px 8px 8px 8px;
-  min-height: 100%;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .content-body {

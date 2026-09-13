@@ -469,6 +469,7 @@ export default {
     this.$watch("hide", "watchHidePropsChange");
     this.$watch("maxlength", "watchMaxLengthPropsChange");
     this.$watch("keyboardtype", "watchKeyboardTypePropsChange");
+    this.$watch("screentype", "adjustScreenWidth");
   },
   addAllTxt(txt) {
     var max = this.maxlength
@@ -788,7 +789,9 @@ export default {
   },
   onVibrate() {
     if (this.vibratemode != "") {
-      vibrator.vibrate({ mode: this.vibratemode });
+      try {
+        vibrator.vibrate({ mode: this.vibratemode });
+      } catch (e) {}
     }
   },
   handelScroll(event) {
@@ -806,12 +809,13 @@ export default {
     this.addAllTxt(temp);
   },
   adjustScreenWidth(){
+    var self = this;
     device.getInfo({
       success: function(data) {
-        this.screenWidth = data.screenWidth;
+        self.screenWidth = data.screenWidth;
       },
       fail: function() {
-        this.screenWidth = 336;
+        self.screenWidth = 336;
       }
     })
   }
