@@ -112,6 +112,9 @@ export default {
 .row-cn { font-size: 28px; }
 
 @media (shape: capsule), (shape: pill-shaped) {
+  .capsule-hide {
+    display: none;
+  }
   .header {
     height: 48px;
     margin-bottom: 8px;
