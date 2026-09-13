@@ -801,6 +801,10 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
+  .settings-page {
+    padding: 20px 10px 8px 10px;
+  }
+
   .header {
     height: 48px;
     margin-bottom: 8px;
@@ -823,6 +827,10 @@ export default {
     flex: 1;
     lines: 1;
     margin: 0 4px;
+  }
+
+  .row-hint {
+    display: none;
   }
 
   .modal-card {

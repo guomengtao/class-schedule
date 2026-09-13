@@ -25,7 +25,7 @@
     <div class="overlay-modal" show="{{ showDialog }}" onclick="dismissDialog">
       <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
         <text class="modal-title" style="color: {{ theme.accent }}">解锁高级版</text>
-        <text class="modal-desc" style="color: {{ theme.textSecondary }}">多课表管理 · 云备份恢复 · 自定义主题，一次性解锁永久使用</text>
+        <text class="modal-desc" style="color: {{ theme.textSecondary }}">一次性解锁，永久使用全部高级功能</text>
         <div class="benefit-list">
           <text class="benefit-item" style="color: {{ theme.text }}">✓ 多课表管理</text>
           <text class="benefit-item" style="color: {{ theme.text }}">✓ 数据备份与恢复</text>
@@ -51,6 +51,7 @@ export default {
     labItems: [],
     labStatus: "loading",
     showDialog: false,
+    dialogChecked: false,
     theme: {
       bg: "#1a1a2e",
       card: "#16213e",
@@ -86,6 +87,8 @@ export default {
   onShow() {
     var self = this
     store.getTheme(function(t) { self.theme = t })
+    this.showDialog = false
+    this.dialogChecked = false
     this.loadList()
   },
 
@@ -112,6 +115,8 @@ export default {
   },
 
   checkAndShowOverlay() {
+    if (this.dialogChecked) return
+    this.dialogChecked = true
     console.log("[TEST-AREA] checkAndShowOverlay: checking premium...")
     var self = this
     store.isPremiumUnlocked(function(unlocked) {

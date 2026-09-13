@@ -43,7 +43,7 @@ rinuo@qq.com<template>
     <div class="overlay-modal" show="{{ showDialog }}" onclick="dismissDialog">
       <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
         <text class="modal-title" style="color: {{ theme.accent }}">解锁高级版</text>
-        <text class="modal-desc" style="color: {{ theme.textSecondary }}">云备份恢复需要高级版，支持多课表管理 · 自定义主题</text>
+        <text class="modal-desc" style="color: {{ theme.textSecondary }}">云备份恢复需要高级版，一次性解锁永久使用</text>
         <div class="benefit-list">
           <text class="benefit-item" style="color: {{ theme.text }}">✓ 多课表管理</text>
           <text class="benefit-item" style="color: {{ theme.text }}">✓ 数据备份与恢复</text>

@@ -105,7 +105,7 @@
     <div class="overlay-modal" show="{{ showDialog }}" onclick="dismissDialog">
       <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
         <text class="modal-title" style="color: {{ theme.accent }}">解锁高级版</text>
-        <text class="modal-desc" style="color: {{ theme.textSecondary }}">多课表管理 · 云备份恢复 · 自定义主题，一次性解锁永久使用</text>
+        <text class="modal-desc" style="color: {{ theme.textSecondary }}">一次性解锁，永久使用全部高级功能</text>
         <div class="benefit-list">
           <text class="benefit-item" style="color: {{ theme.text }}">✓ 多课表管理</text>
           <text class="benefit-item" style="color: {{ theme.text }}">✓ 数据备份与恢复</text>
@@ -557,6 +557,10 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 20px 10px 8px 10px;
+  }
+
   .header {
     height: 48px;
     margin-bottom: 8px;
@@ -579,6 +583,48 @@ export default {
     flex: 1;
     lines: 1;
     margin: 0 4px;
+  }
+
+  .modal-card {
+    width: 90%;
+    border-radius: 12px;
+    padding: 18px 16px;
+  }
+
+  .modal-title {
+    font-size: 26px;
+    margin-bottom: 10px;
+    line-height: 34px;
+  }
+
+  .modal-desc {
+    font-size: 20px;
+    margin-bottom: 14px;
+    line-height: 30px;
+  }
+
+  .benefit-list {
+    margin-bottom: 14px;
+    padding-left: 8px;
+  }
+
+  .benefit-item {
+    font-size: 20px;
+    margin-bottom: 6px;
+    line-height: 28px;
+  }
+
+  .modal-btn-primary {
+    height: 44px;
+    border-radius: 22px;
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .modal-btn-secondary {
+    height: 38px;
+    border-radius: 19px;
+    font-size: 22px;
   }
 
 }
