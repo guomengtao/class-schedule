@@ -177,26 +177,27 @@ export default {
   .dialog-card {
     width: 90%;
     border-radius: 12px;
-    padding: 14px 14px;
+    padding: 18px 16px;
   }
 
   .dialog-title {
     font-size: 26px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
 
   .dialog-desc {
     font-size: 20px;
-    margin-bottom: 12px;
-    line-height: 26px;
+    margin-bottom: 14px;
+    line-height: 30px;
   }
 
   .benefits {
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
 
   .benefit-row {
-    margin-bottom: 4px;
+    margin-bottom: 6px;
+    line-height: 28px;
   }
 
   .benefit-icon {
@@ -207,18 +208,19 @@ export default {
 
   .benefit-text {
     font-size: 20px;
+    line-height: 28px;
   }
 
   .unlock-btn {
-    height: 34px;
-    border-radius: 17px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 24px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
 
   .cancel-btn {
-    height: 30px;
-    border-radius: 15px;
+    height: 38px;
+    border-radius: 19px;
     font-size: 22px;
   }
 }

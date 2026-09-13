@@ -147,4 +147,67 @@ export default {
   border-radius: 14px;
   font-size: 12px;
 }
+
+@media (shape: capsule), (shape: pill-shaped) {
+  .pro-card-inline {
+    border-radius: 10px;
+    padding: 16px 14px 14px 14px;
+  }
+
+  .pro-card-top {
+    margin-bottom: 8px;
+  }
+
+  .pro-icon {
+    font-size: 20px;
+    margin-right: 6px;
+  }
+
+  .pro-title {
+    font-size: 22px;
+  }
+
+  .pro-desc {
+    font-size: 18px;
+    margin-bottom: 12px;
+    line-height: 26px;
+  }
+
+  .pro-benefits {
+    margin-bottom: 12px;
+  }
+
+  .benefit-row {
+    margin-bottom: 5px;
+    line-height: 26px;
+  }
+
+  .benefit-check {
+    font-size: 18px;
+    margin-right: 6px;
+    width: 18px;
+  }
+
+  .benefit-text {
+    font-size: 18px;
+    line-height: 26px;
+  }
+
+  .pro-btn-row {
+    width: 100%;
+  }
+
+  .pro-btn {
+    height: 42px;
+    border-radius: 21px;
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+
+  .pro-btn-cancel {
+    height: 36px;
+    border-radius: 18px;
+    font-size: 20px;
+  }
+}
 </style>

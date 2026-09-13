@@ -137,39 +137,40 @@ export default {
   .modal-card {
     width: 90%;
     border-radius: 12px;
-    padding: 14px 14px;
+    padding: 18px 16px;
   }
 
   .modal-title {
     font-size: 26px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
 
   .modal-desc {
     font-size: 20px;
-    margin-bottom: 12px;
-    line-height: 26px;
+    margin-bottom: 14px;
+    line-height: 30px;
   }
 
   .benefit-list {
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
 
   .benefit-item {
     font-size: 20px;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
+    line-height: 28px;
   }
 
   .modal-btn-primary {
-    height: 34px;
-    border-radius: 17px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 24px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
 
   .modal-btn-secondary {
-    height: 30px;
-    border-radius: 15px;
+    height: 38px;
+    border-radius: 19px;
     font-size: 22px;
   }
 }
