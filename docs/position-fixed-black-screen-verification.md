@@ -104,7 +104,7 @@ settings.ux 自己也有一个同款 .overlay-bottom-sheet（:646-654，absolute
 unlock-dialog 的 .sheet-overlay 是全仓唯一的结构性异类：
 
 ```css
-/* unlock-dialog.ux:97-106 —— 四边定位，无显式宽高 */
+/* unlock-dialog.ux:97-106 — 四边定位，无显式宽高 */
 .sheet-overlay {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;   /* ← 全仓唯一这么写的 */
@@ -178,7 +178,7 @@ donate:135、week-grid-demo:124、chinese-input-full:196、backup-restore:408、
 |---|------|------|------|
 | 1 | docs/index-band9pro-black-screen-analysis.md | 无 @media 适配 + 根容器无显式宽高 | 补 media + 显式宽高 |
 | 2 | docs/band9pro-black-screen-fix-plan.md | Vela 不支持 min-height:100% + 固件条件渲染 bug | 显式宽高 + $forceUpdate() |
-| 3 | doc/position-fixed-手环渲染问题分析.md（19:29 新增） | position: fixed 塌缩 | fixed → absolute + 父 relative（已上线） |
+| 3 | docs/position-fixed-手环渲染问题分析.md（19:29 新增） | position: fixed 塌缩 | fixed → absolute + 父 relative（已上线） |
 | 4 | 本次被核实的方案 | fixed 版本不兼容，absolute 同样失效 | 改用 `<stack>` |
 
 裁定：1 与 2 的证据强于 3 与 4（首页无浮层却同症状）。3 已上线且无害，可保留；4 建议不采纳。
