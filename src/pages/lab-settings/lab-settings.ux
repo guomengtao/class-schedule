@@ -29,14 +29,14 @@ const store = require("../../data/store.js")
 export default {
   private: {
     labItems: [
-      { name: "CapsuleHideTest", desc: "Hide method test", uri: "/pages/capsule-hide-test" },
-      { name: "Demo1: Overlay", desc: "Overlay dialog test", uri: "/pages/bs-demo1" },
-      { name: "Demo2: Penetration", desc: "Event penetration", uri: "/pages/bs-demo2" },
-      { name: "Demo3: Loop", desc: "Dialog timing test", uri: "/pages/bs-demo3" },
-      { name: "Demo4: Position", desc: "Position comparison", uri: "/pages/bs-demo4" },
-      { name: "Demo5: Events", desc: "Event bubble/capture", uri: "/pages/bs-demo5" },
-      { name: "Vibration", desc: "Vibration test", uri: "/pages/vibration-lab" },
-      { name: "QRCode", desc: "QR generator", uri: "/pages/qrcode-generator" }
+      { name: "胶囊屏隐藏测试", desc: "胶囊屏隐藏方法验证", uri: "/pages/capsule-hide-test" },
+      { name: "Demo1: 遮罩弹窗", desc: "遮罩弹窗测试", uri: "/pages/bs-demo1" },
+      { name: "Demo2: 点击穿透", desc: "事件穿透问题", uri: "/pages/bs-demo2" },
+      { name: "Demo3: 循环弹窗", desc: "弹窗时序测试", uri: "/pages/bs-demo3" },
+      { name: "Demo4: 定位对比", desc: "定位方式对比", uri: "/pages/bs-demo4" },
+      { name: "Demo5: 事件测试", desc: "事件冒泡捕获", uri: "/pages/bs-demo5" },
+      { name: "震动实验室", desc: "震动效果测试", uri: "/pages/vibration-lab" },
+      { name: "二维码生成", desc: "二维码生成工具", uri: "/pages/qrcode-generator" }
     ],
     versionText: "",
     theme: {
