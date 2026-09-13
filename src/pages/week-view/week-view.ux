@@ -6,9 +6,6 @@
       <text class="wv-title" style="color:{{ theme.text }}">总课表</text>
     </div>
 
-    <!-- schedule name + count -->
-    <text class="wv-subtitle" style="color:{{ theme.accent }}">{{ scheduleName }}</text>
-
     <!-- grid area -->
     <scroll class="wv-grid-scroll" scroll-x="true" scroll-y="true">
       <div class="wv-scroll-inner" style="min-width:{{ gridContentWidth }}px">
@@ -38,14 +35,14 @@
 
     <!-- footer: template buttons -->
     <div class="wv-footer" style="background-color:{{ theme.card }}">
-      <div class="wv-tpl-toggle" onclick="toggleTemplates">
-        <text class="wv-tpl-toggle-text" style="color:{{ theme.accent }}">模板切换 {{ showTemplates ? '▲' : '▼' }}</text>
-      </div>
-      <div class="wv-tpl-row" if="{{ showTemplates }}">
+      <div class="wv-tpl-row">
         <div for="{{ templateList }}" class="wv-tpl {{ $item.id === currentTplId ? 'wv-tpl-on' : '' }}" onclick="switchTemplate($item.id)" style="background-color:{{ $item.id === currentTplId ? $item.activeColor : theme.borderLight }};color:{{ $item.id === currentTplId ? '#fff' : theme.textSecondary }};border-color:{{ $item.id === currentTplId ? $item.activeColor : 'transparent' }}">
           <text class="wv-tpl-text">{{ $item.label }}</text>
         </div>
       </div>
+
+      <!-- schedule name at bottom -->
+      <text class="wv-subtitle" style="color:{{ theme.accent }}">{{ scheduleName }}</text>
     </div>
   </div>
 </template>
@@ -185,7 +182,6 @@ export default {
     initDone: false,
     firstLoad: true,
     currentTplId: "minimal-char",
-    showTemplates: false,
     templateList: [
       { id: "minimal-char", label: "单字", activeColor: "#e67e22" },
       { id: "standard-block", label: "标准", activeColor: "#3498db" },
@@ -329,10 +325,6 @@ export default {
     self.applyTemplate(id)
     store.setWeekViewTemplate(id)
     self.loadData()
-  },
-
-  toggleTemplates() {
-    this.showTemplates = !this.showTemplates
   },
 
   applyTemplate(id) {
@@ -864,22 +856,11 @@ export default {
   align-items: center;
 }
 
-.wv-tpl-toggle {
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  padding: 6px 0;
-}
-
-.wv-tpl-toggle-text {
-  font-size: 24px;
-  text-decoration: underline;
-}
-
 .wv-tpl-row {
   flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
+  overflow-x: scroll;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
   align-items: center;
   padding: 0 8px;
   width: 100%;
@@ -887,6 +868,7 @@ export default {
 
 .wv-tpl {
   flex-direction: row;
+  flex-shrink: 0;
   justify-content: center;
   align-items: center;
   height: 36px;
