@@ -489,7 +489,7 @@ export default {
   }
   .back-btn {
     width: 36px;
-    height: 40pxpx;
+    height: 40px;
     font-size: 24px;
   }
   .title {
@@ -497,7 +497,7 @@ export default {
   }
   .add-btn {
     width: 62px;
-    height: 40pxpx;
+    height: 40px;
     font-size: 20px;
   }
   .course-item {
@@ -506,7 +506,7 @@ export default {
   }
   .item-index {
     width: 28px;
-    height: 40pxpx;
+    height: 40px;
     border-radius: 14px;
     margin-right: 8px;
   }
@@ -518,12 +518,12 @@ export default {
   }
   .edit-btn {
     width: 48px;
-    height: 40pxpx;
+    height: 40px;
     font-size: 20px;
   }
   .delete-btn {
     width: 48px;
-    height: 40pxpx;
+    height: 40px;
     font-size: 20px;
   }
   .clear-hint {
@@ -531,7 +531,7 @@ export default {
   }
   .clear-btn {
     width: 54px;
-    height: 40pxpx;
+    height: 40px;
     font-size: 20px;
   }
 }

@@ -307,7 +307,7 @@ export default {
     height: 40px;
     border-radius: 20px;
     font-size: 20px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
   .title {
     font-size: 30px;
@@ -318,7 +318,7 @@ export default {
     height: 40px;
     border-radius: 20px;
     font-size: 20px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
   .display-area {
     padding: 6px 10px;
@@ -340,7 +340,7 @@ export default {
   .font-btn {
     font-size: 22px;
     width: 48px;
-    min-height: 40pxpx;
+    min-height: 40px;
     border-radius: 16px;
     margin-left: 4px;
   }

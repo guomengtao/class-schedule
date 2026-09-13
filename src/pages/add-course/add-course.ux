@@ -869,7 +869,7 @@ export default {
   }
   .step-hint {
     font-size: 24px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
   .course-card {
     width: 150px;
@@ -898,7 +898,7 @@ export default {
   }
   .stepper-label {
     font-size: 24px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
   .location-text {
     font-size: 28px;

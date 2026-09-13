@@ -1003,7 +1003,7 @@ export default {
 
   .status-expiry {
     font-size: 22px;
-    line-height: 40pxpx;
+    line-height: 40px;
     margin-bottom: 2px;
   }
 
@@ -1013,12 +1013,12 @@ export default {
 
   .status-detail-line {
     font-size: 22px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
 
   .section-title {
     font-size: 24px;
-    line-height: 40pxpx;
+    line-height: 40px;
     margin-bottom: 6px;
   }
 
@@ -1034,7 +1034,7 @@ export default {
 
   .step-badge {
     width: 28px;
-    height: 40pxpx;
+    height: 40px;
     border-radius: 14px;
     margin-right: 8px;
   }
@@ -1050,7 +1050,7 @@ export default {
 
   .step-desc {
     font-size: 22px;
-    line-height: 40pxpx;
+    line-height: 40px;
     margin-bottom: 6px;
   }
 
@@ -1124,7 +1124,7 @@ export default {
 
   .keypad-btn {
     width: 44px;
-    height: 40pxpx;
+    height: 40px;
     border-radius: 6px;
     margin-left: 5px;
     margin-right: 5px;

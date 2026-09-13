@@ -1010,7 +1010,7 @@ export default {
   }
   .hero-desc {
     font-size: 22px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
   .play-btn {
     width: 88px;
@@ -1030,7 +1030,7 @@ export default {
   }
   .section-title {
     font-size: 24px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
   .step-btn {
     width: 40px;

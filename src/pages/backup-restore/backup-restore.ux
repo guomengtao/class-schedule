@@ -693,7 +693,7 @@ export default {
   }
   .back-btn {
     width: 36px;
-    height: 40pxpx;
+    height: 40px;
     font-size: 24px;
   }
   .title {
@@ -717,7 +717,7 @@ export default {
   }
   .backup-row-meta {
     font-size: 24px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
   .info-section {
     padding: 14px 12px;
@@ -728,7 +728,7 @@ export default {
   }
   .info-text {
     font-size: 24px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
   .modal-card {
     width: 90%;
@@ -753,13 +753,13 @@ export default {
     margin-bottom: 4px;
   }
   .modal-btn-primary {
-    height: 40pxpx;
+    height: 40px;
     border-radius: 17px;
     font-size: 24px;
     margin-bottom: 6px;
   }
   .modal-btn-secondary {
-    height: 40pxpx;
+    height: 40px;
     border-radius: 15px;
     font-size: 22px;
   }

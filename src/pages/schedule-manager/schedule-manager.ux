@@ -903,7 +903,7 @@ export default {
   }
   .action-btn-text {
     font-size: 24px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
   .add-section {
     margin-top: 8px;
@@ -951,7 +951,7 @@ export default {
   }
   .modal-desc {
     font-size: 22px;
-    line-height: 40pxpx;
+    line-height: 40px;
     margin-bottom: 12px;
   }
   .benefit-list {
@@ -960,7 +960,7 @@ export default {
   }
   .benefit-item {
     font-size: 22px;
-    line-height: 40pxpx;
+    line-height: 40px;
     margin-bottom: 4px;
   }
   .modal-btn-primary {

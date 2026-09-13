@@ -957,14 +957,14 @@ export default {
   }
   .wv-back {
     width: 36px;
-    height: 40pxpx;
+    height: 40px;
     font-size: 24px;
   }
   .wv-title {
     font-size: 34px;
   }
   .wv-tpl {
-    height: 40pxpx;
+    height: 40px;
     padding: 0 6px;
     margin: 0 2px;
   }

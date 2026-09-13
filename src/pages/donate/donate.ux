@@ -328,7 +328,7 @@ export default {
   }
   .tab-text {
     font-size: 24px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
   .qr-card {
     padding: 14px 12px;
@@ -340,15 +340,15 @@ export default {
   }
   .platform-desc {
     font-size: 24px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
   .scan-hint {
     font-size: 22px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
   .scan-sub-hint {
     font-size: 20px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
   .thanks-icon {
     font-size: 36px;
@@ -356,7 +356,7 @@ export default {
   }
   .thanks-text {
     font-size: 24px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
 }
 

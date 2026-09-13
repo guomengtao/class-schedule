@@ -798,7 +798,7 @@ export default {
   }
   .clock-text {
     font-size: 20px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
   .nav-btn {
     width: 44px;
@@ -817,7 +817,7 @@ export default {
   }
   .custom-content-text {
     font-size: 20px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
   .status-bar {
     padding: 6px 8px;
@@ -830,7 +830,7 @@ export default {
   }
   .status-middle {
     font-size: 20px;
-    line-height: 40pxpx;
+    line-height: 40px;
   }
   .status-right {
     font-size: 18px;
