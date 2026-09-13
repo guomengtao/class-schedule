@@ -124,6 +124,14 @@
         </div>
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="openLabSettings">
+        <text class="row-label" style="color: {{ theme.text }}">实验室列表</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">胶囊屏适配</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
       <div class="row" onclick="openActivation">
         <text class="row-label" style="color: {{ theme.text }}">高级版</text>
         <div class="row-right">
@@ -380,6 +388,10 @@ export default {
 
   openNicknameEdit() {
     router.push({ uri: "/pages/nickname-edit" })
+  },
+
+  openLabSettings() {
+    router.push({ uri: "/pages/lab-settings" })
   },
 
   openTestArea() {

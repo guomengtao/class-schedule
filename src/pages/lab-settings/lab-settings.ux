@@ -1,0 +1,207 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="<" onclick="goBack"
+             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="color: {{ theme.text }}">实验室</text>
+    </div>
+
+    <text class="section-hint" style="color: {{ theme.textSecondary }}">实验性功能列表</text>
+
+    <div class="list-scroll">
+      <div class="list-row" for="(idx, item) in labItems" style="background-color: {{ theme.card }}" onclick="onOpenItem(idx)">
+        <text class="row-name" style="color: {{ theme.text }}">{{ item.name }}</text>
+        <div class="row-right">
+          <text class="row-desc" style="color: {{ theme.textMuted }}">{{ item.desc }}</text>
+          <text class="row-arrow" style="color: {{ theme.textMuted }}">></text>
+        </div>
+      </div>
+    </div>
+
+    <text class="version-text" style="color: {{ theme.textMuted }}">v{{ versionText }}</text>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+export default {
+  private: {
+    labItems: [
+      { name: "CapsuleHideTest", desc: "Hide method test", uri: "/pages/capsule-hide-test" },
+      { name: "Demo1: Overlay", desc: "Overlay dialog test", uri: "/pages/bs-demo1" },
+      { name: "Demo2: Penetration", desc: "Event penetration", uri: "/pages/bs-demo2" },
+      { name: "Demo3: Loop", desc: "Dialog timing test", uri: "/pages/bs-demo3" },
+      { name: "Demo4: Position", desc: "Position comparison", uri: "/pages/bs-demo4" },
+      { name: "Demo5: Events", desc: "Event bubble/capture", uri: "/pages/bs-demo5" },
+      { name: "Vibration", desc: "Vibration test", uri: "/pages/vibration-lab" },
+      { name: "QRCode", desc: "QR generator", uri: "/pages/qrcode-generator" }
+    ],
+    versionText: "",
+    theme: {
+      bg: "#1a1a2e",
+      card: "#16213e",
+      accent: "#7ec8e3",
+      text: "#ffffff",
+      textSecondary: "#888899",
+      textMuted: "#555566"
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+    this.loadVersion()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+  },
+
+  loadVersion() {
+    try {
+      var v = require("../../data/version.js")
+      this.versionText = v.version || "1.0.0"
+    } catch (e) {
+      this.versionText = "1.0.0"
+    }
+  },
+
+  onOpenItem(idx) {
+    var item = this.labItems[idx]
+    if (item && item.uri) {
+      router.push({ uri: item.uri })
+    }
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  padding: 44px 16px 16px 16px;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.back-btn {
+  width: 48px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.header-title {
+  font-size: 36px;
+  font-weight: bold;
+  margin-left: 12px;
+  line-height: 44px;
+}
+
+.section-hint {
+  font-size: 28px;
+  margin-bottom: 12px;
+  line-height: 38px;
+}
+
+.list-scroll {
+  flex: 1;
+  flex-direction: column;
+  overflow: scroll;
+}
+
+.list-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 8px;
+  min-height: 56px;
+}
+
+.row-name {
+  font-size: 32px;
+  flex-shrink: 0;
+  max-lines: 1;
+  line-height: 38px;
+}
+
+.row-right {
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 1;
+  overflow: hidden;
+}
+
+.row-desc {
+  font-size: 28px;
+  margin-right: 6px;
+  max-lines: 1;
+  line-height: 34px;
+}
+
+.row-arrow {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.version-text {
+  font-size: 24px;
+  text-align: center;
+  padding-top: 12px;
+  flex-shrink: 0;
+  line-height: 34px;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-header {
+    margin-bottom: 16px;
+  }
+  .back-btn {
+    width: 52px;
+    height: 40px;
+    font-size: 24px;
+  }
+  .header-title {
+    font-size: 36px;
+    line-height: 48px;
+  }
+  .list-row {
+    padding: 18px 16px;
+    margin-bottom: 10px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 16px 16px 16px;
+  }
+  .back-btn {
+    width: 50px;
+    height: 40px;
+    font-size: 24px;
+  }
+  .header-title {
+    font-size: 36px;
+    line-height: 48px;
+  }
+}
+</style>
