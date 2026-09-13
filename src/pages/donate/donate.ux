@@ -1,7 +1,7 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
       <text class="title" style="color: {{ theme.text }}">打赏支持</text>
     </div>
 
@@ -305,27 +305,29 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
-    padding: 120px 6px 120px 6px;
+    padding: 60px 6px 120px 6px;
   }
   .header {
-    height: 40px;
+    height: 44px;
     margin-bottom: 8px;
-    position: relative;
+    flex-direction: row;
+    align-items: center;
   }
   .back-btn {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 40px;
-    height: 36px;
-    border-radius: 18px;
-    font-size: 18px;
+    width: 48px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 24px;
+    text-align: center;
+    line-height: 40px;
   }
   .title {
     font-size: 28px;
-    line-height: 36px;
+    line-height: 40px;
     text-align: center;
-    margin-right: 0;
+    flex: 1;
+    margin-right: 56px;
+    margin-left: 8px;
   }
   .tab-bar {
     margin-bottom: 10px;

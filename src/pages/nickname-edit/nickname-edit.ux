@@ -270,7 +270,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .edit-page {
-    padding: 120px 10px 120px 10px;
+    padding: 60px 10px 120px 10px;
   }
   .back-header {
     height: 40px;

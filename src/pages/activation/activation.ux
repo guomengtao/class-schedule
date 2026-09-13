@@ -969,7 +969,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
-    padding: 120px 6px 120px 6px;
+    padding: 60px 6px 120px 6px;
     position: relative;
   }
 

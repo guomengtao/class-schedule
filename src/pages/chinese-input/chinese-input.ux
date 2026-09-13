@@ -297,7 +297,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .input-page {
-    padding: 120px 8px 120px 8px;
+    padding: 60px 8px 120px 8px;
   }
   .header {
     margin-bottom: 6px;

@@ -950,7 +950,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .wv-page {
-    padding: 120px 10px 120px 10px;
+    padding: 60px 10px 120px 10px;
   }
   .wv-header {
     margin-bottom: 8px;

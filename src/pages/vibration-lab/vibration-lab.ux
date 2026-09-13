@@ -978,7 +978,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
-    padding: 120px 8px 120px 8px;
+    padding: 60px 8px 120px 8px;
   }
   .header {
     margin-bottom: 8px;

@@ -191,7 +191,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
-    padding: 120px 24px 120px 24px;
+    padding: 60px 24px 120px 24px;
   }
   .back-btn {
     width: 36px;
