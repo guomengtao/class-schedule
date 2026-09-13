@@ -35,11 +35,11 @@
 
     <!-- footer: template buttons -->
     <div class="wv-footer" style="background-color:{{ theme.card }}">
-      <div class="wv-tpl-row">
+      <scroll class="wv-tpl-row" scroll-x="true">
         <div for="{{ templateList }}" class="wv-tpl {{ $item.id === currentTplId ? 'wv-tpl-on' : '' }}" onclick="switchTemplate($item.id)" style="background-color:{{ $item.id === currentTplId ? $item.activeColor : theme.borderLight }};color:{{ $item.id === currentTplId ? '#fff' : theme.textSecondary }};border-color:{{ $item.id === currentTplId ? $item.activeColor : 'transparent' }}">
           <text class="wv-tpl-text">{{ $item.label }}</text>
         </div>
-      </div>
+      </scroll>
 
       <!-- schedule name at bottom -->
       <text class="wv-subtitle" style="color:{{ theme.accent }}">{{ scheduleName }}</text>
@@ -724,7 +724,8 @@ export default {
 .wv-subtitle {
   font-size: 24px;
   text-align: center;
-  margin-bottom: 8px;
+  lines: 1;
+  margin-bottom: 0;
 }
 
 /* ── grid ── */
@@ -852,18 +853,17 @@ export default {
 
 /* ── footer ── */
 .wv-footer {
+  flex-direction: column;
   padding: 8px 0 6px 0;
   align-items: center;
 }
 
 .wv-tpl-row {
   flex-direction: row;
-  overflow-x: scroll;
-  flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: center;
-  padding: 0 8px;
   width: 100%;
+  height: 44px;
 }
 
 .wv-tpl {
