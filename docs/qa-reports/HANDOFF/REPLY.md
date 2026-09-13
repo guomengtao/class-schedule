@@ -66,7 +66,8 @@
 | **P0-10** | 编辑/删除「假成功」：`database.js` `updateCourseStorage` + `deleteCourseStorage` 各加 `hit` 标记，id 未命中时 `callback(formatError(...))` 不再静默成功 | `5dc8fba` |
 | **P1-7** | 实验室「课程详情」入口已删除：`lab-list.js:26` 移除，同时堵上 P0-10 主入口 | `5dc8fba` |
 | **U-1** | 输入法 3 处箭头函数 → `function`：`InputMethod.ux:810/813` `device.getInfo` success/fail 回调、`dicUtil.js:59` `step`，零风险消除老内核整段不执行隐患 | `793c6dc` |
-| **UX-17** | 二维码生成器补 `chinese_input_maxlen=100`，chinese-input/chinese-input-full 触顶 showToast "已达输入上限" | `29e6f1b` |
+| **输入法合并** | 删除 `chinese-input-full`（无调用者），合并为单一 `chinese-input` 页，默认 `keyboardtype="T9"` 九键左右滑动输入；屏幕自动匹配 circle/rect/pill-shaped | `9f00b79` |
+| **UX-17** | 二维码生成器补 `chinese_input_maxlen=100`，chinese-input 触顶 showToast "已达输入上限" | `29e6f1b` |
 | **UX-15** | `onVibrate()` 加 try/catch 防未声明 feature 导致按键报错 | `29e6f1b` |
 | **UX-18** | `adjustScreenWidth()` 回调 this→self，补 `$watch("screentype")` | `29e6f1b` |
 | **UX-20** | welcome 胶囊屏按钮 200→160px，schedule-qrcode qr 200→160px，add-course/detail .course-card 胶囊屏 + width:160px/max-width:100% | `29e6f1b` |
