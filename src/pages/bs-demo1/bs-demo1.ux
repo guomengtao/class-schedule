@@ -1,7 +1,7 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
       <text class="header-title" style="color: {{ theme.text }}">Demo1: min-height</text>
     </div>
 
@@ -164,9 +164,30 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  .page {
-    padding: 60px 6px 120px 6px;
+  .header {
+    height: 48px;
+    margin-bottom: 8px;
+    flex-direction: row;
+    align-items: center;
   }
+  .back-btn {
+    width: 48px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 24px;
+    text-align: center;
+    line-height: 40px;
+    flex-shrink: 0;
+  }
+  .title {
+    font-size: 28px;
+    line-height: 44px;
+    text-align: center;
+    flex: 1;
+    lines: 1;
+    margin: 0 4px;
+  }
+
 }
 
 @media (shape: rect) {

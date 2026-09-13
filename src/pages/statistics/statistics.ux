@@ -2,8 +2,7 @@
 <template>
   <div class="stats-page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="◀" onclick="goBack"
-             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
       <text class="header-title" style="color: {{ theme.text }}">课程统计</text>
     </div>
 
@@ -411,60 +410,30 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  .stats-page {
-    padding: 60px 8px 120px 8px;
-  }
   .header {
-    height: 40px;
+    height: 48px;
     margin-bottom: 8px;
-    justify-content: center;
+    flex-direction: row;
+    align-items: center;
   }
   .back-btn {
-    width: 40px;
+    width: 48px;
     height: 40px;
+    border-radius: 20px;
+    font-size: 24px;
+    text-align: center;
+    line-height: 40px;
+    flex-shrink: 0;
+  }
+  .title {
     font-size: 28px;
+    line-height: 44px;
+    text-align: center;
+    flex: 1;
+    lines: 1;
+    margin: 0 4px;
   }
-  .header-title {
-    font-size: 28px;
-    margin-left: 8px;
-  }
-  .overview {
-    padding: 14px 10px;
-    margin-bottom: 8px;
-  }
-  .overview-number {
-    font-size: 34px;
-  }
-  .overview-label {
-    font-size: 20px;
-  }
-  .section {
-    padding: 12px 12px;
-    margin-bottom: 8px;
-  }
-  .section-title {
-    font-size: 24px;
-    margin-bottom: 8px;
-  }
-  .rank-item {
-    padding: 6px 0;
-  }
-  .rank-name {
-    font-size: 24px;
-    width: 64px;
-  }
-  .rank-bar-wrap {
-    height: 14px;
-    margin: 0 8px;
-  }
-  .rank-count {
-    font-size: 20px;
-    width: 28px;
-  }
-  .empty-text {
-    font-size: 24px;
-    padding: 16px 0;
-  }
+
 }
 
 @media (shape: rect) {

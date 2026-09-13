@@ -1,8 +1,7 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <input class="back-btn" type="button" value="<" onclick="goBack"
-        style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}"><</text>
     </div>
 
     <div class="info-bar" style="background-color: {{ theme.card }}">
@@ -113,6 +112,29 @@ export default {
 .row-cn { font-size: 28px; }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  .capsule-hide { display: none; }
+  .header {
+    height: 48px;
+    margin-bottom: 8px;
+    flex-direction: row;
+    align-items: center;
+  }
+  .back-btn {
+    width: 48px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 24px;
+    text-align: center;
+    line-height: 40px;
+    flex-shrink: 0;
+  }
+  .title {
+    font-size: 28px;
+    line-height: 44px;
+    text-align: center;
+    flex: 1;
+    lines: 1;
+    margin: 0 4px;
+  }
+
 }
 </style>

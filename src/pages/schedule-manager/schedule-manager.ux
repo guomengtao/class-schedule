@@ -3,7 +3,7 @@
   <stack class="page-root">
   <scroll class="page" scroll-y="true" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
       <text class="title" style="color: {{ theme.text }}">课程表管理</text>
     </div>
 
@@ -851,129 +851,30 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  .page {
-    padding: 60px 8px 120px 8px;
-  }
   .header {
+    height: 48px;
     margin-bottom: 8px;
+    flex-direction: row;
+    align-items: center;
   }
   .back-btn {
-    width: 52px;
+    width: 48px;
     height: 40px;
     border-radius: 20px;
-    font-size: 20px;
+    font-size: 24px;
+    text-align: center;
+    line-height: 40px;
+    flex-shrink: 0;
   }
   .title {
-    font-size: 30px;
-    line-height: 40px;
-  }
-  .item {
-    padding: 10px 12px;
-    margin-bottom: 10px;
-  }
-  .item-row {
-    min-height: 56px;
-  }
-  .box {
-    width: 36px;
-    height: 36px;
-    border-radius: 9px;
-  }
-  .check {
-    font-size: 22px;
-  }
-  .name {
     font-size: 28px;
-    line-height: 38px;
-    margin-left: 8px;
+    line-height: 44px;
+    text-align: center;
+    flex: 1;
+    lines: 1;
+    margin: 0 4px;
   }
-  .course-count {
-    font-size: 20px;
-  }
-  .expand-arrow {
-    font-size: 18px;
-  }
-  .actions {
-    padding-top: 8px;
-    margin-top: 8px;
-  }
-  .action-btn {
-    height: 48px;
-    border-radius: 24px;
-  }
-  .action-btn-text {
-    font-size: 24px;
-    line-height: 40px;
-  }
-  .add-section {
-    margin-top: 8px;
-  }
-  .add-btn {
-    height: 52px;
-    border-radius: 26px;
-    font-size: 28px;
-    line-height: 38px;
-  }
-  .rename-bar {
-    padding: 6px 10px;
-    margin-bottom: 10px;
-  }
-  .rename-display {
-    height: 48px;
-    font-size: 26px;
-  }
-  .rename-text {
-    font-size: 26px;
-  }
-  .rename-ok-btn,
-  .rename-cancel-btn {
-    width: 60px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 22px;
-  }
-  .footer-actions {
-    padding: 10px 0 6px 0;
-  }
-  .pin-link {
-    font-size: 22px;
-  }
-  .modal-card {
-    width: 90%;
-    max-height: 60%;
-    border-radius: 16px;
-    padding: 20px 16px;
-  }
-  .modal-title {
-    font-size: 28px;
-    line-height: 40px;
-    margin-bottom: 10px;
-  }
-  .modal-desc {
-    font-size: 22px;
-    line-height: 40px;
-    margin-bottom: 12px;
-  }
-  .benefit-list {
-    margin-bottom: 12px;
-    padding-left: 8px;
-  }
-  .benefit-item {
-    font-size: 22px;
-    line-height: 40px;
-    margin-bottom: 4px;
-  }
-  .modal-btn-primary {
-    height: 52px;
-    border-radius: 26px;
-    font-size: 26px;
-    margin-bottom: 10px;
-  }
-  .modal-btn-secondary {
-    height: 44px;
-    border-radius: 22px;
-    font-size: 24px;
-  }
+
 }
 
 @media (shape: rect) {

@@ -1,7 +1,7 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
       <text class="title" style="color: {{ theme.text }}">自定义内容</text>
     </div>
 
@@ -554,51 +554,30 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  .page {
-    padding: 60px 10px 120px 10px;
-  }
   .header {
-    margin-bottom: 10px;
+    height: 48px;
+    margin-bottom: 8px;
+    flex-direction: row;
+    align-items: center;
   }
   .back-btn {
-    width: 36px;
+    width: 48px;
     height: 40px;
+    border-radius: 20px;
     font-size: 24px;
+    text-align: center;
+    line-height: 40px;
+    flex-shrink: 0;
   }
   .title {
-    font-size: 36px;
-    margin-right: 36px;
-  }
-  .section-title {
-    font-size: 24px;
-  }
-  .preview-text {
     font-size: 28px;
+    line-height: 44px;
+    text-align: center;
+    flex: 1;
+    lines: 1;
+    margin: 0 4px;
   }
-  .preview-info-text {
-    font-size: 20px;
-  }
-  .edit-btn {
-    height: 42px;
-    font-size: 24px;
-  }
-  .clear-btn {
-    width: 80px;
-    height: 42px;
-    font-size: 24px;
-  }
-  .preset-item {
-    height: 36px;
-  }
-  .preset-text {
-    font-size: 24px;
-  }
-  .interval-item {
-    height: 36px;
-  }
-  .interval-text {
-    font-size: 24px;
-  }
+
 }
 
 @media (shape: rect) {

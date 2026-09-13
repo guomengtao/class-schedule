@@ -2,7 +2,7 @@
   <div class="input-page" style="background-color: {{ theme.bg }}">
     <div class="content-body">
       <div class="header">
-        <input class="back-btn" type="button" value="返回" onclick="onCancel" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+        <text class="back-btn" onclick="onCancel" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">返回</text>
         <text class="title" style="color: {{ theme.text }}">{{ title }}</text>
         <input class="confirm-btn" type="button" value="确认" onclick="onConfirm" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
@@ -296,54 +296,30 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  .input-page {
-    padding: 60px 8px 120px 8px;
-  }
   .header {
-    margin-bottom: 6px;
+    height: 48px;
+    margin-bottom: 8px;
+    flex-direction: row;
+    align-items: center;
   }
   .back-btn {
-    width: 52px;
+    width: 48px;
     height: 40px;
     border-radius: 20px;
-    font-size: 20px;
+    font-size: 24px;
+    text-align: center;
     line-height: 40px;
+    flex-shrink: 0;
   }
   .title {
-    font-size: 30px;
-    line-height: 40px;
-  }
-  .confirm-btn {
-    width: 60px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 20px;
-    line-height: 40px;
-  }
-  .display-area {
-    padding: 6px 10px;
-    margin-bottom: 6px;
-    min-height: 48px;
-  }
-  .display-text {
     font-size: 28px;
-    line-height: 38px;
+    line-height: 44px;
+    text-align: center;
+    flex: 1;
+    lines: 1;
+    margin: 0 4px;
   }
-  .font-bar {
-    padding: 6px 0 10px 0;
-    margin-top: 6px;
-  }
-  .font-label {
-    font-size: 22px;
-    margin-right: 8px;
-  }
-  .font-btn {
-    font-size: 22px;
-    width: 48px;
-    min-height: 40px;
-    border-radius: 16px;
-    margin-left: 4px;
-  }
+
 }
 
 @media (shape: rect) {

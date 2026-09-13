@@ -2,7 +2,7 @@
 <template>
   <div class="edit-page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
       <text class="header-title" style="color: {{ theme.text }}">编辑昵称</text>
       <input class="save-btn" type="button" value="保存" onclick="saveNickname" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
@@ -269,43 +269,30 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  .edit-page {
-    padding: 60px 10px 120px 10px;
-  }
-  .back-header {
-    height: 40px;
-    margin-bottom: 10px;
-    justify-content: center;
+  .header {
+    height: 48px;
+    margin-bottom: 8px;
+    flex-direction: row;
+    align-items: center;
   }
   .back-btn {
-    width: 36px;
+    width: 48px;
     height: 40px;
+    border-radius: 20px;
     font-size: 24px;
+    text-align: center;
+    line-height: 40px;
+    flex-shrink: 0;
   }
-  .header-title {
+  .title {
     font-size: 28px;
-    margin-left: 4px;
+    line-height: 44px;
+    text-align: center;
+    flex: 1;
+    lines: 1;
+    margin: 0 4px;
   }
-  .save-btn {
-    width: 50px;
-    height: 40px;
-    font-size: 20px;
-  }
-  .edit-content {
-    padding: 6px 0 0 0;
-  }
-  .nickname-display {
-    height: 50px;
-  }
-  .nickname-text {
-    font-size: 28px;
-  }
-  .cursor {
-    font-size: 28px;
-  }
-  .keyboard-area {
-    margin-top: 6px;
-  }
+
 }
 
 @media (shape: rect) {

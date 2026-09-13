@@ -1,8 +1,7 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <input class="back-btn" type="button" value="<" onclick="goBack"
-             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}"><</text>
       <text class="header-title" style="color: {{ theme.text }}">实验室</text>
     </div>
 
@@ -169,52 +168,30 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  .page {
-    padding: 60px 10px 120px 10px;
-  }
-  .back-header {
-    margin-bottom: 14px;
+  .header {
+    height: 48px;
+    margin-bottom: 8px;
+    flex-direction: row;
+    align-items: center;
   }
   .back-btn {
-    width: 52px;
+    width: 48px;
     height: 40px;
     border-radius: 20px;
-    font-size: 20px;
-  }
-  .header-title {
-    font-size: 30px;
-    line-height: 40px;
-  }
-  .section-hint {
     font-size: 24px;
-    margin-bottom: 10px;
+    text-align: center;
     line-height: 40px;
+    flex-shrink: 0;
   }
-  .list-row {
-    padding: 14px 12px;
-    margin-bottom: 8px;
-    min-height: 64px;
-    border-radius: 10px;
-  }
-  .row-name {
+  .title {
     font-size: 28px;
-    line-height: 42px;
-    max-lines: 1;
+    line-height: 44px;
+    text-align: center;
+    flex: 1;
+    lines: 1;
+    margin: 0 4px;
   }
-  .row-desc {
-    font-size: 22px;
-    line-height: 40px;
-    max-lines: 1;
-    margin-right: 4px;
-  }
-  .row-arrow {
-    font-size: 24px;
-  }
-  .version-text {
-    font-size: 20px;
-    padding-top: 10px;
-    line-height: 40px;
-  }
+
 }
 
 @media (shape: circle) {

@@ -3,7 +3,7 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
       <text class="title" style="color: {{ theme.text }}">导出</text>
     </div>
 
@@ -375,89 +375,30 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  .page {
-    padding: 60px 8px 120px 8px;
-  }
   .header {
-    height: 40px;
+    height: 48px;
     margin-bottom: 8px;
-    justify-content: center;
+    flex-direction: row;
+    align-items: center;
   }
   .back-btn {
-    width: 36px;
+    width: 48px;
     height: 40px;
+    border-radius: 20px;
     font-size: 24px;
+    text-align: center;
+    line-height: 40px;
+    flex-shrink: 0;
   }
   .title {
     font-size: 28px;
-    margin-right: 44px;
+    line-height: 44px;
+    text-align: center;
+    flex: 1;
+    lines: 1;
+    margin: 0 4px;
   }
-  .subtitle-section {
-    padding: 10px 14px;
-    margin-bottom: 8px;
-  }
-  .subtitle-text {
-    font-size: 24px;
-    line-height: 40px;
-  }
-  .schedule-name-section {
-    padding: 10px 14px;
-    margin-bottom: 8px;
-  }
-  .schedule-name-label {
-    font-size: 24px;
-  }
-  .schedule-name-value {
-    font-size: 28px;
-  }
-  .qr-section {
-    margin-bottom: 8px;
-  }
-  .qr-wrapper {
-    padding: 10px;
-  }
-  .qr-hint {
-    font-size: 20px;
-    margin-top: 6px;
-  }
-  .instructions-section {
-    padding: 12px 14px;
-    margin-bottom: 8px;
-  }
-  .instructions-title {
-    font-size: 24px;
-    margin-bottom: 6px;
-  }
-  .instructions-text {
-    font-size: 20px;
-    line-height: 26px;
-  }
-  .preview-section {
-    padding: 12px 14px;
-    margin-bottom: 8px;
-  }
-  .preview-title {
-    font-size: 24px;
-  }
-  .preview-text {
-    font-size: 20px;
-  }
-  .preview-content {
-    padding: 8px;
-  }
-  .preview-code {
-    font-size: 18px;
-    line-height: 24px;
-  }
-  .loading-section {
-    padding: 16px 12px;
-  }
-  .loading-text {
-    font-size: 24px;
-  }
-  .pin-link {
-    font-size: 20px;
-  }
+
 }
 
 @media (shape: rect) {

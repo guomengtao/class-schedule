@@ -2,7 +2,7 @@
 <template>
   <div class="settings-page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
       <text class="header-title" style="color: {{ theme.text }}">设置</text>
     </div>
 
@@ -801,201 +801,30 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  .settings-page {
-    padding: 60px 6px 120px 6px;
+  .header {
+    height: 48px;
+    margin-bottom: 8px;
+    flex-direction: row;
+    align-items: center;
   }
-
-  .back-header {
-    margin-bottom: 12px;
-  }
-
   .back-btn {
-    width: 52px;
+    width: 48px;
     height: 40px;
     border-radius: 20px;
-    font-size: 20px;
-  }
-
-  .header-title {
-    font-size: 30px;
-    line-height: 42px;
-  }
-
-  .group {
-    padding: 14px 10px;
-    margin-bottom: 12px;
-    border-radius: 10px;
-  }
-
-  .group-title {
-    font-size: 28px;
-  }
-
-  .group-title-row {
-    margin-bottom: 12px;
-  }
-
-  .row {
-    padding: 12px 0;
-    min-height: 52px;
-  }
-
-  .row-label {
-    font-size: 28px;
+    font-size: 24px;
+    text-align: center;
+    line-height: 40px;
     flex-shrink: 0;
   }
-
-  .row-value {
-    font-size: 24px;
-    margin-right: 4px;
+  .title {
+    font-size: 28px;
+    line-height: 44px;
+    text-align: center;
+    flex: 1;
+    lines: 1;
+    margin: 0 4px;
   }
 
-  .row-hint {
-    font-size: 20px;
-    margin-right: 4px;
-  }
-
-  .arrow {
-    font-size: 24px;
-  }
-
-  .divider {
-    margin: 6px 0;
-  }
-
-  .theme-grid {
-    margin-top: 12px;
-  }
-
-  .theme-item {
-    width: 25%;
-    padding: 10px 0;
-    border-radius: 6px;
-    border-width: 1px;
-  }
-
-  .theme-dot {
-    width: 20px;
-    height: 20px;
-    border-radius: 10px;
-  }
-
-  .theme-name {
-    font-size: 20px;
-    margin-top: 2px;
-  }
-
-  .scale-row {
-    margin-bottom: 12px;
-  }
-
-  .scale-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 24px;
-  }
-
-  .scale-value {
-    font-size: 24px;
-    width: 60px;
-  }
-
-  .preview-box {
-    padding: 10px;
-    border-radius: 6px;
-  }
-
-  .toggle-btn {
-    width: 64px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 24px;
-  }
-
-  .save-area {
-    margin-top: 18px;
-    padding-bottom: 8px;
-  }
-
-  .save-btn {
-    height: 52px;
-    border-radius: 26px;
-    font-size: 24px;
-  }
-
-  .version-text {
-    font-size: 20px;
-    padding-top: 12px;
-    padding-bottom: 8px;
-  }
-
-  .welcome-link {
-    font-size: 20px;
-    padding-bottom: 16px;
-  }
-
-  .overlay-modal {
-    justify-content: center;
-    padding: 0 10px;
-  }
-
-  .modal-card {
-    width: 90%;
-    border-radius: 12px;
-    padding: 14px 14px;
-  }
-
-  .modal-title {
-    font-size: 30px;
-    margin-bottom: 8px;
-  }
-
-  .modal-desc {
-    font-size: 22px;
-    margin-bottom: 14px;
-    line-height: 40px;
-  }
-
-  .modal-btn-primary {
-    height: 52px;
-    border-radius: 26px;
-    font-size: 24px;
-    margin-bottom: 6px;
-  }
-
-  .modal-btn-secondary {
-    height: 52px;
-    border-radius: 26px;
-    font-size: 22px;
-  }
-
-  .default-homepage-body {
-    padding: 10px 4px;
-  }
-
-  .page-options {
-    flex-direction: column;
-  }
-
-  .section-label {
-    font-size: 22px;
-    margin: 10px 0 6px 0;
-  }
-
-  .page-option {
-    width: 100%;
-    height: 44px;
-    border-radius: 10px;
-    padding: 0 16px;
-    margin: 0 0 8px 0;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .page-option-text {
-    font-size: 26px;
-  }
 }
 
 @media (shape: rect) {

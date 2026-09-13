@@ -2,7 +2,7 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="◀ 返回" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
       <text class="title" style="color: {{ theme.text }}">震动自定义</text>
     </div>
 
@@ -977,78 +977,30 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  .page {
-    padding: 60px 8px 120px 8px;
-  }
   .header {
+    height: 48px;
     margin-bottom: 8px;
-    padding: 4px 4px;
-    justify-content: center;
+    flex-direction: row;
+    align-items: center;
   }
   .back-btn {
-    width: 52px;
+    width: 48px;
     height: 40px;
     border-radius: 20px;
-    font-size: 20px;
+    font-size: 24px;
+    text-align: center;
+    line-height: 40px;
+    flex-shrink: 0;
   }
   .title {
-    font-size: 30px;
-    line-height: 40px;
-    flex: 1;
-    text-align: center;
-  }
-  .hero {
-    padding: 10px;
-    margin-bottom: 6px;
-  }
-  .hero-icon {
-    font-size: 36px;
-  }
-  .hero-name {
     font-size: 28px;
-    line-height: 38px;
+    line-height: 44px;
+    text-align: center;
+    flex: 1;
+    lines: 1;
+    margin: 0 4px;
   }
-  .hero-desc {
-    font-size: 22px;
-    line-height: 40px;
-  }
-  .play-btn {
-    width: 88px;
-    height: 44px;
-    border-radius: 22px;
-    font-size: 22px;
-  }
-  .stop-btn {
-    width: 72px;
-    height: 44px;
-    border-radius: 22px;
-    font-size: 22px;
-  }
-  .section {
-    padding: 10px;
-    margin-bottom: 6px;
-  }
-  .section-title {
-    font-size: 24px;
-    line-height: 40px;
-  }
-  .step-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 22px;
-  }
-  .step-value {
-    font-size: 26px;
-    line-height: 36px;
-    width: 80px;
-  }
-  .quick-btn {
-    width: 52px;
-    height: 36px;
-    border-radius: 18px;
-    font-size: 22px;
-  }
+
 }
 
 @media (shape: rect) {

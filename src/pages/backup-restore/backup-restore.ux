@@ -1,7 +1,7 @@
 rinuo@qq.com<template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
       <text class="title" style="color: {{ theme.text }}">备份</text>
     </div>
 
@@ -685,84 +685,30 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  .page {
-    padding: 60px 10px 120px 10px;
-  }
   .header {
-    height: 40px;
+    height: 48px;
+    margin-bottom: 8px;
+    flex-direction: row;
+    align-items: center;
   }
   .back-btn {
-    width: 36px;
+    width: 48px;
     height: 40px;
+    border-radius: 20px;
     font-size: 24px;
+    text-align: center;
+    line-height: 40px;
+    flex-shrink: 0;
   }
   .title {
     font-size: 28px;
-    line-height: 38px;
-    margin-right: 0;
+    line-height: 44px;
+    text-align: center;
+    flex: 1;
+    lines: 1;
+    margin: 0 4px;
   }
-  .bottom-create-btn {
-    width: 100%;
-    height: 40px;
-    font-size: 26px;
-  }
-  .backup-row {
-    padding: 14px 12px;
-    margin-bottom: 8px;
-  }
-  .backup-row-name {
-    font-size: 26px;
-    line-height: 36px;
-    margin-bottom: 4px;
-  }
-  .backup-row-meta {
-    font-size: 24px;
-    line-height: 40px;
-  }
-  .info-section {
-    padding: 14px 12px;
-  }
-  .info-title {
-    font-size: 26px;
-    line-height: 36px;
-  }
-  .info-text {
-    font-size: 24px;
-    line-height: 40px;
-  }
-  .modal-card {
-    width: 90%;
-    border-radius: 12px;
-    padding: 16px 14px;
-  }
-  .modal-title {
-    font-size: 26px;
-    margin-bottom: 8px;
-  }
-  .modal-desc {
-    font-size: 20px;
-    margin-bottom: 14px;
-    line-height: 26px;
-  }
-  .benefit-list {
-    margin-bottom: 14px;
-    padding-left: 6px;
-  }
-  .benefit-item {
-    font-size: 20px;
-    margin-bottom: 4px;
-  }
-  .modal-btn-primary {
-    height: 40px;
-    border-radius: 17px;
-    font-size: 24px;
-    margin-bottom: 6px;
-  }
-  .modal-btn-secondary {
-    height: 40px;
-    border-radius: 15px;
-    font-size: 22px;
-  }
+
 }
 
 @media (shape: rect) {

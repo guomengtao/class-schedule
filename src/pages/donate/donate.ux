@@ -304,9 +304,6 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  .page {
-    padding: 60px 6px 120px 6px;
-  }
   .header {
     height: 48px;
     margin-bottom: 8px;
@@ -330,46 +327,7 @@ export default {
     lines: 1;
     margin: 0 4px;
   }
-  .tab-bar {
-    margin-bottom: 10px;
-  }
-  .tab-item {
-    height: 36px;
-    border-radius: 18px;
-    margin: 0 2px;
-  }
-  .tab-text {
-    font-size: 20px;
-    line-height: 28px;
-  }
-  .qr-card {
-    padding: 12px 10px;
-    border-radius: 12px;
-  }
-  .platform-name {
-    font-size: 26px;
-    line-height: 36px;
-  }
-  .platform-desc {
-    font-size: 22px;
-    line-height: 32px;
-  }
-  .scan-hint {
-    font-size: 20px;
-    line-height: 28px;
-  }
-  .scan-sub-hint {
-    font-size: 18px;
-    line-height: 26px;
-  }
-  .thanks-icon {
-    font-size: 32px;
-    line-height: 42px;
-  }
-  .thanks-text {
-    font-size: 20px;
-    line-height: 28px;
-  }
+
 }
 
 @media (shape: rect) {

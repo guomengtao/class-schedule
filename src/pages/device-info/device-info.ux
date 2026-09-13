@@ -1,7 +1,7 @@
 <template>
   <div class="device-info-page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
       <text class="title" style="color: {{ theme.text }}">设备信息</text>
     </div>
 
@@ -336,44 +336,30 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  .device-info-page {
-    padding: 60px 10px 120px 10px;
-  }
   .header {
-    height: 40px;
-    margin-bottom: 10px;
+    height: 48px;
+    margin-bottom: 8px;
+    flex-direction: row;
+    align-items: center;
   }
   .back-btn {
-    width: 36px;
+    width: 48px;
     height: 40px;
+    border-radius: 20px;
     font-size: 24px;
+    text-align: center;
+    line-height: 40px;
+    flex-shrink: 0;
   }
   .title {
     font-size: 28px;
-    margin-right: 44px;
+    line-height: 44px;
+    text-align: center;
+    flex: 1;
+    lines: 1;
+    margin: 0 4px;
   }
-  .menu-item {
-    padding: 12px 12px;
-  }
-  .menu-label {
-    font-size: 28px;
-  }
-  .menu-value {
-    font-size: 24px;
-  }
-  .loading-text {
-    font-size: 24px;
-  }
-  .error-text {
-    font-size: 24px;
-  }
-  .retry-btn {
-    height: 40px;
-    font-size: 20px;
-  }
-  .pin-link {
-    font-size: 20px;
-  }
+
 }
 
 @media (shape: rect) {
