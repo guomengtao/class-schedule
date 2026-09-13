@@ -1,0 +1,358 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <input class="back-btn" type="button" value="◀" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <text class="header-title" style="color: {{ theme.text }}">胶囊屏隐藏测试</text>
+    </div>
+
+    <text class="test-info" style="color: {{ theme.accent }}">测试目标: 胶囊屏隐藏 → 方屏可见</text>
+    <text class="test-note" style="color: {{ theme.textMuted }}">每项含结果标记: ✓=可见 ✗=隐藏</text>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">方法1: display:none</text>
+      <text class="section-desc" style="color: {{ theme.textSecondary }}">@media (shape: capsule) { display: none }</text>
+      <div class="test-row">
+        <text class="test-label" style="color: {{ theme.text }}">display-none-text</text>
+        <text class="test-hint display-none-text" style="color: {{ theme.accent }}">应隐藏</text>
+        <text class="test-result-visible" style="color: {{ theme.textMuted }}">[方屏应可见]</text>
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">方法2: visibility:hidden</text>
+      <text class="section-desc" style="color: {{ theme.textSecondary }}">@media (shape: capsule) { visibility: hidden }</text>
+      <div class="test-row">
+        <text class="test-label" style="color: {{ theme.text }}">visibility-hidden-text</text>
+        <text class="test-hint visibility-hidden-text" style="color: {{ theme.accent }}">应隐藏</text>
+        <text class="test-result-visible" style="color: {{ theme.textMuted }}">[方屏应可见]</text>
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">方法3: opacity:0</text>
+      <text class="section-desc" style="color: {{ theme.textSecondary }}">@media (shape: capsule) { opacity: 0 }</text>
+      <div class="test-row">
+        <text class="test-label" style="color: {{ theme.text }}">opacity-zero-text</text>
+        <text class="test-hint opacity-zero-text" style="color: {{ theme.accent }}">应隐藏(但仍占位)</text>
+        <text class="test-result-visible" style="color: {{ theme.textMuted }}">[方屏应可见]</text>
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">方法4: width:0 + overflow:hidden</text>
+      <text class="section-desc" style="color: {{ theme.textSecondary }}">@media (shape: capsule) { width:0; overflow:hidden }</text>
+      <div class="test-row">
+        <text class="test-label" style="color: {{ theme.text }}">zero-width-text</text>
+        <text class="test-hint zero-width-text" style="color: {{ theme.accent }}">应隐藏</text>
+        <text class="test-result-visible" style="color: {{ theme.textMuted }}">[方屏应可见]</text>
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">方法5: font-size:0</text>
+      <text class="section-desc" style="color: {{ theme.textSecondary }}">@media (shape: capsule) { font-size: 0 }</text>
+      <div class="test-row">
+        <text class="test-label" style="color: {{ theme.text }}">zero-font-text</text>
+        <text class="test-hint zero-font-text" style="color: {{ theme.accent }}">应隐藏</text>
+        <text class="test-result-visible" style="color: {{ theme.textMuted }}">[方屏应可见]</text>
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">方法6: max-height:0 + overflow:hidden</text>
+      <text class="section-desc" style="color: {{ theme.textSecondary }}">@media (shape: capsule) { max-height:0; overflow:hidden }</text>
+      <div class="test-row">
+        <text class="test-label" style="color: {{ theme.text }}">zero-height-text</text>
+        <text class="test-hint zero-height-text" style="color: {{ theme.accent }}">应隐藏</text>
+        <text class="test-result-visible" style="color: {{ theme.textMuted }}">[方屏应可见]</text>
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">方法7: height:0 + overflow:hidden</text>
+      <text class="section-desc" style="color: {{ theme.textSecondary }}">@media (shape: capsule) { height:0; overflow:hidden }</text>
+      <div class="test-row">
+        <text class="test-label" style="color: {{ theme.text }}">height-zero-text</text>
+        <text class="test-hint height-zero-text" style="color: {{ theme.accent }}">应隐藏</text>
+        <text class="test-result-visible" style="color: {{ theme.textMuted }}">[方屏应可见]</text>
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">方法8: position:absolute + left:-9999px</text>
+      <text class="section-desc" style="color: {{ theme.textSecondary }}">@media (shape: capsule) { 移出视口 }</text>
+      <div class="test-row test-row-relative">
+        <text class="test-label" style="color: {{ theme.text }}">offscreen-text</text>
+        <text class="test-hint offscreen-text" style="color: {{ theme.accent }}">应隐藏</text>
+        <text class="test-result-visible" style="color: {{ theme.textMuted }}">[方屏应可见]</text>
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="section-title" style="color: {{ theme.text }}">方法9: 胶囊屏缩小字体(对照)</text>
+      <text class="section-desc" style="color: {{ theme.textSecondary }}">不隐藏,仅缩小字号作为替代方案</text>
+      <div class="test-row">
+        <text class="test-label" style="color: {{ theme.text }}">smaller-font-text</text>
+        <text class="test-hint smaller-font-text" style="color: {{ theme.accent }}">胶囊屏小字</text>
+        <text class="test-result-visible" style="color: {{ theme.textMuted }}">[始终可见]</text>
+      </div>
+    </div>
+
+    <div class="section summary-section" style="background-color: {{ theme.cardLight }}">
+      <text class="summary-title" style="color: {{ theme.accent }}">测试结论</text>
+      <text class="summary-text" style="color: {{ theme.text }}">在胶囊屏设备上观察上述方法,记录哪些真正生效</text>
+      <text class="summary-text" style="color: {{ theme.textSecondary }}">1-8应隐藏,9应可见(小字)</text>
+      <text class="summary-text" style="color: {{ theme.textMuted }}">在方屏设备上所有项均应可见</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+export default {
+  private: {
+    theme: {
+      bg: "#1a1a2e",
+      card: "#16213e",
+      cardLight: "#0f3460",
+      accent: "#7ec8e3",
+      text: "#ffffff",
+      textSecondary: "#888899",
+      textMuted: "#555566",
+      border: "#0f3460"
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 6px 10px 6px;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.back-btn {
+  width: 48px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 11px;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.test-info {
+  font-size: 18px;
+  margin-bottom: 4px;
+  padding: 0 4px;
+}
+
+.test-note {
+  font-size: 15px;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.section {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 12px 10px;
+  margin-bottom: 10px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.section-desc {
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.test-row {
+  flex-direction: row;
+  align-items: center;
+}
+
+.test-row-relative {
+  position: relative;
+}
+
+.test-label {
+  font-size: 17px;
+  width: 130px;
+  flex-shrink: 0;
+}
+
+.test-hint {
+  font-size: 17px;
+  margin-right: 6px;
+}
+
+.test-result-visible {
+  font-size: 15px;
+}
+
+.summary-section {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 14px 10px;
+  margin-bottom: 14px;
+}
+
+.summary-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.summary-text {
+  font-size: 17px;
+  margin-bottom: 4px;
+  line-height: 24px;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-header {
+    margin-bottom: 14px;
+  }
+  .back-btn {
+    width: 64px;
+    height: 40px;
+    font-size: 24px;
+  }
+  .header-title {
+    font-size: 30px;
+    margin-left: 12px;
+  }
+  .test-info {
+    font-size: 22px;
+  }
+  .test-note {
+    font-size: 18px;
+  }
+  .section {
+    padding: 16px 14px;
+  }
+  .section-title {
+    font-size: 24px;
+  }
+  .section-desc {
+    font-size: 18px;
+  }
+  .test-label {
+    font-size: 20px;
+    width: 150px;
+  }
+  .test-hint {
+    font-size: 20px;
+  }
+  .test-result-visible {
+    font-size: 18px;
+  }
+  .summary-title {
+    font-size: 26px;
+  }
+  .summary-text {
+    font-size: 20px;
+  }
+}
+
+@media (shape: capsule) {
+  .page {
+    padding: 44px 8px 10px 8px;
+  }
+
+  .display-none-text {
+    display: none;
+  }
+
+  .visibility-hidden-text {
+    visibility: hidden;
+  }
+
+  .opacity-zero-text {
+    opacity: 0;
+  }
+
+  .zero-width-text {
+    width: 0;
+    overflow: hidden;
+  }
+
+  .zero-font-text {
+    font-size: 0;
+  }
+
+  .zero-height-text {
+    max-height: 0;
+    overflow: hidden;
+  }
+
+  .height-zero-text {
+    height: 0;
+    overflow: hidden;
+  }
+
+  .offscreen-text {
+    position: absolute;
+    left: -9999px;
+  }
+
+  .smaller-font-text {
+    font-size: 12px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 6px 6px 6px;
+  }
+
+  .display-none-text,
+  .visibility-hidden-text,
+  .opacity-zero-text,
+  .zero-width-text,
+  .zero-font-text,
+  .zero-height-text,
+  .height-zero-text,
+  .offscreen-text {
+    display: flex;
+  }
+
+  .smaller-font-text {
+    font-size: 17px;
+  }
+}
+</style>

@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.4.210",
-  "versionCode": 710,
+  "versionName": "1.4.212",
+  "versionCode": 712,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -160,6 +160,9 @@
       },
       "pages/bs-demo5": {
         "component": "bs-demo5"
+      },
+      "pages/capsule-hide-test": {
+        "component": "capsule-hide-test"
       }
     }
   }

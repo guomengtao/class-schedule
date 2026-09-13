@@ -19,7 +19,8 @@ var ALL_PAGES = [
   { name: "重置数据", uri: "/pages/reset-data" },
   { name: "昵称编辑", uri: "/pages/nickname-edit" },
   { name: "添加课程", uri: "/pages/add-course" },
-  { name: "设置", uri: "/pages/settings" }
+  { name: "设置", uri: "/pages/settings" },
+  { name: "胶囊屏隐藏测试", uri: "/pages/capsule-hide-test" }
 ]
 
 function getStorage(callback) {
