@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.4.231",
-  "versionCode": 731,
+  "versionName": "1.4.233",
+  "versionCode": 733,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -21,6 +21,9 @@
     },
     {
       "name": "system.device"
+    },
+    {
+      "name": "system.vibrator"
     },
     {
       "name": "system.request"
