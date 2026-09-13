@@ -78,9 +78,6 @@
       "pages/chinese-input": {
         "component": "chinese-input"
       },
-      "pages/chinese-input-full": {
-        "component": "chinese-input-full"
-      },
       "pages/statistics": {
         "component": "statistics"
       },

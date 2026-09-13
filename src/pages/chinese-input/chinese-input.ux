@@ -17,6 +17,7 @@
           hide="{{ hideKeyboard }}"
           maxlength="{{ maxlen }}"
           screentype="{{ screenType }}"
+          keyboardtype="T9"
           vibratemode="short"
           oncomplete="onCharacter"
           ondelete="onDeleteChar"
