@@ -328,6 +328,33 @@ export default {
     margin: 0 4px;
   }
 
+  .page {
+    padding: 44px 4px 12px 4px;
+  }
+
+  .tab-bar {
+    overflow-x: scroll;
+    flex-wrap: nowrap;
+    margin-bottom: 14px;
+    border-radius: 10px;
+  }
+
+  .tab-item {
+    flex-shrink: 0;
+    flex: none;
+    width: auto;
+    padding: 0 12px;
+    margin: 0 2px;
+    border-radius: 10px;
+    height: 44px;
+  }
+
+  .tab-text {
+    font-size: 28px;
+    lines: 1;
+    line-height: 38px;
+  }
+
 }
 
 @media (shape: rect) {
