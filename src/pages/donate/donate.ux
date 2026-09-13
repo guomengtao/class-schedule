@@ -305,58 +305,67 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
-    padding: 120px 8px 120px 8px;
+    padding: 120px 6px 120px 6px;
   }
   .header {
-    height: 48px;
-    margin-bottom: 10px;
+    height: 40px;
+    margin-bottom: 8px;
+    position: relative;
   }
   .back-btn {
-    width: 52px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 20px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 40px;
+    height: 36px;
+    border-radius: 18px;
+    font-size: 18px;
   }
   .title {
-    font-size: 30px;
-    line-height: 40px;
-    margin-right: 52px;
+    font-size: 28px;
+    line-height: 36px;
+    text-align: center;
+    margin-right: 0;
+  }
+  .tab-bar {
+    margin-bottom: 10px;
   }
   .tab-item {
-    height: 44px;
-    border-radius: 22px;
+    height: 36px;
+    border-radius: 18px;
+    margin: 0 2px;
   }
   .tab-text {
-    font-size: 24px;
-    line-height: 40px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .qr-card {
-    padding: 14px 12px;
+    padding: 12px 10px;
     border-radius: 12px;
   }
   .platform-name {
-    font-size: 28px;
-    line-height: 38px;
+    font-size: 26px;
+    line-height: 36px;
   }
   .platform-desc {
-    font-size: 24px;
-    line-height: 40px;
+    font-size: 22px;
+    line-height: 32px;
   }
   .scan-hint {
-    font-size: 22px;
-    line-height: 40px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .scan-sub-hint {
-    font-size: 20px;
-    line-height: 40px;
+    font-size: 18px;
+    line-height: 26px;
   }
   .thanks-icon {
-    font-size: 36px;
-    line-height: 48px;
+    font-size: 32px;
+    line-height: 42px;
   }
   .thanks-text {
-    font-size: 24px;
-    line-height: 40px;
+    font-size: 20px;
+    line-height: 28px;
   }
 }
 
