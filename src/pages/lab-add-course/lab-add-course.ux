@@ -717,4 +717,123 @@ export default {
   max-lines: 1;
   text-overflow: ellipsis;
 }
+
+@media (shape: capsule), (shape: pill-shaped) {
+  .page-root {
+    padding: 120px 16px 120px 16px;
+  }
+  .header {
+    margin-bottom: 10px;
+  }
+  .back-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    font-size: 24px;
+    line-height: 44px;
+  }
+  .title {
+    font-size: 28px;
+    line-height: 38px;
+    margin-right: 48px;
+  }
+  .step-dots {
+    margin-bottom: 10px;
+  }
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 6px;
+  }
+  .dot-line {
+    width: 24px;
+    height: 2px;
+    margin: 0 2px;
+  }
+  .step-heading {
+    font-size: 26px;
+    line-height: 36px;
+  }
+  .step-sub {
+    font-size: 22px;
+    line-height: 30px;
+    margin-bottom: 10px;
+  }
+  .arrow-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 24px;
+    line-height: 40px;
+  }
+  .course-card {
+    width: 150px;
+    height: 88px;
+    padding: 16px;
+    margin: 0 8px;
+    border-radius: 12px;
+    border-width: 2px;
+  }
+  .card-name {
+    font-size: 28px;
+    line-height: 38px;
+  }
+  .index-text {
+    font-size: 20px;
+    line-height: 28px;
+    margin-bottom: 8px;
+  }
+  .manage-btn,
+  .next-btn,
+  .prev-btn,
+  .save-btn {
+    width: 88px;
+    height: 42px;
+    font-size: 24px;
+    line-height: 40px;
+  }
+  .time-label {
+    font-size: 24px;
+    line-height: 34px;
+    margin-top: 6px;
+    margin-bottom: 4px;
+  }
+  .stepper-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
+    font-size: 24px;
+    line-height: 40px;
+  }
+  .stepper-num {
+    font-size: 32px;
+    line-height: 42px;
+    width: 48px;
+  }
+  .stepper-tag {
+    font-size: 22px;
+    line-height: 32px;
+    width: 44px;
+  }
+  .optional-tip {
+    font-size: 20px;
+    line-height: 28px;
+    margin-bottom: 8px;
+  }
+  .location-box {
+    height: 48px;
+  }
+  .location-val {
+    font-size: 26px;
+    line-height: 36px;
+  }
+  .confirm-tag {
+    font-size: 22px;
+    line-height: 32px;
+    margin-top: 6px;
+  }
+  .confirm-val {
+    font-size: 26px;
+    line-height: 36px;
+  }
+}
 </style>
