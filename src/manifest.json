@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.4.240",
-  "versionCode": 740,
+  "versionName": "1.4.242",
+  "versionCode": 742,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -143,6 +143,9 @@
       },
       "pages/capsule-hide-test": {
         "component": "capsule-hide-test"
+      },
+      "pages/lab-add-course": {
+        "component": "lab-add-course"
       }
     }
   }
