@@ -129,73 +129,195 @@ export default {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  padding: 44px 10px 12px 10px;
+  padding: 12px 8px 4px 8px;
 }
 
 .header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 6px;
+  height: 40px;
+  flex-shrink: 0;
 }
 
 .back-btn {
   width: 48px;
-  height: 40px;
+  height: 36px;
   border-radius: 8px;
-  font-size: 28px;
+  font-size: 24px;
   text-align: center;
-  line-height: 36px;
+  line-height: 34px;
+  flex-shrink: 0;
 }
 
 .title {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: bold;
   margin-left: 8px;
   flex: 1;
+  line-height: 36px;
 }
 
 .input-display {
   flex-direction: row;
   align-items: center;
-  padding: 12px 16px;
+  padding: 8px 12px;
   border-radius: 10px;
   border-width: 2px;
-  margin-bottom: 10px;
-  min-height: 52px;
+  margin-bottom: 4px;
+  min-height: 40px;
+  flex-shrink: 0;
 }
 
 .input-text {
-  font-size: 32px;
+  font-size: 26px;
   flex: 1;
 }
 
 .cursor {
-  font-size: 32px;
+  font-size: 26px;
   margin-left: 2px;
 }
 
 .keyboard-area {
+  flex: 1;
   flex-direction: column;
+  min-height: 0;
+  overflow: visible;
 }
 
 .keyboard-close-row {
   flex-direction: row;
   justify-content: flex-end;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
+  flex-shrink: 0;
+  height: 30px;
 }
 
 .done-btn {
   width: 56px;
-  height: 34px;
+  height: 28px;
   border-radius: 8px;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: bold;
   text-align: center;
 }
 
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 12px 36px;
+  }
+  .header {
+    height: 48px;
+    margin-bottom: 12px;
+  }
+  .back-btn {
+    height: 40px;
+    font-size: 28px;
+    line-height: 36px;
+  }
+  .title {
+    font-size: 36px;
+  }
+  .input-display {
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    min-height: 52px;
+  }
+  .input-text {
+    font-size: 32px;
+  }
+  .cursor {
+    font-size: 32px;
+  }
+  .keyboard-close-row {
+    margin-bottom: 4px;
+    height: 34px;
+  }
+  .done-btn {
+    height: 34px;
+    font-size: 24px;
+  }
+}
+
+@media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 8px 6px 2px 6px;
+  }
+  .header {
+    height: 36px;
+    margin-bottom: 4px;
+  }
+  .back-btn {
+    width: 44px;
+    height: 32px;
+    font-size: 22px;
+    line-height: 30px;
+    border-radius: 16px;
+  }
+  .title {
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .input-display {
+    padding: 6px 10px;
+    margin-bottom: 2px;
+    border-radius: 8px;
+    min-height: 34px;
+  }
+  .input-text {
+    font-size: 22px;
+  }
+  .cursor {
+    font-size: 22px;
+  }
+  .keyboard-close-row {
+    height: 26px;
+    margin-bottom: 1px;
+  }
+  .done-btn {
+    height: 24px;
+    font-size: 18px;
+    width: 48px;
+  }
+}
+
 @media (shape: rect) {
   .page {
-    padding: 44px 8px 8px 8px;
+    padding: 8px 6px 2px 6px;
+  }
+  .header {
+    height: 32px;
+    margin-bottom: 4px;
+  }
+  .back-btn {
+    height: 28px;
+    font-size: 20px;
+    line-height: 26px;
+  }
+  .title {
+    font-size: 22px;
+    line-height: 28px;
+  }
+  .input-display {
+    padding: 4px 8px;
+    margin-bottom: 2px;
+    min-height: 30px;
+  }
+  .input-text {
+    font-size: 20px;
+  }
+  .cursor {
+    font-size: 20px;
+  }
+  .keyboard-close-row {
+    height: 24px;
+    margin-bottom: 1px;
+  }
+  .done-btn {
+    height: 22px;
+    font-size: 16px;
+    width: 44px;
   }
 }
 </style>
