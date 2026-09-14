@@ -28,6 +28,7 @@ const store = require("../../data/store.js")
 export default {
   private: {
     labItems: [
+      { name: "添加课程V2", desc: "全新添加课程页面", uri: "/pages/add-course-v2" },
       { name: "添加课程(胶囊)", desc: "胶囊版添加课程页面", uri: "/pages/lab-add-course" },
       { name: "震动实验室", desc: "震动效果测试", uri: "/pages/vibration-lab" },
       { name: "二维码生成", desc: "二维码生成工具", uri: "/pages/qrcode-generator" }
