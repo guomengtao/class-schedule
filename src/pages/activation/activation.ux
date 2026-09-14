@@ -1,10 +1,5 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <div class="back-header">
-      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
-      <text class="header-title" style="color: {{ theme.text }}">高级版</text>
-    </div>
-
     <scroll class="page-scroll" scroll-y="{{true}}">
       <div class="status-card" style="background-color: {{ theme.card }}">
         <text class="status-main" style="color: {{ statusColor }}">{{ statusText }}</text>
@@ -611,27 +606,6 @@ export default {
   flex-direction: column;
 }
 
-.back-header {
-  flex-direction: row;
-  align-items: center;
-  padding: 0;
-  margin-bottom: 14px;
-}
-
-.back-btn {
-  width: 64px;
-  height: 34px;
-  border-radius: 8px;
-  font-size: 20px; line-height: 28px;
-  text-align: center;
-}
-
-.header-title {
-  font-size: 36px;
-  font-weight: bold;
-  margin-left: 12px;
-}
-
 .status-card {
   flex-direction: column;
   border-radius: 12px;
@@ -963,40 +937,12 @@ export default {
   .page {
     padding: 44px 36px 44px 36px;
   }
-  .back-header {
-    padding: 0 20px;
-    justify-content: center;
-  }
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
-    padding: 120px 16px 120px 16px;
+    padding: 30px 16px 30px 16px;
   }
-  .header {
-    height: 48px;
-    margin-bottom: 8px;
-    flex-direction: row;
-    align-items: center;
-  }
-  .back-btn {
-    width: 48px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 24px;
-    text-align: center;
-    line-height: 40px;
-    flex-shrink: 0;
-  }
-  .title {
-    font-size: 28px;
-    line-height: 44px;
-    text-align: center;
-    flex: 1;
-    lines: 1;
-    margin: 0 4px;
-  }
-
 }
 
 @media (shape: rect) {

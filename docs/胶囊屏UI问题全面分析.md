@@ -39,8 +39,8 @@
 ```css
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
-    padding-top: 120px;
-    padding-bottom: 120px;
+    padding-top: 30px;
+    padding-bottom: 30px;
     padding-left: 16px;
     padding-right: 16px;
   }
@@ -233,9 +233,9 @@ lines: 1;
 text-overflow: ellipsis;
 ```
 
-### 6.3 padding-top < 120px 导致顶部被半圆遮挡
+### 6.3 padding-top < 30px 导致顶部被半圆遮挡
 
-胶囊屏顶部半圆半径 96px，规范要求 `padding-top: 120px`。几乎所有页面的 capsule 适配块都未达到此值：
+胶囊屏顶部半圆半径 96px，规范要求 `padding-top: 30px`。几乎所有页面的 capsule 适配块都未达到此值：
 
 | 页面 | capsule padding | 偏差 |
 |------|-----------------|------|
@@ -250,8 +250,8 @@ text-overflow: ellipsis;
 ```css
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
-    padding-top: 120px;
-    padding-bottom: 120px;
+    padding-top: 30px;
+    padding-bottom: 30px;
   }
 }
 ```
@@ -442,7 +442,7 @@ overflow-wrap: break-word;
 | 序号 | 任务 | 影响页面 |
 |------|------|----------|
 | 7 | 所有非规范中间字号替换为规范档位 | ~20 页 |
-| 8 | capsule 适配块中 padding-top 升级到 120px | 全 32 已适配页 |
+| 8 | capsule 适配块中 padding-top 升级到 30px | 全 32 已适配页 |
 | 9 | 所有长文本添加 `lines: 1; text-overflow: ellipsis` | ~10 页 |
 
 ### P2 — 优化改进（下月）
@@ -462,8 +462,8 @@ overflow-wrap: break-word;
 @media (shape: capsule), (shape: pill-shaped) {
   /* ----- 页面容器 ----- */
   .page {
-    padding-top: 120px;
-    padding-bottom: 120px;
+    padding-top: 30px;
+    padding-bottom: 30px;
     padding-left: 16px;
     padding-right: 16px;
   }
@@ -560,7 +560,7 @@ overflow-wrap: break-word;
 
 - [ ] 全量 34px → 30px（页面标题）
 - [ ] 全量 26px → 24px 或 28px（按用途）
-- [ ] 全量 capsule 适配块 padding-top → 120px
+- [ ] 全量 capsule 适配块 padding-top → 30px
 
 ### 第三轮：P2 优化
 

@@ -18,10 +18,10 @@
 		<!-- 这里是480px圆表屏幕的键盘 -->
         <div id="full-keyboard" if="{{keyboardtype!='T9'}}" style="width: 480px;height: 321px;">
           <img src="./assets/full/back2.png" style="position: absolute;top:38px;left:7px;width:466px;height:52px;" @click="onBtnClick('switchCn')" show="{{numFlag}}" />
-          <img src="./assets/full/123.png" style="position: absolute;top:266px;left:119px;width:120px;height:48px;" @click="onBtnClick('switchNum')" show="{{downFlag==='' && !numFlag && lang==='cn'}}" />
-          <img src="./assets/full/123.png" style="position: absolute;top:266px;left:119px;width:120px;height:48px;" @click="onBtnClick('switchNum_jp')" show="{{downFlag==='' && !numFlag && lang==='jp'}}" />
-          <img src="./assets/full/bigA.png" style="position: absolute;top:266px;left:119px;width:120px;height:48px;" @click="onBtnClick('switchLow')" show="{{downFlag==='' && upperFlag && lang==='en'}}" />
-          <img src="./assets/full/A.png" style="position: absolute;top:266px;left:119px;width:120px;height:48px;" @click="onBtnClick('switchUpper')" show="{{downFlag==='' && !upperFlag && lang==='en'}}" />
+          <img src="./assets/full/123.png" style="position: absolute;top:266px;left:119px;width:30px;height:48px;" @click="onBtnClick('switchNum')" show="{{downFlag==='' && !numFlag && lang==='cn'}}" />
+          <img src="./assets/full/123.png" style="position: absolute;top:266px;left:119px;width:30px;height:48px;" @click="onBtnClick('switchNum_jp')" show="{{downFlag==='' && !numFlag && lang==='jp'}}" />
+          <img src="./assets/full/bigA.png" style="position: absolute;top:266px;left:119px;width:30px;height:48px;" @click="onBtnClick('switchLow')" show="{{downFlag==='' && upperFlag && lang==='en'}}" />
+          <img src="./assets/full/A.png" style="position: absolute;top:266px;left:119px;width:30px;height:48px;" @click="onBtnClick('switchUpper')" show="{{downFlag==='' && !upperFlag && lang==='en'}}" />
           <div style="position: absolute;top:38px;left:78px;width:324px;height:52px;background-color:rgb(38,38,38);border-radius: 12px;border: 3px solid #333333" show="{{downFlag===''&& !numFlag}}"></div>
           <img show="{{resultRow0.length > 0}}" style="position: absolute;top:43px;left:355px;" src="./assets/full/down.png" @click="onBtnClick('down')" />
           <!-- 带变量的相对路径在 aiot-tookit 2.0.4 中修复 -->
@@ -84,10 +84,10 @@
             <img src="./assets/full/3-2.png" style="width:72px;height:52px;" @click="onSelect('、')" />
           </div>
           <img src="./assets/full/del.png" style="position: absolute;top:38px;left:406px;width:67px;height:52px;" @click="onBtnClick('D')" show="{{downFlag==='' && !numFlag }}" />
-          <img src="./assets/full/space.png" style="position: absolute;top:266px;left:242px;width:120px;height:48px;" @click="onBtnClick('space')" show="{{downFlag==='' && !numFlag }}" />
-          <img src="./assets/full/4-2.png" style="position: absolute;top:266px;left:242px;width:120px;height:48px;" @click="onSelect('。')" show="{{numFlag }}" />
-          <img src="./assets/full/4-1.png" style="position: absolute;top:266px;left:119px;width:120px;height:48px;" @click="onSelect('，')" show="{{numFlag && !numFlag_jp}}" />
-          <img src="./assets/full/4-1.png" style="position: absolute;top:266px;left:119px;width:120px;height:48px;" @click="onSelect('、')" show="{{numFlag_jp}}" />
+          <img src="./assets/full/space.png" style="position: absolute;top:266px;left:242px;width:30px;height:48px;" @click="onBtnClick('space')" show="{{downFlag==='' && !numFlag }}" />
+          <img src="./assets/full/4-2.png" style="position: absolute;top:266px;left:242px;width:30px;height:48px;" @click="onSelect('。')" show="{{numFlag }}" />
+          <img src="./assets/full/4-1.png" style="position: absolute;top:266px;left:119px;width:30px;height:48px;" @click="onSelect('，')" show="{{numFlag && !numFlag_jp}}" />
+          <img src="./assets/full/4-1.png" style="position: absolute;top:266px;left:119px;width:30px;height:48px;" @click="onSelect('、')" show="{{numFlag_jp}}" />
           <img style="position: absolute;top:204px;left:78px;" src="./assets/full/up.png" @click="onBtnClick('down')" show="{{downFlag==='down'}}" />
         </div>
         <!-- 九键 -->
@@ -308,7 +308,7 @@
               <text for="{{resultRow0}}" show="{{resultRow0.length > $idx}}" class="calbtn02" style="padding-right:10px" @click="onRsSelect(resultRow0[$idx])">{{resultRow0[$idx]}}</text>
             </div>
           </scroll>
-          <img show="{{resultRow0.length > 0}}" style="position: absolute;left: 120px;top: 57px;width: 60px;height: 40px;" src="./assets/arc/down2.png" @click="onBtnClick('down')" />
+          <img show="{{resultRow0.length > 0}}" style="position: absolute;left: 30px;top: 57px;width: 60px;height: 40px;" src="./assets/arc/down2.png" @click="onBtnClick('down')" />
           <!-- 带变量的相对路径在 aiot-tookit 2.0.4 中修复 -->
           <img src="./assets/arc/{{lang}}.png" style="position: absolute;top:0px;left:9px;width: 48px;height: 42px;" @click="onBtnClick('lang')" show="{{downFlag==='' && !numFlag && !numFlag_jp}}" />
           <img src="./assets/arc/back2.png" style="position: absolute;top:0px;left:9px;width: 48px;height: 42px;" @click="onBtnClick('switchCn')" show="{{numFlag && lang==='cn' ||numFlag_jp && lang==='jp' }}" />

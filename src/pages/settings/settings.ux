@@ -817,7 +817,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .settings-page {
-    padding: 120px 16px 120px 16px;
+    padding: 30px 16px 30px 16px;
   }
 
   .back-header {

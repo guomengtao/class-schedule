@@ -441,14 +441,17 @@ export default {
     width: 44px;
     height: 40px;
     font-size: 28px;
+    line-height: 36px;
   }
   .title {
     font-size: 36px;
+    line-height: 44px;
   }
   .add-btn {
     width: 64px;
     height: 36px;
     font-size: 24px;
+    line-height: 32px;
   }
   .course-item {
     padding: 10px;
