@@ -486,30 +486,81 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
+  .manager-page {
+    padding: 8px 6px 4px 6px;
+  }
   .header {
-    height: 48px;
-    margin-bottom: 8px;
-    flex-direction: row;
-    align-items: center;
+    height: 36px;
+    margin-bottom: 4px;
   }
   .back-btn {
-    width: 48px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 24px;
-    text-align: center;
-    line-height: 40px;
-    flex-shrink: 0;
+    width: 42px;
+    height: 32px;
+    border-radius: 16px;
+    font-size: 20px;
+    line-height: 30px;
   }
   .title {
-    font-size: 28px;
-    line-height: 44px;
-    text-align: center;
-    flex: 1;
-    lines: 1;
-    margin: 0 4px;
+    font-size: 24px;
+    line-height: 32px;
   }
-
+  .add-btn {
+    width: 60px;
+    height: 32px;
+    border-radius: 8px;
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .clear-bar {
+    padding: 4px 0;
+    margin-bottom: 4px;
+  }
+  .clear-hint {
+    font-size: 18px;
+    line-height: 24px;
+  }
+  .clear-btn {
+    width: 52px;
+    height: 26px;
+    border-radius: 6px;
+    font-size: 18px;
+    line-height: 24px;
+  }
+  .course-item {
+    padding: 8px;
+    margin-bottom: 4px;
+    border-radius: 8px;
+  }
+  .item-index {
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    margin-right: 6px;
+  }
+  .index-text {
+    font-size: 16px;
+    line-height: 22px;
+  }
+  .course-name {
+    font-size: 24px;
+    line-height: 30px;
+  }
+  .edit-btn {
+    width: 44px;
+    height: 26px;
+    border-radius: 6px;
+    font-size: 18px;
+    line-height: 24px;
+    margin-left: 6px;
+  }
+  .delete-btn {
+    width: 44px;
+    height: 26px;
+    border-radius: 6px;
+    font-size: 18px;
+    line-height: 24px;
+    margin-left: 4px;
+  }
 }
 
 @media (shape: rect) {
@@ -569,23 +620,4 @@ export default {
   }
 }
 
-.keyboard-area {
-  flex-direction: column;
-  margin-top: 10px;
-}
-
-.keyboard-close-row {
-  flex-direction: row;
-  justify-content: flex-end;
-  margin-bottom: 4px;
-}
-
-.keyboard-done-btn {
-  width: 56px;
-  height: 34px;
-  border-radius: 8px;
-  font-size: 24px;
-  font-weight: bold;
-  text-align: center;
-}
 </style>

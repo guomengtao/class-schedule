@@ -839,32 +839,153 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
+  .add-course-page {
+    padding: 8px 6px 4px 6px;
+  }
   .header {
-    height: 48px;
-    margin-bottom: 8px;
-    flex-direction: row;
-    align-items: center;
+    height: 36px;
+    margin-bottom: 4px;
   }
   .back-btn {
-    width: 48px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 24px;
-    text-align: center;
-    line-height: 40px;
-    flex-shrink: 0;
+    width: 42px;
+    height: 32px;
+    border-radius: 16px;
+    font-size: 20px;
+    line-height: 30px;
   }
   .title {
-    font-size: 28px;
-    line-height: 44px;
-    text-align: center;
-    flex: 1;
-    lines: 1;
-    margin: 0 4px;
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .step-indicator {
+    margin-bottom: 6px;
+  }
+  .step-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 6px;
+  }
+  .step-line {
+    width: 24px;
+    height: 3px;
+    margin: 0 2px;
+  }
+  .step-title {
+    font-size: 22px;
+    line-height: 28px;
+    margin-bottom: 4px;
+  }
+  .step-hint {
+    font-size: 18px;
+    line-height: 24px;
+    margin-bottom: 6px;
+  }
+  .swiper-wrapper {
+    margin-bottom: 6px;
+  }
+  .swipe-arrow {
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    font-size: 20px;
   }
   .course-card {
-    width: 160px;
-    max-width: 100%;
+    width: 140px;
+    height: 90px;
+    padding: 14px;
+    margin: 0 8px;
+    border-radius: 10px;
+    border-width: 2px;
+  }
+  .card-course-name {
+    font-size: 26px;
+    line-height: 32px;
+  }
+  .course-index-hint {
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+  .picker-label {
+    font-size: 22px;
+    line-height: 28px;
+    margin-top: 6px;
+    margin-bottom: 4px;
+  }
+  .stepper-time {
+    padding: 8px;
+    margin-bottom: 6px;
+    border-radius: 10px;
+  }
+  .stepper-row {
+    margin-bottom: 4px;
+  }
+  .stepper-label {
+    font-size: 20px;
+    width: 44px;
+    line-height: 28px;
+  }
+  .stepper-btn {
+    width: 36px;
+    height: 30px;
+    border-radius: 8px;
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .stepper-val {
+    font-size: 28px;
+    width: 44px;
+    line-height: 32px;
+  }
+  .location-display {
+    height: 40px;
+    border-radius: 8px;
+    padding: 0 10px;
+    margin-bottom: 4px;
+  }
+  .location-text {
+    font-size: 22px;
+    line-height: 28px;
+  }
+  .location-cursor {
+    font-size: 22px;
+  }
+  .optional-hint {
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+  .step-nav {
+    margin-top: 8px;
+  }
+  .prev-btn,
+  .next-btn,
+  .save-btn {
+    width: 90px;
+    height: 36px;
+    border-radius: 8px;
+    font-size: 20px;
+    line-height: 36px;
+  }
+  .manage-btn {
+    width: 70px;
+    height: 36px;
+    border-radius: 8px;
+    font-size: 20px;
+    line-height: 36px;
+  }
+  .confirm-card {
+    padding: 10px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+  }
+  .confirm-label {
+    font-size: 22px;
+    line-height: 28px;
+    margin-top: 8px;
+    margin-bottom: 2px;
+  }
+  .confirm-value {
+    font-size: 22px;
+    line-height: 28px;
   }
 }
 
