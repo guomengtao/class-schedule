@@ -58,7 +58,11 @@ export default {
     store.getTheme(function(t) { self.theme = t })
     device.getInfo({
       success: function(data) {
-        self.screenType = data.screenShape || "circle"
+        var shape = data.screenShape || "circle"
+        if (shape === "capsule") {
+          shape = "pill-shaped"
+        }
+        self.screenType = shape
       }
     })
     this.loadParams()
