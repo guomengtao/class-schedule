@@ -398,7 +398,7 @@ export default {
   },
 
   openLabSettings() {
-    router.push({ uri: "/pages/lab-settings" })
+    router.push({ uri: "/pages/lab" })
   },
 
   openActivation() {

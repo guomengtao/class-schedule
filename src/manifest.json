@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.5.0",
-  "versionCode": 754,
+  "versionName": "1.5.1",
+  "versionCode": 755,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -122,9 +122,6 @@
       },
       "pages/black-screen-check": {
         "component": "black-screen-check"
-      },
-      "pages/lab-settings": {
-        "component": "lab-settings"
       },
       "pages/lab-add-course": {
         "component": "lab-add-course"
