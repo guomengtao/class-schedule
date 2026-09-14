@@ -128,14 +128,6 @@
         </div>
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
-      <div class="row" onclick="openTestArea">
-        <text class="row-label" style="color: {{ theme.text }}">功能实验室</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">实验性功能</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
       <div class="row" onclick="openLabSettings">
         <text class="row-label" style="color: {{ theme.text }}">实验室列表</text>
         <div class="row-right">
@@ -407,10 +399,6 @@ export default {
 
   openLabSettings() {
     router.push({ uri: "/pages/lab-settings" })
-  },
-
-  openTestArea() {
-    router.push({ uri: "/pages/lab" })
   },
 
   openActivation() {
