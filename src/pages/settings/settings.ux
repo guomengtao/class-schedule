@@ -843,8 +843,32 @@ export default {
     margin: 0 4px;
   }
 
+  .row {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px 0;
+  }
+
+  .row-label {
+    font-size: 32px;
+    line-height: 44px;
+    margin-bottom: 6px;
+  }
+
+  .row-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
   .row-hint {
-    display: none;
+    font-size: 28px;
+    line-height: 38px;
+    margin-right: 8px;
+  }
+
+  .arrow {
+    font-size: 32px;
+    line-height: 38px;
   }
 
   .modal-card {
@@ -908,6 +932,14 @@ export default {
   .page-option-text {
     font-size: 32px;
     line-height: 50px;
+  }
+
+  .toggle-btn {
+    width: 80px;
+    height: 46px;
+    border-radius: 12px;
+    font-size: 30px;
+    line-height: 46px;
   }
 
 }
