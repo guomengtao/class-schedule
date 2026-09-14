@@ -20,23 +20,7 @@
       </div>
     </div>
 
-    <div class="overlay-modal" show="{{ showDialog }}" onclick="dismissDialog">
-      <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
-        <text class="modal-title" style="color: {{ theme.accent }}">解锁高级版</text>
-        <text class="modal-desc" style="color: {{ theme.textSecondary }}">一次性解锁，永久使用全部高级功能</text>
-        <div class="benefit-list">
-          <text class="benefit-item" style="color: {{ theme.text }}">✓ 多课表管理</text>
-          <text class="benefit-item" style="color: {{ theme.text }}">✓ 数据备份与恢复</text>
-          <text class="benefit-item" style="color: {{ theme.text }}">✓ 首页自定义</text>
-          <text class="benefit-item" style="color: {{ theme.text }}">✓ 多套主题</text>
-        </div>
-        <input class="modal-btn-primary" type="button" value="立即解锁" onclick="goToPremium"
-               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        <input class="modal-btn-secondary" type="button" value="取消" onclick="dismissDialog"
-               style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
-      </div>
     </div>
-  </div>
 </template>
 
 <script>
@@ -48,8 +32,6 @@ export default {
   private: {
     labItems: [],
     labStatus: "loading",
-    showDialog: false,
-    dialogChecked: false,
     theme: {
       bg: "#1a1a2e",
       card: "#16213e",
@@ -77,16 +59,10 @@ export default {
     store.getTheme(function(t) { self.theme = t })
     this.loadList()
   },
-  onReady() {
-    console.log("[TEST-AREA] onReady: checking premium...")
-    this.checkAndShowOverlay()
-  },
 
   onShow() {
     var self = this
     store.getTheme(function(t) { self.theme = t })
-    this.showDialog = false
-    this.dialogChecked = false
     this.loadList()
   },
 
@@ -112,34 +88,8 @@ export default {
     labList.deleteItem(self, idx, function() {})
   },
 
-  checkAndShowOverlay() {
-    if (this.dialogChecked) return
-    this.dialogChecked = true
-    console.log("[TEST-AREA] checkAndShowOverlay: checking premium...")
-    var self = this
-    store.isPremiumUnlocked(function(unlocked) {
-      if (!unlocked) {
-        console.log("[TEST-AREA] checkAndShowOverlay: not premium, showing dialog")
-        self.showDialog = true
-      }
-    })
-  },
-
-  goToPremium() {
-    console.log("[TEST-AREA] goToPremium: navigating to activation")
-    this.showDialog = false
-    router.push({ uri: "/pages/activation" })
-  },
-
   goBack() {
     router.back()
-  },
-
-  dismissDialog() {
-    this.showDialog = false
-  },
-
-  stopBubble() {
   }
 }
 </script>
@@ -235,71 +185,6 @@ export default {
   height: 28px;
   font-size: 24px;
   font-weight: bold;
-}
-
-.overlay-modal {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.15);
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-card {
-  width: 80%;
-  border-radius: 16px;
-  padding: 16px;
-  flex-direction: column;
-  align-items: center;
-}
-
-.modal-title {
-  font-size: 36px;
-  font-weight: bold;
-  margin-bottom: 12px;
-  text-align: center;
-}
-
-.modal-desc {
-  font-size: 28px;
-  text-align: center;
-  margin-bottom: 16px;
-  line-height: 38px;
-}
-
-.benefit-list {
-  width: 100%;
-  flex-direction: column;
-  padding-left: 12px;
-  margin-bottom: 16px;
-}
-
-.benefit-item {
-  font-size: 32px;
-  margin-bottom: 8px;
-}
-
-.modal-btn-primary {
-  width: 60%;
-  height: 48px;
-  border-radius: 12px;
-  font-size: 28px;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 8px;
-}
-
-.modal-btn-secondary {
-  width: 60%;
-  height: 48px;
-  border-radius: 12px;
-  font-size: 28px;
-  text-align: center;
 }
 
 @media (shape: circle) {

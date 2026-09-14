@@ -1,4 +1,4 @@
-import storage from "@system.storage"
+var storage = require("@system.storage")
 var STORAGE_KEY = "lab_settings"
 
 var ALL_PAGES = [
@@ -125,10 +125,48 @@ function getAllPages() {
   return ALL_PAGES
 }
 
+function togglePin(instance, idx, callback) {
+  var pinHelper = require("./pin-helper.js")
+  var items = instance.labItems
+  if (!items || idx >= items.length) return
+  var item = items[idx]
+  if (item.pinned) {
+    pinHelper.unpinPage(item.uri, function() {
+      item.pinned = false
+      instance.labItems = items.slice()
+      if (callback) callback()
+    })
+  } else {
+    pinHelper.pinPage(item.name, item.uri, function() {
+      item.pinned = true
+      instance.labItems = items.slice()
+      if (callback) callback()
+    })
+  }
+}
+
+function deleteItem(instance, idx, callback) {
+  var items = instance.labItems
+  if (!items || idx >= items.length) return
+  var uri = items[idx].uri
+  getStorage(function(settings) {
+    var hidden = settings.hidden || []
+    if (hidden.indexOf(uri) === -1) {
+      hidden.push(uri)
+    }
+    settings.hidden = hidden
+    saveSettings(settings, function() {
+      init(instance, callback)
+    })
+  })
+}
+
 export default {
   init: init,
   getVisibleItems: getVisibleItems,
   getStorage: getStorage,
   saveSettings: saveSettings,
-  getAllPages: getAllPages
+  getAllPages: getAllPages,
+  togglePin: togglePin,
+  deleteItem: deleteItem
 }
