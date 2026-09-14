@@ -2,25 +2,7 @@ import storage from "@system.storage"
 var STORAGE_KEY = "lab_settings"
 
 var ALL_PAGES = [
-  { name: "已钉首页",  uri: "/pages/pinned-pages" },
-  { name: "二维码生成器", uri: "/pages/qrcode-generator" },
-  { name: "震动实验室", uri: "/pages/vibration-lab" },
-  { name: "打赏支持", uri: "/pages/donate" },
-  { name: "课程表管理 V2", uri: "/pages/schedule-manager" },
-  { name: "设备信息", uri: "/pages/device-info" },
-  { name: "数据备份与恢复", uri: "/pages/backup-restore" },
-  { name: "中文输入", uri: "/pages/chinese-input" },
-  { name: "统计", uri: "/pages/statistics" },
-  { name: "首页设置", uri: "/pages/homepage-settings" },
-  { name: "周视图", uri: "/pages/week-view" },
-  { name: "课程管理", uri: "/pages/course-manager" },
-  { name: "激活", uri: "/pages/activation" },
-  { name: "课表二维码", uri: "/pages/schedule-qrcode" },
-  { name: "重置数据", uri: "/pages/reset-data" },
-  { name: "昵称编辑", uri: "/pages/nickname-edit" },
-  { name: "添加课程", uri: "/pages/add-course" },
-  { name: "设置", uri: "/pages/settings" },
-  { name: "添加课程(胶囊)", uri: "/pages/lab-add-course" }
+  { name: "添加胶囊版", uri: "/pages/lab-add-course" }
 ]
 
 function getStorage(callback) {

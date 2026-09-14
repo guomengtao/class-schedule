@@ -129,7 +129,7 @@
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
       <div class="row" onclick="openLabSettings">
-        <text class="row-label" style="color: {{ theme.text }}">实验室列表</text>
+        <text class="row-label" style="color: {{ theme.text }}">实验室</text>
         <div class="row-right">
           <text class="row-hint" style="color: {{ theme.textMuted }}">胶囊屏适配</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
