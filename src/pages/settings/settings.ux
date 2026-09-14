@@ -844,20 +844,12 @@ export default {
   }
 
   .row {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 16px 0;
+    padding: 14px 0;
   }
 
   .row-label {
     font-size: 32px;
     line-height: 44px;
-    margin-bottom: 6px;
-  }
-
-  .row-right {
-    width: 100%;
-    justify-content: flex-start;
   }
 
   .row-hint {
