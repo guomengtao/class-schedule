@@ -9,7 +9,6 @@ var ALL_PAGES = [
   { name: "课程表管理 V2", uri: "/pages/schedule-manager" },
   { name: "设备信息", uri: "/pages/device-info" },
   { name: "数据备份与恢复", uri: "/pages/backup-restore" },
-  { name: "中文输入", uri: "/pages/chinese-input" },
   { name: "统计", uri: "/pages/statistics" },
   { name: "首页设置", uri: "/pages/homepage-settings" },
   { name: "周视图", uri: "/pages/week-view" },

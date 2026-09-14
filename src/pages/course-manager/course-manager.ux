@@ -1,3 +1,4 @@
+<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
 <template>
   <div class="manager-page" style="background-color: {{ theme.bg }}">
     <div class="header">
@@ -22,12 +23,27 @@
       </div>
       <text if="{{ courseList.length === 0 }}" class="empty-hint" style="color: {{ theme.textMuted }}; text-align: center; padding: 40px 10px;">暂无课程</text>
     </scroll>
+  <div class="keyboard-area" show="{{ showInlineKeyboard }}">
+      <div class="keyboard-close-row">
+        <input class="keyboard-done-btn" type="button" value="完成" onclick="hideKeyboard" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      </div>
+      <input-method
+        hide="{{ false }}"
+        keyboardtype="QWERTY"
+        maxlength="10"
+        vibratemode="short"
+        screentype="{{ screenType }}"
+        oncomplete="onInputComplete"
+        ondelete="onInputDelete"
+      ></input-method>
+    </div>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
 import prompt from "@system.prompt"
+import device from "@system.device"
 const store = require("../../data/store.js")
 
 var COURSE_KEY = "course_preset_list"
@@ -73,7 +89,10 @@ export default {
     editingIndex: -1,
     isAdding: false,
     clearAllConfirm: false,
-    deleteConfirmIndex: -1
+    deleteConfirmIndex: -1,
+    showInlineKeyboard: false,
+    screenType: "circle",
+    currentInputText: ""
   },
 
   sortByTime: function(list) {
@@ -94,6 +113,11 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
+    device.getInfo({
+      success: function(data) {
+        self.screenType = data.screenShape || "circle"
+      }
+    })
     this.loadCourses()
   },
 
@@ -102,27 +126,7 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-
     this.loadCourses()
-
-    var storage = require("@system.storage")
-    storage.get({
-      key: "chinese_input_result",
-      success: function(data) {
-        if (data !== undefined && data !== null && data !== "") {
-          if (self.editingIndex >= 0) {
-            self.doRenameCourse(data)
-          } else if (self.isAdding) {
-            self.doAddCourse(data)
-          }
-          storage.delete({
-            key: "chinese_input_result",
-            fail: function() {}
-          })
-        }
-      },
-      fail: function() {}
-    })
   },
 
   loadCourses() {
@@ -160,21 +164,43 @@ export default {
     })
   },
 
-  navigateToInput(title, value) {
-    var storage = require("@system.storage")
-    storage.set({ key: "chinese_input_title", value: title })
-    storage.set({ key: "chinese_input_placeholder", value: "点击输入" })
-    storage.set({ key: "chinese_input_value", value: value || "" })
-    storage.set({ key: "chinese_input_maxlen", value: "10" })
-    storage.set({ key: "chinese_input_return_key", value: "chinese_input_result" })
-    router.push({ uri: "/pages/chinese-input" })
-  },
-
   startRename(idx) {
     var item = this.courseList[idx]
     if (!item) return
     this.editingIndex = idx
-    this.navigateToInput("重命名课程", item.name)
+    this.isAdding = false
+    this.currentInputText = item.name || ""
+    this.showInlineKeyboard = true
+  },
+
+  startAdd() {
+    this.isAdding = true
+    this.editingIndex = -1
+    this.currentInputText = ""
+    this.showInlineKeyboard = true
+  },
+
+  hideKeyboard() {
+    var text = this.currentInputText.trim()
+    if (this.editingIndex >= 0) {
+      this.doRenameCourse(text)
+    } else if (this.isAdding) {
+      this.doAddCourse(text)
+    }
+    this.showInlineKeyboard = false
+    this.currentInputText = ""
+  },
+
+  onInputComplete(e) {
+    if (e && e.detail && e.detail.content) {
+      if (this.currentInputText.length < 10) {
+        this.currentInputText += e.detail.content
+      }
+    }
+  },
+
+  onInputDelete() {
+    this.currentInputText = this.currentInputText.slice(0, -1)
   },
 
   doRenameCourse(newName) {
@@ -196,11 +222,6 @@ export default {
     this.courseList[idx].name = newName
     this.saveCourses()
     prompt.showToast({ message: "已更新", duration: 300 })
-  },
-
-  startAdd() {
-    this.isAdding = true
-    this.navigateToInput("添加课程", "")
   },
 
   doAddCourse(newName) {
@@ -268,6 +289,7 @@ export default {
   },
 
   goBack() {
+    this.showInlineKeyboard = false
     router.back()
   },
 
@@ -561,5 +583,25 @@ export default {
     height: 28px;
     font-size: 20px;
   }
+}
+
+.keyboard-area {
+  flex-direction: column;
+  margin-top: 10px;
+}
+
+.keyboard-close-row {
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.keyboard-done-btn {
+  width: 56px;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
 }
 </style>

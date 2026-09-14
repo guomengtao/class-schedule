@@ -155,23 +155,6 @@ export default {
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this.loadSettings()
-
-    var storage = require("@system.storage")
-    storage.get({
-      key: "chinese_input_result",
-      success: function(data) {
-        if (data !== undefined && data !== null && data !== "") {
-          self.customContent = data
-          self.showCustomContent = true
-          self.saveSettings()
-          storage.delete({
-            key: "chinese_input_result",
-            fail: function() {}
-          })
-        }
-      },
-      fail: function() {}
-    })
   },
   loadSettings() {
     var self = this
@@ -278,21 +261,6 @@ export default {
     router.push({ uri: "/pages/custom-content-edit" })
   },
 
-  showContentKeyboard() {
-    var self = this
-    var storage = require("@system.storage")
-    storage.set({ key: "chinese_input_title", value: "自定义内容", success: function() {
-      storage.set({ key: "chinese_input_placeholder", value: "点击输入自定义内容", success: function() {
-        storage.set({ key: "chinese_input_value", value: self.customContent || "", success: function() {
-          storage.set({ key: "chinese_input_maxlen", value: "20", success: function() {
-            storage.set({ key: "chinese_input_return_key", value: "chinese_input_result", success: function() {
-              router.push({ uri: "/pages/chinese-input" })
-            } })
-          } })
-        } })
-      } })
-    } })
-  },
   toggleTimeUnit(unit) {
     this.timeFormat[unit] = !this.timeFormat[unit]
     this.updateTimePreview()

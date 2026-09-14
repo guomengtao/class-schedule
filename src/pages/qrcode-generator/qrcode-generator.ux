@@ -1,4 +1,5 @@
 <import name="unlock-dialog" src="../../components/unlock-dialog"></import>
+<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
@@ -46,11 +47,26 @@
     <div class="footer-actions">
       <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">钉首页</text>
     </div>
+  <div class="keyboard-area" show="{{ showInlineKeyboard }}">
+    <div class="keyboard-close-row">
+      <input class="keyboard-done-btn" type="button" value="完成" onclick="hideKeyboard" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+    <input-method
+      hide="{{ false }}"
+      keyboardtype="QWERTY"
+      maxlength="100"
+      vibratemode="short"
+      screentype="{{ screenType }}"
+      oncomplete="onInputComplete"
+      ondelete="onInputDelete"
+    ></input-method>
+  </div>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
+import device from "@system.device"
 var pinHelper = require("../../data/pin-helper.js")
 const store = require("../../data/store.js")
 const authStore = require("../../data/auth-store.js")
@@ -87,12 +103,19 @@ export default {
       progressOngoing: 'rgba(126,200,227,0.2)',
       progressDone: 'rgba(74,138,154,0.25)'
     },
-    inputText: ""
+    inputText: "",
+    showInlineKeyboard: false,
+    screenType: "circle"
   },
 
   onInit() {
     var self = this
     store.getTheme(function(t) { self.theme = t })
+    device.getInfo({
+      success: function(data) {
+        self.screenType = data.screenShape || "circle"
+      }
+    })
     this.checkProStatus()
   },
 
@@ -119,10 +142,24 @@ export default {
   },
 
   openInput() {
-    var storage = require("@system.storage")
-    storage.set({ key: "chinese_input_return_key", value: "qrcode_text" })
-    storage.set({ key: "chinese_input_maxlen", value: "100" })
-    router.push({ uri: "/pages/chinese-input" })
+    this.showInlineKeyboard = true
+  },
+
+  hideKeyboard() {
+    this.showInlineKeyboard = false
+    store.setQrcodeText(this.inputText)
+  },
+
+  onInputComplete(e) {
+    if (e && e.detail && e.detail.content) {
+      if (this.inputText.length < 100) {
+        this.inputText += e.detail.content
+      }
+    }
+  },
+
+  onInputDelete() {
+    this.inputText = this.inputText.slice(0, -1)
   },
 
   usePreset(index) {
@@ -144,6 +181,8 @@ export default {
   },
 
   goBack() {
+    this.showInlineKeyboard = false
+    store.setQrcodeText(this.inputText)
     router.back()
   },
 
@@ -365,5 +404,25 @@ export default {
     width: 44px;
     font-size: 28px;
   }
+}
+
+.keyboard-area {
+  flex-direction: column;
+  margin-top: 10px;
+}
+
+.keyboard-close-row {
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.keyboard-done-btn {
+  width: 56px;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
 }
 </style>

@@ -1,3 +1,4 @@
+<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
@@ -49,11 +50,28 @@
         </div>
       </div>
     </div>
+
+    <div class="keyboard-area" show="{{ showInlineKeyboard }}">
+      <text class="keyboard-preview" style="color: {{ theme.text }}">{{ currentInputText || '输入自定义内容...' }}</text>
+      <div class="keyboard-close-row">
+        <input class="keyboard-done-btn" type="button" value="完成" onclick="hideKeyboard" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      </div>
+      <input-method
+        hide="{{ false }}"
+        keyboardtype="QWERTY"
+        maxlength="20"
+        vibratemode="short"
+        screentype="{{ screenType }}"
+        oncomplete="onInputComplete"
+        ondelete="onInputDelete"
+      ></input-method>
+    </div>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
+import device from "@system.device"
 const store = require("../../data/store.js")
 
 var DEFAULT_PRESETS = [
@@ -110,7 +128,10 @@ export default {
       { label: "3秒", value: 3 },
       { label: "5秒", value: 5 },
       { label: "10秒", value: 10 }
-    ]
+    ],
+    showInlineKeyboard: false,
+    screenType: "circle",
+    currentInputText: ""
   },
 
   previewTimer: null,
@@ -120,6 +141,11 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
+    device.getInfo({
+      success: function(data) {
+        self.screenType = data.screenShape || "circle"
+      }
+    })
     this.loadContent()
   },
 
@@ -128,12 +154,8 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-    self.checkInputResult(function(hasNew) {
-      if (!hasNew) {
-        self.loadContent()
-      }
-      self.startPreviewTimer()
-    })
+    self.loadContent()
+    self.startPreviewTimer()
   },
 
   onHide() {
@@ -197,27 +219,30 @@ export default {
     })
   },
 
-  checkInputResult(callback) {
-    var self = this
-    var storage = require("@system.storage")
-    storage.get({
-      key: "chinese_input_result",
-      success: function(data) {
-        if (data) {
-          self.addCustomContent(data)
-          storage.delete({
-            key: "chinese_input_result",
-            fail: function() {}
-          })
-          if (callback) callback(true)
-        } else {
-          if (callback) callback(false)
-        }
-      },
-      fail: function() {
-        if (callback) callback(false)
+  editContent() {
+    this.currentInputText = ""
+    this.showInlineKeyboard = true
+  },
+
+  hideKeyboard() {
+    this.showInlineKeyboard = false
+    var text = this.currentInputText.trim()
+    if (text) {
+      this.addCustomContent(text)
+    }
+    this.currentInputText = ""
+  },
+
+  onInputComplete(e) {
+    if (e && e.detail && e.detail.content) {
+      if (this.currentInputText.length < 20) {
+        this.currentInputText += e.detail.content
       }
-    })
+    }
+  },
+
+  onInputDelete() {
+    this.currentInputText = this.currentInputText.slice(0, -1)
   },
 
   addCustomContent(text) {
@@ -331,24 +356,8 @@ export default {
     })
   },
 
-  editContent() {
-    var storage = require("@system.storage")
-    var nav = require("@system.router")
-    storage.set({ key: "chinese_input_title", value: "自定义内容", fail: function() {} })
-    storage.set({ key: "chinese_input_placeholder", value: "点击输入自定义内容", fail: function() {} })
-    storage.set({ key: "chinese_input_value", value: "", fail: function() {} })
-    storage.set({ key: "chinese_input_maxlen", value: "20", fail: function() {} })
-    storage.set({
-      key: "chinese_input_return_key",
-      value: "chinese_input_result",
-      success: function() {
-        nav.push({ uri: "/pages/chinese-input" })
-      },
-      fail: function() {}
-    })
-  },
-
   goBack() {
+    this.showInlineKeyboard = false
     router.back()
   }
 }
@@ -626,5 +635,34 @@ export default {
   .interval-text {
     font-size: 24px;
   }
+}
+
+.keyboard-area {
+  flex-direction: column;
+  margin-top: 10px;
+}
+
+.keyboard-preview {
+  font-size: 28px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  background-color: #1a2a4a;
+  min-height: 44px;
+}
+
+.keyboard-close-row {
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.keyboard-done-btn {
+  width: 56px;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
 }
 </style>
