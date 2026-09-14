@@ -861,9 +861,7 @@ export default {
   }
 
   .row-hint {
-    font-size: 28px;
-    line-height: 38px;
-    margin-right: 8px;
+    display: none;
   }
 
   .arrow {
