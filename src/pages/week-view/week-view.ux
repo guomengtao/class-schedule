@@ -714,13 +714,15 @@ export default {
   border-radius: 8px;
   font-size: 28px;
   text-align: center;
+  line-height: 40px;
 }
 
 .wv-title {
-  font-size: 36px;
+  font-size: 30px;
   font-weight: bold;
   text-align: center;
   flex: 1;
+  line-height: 40px;
 }
 
 .week-indicator {
@@ -731,8 +733,9 @@ export default {
 }
 
 .week-text {
-  font-size: 16px;
+  font-size: 20px;
   text-align: center;
+  line-height: 28px;
 }
 
 /* ── grid ── */
@@ -761,12 +764,14 @@ export default {
   font-size: 20px;
   font-weight: bold;
   flex-shrink: 0;
-  text-overflow: clip;
+  text-overflow: ellipsis;
+  line-height: 28px;
 }
 
 .wv-day-cell.wv-today {
   font-size: 24px;
   text-decoration: underline;
+  line-height: 32px;
 }
 
 .wv-row {
@@ -783,6 +788,7 @@ export default {
   text-align: right;
   padding-right: 6px;
   flex-shrink: 0;
+  line-height: 28px;
 }
 
 .wv-cells {
@@ -843,7 +849,7 @@ export default {
 
 .wv-info {
   font-size: 20px;
-  line-height: 24px;
+  line-height: 28px;
   text-align: center;
   text-overflow: ellipsis;
 }
@@ -851,11 +857,13 @@ export default {
 .wv-extra {
   font-size: 20px;
   text-align: center;
+  line-height: 28px;
 }
 
 .wv-empty {
   font-size: 20px;
   text-align: center;
+  line-height: 28px;
 }
 
 /* ── footer ── */
@@ -896,6 +904,7 @@ export default {
   font-size: 24px;
   letter-spacing: 0.5px;
   text-align: center;
+  line-height: 32px;
 }
 
 /* ── circle shape ── */
@@ -910,9 +919,11 @@ export default {
     width: 44px;
     height: 40px;
     font-size: 28px;
+    line-height: 40px;
   }
   .wv-title {
-    font-size: 36px;
+    font-size: 30px;
+    line-height: 40px;
   }
   .wv-day-spacer {
     width: 42px;
@@ -957,18 +968,20 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .wv-page {
-    padding: 60px 10px 44px 10px;
+    padding: 120px 16px 120px 16px;
   }
   .wv-header {
     margin-bottom: 8px;
   }
   .wv-back {
-    width: 36px;
+    width: 48px;
     height: 40px;
     font-size: 24px;
+    line-height: 40px;
   }
   .wv-title {
-    font-size: 34px;
+    font-size: 30px;
+    line-height: 40px;
   }
   .wv-tpl {
     height: 40px;
@@ -977,6 +990,7 @@ export default {
   }
   .wv-tpl-text {
     font-size: 24px;
+    line-height: 32px;
   }
 }
 
@@ -991,9 +1005,11 @@ export default {
     width: 44px;
     height: 36px;
     font-size: 28px;
+    line-height: 36px;
   }
   .wv-title {
-    font-size: 34px;
+    font-size: 30px;
+    line-height: 40px;
   }
   .wv-tpl {
     height: 32px;
@@ -1002,6 +1018,7 @@ export default {
   }
   .wv-tpl-text {
     font-size: 24px;
+    line-height: 32px;
   }
 }
 </style>
