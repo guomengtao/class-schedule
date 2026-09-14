@@ -9,16 +9,20 @@ var ALL_PAGES = [
 ]
 
 function getStorage(callback) {
+  console.log("[LAB-DEBUG] getStorage() called")
   storage.get({
     key: STORAGE_KEY,
     success: function(data) {
+      console.log("[LAB-DEBUG] getStorage() success, raw data:", data)
       var result = { hidden: [], order: [] }
       if (data) {
-        try { result = JSON.parse(data) } catch (e) {}
+        try { result = JSON.parse(data) } catch (e) { console.log("[LAB-DEBUG] getStorage() JSON parse error:", e) }
       }
+      console.log("[LAB-DEBUG] getStorage() result:", JSON.stringify(result))
       callback(result)
     },
-    fail: function() {
+    fail: function(code, msg) {
+      console.log("[LAB-DEBUG] getStorage() fail, code:", code, "msg:", msg)
       callback({ hidden: [], order: [] })
     }
   })
@@ -40,15 +44,22 @@ function buildDesc(uri) {
 }
 
 function init(instance, callback) {
+  console.log("[LAB-DEBUG] init() called, ALL_PAGES count:", ALL_PAGES.length)
+  console.log("[LAB-DEBUG] init() ALL_PAGES:", JSON.stringify(ALL_PAGES))
   var pinHelper = require("./pin-helper.js")
+  console.log("[LAB-DEBUG] init() pinHelper loaded:", typeof pinHelper)
 
   getStorage(function(settings) {
     var hidden = settings.hidden || []
     var order = settings.order || []
+    console.log("[LAB-DEBUG] init() hidden:", JSON.stringify(hidden), "order:", JSON.stringify(order))
 
     var items = []
     for (var i = 0; i < ALL_PAGES.length; i++) {
-      if (hidden.indexOf(ALL_PAGES[i].uri) !== -1) continue
+      if (hidden.indexOf(ALL_PAGES[i].uri) !== -1) {
+        console.log("[LAB-DEBUG] init() skipping hidden:", ALL_PAGES[i].uri)
+        continue
+      }
       items.push({
         name: ALL_PAGES[i].name,
         desc: buildDesc(ALL_PAGES[i].uri),
@@ -56,6 +67,7 @@ function init(instance, callback) {
         pinned: false
       })
     }
+    console.log("[LAB-DEBUG] init() items after filter:", items.length)
 
     if (order.length > 0) {
       var ordered = []
@@ -69,9 +81,11 @@ function init(instance, callback) {
         }
       }
       items = ordered.concat(items)
+      console.log("[LAB-DEBUG] init() items after reorder:", items.length)
     }
 
     pinHelper.getList(function(pinnedList) {
+      console.log("[LAB-DEBUG] init() pinHelper.getList result:", JSON.stringify(pinnedList))
       var pinnedUris = []
       for (var p = 0; p < pinnedList.length; p++) {
         pinnedUris.push(pinnedList[p].uri)
@@ -79,10 +93,14 @@ function init(instance, callback) {
       for (var k = 0; k < items.length; k++) {
         items[k].pinned = pinnedUris.indexOf(items[k].uri) !== -1
       }
+      console.log("[LAB-DEBUG] init() final items:", JSON.stringify(items))
 
       if (instance) {
         instance.labItems = items
         instance.labStatus = "ok"
+        console.log("[LAB-DEBUG] init() instance.labItems set, status:", instance.labStatus)
+      } else {
+        console.log("[LAB-DEBUG] init() instance is null!")
       }
       if (callback) callback(items)
     })

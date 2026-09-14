@@ -55,40 +55,58 @@ export default {
   },
 
   onInit() {
+    console.log("[LAB-DEBUG] onInit() called")
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this.loadList()
   },
 
   onShow() {
+    console.log("[LAB-DEBUG] onShow() called")
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this.loadList()
   },
 
   loadList() {
+    console.log("[LAB-DEBUG] loadList() starting")
     var self = this
-    labList.init(self, function() {})
+    labList.init(self, function(items) {
+      console.log("[LAB-DEBUG] loadList() callback, items count:", items ? items.length : 0)
+      console.log("[LAB-DEBUG] loadList() self.labItems:", JSON.stringify(self.labItems))
+      console.log("[LAB-DEBUG] loadList() self.labStatus:", self.labStatus)
+    })
   },
 
   onOpenItem(idx) {
+    console.log("[LAB-DEBUG] onOpenItem idx:", idx)
     var item = this.labItems[idx]
     if (item && item.uri) {
+      console.log("[LAB-DEBUG] onOpenItem opening:", item.uri)
       router.push({ uri: item.uri })
+    } else {
+      console.log("[LAB-DEBUG] onOpenItem, no item or uri")
     }
   },
 
   onTogglePin(idx) {
+    console.log("[LAB-DEBUG] onTogglePin idx:", idx)
     var self = this
-    labList.togglePin(self, idx, function() {})
+    labList.togglePin(self, idx, function() {
+      console.log("[LAB-DEBUG] onTogglePin done")
+    })
   },
 
   onDelete(idx) {
+    console.log("[LAB-DEBUG] onDelete idx:", idx)
     var self = this
-    labList.deleteItem(self, idx, function() {})
+    labList.deleteItem(self, idx, function() {
+      console.log("[LAB-DEBUG] onDelete done")
+    })
   },
 
   goBack() {
+    console.log("[LAB-DEBUG] goBack()")
     router.back()
   }
 }
