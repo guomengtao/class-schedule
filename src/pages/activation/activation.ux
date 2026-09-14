@@ -1,5 +1,9 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}">◀</text>
+      <text class="header-title" style="color: {{ theme.text }}">高级版</text>
+    </div>
     <scroll class="page-scroll" scroll-y="{{true}}">
       <div class="status-card" style="background-color: {{ theme.card }}">
         <text class="status-main" style="color: {{ statusColor }}">{{ statusText }}</text>
@@ -601,6 +605,30 @@ export default {
   box-sizing: border-box;
 }
 
+.header {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  height: 52px;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+
+.back-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 26px;
+  font-size: 28px;
+  text-align: center;
+  line-height: 48px;
+  margin-right: 10px;
+}
+
+.header-title {
+  font-size: 32px;
+  font-weight: bold;
+}
+
 .page-scroll {
   flex: 1;
   flex-direction: column;
@@ -942,6 +970,20 @@ export default {
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
     padding: 30px 16px 30px 16px;
+  }
+  .header {
+    height: 56px;
+    margin-bottom: 12px;
+  }
+  .back-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 28px;
+    font-size: 30px;
+    line-height: 52px;
+  }
+  .header-title {
+    font-size: 34px;
   }
   .cell {
     height: 56px;
