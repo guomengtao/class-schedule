@@ -741,6 +741,97 @@ export default {
   }
 }
 
+@media (shape: capsule), (shape: pill-shaped) {
+  .page-root {
+    padding: 120px 16px 120px 16px;
+  }
+  .back-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    font-size: 24px;
+    line-height: 44px;
+  }
+  .title {
+    font-size: 30px;
+    line-height: 40px;
+  }
+  .step-heading {
+    font-size: 30px;
+    line-height: 40px;
+  }
+  .step-sub {
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .card-name {
+    font-size: 32px;
+    line-height: 42px;
+  }
+  .course-card {
+    width: 150px;
+    height: 90px;
+    padding: 16px;
+    border-radius: 12px;
+  }
+  .arrow-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
+    font-size: 24px;
+    line-height: 40px;
+  }
+  .index-text {
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 6px;
+  }
+  .dot-line {
+    width: 24px;
+    height: 2px;
+    margin: 0 2px;
+  }
+  .manage-btn,
+  .next-btn,
+  .prev-btn,
+  .save-btn {
+    width: 88px;
+    height: 42px;
+    font-size: 24px;
+    line-height: 40px;
+  }
+  .stepper-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
+    font-size: 24px;
+    line-height: 40px;
+  }
+  .stepper-num {
+    font-size: 32px;
+    line-height: 42px;
+  }
+  .confirm-label {
+    font-size: 28px;
+    line-height: 38px;
+  }
+  .confirm-value {
+    font-size: 28px;
+    line-height: 38px;
+  }
+  .location-box {
+    height: 48px;
+  }
+  .location-val {
+    font-size: 26px;
+    line-height: 36px;
+  }
+}
+
 @media (shape: rect) {
   .page-root {
     padding: 44px 10px 12px 10px;
