@@ -9,10 +9,10 @@ function init(instance) {
       key: "add_course_day",
       value: self.currentDay,
       success: function() {
-        router.push({ uri: "/pages/add-course" })
+        router.push({ uri: "/pages/add-course-v2" })
       },
       fail: function() {
-        router.push({ uri: "/pages/add-course" })
+        router.push({ uri: "/pages/add-course-v2" })
       }
     })
   }
