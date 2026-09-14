@@ -1,6 +1,6 @@
 SUCCESS:
 Running: aiot release --enable-jsc 
-🔷 [09-14 12:18:29] [toolkit]: start build:  {
+🔷 [09-14 13:10:46] [toolkit]: start build:  {
   "projectPath": "/Users/Banner/Documents/guomengtao/tom/class/class",
   "options": {
     "sourceRoot": "./src",
@@ -22,27 +22,27 @@ Running: aiot release --enable-jsc
   "arch": "arm64",
   "toolkit": "2.0.5"
 }
-🟠 [09-14 12:18:30] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/components/InputMethod/InputMethod.ux:28:16 ./assets/full/ suggested value (absolute path relative to src) /components/InputMethod/assets/full/
-🟠 [09-14 12:18:30] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/components/InputMethod/InputMethod.ux:102:16 ./assets/t9/ suggested value (absolute path relative to src) /components/InputMethod/assets/t9/
-🟠 [09-14 12:18:30] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/components/InputMethod/InputMethod.ux:313:16 ./assets/arc/ suggested value (absolute path relative to src) /components/InputMethod/assets/arc/
-🟠 [09-14 12:18:30] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/pages/chinese-input/chinese-input.ux:109:9 'self' is assigned a value but never used.
-🟠 [09-14 12:18:31] [toolkit]: src/pages/week-view/week-view.ux:816 ### StyleToTypescript ### Selector type unsupport Descendant Selector
-🟠 [09-14 12:18:31] [toolkit]: src/pages/week-view/week-view.ux:831 ### StyleToTypescript ### Selector type unsupport Descendant Selector
-🔷 [09-14 12:18:31] [toolkit]: afterCompile: undefined
-🔷 [09-14 12:18:31] [toolkit]: afterCompile: Create a soft link to the node_modules folder
-🔷 [09-14 12:18:31] [toolkit]: afterCompile: Compile javascript project
-🔷 [09-14 12:18:31] [toolkit]: webpack complete
-🔷 [09-14 12:18:31] [toolkit]: afterCompile: Copy resource files
-🔷 [09-14 12:18:31] [toolkit]: afterCompile: Compress resource files
-🔷 [09-14 12:18:31] [toolkit]: afterCompile: Generate jsc bytecode
-✅ [09-14 12:18:33] [toolkit]: jsc command "/Users/Banner/Documents/guomengtao/tom/class/class/node_modules/@aiot-toolkit/jsc/lib/jsc/darwin_aiotjsc" -ms "/Users/Banner/Documents/guomengtao/tom/class/.temp_class/build"
-🔷 [09-14 12:18:33] [toolkit]: afterCompile: Generate protobuf json
-🔷 [09-14 12:18:33] [toolkit]: afterCompile: compile lite card
-🔷 [09-14 12:18:33] [toolkit]: afterCompile: Package the project into an RPK file
-🔷 [09-14 12:18:33] [toolkit]: privatekeyPath is  /Users/Banner/Documents/guomengtao/tom/class/.temp_class/sign/private.pem 
+🟠 [09-14 13:10:48] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/components/InputMethod/InputMethod.ux:28:16 ./assets/full/ suggested value (absolute path relative to src) /components/InputMethod/assets/full/
+🟠 [09-14 13:10:48] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/components/InputMethod/InputMethod.ux:102:16 ./assets/t9/ suggested value (absolute path relative to src) /components/InputMethod/assets/t9/
+🟠 [09-14 13:10:48] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/components/InputMethod/InputMethod.ux:313:16 ./assets/arc/ suggested value (absolute path relative to src) /components/InputMethod/assets/arc/
+🟠 [09-14 13:10:49] [toolkit]: /Users/Banner/Documents/guomengtao/tom/class/class/src/pages/chinese-input/chinese-input.ux:109:9 'self' is assigned a value but never used.
+🟠 [09-14 13:10:50] [toolkit]: src/pages/week-view/week-view.ux:816 ### StyleToTypescript ### Selector type unsupport Descendant Selector
+🟠 [09-14 13:10:50] [toolkit]: src/pages/week-view/week-view.ux:831 ### StyleToTypescript ### Selector type unsupport Descendant Selector
+🔷 [09-14 13:10:50] [toolkit]: afterCompile: undefined
+🔷 [09-14 13:10:50] [toolkit]: afterCompile: Create a soft link to the node_modules folder
+🔷 [09-14 13:10:50] [toolkit]: afterCompile: Compile javascript project
+🔷 [09-14 13:10:51] [toolkit]: webpack complete
+🔷 [09-14 13:10:51] [toolkit]: afterCompile: Copy resource files
+🔷 [09-14 13:10:51] [toolkit]: afterCompile: Compress resource files
+🔷 [09-14 13:10:51] [toolkit]: afterCompile: Generate jsc bytecode
+✅ [09-14 13:10:52] [toolkit]: jsc command "/Users/Banner/Documents/guomengtao/tom/class/class/node_modules/@aiot-toolkit/jsc/lib/jsc/darwin_aiotjsc" -ms "/Users/Banner/Documents/guomengtao/tom/class/.temp_class/build"
+🔷 [09-14 13:10:52] [toolkit]: afterCompile: Generate protobuf json
+🔷 [09-14 13:10:52] [toolkit]: afterCompile: compile lite card
+🔷 [09-14 13:10:52] [toolkit]: afterCompile: Package the project into an RPK file
+🔷 [09-14 13:10:52] [toolkit]: privatekeyPath is  /Users/Banner/Documents/guomengtao/tom/class/.temp_class/sign/private.pem 
 certificatePath is  /Users/Banner/Documents/guomengtao/tom/class/.temp_class/sign/certificate.pem
-✅ [09-14 12:18:33] [toolkit]: Project build and generate files：/Users/Banner/Documents/guomengtao/tom/class/.temp_class/dist/com.application.watch.classschedule.release.1.4.243.rpk
-🔷 [09-14 12:18:33] [toolkit]: afterCompile: Generate diff json
-🔷 [09-14 12:18:33] [toolkit]: afterCompile: Migrate temporary project
-🔷 [09-14 12:18:33] [toolkit]: afterCompile: Check resource
-✅ [09-14 12:18:33] [toolkit]: build success: 4505ms
+✅ [09-14 13:10:53] [toolkit]: Project build and generate files：/Users/Banner/Documents/guomengtao/tom/class/.temp_class/dist/com.application.watch.classschedule.release.1.4.244.rpk
+🔷 [09-14 13:10:53] [toolkit]: afterCompile: Generate diff json
+🔷 [09-14 13:10:53] [toolkit]: afterCompile: Migrate temporary project
+🔷 [09-14 13:10:53] [toolkit]: afterCompile: Check resource
+✅ [09-14 13:10:53] [toolkit]: build success: 6578ms

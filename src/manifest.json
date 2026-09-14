@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.4.243",
-  "versionCode": 743,
+  "versionName": "1.4.244",
+  "versionCode": 744,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -123,26 +123,8 @@
       "pages/black-screen-check": {
         "component": "black-screen-check"
       },
-      "pages/bs-demo1": {
-        "component": "bs-demo1"
-      },
-      "pages/bs-demo2": {
-        "component": "bs-demo2"
-      },
-      "pages/bs-demo3": {
-        "component": "bs-demo3"
-      },
-      "pages/bs-demo4": {
-        "component": "bs-demo4"
-      },
-      "pages/bs-demo5": {
-        "component": "bs-demo5"
-      },
       "pages/lab-settings": {
         "component": "lab-settings"
-      },
-      "pages/capsule-hide-test": {
-        "component": "capsule-hide-test"
       },
       "pages/lab-add-course": {
         "component": "lab-add-course"

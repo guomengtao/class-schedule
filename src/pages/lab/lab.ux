@@ -20,8 +20,6 @@
       </div>
     </div>
 
-    <text class="dev-hint" style="color: {{ theme.textSecondary }}">反馈建议</text>
-
     <div class="overlay-modal" show="{{ showDialog }}" onclick="dismissDialog">
       <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
         <text class="modal-title" style="color: {{ theme.accent }}">解锁高级版</text>
@@ -185,9 +183,7 @@ export default {
 }
 
 .list-scroll {
-  flex: 1;
   flex-direction: column;
-  overflow: scroll;
 }
 
 .list-row {
@@ -239,14 +235,6 @@ export default {
   height: 28px;
   font-size: 24px;
   font-weight: bold;
-}
-
-.dev-hint {
-  font-size: 24px;
-  text-align: center;
-  padding: 14px;
-  flex-shrink: 0;
-  line-height: 34px;
 }
 
 .overlay-modal {
