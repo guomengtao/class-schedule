@@ -1,10 +1,10 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <div class="header">
-      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}">◀</text>
-      <text class="header-title" style="color: {{ theme.text }}">高级版</text>
-    </div>
     <scroll class="page-scroll" scroll-y="{{true}}">
+      <div class="header">
+        <text class="back-btn" onclick="goBack" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}">◀</text>
+        <text class="header-title" style="color: {{ theme.text }}">高级版</text>
+      </div>
       <div class="status-card" style="background-color: {{ theme.card }}">
         <text class="status-main" style="color: {{ statusColor }}">{{ statusText }}</text>
         <text class="status-expiry" show="{{ expireTimeText }}" style="color: {{ theme.textSecondary }}">有效期 {{ expireTimeText }}</text>
