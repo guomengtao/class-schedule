@@ -134,6 +134,9 @@
       },
       "pages/course-manager-v2": {
         "component": "course-manager-v2"
+      },
+      "pages/countdown-manage": {
+        "component": "countdown-manage"
       }
     }
   }

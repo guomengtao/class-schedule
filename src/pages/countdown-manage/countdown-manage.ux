@@ -1,0 +1,556 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
+      <text class="title" style="color: {{ theme.text }}">倒数日</text>
+      <input class="add-btn" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+
+    <div class="toolbar" if="{{ countdownList.length > 0 }}">
+      <text class="toolbar-count" style="color: {{ theme.textSecondary }}">{{ countdownList.length }}个倒数日</text>
+      <text class="toolbar-sort" onclick="toggleSort" style="color: {{ theme.accent }}">
+        {{ sortRecent ? '📅 最近' : '🔤 名称序' }}
+      </text>
+      <input class="toolbar-clear" type="button" value="{{ clearAllConfirm ? '确认' : '清空' }}" onclick="clearAll"
+             style="background-color: {{ clearAllConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ clearAllConfirm ? theme.text : theme.deleteText }}" />
+    </div>
+
+    <scroll class="list-scroll" scroll-y="{{true}}">
+      <div for="{{ (idx, item) in countdownList }}" class="countdown-row" style="background-color: {{ theme.card }}">
+        <div class="row-index" style="background-color: {{ item.daysLeft >= 0 ? theme.accent : theme.textMuted }}">
+          <text class="index-num" style="font-size: {{ item.daysLeft >= 100 ? '20px' : '24px' }}">{{ item.daysLeft >= 0 ? item.daysLeft : '已过' }}</text>
+        </div>
+        <div class="row-info">
+          <div class="row-title-line">
+            <text class="row-name" style="color: {{ theme.text }}">{{ item.title }}</text>
+            <input class="switch-btn" type="button" value="{{ item.enabled ? 'ON' : 'OFF' }}" onclick="toggleItem(idx)"
+                   style="background-color: {{ item.enabled ? theme.accent : theme.btnSecondary }}; color: {{ item.enabled ? theme.bg : theme.btnSecondaryText }}" />
+          </div>
+          <div class="row-sub-line">
+            <text class="row-date" style="color: {{ theme.textSecondary }}">{{ item.dateDisplay }}</text>
+            <text class="row-days-text" style="color: {{ item.daysLeft >= 0 ? theme.accent : theme.deleteText }}">
+              {{ item.daysLeft >= 0 ? ('剩 ' + item.daysLeft + ' 天') : ('已过 ' + (-item.daysLeft) + ' 天') }}
+            </text>
+          </div>
+        </div>
+        <div class="row-actions">
+          <input class="action-btn edit-btn" type="button" value="编辑" onclick="startEdit(idx)"
+                 style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+          <input class="action-btn del-btn" type="button" value="{{ deleteConfirmIndex === idx ? '确认' : '删除' }}" onclick="deleteItem(idx)"
+                 style="background-color: {{ deleteConfirmIndex === idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === idx ? theme.text : theme.deleteText }}" />
+        </div>
+      </div>
+      <text if="{{ countdownList.length === 0 }}" class="empty-text" style="color: {{ theme.textMuted }}">暂无倒数日，点击右上角添加</text>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import prompt from "@system.prompt"
+var storage = require("@system.storage")
+
+var STORAGE_KEY = "countdownDays"
+
+export default {
+  private: {
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a',
+      keyBg: '#1a1a3e',
+      keyBorder: '#2a2a5a',
+      btnSecondary: '#333355',
+      btnSecondaryText: '#a0a0b0',
+      deleteBg: '#2a1a3e',
+      deleteText: '#e08080'
+    },
+    countdownList: [],
+    sortRecent: true,
+    editingIndex: -1,
+    isAdding: false,
+    clearAllConfirm: false,
+    deleteConfirmIndex: -1,
+    deleteTimer: null,
+    clearTimer: null
+  },
+
+  onInit() {
+    this.loadList()
+  },
+
+  loadList() {
+    var self = this
+    storage.get({
+      key: STORAGE_KEY,
+      success: function(data) {
+        var list = []
+        if (data) {
+          try { list = JSON.parse(data) } catch (e) { list = [] }
+        }
+        self.computeDays(list)
+        self.sortItems(list)
+        self.countdownList = list
+      },
+      fail: function() {
+        self.countdownList = []
+      }
+    })
+  },
+
+  computeDays(list) {
+    var today = new Date()
+    today.setHours(0, 0, 0, 0)
+    for (var i = 0; i < list.length; i++) {
+      var target = new Date(list[i].date + "T00:00:00")
+      list[i].daysLeft = Math.ceil((target - today) / 86400000)
+      list[i].dateDisplay = list[i].date
+    }
+  },
+
+  sortItems(list) {
+    if (this.sortRecent) {
+      list.sort(function(a, b) {
+        var dA = Math.abs(a.daysLeft)
+        var dB = Math.abs(b.daysLeft)
+        return dA - dB
+      })
+    } else {
+      list.sort(function(a, b) {
+        return (a.title || "").localeCompare(b.title || "")
+      })
+    }
+  },
+
+  saveList() {
+    var self = this
+    var pure = []
+    for (var i = 0; i < this.countdownList.length; i++) {
+      pure.push({
+        title: this.countdownList[i].title,
+        date: this.countdownList[i].date,
+        enabled: this.countdownList[i].enabled
+      })
+    }
+    storage.set({
+      key: STORAGE_KEY,
+      value: JSON.stringify(pure),
+      success: function() {
+        self.loadList()
+      }
+    })
+  },
+
+  startAdd() {
+    var self = this
+    prompt.showDialog({
+      title: "添加倒数日",
+      message: "请输入名称",
+      buttons: [
+        { text: "取消", color: "#888899" },
+        { text: "下一步", color: "#7ec8e3" }
+      ],
+      success: function(res) {
+        if (res.index === 1 && res.value) {
+          self.askDate(res.value)
+        }
+      }
+    })
+  },
+
+  askDate(title) {
+    var self = this
+    prompt.showDialog({
+      title: "设置日期 - " + title,
+      message: "格式: YYYY-MM-DD\n例: 2027-06-07",
+      buttons: [
+        { text: "取消", color: "#888899" },
+        { text: "确认", color: "#7ec8e3" }
+      ],
+      success: function(res) {
+        if (res.index === 1 && res.value) {
+          var dateStr = (res.value || "").trim()
+          if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+            self.addItem(title, dateStr)
+          } else {
+            prompt.showToast({ message: "日期格式错误,请用YYYY-MM-DD" })
+          }
+        }
+      }
+    })
+  },
+
+  addItem(title, date) {
+    var newItem = {
+      title: title.trim(),
+      date: date.trim(),
+      enabled: true
+    }
+    var list = this.countdownList.slice()
+    list.push(newItem)
+    var pure = []
+    for (var i = 0; i < list.length; i++) {
+      pure.push({
+        title: list[i].title,
+        date: list[i].date,
+        enabled: list[i].enabled
+      })
+    }
+    var self = this
+    storage.set({
+      key: STORAGE_KEY,
+      value: JSON.stringify(pure),
+      success: function() { self.loadList() }
+    })
+  },
+
+  startEdit(idx) {
+    var self = this
+    var item = this.countdownList[idx]
+    prompt.showDialog({
+      title: "编辑名称",
+      message: "当前: " + item.title,
+      buttons: [
+        { text: "取消", color: "#888899" },
+        { text: "下一步", color: "#7ec8e3" }
+      ],
+      success: function(res) {
+        if (res.index === 1 && res.value) {
+          self.askEditDate(idx, res.value)
+        }
+      }
+    })
+  },
+
+  askEditDate(idx, newTitle) {
+    var self = this
+    var item = this.countdownList[idx]
+    prompt.showDialog({
+      title: "编辑日期 - " + newTitle,
+      message: "当前: " + item.date + "\n格式: YYYY-MM-DD",
+      buttons: [
+        { text: "取消", color: "#888899" },
+        { text: "确认", color: "#7ec8e3" }
+      ],
+      success: function(res) {
+        if (res.index === 1 && res.value) {
+          var dateStr = (res.value || "").trim()
+          if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+            self.updateItem(idx, newTitle, dateStr)
+          } else {
+            prompt.showToast({ message: "日期格式错误" })
+          }
+        }
+      }
+    })
+  },
+
+  updateItem(idx, newTitle, newDate) {
+    var list = this.countdownList.slice()
+    list[idx].title = newTitle.trim()
+    list[idx].date = newDate.trim()
+    var pure = []
+    for (var i = 0; i < list.length; i++) {
+      pure.push({
+        title: list[i].title,
+        date: list[i].date,
+        enabled: list[i].enabled
+      })
+    }
+    var self = this
+    storage.set({
+      key: STORAGE_KEY,
+      value: JSON.stringify(pure),
+      success: function() { self.loadList() }
+    })
+  },
+
+  toggleItem(idx) {
+    var list = this.countdownList.slice()
+    list[idx].enabled = !list[idx].enabled
+    var pure = []
+    for (var i = 0; i < list.length; i++) {
+      pure.push({
+        title: list[i].title,
+        date: list[i].date,
+        enabled: list[i].enabled
+      })
+    }
+    var self = this
+    storage.set({
+      key: STORAGE_KEY,
+      value: JSON.stringify(pure),
+      success: function() { self.loadList() }
+    })
+  },
+
+  deleteItem(idx) {
+    var self = this
+    if (this.deleteConfirmIndex === idx) {
+      var newList = []
+      for (var i = 0; i < this.countdownList.length; i++) {
+        if (i !== idx) newList.push({
+          title: this.countdownList[i].title,
+          date: this.countdownList[i].date,
+          enabled: this.countdownList[i].enabled
+        })
+      }
+      storage.set({
+        key: STORAGE_KEY,
+        value: JSON.stringify(newList),
+        success: function() { self.loadList() }
+      })
+      clearTimeout(this.deleteTimer)
+      this.deleteConfirmIndex = -1
+      return
+    }
+    this.deleteConfirmIndex = idx
+    clearTimeout(this.deleteTimer)
+    this.deleteTimer = setTimeout(function() {
+      self.deleteConfirmIndex = -1
+    }, 3000)
+  },
+
+  toggleSort() {
+    this.sortRecent = !this.sortRecent
+    var list = this.countdownList.slice()
+    this.sortItems(list)
+    this.countdownList = list
+  },
+
+  clearAll() {
+    var self = this
+    if (this.clearAllConfirm) {
+      storage.set({
+        key: STORAGE_KEY,
+        value: "[]",
+        success: function() { self.loadList() }
+      })
+      clearTimeout(this.clearTimer)
+      this.clearAllConfirm = false
+      return
+    }
+    this.clearAllConfirm = true
+    clearTimeout(this.clearTimer)
+    this.clearTimer = setTimeout(function() {
+      self.clearAllConfirm = false
+    }, 3000)
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex: 1;
+  flex-direction: column;
+  padding: 30px 16px 30px 16px;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.back-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 26px;
+  font-size: 28px;
+  text-align: center;
+  line-height: 52px;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: bold;
+  text-align: center;
+  flex: 1;
+  lines: 1;
+  margin: 0 8px;
+}
+
+.add-btn {
+  width: 80px;
+  height: 52px;
+  border-radius: 26px;
+  font-size: 28px;
+  text-align: center;
+  line-height: 52px;
+  flex-shrink: 0;
+}
+
+.toolbar {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 8px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.toolbar-count {
+  font-size: 24px;
+}
+
+.toolbar-sort {
+  font-size: 24px;
+}
+
+.toolbar-clear {
+  width: 70px;
+  height: 36px;
+  border-radius: 18px;
+  font-size: 22px;
+  text-align: center;
+  line-height: 36px;
+}
+
+.list-scroll {
+  flex: 1;
+  flex-direction: column;
+}
+
+.countdown-row {
+  flex-direction: row;
+  align-items: center;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.row-index {
+  width: 52px;
+  height: 52px;
+  border-radius: 26px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.index-num {
+  color: #ffffff;
+  font-weight: bold;
+  text-align: center;
+}
+
+.row-info {
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.row-title-line {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.row-name {
+  font-size: 28px;
+  lines: 1;
+  text-overflow: ellipsis;
+  flex: 1;
+  margin-right: 8px;
+}
+
+.switch-btn {
+  width: 56px;
+  height: 30px;
+  border-radius: 15px;
+  font-size: 20px;
+  text-align: center;
+  line-height: 30px;
+  flex-shrink: 0;
+}
+
+.row-sub-line {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.row-date {
+  font-size: 22px;
+}
+
+.row-days-text {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.row-actions {
+  flex-direction: column;
+  margin-left: 10px;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  width: 60px;
+  height: 32px;
+  border-radius: 16px;
+  font-size: 22px;
+  text-align: center;
+  line-height: 32px;
+  margin-bottom: 4px;
+}
+
+.edit-btn {
+  margin-bottom: 6px;
+}
+
+.empty-text {
+  font-size: 28px;
+  text-align: center;
+  margin-top: 60px;
+}
+
+@media (shape: rect), (shape: rectangle) {
+  .page {
+    padding: 24px 24px 20px 24px;
+  }
+
+  .header {
+    height: 52px;
+    margin-bottom: 16px;
+  }
+
+  .back-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
+    font-size: 24px;
+    line-height: 44px;
+  }
+
+  .title {
+    font-size: 32px;
+    line-height: 44px;
+  }
+
+  .add-btn {
+    width: 90px;
+    height: 44px;
+    border-radius: 22px;
+    font-size: 26px;
+    line-height: 44px;
+  }
+}
+</style>

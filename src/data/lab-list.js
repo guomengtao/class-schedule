@@ -2,6 +2,7 @@ var storage = require("@system.storage")
 var STORAGE_KEY = "lab_settings"
 
 var ALL_PAGES = [
+  { name: "倒数日", uri: "/pages/countdown-manage" },
   { name: "课程管理V2(胶囊)", uri: "/pages/course-manager-v2" },
   { name: "添加课程V2", uri: "/pages/add-course-v2" },
   { name: "添加胶囊版", uri: "/pages/lab-add-course" },
