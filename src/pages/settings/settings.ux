@@ -90,7 +90,7 @@
 
     <div class="group" style="background-color: {{ theme.card }}">
       <div class="group-title-row" onclick="toggleSchedule">
-        <text class="group-title" style="color: {{ theme.text }}">课程表设置</text>
+        <text class="group-title" style="color: {{ theme.text }}">周课表</text>
         <div class="row-right">
           <text class="arrow" style="color: {{ theme.textMuted }}">{{ showSchedule ? 'v' : '›' }}</text>
         </div>
@@ -102,7 +102,7 @@
         </div>
         <div class="divider" style="background-color: {{ theme.border }}"></div>
         <div class="row" onclick="openTemplatePicker">
-          <text class="row-label" style="color: {{ theme.text }}">课表风格</text>
+          <text class="row-label" style="color: {{ theme.text }}">模版选择</text>
           <div class="row-right">
             <text class="row-hint" style="color: {{ theme.accent }}">{{ currentTemplateName }}</text>
             <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
