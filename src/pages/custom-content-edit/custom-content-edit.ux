@@ -1,4 +1,3 @@
-<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
@@ -51,27 +50,12 @@
       </div>
     </div>
 
-    <div class="keyboard-area" show="{{ showInlineKeyboard }}">
-      <text class="keyboard-preview" style="color: {{ theme.text }}">{{ currentInputText || '输入自定义内容...' }}</text>
-      <div class="keyboard-close-row">
-        <input class="keyboard-done-btn" type="button" value="完成" onclick="hideKeyboard" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      </div>
-      <input-method
-        hide="{{ false }}"
-        keyboardtype="QWERTY"
-        maxlength="20"
-        vibratemode="short"
-        screentype="{{ screenType }}"
-        oncomplete="onInputComplete"
-        ondelete="onInputDelete"
-      ></input-method>
     </div>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
-import device from "@system.device"
 const store = require("../../data/store.js")
 
 var DEFAULT_PRESETS = [
@@ -128,10 +112,7 @@ export default {
       { label: "3秒", value: 3 },
       { label: "5秒", value: 5 },
       { label: "10秒", value: 10 }
-    ],
-    showInlineKeyboard: false,
-    screenType: "circle",
-    currentInputText: ""
+    ]
   },
 
   previewTimer: null,
@@ -140,11 +121,6 @@ export default {
     var self = this
     store.getTheme(function(t) {
       self.theme = t
-    })
-    device.getInfo({
-      success: function(data) {
-        self.screenType = data.screenShape || "circle"
-      }
     })
     this.loadContent()
   },
@@ -156,6 +132,7 @@ export default {
     })
     self.loadContent()
     self.startPreviewTimer()
+    self.checkInputResult()
   },
 
   onHide() {
@@ -220,29 +197,29 @@ export default {
   },
 
   editContent() {
-    this.currentInputText = ""
-    this.showInlineKeyboard = true
+    var storage = require("@system.storage")
+    storage.set({ key: "chinese_input_title", value: "自定义内容", success: function() {} })
+    storage.set({ key: "chinese_input_placeholder", value: "输入自定义内容...", success: function() {} })
+    storage.set({ key: "chinese_input_value", value: "", success: function() {} })
+    storage.set({ key: "chinese_input_maxlen", value: "20", success: function() {} })
+    storage.set({ key: "chinese_input_return_key", value: "chinese_input_result", success: function() {
+      router.push({ uri: "/pages/chinese-input" })
+    }})
   },
 
-  hideKeyboard() {
-    this.showInlineKeyboard = false
-    var text = this.currentInputText.trim()
-    if (text) {
-      this.addCustomContent(text)
-    }
-    this.currentInputText = ""
-  },
-
-  onInputComplete(e) {
-    if (e && e.detail && e.detail.content) {
-      if (this.currentInputText.length < 20) {
-        this.currentInputText += e.detail.content
-      }
-    }
-  },
-
-  onInputDelete() {
-    this.currentInputText = this.currentInputText.slice(0, -1)
+  checkInputResult() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.get({
+      key: "chinese_input_result",
+      success: function(data) {
+        if (data !== undefined && data !== null && data !== "") {
+          self.addCustomContent(data)
+          storage.delete({ key: "chinese_input_result", fail: function() {} })
+        }
+      },
+      fail: function() {}
+    })
   },
 
   addCustomContent(text) {
@@ -357,7 +334,6 @@ export default {
   },
 
   goBack() {
-    this.showInlineKeyboard = false
     router.back()
   }
 }

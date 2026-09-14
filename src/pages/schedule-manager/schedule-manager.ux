@@ -1,5 +1,4 @@
 <import name="unlock-dialog" src="../../components/unlock-dialog"></import>
-<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
 <template>
   <stack class="page-root">
   <scroll class="page" scroll-y="true" style="background-color: {{ theme.bg }}">
@@ -84,26 +83,11 @@
              style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
     </div>
   </div>
-  <div class="keyboard-area" show="{{ showInlineKeyboard }}">
-      <div class="keyboard-close-row">
-        <input class="keyboard-done-btn" type="button" value="完成" onclick="hideKeyboard" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      </div>
-      <input-method
-        hide="{{ false }}"
-        keyboardtype="QWERTY"
-        maxlength="10"
-        vibratemode="short"
-        screentype="{{ screenType }}"
-        oncomplete="onInputComplete"
-        ondelete="onInputDelete"
-      ></input-method>
-    </div>
   </stack>
 </template>
 
 <script>
 import router from "@system.router"
-import device from "@system.device"
 var pinHelper = require("../../data/pin-helper.js")
 import prompt from "@system.prompt"
 const store = require("../../data/store.js")
@@ -129,20 +113,13 @@ export default {
       btnSecondaryText: '#a0a0b0',
       deleteBg: '#2a1a3e',
       deleteText: '#e08080'
-    },
-    showInlineKeyboard: false,
-    screenType: "circle"
+    }
   },
 
   onInit() {
     var self = this
     store.getTheme(function(t) {
       self.theme = t
-    })
-    device.getInfo({
-      success: function(data) {
-        self.screenType = data.screenShape || "circle"
-      }
     })
     this.loadData()
   },
@@ -162,6 +139,7 @@ export default {
     })
     this.loadData()
     this.checkAndShowOverlay()
+    this.checkInputResult()
   },
 
   checkAndShowOverlay() {
@@ -226,23 +204,29 @@ export default {
     if (!this.checkProAccess()) return
     this.editingIndex = index
     this.editName = this.list[index].name
-    this.showInlineKeyboard = true
+    var storage = require("@system.storage")
+    storage.set({ key: "chinese_input_title", value: "重命名课表", success: function() {} })
+    storage.set({ key: "chinese_input_value", value: this.editName, success: function() {} })
+    storage.set({ key: "chinese_input_maxlen", value: "10", success: function() {} })
+    storage.set({ key: "chinese_input_return_key", value: "chinese_input_result", success: function() {
+      router.push({ uri: "/pages/chinese-input" })
+    }})
   },
 
-  hideKeyboard() {
-    this.showInlineKeyboard = false
-  },
-
-  onInputComplete(e) {
-    if (e && e.detail && e.detail.content) {
-      if (this.editName.length < 10) {
-        this.editName += e.detail.content
-      }
-    }
-  },
-
-  onInputDelete() {
-    this.editName = this.editName.slice(0, -1)
+  checkInputResult() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.get({
+      key: "chinese_input_result",
+      success: function(data) {
+        if (data !== undefined && data !== null && data !== "") {
+          self.editName = data
+          self.finishEdit()
+          storage.delete({ key: "chinese_input_result", fail: function() {} })
+        }
+      },
+      fail: function() {}
+    })
   },
 
   finishEdit() {
@@ -280,7 +264,6 @@ export default {
   },
 
   cancelEdit() {
-    this.showInlineKeyboard = false
     this.editingIndex = -1
     this.editName = ""
   },
@@ -522,7 +505,6 @@ export default {
   },
 
   goBack() {
-    this.showInlineKeyboard = false
     if (this.editingIndex >= 0) {
       this.cancelEdit()
       return

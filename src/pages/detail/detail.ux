@@ -1,4 +1,3 @@
-<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
 <template>
   <div class="edit-course-page" style="background-color: {{ theme.bg }}">
     <div class="header">
@@ -116,27 +115,12 @@
         <input class="delete-btn" type="button" value="{{ deleteConfirm ? '确认' : '删除' }}" onclick="deleteCourse" style="height: 48px; background-color: {{ deleteConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirm ? theme.text : theme.deleteText }}" />
       </div>
     </div>
-  <div class="keyboard-area" show="{{ showInlineKeyboard }}">
-      <div class="keyboard-close-row">
-        <input class="keyboard-done-btn" type="button" value="完成" onclick="hideKeyboard" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      </div>
-      <input-method
-        hide="{{ false }}"
-        keyboardtype="QWERTY"
-        maxlength="10"
-        vibratemode="short"
-        screentype="{{ screenType }}"
-        oncomplete="onInputComplete"
-        ondelete="onInputDelete"
-      ></input-method>
-    </div>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
 import prompt from "@system.prompt"
-import device from "@system.device"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 
@@ -197,8 +181,6 @@ export default {
     startMin: 0,
     endHour: 8,
     endMin: 45,
-    showInlineKeyboard: false,
-    screenType: "circle",
     titleStyle: "",
     labelStyle: "",
     hintStyle: "",
@@ -247,11 +229,6 @@ export default {
     var self = this
     store.getTheme(function(t) {
       self.theme = t
-    })
-    device.getInfo({
-      success: function(data) {
-        self.screenType = data.screenShape || "circle"
-      }
     })
     store.getFontSizes(function(sizes) {
       self.applyFontSizes(sizes)
@@ -303,8 +280,19 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-
     self.loadCoursesWithData()
+
+    var storage = require("@system.storage")
+    storage.get({
+      key: "chinese_input_result",
+      success: function(data) {
+        if (data !== undefined && data !== null && data !== "") {
+          self.courseLocation = data
+          storage.delete({ key: "chinese_input_result", fail: function() {} })
+        }
+      },
+      fail: function() {}
+    })
   },
 
   setDefaultDay() {
@@ -518,41 +506,29 @@ export default {
   },
 
   showKeyboard() {
-    this.showInlineKeyboard = true
-  },
-
-  hideKeyboard() {
-    this.showInlineKeyboard = false
-  },
-
-  onInputComplete(e) {
-    if (e && e.detail && e.detail.content) {
-      if (this.courseLocation.length < 10) {
-        this.courseLocation += e.detail.content
-      }
-    }
-  },
-
-  onInputDelete() {
-    this.courseLocation = this.courseLocation.slice(0, -1)
+    var storage = require("@system.storage")
+    storage.set({ key: "chinese_input_title", value: "上课地点", success: function() {} })
+    storage.set({ key: "chinese_input_placeholder", value: "如：301教室", success: function() {} })
+    storage.set({ key: "chinese_input_value", value: this.courseLocation, success: function() {} })
+    storage.set({ key: "chinese_input_maxlen", value: "10", success: function() {} })
+    storage.set({ key: "chinese_input_return_key", value: "chinese_input_result", success: function() {
+      router.push({ uri: "/pages/chinese-input" })
+    }})
   },
 
   nextStep() {
-    this.showInlineKeyboard = false
     if (this.step < 4) {
       this.step = this.step + 1
     }
   },
 
   prevStep() {
-    this.showInlineKeyboard = false
     if (this.step > 1) {
       this.step = this.step - 1
     }
   },
 
   goBack() {
-    this.showInlineKeyboard = false
     router.back()
   },
 

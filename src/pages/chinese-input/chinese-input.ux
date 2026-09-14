@@ -1,0 +1,201 @@
+<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
+      <text class="title" style="color: {{ theme.text }}">{{ pageTitle }}</text>
+    </div>
+
+    <div class="input-display" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+      <text class="input-text" style="color: {{ theme.text }}">{{ inputText || placeholder }}</text>
+      <text class="cursor" show="{{ showCursor }}" style="color: {{ theme.accent }}">|</text>
+    </div>
+
+    <div class="keyboard-area">
+      <div class="keyboard-close-row">
+        <input class="done-btn" type="button" value="完成" onclick="confirmInput" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      </div>
+      <input-method
+        hide="{{ false }}"
+        keyboardtype="QWERTY"
+        maxlength="{{ maxlen }}"
+        vibratemode="short"
+        screentype="{{ screenType }}"
+        oncomplete="onCharacter"
+        ondelete="onDeleteChar"
+      ></input-method>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import device from "@system.device"
+const store = require("../../data/store.js")
+
+export default {
+  private: {
+    pageTitle: "输入",
+    placeholder: "请输入",
+    inputText: "",
+    maxlen: "10",
+    returnKey: "chinese_input_result",
+    showCursor: false,
+    screenType: "circle",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566'
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+    device.getInfo({
+      success: function(data) {
+        self.screenType = data.screenShape || "circle"
+      }
+    })
+    this.loadParams()
+  },
+
+  onReady() {
+    this.showCursor = true
+  },
+
+  loadParams() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.get({ key: "chinese_input_title", success: function(data) {
+      if (data) self.pageTitle = data
+    }, fail: function() {} })
+    storage.get({ key: "chinese_input_placeholder", success: function(data) {
+      if (data) self.placeholder = data
+    }, fail: function() {} })
+    storage.get({ key: "chinese_input_value", success: function(data) {
+      if (data) self.inputText = data
+    }, fail: function() {} })
+    storage.get({ key: "chinese_input_maxlen", success: function(data) {
+      if (data) self.maxlen = data
+    }, fail: function() {} })
+    storage.get({ key: "chinese_input_return_key", success: function(data) {
+      if (data) self.returnKey = data
+    }, fail: function() {} })
+  },
+
+  onCharacter(e) {
+    if (e && e.detail && e.detail.content) {
+      var maxLen = parseInt(this.maxlen) || 10
+      if (this.inputText.length < maxLen) {
+        this.inputText += e.detail.content
+      }
+    }
+  },
+
+  onDeleteChar() {
+    this.inputText = this.inputText.slice(0, -1)
+  },
+
+  confirmInput() {
+    var self = this
+    var storage = require("@system.storage")
+    var text = this.inputText.trim()
+    var key = this.returnKey || "chinese_input_result"
+    storage.set({
+      key: key,
+      value: text,
+      success: function() {
+        router.back()
+      },
+      fail: function() {
+        router.back()
+      }
+    })
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 44px 10px 12px 10px;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.back-btn {
+  width: 48px;
+  height: 40px;
+  border-radius: 8px;
+  font-size: 28px;
+  text-align: center;
+  line-height: 36px;
+}
+
+.title {
+  font-size: 36px;
+  font-weight: bold;
+  margin-left: 8px;
+  flex: 1;
+}
+
+.input-display {
+  flex-direction: row;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border-width: 2px;
+  margin-bottom: 10px;
+  min-height: 52px;
+}
+
+.input-text {
+  font-size: 32px;
+  flex: 1;
+}
+
+.cursor {
+  font-size: 32px;
+  margin-left: 2px;
+}
+
+.keyboard-area {
+  flex-direction: column;
+}
+
+.keyboard-close-row {
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.done-btn {
+  width: 56px;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 8px 8px 8px;
+  }
+}
+</style>

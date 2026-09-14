@@ -1,126 +1,21 @@
-<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
 <template>
-  <div class="add-course-page" style="background-color: {{ theme.bg }}">
-    <div class="header">
+  <div class="edit-page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
       <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
-      <text class="title" style="color: {{ theme.text }}">添加课程</text>
+      <text class="header-title" style="color: {{ theme.text }}">编辑课程</text>
+      <input class="save-btn" type="button" value="保存" onclick="save" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
-    <div class="step-indicator">
-      <text class="step-dot {{ step >= 1 ? 'active' : '' }}" style="background-color: {{ step >= 1 ? theme.accent : theme.border }}"></text>
-      <text class="step-line {{ step >= 2 ? 'active' : '' }}" style="background-color: {{ step >= 2 ? theme.accent : theme.border }}"></text>
-      <text class="step-dot {{ step >= 2 ? 'active' : '' }}" style="background-color: {{ step >= 2 ? theme.accent : theme.border }}"></text>
-      <text class="step-line {{ step >= 3 ? 'active' : '' }}" style="background-color: {{ step >= 3 ? theme.accent : theme.border }}"></text>
-      <text class="step-dot {{ step >= 3 ? 'active' : '' }}" style="background-color: {{ step >= 3 ? theme.accent : theme.border }}"></text>
-      <text class="step-line {{ step >= 4 ? 'active' : '' }}" style="background-color: {{ step >= 4 ? theme.accent : theme.border }}"></text>
-      <text class="step-dot {{ step >= 4 ? 'active' : '' }}" style="background-color: {{ step >= 4 ? theme.accent : theme.border }}"></text>
-    </div>
-
-    <div class="form-section" if="{{ step === 1 }}">
-      <text class="step-title" style="color: {{ theme.text }}">选择</text>
-      <text class="step-hint" style="color: {{ theme.textSecondary }}">{{ presetCourses.length }}门</text>
-
-      <div class="swiper-wrapper">
-        <input class="swipe-arrow" type="button" value="◀" onclick="swipePrev" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
-        <div class="course-card" onclick="swipeNext" style="background-color: {{ theme.card }}">
-          <text class="card-course-name" style="color: {{ theme.text }}">{{ presetCourses[courseIndex].name }}</text>
-        </div>
-        <input class="swipe-arrow" type="button" value="▶" onclick="swipeNext" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+    <div class="edit-content">
+      <text class="label" style="color: {{ theme.textSecondary }}">课程名称</text>
+      <div class="name-display" onclick="openInput" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+        <text class="name-text" style="color: {{ theme.text }}">{{ courseName || '输入课程名称' }}</text>
       </div>
 
-      <text class="course-index-hint" style="color: {{ theme.textMuted }}">{{ courseIndex + 1 }} / {{ presetCourses.length }}</text>
-
-      <div class="step-nav">
-        <input class="manage-btn" type="button" value="管理" onclick="openCourseManager" style="height: 48px; background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-        <input class="next-btn" type="button" value="下一步" onclick="nextStep" style="height: 48px; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <text class="label" style="color: {{ theme.textSecondary }}; margin-top: 12px">授课地点</text>
+      <div class="name-display" onclick="openLocationInput" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+        <text class="name-text" style="color: {{ theme.text }}">{{ courseLocation || '输入上课地点' }}</text>
       </div>
-    </div>
-
-    <div class="form-section" if="{{ step === 2 }}">
-      <text class="step-title" style="color: {{ theme.text }}">时间 · {{ courseName }}</text>
-
-      <scroll class="step2-scroll" scroll-y="true">
-        <text class="picker-label" style="color: {{ theme.text }}">开始</text>
-        <div class="stepper-time" style="background-color: {{ theme.card }}">
-          <div class="stepper-row">
-            <text class="stepper-label" style="color: {{ theme.text }}">小时</text>
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseStartHour" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ startHour }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseStartHour" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-          </div>
-          <div class="stepper-row">
-            <text class="stepper-label" style="color: {{ theme.text }}">分钟</text>
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseStartMin" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ startMin }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseStartMin" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-          </div>
-        </div>
-
-        <text class="picker-label" style="color: {{ theme.text }}">结束</text>
-        <div class="stepper-time" style="background-color: {{ theme.card }}">
-          <div class="stepper-row">
-            <text class="stepper-label" style="color: {{ theme.text }}">小时</text>
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseEndHour" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ endHour }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseEndHour" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-          </div>
-          <div class="stepper-row">
-            <text class="stepper-label" style="color: {{ theme.text }}">分钟</text>
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseEndMin" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ endMin }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseEndMin" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-          </div>
-        </div>
-      </scroll>
-
-      <div class="step-nav">
-        <input class="prev-btn" type="button" value="后退" onclick="prevStep" style="height: 48px; background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
-        <input class="next-btn" type="button" value="下一步" onclick="nextStep" style="height: 48px; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      </div>
-    </div>
-
-    <div class="form-section" if="{{ step === 3 }}">
-      <text class="step-title" style="color: {{ theme.text }}">位置</text>
-      <text class="step-hint" style="color: {{ theme.textSecondary }}">{{ courseName }} | {{ courseTime }}</text>
-      <div class="location-display" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
-        <text class="location-text" style="color: {{ theme.text }}">{{ courseLocation || '如：301教室' }}</text>
-        <text class="location-cursor" show="{{ showCursor }}">_</text>
-      </div>
-      <text class="optional-hint" style="color: {{ theme.textMuted }}">选填</text>
-      <div class="step-nav">
-        <input class="prev-btn" type="button" value="后退" onclick="prevStep" style="height: 48px; background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
-        <input class="next-btn" type="button" value="下一步" onclick="nextStep" style="height: 48px; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      </div>
-    </div>
-
-    <div class="form-section" if="{{ step === 4 }}">
-      <text class="step-title" style="color: {{ theme.text }}">确认</text>
-      <div class="confirm-card" style="background-color: {{ theme.card }}">
-        <text class="confirm-label" style="color: {{ theme.accent }}">课程</text>
-        <text class="confirm-value" style="color: {{ theme.text }}">{{ courseName }}</text>
-        <text class="confirm-label" style="color: {{ theme.accent }}">时间</text>
-        <text class="confirm-value" style="color: {{ theme.text }}">{{ courseTime }}</text>
-        <text class="confirm-label" style="color: {{ theme.accent }}">位置</text>
-        <text class="confirm-value" style="color: {{ theme.text }}">{{ courseLocation || '(无)' }}</text>
-      </div>
-      <div class="step-nav">
-        <input class="prev-btn" type="button" value="后退" onclick="prevStep" style="height: 48px; background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
-        <input class="save-btn" type="button" value="保存" onclick="saveCourse" style="height: 48px; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      </div>
-    </div>
-  <div class="keyboard-area" show="{{ showInlineKeyboard }}">
-      <div class="keyboard-close-row">
-        <input class="keyboard-done-btn" type="button" value="完成" onclick="hideKeyboard" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      </div>
-      <input-method
-        hide="{{ false }}"
-        keyboardtype="QWERTY"
-        maxlength="10"
-        vibratemode="short"
-        screentype="{{ screenType }}"
-        oncomplete="onInputComplete"
-        ondelete="onInputDelete"
-      ></input-method>
     </div>
   </div>
 </template>
@@ -128,73 +23,20 @@
 <script>
 import router from "@system.router"
 import prompt from "@system.prompt"
-import device from "@system.device"
-const store = require("../../data/store.js")
-const database = require("../../data/database.js")
-
-var COURSE_LIST_KEY = "course_preset_list"
-
-var defaultCourses = [
-  { name: "语文", time: "08:00 - 08:45", teacher: "老师", location: "" },
-  { name: "数学", time: "08:55 - 09:40", teacher: "老师", location: "" },
-  { name: "英语", time: "10:00 - 10:45", teacher: "老师", location: "" },
-  { name: "物理", time: "10:55 - 11:40", teacher: "老师", location: "" },
-  { name: "化学", time: "13:00 - 13:45", teacher: "老师", location: "" },
-  { name: "政治", time: "13:55 - 14:40", teacher: "老师", location: "" },
-  { name: "音乐", time: "15:00 - 15:45", teacher: "老师", location: "" },
-  { name: "体育", time: "15:55 - 16:40", teacher: "老师", location: "" },
-  { name: "美术", time: "08:00 - 08:45", teacher: "老师", location: "" },
-  { name: "历史", time: "08:55 - 09:40", teacher: "老师", location: "" },
-  { name: "地理", time: "10:00 - 10:45", teacher: "老师", location: "" },
-  { name: "生物", time: "10:55 - 11:40", teacher: "老师", location: "" }
-]
-
-function padZero(n) {
-  return n < 10 ? "0" + n : String(n)
-}
-
-function parseTimeParts(timeStr) {
-  if (!timeStr) return { startH: 8, startM: 0, endH: 8, endM: 45 }
-  var parts = timeStr.split("-")
-  if (parts.length < 2) return { startH: 8, startM: 0, endH: 8, endM: 45 }
-  var start = parts[0].trim()
-  var end = parts[1].trim()
-  var sParts = start.split(":")
-  var eParts = end.split(":")
-  return {
-    startH: parseInt(sParts[0]) || 8,
-    startM: parseInt(sParts[1]) || 0,
-    endH: parseInt(eParts[0]) || 8,
-    endM: parseInt(eParts[1]) || 45
-  }
-}
+var storage = require("@system.storage")
+var store = require("../../data/store.js")
+var courses = require("../../data/courses.js")
+var schedule = require("../../data/schedule.js")
+var templateUtils = require("../../data/template-utils.js")
 
 export default {
   private: {
     courseName: "",
-    courseTime: "",
     courseLocation: "",
-    courseTeacher: "",
-    day: "",
-    nextId: 100,
-    isSaving: false,
-    step: 1,
-    courseIndex: 0,
-    presetCourses: [],
-    startHour: 8,
-    startMin: 0,
-    endHour: 8,
-    endMin: 45,
-    showInlineKeyboard: false,
-    screenType: "circle",
-    titleStyle: "",
-    labelStyle: "",
-    hintStyle: "",
-    inputStyle: "",
-    inputHeight: 80,
-    btnStyle: "",
-    btnHeight: 72,
-    pickerValueStyle: "",
+    courseColor: "#7ec8e3",
+    isEdit: false,
+    editIndex: -1,
+    inputTarget: "name",
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -217,340 +59,160 @@ export default {
     }
   },
 
-  sortByTime: function(list) {
-    if (!list || list.length === 0) return list
-    var sorted = list.slice()
-    sorted.sort(function(a, b) {
-      var ta = a.time ? a.time.split(' - ')[0] : '00:00'
-      var tb = b.time ? b.time.split(' - ')[0] : '00:00'
-      var taParts = ta.split(':')
-      var tbParts = tb.split(':')
-      return (parseInt(taParts[0]) * 60 + parseInt(taParts[1])) - (parseInt(tbParts[0]) * 60 + parseInt(tbParts[1]))
-    })
-    return sorted
-  },
-
   onInit() {
     var self = this
-    store.getTheme(function(t) {
-      self.theme = t
-    })
-    device.getInfo({
-      success: function(data) {
-        self.screenType = data.screenShape || "circle"
-      }
-    })
-    store.getFontSizes(function(sizes) {
-      self.applyFontSizes(sizes)
-    })
-    this.applyFontSizes({title: 36, label: 34, hint: 28, input: 34, inputHeight: 80, btn: 28, btnHeight: 72, pickerValue: 40})
-
-    this.loadCourses()
-
-    var storage = require("@system.storage")
-    storage.get({
-      key: "add_course_day",
-      success: function(val) {
-        self.day = val || ""
-        if (!self.day) { self.setDefaultDay() }
-      },
-      fail: function() {
-        self.day = ""
-        self.setDefaultDay()
-      }
-    })
-    storage.get({
-      key: "add_course_nextId",
-      success: function(val) {
-        self.nextId = parseInt(val) || 100
-      },
-      fail: function() {
-        self.nextId = 100
+    store.getTheme(function(t) { self.theme = t })
+    var sid = this.$app && this.$app.$data && this.$app.$data.sid
+    if (sid === undefined || sid < 0) {
+      this.isEdit = false
+      return
+    }
+    this.isEdit = true
+    courses.get(function(list) {
+      self.editIndex = -1
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].sid === sid) {
+          self.editIndex = i
+          self.courseName = list[i].name || ""
+          self.courseLocation = list[i].location || ""
+          self.courseColor = list[i].color || "#7ec8e3"
+          break
+        }
       }
     })
   },
 
   onShow() {
     var self = this
-    store.getTheme(function(t) {
-      self.theme = t
-    })
-    this.refreshCourseList()
-  },
-
-  refreshCourseList() {
-    var self = this
-    var storage = require("@system.storage")
     storage.get({
-      key: COURSE_LIST_KEY,
+      key: "chinese_input_result",
       success: function(data) {
         if (data !== undefined && data !== null && data !== "") {
-          try {
-            var list = JSON.parse(data)
-            if (Array.isArray(list)) {
-              self.presetCourses = self.sortByTime(list)
-            }
-          } catch (e) {
-              // keep existing list
+          if (self.inputTarget === "name") {
+            self.courseName = data
+          } else if (self.inputTarget === "location") {
+            self.courseLocation = data
           }
+          storage.delete({ key: "chinese_input_result", fail: function() {} })
         }
       },
       fail: function() {}
     })
   },
 
-  setDefaultDay() {
-    var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
-    var now = new Date()
-    this.day = dayNames[now.getDay()]
-  },
-
-  applyFontSizes(s) {
-    this.titleStyle = "font-size: " + s.title + "px"
-    this.labelStyle = "font-size: " + s.label + "px"
-    this.hintStyle = "font-size: " + s.hint + "px"
-    this.inputStyle = "font-size: " + s.input + "px"
-    this.inputHeight = s.inputHeight
-    this.btnStyle = "font-size: " + s.btn + "px"
-    this.btnHeight = s.btnHeight
-    this.pickerValueStyle = "font-size: " + s.pickerValue + "px"
-  },
-
-  loadCourses() {
-    var self = this
-    var storage = require("@system.storage")
-    storage.get({
-      key: COURSE_LIST_KEY,
-      success: function(data) {
-        if (data !== undefined && data !== null && data !== "") {
-          try {
-            var list = JSON.parse(data)
-            if (Array.isArray(list)) {
-              self.presetCourses = self.sortByTime(list)
-            } else {
-              self.presetCourses = self.sortByTime(defaultCourses.slice())
-            }
-          } catch (e) {
-            self.presetCourses = self.sortByTime(defaultCourses.slice())
-          }
-        } else {
-          self.presetCourses = self.sortByTime(defaultCourses.slice())
-        }
-        self.selectCourse(self.courseIndex)
-      },
-      fail: function() {
-        self.presetCourses = self.sortByTime(defaultCourses.slice())
-        self.selectCourse(self.courseIndex)
+  openInput() {
+    this.inputTarget = "name"
+    storage.set({
+      key: "chinese_input_title",
+      value: "课程名称",
+      success: function() {}
+    })
+    storage.set({
+      key: "chinese_input_placeholder",
+      value: "输入课程名称",
+      success: function() {}
+    })
+    storage.set({
+      key: "chinese_input_value",
+      value: this.courseName,
+      success: function() {}
+    })
+    storage.set({
+      key: "chinese_input_maxlen",
+      value: "10",
+      success: function() {}
+    })
+    storage.set({
+      key: "chinese_input_return_key",
+      value: "chinese_input_result",
+      success: function() {
+        router.push({ uri: "/pages/chinese-input" })
       }
     })
   },
 
-  openCourseManager() {
-    router.push({ uri: "/pages/course-manager" })
+  openLocationInput() {
+    this.inputTarget = "location"
+    storage.set({
+      key: "chinese_input_title",
+      value: "授课地点",
+      success: function() {}
+    })
+    storage.set({
+      key: "chinese_input_placeholder",
+      value: "输入上课地点",
+      success: function() {}
+    })
+    storage.set({
+      key: "chinese_input_value",
+      value: this.courseLocation,
+      success: function() {}
+    })
+    storage.set({
+      key: "chinese_input_maxlen",
+      value: "20",
+      success: function() {}
+    })
+    storage.set({
+      key: "chinese_input_return_key",
+      value: "chinese_input_result",
+      success: function() {
+        router.push({ uri: "/pages/chinese-input" })
+      }
+    })
   },
 
-  padZero(n) {
-    return padZero(n)
-  },
-
-  selectCourse(index) {
-    if (this.presetCourses.length === 0) {
-      this.courseName = ""
-      this.courseTime = ""
+  save() {
+    var name = this.courseName.trim()
+    var location = this.courseLocation.trim()
+    if (!name) {
+      prompt.showToast({ message: "课程名称不能为空" })
       return
     }
-    if (index < 0 || index >= this.presetCourses.length) {
-      index = 0
+    var self = this
+    var id = templateUtils.generateId()
+    var course = {
+      id: id,
+      name: name,
+      location: location,
+      color: this.courseColor
     }
-    this.courseIndex = index
-    var c = this.presetCourses[index]
-    this.courseName = c.name
-    this.courseTeacher = c.teacher
-    this.courseLocation = c.location
-    var tp = parseTimeParts(c.time)
-    this.startHour = tp.startH
-    this.startMin = tp.startM
-    this.endHour = tp.endH
-    this.endMin = tp.endM
-    this.courseTime = c.time
-  },
-
-  swipePrev() {
-    if (this.courseIndex > 0) {
-      this.selectCourse(this.courseIndex - 1)
-    }
-  },
-
-  swipeNext() {
-    if (this.courseIndex < this.presetCourses.length - 1) {
-      this.selectCourse(this.courseIndex + 1)
-    }
-  },
-
-  updateTimeString() {
-    this.courseTime = padZero(this.startHour) + ":" + padZero(this.startMin) + " - " + padZero(this.endHour) + ":" + padZero(this.endMin)
-  },
-
-  increaseStartHour() {
-    if (this.startHour < 23) {
-      this.startHour++
+    if (this.isEdit && this.editIndex >= 0) {
+      courses.update(this.editIndex, course, function() {
+        schedule.updateCourseName(id, name, function() {
+          prompt.showToast({ message: "课程已更新" })
+          router.back()
+        })
+      })
     } else {
-      this.startHour = 0
-    }
-    this.updateTimeString()
-  },
-  decreaseStartHour() {
-    if (this.startHour > 0) {
-      this.startHour--
-    } else {
-      this.startHour = 23
-    }
-    this.updateTimeString()
-  },
-  increaseStartMin() {
-    if (this.startMin < 59) {
-      this.startMin++
-    } else {
-      this.startMin = 0
-    }
-    this.updateTimeString()
-  },
-  decreaseStartMin() {
-    if (this.startMin > 0) {
-      this.startMin--
-    } else {
-      this.startMin = 59
-    }
-    this.updateTimeString()
-  },
-  increaseEndHour() {
-    if (this.endHour < 23) {
-      this.endHour++
-    } else {
-      this.endHour = 0
-    }
-    this.updateTimeString()
-  },
-  decreaseEndHour() {
-    if (this.endHour > 0) {
-      this.endHour--
-    } else {
-      this.endHour = 23
-    }
-    this.updateTimeString()
-  },
-  increaseEndMin() {
-    if (this.endMin < 59) {
-      this.endMin++
-    } else {
-      this.endMin = 0
-    }
-    this.updateTimeString()
-  },
-  decreaseEndMin() {
-    if (this.endMin > 0) {
-      this.endMin--
-    } else {
-      this.endMin = 59
-    }
-    this.updateTimeString()
-  },
-
-  showKeyboard() {
-    this.showInlineKeyboard = true
-  },
-
-  hideKeyboard() {
-    this.showInlineKeyboard = false
-  },
-
-  onInputComplete(e) {
-    if (e && e.detail && e.detail.content) {
-      if (this.courseLocation.length < 10) {
-        this.courseLocation += e.detail.content
-      }
-    }
-  },
-
-  onInputDelete() {
-    this.courseLocation = this.courseLocation.slice(0, -1)
-  },
-
-  nextStep() {
-    this.showInlineKeyboard = false
-    if (this.step < 4) {
-      this.step = this.step + 1
-    }
-  },
-
-  prevStep() {
-    this.showInlineKeyboard = false
-    if (this.step > 1) {
-      this.step = this.step - 1
+      courses.add(course, function() {
+        prompt.showToast({ message: "课程已添加" })
+        router.back()
+      })
     }
   },
 
   goBack() {
-    this.showInlineKeyboard = false
     router.back()
-  },
-
-  saveCourse() {
-    if (this.isSaving) {
-      return
-    }
-    if (!this.courseName) {
-      prompt.showToast({ message: "请先选择课程" })
-      return
-    }
-    if (!this.courseTime) {
-      prompt.showToast({ message: "请先设置时间" })
-      return
-    }
-    if (!this.day) {
-      this.setDefaultDay()
-    }
-    this.isSaving = true
-    var self = this
-    var newCourse = {
-      id: String(this.nextId),
-      day: this.day,
-      name: this.courseName,
-      time: this.courseTime,
-      teacher: this.courseTeacher || "TBD",
-      location: this.courseLocation || "",
-      notes: ""
-    }
-    this.nextId++
-    var storage = require("@system.storage")
-    storage.set({
-      key: "add_course_nextId",
-      value: String(this.nextId)
-    })
-    database.insertCourse(newCourse, function(err) {
-      if (!err) {
-        prompt.showToast({ message: "课程已添加" })
-        router.back()
-      } else {
-        self.isSaving = false
-        prompt.showToast({ message: "保存失败，请重试" })
-      }
-    })
   }
 }
 </script>
 
 <style>
-.add-course-page {
+.edit-page {
   flex-direction: column;
   padding: 44px 10px 12px 10px;
+  width: 100%;
   height: 100%;
+  box-sizing: border-box;
 }
 
-.header {
+.back-header {
   flex-direction: row;
   align-items: center;
+  height: 48px;
   margin-bottom: 14px;
+  padding: 4px 0;
 }
 
 .back-btn {
@@ -559,430 +221,48 @@ export default {
   border-radius: 8px;
   font-size: 28px;
   text-align: center;
+  line-height: 36px;
 }
 
-.title {
+.header-title {
   font-size: 36px;
   font-weight: bold;
+  margin-left: 8px;
   flex: 1;
-  text-align: center;
-  margin-right: 64px;
-}
-
-.step-indicator {
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
-}
-
-.step-dot {
-  width: 20px;
-  height: 20px;
-  border-radius: 10px;
-}
-
-.step-line {
-  width: 40px;
-  height: 4px;
-  margin: 0 4px;
-}
-
-.form-section {
-  flex-direction: column;
-  flex: 1;
-}
-
-.step-title {
-  font-size: 34px;
   line-height: 44px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  text-align: center;
-}
-
-.step-hint {
-  font-size: 28px;
-  margin-bottom: 14px;
-  text-align: center;
-}
-
-.swiper-wrapper {
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 12px;
-}
-
-.swipe-arrow {
-  width: 50px;
-  height: 50px;
-  border-radius: 25px;
-  font-size: 28px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.course-card {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14px;
-  padding: 24px;
-  margin: 0 12px;
-  border: 3px solid #7ec8e3;
-  width: 200px;
-  height: 120px;
-}
-
-.card-course-name {
-  font-size: 36px;
-  font-weight: bold;
-  text-align: center;
-  lines: 1;
-  text-overflow: ellipsis;
-}
-
-.stepper-time {
-  flex-direction: column;
-  align-items: center;
-  border-radius: 14px;
-  padding: 12px;
-  margin-bottom: 10px;
-}
-
-.step2-scroll {
-  flex: 1;
-  flex-direction: column;
-}
-
-.picker-label {
-  font-size: 32px;
-  font-weight: bold;
-  margin-top: 10px;
-  margin-bottom: 8px;
-  text-align: center;
-}
-
-.stepper-row {
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 8px;
-}
-
-.stepper-label {
-  font-size: 28px;
-  width: 60px;
-}
-
-.stepper-btn {
-  width: 48px;
-  height: 40px;
-  border-radius: 10px;
-  font-size: 28px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.stepper-val {
-  font-size: 40px;
-  font-weight: bold;
-  width: 60px;
-  text-align: center;
-}
-
-.optional-hint {
-  font-size: 24px;
-  margin-bottom: 14px;
-  text-align: center;
-}
-
-.location-display {
-  width: 100%;
-  height: 56px;
-  border-radius: 12px;
-  border-width: 2px;
-  justify-content: center;
-  align-items: center;
-  flex-direction: row;
-  padding: 0 14px;
-  margin-bottom: 8px;
-}
-
-.location-text {
-  font-size: 32px;
-}
-
-.location-cursor {
-  font-size: 32px;
-  margin-left: 2px;
-}
-
-.step-nav {
-  flex-direction: row;
-  justify-content: space-between;
-  margin-top: 16px;
-}
-
-.prev-btn {
-  width: 120px;
-  border-radius: 12px;
-  font-size: 28px;
-  line-height: 48px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.next-btn {
-  width: 120px;
-  border-radius: 12px;
-  font-size: 28px;
-  line-height: 48px;
-  font-weight: bold;
-  text-align: center;
 }
 
 .save-btn {
-  width: 120px;
-  border-radius: 12px;
-  font-size: 28px;
-  line-height: 48px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.course-index-hint {
-  font-size: 24px;
-  margin-bottom: 12px;
-  text-align: center;
-}
-
-.manage-btn {
-  width: 100px;
-  border-radius: 12px;
-  font-size: 28px;
-  line-height: 48px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.confirm-card {
-  flex-direction: column;
-  border-radius: 12px;
-  padding: 18px;
-  margin-bottom: 24px;
-}
-
-.confirm-label {
-  font-size: 32px;
-  line-height: 42px;
-  font-weight: bold;
-  margin-top: 12px;
-  margin-bottom: 4px;
-}
-
-.confirm-value {
-  font-size: 34px;
-  line-height: 44px;
-}
-
-.keyboard-area {
-  flex-direction: column;
-  margin-top: 10px;
-}
-
-.keyboard-close-row {
-  flex-direction: row;
-  justify-content: flex-end;
-  margin-bottom: 4px;
-}
-
-.keyboard-done-btn {
   width: 56px;
   height: 34px;
   border-radius: 8px;
   font-size: 24px;
   font-weight: bold;
   text-align: center;
+  line-height: 32px;
 }
 
-@media (shape: circle) {
-  .add-course-page {
-    padding: 44px 36px 44px 36px;
-  }
-  .header {
-    margin-bottom: 12px;
-  }
-  .back-btn {
-    width: 44px;
-    height: 40px;
-    font-size: 28px;
-  }
-  .title {
-    font-size: 36px;
-    margin-right: 44px;
-  }
-  .step-indicator {
-    margin-bottom: 12px;
-  }
-  .step-title {
-    font-size: 28px;
-  }
-  .step-hint {
-    font-size: 24px;
-  }
-  .course-card {
-    width: 160px;
-    height: 100px;
-    padding: 18px;
-  }
-  .card-course-name {
-    font-size: 28px;
-  }
-  .picker-label {
-    font-size: 28px;
-  }
-  .stepper-btn {
-    width: 42px;
-    height: 36px;
-    font-size: 24px;
-  }
-  .stepper-val {
-    font-size: 36px;
-    width: 52px;
-  }
-  .stepper-label {
-    font-size: 24px;
-  }
-  .location-text {
-    font-size: 28px;
-  }
-  .location-cursor {
-    font-size: 28px;
-  }
-  .confirm-label {
-    font-size: 28px;
-  }
-  .confirm-value {
-    font-size: 28px;
-  }
-  .prev-btn,
-  .next-btn,
-  .save-btn {
-    width: 100px;
-    font-size: 24px;
-  }
-  .manage-btn {
-    width: 80px;
-    font-size: 24px;
-  }
+.edit-content {
+  flex-direction: column;
+  padding: 10px 4px 0 4px;
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
-  .header {
-    height: 48px;
-    margin-bottom: 8px;
-    flex-direction: row;
-    align-items: center;
-  }
-  .back-btn {
-    width: 48px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 24px;
-    text-align: center;
-    line-height: 40px;
-    flex-shrink: 0;
-  }
-  .title {
-    font-size: 28px;
-    line-height: 44px;
-    text-align: center;
-    flex: 1;
-    lines: 1;
-    margin: 0 4px;
-  }
-  .course-card {
-    width: 160px;
-    max-width: 100%;
-  }
+.label {
+  font-size: 24px;
+  margin-bottom: 4px;
 }
 
-@media (shape: rect) {
-  .add-course-page {
-    padding: 44px 10px 12px 10px;
-  }
-  .header {
-    margin-bottom: 10px;
-  }
-  .back-btn {
-    width: 44px;
-    height: 36px;
-    font-size: 28px;
-  }
-  .title {
-    font-size: 34px;
-    margin-right: 44px;
-  }
-  .step-dot {
-    width: 14px;
-    height: 14px;
-  }
-  .step-line {
-    width: 24px;
-  }
-  .step-title {
-    font-size: 28px;
-  }
-  .step-hint {
-    font-size: 24px;
-  }
-  .course-card {
-    width: 140px;
-    height: 90px;
-    padding: 16px;
-  }
-  .card-course-name {
-    font-size: 28px;
-  }
-  .picker-label {
-    font-size: 28px;
-  }
-  .stepper-label {
-    font-size: 24px;
-    width: 48px;
-  }
-  .stepper-btn {
-    width: 38px;
-    height: 32px;
-    font-size: 24px;
-  }
-  .stepper-val {
-    font-size: 36px;
-    width: 46px;
-  }
-  .location-text {
-    font-size: 28px;
-  }
-  .location-cursor {
-    font-size: 28px;
-  }
-  .confirm-label {
-    font-size: 28px;
-  }
-  .confirm-value {
-    font-size: 28px;
-  }
-  .prev-btn,
-  .next-btn,
-  .save-btn {
-    width: 90px;
-    font-size: 24px;
-  }
-  .manage-btn {
-    width: 70px;
-    font-size: 24px;
-  }
+.name-display {
+  flex-direction: row;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border-width: 2px;
+  min-height: 50px;
+}
+
+.name-text {
+  font-size: 32px;
+  flex: 1;
 }
 </style>
