@@ -1,0 +1,650 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
+      <text class="title" style="color: {{ theme.text }}">课程管理</text>
+      <input class="add-btn" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+
+    <div class="toolbar" if="{{ courseList.length > 0 }}">
+      <text class="toolbar-count" style="color: {{ theme.textSecondary }}">{{ courseList.length }}门课程</text>
+      <text class="toolbar-sort" onclick="toggleSort" style="color: {{ theme.accent }}">
+        {{ sortByTime ? '⏱ 时间序' : '🔤 名称序' }}
+      </text>
+      <input class="toolbar-clear" type="button" value="{{ clearAllConfirm ? '确认' : '清空' }}" onclick="clearAllCourses"
+             style="background-color: {{ clearAllConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ clearAllConfirm ? theme.text : theme.deleteText }}" />
+    </div>
+
+    <scroll class="list-scroll" scroll-y="{{true}}">
+      <div for="{{ (idx, item) in courseList }}" class="course-row" style="background-color: {{ theme.card }}">
+        <div class="row-left">
+          <div class="row-index" style="background-color: {{ theme.accent }}">
+            <text class="index-num">{{ idx + 1 }}</text>
+          </div>
+          <div class="row-info">
+            <text class="row-name" style="color: {{ theme.text }}">{{ item.name }}</text>
+            <text class="row-time" style="color: {{ theme.textSecondary }}">{{ item.time }}</text>
+            <text class="row-loc" if="{{ item.location }}" style="color: {{ theme.textMuted }}">{{ item.location }}</text>
+          </div>
+        </div>
+        <div class="row-actions">
+          <input class="action-btn edit-btn" type="button" value="编辑" onclick="startRename(idx)"
+                 style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+          <input class="action-btn del-btn" type="button" value="{{ deleteConfirmIndex === idx ? '确认' : '删除' }}" onclick="deleteCourse(idx)"
+                 style="background-color: {{ deleteConfirmIndex === idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === idx ? theme.text : theme.deleteText }}" />
+        </div>
+      </div>
+      <text if="{{ courseList.length === 0 }}" class="empty-text" style="color: {{ theme.textMuted }}">暂无课程，点击右上角添加</text>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import prompt from "@system.prompt"
+const store = require("../../data/store.js")
+
+var COURSE_KEY = "course_preset_list"
+
+var defaultCourses = [
+  { name: "语文", time: "08:00 - 08:45", teacher: "老师", location: "" },
+  { name: "数学", time: "08:55 - 09:40", teacher: "老师", location: "" },
+  { name: "英语", time: "10:00 - 10:45", teacher: "老师", location: "" },
+  { name: "物理", time: "10:55 - 11:40", teacher: "老师", location: "" },
+  { name: "化学", time: "13:00 - 13:45", teacher: "老师", location: "" },
+  { name: "政治", time: "13:55 - 14:40", teacher: "老师", location: "" },
+  { name: "音乐", time: "15:00 - 15:45", teacher: "老师", location: "" },
+  { name: "体育", time: "15:55 - 16:40", teacher: "老师", location: "" },
+  { name: "美术", time: "08:00 - 08:45", teacher: "老师", location: "" },
+  { name: "历史", time: "08:55 - 09:40", teacher: "老师", location: "" },
+  { name: "地理", time: "10:00 - 10:45", teacher: "老师", location: "" },
+  { name: "生物", time: "10:55 - 11:40", teacher: "老师", location: "" }
+]
+
+export default {
+  private: {
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a',
+      keyBg: '#1a1a3e',
+      keyBorder: '#2a2a5a',
+      btnSecondary: '#333355',
+      btnSecondaryText: '#a0a0b0',
+      deleteBg: '#2a1a3e',
+      deleteText: '#e08080'
+    },
+    courseList: [],
+    sortByTime: true,
+    editingIndex: -1,
+    isAdding: false,
+    clearAllConfirm: false,
+    deleteConfirmIndex: -1,
+    deleteTimer: null,
+    clearTimer: null
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    this.loadCourses()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    this.loadCourses()
+
+    var storage = require("@system.storage")
+    storage.get({
+      key: "chinese_input_result",
+      success: function(data) {
+        if (data !== undefined && data !== null && data !== "") {
+          self.processInputResult(data)
+          storage.delete({ key: "chinese_input_result", fail: function() {} })
+        }
+      },
+      fail: function() {}
+    })
+  },
+
+  loadCourses() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.get({
+      key: COURSE_KEY,
+      success: function(data) {
+        if (data !== undefined && data !== null && data !== "") {
+          try {
+            var list = JSON.parse(data)
+            if (Array.isArray(list)) {
+              self.courseList = self.applySort(list)
+            } else {
+              self.courseList = self.applySort(defaultCourses.slice())
+            }
+          } catch (e) {
+            self.courseList = self.applySort(defaultCourses.slice())
+          }
+        } else {
+          self.courseList = self.applySort(defaultCourses.slice())
+        }
+      },
+      fail: function() {
+        self.courseList = self.applySort(defaultCourses.slice())
+      }
+    })
+  },
+
+  applySort(list) {
+    if (!list || list.length === 0) return list
+    var sorted = list.slice()
+    if (this.sortByTime) {
+      sorted.sort(function(a, b) {
+        var ta = a.time ? a.time.split(' - ')[0] : '00:00'
+        var tb = b.time ? b.time.split(' - ')[0] : '00:00'
+        var taParts = ta.split(':')
+        var tbParts = tb.split(':')
+        return (parseInt(taParts[0]) * 60 + parseInt(taParts[1])) - (parseInt(tbParts[0]) * 60 + parseInt(tbParts[1]))
+      })
+    } else {
+      sorted.sort(function(a, b) {
+        var na = (a.name || '').toLowerCase()
+        var nb = (b.name || '').toLowerCase()
+        if (na < nb) return -1
+        if (na > nb) return 1
+        return 0
+      })
+    }
+    return sorted
+  },
+
+  toggleSort() {
+    this.sortByTime = !this.sortByTime
+    this.loadCourses()
+  },
+
+  saveCourses() {
+    var storage = require("@system.storage")
+    storage.set({
+      key: COURSE_KEY,
+      value: JSON.stringify(this.courseList)
+    })
+  },
+
+  startRename(idx) {
+    var item = this.courseList[idx]
+    if (!item) return
+    this.editingIndex = idx
+    this.isAdding = false
+    var storage = require("@system.storage")
+    storage.set({ key: "chinese_input_title", value: "重命名课程", success: function() {} })
+    storage.set({ key: "chinese_input_value", value: item.name || "", success: function() {} })
+    storage.set({ key: "chinese_input_maxlen", value: "10", success: function() {} })
+    storage.set({ key: "chinese_input_return_key", value: "chinese_input_result", success: function() {
+      router.push({ uri: "/pages/chinese-input" })
+    }})
+  },
+
+  startAdd() {
+    this.isAdding = true
+    this.editingIndex = -1
+    var storage = require("@system.storage")
+    storage.set({ key: "chinese_input_title", value: "添加课程", success: function() {} })
+    storage.set({ key: "chinese_input_value", value: "", success: function() {} })
+    storage.set({ key: "chinese_input_maxlen", value: "10", success: function() {} })
+    storage.set({ key: "chinese_input_return_key", value: "chinese_input_result", success: function() {
+      router.push({ uri: "/pages/chinese-input" })
+    }})
+  },
+
+  processInputResult(text) {
+    text = (text || "").trim()
+    if (!text) return
+    if (this.editingIndex >= 0) {
+      this.doRenameCourse(text)
+    } else if (this.isAdding) {
+      this.doAddCourse(text)
+    }
+  },
+
+  doRenameCourse(newName) {
+    newName = (newName || "").trim()
+    var idx = this.editingIndex
+    this.editingIndex = -1
+    if (!newName || idx < 0 || idx >= this.courseList.length) return
+    if (newName === this.courseList[idx].name) return
+    for (var i = 0; i < this.courseList.length; i++) {
+      if (i !== idx && this.courseList[i].name === newName) {
+        prompt.showToast({ message: "名称已存在", duration: 300 })
+        return
+      }
+    }
+    this.courseList[idx].name = newName
+    this.courseList = this.applySort(this.courseList)
+    this.saveCourses()
+    prompt.showToast({ message: "已更新", duration: 300 })
+  },
+
+  doAddCourse(newName) {
+    newName = (newName || "").trim()
+    if (!newName) {
+      this.isAdding = false
+      return
+    }
+    for (var i = 0; i < this.courseList.length; i++) {
+      if (this.courseList[i].name === newName) {
+        prompt.showToast({ message: "名称已存在", duration: 300 })
+        this.isAdding = false
+        return
+      }
+    }
+    this.courseList.push({
+      name: newName,
+      time: "08:00 - 08:45",
+      teacher: "老师",
+      location: ""
+    })
+    this.courseList = this.applySort(this.courseList)
+    this.saveCourses()
+    this.isAdding = false
+    prompt.showToast({ message: "已添加", duration: 300 })
+  },
+
+  deleteCourse(idx) {
+    if (idx < 0 || idx >= this.courseList.length) return
+    if (this.deleteConfirmIndex !== idx) {
+      this.deleteConfirmIndex = idx
+      var self = this
+      if (this.deleteTimer) clearTimeout(this.deleteTimer)
+      this.deleteTimer = setTimeout(function() {
+        self.deleteConfirmIndex = -1
+      }, 5000)
+      return
+    }
+    if (this.deleteTimer) {
+      clearTimeout(this.deleteTimer)
+      this.deleteTimer = null
+    }
+    this.courseList.splice(idx, 1)
+    this.deleteConfirmIndex = -1
+    this.saveCourses()
+    prompt.showToast({ message: "课程已删除" })
+  },
+
+  clearAllCourses() {
+    if (!this.clearAllConfirm) {
+      this.clearAllConfirm = true
+      var self = this
+      if (this.clearTimer) clearTimeout(this.clearTimer)
+      this.clearTimer = setTimeout(function() {
+        self.clearAllConfirm = false
+      }, 5000)
+      return
+    }
+    if (this.clearTimer) {
+      clearTimeout(this.clearTimer)
+      this.clearTimer = null
+    }
+    this.courseList = []
+    this.saveCourses()
+    this.clearAllConfirm = false
+    prompt.showToast({ message: "所有课程已清除" })
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  onDestroy() {
+    if (this.deleteTimer) {
+      clearTimeout(this.deleteTimer)
+      this.deleteTimer = null
+    }
+    if (this.clearTimer) {
+      clearTimeout(this.clearTimer)
+      this.clearTimer = null
+    }
+  }
+}
+</script>
+
+<style>
+.page {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  padding: 30px 16px 30px 16px;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  height: 56px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.back-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 26px;
+  font-size: 28px;
+  text-align: center;
+  flex-shrink: 0;
+  line-height: 48px;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+  line-height: 40px;
+}
+
+.add-btn {
+  width: 80px;
+  height: 52px;
+  border-radius: 26px;
+  font-size: 28px;
+  font-weight: bold;
+  text-align: center;
+  flex-shrink: 0;
+  line-height: 48px;
+}
+
+.toolbar {
+  flex-direction: row;
+  align-items: center;
+  padding: 8px 0;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.toolbar-count {
+  font-size: 22px;
+  flex: 1;
+  max-lines: 1;
+  text-overflow: ellipsis;
+  line-height: 30px;
+}
+
+.toolbar-sort {
+  font-size: 22px;
+  font-weight: bold;
+  margin-right: 10px;
+  line-height: 30px;
+}
+
+.toolbar-clear {
+  width: 60px;
+  height: 42px;
+  border-radius: 21px;
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  flex-shrink: 0;
+  line-height: 38px;
+}
+
+.list-scroll {
+  flex: 1;
+  flex-direction: column;
+}
+
+.course-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 14px;
+  padding: 14px 12px;
+  margin-bottom: 10px;
+}
+
+.row-left {
+  flex-direction: row;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.row-index {
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.index-num {
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffffff;
+  text-align: center;
+  line-height: 28px;
+}
+
+.row-info {
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.row-name {
+  font-size: 28px;
+  font-weight: bold;
+  max-lines: 1;
+  text-overflow: ellipsis;
+  line-height: 36px;
+}
+
+.row-time {
+  font-size: 22px;
+  max-lines: 1;
+  text-overflow: ellipsis;
+  line-height: 28px;
+  margin-top: 2px;
+}
+
+.row-loc {
+  font-size: 20px;
+  max-lines: 1;
+  text-overflow: ellipsis;
+  line-height: 26px;
+  margin-top: 2px;
+}
+
+.row-actions {
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.action-btn {
+  width: 56px;
+  height: 44px;
+  border-radius: 22px;
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 40px;
+  flex-shrink: 0;
+}
+
+.edit-btn {
+  margin-right: 6px;
+}
+
+.empty-text {
+  font-size: 24px;
+  text-align: center;
+  padding: 60px 20px;
+  line-height: 34px;
+}
+
+@media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 30px 16px 30px 16px;
+  }
+  .header {
+    height: 56px;
+    margin-bottom: 12px;
+  }
+  .back-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 28px;
+    line-height: 48px;
+  }
+  .title {
+    font-size: 30px;
+    line-height: 40px;
+  }
+  .add-btn {
+    width: 80px;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 28px;
+    line-height: 48px;
+  }
+  .toolbar {
+    padding: 8px 0;
+    margin-bottom: 10px;
+  }
+  .toolbar-sort {
+    font-size: 22px;
+    margin-right: 10px;
+  }
+  .toolbar-clear {
+    width: 60px;
+    height: 42px;
+    border-radius: 21px;
+    font-size: 22px;
+    line-height: 38px;
+  }
+  .course-row {
+    padding: 14px 12px;
+    margin-bottom: 10px;
+    border-radius: 14px;
+  }
+  .row-index {
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+    margin-right: 10px;
+  }
+  .index-num {
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .row-name {
+    font-size: 28px;
+    line-height: 36px;
+  }
+  .row-time {
+    font-size: 22px;
+    line-height: 28px;
+  }
+  .action-btn {
+    width: 56px;
+    height: 44px;
+    border-radius: 22px;
+    font-size: 22px;
+    line-height: 40px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 10px 12px 10px;
+  }
+  .header {
+    height: 40px;
+    margin-bottom: 10px;
+  }
+  .back-btn {
+    width: 40px;
+    height: 36px;
+    border-radius: 8px;
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .title {
+    font-size: 32px;
+    line-height: 40px;
+  }
+  .add-btn {
+    width: 64px;
+    height: 36px;
+    border-radius: 8px;
+    font-size: 22px;
+    line-height: 32px;
+  }
+  .toolbar {
+    padding: 4px 0;
+    margin-bottom: 6px;
+  }
+  .toolbar-count {
+    font-size: 20px;
+  }
+  .toolbar-sort {
+    font-size: 20px;
+    margin-right: 8px;
+  }
+  .toolbar-clear {
+    width: 50px;
+    height: 32px;
+    border-radius: 8px;
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .course-row {
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    border-radius: 10px;
+  }
+  .row-index {
+    width: 26px;
+    height: 26px;
+    border-radius: 13px;
+    margin-right: 8px;
+  }
+  .index-num {
+    font-size: 18px;
+    line-height: 24px;
+  }
+  .row-name {
+    font-size: 26px;
+    line-height: 34px;
+  }
+  .row-time {
+    font-size: 20px;
+    line-height: 26px;
+  }
+  .action-btn {
+    width: 46px;
+    height: 34px;
+    border-radius: 8px;
+    font-size: 20px;
+    line-height: 30px;
+  }
+  .empty-text {
+    font-size: 22px;
+    padding: 40px 20px;
+  }
+}
+</style>
