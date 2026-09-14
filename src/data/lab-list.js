@@ -3,7 +3,8 @@ var STORAGE_KEY = "lab_settings"
 
 var ALL_PAGES = [
   { name: "添加课程V2", uri: "/pages/add-course-v2" },
-  { name: "添加胶囊版", uri: "/pages/lab-add-course" }
+  { name: "添加胶囊版", uri: "/pages/lab-add-course" },
+  { name: "编辑胶囊版", uri: "/pages/lab-edit-course" }
 ]
 
 function getStorage(callback) {
