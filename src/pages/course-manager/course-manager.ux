@@ -487,79 +487,81 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .manager-page {
-    padding: 8px 6px 4px 6px;
+    padding: 120px 16px 120px 16px;
   }
   .header {
-    height: 36px;
-    margin-bottom: 4px;
+    height: 56px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
   }
   .back-btn {
-    width: 42px;
-    height: 32px;
-    border-radius: 16px;
-    font-size: 20px;
-    line-height: 30px;
+    width: 52px;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 28px;
+    line-height: 48px;
   }
   .title {
+    font-size: 30px;
+    line-height: 40px;
+  }
+  .add-btn {
+    width: 80px;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 28px;
+    line-height: 48px;
+  }
+  .clear-bar {
+    padding: 8px 0;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+  }
+  .clear-hint {
     font-size: 24px;
     line-height: 32px;
   }
-  .add-btn {
-    width: 60px;
-    height: 32px;
-    border-radius: 8px;
-    font-size: 20px;
-    line-height: 28px;
-  }
-  .clear-bar {
-    padding: 4px 0;
-    margin-bottom: 4px;
-  }
-  .clear-hint {
-    font-size: 18px;
-    line-height: 24px;
-  }
   .clear-btn {
-    width: 52px;
-    height: 26px;
-    border-radius: 6px;
-    font-size: 18px;
-    line-height: 24px;
+    width: 72px;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 28px;
+    line-height: 48px;
   }
   .course-item {
-    padding: 8px;
-    margin-bottom: 4px;
-    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-radius: 14px;
   }
   .item-index {
-    width: 24px;
-    height: 24px;
-    border-radius: 12px;
-    margin-right: 6px;
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+    margin-right: 8px;
   }
   .index-text {
-    font-size: 16px;
-    line-height: 22px;
-  }
-  .course-name {
     font-size: 24px;
     line-height: 30px;
   }
+  .course-name {
+    font-size: 28px;
+    line-height: 38px;
+  }
   .edit-btn {
-    width: 44px;
-    height: 26px;
-    border-radius: 6px;
-    font-size: 18px;
-    line-height: 24px;
-    margin-left: 6px;
+    width: 64px;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 28px;
+    line-height: 48px;
+    margin-left: 8px;
   }
   .delete-btn {
-    width: 44px;
-    height: 26px;
-    border-radius: 6px;
-    font-size: 18px;
-    line-height: 24px;
-    margin-left: 4px;
+    width: 64px;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 28px;
+    line-height: 48px;
+    margin-left: 6px;
   }
 }
 

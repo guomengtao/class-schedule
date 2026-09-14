@@ -840,152 +840,157 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .add-course-page {
-    padding: 8px 6px 4px 6px;
+    padding: 120px 16px 120px 16px;
   }
   .header {
-    height: 36px;
-    margin-bottom: 4px;
+    height: 56px;
+    margin-bottom: 12px;
   }
   .back-btn {
-    width: 42px;
-    height: 32px;
-    border-radius: 16px;
-    font-size: 20px;
-    line-height: 30px;
+    width: 52px;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 28px;
+    line-height: 48px;
   }
   .title {
-    font-size: 24px;
-    line-height: 32px;
+    font-size: 30px;
+    line-height: 40px;
   }
   .step-indicator {
-    margin-bottom: 6px;
+    margin-bottom: 12px;
   }
   .step-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
   }
   .step-line {
-    width: 24px;
+    width: 28px;
     height: 3px;
-    margin: 0 2px;
+    margin: 0 3px;
+  }
+  .form-section {
+    min-height: 0;
   }
   .step-title {
-    font-size: 22px;
-    line-height: 28px;
-    margin-bottom: 4px;
+    font-size: 30px;
+    line-height: 40px;
+    margin-bottom: 8px;
   }
   .step-hint {
-    font-size: 18px;
-    line-height: 24px;
-    margin-bottom: 6px;
+    font-size: 24px;
+    line-height: 32px;
+    margin-bottom: 12px;
   }
   .swiper-wrapper {
-    margin-bottom: 6px;
+    margin-bottom: 10px;
   }
   .swipe-arrow {
-    width: 36px;
-    height: 36px;
-    border-radius: 18px;
-    font-size: 20px;
+    width: 52px;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 28px;
   }
   .course-card {
     width: 140px;
-    height: 90px;
-    padding: 14px;
+    height: 100px;
+    padding: 16px;
     margin: 0 8px;
-    border-radius: 10px;
+    border-radius: 14px;
     border-width: 2px;
   }
   .card-course-name {
-    font-size: 26px;
-    line-height: 32px;
+    font-size: 28px;
+    line-height: 38px;
   }
   .course-index-hint {
-    font-size: 18px;
-    margin-bottom: 6px;
+    font-size: 24px;
+    line-height: 32px;
+    margin-bottom: 10px;
   }
   .picker-label {
-    font-size: 22px;
-    line-height: 28px;
-    margin-top: 6px;
-    margin-bottom: 4px;
+    font-size: 28px;
+    line-height: 38px;
+    margin-top: 10px;
+    margin-bottom: 8px;
   }
   .stepper-time {
-    padding: 8px;
-    margin-bottom: 6px;
-    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 14px;
   }
   .stepper-row {
-    margin-bottom: 4px;
+    margin-bottom: 8px;
   }
   .stepper-label {
-    font-size: 20px;
-    width: 44px;
-    line-height: 28px;
-  }
-  .stepper-btn {
-    width: 36px;
-    height: 30px;
-    border-radius: 8px;
-    font-size: 20px;
-    line-height: 28px;
-  }
-  .stepper-val {
-    font-size: 28px;
-    width: 44px;
+    font-size: 24px;
+    width: 52px;
     line-height: 32px;
   }
+  .stepper-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 28px;
+    line-height: 48px;
+  }
+  .stepper-val {
+    font-size: 32px;
+    width: 56px;
+    line-height: 40px;
+  }
   .location-display {
-    height: 40px;
-    border-radius: 8px;
-    padding: 0 10px;
-    margin-bottom: 4px;
+    height: 56px;
+    border-radius: 14px;
+    padding: 0 16px;
+    margin-bottom: 8px;
   }
   .location-text {
-    font-size: 22px;
-    line-height: 28px;
+    font-size: 28px;
+    line-height: 38px;
   }
   .location-cursor {
-    font-size: 22px;
+    font-size: 28px;
   }
   .optional-hint {
-    font-size: 18px;
-    margin-bottom: 6px;
+    font-size: 24px;
+    line-height: 32px;
+    margin-bottom: 10px;
   }
   .step-nav {
-    margin-top: 8px;
+    margin-top: 12px;
   }
   .prev-btn,
   .next-btn,
   .save-btn {
-    width: 90px;
-    height: 36px;
-    border-radius: 8px;
-    font-size: 20px;
-    line-height: 36px;
+    width: 120px;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 28px;
+    line-height: 48px;
   }
   .manage-btn {
-    width: 70px;
-    height: 36px;
-    border-radius: 8px;
-    font-size: 20px;
-    line-height: 36px;
+    width: 100px;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 28px;
+    line-height: 48px;
   }
   .confirm-card {
-    padding: 10px;
-    margin-bottom: 12px;
-    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 14px;
   }
   .confirm-label {
-    font-size: 22px;
-    line-height: 28px;
-    margin-top: 8px;
-    margin-bottom: 2px;
+    font-size: 28px;
+    line-height: 38px;
+    margin-top: 12px;
+    margin-bottom: 4px;
   }
   .confirm-value {
-    font-size: 22px;
-    line-height: 28px;
+    font-size: 28px;
+    line-height: 38px;
   }
 }
 
