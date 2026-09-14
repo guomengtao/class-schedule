@@ -73,37 +73,37 @@
           <div class="weekday-btn {{ dayIndex === 1 ? 'weekday-btn-active' : '' }}"
                onclick="selectDay(1)"
                style="background-color: {{ dayIndex === 1 ? theme.accent : theme.card }}">
-            <text style="color: {{ dayIndex === 1 ? theme.bg : theme.text }}">一</text>
+            <text class="weekday-text" style="color: {{ dayIndex === 1 ? theme.bg : theme.text }}">一</text>
           </div>
           <div class="weekday-btn {{ dayIndex === 2 ? 'weekday-btn-active' : '' }}"
                onclick="selectDay(2)"
                style="background-color: {{ dayIndex === 2 ? theme.accent : theme.card }}">
-            <text style="color: {{ dayIndex === 2 ? theme.bg : theme.text }}">二</text>
+            <text class="weekday-text" style="color: {{ dayIndex === 2 ? theme.bg : theme.text }}">二</text>
           </div>
           <div class="weekday-btn {{ dayIndex === 3 ? 'weekday-btn-active' : '' }}"
                onclick="selectDay(3)"
                style="background-color: {{ dayIndex === 3 ? theme.accent : theme.card }}">
-            <text style="color: {{ dayIndex === 3 ? theme.bg : theme.text }}">三</text>
+            <text class="weekday-text" style="color: {{ dayIndex === 3 ? theme.bg : theme.text }}">三</text>
           </div>
           <div class="weekday-btn {{ dayIndex === 4 ? 'weekday-btn-active' : '' }}"
                onclick="selectDay(4)"
                style="background-color: {{ dayIndex === 4 ? theme.accent : theme.card }}">
-            <text style="color: {{ dayIndex === 4 ? theme.bg : theme.text }}">四</text>
+            <text class="weekday-text" style="color: {{ dayIndex === 4 ? theme.bg : theme.text }}">四</text>
           </div>
           <div class="weekday-btn {{ dayIndex === 5 ? 'weekday-btn-active' : '' }}"
                onclick="selectDay(5)"
                style="background-color: {{ dayIndex === 5 ? theme.accent : theme.card }}">
-            <text style="color: {{ dayIndex === 5 ? theme.bg : theme.text }}">五</text>
+            <text class="weekday-text" style="color: {{ dayIndex === 5 ? theme.bg : theme.text }}">五</text>
           </div>
           <div class="weekday-btn {{ dayIndex === 6 ? 'weekday-btn-active' : '' }}"
                onclick="selectDay(6)"
                style="background-color: {{ dayIndex === 6 ? theme.accent : theme.card }}">
-            <text style="color: {{ dayIndex === 6 ? theme.bg : theme.text }}">六</text>
+            <text class="weekday-text" style="color: {{ dayIndex === 6 ? theme.bg : theme.text }}">六</text>
           </div>
           <div class="weekday-btn {{ dayIndex === 0 ? 'weekday-btn-active' : '' }}"
                onclick="selectDay(0)"
                style="background-color: {{ dayIndex === 0 ? theme.accent : theme.card }}">
-            <text style="color: {{ dayIndex === 0 ? theme.bg : theme.text }}">日</text>
+            <text class="weekday-text" style="color: {{ dayIndex === 0 ? theme.bg : theme.text }}">日</text>
           </div>
         </div>
       </div>
@@ -526,10 +526,6 @@ export default {
   border: 2px solid transparent;
 }
 
-.course-item:nth-child(3n) {
-  margin-right: 0;
-}
-
 .course-item-selected {
   border-color: #7ec8e3;
 }
@@ -675,9 +671,15 @@ export default {
   border-radius: 24px;
   justify-content: center;
   align-items: center;
+  background-color: transparent;
+  border: none;
 }
 
-.weekday-btn text {
+.weekday-btn-active {
+  background-color: #7ec8e3;
+}
+
+.weekday-text {
   font-size: 24px;
   line-height: 44px;
   font-weight: bold;
