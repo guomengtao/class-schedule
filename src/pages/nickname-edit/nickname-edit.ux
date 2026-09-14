@@ -1,4 +1,3 @@
-<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
 <template>
   <div class="edit-page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
@@ -8,23 +7,9 @@
     </div>
 
     <div class="edit-content">
-      <div class="nickname-display" onclick="onDisplayClick" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+      <div class="nickname-display" onclick="openInput" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
         <text class="nickname-text" style="color: {{ theme.text }}">{{ currentName || '输入昵称' }}</text>
-        <text class="cursor" show="{{ showCursor }}" style="color: {{ theme.accent }}">|</text>
       </div>
-      </div>
-
-    <div class="keyboard-area" show="{{ showKeyboard }}">
-      <input-method
-        hide="{{ hideKeyboard }}"
-        keyboardtype="QWERTY"
-        maxlength="5"
-        vibratemode="short"
-        screentype="{{ screenType }}"
-        oncomplete="onInputComplete"
-        ondelete="onInputDelete"
-        onkey-down="onKeyDown"
-      ></input-method>
     </div>
   </div>
 </template>
@@ -32,17 +17,12 @@
 <script>
 import router from "@system.router"
 import prompt from "@system.prompt"
-import device from "@system.device"
 const store = require("../../data/store.js")
 
 export default {
   private: {
     currentName: "",
     savedName: "",
-    showKeyboard: false,
-    hideKeyboard: false,
-    showCursor: false,
-    screenType: "circle",
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -74,15 +54,6 @@ export default {
       self.savedName = name || ""
       self.currentName = self.savedName
     })
-    device.getInfo({
-      success: function(data) {
-        self.screenType = data.screenShape || "circle"
-        self.showKeyboardFn()
-      },
-      fail: function() {
-        self.showKeyboardFn()
-      }
-    })
   },
 
   onShow() {
@@ -90,43 +61,28 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
+    var storage = require("@system.storage")
+    storage.get({
+      key: "chinese_input_result",
+      success: function(data) {
+        if (data !== undefined && data !== null && data !== "") {
+          self.currentName = data
+          storage.delete({ key: "chinese_input_result", fail: function() {} })
+        }
+      },
+      fail: function() {}
+    })
   },
 
-  showKeyboardFn() {
-    this.showKeyboard = true
-    this.hideKeyboard = false
-    this.showCursor = true
-  },
-
-  showKeyboard() {
-    this.showKeyboard = true
-    this.hideKeyboard = false
-    this.showCursor = true
-  },
-
-  onDisplayClick() {
-    this.showKeyboard()
-  },
-
-  onInputComplete(e) {
-    if (e && e.detail && e.detail.content) {
-      if (this.currentName.length < 5) {
-        this.currentName += e.detail.content
-      }
-    }
-  },
-
-  onInputDelete() {
-    this.currentName = this.currentName.slice(0, -1)
-  },
-
-  onKeyDown(e) {
-    if (e && e.detail && e.detail.content) {
-      var key = e.detail.content
-      if (key === 'enter' || key === 'done') {
-        this.saveNickname()
-      }
-    }
+  openInput() {
+    var storage = require("@system.storage")
+    storage.set({ key: "chinese_input_title", value: "编辑昵称", success: function() {} })
+    storage.set({ key: "chinese_input_placeholder", value: "输入昵称", success: function() {} })
+    storage.set({ key: "chinese_input_value", value: this.currentName, success: function() {} })
+    storage.set({ key: "chinese_input_maxlen", value: "5", success: function() {} })
+    storage.set({ key: "chinese_input_return_key", value: "chinese_input_result", success: function() {
+      router.push({ uri: "/pages/chinese-input" })
+    }})
   },
 
   saveNickname() {
@@ -217,18 +173,6 @@ export default {
   line-height: 40px;
 }
 
-.cursor {
-  font-size: 32px;
-  margin-left: 2px;
-  line-height: 40px;
-}
-
-.keyboard-area {
-  flex: 1;
-  flex-direction: column;
-  margin-top: 10px;
-}
-
 @media (shape: circle) {
   .edit-page {
     padding: 44px 36px 44px 36px;
@@ -261,12 +205,6 @@ export default {
   }
   .nickname-text {
     font-size: 28px;
-  }
-  .cursor {
-    font-size: 28px;
-  }
-  .keyboard-area {
-    margin-top: 6px;
   }
 }
 
@@ -327,12 +265,6 @@ export default {
   }
   .nickname-text {
     font-size: 28px;
-  }
-  .cursor {
-    font-size: 28px;
-  }
-  .keyboard-area {
-    margin-top: 6px;
   }
 }
 </style>
