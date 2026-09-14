@@ -622,7 +622,7 @@ export default {
   width: 64px;
   height: 34px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 20px; line-height: 28px;
   text-align: center;
 }
 
@@ -675,7 +675,7 @@ export default {
   width: 80px;
   height: 32px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 20px; line-height: 28px;
   font-weight: bold;
   text-align: center;
 }
@@ -970,6 +970,9 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 120px 16px 120px 16px;
+  }
   .header {
     height: 48px;
     margin-bottom: 8px;
