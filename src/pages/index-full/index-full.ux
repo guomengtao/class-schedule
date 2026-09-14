@@ -50,7 +50,7 @@
       </div>
       <div if="{{ loadError }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">数据加载失败</text>
-        <input class="retry-btn" type="button" value="点击重试" onclick="retryLoad" style="margin-top: 12px; height: 44px; background-color: {{ theme.accent }}; color: {{ theme.bg }}; border-radius: 22px; font-size: 18px; padding: 0 20px;" />
+        <input class="retry-btn" type="button" value="点击重试" onclick="retryLoad" style="margin-top: 12px; height: 44px; background-color: {{ theme.accent }}; color: {{ theme.bg }}; border-radius: 22px; font-size: 20px; line-height: 44px; padding: 0 20px;" />
       </div>
       <div if="{{ !isLoading && !loadError && currentClasses.length === 0 }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
@@ -477,13 +477,15 @@ export default {
   text-align: center;
   lines: 1;
   flex: 1;
+  line-height: 1.2em;
 }
 
 .nav-btn {
   width: 44px;
   height: 44px;
   border-radius: 22px;
-  font-size: 22px;
+  font-size: 24px;
+  line-height: 44px;
   text-align: center;
   border-width: 0;
 }
@@ -502,7 +504,8 @@ export default {
 }
 
 .day-nav-text {
-  font-size: 18px;
+  font-size: 20px;
+  line-height: 28px;
   font-weight: bold;
   text-align: center;
 }
@@ -517,11 +520,11 @@ export default {
 }
 
 .custom-content-text {
-  font-size: 18px;
+  font-size: 20px;
   flex: 1;
   lines: 1;
   text-overflow: ellipsis;
-  line-height: 24px;
+  line-height: 28px;
 }
 
 .status-bar {
@@ -534,23 +537,23 @@ export default {
 }
 
 .status-tag {
-  font-size: 16px;
+  font-size: 20px;
   padding: 2px 8px;
   border-radius: 4px;
   margin-right: 8px;
-  line-height: 22px;
+  line-height: 28px;
 }
 
 .status-middle {
-  font-size: 18px;
+  font-size: 20px;
   flex: 1;
   lines: 1;
-  line-height: 24px;
+  line-height: 28px;
 }
 
 .status-right {
-  font-size: 16px;
-  line-height: 22px;
+  font-size: 20px;
+  line-height: 28px;
 }
 
 .pinned-bar {
@@ -580,7 +583,8 @@ export default {
 }
 
 .pinned-text {
-  font-size: 16px;
+  font-size: 20px;
+  line-height: 28px;
 }
 
 .class-list {
@@ -630,6 +634,7 @@ export default {
   max-lines: 2;
   text-overflow: ellipsis;
   lines: 1;
+  line-height: 1.3em;
 }
 
 .class-card-meta {
@@ -642,11 +647,13 @@ export default {
   margin-right: 14px;
   lines: 1;
   flex-shrink: 0;
+  line-height: 1.3em;
 }
 
 .grid-item-location {
   lines: 1;
   flex-shrink: 0;
+  line-height: 1.3em;
 }
 
 .empty-card {
@@ -655,7 +662,8 @@ export default {
 }
 
 .empty-text {
-  font-size: 18px;
+  font-size: 20px;
+  line-height: 28px;
 }
 
 .quick-add {
@@ -674,8 +682,9 @@ export default {
 }
 
 .quick-add-title {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: bold;
+  line-height: 28px;
 }
 
 .quick-add-info {
@@ -684,12 +693,14 @@ export default {
 }
 
 .quick-add-time {
-  font-size: 12px;
+  font-size: 20px;
   margin-right: 6px;
+  line-height: 28px;
 }
 
 .quick-add-arrow {
-  font-size: 12px;
+  font-size: 20px;
+  line-height: 28px;
 }
 
 .quick-add-row-scroll {
@@ -714,11 +725,13 @@ export default {
 }
 
 .quick-add-tag-text {
-  font-size: 15px;
+  font-size: 20px;
+  line-height: 28px;
 }
 
 .quick-add-empty {
-  font-size: 13px;
+  font-size: 20px;
+  line-height: 28px;
   padding: 6px 12px;
   text-align: center;
 }
@@ -734,21 +747,23 @@ export default {
   flex: 1;
   height: 44px;
   border-radius: 22px;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   text-align: center;
   border-width: 0;
   margin-right: 4px;
+  line-height: 44px;
 }
 
 .style-btn {
   flex: 1;
   height: 44px;
   border-radius: 22px;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   text-align: center;
   border-width: 0;
+  line-height: 44px;
 }
 
 .week-indicator {
@@ -759,7 +774,8 @@ export default {
 }
 
 .week-text {
-  font-size: 16px;
+  font-size: 20px;
+  line-height: 28px;
   text-align: center;
 }
 
@@ -806,7 +822,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .schedule-page {
-    padding: 28px 6px 28px 6px;
+    padding: 120px 16px 120px 16px;
   }
   .clock-row {
     padding: 4px 0;
@@ -814,46 +830,77 @@ export default {
   }
   .clock-text {
     font-size: 20px;
-    line-height: 40px;
+    line-height: 28px;
+  }
+  .header {
+    padding: 4px 0;
+    margin-bottom: 6px;
   }
   .nav-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 22px;
+    width: 48px;
+    height: 40px;
+    border-radius: 20px;
     font-size: 24px;
+    line-height: 40px;
   }
   .day-nav-circle {
-    width: 44px;
-    height: 44px;
-    border-radius: 22px;
+    width: 48px;
+    height: 40px;
+    border-radius: 20px;
     margin-left: 4px;
   }
   .day-nav-text {
     font-size: 20px;
+    line-height: 28px;
   }
   .custom-content-text {
     font-size: 20px;
-    line-height: 40px;
+    line-height: 28px;
   }
   .status-bar {
     padding: 6px 8px;
     margin-bottom: 6px;
   }
   .status-tag {
-    font-size: 18px;
+    font-size: 20px;
     padding: 2px 6px;
-    line-height: 26px;
+    line-height: 28px;
   }
   .status-middle {
     font-size: 20px;
-    line-height: 40px;
+    line-height: 28px;
   }
   .status-right {
-    font-size: 18px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .section-label {
-    font-size: 18px;
+    font-size: 20px;
+    line-height: 28px;
     padding: 6px 4px;
+  }
+  .quick-add-header {
+    padding: 8px 12px;
+  }
+  .quick-add-scroll {
+    height: 48px;
+  }
+  .quick-add-tag {
+    border-radius: 20px;
+    padding: 6px 14px;
+  }
+  .add-btn,
+  .style-btn {
+    height: 48px;
+    border-radius: 24px;
+    font-size: 24px;
+    line-height: 48px;
+  }
+  .left-accent-4 {
+    height: 24px;
+  }
+  .left-accent-6 {
+    height: 28px;
   }
 }
 
