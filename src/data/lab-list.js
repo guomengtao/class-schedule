@@ -2,6 +2,7 @@ import storage from "@system.storage"
 var STORAGE_KEY = "lab_settings"
 
 var ALL_PAGES = [
+  { name: "添加课程V2", uri: "/pages/add-course-v2" },
   { name: "添加胶囊版", uri: "/pages/lab-add-course" }
 ]
 
