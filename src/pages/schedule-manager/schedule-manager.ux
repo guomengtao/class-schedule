@@ -63,7 +63,7 @@
     <unlock-dialog id="unlockDialog"></unlock-dialog>
 
     <div class="footer-actions">
-      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 13px;">固定到首页</text>
+      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 20px;">固定到首页</text>
     </div>
   </scroll>
 
@@ -547,18 +547,20 @@ export default {
   width: 48px;
   height: 36px;
   border-radius: 8px;
-  font-size: 18px;
+  font-size: 28px;
   text-align: center;
   flex-shrink: 0;
+  line-height: 36px;
 }
 
 .title {
-  font-size: 20px;
+  font-size: 30px;
   font-weight: bold;
   flex: 1;
   text-align: center;
   lines: 1;
   text-overflow: ellipsis;
+  line-height: 40px;
 }
 
 .footer-actions {
@@ -588,14 +590,16 @@ export default {
   height: 40px;
   border-radius: 8px;
   border-width: 2px;
-  font-size: 18px;
+  font-size: 20px;
+  line-height: 28px;
   padding: 0 12px;
   flex-direction: row;
   align-items: center;
 }
 
 .rename-text {
-  font-size: 18px;
+  font-size: 20px;
+  line-height: 28px;
   lines: 1;
   text-overflow: ellipsis;
 }
@@ -604,7 +608,8 @@ export default {
   width: 56px;
   height: 36px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 20px;
+  line-height: 28px;
   font-weight: bold;
   text-align: center;
   margin-left: 8px;
@@ -614,7 +619,8 @@ export default {
   width: 56px;
   height: 36px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 20px;
+  line-height: 28px;
   text-align: center;
   margin-left: 6px;
 }
@@ -651,33 +657,37 @@ export default {
 }
 
 .check {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   lines: 1;
   text-overflow: ellipsis;
+  line-height: 28px;
 }
 
 .name {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: bold;
   margin-left: 10px;
   lines: 1;
   text-overflow: ellipsis;
+  line-height: 28px;
 }
 
 .course-count {
-  font-size: 14px;
+  font-size: 20px;
   margin-left: 6px;
   lines: 1;
   text-overflow: ellipsis;
+  line-height: 28px;
 }
 
 .expand-arrow {
-  font-size: 12px;
+  font-size: 20px;
   padding: 4px;
   flex-shrink: 0;
   lines: 1;
   text-overflow: ellipsis;
+  line-height: 28px;
 }
 
 .actions {
@@ -706,7 +716,8 @@ export default {
 }
 
 .action-btn-text {
-  font-size: 15px;
+  font-size: 20px;
+  line-height: 28px;
   lines: 1;
   text-overflow: ellipsis;
 }
@@ -721,7 +732,8 @@ export default {
   width: 100%;
   height: 42px;
   border-radius: 10px;
-  font-size: 16px;
+  font-size: 20px;
+  line-height: 28px;
   font-weight: bold;
   text-align: center;
 }
@@ -754,17 +766,18 @@ export default {
 }
 
 .modal-title {
-  font-size: 34px;
+  font-size: 30px;
   font-weight: bold;
   margin-bottom: 10px;
   text-align: center;
+  line-height: 40px;
 }
 
 .modal-desc {
-  font-size: 26px;
+  font-size: 24px;
   text-align: center;
   margin-bottom: 16px;
-  line-height: 34px;
+  line-height: 32px;
 }
 
 .benefit-list {
@@ -775,8 +788,9 @@ export default {
 }
 
 .benefit-item {
-  font-size: 26px;
+  font-size: 24px;
   margin-bottom: 6px;
+  line-height: 32px;
 }
 
 .modal-btn-primary {
@@ -786,13 +800,15 @@ export default {
   font-size: 28px;
   font-weight: bold;
   margin-bottom: 8px;
+  line-height: 38px;
 }
 
 .modal-btn-secondary {
   width: 100%;
   height: 36px;
   border-radius: 18px;
-  font-size: 26px;
+  font-size: 24px;
+  line-height: 32px;
 }
 
 @media (shape: circle) {
@@ -802,45 +818,54 @@ export default {
   .back-btn {
     width: 40px;
     height: 30px;
-    font-size: 16px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .title {
-    font-size: 17px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .item {
     padding: 8px 10px;
     margin-bottom: 8px;
   }
   .name {
-    font-size: 14px;
+    font-size: 20px;
+    line-height: 28px;
     margin-left: 6px;
   }
   .course-count {
-    font-size: 12px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .action-btn {
     height: 30px;
     margin-right: 4px;
   }
   .action-btn-text {
-    font-size: 13px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .rename-display {
-    font-size: 15px;
+    font-size: 20px;
+    line-height: 28px;
     height: 36px;
   }
   .rename-text {
-    font-size: 15px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .rename-ok-btn,
   .rename-cancel-btn {
     width: 48px;
     height: 30px;
-    font-size: 13px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .add-btn {
     height: 38px;
-    font-size: 14px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .footer-actions {
     padding: 12px 0 6px 0;
@@ -851,6 +876,9 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 120px 16px 120px 16px;
+  }
   .header {
     height: 48px;
     margin-bottom: 8px;
