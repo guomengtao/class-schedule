@@ -880,6 +880,36 @@ export default {
     line-height: 38px;
   }
 
+  .default-homepage-body {
+    padding: 12px 0;
+  }
+
+  .section-label {
+    font-size: 34px;
+    margin: 16px 0 10px 0;
+    line-height: 44px;
+  }
+
+  .page-options {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+
+  .page-option {
+    width: 100%;
+    height: 50px;
+    border-radius: 12px;
+    margin: 0 0 8px 0;
+    padding: 0 16px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .page-option-text {
+    font-size: 32px;
+    line-height: 50px;
+  }
+
 }
 
 @media (shape: rect) {
