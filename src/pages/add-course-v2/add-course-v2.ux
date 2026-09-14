@@ -11,15 +11,14 @@
     <scroll class="main-scroll" scroll-y="true">
       <div class="section">
         <text class="section-title" style="color: {{ theme.text }}">选择课程</text>
-        <div class="course-grid">
+        <scroll class="course-scroll" scroll-x="true">
           <div class="course-item {{ courseIndex === idx ? 'course-item-selected' : '' }}"
                for="{{ (idx, c) in presetCourses }}"
                onclick="selectCourseByIdx(idx)"
                style="background-color: {{ theme.card }}">
             <text class="course-name" style="color: {{ theme.text }}">{{ c.name }}</text>
-            <text class="course-time-text" style="color: {{ theme.textSecondary }}">{{ c.time }}</text>
           </div>
-        </div>
+        </scroll>
       </div>
 
       <div class="section">
@@ -508,22 +507,21 @@ export default {
   text-overflow: ellipsis;
 }
 
-.course-grid {
+.course-scroll {
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-shrink: 0;
+  height: 72px;
 }
 
 .course-item {
-  width: 124px;
-  height: 68px;
+  width: 100px;
+  height: 64px;
   border-radius: 14px;
-  padding: 8px;
   margin-right: 10px;
-  margin-bottom: 10px;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   border: 2px solid transparent;
+  flex-shrink: 0;
 }
 
 .course-item-selected {
@@ -534,14 +532,6 @@ export default {
   font-size: 26px;
   line-height: 34px;
   font-weight: bold;
-  text-align: center;
-  max-lines: 1;
-  text-overflow: ellipsis;
-}
-
-.course-time-text {
-  font-size: 18px;
-  line-height: 26px;
   text-align: center;
   max-lines: 1;
   text-overflow: ellipsis;
