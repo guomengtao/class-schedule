@@ -420,6 +420,7 @@ export default {
   height: 34px;
   border-radius: 8px;
   font-size: 24px;
+  line-height: 32px;
   font-weight: bold;
   text-align: center;
   flex-shrink: 0;
@@ -469,11 +470,13 @@ export default {
     width: 50px;
     height: 30px;
     font-size: 20px;
+    line-height: 28px;
   }
   .delete-btn {
     width: 50px;
     height: 30px;
     font-size: 20px;
+    line-height: 28px;
   }
   .clear-hint {
     font-size: 24px;
@@ -482,6 +485,7 @@ export default {
     width: 56px;
     height: 30px;
     font-size: 24px;
+    line-height: 30px;
   }
 }
 
@@ -577,6 +581,7 @@ export default {
     width: 36px;
     height: 32px;
     font-size: 24px;
+    line-height: 30px;
   }
   .title {
     font-size: 28px;
@@ -585,6 +590,7 @@ export default {
     width: 60px;
     height: 32px;
     font-size: 20px;
+    line-height: 28px;
   }
   .course-item {
     padding: 8px;
@@ -606,11 +612,13 @@ export default {
     width: 48px;
     height: 28px;
     font-size: 20px;
+    line-height: 28px;
   }
   .delete-btn {
     width: 48px;
     height: 28px;
     font-size: 20px;
+    line-height: 28px;
   }
   .clear-hint {
     font-size: 20px;
@@ -619,6 +627,7 @@ export default {
     width: 54px;
     height: 28px;
     font-size: 20px;
+    line-height: 28px;
   }
 }
 

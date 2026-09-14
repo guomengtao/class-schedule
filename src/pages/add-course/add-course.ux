@@ -578,12 +578,17 @@ export default {
   font-weight: bold;
   margin-bottom: 8px;
   text-align: center;
+  max-lines: 1;
+  text-overflow: ellipsis;
 }
 
 .step-hint {
   font-size: 28px;
+  line-height: 38px;
   margin-bottom: 14px;
   text-align: center;
+  max-lines: 1;
+  text-overflow: ellipsis;
 }
 
 .swiper-wrapper {
@@ -598,6 +603,7 @@ export default {
   height: 50px;
   border-radius: 25px;
   font-size: 28px;
+  line-height: 48px;
   font-weight: bold;
   text-align: center;
 }
@@ -616,6 +622,7 @@ export default {
 
 .card-course-name {
   font-size: 36px;
+  line-height: 48px;
   font-weight: bold;
   text-align: center;
   lines: 1;
@@ -637,6 +644,7 @@ export default {
 
 .picker-label {
   font-size: 32px;
+  line-height: 42px;
   font-weight: bold;
   margin-top: 10px;
   margin-bottom: 8px;
@@ -652,6 +660,7 @@ export default {
 
 .stepper-label {
   font-size: 28px;
+  line-height: 38px;
   width: 60px;
 }
 
@@ -660,12 +669,14 @@ export default {
   height: 40px;
   border-radius: 10px;
   font-size: 28px;
+  line-height: 38px;
   font-weight: bold;
   text-align: center;
 }
 
 .stepper-val {
   font-size: 40px;
+  line-height: 50px;
   font-weight: bold;
   width: 60px;
   text-align: center;
@@ -673,6 +684,7 @@ export default {
 
 .optional-hint {
   font-size: 24px;
+  line-height: 32px;
   margin-bottom: 14px;
   text-align: center;
 }
@@ -691,10 +703,12 @@ export default {
 
 .location-text {
   font-size: 32px;
+  line-height: 42px;
 }
 
 .location-cursor {
   font-size: 32px;
+  line-height: 42px;
   margin-left: 2px;
 }
 
@@ -733,6 +747,7 @@ export default {
 
 .course-index-hint {
   font-size: 24px;
+  line-height: 32px;
   margin-bottom: 12px;
   text-align: center;
 }
@@ -764,6 +779,8 @@ export default {
 .confirm-value {
   font-size: 34px;
   line-height: 44px;
+  max-lines: 1;
+  text-overflow: ellipsis;
 }
 
 @media (shape: circle) {
