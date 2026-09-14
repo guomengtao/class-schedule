@@ -11,10 +11,10 @@
         <div class="day-nav-circle" onclick="goToWeekView" if="{{ showDayNavZong }}" style="background-color: {{ theme.cardLight }}">
           <text class="day-nav-text" style="color: {{ theme.accent }}">总</text>
         </div>
-        <div class="day-nav-circle" onclick="goToToday" if="{{ showDayNavJin }}" style="background-color: {{ theme.cardLight }}">
+        <div class="day-nav-circle" onclick="goToToday" if="{{ !isCapsule && showDayNavJin }}" style="background-color: {{ theme.cardLight }}">
           <text class="day-nav-text" style="color: {{ theme.accent }}">今</text>
         </div>
-        <div class="day-nav-circle" onclick="goToTomorrow" if="{{ showDayNavMing }}" style="background-color: {{ theme.cardLight }}">
+        <div class="day-nav-circle" onclick="goToTomorrow" if="{{ !isCapsule && showDayNavMing }}" style="background-color: {{ theme.cardLight }}">
           <text class="day-nav-text" style="color: {{ theme.accent }}">明</text>
         </div>
       </div>
@@ -27,10 +27,19 @@
     </div>
 
     <div class="status-bar" if="{{ showStatusBar }}" style="background-color: {{ theme.cardLight }}">
-      <div class="left-accent left-accent-6" style="background-color: {{ theme.accent }}"></div>
-      <text class="status-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
-      <text class="status-middle" style="color: {{ theme.text }}">{{ statusMainText }}</text>
-      <text class="status-right" if="{{ statusTimeText }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
+      <div class="left-accent left-accent-6" if="{{ !isCapsule }}" style="background-color: {{ theme.accent }}"></div>
+      <div if="{{ isCapsule }}" style="flex:1; flex-direction:column;">
+        <div style="flex-direction:row; align-items:center; margin-bottom:2px;">
+          <text class="status-tag status-tag-compact" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
+          <text class="status-right status-right-compact" if="{{ statusTimeText }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
+        </div>
+        <text class="status-middle status-middle-compact" style="color: {{ theme.text }}">{{ statusMainText }}</text>
+      </div>
+      <block if="{{ !isCapsule }}">
+        <text class="status-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
+        <text class="status-middle" style="color: {{ theme.text }}">{{ statusMainText }}</text>
+        <text class="status-right" if="{{ statusTimeText }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
+      </block>
     </div>
 
     <div class="pinned-bar" if="{{ showPinnedBar && hasPinned }}" style="background-color: {{ theme.cardLight }}">
@@ -92,7 +101,7 @@
     
 
     <div class="bottom-buttons">
-      <input class="add-btn" type="button" value="+ 添加课程" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="add-btn" type="button" value="{{ isCapsule ? '+' : '+ 添加课程' }}" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
     </div>
 
@@ -149,6 +158,7 @@ loadModule("classList", require("./modules/class-list.js"))
 
 export default {
   private: {
+    isCapsule: false,
     isLoading: true,
     loadError: false,
     currentTime: "",
@@ -201,6 +211,7 @@ export default {
 
   onInit() {
     var self = this
+    self.isCapsule = isCapsuleScreen
     self.initialized = false
     self.isLoading = true
     self.loadError = false
@@ -235,6 +246,7 @@ export default {
   onShow() {
     var self = this
     if (!self.initialized) return
+    self.isCapsule = isCapsuleScreen
     store.getTheme(function(t) { self.theme = t })
     self.loadHomepageSettings()
     if (modules.customContent && modules.customContent.refresh) {
@@ -322,6 +334,9 @@ export default {
       self.showCustomContent = settings.showCustomContent || false
       self.customContent = settings.customContent || ""
       self.timeFormat = settings.timeFormat || { hour: true, minute: true, second: false }
+      if (isCapsuleScreen) {
+        self.timeFormat.second = false
+      }
       if (typeof self.updateClock === 'function') {
         self.updateClock()
       }
@@ -432,7 +447,7 @@ export default {
       self.currentDayIndex = tomorrowIdx
       self.currentDay = dayNames[tomorrowIdx]
       self.dayDisplayText = isCapsuleScreen
-        ? ({ "星期日": "周日", "星期一": "周一", "星期二": "周二", "星期三": "周三", "星期四": "周四", "星期五": "周五", "星期六": "周六" })[self.currentDay] || self.currentDay
+        ? ({ "星期日": "日", "星期一": "一", "星期二": "二", "星期三": "三", "星期四": "四", "星期五": "五", "星期六": "六" })[self.currentDay] || self.currentDay
         : self.currentDay
       if (self.loadDayClasses && typeof self.loadDayClasses === 'function') self.loadDayClasses()
       if (self.updateStatus && typeof self.updateStatus === 'function') self.updateStatus()
@@ -477,8 +492,7 @@ export default {
   text-align: center;
   lines: 1;
   flex: 1;
-  line-height: 1.2em;
-}
+  }
 
 .nav-btn {
   width: 44px;
@@ -634,7 +648,6 @@ export default {
   max-lines: 2;
   text-overflow: ellipsis;
   lines: 1;
-  line-height: 1.3em;
 }
 
 .class-card-meta {
@@ -647,13 +660,11 @@ export default {
   margin-right: 14px;
   lines: 1;
   flex-shrink: 0;
-  line-height: 1.3em;
 }
 
 .grid-item-location {
   lines: 1;
   flex-shrink: 0;
-  line-height: 1.3em;
 }
 
 .empty-card {
@@ -822,7 +833,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .schedule-page {
-    padding: 30px 16px 30px 16px;
+    padding: 30px 12px 30px 12px;
   }
   .clock-row {
     padding: 4px 0;
@@ -833,46 +844,59 @@ export default {
     line-height: 28px;
   }
   .header {
-    padding: 4px 0;
-    margin-bottom: 6px;
+    padding: 2px 0;
+    margin-bottom: 4px;
   }
   .nav-btn {
-    width: 48px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 24px;
-    line-height: 40px;
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    font-size: 20px;
+    line-height: 36px;
+  }
+  .day-title {
+    font-size: 26px;
+    font-weight: bold;
+    text-align: center;
+    flex: 1;
+    lines: 1;
   }
   .day-nav-circle {
-    width: 48px;
-    height: 40px;
-    border-radius: 20px;
-    margin-left: 4px;
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    margin-left: 2px;
   }
   .day-nav-text {
-    font-size: 20px;
-    line-height: 28px;
+    font-size: 16px;
+    line-height: 24px;
   }
   .custom-content-text {
-    font-size: 20px;
-    line-height: 28px;
+    font-size: 18px;
+    line-height: 26px;
   }
   .status-bar {
     padding: 6px 8px;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
-  .status-tag {
-    font-size: 20px;
-    padding: 2px 6px;
-    line-height: 28px;
+  .status-tag-compact {
+    font-size: 16px;
+    padding: 1px 6px;
+    line-height: 22px;
+    margin-right: 4px;
   }
-  .status-middle {
-    font-size: 20px;
-    line-height: 28px;
+  .status-middle-compact {
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 24px;
+    lines: 1;
+    text-overflow: ellipsis;
+    flex: 1;
+    width: 100%;
   }
-  .status-right {
-    font-size: 20px;
-    line-height: 28px;
+  .status-right-compact {
+    font-size: 16px;
+    line-height: 22px;
   }
   .section-label {
     font-size: 20px;
@@ -882,19 +906,64 @@ export default {
   .quick-add-header {
     padding: 8px 12px;
   }
+  .quick-add-title {
+    font-size: 18px;
+  }
   .quick-add-scroll {
     height: 48px;
   }
   .quick-add-tag {
     border-radius: 20px;
-    padding: 6px 14px;
+    padding: 4px 10px;
   }
-  .add-btn,
-  .style-btn {
-    height: 48px;
-    border-radius: 24px;
+  .quick-add-tag-text {
+    font-size: 16px;
+  }
+  .add-btn {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
     font-size: 24px;
-    line-height: 48px;
+    line-height: 40px;
+    margin-right: 4px;
+  }
+  .style-btn {
+    flex: 1;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 18px;
+    line-height: 40px;
+  }
+  .class-card-body {
+    padding: 8px 10px 8px 10px;
+    flex-direction: row;
+    align-items: center;
+  }
+  .grid-item-name {
+    margin-bottom: 0;
+    flex: 1;
+    margin-right: 6px;
+    lines: 1;
+    text-overflow: ellipsis;
+  }
+  .class-card-meta {
+    flex-direction: column;
+    flex-shrink: 0;
+    align-items: flex-end;
+  }
+  .grid-item-time {
+    font-size: 13px;
+    margin-right: 0;
+    margin-bottom: 1px;
+    lines: 1;
+  }
+  .grid-item-location {
+    font-size: 13px;
+    lines: 1;
+  }
+  .week-text {
+    font-size: 18px;
   }
   .left-accent-4 {
     height: 24px;

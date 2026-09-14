@@ -4,6 +4,25 @@ var store = require("../../../data/store.js")
 var prompt = require("@system.prompt")
 
 var fullDayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+var isCapsule = false
+
+var device = require("@system.device")
+device.getInfo({
+  success: function(data) {
+    var shape = data.screenShape || ""
+    isCapsule = (shape === "capsule" || shape === "pill-shaped")
+  }
+})
+
+function shortenTime(timeStr) {
+  if (!isCapsule) return timeStr
+  var parts = timeStr.split("-")
+  if (parts.length < 2) return timeStr
+  var start = parts[0].trim()
+  var end = parts[1].trim()
+  var startHour = start.split(":")[0]
+  return startHour + "-" + end
+}
 
 function getRealTodayName() {
   return fullDayNames[new Date().getDay()]
@@ -47,7 +66,7 @@ function init(instance) {
       classes.push({
         id: src.id,
         name: src.name,
-        time: src.time,
+        time: shortenTime(src.time),
         teacher: src.teacher || "",
         location: src.location || "",
         progress: 0,

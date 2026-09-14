@@ -643,7 +643,6 @@ export default {
 .preview-text {
   font-weight: bold;
   text-align: center;
-  line-height: 1.2em;
 }
 
 .toggle-btn {

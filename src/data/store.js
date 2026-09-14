@@ -659,8 +659,8 @@ module.exports = {
       return
     }
     var defaultSettings = {
-      showQuickAdd: true,
-      showCustomContent: true,
+      showQuickAdd: false,
+      showCustomContent: false,
       customContent: randomPick(DEFAULT_QUOTES),
       showTime: true,
       showStatusBar: true,
