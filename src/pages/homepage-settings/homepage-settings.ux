@@ -114,7 +114,7 @@
         </div>
         <input class="modal-btn-primary" type="button" value="立即解锁" onclick="goToPremium"
                style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        <input class="modal-btn-secondary" type="button" value="取消" onclick="dismissDialog"
+        <input class="modal-btn-secondary" type="button" value="返回" onclick="goBack"
                style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
       </div>
     </div>
@@ -528,31 +528,79 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
-    padding: 20px 10px 8px 10px;
+    padding: 30px 12px 8px 12px;
   }
 
   .header {
-    height: 48px;
-    margin-bottom: 8px;
+    height: 56px;
+    margin-bottom: 12px;
     flex-direction: row;
     align-items: center;
   }
   .back-btn {
-    width: 48px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 24px;
+    width: 56px;
+    height: 48px;
+    border-radius: 24px;
+    font-size: 28px;
     text-align: center;
-    line-height: 40px;
+    line-height: 48px;
     flex-shrink: 0;
   }
   .title {
-    font-size: 28px;
-    line-height: 44px;
+    font-size: 32px;
+    line-height: 48px;
     text-align: center;
     flex: 1;
     lines: 1;
     margin: 0 4px;
+  }
+
+  .item-label {
+    font-size: 32px;
+    line-height: 44px;
+  }
+
+  .input-text {
+    font-size: 30px;
+    line-height: 44px;
+  }
+
+  .preview-text {
+    font-size: 30px;
+  }
+
+  .unit-chip {
+    padding: 10px 14px;
+    border-radius: 14px;
+    margin: 5px;
+  }
+
+  .unit-text {
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .colon-sep {
+    font-size: 28px;
+    margin: 0 4px;
+  }
+
+  .time-preview {
+    font-size: 34px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+  }
+
+  .switch-track {
+    width: 52px;
+    height: 28px;
+    border-radius: 14px;
+  }
+
+  .switch-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
   }
 
   .modal-card {
