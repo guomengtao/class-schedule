@@ -631,6 +631,7 @@ export default {
 .pinned-tag-text {
   font-size: 20px;
   line-height: 28px;
+  lines: 1;
 }
 
 .class-list {
@@ -1132,6 +1133,7 @@ export default {
   .pinned-tag-text {
     font-size: 17px;
     line-height: 24px;
+    lines: 1;
   }
   .pinned-tag {
     padding: 5px 12px;

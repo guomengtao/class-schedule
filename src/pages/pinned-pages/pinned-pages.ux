@@ -2,13 +2,13 @@
   <div class="pinned-pages-page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
-      <text class="title" style="color: {{ theme.text }}">Pinned Pages</text>
+      <text class="title" style="color: {{ theme.text }}">已钉页面</text>
     </div>
 
     <div class="empty-state" if="pinnedList.length === 0">
       <text class="empty-icon">📌</text>
-      <text class="empty-title" style="color: {{ theme.textSecondary }}">No pinned pages</text>
-      <text class="empty-desc" style="color: {{ theme.textMuted }}">Open any page and pin it to the home screen for quick access.</text>
+      <text class="empty-title" style="color: {{ theme.textSecondary }}">暂无已钉页面</text>
+      <text class="empty-desc" style="color: {{ theme.textMuted }}">打开任意页面，将其钉到首页可快速访问。</text>
     </div>
 
     <scroll class="pinned-scroll" scroll-y="true" if="pinnedList.length > 0">
@@ -16,15 +16,14 @@
         <div class="pinned-card" for="{{ pinnedList }}" style="background-color: {{ theme.card }}">
           <div class="card-body" onclick="openPage($item.uri)">
             <text class="card-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-            <text class="card-hint" style="color: {{ theme.textMuted }}">tap to open</text>
           </div>
-          <text class="unpin-btn" onclick="unpinPage($idx)" style="color: {{ theme.textMuted }}">Unpin</text>
+          <text class="unpin-btn" onclick="unpinPage($idx)" style="color: {{ theme.textMuted }}">取消</text>
         </div>
       </div>
     </scroll>
 
     <div class="footer-area">
-      <text class="pin-self-btn" onclick="togglePinSelf" style="color: {{ theme.textMuted }}">{{ isThisPinned ? 'Unpin this page' : 'Pin this page' }}</text>
+      <text class="pin-self-btn" onclick="togglePinSelf" style="color: {{ theme.textMuted }}">{{ isThisPinned ? '取消钉本页' : '钉本页到首页' }}</text>
     </div>
   </div>
 </template>
@@ -35,7 +34,7 @@ const store = require("../../data/store.js")
 var pinHelper = require("../../data/pin-helper.js")
 
 var PAGE_URI = "/pages/pinned-pages"
-var PAGE_NAME = "Pinned Pages"
+var PAGE_NAME = "已钉页面"
 
 export default {
   private: {
@@ -192,17 +191,14 @@ export default {
 .card-body {
   flex-direction: column;
   flex: 1;
+  min-width: 0;
 }
 
 .card-name {
   font-size: 30px;
-  margin-bottom: 4px;
   line-height: 38px;
-}
-
-.card-hint {
-  font-size: 22px;
-  line-height: 28px;
+  lines: 1;
+  min-width: 0;
 }
 
 .unpin-btn {
@@ -270,11 +266,7 @@ export default {
   .card-name {
     font-size: 26px;
     line-height: 34px;
-    margin-bottom: 2px;
-  }
-  .card-hint {
-    font-size: 20px;
-    line-height: 26px;
+    lines: 1;
   }
   .unpin-btn {
     font-size: 20px;
