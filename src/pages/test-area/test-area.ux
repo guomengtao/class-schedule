@@ -74,10 +74,10 @@ export default {
 }
 
 .header {
-  height: 48px;
   flex-direction: row;
   align-items: center;
   margin-bottom: 8px;
+  padding: 0 4px;
 }
 
 .back-btn {
@@ -93,19 +93,15 @@ export default {
 .title {
   font-size: 28px;
   font-weight: bold;
+  margin-left: 10px;
   line-height: 44px;
-  text-align: center;
-  flex: 1;
-  lines: 1;
-  margin: 0 4px;
 }
 
 .section-label {
   font-size: 20px;
-  line-height: 28px;
   margin-bottom: 10px;
   margin-left: 4px;
-  padding: 6px 4px;
+  line-height: 28px;
 }
 
 .list {
@@ -122,22 +118,19 @@ export default {
 
 .card-name {
   font-size: 20px;
-  line-height: 28px;
   flex-shrink: 0;
   margin-right: 8px;
+  line-height: 28px;
 }
 
 .card-desc {
   font-size: 16px;
-  line-height: 24px;
   flex: 1;
-  text-overflow: ellipsis;
-  lines: 1;
+  line-height: 24px;
 }
 
 .card-arrow {
   font-size: 20px;
-  line-height: 28px;
   flex-shrink: 0;
   margin-left: 8px;
 }
@@ -150,14 +143,6 @@ export default {
 
 .empty-text {
   font-size: 18px;
-  line-height: 26px;
-  text-align: center;
-}
-
-@media (shape: capsule), (shape: pill-shaped) {
-  .capsule-hide {
-    display: none;
-  }
 }
 
 @media (shape: rect) {
@@ -170,64 +155,16 @@ export default {
   .back-btn {
     width: 56px;
     height: 40px;
-    border-radius: 8px;
     font-size: 22px;
     line-height: 40px;
   }
   .title {
     font-size: 34px;
     line-height: 44px;
-    margin-left: 10px;
-    margin-right: 0;
-  }
-  .section-label {
-    font-size: 22px;
-    line-height: 30px;
   }
   .card {
-    border-radius: 10px;
     padding: 18px 16px;
     margin-bottom: 12px;
-  }
-  .card-name {
-    font-size: 28px;
-    line-height: 32px;
-  }
-  .card-desc {
-    font-size: 22px;
-    line-height: 28px;
-  }
-  .card-arrow {
-    font-size: 24px;
-  }
-  .empty-text {
-    font-size: 22px;
-    line-height: 30px;
-  }
-}
-
-@media (shape: circle) {
-  .page-root {
-    padding: 44px 36px 44px 36px;
-  }
-  .header {
-    margin-bottom: 14px;
-  }
-  .back-btn {
-    width: 64px;
-    height: 40px;
-    font-size: 24px;
-  }
-  .title {
-    font-size: 30px;
-    margin-left: 12px;
-  }
-  .section-label {
-    font-size: 24px;
-  }
-  .card {
-    padding: 16px 14px;
-    margin-bottom: 10px;
   }
   .card-name {
     font-size: 28px;
