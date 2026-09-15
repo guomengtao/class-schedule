@@ -53,6 +53,42 @@
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
+      <div class="group-title-row" onclick="toggleDefaultHomepage">
+        <text class="group-title" style="color: {{ theme.text }}">默认首页</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">{{ defaultHomepageLabel }}</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">{{ showDefaultHomepage ? 'v' : '›' }}</text>
+        </div>
+      </div>
+      <div if="{{ showDefaultHomepage }}" class="default-homepage-body">
+        <text class="section-label" style="color: {{ theme.textSecondary }}">目标页面</text>
+        <div class="page-options">
+          <div class="page-option {{ defaultTargetPage === 'index-full' ? 'active' : '' }}" onclick="selectTargetPage('index-full')" style="background-color: {{ defaultTargetPage === 'index-full' ? theme.accent : theme.cardLight }}">
+            <text class="page-option-text" style="color: {{ defaultTargetPage === 'index-full' ? theme.bg : theme.text }}">标准页</text>
+          </div>
+          <div class="page-option {{ defaultTargetPage === 'week-view' ? 'active' : '' }}" onclick="selectTargetPage('week-view')" style="background-color: {{ defaultTargetPage === 'week-view' ? theme.accent : theme.cardLight }}">
+            <text class="page-option-text" style="color: {{ defaultTargetPage === 'week-view' ? theme.bg : theme.text }}">总课表</text>
+          </div>
+        </div>
+        <text class="section-label" style="color: {{ theme.textSecondary }}">跳转</text>
+        <div class="page-options">
+          <div class="page-option {{ defaultAutoSeconds === 0 ? 'active' : '' }}" onclick="selectAutoSeconds(0)" style="background-color: {{ defaultAutoSeconds === 0 ? theme.accent : theme.cardLight }}">
+            <text class="page-option-text" style="color: {{ defaultAutoSeconds === 0 ? theme.bg : theme.text }}">0秒</text>
+          </div>
+          <div class="page-option {{ defaultAutoSeconds === 3 ? 'active' : '' }}" onclick="selectAutoSeconds(3)" style="background-color: {{ defaultAutoSeconds === 3 ? theme.accent : theme.cardLight }}">
+            <text class="page-option-text" style="color: {{ defaultAutoSeconds === 3 ? theme.bg : theme.text }}">3秒</text>
+          </div>
+          <div class="page-option {{ defaultAutoSeconds === 5 ? 'active' : '' }}" onclick="selectAutoSeconds(5)" style="background-color: {{ defaultAutoSeconds === 5 ? theme.accent : theme.cardLight }}">
+            <text class="page-option-text" style="color: {{ defaultAutoSeconds === 5 ? theme.bg : theme.text }}">5秒</text>
+          </div>
+          <div class="page-option {{ defaultAutoSeconds === -1 ? 'active' : '' }}" onclick="selectAutoSeconds(-1)" style="background-color: {{ defaultAutoSeconds === -1 ? theme.accent : theme.cardLight }}">
+            <text class="page-option-text" style="color: {{ defaultAutoSeconds === -1 ? theme.bg : theme.text }}">不跳</text>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group" style="background-color: {{ theme.card }}">
       <div class="group-title-row" onclick="toggleSchedule">
         <text class="group-title" style="color: {{ theme.text }}">周课表</text>
         <div class="row-right">
@@ -134,6 +170,7 @@
     </div>
 
     <text class="version-text" style="color: {{ theme.textMuted }}">v{{ versionText }}</text>
+    <text class="welcome-link" onclick="goToWelcome" style="color: {{ theme.accent }}">欢迎页</text>
 
     <unlock-dialog id="unlockDialog"></unlock-dialog>
 
@@ -188,8 +225,12 @@ export default {
     versionText: "",
     showPremiumDialog: false,
     showFontSize: false,
+    showDefaultHomepage: false,
     showTheme: false,
     showSchedule: false,
+    defaultTargetPage: "index-full",
+    defaultAutoSeconds: 3,
+    defaultHomepageLabel: "标准页",
     currentTemplateName: "Minimal Char"
   },
 
@@ -207,6 +248,7 @@ export default {
     }, true)
     this.loadNickname()
     this.loadHideWeekend()
+    this.loadDefaultHomepage()
     this.loadTemplateName()
     this.versionText = version.versionName
   },
@@ -289,12 +331,60 @@ export default {
     store.setHideWeekend(this.hideWeekend)
   },
 
+  toggleDefaultHomepage() {
+    this.showDefaultHomepage = !this.showDefaultHomepage
+  },
+
   toggleTheme() {
     this.showTheme = !this.showTheme
   },
 
   toggleSchedule() {
     this.showSchedule = !this.showSchedule
+  },
+
+  selectTargetPage(page) {
+    this.defaultTargetPage = page
+    this.updateDefaultHomepageLabel()
+    this.saveDefaultHomepage()
+  },
+
+  selectAutoSeconds(seconds) {
+    this.defaultAutoSeconds = seconds
+    this.updateDefaultHomepageLabel()
+    this.saveDefaultHomepage()
+  },
+
+  loadDefaultHomepage() {
+    var self = this
+    store.getDefaultHomepage(function(settings) {
+      self.defaultTargetPage = settings.targetPage || "index-full"
+      self.defaultAutoSeconds = settings.autoSeconds
+      if (self.defaultAutoSeconds === undefined) self.defaultAutoSeconds = 3
+      self.updateDefaultHomepageLabel()
+    })
+  },
+
+  updateDefaultHomepageLabel() {
+    var pageName = this.defaultTargetPage === "week-view" ? "总课表" : "标准页"
+    var autoLabel = ""
+    if (this.defaultAutoSeconds === 0) {
+      autoLabel = " 0s"
+    } else if (this.defaultAutoSeconds === 3) {
+      autoLabel = " 3s"
+    } else if (this.defaultAutoSeconds === 5) {
+      autoLabel = " 5s"
+    } else {
+      autoLabel = " 手动"
+    }
+    this.defaultHomepageLabel = pageName + autoLabel
+  },
+
+  saveDefaultHomepage() {
+    store.setDefaultHomepage({
+      targetPage: this.defaultTargetPage,
+      autoSeconds: this.defaultAutoSeconds
+    })
   },
 
   openNicknameEdit() {
@@ -353,6 +443,10 @@ export default {
 
   openTemplatePicker() {
     router.push({ uri: "/pages/template-picker" })
+  },
+
+  goToWelcome() {
+    router.push({ uri: "/pages/welcome" })
   },
 
   goBack() {
@@ -574,6 +668,13 @@ export default {
   line-height: 32px;
 }
 
+.welcome-link {
+  font-size: 28px;
+  text-align: center;
+  padding-bottom: 20px;
+  line-height: 38px;
+}
+
 .overlay-modal {
   position: absolute;
   left: 0;
@@ -625,6 +726,35 @@ export default {
   border-radius: 18px;
   font-size: 28px;
   line-height: 36px;
+}
+
+.default-homepage-body {
+  padding: 8px 0;
+}
+
+.section-label {
+  font-size: 28px;
+  margin: 12px 0 8px 0;
+  line-height: 38px;
+}
+
+.page-options {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.page-option {
+  height: 38px;
+  border-radius: 8px;
+  padding: 0 14px;
+  margin: 0 8px 8px 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-option-text {
+  font-size: 28px;
+  line-height: 38px;
 }
 
 @media (shape: circle) {
@@ -759,6 +889,36 @@ export default {
     border-radius: 19px;
     font-size: 22px;
     line-height: 38px;
+  }
+
+  .default-homepage-body {
+    padding: 12px 0;
+  }
+
+  .section-label {
+    font-size: 34px;
+    margin: 16px 0 10px 0;
+    line-height: 44px;
+  }
+
+  .page-options {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+
+  .page-option {
+    width: 100%;
+    height: 50px;
+    border-radius: 12px;
+    margin: 0 0 8px 0;
+    padding: 0 16px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .page-option-text {
+    font-size: 32px;
+    line-height: 50px;
   }
 
   .toggle-btn {
