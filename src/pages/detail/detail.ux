@@ -700,7 +700,7 @@ export default {
   margin: 0 12px;
   border: 3px solid #7ec8e3;
   width: 200px;
-  height: 30px;
+  min-height: 80px;
 }
 
 .card-course-name {
@@ -708,6 +708,7 @@ export default {
   font-weight: bold;
   text-align: center;
   lines: 1;
+  line-height: 44px;
   text-overflow: ellipsis;
 }
 
@@ -954,32 +955,164 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
+  .edit-course-page {
+    padding: 38px 8px 10px 8px;
+  }
   .header {
-    height: 48px;
+    height: 40px;
     margin-bottom: 8px;
     flex-direction: row;
     align-items: center;
   }
   .back-btn {
-    width: 48px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 24px;
+    width: 40px;
+    height: 30px;
+    border-radius: 15px;
+    font-size: 20px;
     text-align: center;
-    line-height: 40px;
+    line-height: 30px;
     flex-shrink: 0;
   }
   .title {
-    font-size: 28px;
-    line-height: 44px;
+    font-size: 26px;
+    line-height: 34px;
     text-align: center;
     flex: 1;
     lines: 1;
     margin: 0 4px;
   }
+  .step-indicator {
+    margin-bottom: 10px;
+  }
+  .step-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 7px;
+  }
+  .step-line {
+    width: 24px;
+    height: 3px;
+    margin: 0 3px;
+  }
+  .step-title {
+    font-size: 26px;
+    line-height: 34px;
+    margin-bottom: 6px;
+  }
+  .step-hint {
+    font-size: 20px;
+    line-height: 28px;
+    margin-bottom: 10px;
+  }
+  .swipe-arrow {
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    font-size: 22px;
+    line-height: 34px;
+  }
   .course-card {
-    width: 160px;
-    max-width: 100%;
+    width: 140px;
+    height: 80px;
+    padding: 12px;
+    margin: 0 8px;
+  }
+  .card-course-name {
+    font-size: 28px;
+    font-weight: bold;
+    line-height: 36px;
+    lines: 1;
+    text-align: center;
+  }
+  .course-index-hint {
+    font-size: 18px;
+    line-height: 26px;
+    margin-bottom: 8px;
+  }
+  .manage-btn {
+    height: 36px;
+    font-size: 20px;
+    line-height: 34px;
+    border-radius: 18px;
+  }
+  .next-btn {
+    height: 36px;
+    font-size: 20px;
+    line-height: 34px;
+    border-radius: 18px;
+  }
+  .prev-btn {
+    height: 36px;
+    font-size: 20px;
+    line-height: 34px;
+    border-radius: 18px;
+  }
+  .save-btn {
+    height: 36px;
+    font-size: 20px;
+    line-height: 34px;
+    border-radius: 18px;
+  }
+  .step-nav {
+    margin-top: 10px;
+  }
+  .stepper-btn {
+    width: 38px;
+    height: 32px;
+    font-size: 22px;
+    line-height: 30px;
+    border-radius: 16px;
+  }
+  .stepper-val {
+    font-size: 32px;
+    line-height: 40px;
+    width: 48px;
+  }
+  .stepper-label {
+    font-size: 22px;
+    line-height: 30px;
+    width: 48px;
+  }
+  .picker-label {
+    font-size: 24px;
+    line-height: 32px;
+    margin-top: 6px;
+    margin-bottom: 6px;
+  }
+  .stepper-time {
+    padding: 8px;
+    margin-bottom: 6px;
+  }
+  .location-display {
+    height: 44px;
+    padding: 0 10px;
+  }
+  .location-text {
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .confirm-label {
+    font-size: 24px;
+    line-height: 32px;
+    margin-top: 8px;
+    margin-bottom: 2px;
+  }
+  .confirm-value {
+    font-size: 26px;
+    line-height: 34px;
+  }
+  .confirm-card {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+  .delete-btn {
+    height: 36px;
+    font-size: 20px;
+    line-height: 34px;
+    border-radius: 18px;
+  }
+  .delete-section {
+    margin-top: 12px;
   }
 }
 
@@ -1013,11 +1146,12 @@ export default {
   }
   .course-card {
     width: 140px;
-    height: 90px;
+    min-height: 70px;
     padding: 16px;
   }
   .card-course-name {
     font-size: 28px;
+    line-height: 36px;
   }
   .picker-label {
     font-size: 28px;
