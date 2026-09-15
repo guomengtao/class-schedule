@@ -126,9 +126,6 @@
       "pages/lab-edit-course": {
         "component": "lab-edit-course"
       },
-      "pages/add-course-v2": {
-        "component": "add-course-v2"
-      },
       "pages/course-manager-v2": {
         "component": "course-manager-v2"
       },
