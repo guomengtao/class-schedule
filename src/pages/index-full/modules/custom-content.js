@@ -5,8 +5,6 @@ function init(instance) {
   instance.customContent = ""
   instance._customContentList = []
   instance._customContentIndex = 0
-
-  loadAndRotate(instance)
 }
 
 function loadAndRotate(instance) {

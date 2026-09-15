@@ -43,8 +43,6 @@ function init(instance) {
   function _pad(n) {
     return (n < 10 ? "0" : "") + n
   }
-
-  instance.startClockTimer()
 }
 
 module.exports = { init: init }

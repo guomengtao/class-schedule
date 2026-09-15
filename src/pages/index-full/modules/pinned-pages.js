@@ -21,8 +21,6 @@ function init(instance) {
     var router = require("@system.router")
     router.push({ uri: uri })
   }
-
-  instance.loadPinnedPages()
 }
 
 module.exports = { init: init }
