@@ -26,9 +26,7 @@ import router from "@system.router"
 const store = require("../../data/store.js")
 
 var GALLERY = [
-  { name: "倒数日", desc: "事件倒计时管理", uri: "/pages/countdown-manage" },
-  { name: "二维码生成", desc: "文字转二维码工具", uri: "/pages/qrcode-generator" },
-  { name: "已钉首页", desc: "首页置顶入口管理", uri: "/pages/pinned-pages" }
+  { name: "倒数日", desc: "事件倒计时管理", uri: "/pages/countdown-manage" }
 ]
 
 export default {
