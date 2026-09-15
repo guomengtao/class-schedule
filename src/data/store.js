@@ -809,47 +809,6 @@ module.exports = {
     })
   },
 
-  getDefaultHomepage: function(callback, forceRefresh) {
-    if (!forceRefresh && _cache.defaultHomepage) {
-      callback(_cache.defaultHomepage)
-      return
-    }
-    storage.get({
-      key: "defaultHomepage",
-      success: function(data) {
-        if (data) {
-          try {
-            var settings = JSON.parse(data)
-            if (!settings.targetPage) settings.targetPage = "index-full"
-            if (settings.autoSeconds === undefined) settings.autoSeconds = 3
-            _cache.defaultHomepage = settings
-            callback(settings)
-          } catch (e) {
-            _cache.defaultHomepage = { targetPage: "index-full", autoSeconds: 3 }
-            callback({ targetPage: "index-full", autoSeconds: 3 })
-          }
-        } else {
-          _cache.defaultHomepage = { targetPage: "index-full", autoSeconds: 3 }
-          callback({ targetPage: "index-full", autoSeconds: 3 })
-        }
-      },
-      fail: function() {
-        _cache.defaultHomepage = { targetPage: "index-full", autoSeconds: 3 }
-        callback({ targetPage: "index-full", autoSeconds: 3 })
-      }
-    })
-  },
-
-  setDefaultHomepage: function(settings, callback) {
-    delete _cache.defaultHomepage
-    storage.set({
-      key: "defaultHomepage",
-      value: JSON.stringify(settings),
-      success: function() { if (callback) callback() },
-      fail: function() { if (callback) callback() }
-    })
-  },
-
   getWeekViewTemplate: function(callback) {
     storage.get({
       key: "weekview_template",
