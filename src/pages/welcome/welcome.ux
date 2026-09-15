@@ -119,13 +119,22 @@ export default {
     this.stopCountdown()
     var router = require("@system.router")
     var uri = "/pages/" + this.targetPage
+    console.log("[welcome] doEnter: " + uri)
     router.replace({
       uri: uri,
       success: function() {
+        console.log("[welcome] router.replace success")
         that._hasEntered = true
       },
-      fail: function() {
+      fail: function(err) {
+        console.error("[welcome] router.replace failed: " + (err ? JSON.stringify(err) : "unknown"))
         that._hasEntered = false
+        try {
+          var prompt = require("@system.prompt")
+          prompt.showToast({ message: "无法打开首页" })
+        } catch (e) {
+          console.error("[welcome] showToast failed: " + e.message)
+        }
       }
     })
   },
@@ -135,13 +144,22 @@ export default {
     var that = this
     var router = require("@system.router")
     var uri = "/pages/" + this.targetPage
+    console.log("[welcome] enterSchedule: " + uri)
     router.replace({
       uri: uri,
       success: function() {
+        console.log("[welcome] router.replace success")
         that._hasEntered = true
       },
-      fail: function() {
+      fail: function(err) {
+        console.error("[welcome] router.replace failed: " + (err ? JSON.stringify(err) : "unknown"))
         that._hasEntered = false
+        try {
+          var prompt = require("@system.prompt")
+          prompt.showToast({ message: "无法打开首页" })
+        } catch (e) {
+          console.error("[welcome] showToast failed: " + e.message)
+        }
       }
     })
   },

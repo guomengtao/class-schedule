@@ -119,6 +119,50 @@
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="openPinnedPages">
+        <text class="row-label" style="color: {{ theme.text }}">已钉首页</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">快捷入口</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+    </div>
+
+    <div class="group" style="background-color: {{ theme.card }}">
+      <div class="row" onclick="openTestArea">
+        <text class="row-label" style="color: {{ theme.text }}">测试区</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">实验功能</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+    </div>
+
+    <div class="group" style="background-color: {{ theme.card }}">
+      <div class="group-title-row" onclick="toggleTools">
+        <text class="group-title" style="color: {{ theme.text }}">工具</text>
+        <div class="row-right">
+          <text class="arrow" style="color: {{ theme.textMuted }}">{{ showTools ? 'v' : '›' }}</text>
+        </div>
+      </div>
+      <div if="{{ showTools }}">
+        <div class="row" onclick="openDeviceInfo">
+          <text class="row-label" style="color: {{ theme.text }}">设备信息</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">调试</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="openVibrationLab">
+          <text class="row-label" style="color: {{ theme.text }}">震动自定义</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">震动方案</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
@@ -228,6 +272,7 @@ export default {
     showDefaultHomepage: false,
     showTheme: false,
     showSchedule: false,
+    showTools: false,
     defaultTargetPage: "index-full",
     defaultAutoSeconds: 3,
     defaultHomepageLabel: "标准页",
@@ -389,6 +434,26 @@ export default {
 
   openNicknameEdit() {
     router.push({ uri: "/pages/nickname-edit" })
+  },
+
+  openPinnedPages() {
+    router.push({ uri: "/pages/pinned-pages" })
+  },
+
+  toggleTools() {
+    this.showTools = !this.showTools
+  },
+
+  openDeviceInfo() {
+    router.push({ uri: "/pages/device-info" })
+  },
+
+  openVibrationLab() {
+    router.push({ uri: "/pages/vibration-lab" })
+  },
+
+  openTestArea() {
+    router.push({ uri: "/pages/test-area" })
   },
 
   openActivation() {
