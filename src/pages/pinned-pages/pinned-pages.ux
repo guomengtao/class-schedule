@@ -2,32 +2,29 @@
   <div class="pinned-pages-page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
-      <text class="title" style="color: {{ theme.text }}">已钉首页</text>
+      <text class="title" style="color: {{ theme.text }}">Pinned Pages</text>
     </div>
 
-    <text class="section-desc" style="color: {{ theme.textSecondary }}">已固定的页面，点击快速访问，点击方框取消固定</text>
-
-    <div class="empty-hint" if="pinnedList.length === 0" style="background-color: {{ theme.card }}">
-      <text class="empty-icon">⚲</text>
-      <text class="empty-text" style="color: {{ theme.textMuted }}">暂无固定页面</text>
-      <text class="empty-sub" style="color: {{ theme.textSecondary }}">在实验室中可将页面固定到首页</text>
+    <div class="empty-state" if="pinnedList.length === 0">
+      <text class="empty-icon">📌</text>
+      <text class="empty-title" style="color: {{ theme.textSecondary }}">No pinned pages</text>
+      <text class="empty-desc" style="color: {{ theme.textMuted }}">Open any page and pin it to the home screen for quick access.</text>
     </div>
 
-    <div class="pinned-section" if="pinnedList.length > 0">
-      <div class="pinned-item" for="{{ pinnedList }}" style="background-color: {{ theme.card }}">
-        <div class="pinned-checkbox" onclick="togglePin($idx)" style="border-color: {{ theme.accent }}; color: {{ theme.accent }}">
-          <text>☑</text>
+    <scroll class="pinned-scroll" scroll-y="true" if="pinnedList.length > 0">
+      <div class="pinned-section">
+        <div class="pinned-card" for="{{ pinnedList }}" style="background-color: {{ theme.card }}">
+          <div class="card-body" onclick="openPage($item.uri)">
+            <text class="card-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+            <text class="card-hint" style="color: {{ theme.textMuted }}">tap to open</text>
+          </div>
+          <text class="unpin-btn" onclick="unpinPage($idx)" style="color: {{ theme.textMuted }}">Unpin</text>
         </div>
-        <div class="pinned-info" onclick="openPage($item.uri)">
-          <text class="pinned-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-          <text class="pinned-uri" style="color: {{ theme.textMuted }}">{{ $item.uri }}</text>
-        </div>
-        <text class="pinned-arrow" onclick="openPage($item.uri)" style="color: {{ theme.textMuted }}">›</text>
       </div>
-    </div>
+    </scroll>
 
-    <div class="footer-actions">
-      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">{{ isThisPinned ? '已固定' : '固定到首页' }}</text>
+    <div class="footer-area">
+      <text class="pin-self-btn" onclick="togglePinSelf" style="color: {{ theme.textMuted }}">{{ isThisPinned ? 'Unpin this page' : 'Pin this page' }}</text>
     </div>
   </div>
 </template>
@@ -37,6 +34,9 @@ import router from "@system.router"
 const store = require("../../data/store.js")
 var pinHelper = require("../../data/pin-helper.js")
 
+var PAGE_URI = "/pages/pinned-pages"
+var PAGE_NAME = "Pinned Pages"
+
 export default {
   private: {
     pinnedList: [],
@@ -44,22 +44,10 @@ export default {
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
-      cardLight: '#0f3460',
       accent: '#7ec8e3',
       text: '#ffffff',
       textSecondary: '#888899',
-      textMuted: '#555566',
-      border: '#0f3460',
-      borderLight: '#2a2a5a',
-      keyBg: '#1a1a3e',
-      keyBorder: '#2a2a5a',
-      btnSecondary: '#333355',
-      btnSecondaryText: '#a0a0b0',
-      deleteBg: '#2a1a3e',
-      deleteText: '#e08080',
-      icon: '·',
-      progressOngoing: 'rgba(126,200,227,0.2)',
-      progressDone: 'rgba(74,138,154,0.25)'
+      textMuted: '#555566'
     }
   },
 
@@ -75,20 +63,15 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-    self.loadPinnedList()
-    self.checkThisPinned()
+    self.loadData()
   },
 
-  loadPinnedList() {
+  loadData() {
     var self = this
     pinHelper.getList(function(list) {
       self.pinnedList = list
     })
-  },
-
-  checkThisPinned() {
-    var self = this
-    pinHelper.isPinned("/pages/pinned-pages", function(yes) {
+    pinHelper.isPinned(PAGE_URI, function(yes) {
       self.isThisPinned = yes
     })
   },
@@ -97,22 +80,22 @@ export default {
     router.push({ uri: uri })
   },
 
-  togglePin(idx) {
+  unpinPage(idx) {
     var self = this
     var item = self.pinnedList[idx]
     pinHelper.unpinPage(item.uri, function() {
-      self.loadPinnedList()
+      self.loadData()
     })
   },
 
-  pinToHome() {
+  togglePinSelf() {
     var self = this
     if (self.isThisPinned) {
-      pinHelper.unpinPage("/pages/pinned-pages", function() {
+      pinHelper.unpinPage(PAGE_URI, function() {
         self.isThisPinned = false
       })
     } else {
-      pinHelper.pinPage("已钉首页", "/pages/pinned-pages", function() {
+      pinHelper.pinPage(PAGE_NAME, PAGE_URI, function() {
         self.isThisPinned = true
       })
     }
@@ -130,207 +113,221 @@ export default {
   padding: 44px 10px 12px 10px;
   width: 100%;
   height: 100%;
-  
 }
 
 .header {
   flex-direction: row;
   align-items: center;
   margin-bottom: 14px;
+  height: 44px;
 }
 
 .back-btn {
-  width: 64px;
+  width: 44px;
   height: 34px;
-  border-radius: 8px;
-  font-size: 13px;
+  border-radius: 17px;
+  font-size: 22px;
   text-align: center;
-  line-height: 18px;
+  line-height: 34px;
+  flex-shrink: 0;
 }
 
 .title {
-  font-size: 36px;
+  font-size: 32px;
   font-weight: bold;
   flex: 1;
   text-align: center;
-  margin-right: 64px;
-  line-height: 44px;
+  margin-right: 44px;
+  line-height: 40px;
 }
 
-.section-desc {
-  font-size: 28px;
-  margin-bottom: 14px;
-  line-height: 36px;
-}
-
-.empty-hint {
+/* Empty state */
+.empty-state {
+  flex: 1;
   flex-direction: column;
   align-items: center;
-  border-radius: 12px;
-  padding: 28px 18px;
-  margin-bottom: 14px;
+  justify-content: center;
+  padding-bottom: 40px;
 }
 
 .empty-icon {
-  font-size: 36px;
-  margin-bottom: 10px;
-  line-height: 44px;
+  font-size: 48px;
+  margin-bottom: 16px;
+  line-height: 56px;
 }
 
-.empty-text {
+.empty-title {
   font-size: 28px;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   line-height: 36px;
 }
 
-.empty-sub {
+.empty-desc {
   font-size: 24px;
   text-align: center;
   line-height: 32px;
+  padding: 0 20px;
+}
+
+/* Scroll area */
+.pinned-scroll {
+  flex: 1;
+  flex-direction: column;
 }
 
 .pinned-section {
   flex-direction: column;
+  padding-bottom: 10px;
 }
 
-.pinned-item {
+.pinned-card {
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
-  border-radius: 12px;
-  padding: 16px 14px;
+  justify-content: space-between;
+  border-radius: 14px;
+  padding: 16px 18px;
   margin-bottom: 10px;
 }
 
-.pinned-checkbox {
-  width: 28px;
-  height: 28px;
-  border-width: 2px;
-  border-radius: 6px;
-  justify-content: center;
-  align-items: center;
-  margin-right: 12px;
-  flex-shrink: 0;
-  font-size: 20px;
-}
-
-.pinned-info {
+.card-body {
   flex-direction: column;
   flex: 1;
 }
 
-.pinned-name {
-  font-size: 32px;
+.card-name {
+  font-size: 30px;
   margin-bottom: 4px;
+  line-height: 38px;
 }
 
-.pinned-uri {
-  font-size: 24px;
+.card-hint {
+  font-size: 22px;
+  line-height: 28px;
 }
 
-.pinned-arrow {
-  font-size: 28px;
-  margin-left: 10px;
+.unpin-btn {
+  font-size: 22px;
+  padding: 6px 0 6px 14px;
+  flex-shrink: 0;
+  line-height: 28px;
 }
 
-.footer-actions {
+/* Footer */
+.footer-area {
   flex-direction: row;
   justify-content: center;
-  padding: 18px 0 10px 0;
+  padding: 14px 0 6px 0;
 }
 
-.pin-link {
-  font-size: 28px;
+.pin-self-btn {
+  font-size: 26px;
   text-align: center;
+  padding: 6px 20px;
+  border-radius: 16px;
+  line-height: 34px;
+}
+
+/* Capsule primary */
+@media (shape: capsule), (shape: pill-shaped) {
+  .pinned-pages-page {
+    padding: 38px 8px 10px 8px;
+  }
+  .header {
+    height: 40px;
+    margin-bottom: 8px;
+  }
+  .back-btn {
+    width: 40px;
+    height: 30px;
+    border-radius: 15px;
+    font-size: 20px;
+    line-height: 30px;
+  }
+  .title {
+    font-size: 26px;
+    line-height: 34px;
+    margin-right: 40px;
+  }
+  .empty-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    line-height: 48px;
+  }
+  .empty-title {
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .empty-desc {
+    font-size: 20px;
+    line-height: 28px;
+    padding: 0 16px;
+  }
+  .pinned-card {
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+  }
+  .card-name {
+    font-size: 26px;
+    line-height: 34px;
+    margin-bottom: 2px;
+  }
+  .card-hint {
+    font-size: 20px;
+    line-height: 26px;
+  }
+  .unpin-btn {
+    font-size: 20px;
+    line-height: 26px;
+  }
+  .pin-self-btn {
+    font-size: 22px;
+    line-height: 30px;
+    padding: 4px 16px;
+  }
+  .footer-area {
+    padding: 10px 0 4px 0;
+  }
 }
 
 @media (shape: circle) {
   .pinned-pages-page {
     padding: 44px 36px 44px 36px;
   }
-  .header {
-    margin-bottom: 12px;
-  }
   .back-btn {
-    width: 56px;
-    height: 40px;
-    font-size: 24px;
-  }
-  .title {
-    font-size: 34px;
-    margin-right: 56px;
-  }
-  .section-desc {
-    font-size: 24px;
-  }
-  .empty-text {
-    font-size: 28px;
-  }
-  .empty-sub {
-    font-size: 24px;
-  }
-  .pinned-name {
-    font-size: 28px;
-  }
-  .pinned-uri {
-    font-size: 24px;
-  }
-  .pin-link {
-    font-size: 24px;
-  }
-}
-
-@media (shape: capsule), (shape: pill-shaped) {
-  .header {
-    height: 48px;
-    margin-bottom: 8px;
-    flex-direction: row;
-    align-items: center;
-  }
-  .back-btn {
-    width: 48px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 24px;
-    text-align: center;
-    line-height: 40px;
-    flex-shrink: 0;
+    width: 44px;
+    height: 34px;
+    font-size: 22px;
+    line-height: 34px;
   }
   .title {
     font-size: 28px;
-    line-height: 44px;
-    text-align: center;
-    flex: 1;
-    lines: 1;
-    margin: 0 4px;
+    margin-right: 44px;
   }
-
+  .card-name {
+    font-size: 26px;
+  }
+  .card-hint {
+    font-size: 20px;
+  }
 }
 
 @media (shape: rect) {
   .pinned-pages-page {
-    padding: 44px 10px 12px 10px;
-  }
-  .header {
-    margin-bottom: 10px;
+    padding: 44px 12px 16px 12px;
   }
   .back-btn {
-    width: 50px;
-    height: 40px;
-    font-size: 24px;
+    width: 44px;
+    height: 34px;
+    font-size: 22px;
+    line-height: 34px;
   }
   .title {
-    font-size: 34px;
-    margin-right: 50px;
+    font-size: 30px;
+    margin-right: 44px;
   }
-  .section-desc {
-    font-size: 24px;
-  }
-  .pinned-name {
+  .card-name {
     font-size: 28px;
-  }
-  .pin-link {
-    font-size: 24px;
   }
 }
 </style>

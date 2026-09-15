@@ -46,8 +46,8 @@
       <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
       <div class="pinned-content">
         <div class="pinned-row">
-          <div for="{{ pinnedPages }}" class="pinned-item" onclick="openPinnedPage($item.uri)" style="background-color: {{ theme.card }}">
-            <text class="pinned-text" style="color: {{ theme.accent }}">{{ $item.name }}</text>
+          <div for="{{ pinnedPages }}" class="pinned-tag" onclick="openPinnedPage($item.uri)" style="background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
+            <text class="pinned-tag-text" style="color: {{ theme.accent }}">{{ $item.name }}</text>
           </div>
         </div>
       </div>
@@ -619,15 +619,16 @@ export default {
   flex-wrap: wrap;
 }
 
-.pinned-item {
-  padding: 4px 12px;
-  border-radius: 16px;
-  margin-right: 6px;
+.pinned-tag {
+  padding: 6px 16px;
+  border-radius: 18px;
+  margin-right: 8px;
   margin-bottom: 4px;
   flex-shrink: 0;
+  border-width: 1px;
 }
 
-.pinned-text {
+.pinned-tag-text {
   font-size: 20px;
   line-height: 28px;
 }
@@ -1128,14 +1129,14 @@ export default {
     border-radius: 6px;
     margin-bottom: 3px;
   }
-  .pinned-text {
+  .pinned-tag-text {
     font-size: 17px;
     line-height: 24px;
   }
-  .pinned-item {
-    padding: 3px 10px;
-    border-radius: 14px;
-    margin-right: 5px;
+  .pinned-tag {
+    padding: 5px 12px;
+    border-radius: 16px;
+    margin-right: 6px;
     margin-bottom: 3px;
   }
   .section-label {
