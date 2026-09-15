@@ -101,7 +101,9 @@ function init(instance) {
         updateDayDisplay(self)
         if (self.loadDayClasses) self.loadDayClasses()
         if (self.updateStatus) self.updateStatus()
-      })
+      }
+    })
   }
+}
 
 module.exports = { init: init }
