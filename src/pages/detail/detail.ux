@@ -1,5 +1,5 @@
 <template>
-  <div class="edit-course-page" style="background-color: {{ theme.bg }}">
+  <scroll class="edit-course-page" scroll-y="true" style="background-color: {{ theme.bg }}">
     <div class="header">
       <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
       <text class="title" style="color: {{ theme.text }}">编辑课程</text>
@@ -41,8 +41,7 @@
     <div class="form-section" if="{{ step === 2 }}">
       <text class="step-title" style="color: {{ theme.text }}">时间 · {{ courseName }}</text>
 
-      <scroll class="step2-scroll" scroll-y="true">
-        <text class="picker-label" style="color: {{ theme.text }}">开始</text>
+      <text class="picker-label" style="color: {{ theme.text }}">开始</text>
         <div class="stepper-time" style="background-color: {{ theme.card }}">
           <div class="stepper-row">
             <text class="stepper-label" style="color: {{ theme.text }}">小时</text>
@@ -73,7 +72,6 @@
             <input class="stepper-btn" type="button" value="+" onclick="increaseEndMin" style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
           </div>
         </div>
-      </scroll>
 
       <div class="step-nav">
         <input class="prev-btn" type="button" value="后退" onclick="prevStep" style="height: 48px; background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
@@ -104,8 +102,6 @@
         <text class="confirm-value" style="color: {{ theme.text }}">{{ courseTime }}</text>
         <text class="confirm-label" style="color: {{ theme.accent }}">位置</text>
         <text class="confirm-value" style="color: {{ theme.text }}">{{ courseLocation || '(无)' }}</text>
-        <text class="confirm-label" style="color: {{ theme.accent }}">备注</text>
-        <text class="confirm-value" style="color: {{ theme.text }}">{{ courseNotes || '(无)' }}</text>
       </div>
       <div class="step-nav">
         <input class="prev-btn" type="button" value="后退" onclick="prevStep" style="height: 48px; background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
@@ -115,7 +111,7 @@
         <input class="delete-btn" type="button" value="{{ deleteConfirm ? '确认' : '删除' }}" onclick="deleteCourse" style="height: 48px; background-color: {{ deleteConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirm ? theme.text : theme.deleteText }}" />
       </div>
     </div>
-  </div>
+  </scroll>
 </template>
 
 <script>
@@ -596,8 +592,7 @@ export default {
 <style>
 .edit-course-page {
   flex-direction: column;
-  padding: 44px 10px 12px 10px;
-  height: 100%;
+  padding: 44px 10px 50px 10px;
 }
 
 .header {
@@ -657,7 +652,6 @@ export default {
 
 .form-section {
   flex-direction: column;
-  flex: 1;
 }
 
 .step-title {
@@ -666,6 +660,7 @@ export default {
   margin-bottom: 8px;
   text-align: center;
   line-height: 42px;
+  lines: 1;
 }
 
 .step-hint {
@@ -673,6 +668,7 @@ export default {
   margin-bottom: 14px;
   text-align: center;
   line-height: 36px;
+  lines: 1;
 }
 
 .swiper-wrapper {
@@ -718,11 +714,6 @@ export default {
   border-radius: 14px;
   padding: 12px;
   margin-bottom: 10px;
-}
-
-.step2-scroll {
-  flex: 1;
-  flex-direction: column;
 }
 
 .picker-label {
@@ -795,27 +786,33 @@ export default {
 }
 
 .prev-btn {
-  width: 30px;
+  flex: 1;
   border-radius: 12px;
   font-size: 28px;
   font-weight: bold;
   text-align: center;
+  line-height: 44px;
+  lines: 1;
 }
 
 .next-btn {
-  width: 30px;
+  flex: 1;
   border-radius: 12px;
   font-size: 28px;
   font-weight: bold;
   text-align: center;
+  line-height: 44px;
+  lines: 1;
 }
 
 .save-btn {
-  width: 30px;
+  flex: 1;
   border-radius: 12px;
   font-size: 28px;
   font-weight: bold;
   text-align: center;
+  line-height: 44px;
+  lines: 1;
 }
 
 .course-index-hint {
@@ -830,13 +827,15 @@ export default {
   font-size: 28px;
   font-weight: bold;
   text-align: center;
+  line-height: 44px;
+  lines: 1;
 }
 
 .confirm-card {
   flex-direction: column;
   border-radius: 12px;
   padding: 18px;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
 .confirm-label {
@@ -844,10 +843,14 @@ export default {
   font-weight: bold;
   margin-top: 12px;
   margin-bottom: 4px;
+  line-height: 40px;
+  lines: 1;
 }
 
 .confirm-value {
   font-size: 34px;
+  line-height: 42px;
+  lines: 1;
 }
 
 .delete-section {
@@ -861,6 +864,8 @@ export default {
   font-size: 28px;
   font-weight: bold;
   text-align: center;
+  line-height: 44px;
+  lines: 1;
 }
 
 .keyboard-area {
@@ -885,7 +890,7 @@ export default {
 
 @media (shape: circle) {
   .edit-course-page {
-    padding: 44px 36px 44px 36px;
+    padding: 44px 36px 50px 36px;
   }
   .header {
     margin-bottom: 12px;
@@ -956,7 +961,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .edit-course-page {
-    padding: 38px 8px 10px 8px;
+    padding: 38px 8px 50px 8px;
   }
   .header {
     height: 40px;
@@ -1034,24 +1039,28 @@ export default {
     font-size: 20px;
     line-height: 34px;
     border-radius: 18px;
+    lines: 1;
   }
   .next-btn {
     height: 36px;
     font-size: 20px;
     line-height: 34px;
     border-radius: 18px;
+    lines: 1;
   }
   .prev-btn {
     height: 36px;
     font-size: 20px;
     line-height: 34px;
     border-radius: 18px;
+    lines: 1;
   }
   .save-btn {
     height: 36px;
     font-size: 20px;
     line-height: 34px;
     border-radius: 18px;
+    lines: 1;
   }
   .step-nav {
     margin-top: 10px;
@@ -1118,7 +1127,7 @@ export default {
 
 @media (shape: rect) {
   .edit-course-page {
-    padding: 44px 10px 12px 10px;
+    padding: 44px 10px 50px 10px;
   }
   .header {
     margin-bottom: 10px;
@@ -1184,12 +1193,20 @@ export default {
   .prev-btn,
   .next-btn,
   .save-btn {
-    width: 90px;
+    flex: 1;
+    height: 42px;
     font-size: 24px;
+    line-height: 40px;
+    border-radius: 21px;
+    lines: 1;
   }
   .manage-btn {
-    width: 70px;
+    width: 80px;
+    height: 42px;
     font-size: 24px;
+    line-height: 40px;
+    border-radius: 21px;
+    lines: 1;
   }
 }
 </style>
