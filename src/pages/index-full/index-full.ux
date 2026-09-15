@@ -257,33 +257,14 @@ export default {
     store.getTheme(function(t) { self.theme = t })
     self.loadHomepageSettings()
 
-    if (self.showCustomContent && modules.customContent && modules.customContent.refresh) {
+    if (modules.customContent && modules.customContent.refresh) {
       modules.customContent.refresh(self)
     }
-    if (self.showPinnedBar && self.loadPinnedPages && typeof self.loadPinnedPages === 'function') {
+    if (self.loadPinnedPages && typeof self.loadPinnedPages === 'function') {
       self.loadPinnedPages()
     }
-    if (self.showQuickAdd && self.quickAdd && self.quickAdd.loadPreset) {
+    if (self.quickAdd && self.quickAdd.loadPreset) {
       self.quickAdd.loadPreset()
-    }
-
-    if (self.showTime) {
-      if (self.startClockTimer && typeof self.startClockTimer === 'function') {
-        try { self.startClockTimer() } catch (e) {}
-      }
-    } else if (self.stopClockTimer && typeof self.stopClockTimer === 'function') {
-      try { self.stopClockTimer() } catch (e) {}
-    }
-
-    if (self.statusBarSetting) {
-      if (self.updateStatus && typeof self.updateStatus === 'function') {
-        try { self.updateStatus() } catch (e) {}
-      }
-      if (self.startStatusTimer && typeof self.startStatusTimer === 'function') {
-        try { self.startStatusTimer() } catch (e) {}
-      }
-    } else if (self.stopStatusTimer && typeof self.stopStatusTimer === 'function') {
-      try { self.stopStatusTimer() } catch (e) {}
     }
 
     // Chain: schedule index → font size → schedule data → refresh UI
@@ -391,23 +372,12 @@ export default {
     if (self.startProgressTimer && typeof self.startProgressTimer === 'function') {
       try { self.startProgressTimer() } catch (e) { console.error("[index] startProgressTimer: " + (e.message || e)) }
     }
-
-    if (self.showTime && self.startClockTimer && typeof self.startClockTimer === 'function') {
-      try { self.startClockTimer() } catch (e) { console.error("[index] startClockTimer: " + (e.message || e)) }
-    }
-    if (self.statusBarSetting && self.updateStatus && typeof self.updateStatus === 'function') {
+    if (self.updateStatus && typeof self.updateStatus === 'function') {
       try { self.updateStatus() } catch (e) { console.error("[index] updateStatus: " + (e.message || e)) }
       if (self.startStatusTimer && typeof self.startStatusTimer === 'function') {
         try { self.startStatusTimer() } catch (e) { console.error("[index] startStatusTimer: " + (e.message || e)) }
       }
     }
-    if (self.showPinnedBar && self.loadPinnedPages && typeof self.loadPinnedPages === 'function') {
-      try { self.loadPinnedPages() } catch (e) { console.error("[index] loadPinnedPages: " + (e.message || e)) }
-    }
-    if (self.showCustomContent && modules.customContent && modules.customContent.refresh) {
-      try { modules.customContent.refresh(self) } catch (e) { console.error("[index] customContent.refresh: " + (e.message || e)) }
-    }
-
     if (self.updateHideWeekend && typeof self.updateHideWeekend === 'function') {
       try { self.updateHideWeekend() } catch (e) { console.error("[index] updateHideWeekend: " + (e.message || e)) }
     }
