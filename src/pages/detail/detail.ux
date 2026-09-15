@@ -24,17 +24,20 @@
 
       <div class="swiper-wrapper">
         <input class="swipe-arrow" type="button" value="◀" onclick="swipePrev" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
-        <div class="course-card" onclick="swipeNext" style="background-color: {{ theme.card }}">
+        <div class="course-card" if="{{ courseIndex < presetCourses.length }}" onclick="swipeNext" style="background-color: {{ theme.card }}">
           <text class="card-course-name" style="color: {{ theme.text }}">{{ presetCourses[courseIndex].name }}</text>
+        </div>
+        <div class="course-card add-card" if="{{ courseIndex === presetCourses.length }}" onclick="openCourseManager" style="background-color: {{ theme.cardLight }}">
+          <text class="add-card-icon" style="color: {{ theme.accent }}">+</text>
         </div>
         <input class="swipe-arrow" type="button" value="▶" onclick="swipeNext" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
       </div>
 
-      <text class="course-index-hint" style="color: {{ theme.textMuted }}">{{ courseIndex + 1 }} / {{ presetCourses.length }}</text>
+      <text class="course-index-hint" style="color: {{ theme.textMuted }}">{{ courseIndex < presetCourses.length ? courseIndex + 1 : '+' }} / {{ presetCourses.length + 1 }}</text>
 
       <div class="step-nav">
         <input class="manage-btn" type="button" value="管理" onclick="openCourseManager" style="height: 48px; background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-        <input class="next-btn" type="button" value="下一步" onclick="nextStep" style="height: 48px; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="next-btn" type="button" value="下一步" onclick="nextStep" style="height: 48px; background-color: {{ courseIndex < presetCourses.length ? theme.accent : theme.border }}; color: {{ courseIndex < presetCourses.length ? theme.bg : theme.textMuted }}" />
       </div>
     </div>
 
@@ -405,6 +408,10 @@ export default {
   },
 
   selectCourse(index, keepExistingTime) {
+    if (index >= this.presetCourses.length) {
+      this.courseIndex = index
+      return
+    }
     this.courseIndex = index
     var c = this.presetCourses[index]
     this.courseName = c.name
@@ -427,8 +434,12 @@ export default {
   },
 
   swipeNext() {
-    if (this.courseIndex < this.presetCourses.length - 1) {
-      this.selectCourse(this.courseIndex + 1, true)
+    if (this.courseIndex < this.presetCourses.length) {
+      if (this.courseIndex < this.presetCourses.length - 1) {
+        this.selectCourse(this.courseIndex + 1, true)
+      } else {
+        this.courseIndex = this.presetCourses.length
+      }
     }
   },
 
@@ -710,6 +721,18 @@ export default {
   text-overflow: ellipsis;
 }
 
+.add-card {
+  justify-content: center;
+  align-items: center;
+}
+
+.add-card-icon {
+  font-size: 56px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 64px;
+}
+
 .stepper-time {
   flex-direction: column;
   align-items: center;
@@ -922,6 +945,10 @@ export default {
   .card-course-name {
     font-size: 28px;
   }
+  .add-card-icon {
+    font-size: 48px;
+    line-height: 56px;
+  }
   .picker-label {
     font-size: 28px;
   }
@@ -1030,6 +1057,10 @@ export default {
     line-height: 36px;
     lines: 1;
     text-align: center;
+  }
+  .add-card-icon {
+    font-size: 44px;
+    line-height: 52px;
   }
   .course-index-hint {
     font-size: 18px;
