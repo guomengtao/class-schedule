@@ -120,18 +120,54 @@
         </div>
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="openPinnedPages">
+        <text class="row-label" style="color: {{ theme.text }}">已钉首页</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">快捷入口</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+    </div>
+
+    <div class="group" style="background-color: {{ theme.card }}">
+      <div class="group-title-row" onclick="toggleTools">
+        <text class="group-title" style="color: {{ theme.text }}">工具</text>
+        <div class="row-right">
+          <text class="arrow" style="color: {{ theme.textMuted }}">{{ showTools ? 'v' : '›' }}</text>
+        </div>
+      </div>
+      <div if="{{ showTools }}">
+        <div class="row" onclick="openDeviceInfo">
+          <text class="row-label" style="color: {{ theme.text }}">设备信息</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">调试</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="openVibrationLab">
+          <text class="row-label" style="color: {{ theme.text }}">震动自定义</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">震动方案</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="openQrcodeGenerator">
+          <text class="row-label" style="color: {{ theme.text }}">二维码生成</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">文字转码</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group" style="background-color: {{ theme.card }}">
       <div class="row" onclick="openBackupRestore">
         <text class="row-label" style="color: {{ theme.text }}">数据备份</text>
         <div class="row-right">
           <text class="row-hint" style="color: {{ theme.textMuted }}">云端备份</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
-      <div class="row" onclick="openLabSettings">
-        <text class="row-label" style="color: {{ theme.text }}">实验室</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">胶囊屏适配</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
@@ -234,6 +270,7 @@ export default {
     showDefaultHomepage: false,
     showTheme: false,
     showSchedule: false,
+    showTools: false,
     defaultTargetPage: "index-full",
     defaultAutoSeconds: 3,
     defaultHomepageLabel: "标准页",
@@ -397,8 +434,24 @@ export default {
     router.push({ uri: "/pages/nickname-edit" })
   },
 
-  openLabSettings() {
-    router.push({ uri: "/pages/lab" })
+  openPinnedPages() {
+    router.push({ uri: "/pages/pinned-pages" })
+  },
+
+  toggleTools() {
+    this.showTools = !this.showTools
+  },
+
+  openDeviceInfo() {
+    router.push({ uri: "/pages/device-info" })
+  },
+
+  openVibrationLab() {
+    router.push({ uri: "/pages/vibration-lab" })
+  },
+
+  openQrcodeGenerator() {
+    router.push({ uri: "/pages/qrcode-generator" })
   },
 
   openActivation() {
