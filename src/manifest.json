@@ -84,6 +84,9 @@
       "pages/reset-data": {
         "component": "reset-data"
       },
+      "pages/homepage-settings": {
+        "component": "homepage-settings"
+      },
       "pages/qrcode-generator": {
         "component": "qrcode-generator"
       },

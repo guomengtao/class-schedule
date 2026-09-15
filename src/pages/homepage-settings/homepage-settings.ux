@@ -1,0 +1,667 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
+      <text class="title" style="color: {{ theme.text }}">首页</text>
+    </div>
+
+    <div class="section section-first" style="background-color: {{ theme.card }}">
+      <div class="item-row">
+        <text class="item-label" style="color: {{ theme.text }}">快速添加</text>
+        <div class="switch-track" style="background-color: {{ showQuickAdd ? theme.accent : theme.border }}" onclick="toggleQuickAdd">
+          <div class="switch-thumb" style="left: {{ showQuickAdd ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
+        </div>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row">
+        <text class="item-label" style="color: {{ theme.text }}">课程提醒</text>
+        <div class="switch-track" style="background-color: {{ showStatusBar ? theme.accent : theme.border }}" onclick="toggleStatusBar">
+          <div class="switch-thumb" style="left: {{ showStatusBar ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
+        </div>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row item-row-last">
+        <text class="item-label" style="color: {{ theme.text }}">钉首页</text>
+        <div class="switch-track" style="background-color: {{ showPinnedBar ? theme.accent : theme.border }}" onclick="togglePinnedBar">
+          <div class="switch-thumb" style="left: {{ showPinnedBar ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <div class="item-row">
+        <text class="item-label" style="color: {{ theme.text }}">总课程</text>
+        <div class="switch-track" style="background-color: {{ showDayNavZong ? theme.accent : theme.border }}" onclick="toggleDayNavZong">
+          <div class="switch-thumb" style="left: {{ showDayNavZong ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
+        </div>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row">
+        <text class="item-label" style="color: {{ theme.text }}">今日</text>
+        <div class="switch-track" style="background-color: {{ showDayNavJin ? theme.accent : theme.border }}" onclick="toggleDayNavJin">
+          <div class="switch-thumb" style="left: {{ showDayNavJin ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
+        </div>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row item-row-last">
+        <text class="item-label" style="color: {{ theme.text }}">明日</text>
+        <div class="switch-track" style="background-color: {{ showDayNavMing ? theme.accent : theme.border }}" onclick="toggleDayNavMing">
+          <div class="switch-thumb" style="left: {{ showDayNavMing ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <div class="item-row">
+        <text class="item-label" style="color: {{ theme.text }}">自定义</text>
+        <div class="switch-track" style="background-color: {{ showCustomContent ? theme.accent : theme.border }}" onclick="toggleCustomContent">
+          <div class="switch-thumb" style="left: {{ showCustomContent ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
+        </div>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="input-row" onclick="openCustomContentEdit">
+        <text class="input-text" style="color: {{ customContent && showCustomContent ? theme.text : theme.textMuted }}">{{ customContent || '输入...' }}</text>
+        <text class="input-arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+      <div class="preview-row" if="{{ customContent && showCustomContent }}">
+        <text class="preview-text" style="color: {{ theme.accent }}">{{ customContent }}</text>
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <div class="item-row">
+        <text class="item-label" style="color: {{ theme.text }}">时钟</text>
+        <div class="switch-track" style="background-color: {{ showTime ? theme.accent : theme.border }}" onclick="toggleTime">
+          <div class="switch-thumb" style="left: {{ showTime ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
+        </div>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}" if="{{ showTime }}"></div>
+      <div class="time-format-row" if="{{ showTime }}">
+        <div class="unit-chip" style="border-color: {{ timeFormat.year ? theme.accent : theme.border }}; background-color: {{ timeFormat.year ? theme.cardLight : theme.border }}" onclick="toggleYear">
+          <text class="unit-text" style="color: {{ timeFormat.year ? theme.accent : theme.textSecondary }}">年</text>
+        </div>
+        <div class="unit-chip" style="border-color: {{ timeFormat.month ? theme.accent : theme.border }}; background-color: {{ timeFormat.month ? theme.cardLight : theme.border }}" onclick="toggleMonth">
+          <text class="unit-text" style="color: {{ timeFormat.month ? theme.accent : theme.textSecondary }}">月</text>
+        </div>
+        <div class="unit-chip" style="border-color: {{ timeFormat.day ? theme.accent : theme.border }}; background-color: {{ timeFormat.day ? theme.cardLight : theme.border }}" onclick="toggleDay">
+          <text class="unit-text" style="color: {{ timeFormat.day ? theme.accent : theme.textSecondary }}">日</text>
+        </div>
+        <text class="colon-sep" style="color: {{ theme.textMuted }}"></text>
+        <div class="unit-chip" style="border-color: {{ timeFormat.hour ? theme.accent : theme.border }}; background-color: {{ timeFormat.hour ? theme.cardLight : theme.border }}" onclick="toggleHour">
+          <text class="unit-text" style="color: {{ timeFormat.hour ? theme.accent : theme.textSecondary }}">时</text>
+        </div>
+        <text class="colon-sep" style="color: {{ theme.textMuted }}">:</text>
+        <div class="unit-chip" style="border-color: {{ timeFormat.minute ? theme.accent : theme.border }}; background-color: {{ timeFormat.minute ? theme.cardLight : theme.border }}" onclick="toggleMinute">
+          <text class="unit-text" style="color: {{ timeFormat.minute ? theme.accent : theme.textSecondary }}">分</text>
+        </div>
+        <text class="colon-sep" style="color: {{ theme.textMuted }}">:</text>
+        <div class="unit-chip" style="border-color: {{ timeFormat.second ? theme.accent : theme.border }}; background-color: {{ timeFormat.second ? theme.cardLight : theme.border }}" onclick="toggleSecond">
+          <text class="unit-text" style="color: {{ timeFormat.second ? theme.accent : theme.textSecondary }}">秒</text>
+        </div>
+      </div>
+      <text class="time-preview" if="{{ showTime }}" style="color: {{ theme.accent }}">{{ timePreview }}</text>
+    </div>
+
+    <div class="overlay-modal" show="{{ showDialog }}" onclick="dismissDialog">
+      <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
+        <text class="modal-title" style="color: {{ theme.accent }}">解锁高级版</text>
+        <text class="modal-desc" style="color: {{ theme.textSecondary }}">一次性解锁，永久使用全部高级功能</text>
+        <div class="benefit-list">
+          <text class="benefit-item" style="color: {{ theme.text }}">✓ 多课表管理</text>
+          <text class="benefit-item" style="color: {{ theme.text }}">✓ 数据备份与恢复</text>
+          <text class="benefit-item" style="color: {{ theme.text }}">✓ 首页自定义</text>
+          <text class="benefit-item" style="color: {{ theme.text }}">✓ 多套主题</text>
+        </div>
+        <input class="modal-btn-primary" type="button" value="立即解锁" onclick="goToPremium"
+               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="modal-btn-secondary" type="button" value="返回" onclick="goBack"
+               style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+export default {
+  private: {
+    theme: store.DEFAULT_THEME,
+    showQuickAdd: true,
+    showCustomContent: false,
+    customContent: "",
+    showStatusBar: true,
+    showTime: true,
+    showPinnedBar: true,
+    showDayNavZong: true,
+    showDayNavJin: true,
+    showDayNavMing: true,
+    timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false },
+    timePreview: "",
+    showDialog: false
+  },
+  onInit() {
+    console.log("[HOMEPAGE-SETTINGS] onInit: page created")
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+    this.loadSettings()
+  },
+  onReady() {
+    console.log("[HOMEPAGE-SETTINGS] onReady: checking premium...")
+    this.checkAndShowOverlay()
+  },
+  onShow() {
+    console.log("[HOMEPAGE-SETTINGS] onShow: page shown")
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+    this.loadSettings()
+  },
+  loadSettings() {
+    var self = this
+    store.getHomepageSettings(function(settings) {
+      self.showQuickAdd = settings.showQuickAdd !== false
+      self.showCustomContent = settings.showCustomContent || false
+      self.customContent = settings.customContent || ""
+      self.showStatusBar = settings.showStatusBar !== false
+      self.showTime = settings.showTime !== false
+      self.showPinnedBar = settings.showPinnedBar !== false
+      self.showDayNavZong = settings.showDayNavZong !== false
+      self.showDayNavJin = settings.showDayNavJin !== false
+      self.showDayNavMing = settings.showDayNavMing !== false
+      self.timeFormat = settings.timeFormat || { year: false, month: false, day: false, hour: true, minute: true, second: true }
+      self.updateTimePreview()
+    })
+  },
+  saveSettings() {
+    store.setHomepageSettings({
+      showQuickAdd: this.showQuickAdd,
+      showCustomContent: this.showCustomContent,
+      customContent: this.customContent,
+      showStatusBar: this.showStatusBar,
+      showTime: this.showTime,
+      showPinnedBar: this.showPinnedBar,
+      showDayNavZong: this.showDayNavZong,
+      showDayNavJin: this.showDayNavJin,
+      showDayNavMing: this.showDayNavMing,
+      timeFormat: this.timeFormat
+    })
+  },
+  checkAndShowOverlay() {
+    console.log("[HOMEPAGE-SETTINGS] checkAndShowOverlay: checking premium...")
+    var self = this
+    store.isPremiumUnlocked(function(unlocked) {
+      if (!unlocked) {
+        console.log("[HOMEPAGE-SETTINGS] checkAndShowOverlay: not premium, showing dialog")
+        self.showDialog = true
+      }
+    })
+  },
+
+  goToPremium() {
+    console.log("[HOMEPAGE-SETTINGS] goToPremium: navigating to activation")
+    this.showDialog = false
+    router.push({ uri: "/pages/activation" })
+  },
+
+  goBack() {
+    store.setHomepageSettings({
+      showQuickAdd: this.showQuickAdd,
+      showCustomContent: this.showCustomContent,
+      customContent: this.customContent,
+      showStatusBar: this.showStatusBar,
+      showTime: this.showTime,
+      showPinnedBar: this.showPinnedBar,
+      showDayNavZong: this.showDayNavZong,
+      showDayNavJin: this.showDayNavJin,
+      showDayNavMing: this.showDayNavMing,
+      timeFormat: this.timeFormat
+    }, function() { router.back() })
+  },
+
+  dismissDialog() {
+    this.showDialog = false
+  },
+
+  stopBubble() {
+  },
+
+  toggleQuickAdd() {
+    this.showQuickAdd = !this.showQuickAdd
+    this.saveSettings()
+  },
+  toggleCustomContent() {
+    this.showCustomContent = !this.showCustomContent
+    this.saveSettings()
+  },
+  toggleStatusBar() {
+    this.showStatusBar = !this.showStatusBar
+    this.saveSettings()
+  },
+  toggleTime() {
+    this.showTime = !this.showTime
+    this.saveSettings()
+  },
+  togglePinnedBar() {
+    this.showPinnedBar = !this.showPinnedBar
+    this.saveSettings()
+  },
+  toggleDayNavZong() {
+    this.showDayNavZong = !this.showDayNavZong
+    this.saveSettings()
+  },
+  toggleDayNavJin() {
+    this.showDayNavJin = !this.showDayNavJin
+    this.saveSettings()
+  },
+  toggleDayNavMing() {
+    this.showDayNavMing = !this.showDayNavMing
+    this.saveSettings()
+  },
+  openCustomContentEdit() {
+    router.push({ uri: "/pages/custom-content-edit" })
+  },
+
+  toggleTimeUnit(unit) {
+    this.timeFormat[unit] = !this.timeFormat[unit]
+    this.updateTimePreview()
+    this.saveSettings()
+  },
+  toggleYear() { this.toggleTimeUnit("year") },
+  toggleMonth() { this.toggleTimeUnit("month") },
+  toggleDay() { this.toggleTimeUnit("day") },
+  toggleHour() { this.toggleTimeUnit("hour") },
+  toggleMinute() { this.toggleTimeUnit("minute") },
+  toggleSecond() { this.toggleTimeUnit("second") },
+  updateTimePreview() {
+    var now = new Date()
+    var dateParts = []
+    var timeParts = []
+    if (this.timeFormat.year) dateParts.push(now.getFullYear() + "年")
+    if (this.timeFormat.month) dateParts.push((now.getMonth() + 1) + "月")
+    if (this.timeFormat.day) dateParts.push(now.getDate() + "日")
+    if (this.timeFormat.hour) timeParts.push((now.getHours() < 10 ? "0" : "") + now.getHours())
+    if (this.timeFormat.minute) timeParts.push((now.getMinutes() < 10 ? "0" : "") + now.getMinutes())
+    if (this.timeFormat.second) timeParts.push((now.getSeconds() < 10 ? "0" : "") + now.getSeconds())
+    var dateStr = dateParts.join(" ")
+    var timeStr = timeParts.join(":")
+    if (dateStr && timeStr) {
+      this.timePreview = dateStr + " " + timeStr
+    } else {
+      this.timePreview = dateStr || timeStr || "00:00:00"
+    }
+  }
+}
+</script>
+
+<style>
+.page-root {
+  width: 100%;
+  height: 100%;
+}
+
+.page {
+  flex: 1;
+  flex-direction: column;
+  padding: 44px 10px 12px 10px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 18px;
+  padding: 0;
+}
+
+.back-btn {
+  width: 64px;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.title {
+  flex: 1;
+  text-align: center;
+  font-size: 36px;
+  font-weight: bold;
+  margin-right: 64px;
+}
+
+.section {
+  flex-direction: column;
+  border-radius: 14px;
+  padding: 0 16px;
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+
+.section-first {
+  margin-top: 2px;
+}
+
+.item-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+}
+
+.row-divider {
+  height: 1px;
+}
+
+.item-label {
+  font-size: 32px;
+}
+
+.switch-track {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.switch-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  position: absolute;
+  top: 2px;
+}
+
+.input-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+}
+
+.input-text {
+  font-size: 32px;
+  flex: 1;
+}
+
+.input-arrow {
+  font-size: 28px;
+  margin-left: 10px;
+}
+
+.preview-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 0 18px 0;
+}
+
+.preview-text {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.time-format-row {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: 16px;
+}
+
+.unit-chip {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-width: 1px;
+  border-style: solid;
+  margin: 4px;
+}
+
+.unit-text {
+  font-size: 26px;
+}
+
+.colon-sep {
+  font-size: 26px;
+  margin: 0 3px;
+}
+
+.time-preview {
+  font-size: 34px;
+  font-weight: bold;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.overlay-modal {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.35);
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  width: 80%;
+  border-radius: 16px;
+  padding: 28px 24px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 36px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.modal-desc {
+  font-size: 28px;
+  text-align: center;
+  margin-bottom: 20px;
+  line-height: 38px;
+}
+
+.benefit-list {
+  width: 100%;
+  flex-direction: column;
+  padding-left: 12px;
+  margin-bottom: 24px;
+}
+
+.benefit-item {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.modal-btn-primary {
+  width: 100%;
+  height: 48px;
+  border-radius: 24px;
+  font-size: 28px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.modal-btn-secondary {
+  width: 100%;
+  height: 42px;
+  border-radius: 21px;
+  font-size: 28px;
+  text-align: center;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+  .header {
+    margin-bottom: 10px;
+    padding: 0 20px;
+    justify-content: center;
+  }
+  .back-btn {
+    width: 52px;
+    height: 40px;
+    font-size: 24px;
+  }
+  .title {
+    font-size: 36px;
+  }
+  .overlay-modal {
+    padding: 44px 36px 44px 36px;
+  }
+  .modal-card {
+    width: 72%;
+    padding: 24px 20px;
+  }
+}
+
+@media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 30px 12px 8px 12px;
+  }
+
+  .header {
+    height: 56px;
+    margin-bottom: 12px;
+    flex-direction: row;
+    align-items: center;
+  }
+  .back-btn {
+    width: 56px;
+    height: 48px;
+    border-radius: 24px;
+    font-size: 28px;
+    text-align: center;
+    line-height: 48px;
+    flex-shrink: 0;
+  }
+  .title {
+    font-size: 32px;
+    line-height: 48px;
+    text-align: center;
+    flex: 1;
+    lines: 1;
+    margin: 0 4px;
+  }
+
+  .item-label {
+    font-size: 32px;
+    line-height: 44px;
+  }
+
+  .input-text {
+    font-size: 30px;
+    line-height: 44px;
+  }
+
+  .preview-text {
+    font-size: 30px;
+  }
+
+  .unit-chip {
+    padding: 10px 14px;
+    border-radius: 14px;
+    margin: 5px;
+  }
+
+  .unit-text {
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .colon-sep {
+    font-size: 28px;
+    margin: 0 4px;
+  }
+
+  .time-preview {
+    font-size: 34px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+  }
+
+  .switch-track {
+    width: 52px;
+    height: 28px;
+    border-radius: 14px;
+  }
+
+  .switch-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+  }
+
+  .modal-card {
+    width: 90%;
+    border-radius: 12px;
+    padding: 18px 16px;
+  }
+
+  .modal-title {
+    font-size: 26px;
+    margin-bottom: 10px;
+    line-height: 34px;
+  }
+
+  .modal-desc {
+    font-size: 20px;
+    margin-bottom: 14px;
+    line-height: 30px;
+  }
+
+  .benefit-list {
+    margin-bottom: 14px;
+    padding-left: 8px;
+  }
+
+  .benefit-item {
+    font-size: 20px;
+    margin-bottom: 6px;
+    line-height: 28px;
+  }
+
+  .modal-btn-primary {
+    height: 44px;
+    border-radius: 22px;
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .modal-btn-secondary {
+    height: 38px;
+    border-radius: 19px;
+    font-size: 22px;
+  }
+
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 44px 8px 8px 8px;
+  }
+  .header {
+    margin-bottom: 8px;
+  }
+  .back-btn {
+    width: 50px;
+    height: 40px;
+    font-size: 24px;
+  }
+  .title {
+    font-size: 36px;
+    margin-right: 50px;
+  }
+}
+</style>
