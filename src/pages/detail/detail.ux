@@ -591,6 +591,7 @@ export default {
 
 <style>
 .edit-course-page {
+  width: 100%;
   flex-direction: column;
   padding: 44px 10px 50px 10px;
 }
@@ -651,6 +652,7 @@ export default {
 }
 
 .form-section {
+  width: 100%;
   flex-direction: column;
 }
 
