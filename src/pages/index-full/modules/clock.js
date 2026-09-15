@@ -1,5 +1,3 @@
-console.log("[clock] loading...")
-
 function init(instance) {
   instance.currentTime = ""
   instance.clockTimer = null
@@ -47,8 +45,6 @@ function init(instance) {
   }
 
   instance.startClockTimer()
-  console.log("[clock] init OK")
 }
 
 module.exports = { init: init }
-console.log("[clock] loaded")

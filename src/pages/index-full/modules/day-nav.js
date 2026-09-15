@@ -1,5 +1,3 @@
-console.log("[day-nav] loading...")
-
 var store = require("../../../data/store.js")
 var device = require("@system.device")
 
@@ -23,7 +21,6 @@ function updateDayDisplay(instance) {
 }
 
 function init(instance) {
-  console.log("[day-nav] init called")
 
   instance.dayNavNames = fullDayNames
   instance.hideWeekend = false
@@ -37,12 +34,9 @@ function init(instance) {
     success: function(data) {
       var shape = data.screenShape || ""
       isCapsule = (shape === "capsule" || shape === "pill-shaped")
-      console.log("[day-nav] screenShape=" + shape + " isCapsule=" + isCapsule)
       updateDayDisplay(instance)
     },
-    fail: function() {
-      console.log("[day-nav] device.getInfo failed")
-    }
+    fail: function() {}
   })
 
   instance.prevDay = function() {
@@ -107,13 +101,7 @@ function init(instance) {
         updateDayDisplay(self)
         if (self.loadDayClasses) self.loadDayClasses()
         if (self.updateStatus) self.updateStatus()
-      }
-      console.log("[day-nav] hideWeekend updated: " + hide + ", day: " + self.currentDay)
-    })
+      })
   }
 
-  console.log("[day-nav] init OK, day: " + instance.currentDay)
-}
-
 module.exports = { init: init }
-console.log("[day-nav] loaded")

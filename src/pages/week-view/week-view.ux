@@ -8,7 +8,24 @@
 
     <!-- grid area -->
     <scroll class="wv-grid-scroll" scroll-x="true" scroll-y="true">
-      <div class="wv-scroll-inner" style="min-width:{{ gridContentWidth }}px">
+      <!-- skeleton loading -->
+      <div if="{{ isLoading }}" class="wv-scroll-inner" style="min-width:{{ gridContentWidth }}px">
+        <div class="wv-day-row">
+          <text if="{{ showRowNum }}" class="wv-day-spacer" style="width:{{ rowNumWidth }}px"></text>
+          <text if="{{ !showRowNum }}" class="wv-day-spacer" style="width:0px"></text>
+          <text class="wv-day-cell {{ $idx === todayIndex ? 'wv-today' : '' }}" for="{{ weekDays }}" style="width:{{ cellWidth }}px;color:{{ $idx === todayIndex ? theme.accent : theme.textSecondary }}">{{ $item }}</text>
+        </div>
+        <div for="{{ skeletonRows }}" class="wv-row" style="min-height:{{ rowHeight }}px">
+          <text if="{{ showRowNum }}" class="wv-time" style="width:{{ rowNumWidth }}px"></text>
+          <text if="{{ !showRowNum }}" class="wv-time" style="width:0px"></text>
+          <div class="wv-cells">
+            <div for="{{ weekDays }}" class="wv-skel-cell" style="width:{{ cellWidth }}px;height:{{ cellHeight }}px;border-radius:{{ cellRadius }};background-color:{{ theme.borderLight }};"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- real content -->
+      <div if="{{ !isLoading }}" class="wv-scroll-inner" style="min-width:{{ gridContentWidth }}px">
         <!-- day header -->
         <div class="wv-day-row">
           <text if="{{ showRowNum }}" class="wv-day-spacer" style="width:{{ rowNumWidth }}px"></text>
@@ -176,6 +193,8 @@ export default {
     totalCourses: 0,
     totalDays: 0,
     dayCounts: [0, 0, 0, 0, 0, 0, 0],
+    isLoading: true,
+    skeletonRows: [1, 2, 3, 4, 5],
     hideWeekend: true,
     viewIndex: 0,
     todayIndex: 0,
@@ -317,6 +336,7 @@ export default {
     var self = this
     store.getWeekViewTemplate(function(id) {
       self.applyTemplate(id || "minimal-char")
+      self.isLoading = true
       self.loadData()
     })
   },
@@ -326,6 +346,7 @@ export default {
     log("switchTemplate -> " + id)
     self.applyTemplate(id)
     store.setWeekViewTemplate(id)
+    self.isLoading = true
     self.loadData()
   },
 
@@ -513,6 +534,7 @@ export default {
     }
     self.dayCounts = dayCounts
     log("renderScheduleData dayCounts=" + JSON.stringify(dayCounts))
+    self.isLoading = false
   },
 
   getDisplayName(course) {
@@ -864,6 +886,13 @@ export default {
   font-size: 20px;
   text-align: center;
   line-height: 28px;
+}
+
+/* ── skeleton ── */
+.wv-skel-cell {
+  margin: 1px;
+  flex-shrink: 0;
+  opacity: 0.4;
 }
 
 /* ── footer ── */

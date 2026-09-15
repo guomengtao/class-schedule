@@ -1,5 +1,3 @@
-console.log("[quick-add] loading...")
-
 function init(instance) {
   instance.quickAdd = {
     expanded: false,
@@ -124,9 +122,6 @@ function init(instance) {
     var parts = timeStr.split(":")
     return parseInt(parts[0]) * 60 + parseInt(parts[1])
   }
-
-  console.log("[quick-add] init OK")
 }
 
 module.exports = { init: init }
-console.log("[quick-add] loaded")

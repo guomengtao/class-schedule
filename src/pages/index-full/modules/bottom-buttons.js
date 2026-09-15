@@ -1,5 +1,3 @@
-console.log("[bottom-buttons] loading...")
-
 function init(instance) {
   instance.openAddCoursePage = function() {
     var router = require("@system.router")
@@ -21,9 +19,6 @@ function init(instance) {
     var router = require("@system.router")
     router.push({ uri: "/pages/settings" })
   }
-
-  console.log("[bottom-buttons] init OK")
 }
 
 module.exports = { init: init }
-console.log("[bottom-buttons] loaded")

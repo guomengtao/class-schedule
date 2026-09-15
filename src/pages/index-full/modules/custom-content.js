@@ -1,5 +1,3 @@
-console.log("[custom-content] loading...")
-
 var _timer = null
 
 function init(instance) {
@@ -9,7 +7,6 @@ function init(instance) {
   instance._customContentIndex = 0
 
   loadAndRotate(instance)
-  console.log("[custom-content] init OK")
 }
 
 function loadAndRotate(instance) {
@@ -138,4 +135,3 @@ function destroy() {
 }
 
 module.exports = { init: init, refresh: refresh, destroy: destroy }
-console.log("[custom-content] loaded")

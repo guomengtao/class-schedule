@@ -1,5 +1,3 @@
-console.log("[pinned-pages] loading...")
-
 var pinHelper = require("../../../data/pin-helper.js")
 
 function init(instance) {
@@ -25,8 +23,6 @@ function init(instance) {
   }
 
   instance.loadPinnedPages()
-  console.log("[pinned-pages] init OK")
 }
 
 module.exports = { init: init }
-console.log("[pinned-pages] loaded")

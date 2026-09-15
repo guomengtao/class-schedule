@@ -54,10 +54,16 @@
     </div>
 
     <scroll class="class-list" scroll-y="true">
-      <div if="{{ isLoading }}" class="empty-card">
-        <text class="empty-text" style="color: {{ theme.textMuted }}">加载中...</text>
+      <div if="{{ isLoading }}" class="skeleton-list">
+        <div for="{{ skeletonCards }}" class="skeleton-card" style="background-color: {{ theme.card }}">
+          <div class="skeleton-accent" style="background-color: {{ theme.borderLight }}"></div>
+          <div class="skeleton-body">
+            <div class="skeleton-bar" style="width: {{ ($idx % 2 === 0 ? 50 : 35) }}%; height: 26px; background-color: {{ theme.borderLight }}; border-radius: 4px; margin-bottom: 8px;"></div>
+            <div class="skeleton-bar" style="width: {{ ($idx % 3 === 0 ? 30 : 40) }}%; height: 16px; background-color: {{ theme.borderLight }}; border-radius: 4px;"></div>
+          </div>
+        </div>
       </div>
-      <div if="{{ loadError }}" class="empty-card">
+      <div if="{{ !isLoading && loadError }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">数据加载失败</text>
         <input class="retry-btn" type="button" value="点击重试" onclick="retryLoad" style="margin-top: 12px; height: 44px; background-color: {{ theme.accent }}; color: {{ theme.bg }}; border-radius: 22px; font-size: 20px; line-height: 44px; padding: 0 20px;" />
       </div>
@@ -161,6 +167,7 @@ export default {
     isCapsule: false,
     isLoading: true,
     loadError: false,
+    skeletonCards: [1, 2, 3],
     currentTime: "",
     currentDay: "",
     currentDayIndex: -1,
@@ -345,8 +352,17 @@ export default {
 
   initAllModules() {
     var self = this
+    var skipMap = {
+      clock: !self.showTime,
+      quickAdd: !self.showQuickAdd,
+      statusBar: !self.statusBarSetting,
+      customContent: !self.showCustomContent,
+      pinnedPages: !self.showPinnedBar
+    }
+
     for (var i = 0; i < moduleNames.length; i++) {
       var m = moduleNames[i]
+      if (skipMap[m.key]) continue
       var mod = modules[m.key]
       if (mod && mod.init) {
         try {
@@ -354,8 +370,6 @@ export default {
         } catch (e) {
           console.error("[index] [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " FAIL: " + (e.message || e))
         }
-      } else {
-        console.warn("[index] [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " SKIP")
       }
     }
 
@@ -365,11 +379,14 @@ export default {
     if (self.startProgressTimer && typeof self.startProgressTimer === 'function') {
       try { self.startProgressTimer() } catch (e) { console.error("[index] startProgressTimer: " + (e.message || e)) }
     }
-    if (self.updateStatus && typeof self.updateStatus === 'function') {
+    if (!skipMap.statusBar && self.updateStatus && typeof self.updateStatus === 'function') {
       try { self.updateStatus() } catch (e) { console.error("[index] updateStatus: " + (e.message || e)) }
       if (self.startStatusTimer && typeof self.startStatusTimer === 'function') {
         try { self.startStatusTimer() } catch (e) { console.error("[index] startStatusTimer: " + (e.message || e)) }
       }
+    }
+    if (!skipMap.clock && self.startClockTimer && typeof self.startClockTimer === 'function') {
+      try { self.startClockTimer() } catch (e) { console.error("[index] startClockTimer: " + (e.message || e)) }
     }
 
     if (self.updateHideWeekend && typeof self.updateHideWeekend === 'function') {
@@ -461,6 +478,7 @@ export default {
   flex-direction: column;
   width: 100%;
   height: 100%;
+  box-sizing: border-box;
   padding: 44px 8px 8px 8px;
 }
 
@@ -618,6 +636,7 @@ export default {
   padding: 0;
   margin-bottom: 10px;
   flex-direction: row;
+  overflow: hidden;
 }
 
 .class-card-accent {
@@ -673,6 +692,38 @@ export default {
 .empty-text {
   font-size: 20px;
   line-height: 28px;
+}
+
+/* ── skeleton ── */
+.skeleton-list {
+  flex-direction: column;
+  padding: 6px 0;
+}
+
+.skeleton-card {
+  flex-direction: row;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  overflow: hidden;
+  height: 72px;
+  opacity: 0.7;
+}
+
+.skeleton-accent {
+  width: 4px;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.skeleton-body {
+  flex: 1;
+  padding: 12px 14px;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.skeleton-bar {
+  flex-shrink: 0;
 }
 
 .quick-add {

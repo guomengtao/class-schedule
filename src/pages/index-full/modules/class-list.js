@@ -1,5 +1,3 @@
-console.log("[class-list] loading...")
-
 var store = require("../../../data/store.js")
 var prompt = require("@system.prompt")
 
@@ -162,9 +160,6 @@ function init(instance) {
       }
     })
   }
-
-  console.log("[class-list] init OK")
 }
 
 module.exports = { init: init }
-console.log("[class-list] loaded")

@@ -1,5 +1,3 @@
-console.log("[status-bar] loading...")
-
 function parseTime(timeStr) {
   var parts = timeStr.split(":")
   return parseInt(parts[0]) * 60 + parseInt(parts[1])
@@ -97,9 +95,6 @@ function init(instance) {
       instance.statusTimer = null
     }
   }
-
-  console.log("[status-bar] init OK")
 }
 
 module.exports = { init: init }
-console.log("[status-bar] loaded")
