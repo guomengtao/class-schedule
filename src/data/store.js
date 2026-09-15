@@ -820,22 +820,22 @@ module.exports = {
         if (data) {
           try {
             var settings = JSON.parse(data)
-            if (!settings.targetPage) settings.targetPage = "index-full"
+            if (!settings.targetPage) settings.targetPage = "index"
             if (settings.autoSeconds === undefined) settings.autoSeconds = 3
             _cache.defaultHomepage = settings
             callback(settings)
           } catch (e) {
-            _cache.defaultHomepage = { targetPage: "index-full", autoSeconds: 3 }
-            callback({ targetPage: "index-full", autoSeconds: 3 })
+            _cache.defaultHomepage = { targetPage: "index", autoSeconds: 3 }
+            callback({ targetPage: "index", autoSeconds: 3 })
           }
         } else {
-          _cache.defaultHomepage = { targetPage: "index-full", autoSeconds: 3 }
-          callback({ targetPage: "index-full", autoSeconds: 3 })
+          _cache.defaultHomepage = { targetPage: "index", autoSeconds: 3 }
+          callback({ targetPage: "index", autoSeconds: 3 })
         }
       },
       fail: function() {
-        _cache.defaultHomepage = { targetPage: "index-full", autoSeconds: 3 }
-        callback({ targetPage: "index-full", autoSeconds: 3 })
+        _cache.defaultHomepage = { targetPage: "index", autoSeconds: 3 }
+        callback({ targetPage: "index", autoSeconds: 3 })
       }
     })
   },

@@ -51,8 +51,8 @@
       "pages/welcome": {
         "component": "welcome"
       },
-      "pages/index-full": {
-        "component": "index-full"
+      "pages/index": {
+        "component": "index"
       },
       "pages/detail": {
         "component": "detail"

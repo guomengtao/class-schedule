@@ -34,7 +34,7 @@ export default {
     showCountdown: false,
     countdownText: "",
     targetPageLabel: "标准页",
-    targetPage: "index-full",
+    targetPage: "index",
     autoSeconds: 3,
     countdownRemaining: 0,
     countdownTimer: null
@@ -64,7 +64,7 @@ export default {
   loadDefaultHomepage(forceRefresh) {
     var self = this
     store.getDefaultHomepage(function(settings) {
-      self.targetPage = settings.targetPage || "index-full"
+      self.targetPage = settings.targetPage || "index"
       self.autoSeconds = settings.autoSeconds
       if (self.autoSeconds === undefined || self.autoSeconds === null) self.autoSeconds = 3
       self.targetPageLabel = self.targetPage === "week-view" ? "总课表" : "标准页"

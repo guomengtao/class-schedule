@@ -63,8 +63,8 @@
       <div if="{{ showDefaultHomepage }}" class="default-homepage-body">
         <text class="section-label" style="color: {{ theme.textSecondary }}">目标页面</text>
         <div class="page-options">
-          <div class="page-option {{ defaultTargetPage === 'index-full' ? 'active' : '' }}" onclick="selectTargetPage('index-full')" style="background-color: {{ defaultTargetPage === 'index-full' ? theme.accent : theme.cardLight }}">
-            <text class="page-option-text" style="color: {{ defaultTargetPage === 'index-full' ? theme.bg : theme.text }}">标准页</text>
+          <div class="page-option {{ defaultTargetPage === 'index' ? 'active' : '' }}" onclick="selectTargetPage('index')" style="background-color: {{ defaultTargetPage === 'index' ? theme.accent : theme.cardLight }}">
+            <text class="page-option-text" style="color: {{ defaultTargetPage === 'index' ? theme.bg : theme.text }}">标准页</text>
           </div>
           <div class="page-option {{ defaultTargetPage === 'week-view' ? 'active' : '' }}" onclick="selectTargetPage('week-view')" style="background-color: {{ defaultTargetPage === 'week-view' ? theme.accent : theme.cardLight }}">
             <text class="page-option-text" style="color: {{ defaultTargetPage === 'week-view' ? theme.bg : theme.text }}">总课表</text>
@@ -273,7 +273,7 @@ export default {
     showTheme: false,
     showSchedule: false,
     showTools: false,
-    defaultTargetPage: "index-full",
+    defaultTargetPage: "index",
     defaultAutoSeconds: 3,
     defaultHomepageLabel: "标准页",
     currentTemplateName: "Minimal Char"
@@ -403,7 +403,7 @@ export default {
   loadDefaultHomepage() {
     var self = this
     store.getDefaultHomepage(function(settings) {
-      self.defaultTargetPage = settings.targetPage || "index-full"
+      self.defaultTargetPage = settings.targetPage || "index"
       self.defaultAutoSeconds = settings.autoSeconds
       if (self.defaultAutoSeconds === undefined) self.defaultAutoSeconds = 3
       self.updateDefaultHomepageLabel()
