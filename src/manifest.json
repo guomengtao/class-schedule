@@ -102,8 +102,8 @@
       "pages/schedule-qrcode": {
         "component": "schedule-qrcode"
       },
-      "pages/lab": {
-        "component": "lab"
+      "pages/test-area": {
+        "component": "test-area"
       },
       "pages/activation": {
         "component": "activation"

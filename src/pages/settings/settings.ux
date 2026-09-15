@@ -153,10 +153,10 @@
           </div>
         </div>
         <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="openQrcodeGenerator">
-          <text class="row-label" style="color: {{ theme.text }}">二维码生成</text>
+        <div class="row" onclick="openTestArea">
+          <text class="row-label" style="color: {{ theme.text }}">测试区</text>
           <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">文字转码</text>
+            <text class="row-hint" style="color: {{ theme.textMuted }}">实验功能</text>
             <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
           </div>
         </div>
@@ -450,8 +450,8 @@ export default {
     router.push({ uri: "/pages/vibration-lab" })
   },
 
-  openQrcodeGenerator() {
-    router.push({ uri: "/pages/qrcode-generator" })
+  openTestArea() {
+    router.push({ uri: "/pages/test-area" })
   },
 
   openActivation() {
