@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.5.16",
-  "versionCode": 770,
+  "versionName": "1.5.18",
+  "versionCode": 772,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -90,29 +90,17 @@
       "pages/homepage-settings": {
         "component": "homepage-settings"
       },
-      "pages/device-info": {
-        "component": "device-info"
-      },
-      "pages/vibration-lab": {
-        "component": "vibration-lab"
-      },
       "pages/qrcode-generator": {
         "component": "qrcode-generator"
       },
       "pages/schedule-qrcode": {
         "component": "schedule-qrcode"
       },
-      "pages/test-area": {
-        "component": "test-area"
-      },
       "pages/activation": {
         "component": "activation"
       },
       "pages/backup-restore": {
         "component": "backup-restore"
-      },
-      "pages/pinned-pages": {
-        "component": "pinned-pages"
       },
       "pages/template-picker": {
         "component": "template-picker"
