@@ -110,7 +110,6 @@
         </div>
       </div>
     </div>
-
     <div class="group" style="background-color: {{ theme.card }}">
       <div class="row" onclick="openHomepageSettings">
         <text class="row-label" style="color: {{ theme.text }}">首页设置</text>
@@ -152,13 +151,15 @@
             <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
           </div>
         </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="openTestArea">
-          <text class="row-label" style="color: {{ theme.text }}">测试区</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">实验功能</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
+      </div>
+    </div>
+
+    <div class="group" style="background-color: {{ theme.card }}">
+      <div class="row" onclick="openTestArea">
+        <text class="row-label" style="color: {{ theme.text }}">测试区</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">实验功能</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
     </div>
@@ -869,7 +870,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .settings-page {
-    padding: 30px 16px 30px 16px;
+    padding: 30px 24px 30px 24px;
   }
 
   .back-header {
@@ -896,22 +897,54 @@ export default {
     margin: 0 4px;
   }
 
+  .group {
+    padding: 16px 16px;
+    margin-bottom: 12px;
+  }
+
   .row {
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
     padding: 14px 0;
   }
 
   .row-label {
-    font-size: 32px;
-    line-height: 44px;
+    font-size: 28px;
+    flex-shrink: 0;
+    line-height: 38px;
+    margin-right: 8px;
+  }
+
+  .row-right {
+    flex: 1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
   }
 
   .row-hint {
-    display: none;
+    font-size: 22px;
+    margin-right: 4px;
+    max-lines: 1;
+    line-height: 30px;
   }
 
   .arrow {
-    font-size: 32px;
+    font-size: 28px;
+    flex-shrink: 0;
     line-height: 38px;
+  }
+
+  .toggle-btn {
+    width: 52px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 36px;
+    flex-shrink: 0;
   }
 
   .modal-card {
@@ -976,15 +1009,6 @@ export default {
     font-size: 32px;
     line-height: 50px;
   }
-
-  .toggle-btn {
-    width: 80px;
-    height: 46px;
-    border-radius: 12px;
-    font-size: 30px;
-    line-height: 46px;
-  }
-
 }
 
 @media (shape: rect) {
