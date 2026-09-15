@@ -162,6 +162,8 @@ loadModule("pinnedPages", require("./modules/pinned-pages.js"))
 loadModule("bottomButtons", require("./modules/bottom-buttons.js"))
 loadModule("classList", require("./modules/class-list.js"))
 
+console.log("[index] SCRIPT loaded, modules:", Object.keys(modules))
+
 export default {
   private: {
     isCapsule: false,
@@ -218,14 +220,17 @@ export default {
 
   onInit() {
     var self = this
+    console.log("[index] onInit START, isCapsuleScreen=", isCapsuleScreen)
     self.isCapsule = isCapsuleScreen
     self.initialized = false
     self.isLoading = true
     self.loadError = false
     store.getTheme(function(t) { self.theme = t })
     self.loadHomepageSettings()
+    console.log("[index] onInit: loadHomepageSettings called, _loadTimeout setting...")
 
     self._loadTimeout = setTimeout(function() {
+      console.error("[index] TIMEOUT 8s! isLoading=", self.isLoading)
       if (self.isLoading) {
         self.loadError = true
         self.isLoading = false
@@ -233,11 +238,15 @@ export default {
       }
     }, 8000)
 
+    console.log("[index] onInit: calling database.init...")
     database.init(function() {
+      console.log("[index] database.init callback OK")
       database.getAllCourses(function(schedule) {
+        console.log("[index] getAllCourses callback, schedule length=", schedule ? schedule.length : 0)
         if (self._loadTimeout) clearTimeout(self._loadTimeout)
         self.schedule = schedule
         store.getBaseFontSize(function(size) {
+          console.log("[index] getBaseFontSize callback, size=", size)
           self.displaySize = size
           self.metaFontSize = Math.round(size * 0.71)
           self.dayTitleSize = size
@@ -245,14 +254,20 @@ export default {
           self.initialized = true
           self.isLoading = false
           self.loadError = false
+          console.log("[index] onInit DONE, isLoading=false, initialized=true")
         })
       })
     })
+    console.log("[index] onInit: after database.init call (async)")
   },
 
   onShow() {
     var self = this
-    if (!self.initialized) return
+    console.log("[index] onShow START, initialized=", self.initialized)
+    if (!self.initialized) {
+      console.log("[index] onShow: not initialized, return early")
+      return
+    }
     self.isCapsule = isCapsuleScreen
     store.getTheme(function(t) { self.theme = t })
     self.loadHomepageSettings()
@@ -353,34 +368,45 @@ export default {
 
   initAllModules() {
     var self = this
+    console.log("[index] initAllModules START")
 
     for (var i = 0; i < moduleNames.length; i++) {
       var m = moduleNames[i]
       var mod = modules[m.key]
       if (mod && mod.init) {
         try {
+          console.log("[index] initAllModules: [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + "...")
           mod.init(self)
+          console.log("[index] initAllModules: [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " OK")
         } catch (e) {
           console.error("[index] [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " FAIL: " + (e.message || e))
         }
+      } else {
+        console.log("[index] initAllModules: [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " SKIP (no init)")
       }
     }
 
+    console.log("[index] initAllModules: all inited, calling post-init...")
     if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
+      console.log("[index] initAllModules: loadDayClasses...")
       try { self.loadDayClasses() } catch (e) { console.error("[index] loadDayClasses: " + (e.message || e)) }
     }
     if (self.startProgressTimer && typeof self.startProgressTimer === 'function') {
+      console.log("[index] initAllModules: startProgressTimer...")
       try { self.startProgressTimer() } catch (e) { console.error("[index] startProgressTimer: " + (e.message || e)) }
     }
     if (self.updateStatus && typeof self.updateStatus === 'function') {
+      console.log("[index] initAllModules: updateStatus + startStatusTimer...")
       try { self.updateStatus() } catch (e) { console.error("[index] updateStatus: " + (e.message || e)) }
       if (self.startStatusTimer && typeof self.startStatusTimer === 'function') {
         try { self.startStatusTimer() } catch (e) { console.error("[index] startStatusTimer: " + (e.message || e)) }
       }
     }
     if (self.updateHideWeekend && typeof self.updateHideWeekend === 'function') {
+      console.log("[index] initAllModules: updateHideWeekend...")
       try { self.updateHideWeekend() } catch (e) { console.error("[index] updateHideWeekend: " + (e.message || e)) }
     }
+    console.log("[index] initAllModules DONE")
   },
 
   goBack() {
@@ -467,7 +493,6 @@ export default {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  box-sizing: border-box;
   padding: 44px 8px 8px 8px;
 }
 
