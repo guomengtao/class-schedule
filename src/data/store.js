@@ -820,7 +820,7 @@ module.exports = {
         if (data) {
           try {
             var settings = JSON.parse(data)
-            if (!settings.targetPage) settings.targetPage = "index"
+            if (!settings.targetPage || settings.targetPage === "index-full") settings.targetPage = "index"
             if (settings.autoSeconds === undefined) settings.autoSeconds = 3
             _cache.defaultHomepage = settings
             callback(settings)
