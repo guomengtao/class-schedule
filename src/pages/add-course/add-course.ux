@@ -2,7 +2,7 @@
   <div class="add-course-page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
-      <text class="title" style="color: {{ theme.text }}">添加课程</text>
+      <text class="title" style="color: {{ theme.text }}">添加课程9</text>
     </div>
 
     <div class="step-indicator">

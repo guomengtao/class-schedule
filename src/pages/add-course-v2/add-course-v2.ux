@@ -18,6 +18,10 @@
                style="background-color: {{ theme.card }}">
             <text class="course-name" style="color: {{ theme.text }}">{{ c.name }}</text>
           </div>
+          <div class="course-item course-add-item" onclick="openCourseManager"
+               style="background-color: {{ theme.cardLight }}">
+            <text class="course-add-icon" style="color: {{ theme.accent }}">+</text>
+          </div>
         </scroll>
       </div>
 
@@ -537,6 +541,18 @@ export default {
   text-overflow: ellipsis;
 }
 
+.course-add-item {
+  justify-content: center;
+  align-items: center;
+}
+
+.course-add-icon {
+  font-size: 40px;
+  line-height: 48px;
+  font-weight: bold;
+  text-align: center;
+}
+
 .time-row {
   flex-direction: row;
   align-items: center;
@@ -751,6 +767,10 @@ export default {
   .course-name {
     font-size: 24px;
     line-height: 32px;
+  }
+  .course-add-icon {
+    font-size: 36px;
+    line-height: 42px;
   }
   .time-box {
     width: 130px;
