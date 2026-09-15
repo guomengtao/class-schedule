@@ -359,8 +359,27 @@ export default {
 
   loadNickname() {
     var self = this
-    store.getNickname(function(name) {
-      self.nickname = name || ""
+    var storage = require("@system.storage")
+    storage.get({
+      key: "chinese_input_nickname_result",
+      success: function(data) {
+        if (data !== undefined && data !== null && data !== "") {
+          var newName = data.trim()
+          store.setNickname(newName, function() {
+            self.nickname = newName
+          })
+          storage.delete({ key: "chinese_input_nickname_result", fail: function() {} })
+          return
+        }
+        store.getNickname(function(name) {
+          self.nickname = name || ""
+        })
+      },
+      fail: function() {
+        store.getNickname(function(name) {
+          self.nickname = name || ""
+        })
+      }
     })
   },
 
@@ -433,7 +452,14 @@ export default {
   },
 
   openNicknameEdit() {
-    router.push({ uri: "/pages/nickname-edit" })
+    var storage = require("@system.storage")
+    storage.set({ key: "chinese_input_title", value: "编辑昵称", success: function() {} })
+    storage.set({ key: "chinese_input_placeholder", value: "输入昵称", success: function() {} })
+    storage.set({ key: "chinese_input_value", value: this.nickname, success: function() {} })
+    storage.set({ key: "chinese_input_maxlen", value: "12", success: function() {} })
+    storage.set({ key: "chinese_input_return_key", value: "chinese_input_nickname_result", success: function() {
+      router.push({ uri: "/pages/chinese-input" })
+    }})
   },
 
   openPinnedPages() {

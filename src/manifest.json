@@ -69,9 +69,6 @@
       "pages/week-view": {
         "component": "week-view"
       },
-      "pages/nickname-edit": {
-        "component": "nickname-edit"
-      },
       "pages/course-manager": {
         "component": "course-manager"
       },
