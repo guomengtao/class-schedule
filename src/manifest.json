@@ -123,9 +123,6 @@
       "pages/template-picker": {
         "component": "template-picker"
       },
-      "pages/donate": {
-        "component": "donate"
-      },
       "pages/black-screen-check": {
         "component": "black-screen-check"
       },
