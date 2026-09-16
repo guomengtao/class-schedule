@@ -419,7 +419,7 @@ export default {
   },
 
   openDonate() {
-    router.push({ uri: "/pages/donate" })
+    router.push({ uri: "/pages/donate-v2" })
   },
 
   goToPremium() {
