@@ -59,7 +59,7 @@
           <text class="arrow" style="color: {{ theme.textMuted }}">{{ showSchedule ? 'v' : '›' }}</text>
         </div>
       </div>
-      <div if="{{ showSchedule }}">
+      <div if="{{ showSchedule }}" style="flex-direction: column">
         <div class="row">
           <text class="row-label" style="color: {{ theme.text }}">隐藏周末</text>
           <input class="toggle-btn" type="button" value="{{ hideWeekend ? '开' : '关' }}" onclick="toggleHideWeekend" style="background-color: {{ hideWeekend ? theme.accent : theme.border }}; color: {{ hideWeekend ? theme.bg : theme.textSecondary }}" />
@@ -102,7 +102,7 @@
           <text class="arrow" style="color: {{ theme.textMuted }}">{{ showTools ? 'v' : '›' }}</text>
         </div>
       </div>
-      <div if="{{ showTools }}">
+      <div if="{{ showTools }}" style="flex-direction: column">
         <div class="row" onclick="openDeviceInfo">
           <text class="row-label" style="color: {{ theme.text }}">设备信息</text>
           <div class="row-right">
