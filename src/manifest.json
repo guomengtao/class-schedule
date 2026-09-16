@@ -47,126 +47,165 @@
   },
   "router": {
     "entry": "pages/welcome",
+    "_groups": {
+      "核心主流程": "welcome, index, detail, add-course",
+      "课程管理": "course-manager, course-manager-v2, custom-content-edit, countdown-manage",
+      "课表视图": "schedule-manager, week-view, schedule-qrcode",
+      "设置与系统": "settings, homepage-settings, reset-data, backup-restore, activation, device-info, pinned-pages, template-picker",
+      "实验室工具": "test-area, test-area-v2, vibration-lab, vibration-lab-v2, qrcode-generator, black-screen-check, chinese-input",
+      "实验室课程": "lab-add-course, lab-edit-course",
+      "其他": "statistics, donate"
+    },
     "pages": {
       "pages/welcome": {
         "component": "welcome",
+        "group": "核心主流程",
         "name_cn": "欢迎页"
       },
       "pages/index": {
         "component": "index",
+        "group": "核心主流程",
         "name_cn": "首页"
       },
       "pages/detail": {
         "component": "detail",
+        "group": "核心主流程",
         "name_cn": "课程详情"
       },
       "pages/add-course": {
         "component": "add-course",
+        "group": "核心主流程",
         "name_cn": "添加课程"
       },
-      "pages/settings": {
-        "component": "settings",
-        "name_cn": "设置"
+      "pages/course-manager": {
+        "component": "course-manager",
+        "group": "课程管理",
+        "name_cn": "课程管理"
+      },
+      "pages/course-manager-v2": {
+        "component": "course-manager-v2",
+        "group": "课程管理",
+        "name_cn": "课程管理V2"
+      },
+      "pages/custom-content-edit": {
+        "component": "custom-content-edit",
+        "group": "课程管理",
+        "name_cn": "自定义内容编辑"
+      },
+      "pages/countdown-manage": {
+        "component": "countdown-manage",
+        "group": "课程管理",
+        "name_cn": "倒数日管理"
       },
       "pages/schedule-manager": {
         "component": "schedule-manager",
+        "group": "课表视图",
         "name_cn": "课表管理"
       },
       "pages/week-view": {
         "component": "week-view",
+        "group": "课表视图",
         "name_cn": "周视图"
-      },
-      "pages/course-manager": {
-        "component": "course-manager",
-        "name_cn": "课程管理"
-      },
-      "pages/custom-content-edit": {
-        "component": "custom-content-edit",
-        "name_cn": "自定义内容编辑"
-      },
-      "pages/chinese-input": {
-        "component": "chinese-input",
-        "name_cn": "中文输入"
-      },
-      "pages/statistics": {
-        "component": "statistics",
-        "name_cn": "统计"
-      },
-      "pages/reset-data": {
-        "component": "reset-data",
-        "name_cn": "重置数据"
-      },
-      "pages/homepage-settings": {
-        "component": "homepage-settings",
-        "name_cn": "首页设置"
-      },
-      "pages/device-info": {
-        "component": "device-info",
-        "name_cn": "设备信息"
-      },
-      "pages/vibration-lab": {
-        "component": "vibration-lab",
-        "name_cn": "震动实验室"
-      },
-      "pages/vibration-lab-v2": {
-        "component": "vibration-lab-v2",
-        "name_cn": "震动实验室V2"
-      },
-      "pages/qrcode-generator": {
-        "component": "qrcode-generator",
-        "name_cn": "二维码生成"
       },
       "pages/schedule-qrcode": {
         "component": "schedule-qrcode",
+        "group": "课表视图",
         "name_cn": "课表二维码"
       },
-      "pages/test-area": {
-        "component": "test-area",
-        "name_cn": "测试区"
+      "pages/settings": {
+        "component": "settings",
+        "group": "设置与系统",
+        "name_cn": "设置"
       },
-      "pages/test-area-v2": {
-        "component": "test-area-v2",
-        "name_cn": "测试区V2"
+      "pages/homepage-settings": {
+        "component": "homepage-settings",
+        "group": "设置与系统",
+        "name_cn": "首页设置"
       },
-      "pages/donate": {
-        "component": "donate",
-        "name_cn": "打赏支持"
-      },
-      "pages/activation": {
-        "component": "activation",
-        "name_cn": "激活"
+      "pages/reset-data": {
+        "component": "reset-data",
+        "group": "设置与系统",
+        "name_cn": "重置数据"
       },
       "pages/backup-restore": {
         "component": "backup-restore",
+        "group": "设置与系统",
         "name_cn": "备份恢复"
+      },
+      "pages/activation": {
+        "component": "activation",
+        "group": "设置与系统",
+        "name_cn": "激活"
+      },
+      "pages/device-info": {
+        "component": "device-info",
+        "group": "设置与系统",
+        "name_cn": "设备信息"
       },
       "pages/pinned-pages": {
         "component": "pinned-pages",
+        "group": "设置与系统",
         "name_cn": "已钉页面"
       },
       "pages/template-picker": {
         "component": "template-picker",
+        "group": "设置与系统",
         "name_cn": "模板选择"
+      },
+      "pages/test-area": {
+        "component": "test-area",
+        "group": "实验室工具",
+        "name_cn": "测试区"
+      },
+      "pages/test-area-v2": {
+        "component": "test-area-v2",
+        "group": "实验室工具",
+        "name_cn": "测试区V2"
+      },
+      "pages/vibration-lab": {
+        "component": "vibration-lab",
+        "group": "实验室工具",
+        "name_cn": "震动实验室"
+      },
+      "pages/vibration-lab-v2": {
+        "component": "vibration-lab-v2",
+        "group": "实验室工具",
+        "name_cn": "震动实验室V2"
+      },
+      "pages/qrcode-generator": {
+        "component": "qrcode-generator",
+        "group": "实验室工具",
+        "name_cn": "二维码生成"
       },
       "pages/black-screen-check": {
         "component": "black-screen-check",
+        "group": "实验室工具",
         "name_cn": "黑屏检测"
+      },
+      "pages/chinese-input": {
+        "component": "chinese-input",
+        "group": "实验室工具",
+        "name_cn": "中文输入"
       },
       "pages/lab-add-course": {
         "component": "lab-add-course",
+        "group": "实验室课程",
         "name_cn": "实验室添加课程"
       },
       "pages/lab-edit-course": {
         "component": "lab-edit-course",
+        "group": "实验室课程",
         "name_cn": "实验室编辑课程"
       },
-      "pages/course-manager-v2": {
-        "component": "course-manager-v2",
-        "name_cn": "课程管理V2"
+      "pages/statistics": {
+        "component": "statistics",
+        "group": "其他",
+        "name_cn": "统计"
       },
-      "pages/countdown-manage": {
-        "component": "countdown-manage",
-        "name_cn": "倒数日管理"
+      "pages/donate": {
+        "component": "donate",
+        "group": "其他",
+        "name_cn": "打赏支持"
       }
     }
   }
