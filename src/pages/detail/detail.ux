@@ -27,7 +27,7 @@
         <div class="course-card" if="{{ courseIndex < presetCourses.length }}" onclick="swipeNext" style="background-color: {{ theme.card }}">
           <text class="card-course-name" style="color: {{ theme.text }}">{{ presetCourses[courseIndex].name }}</text>
         </div>
-        <div class="course-card add-card" if="{{ courseIndex === presetCourses.length }}" onclick="openCourseManager" style="background-color: {{ theme.cardLight }}">
+        <div class="course-card add-card" if="{{ courseIndex === presetCourses.length }}" onclick="openAddCourse" style="background-color: {{ theme.cardLight }}">
           <text class="add-card-icon" style="color: {{ theme.accent }}">+</text>
         </div>
         <input class="swipe-arrow" type="button" value="▶" onclick="swipeNext" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
@@ -401,6 +401,10 @@ export default {
 
   openCourseManager() {
     router.push({ uri: "/pages/course-manager" })
+  },
+
+  openAddCourse() {
+    router.push({ uri: "/pages/add-course" })
   },
 
   padZero(n) {
