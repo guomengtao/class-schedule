@@ -5,36 +5,18 @@
       <text class="back-btn" onclick="goBack"
             style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
       <text class="title" style="color: {{ theme.text }}">打赏支持</text>
-      <div class="header-spacer"></div>
     </div>
 
-    <div class="tab-bar">
-      <div class="tab-item" onclick="switchTab(0)"
-           style="background-color: {{ currentTab === 0 ? '#07C160' : theme.card }}">
-        <text class="tab-text"
-              style="color: {{ currentTab === 0 ? '#ffffff' : theme.textSecondary }}">微信</text>
-      </div>
-      <div class="tab-item" onclick="switchTab(1)"
-           style="background-color: {{ currentTab === 1 ? '#1677FF' : theme.card }}">
-        <text class="tab-text"
-              style="color: {{ currentTab === 1 ? '#ffffff' : theme.textSecondary }}">支付宝</text>
-      </div>
-      <div class="tab-item" onclick="switchTab(2)"
-           style="background-color: {{ currentTab === 2 ? '#FF6B35' : theme.card }}">
-        <text class="tab-text"
-              style="color: {{ currentTab === 2 ? '#ffffff' : theme.textSecondary }}">爱发电</text>
-      </div>
-    </div>
-
-    <div class="content-area">
-      <div class="qr-card" style="background-color: {{ theme.card }}">
+    <scroll class="scroll-area">
+      <div class="qr-card" for="{{ platforms }}" style="background-color: {{ theme.card }}">
+        <text class="platform-name" style="color: {{ $item.color }}">{{ $item.name }}</text>
         <div class="qr-wrapper">
-          <qrcode value="{{ qrText }}"
+          <qrcode value="{{ $item.url }}"
                   style="width: {{ qrSize }}px; height: {{ qrSize }}px; color: #000000; background-color: #ffffff;"></qrcode>
         </div>
-        <text class="scan-hint" style="color: {{ theme.textSecondary }}">请使用 {{ platformName }} 扫码</text>
+        <text class="scan-hint" style="color: {{ theme.textSecondary }}">请使用 {{ $item.name }} 扫码</text>
       </div>
-    </div>
+    </scroll>
 
     <div class="thanks-section">
       <text class="thanks-icon" style="color: {{ theme.accent }}">♥</text>
@@ -54,12 +36,10 @@ var ALIPAY_URL = "https://qr.alipay.com/fkx11582syvbdeymczggr3c"
 var AFDIAN_URL = "https://ifdian.net/a/peipeijin/plan"
 
 var PLATFORMS = [
-  { name: "微信",   color: "#07C160" },
-  { name: "支付宝", color: "#1677FF" },
-  { name: "爱发电", color: "#FF6B35" }
+  { name: "微信",   color: "#07C160", url: WECHAT_URL },
+  { name: "支付宝", color: "#1677FF", url: ALIPAY_URL },
+  { name: "爱发电", color: "#FF6B35", url: AFDIAN_URL }
 ]
-
-var QR_TEXTS = [WECHAT_URL, ALIPAY_URL, AFDIAN_URL]
 
 export default {
   private: {
@@ -70,10 +50,8 @@ export default {
       text: "#ffffff",
       textSecondary: "#9a9ab0"
     },
-    currentTab: 0,
-    qrText: WECHAT_URL,
-    qrSize: 144,
-    platformName: "微信"
+    platforms: PLATFORMS,
+    qrSize: 120
   },
 
   onInit() {
@@ -96,21 +74,15 @@ export default {
     device.getInfo({
       success: function (info) {
         var w = info.screenWidth || 192
-        var size = Math.floor(w - 8 * 2 - 8 * 2 - 6 * 2 - 4)
-        if (size > 200) size = 200
+        var size = Math.floor(w - 8 * 2 - 12 * 2 - 6 * 2 - 4)
+        if (size > 140) size = 140
         if (size < 80) size = 80
         self.qrSize = size
       },
       fail: function () {
-        self.qrSize = 144
+        self.qrSize = 120
       }
     })
-  },
-
-  switchTab(index) {
-    this.currentTab = index
-    this.qrText = QR_TEXTS[index]
-    this.platformName = PLATFORMS[index].name
   },
 
   goBack() {
@@ -124,14 +96,13 @@ export default {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  padding: 44px 8px 24px 8px;
+  padding: 44px 8px 20px 8px;
 }
 
 .header {
   flex-direction: row;
   align-items: center;
   height: 40px;
-  padding: 0 6px;
   flex-shrink: 0;
 }
 
@@ -155,53 +126,33 @@ export default {
   margin: 0 4px;
 }
 
-.header-spacer {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-}
-
-.tab-bar {
-  flex-direction: row;
-  height: 40px;
-  margin-top: 8px;
-  flex-shrink: 0;
-}
-
-.tab-item {
-  flex: 1;
-  height: 40px;
-  border-radius: 10px;
-  margin: 0 2px;
-  justify-content: center;
-  align-items: center;
-}
-
-.tab-text {
-  font-size: 22px;
-  font-weight: bold;
-  line-height: 32px;
-  text-align: center;
-  lines: 1;
-}
-
-.content-area {
+.scroll-area {
   flex: 1;
   flex-direction: column;
-  justify-content: center;
+  margin-top: 8px;
 }
 
 .qr-card {
   flex-direction: column;
   align-items: center;
   border-radius: 16px;
-  padding: 14px 8px;
+  padding: 14px 12px;
+  margin-bottom: 10px;
+}
+
+.platform-name {
+  font-size: 26px;
+  font-weight: bold;
+  line-height: 34px;
+  lines: 1;
+  margin-bottom: 10px;
 }
 
 .qr-wrapper {
   padding: 6px;
   background-color: #ffffff;
   border-radius: 12px;
+  margin-bottom: 10px;
 }
 
 .scan-hint {
@@ -209,7 +160,6 @@ export default {
   line-height: 28px;
   text-align: center;
   lines: 1;
-  margin-top: 12px;
 }
 
 .thanks-section {
@@ -218,6 +168,7 @@ export default {
   justify-content: center;
   height: 28px;
   flex-shrink: 0;
+  margin-top: 6px;
 }
 
 .thanks-icon {
@@ -234,11 +185,10 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page-root {
-    padding: 44px 8px 24px 8px;
+    padding: 44px 8px 20px 8px;
   }
   .header {
     height: 40px;
-    padding: 0 6px;
   }
   .back-btn {
     width: 40px;
@@ -251,26 +201,14 @@ export default {
     font-size: 26px;
     line-height: 40px;
   }
-  .header-spacer {
-    width: 40px;
-    height: 40px;
-  }
-  .tab-bar {
-    height: 40px;
-    margin-top: 8px;
-  }
-  .tab-item {
-    height: 40px;
-    border-radius: 10px;
-    margin: 0 2px;
-  }
-  .tab-text {
-    font-size: 22px;
-    line-height: 32px;
-  }
   .qr-card {
-    padding: 14px 8px;
+    padding: 14px 12px;
     border-radius: 16px;
+    margin-bottom: 10px;
+  }
+  .platform-name {
+    font-size: 26px;
+    line-height: 34px;
   }
   .qr-wrapper {
     padding: 6px;
@@ -279,10 +217,10 @@ export default {
   .scan-hint {
     font-size: 20px;
     line-height: 28px;
-    margin-top: 12px;
   }
   .thanks-section {
     height: 28px;
+    margin-top: 6px;
   }
   .thanks-icon {
     font-size: 20px;
@@ -300,7 +238,6 @@ export default {
   }
   .header {
     height: 44px;
-    padding: 0;
   }
   .back-btn {
     width: 44px;
@@ -313,26 +250,14 @@ export default {
     font-size: 28px;
     line-height: 44px;
   }
-  .header-spacer {
-    width: 44px;
-    height: 44px;
-  }
-  .tab-bar {
-    height: 46px;
-    margin-top: 10px;
-  }
-  .tab-item {
-    height: 46px;
-    border-radius: 12px;
-    margin: 0 4px;
-  }
-  .tab-text {
-    font-size: 24px;
-    line-height: 34px;
-  }
   .qr-card {
-    padding: 18px 12px;
+    padding: 18px 16px;
     border-radius: 18px;
+    margin-bottom: 12px;
+  }
+  .platform-name {
+    font-size: 28px;
+    line-height: 38px;
   }
   .qr-wrapper {
     padding: 8px;
@@ -341,10 +266,10 @@ export default {
   .scan-hint {
     font-size: 22px;
     line-height: 30px;
-    margin-top: 14px;
   }
   .thanks-section {
     height: 32px;
+    margin-top: 8px;
   }
   .thanks-icon {
     font-size: 22px;
@@ -362,7 +287,6 @@ export default {
   }
   .header {
     height: 38px;
-    padding: 0;
   }
   .back-btn {
     width: 38px;
@@ -376,26 +300,14 @@ export default {
     line-height: 38px;
     margin: 0 2px;
   }
-  .header-spacer {
-    width: 38px;
-    height: 38px;
-  }
-  .tab-bar {
-    height: 42px;
-    margin-top: 8px;
-  }
-  .tab-item {
-    height: 42px;
-    border-radius: 11px;
-    margin: 0 2px;
-  }
-  .tab-text {
-    font-size: 22px;
-    line-height: 32px;
-  }
   .qr-card {
-    padding: 12px 6px;
+    padding: 12px 10px;
     border-radius: 14px;
+    margin-bottom: 8px;
+  }
+  .platform-name {
+    font-size: 24px;
+    line-height: 32px;
   }
   .qr-wrapper {
     padding: 5px;
@@ -404,10 +316,10 @@ export default {
   .scan-hint {
     font-size: 20px;
     line-height: 28px;
-    margin-top: 10px;
   }
   .thanks-section {
     height: 28px;
+    margin-top: 4px;
   }
   .thanks-icon {
     font-size: 20px;
