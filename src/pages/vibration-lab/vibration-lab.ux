@@ -887,7 +887,7 @@ export default {
   padding: 8px;
   margin-bottom: 4px;
   border-radius: 8px;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
 }
 
 .vibe-top {
@@ -1160,8 +1160,14 @@ export default {
     font-size: 22px;
     line-height: 32px;
   }
+  .vibe-grid {
+    flex-direction: column;
+  }
   .vibe-item {
-    padding: 6px;
+    width: 100%;
+    padding: 8px 10px;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
   }
   .vibe-label {
     font-size: 20px;
