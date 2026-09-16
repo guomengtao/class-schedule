@@ -406,10 +406,12 @@ export default {
 
 .toolbar-count {
   font-size: 24px;
+  line-height: 32px;
 }
 
 .toolbar-sort {
   font-size: 24px;
+  line-height: 32px;
 }
 
 .toolbar-clear {
@@ -464,6 +466,7 @@ export default {
 
 .row-name {
   font-size: 28px;
+  line-height: 36px;
   lines: 1;
   text-overflow: ellipsis;
   flex: 1;
@@ -489,10 +492,12 @@ export default {
 
 .row-date {
   font-size: 22px;
+  line-height: 30px;
 }
 
 .row-days-text {
   font-size: 22px;
+  line-height: 30px;
   font-weight: bold;
 }
 
@@ -518,6 +523,7 @@ export default {
 
 .empty-text {
   font-size: 28px;
+  line-height: 36px;
   text-align: center;
   margin-top: 60px;
 }

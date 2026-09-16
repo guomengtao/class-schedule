@@ -559,6 +559,10 @@ export default {
     font-size: 22px;
     line-height: 28px;
   }
+  .row-loc {
+    font-size: 20px;
+    line-height: 28px;
+  }
   .action-btn {
     width: 56px;
     height: 44px;

@@ -311,6 +311,7 @@ export default {
   border-radius: 8px;
   font-size: 28px;
   text-align: center;
+  line-height: 40px;
 }
 
 .header-title {
@@ -399,12 +400,14 @@ export default {
 
 .rank-count {
   font-size: 24px;
+  line-height: 32px;
   width: 36px;
   text-align: right;
 }
 
 .empty-text {
   font-size: 28px;
+  line-height: 36px;
   text-align: center;
   padding: 24px 0;
 }

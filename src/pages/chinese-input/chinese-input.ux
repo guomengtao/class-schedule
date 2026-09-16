@@ -205,7 +205,59 @@ export default {
   border-radius: 13px;
   font-size: 20px;
   font-weight: bold;
-  line-height: 24px;
+  line-height: 28px;
+}
+
+@media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 30px 16px 30px 16px;
+  }
+  .header {
+    height: 48px;
+    margin-bottom: 8px;
+    flex-direction: row;
+    align-items: center;
+  }
+  .back-btn {
+    width: 48px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 24px;
+    line-height: 40px;
+    flex-shrink: 0;
+  }
+  .title {
+    font-size: 28px;
+    line-height: 44px;
+    text-align: center;
+    flex: 1;
+    margin: 0 4px;
+    lines: 1;
+  }
+  .input-display {
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    margin-bottom: 6px;
+  }
+  .input-text {
+    font-size: 28px;
+    line-height: 36px;
+  }
+  .cursor {
+    font-size: 28px;
+    line-height: 36px;
+  }
+  .keyboard-close-row {
+    height: 36px;
+  }
+  .done-btn {
+    width: 72px;
+    height: 38px;
+    border-radius: 19px;
+    font-size: 24px;
+    line-height: 34px;
+  }
 }
 
 @media (shape: circle) {
