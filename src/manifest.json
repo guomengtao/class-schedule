@@ -105,6 +105,9 @@
       "pages/test-area": {
         "component": "test-area"
       },
+      "pages/test-area-v2": {
+        "component": "test-area-v2"
+      },
       "pages/activation": {
         "component": "activation"
       },
