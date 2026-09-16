@@ -29,6 +29,13 @@
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
+      <div class="item-row item-row-last" onclick="openPinnedPages">
+        <text class="item-label" style="color: {{ theme.text }}">钉首页</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">管理</text>
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
       <div class="item-row">
         <text class="item-label" style="color: {{ theme.text }}">总课程</text>
         <div class="switch-track" style="background-color: {{ showDayNavZong ? theme.accent : theme.border }}" onclick="toggleDayNavZong">
@@ -261,6 +268,10 @@ export default {
     router.push({ uri: "/pages/custom-content-edit" })
   },
 
+  openPinnedPages() {
+    router.push({ uri: "/pages/pinned-pages" })
+  },
+
   toggleTimeUnit(unit) {
     this.timeFormat[unit] = !this.timeFormat[unit]
     this.updateTimePreview()
@@ -356,6 +367,10 @@ export default {
 
 .item-label {
   font-size: 32px;
+}
+
+.item-hint {
+  font-size: 24px;
 }
 
 .switch-track {

@@ -83,14 +83,6 @@
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
-      <div class="row" onclick="openPinnedPages">
-        <text class="row-label" style="color: {{ theme.text }}">已钉首页</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">快捷入口</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
