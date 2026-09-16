@@ -862,15 +862,9 @@ export default {
     line-height: 38px;
   }
 
-  
-
-  
-
-  
-
-  
-
-  
+  .theme-name {
+    display: none;
+  }
 
   .toggle-btn {
     width: 80px;
