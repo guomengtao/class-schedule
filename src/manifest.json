@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.5.54",
-  "versionCode": 808,
+  "versionName": "1.5.55",
+  "versionCode": 809,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -108,8 +108,8 @@
       "pages/test-area-v2": {
         "component": "test-area-v2"
       },
-      "pages/donate-v2": {
-        "component": "donate-v2"
+      "pages/donate": {
+        "component": "donate"
       },
       "pages/activation": {
         "component": "activation"
