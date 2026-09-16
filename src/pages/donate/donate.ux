@@ -228,6 +228,70 @@ export default {
   lines: 1;
 }
 
+@media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 30px 16px 30px 16px;
+  }
+  .header {
+    height: 48px;
+    margin-bottom: 8px;
+    flex-direction: row;
+    align-items: center;
+  }
+  .back-btn {
+    width: 48px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 24px;
+    text-align: center;
+    line-height: 40px;
+    flex-shrink: 0;
+  }
+  .title {
+    font-size: 28px;
+    font-weight: bold;
+    line-height: 44px;
+    text-align: center;
+    flex: 1;
+    lines: 1;
+    margin: 0 4px;
+  }
+  .tab-item {
+    height: 40px;
+  }
+  .tab-text {
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 32px;
+    lines: 1;
+  }
+  .qr-card {
+    padding: 16px 14px;
+  }
+  .platform-name {
+    font-size: 32px;
+    line-height: 40px;
+    margin-bottom: 14px;
+    lines: 1;
+  }
+  .scan-hint {
+    font-size: 22px;
+    line-height: 30px;
+    lines: 1;
+  }
+  .thanks-icon {
+    font-size: 36px;
+    line-height: 44px;
+    margin-bottom: 6px;
+  }
+  .thanks-text {
+    font-size: 24px;
+    line-height: 32px;
+    text-align: center;
+    lines: 1;
+  }
+}
+
 @media (shape: circle) {
   .page {
     padding: 44px 36px 44px 36px;
