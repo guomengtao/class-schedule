@@ -221,6 +221,8 @@ export default {
   font-size: 32px;
   font-weight: bold;
   line-height: 40px;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .input-hint {
@@ -294,6 +296,9 @@ export default {
   border-radius: 10px;
   font-size: 28px;
   text-align: center;
+  line-height: 40px;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .footer-actions {
@@ -305,6 +310,9 @@ export default {
 .pin-link {
   font-size: 24px;
   text-align: center;
+  line-height: 34px;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
