@@ -182,7 +182,6 @@ export default {
   height: 100%;
   flex-direction: column;
   padding: 44px 8px 8px 8px;
-  position: relative;
 }
 
 .header {
@@ -228,6 +227,8 @@ export default {
 .input-hint {
   font-size: 28px;
   line-height: 36px;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .qr-container {
@@ -248,6 +249,8 @@ export default {
   margin-top: 12px;
   text-align: center;
   line-height: 32px;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .empty-state {
@@ -267,6 +270,8 @@ export default {
   font-size: 28px;
   text-align: center;
   line-height: 36px;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .presets-section {
@@ -279,6 +284,8 @@ export default {
   font-size: 24px;
   margin-bottom: 10px;
   line-height: 32px;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .presets-grid {
@@ -316,6 +323,9 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 30px 16px 30px 16px;
+  }
   .header {
     height: 48px;
     margin-bottom: 8px;
@@ -337,9 +347,48 @@ export default {
     text-align: center;
     flex: 1;
     lines: 1;
+    text-overflow: ellipsis;
     margin: 0 4px;
   }
-
+  .input-section {
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .input-text {
+    font-size: 26px;
+    line-height: 36px;
+  }
+  .input-hint {
+    font-size: 22px;
+    line-height: 30px;
+  }
+  .qr-hint {
+    font-size: 20px;
+    line-height: 28px;
+    margin-top: 8px;
+  }
+  .empty-text {
+    font-size: 22px;
+    line-height: 30px;
+  }
+  .presets-label {
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .preset-row {
+    margin-bottom: 8px;
+  }
+  .preset-btn {
+    height: 44px;
+    font-size: 22px;
+    line-height: 36px;
+    margin-right: 4px;
+    margin-left: 4px;
+  }
+  .pin-link {
+    font-size: 20px;
+    line-height: 28px;
+  }
 }
 
 @media (shape: rect) {
