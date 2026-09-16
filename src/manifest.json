@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.5.55",
-  "versionCode": 809,
+  "versionName": "1.5.56",
+  "versionCode": 810,
   "minPlatformVersion": 1000,
   "icon": "logo.png",
   "deviceTypeList": [
@@ -49,94 +49,124 @@
     "entry": "pages/welcome",
     "pages": {
       "pages/welcome": {
-        "component": "welcome"
+        "component": "welcome",
+        "name_cn": "欢迎页"
       },
       "pages/index": {
-        "component": "index"
+        "component": "index",
+        "name_cn": "首页"
       },
       "pages/detail": {
-        "component": "detail"
+        "component": "detail",
+        "name_cn": "课程详情"
       },
       "pages/add-course": {
-        "component": "add-course"
+        "component": "add-course",
+        "name_cn": "添加课程"
       },
       "pages/settings": {
-        "component": "settings"
+        "component": "settings",
+        "name_cn": "设置"
       },
       "pages/schedule-manager": {
-        "component": "schedule-manager"
+        "component": "schedule-manager",
+        "name_cn": "课表管理"
       },
       "pages/week-view": {
-        "component": "week-view"
+        "component": "week-view",
+        "name_cn": "周视图"
       },
       "pages/course-manager": {
-        "component": "course-manager"
+        "component": "course-manager",
+        "name_cn": "课程管理"
       },
       "pages/custom-content-edit": {
-        "component": "custom-content-edit"
+        "component": "custom-content-edit",
+        "name_cn": "自定义内容编辑"
       },
       "pages/chinese-input": {
-        "component": "chinese-input"
+        "component": "chinese-input",
+        "name_cn": "中文输入"
       },
       "pages/statistics": {
-        "component": "statistics"
+        "component": "statistics",
+        "name_cn": "统计"
       },
       "pages/reset-data": {
-        "component": "reset-data"
+        "component": "reset-data",
+        "name_cn": "重置数据"
       },
       "pages/homepage-settings": {
-        "component": "homepage-settings"
+        "component": "homepage-settings",
+        "name_cn": "首页设置"
       },
       "pages/device-info": {
-        "component": "device-info"
+        "component": "device-info",
+        "name_cn": "设备信息"
       },
       "pages/vibration-lab": {
-        "component": "vibration-lab"
+        "component": "vibration-lab",
+        "name_cn": "震动实验室"
       },
       "pages/vibration-lab-v2": {
-        "component": "vibration-lab-v2"
+        "component": "vibration-lab-v2",
+        "name_cn": "震动实验室V2"
       },
       "pages/qrcode-generator": {
-        "component": "qrcode-generator"
+        "component": "qrcode-generator",
+        "name_cn": "二维码生成"
       },
       "pages/schedule-qrcode": {
-        "component": "schedule-qrcode"
+        "component": "schedule-qrcode",
+        "name_cn": "课表二维码"
       },
       "pages/test-area": {
-        "component": "test-area"
+        "component": "test-area",
+        "name_cn": "测试区"
       },
       "pages/test-area-v2": {
-        "component": "test-area-v2"
+        "component": "test-area-v2",
+        "name_cn": "测试区V2"
       },
       "pages/donate": {
-        "component": "donate"
+        "component": "donate",
+        "name_cn": "打赏支持"
       },
       "pages/activation": {
-        "component": "activation"
+        "component": "activation",
+        "name_cn": "激活"
       },
       "pages/backup-restore": {
-        "component": "backup-restore"
+        "component": "backup-restore",
+        "name_cn": "备份恢复"
       },
       "pages/pinned-pages": {
-        "component": "pinned-pages"
+        "component": "pinned-pages",
+        "name_cn": "已钉页面"
       },
       "pages/template-picker": {
-        "component": "template-picker"
+        "component": "template-picker",
+        "name_cn": "模板选择"
       },
       "pages/black-screen-check": {
-        "component": "black-screen-check"
+        "component": "black-screen-check",
+        "name_cn": "黑屏检测"
       },
       "pages/lab-add-course": {
-        "component": "lab-add-course"
+        "component": "lab-add-course",
+        "name_cn": "实验室添加课程"
       },
       "pages/lab-edit-course": {
-        "component": "lab-edit-course"
+        "component": "lab-edit-course",
+        "name_cn": "实验室编辑课程"
       },
       "pages/course-manager-v2": {
-        "component": "course-manager-v2"
+        "component": "course-manager-v2",
+        "name_cn": "课程管理V2"
       },
       "pages/countdown-manage": {
-        "component": "countdown-manage"
+        "component": "countdown-manage",
+        "name_cn": "倒数日管理"
       }
     }
   }
