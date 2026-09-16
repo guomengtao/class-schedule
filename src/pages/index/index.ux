@@ -28,10 +28,7 @@
 
     <div class="status-bar" if="{{ showStatusBar }}" style="background-color: {{ theme.cardLight }}">
       <div class="left-accent left-accent-6" if="{{ !isCapsule }}" style="background-color: {{ theme.accent }}"></div>
-      <div if="{{ isCapsule }}" style="flex:1; flex-direction:column;">
-        <text class="status-tag status-tag-compact" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
-        <text class="status-middle status-middle-compact" style="color: {{ theme.text }}">{{ statusMainText }}</text>
-      </div>
+      <text if="{{ isCapsule }}" class="status-middle status-middle-compact" style="color: {{ theme.text }}; flex:1;" lines="1">{{ statusTag }}:{{ statusMainText }}</text>
       <block if="{{ !isCapsule }}">
         <text class="status-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
         <text class="status-middle" style="color: {{ theme.text }}">{{ statusMainText }}</text>
