@@ -538,7 +538,7 @@ export default {
     line-height: 34px;
   }
   .accordion-body {
-    padding: 0 6px 10px 6px;
+    padding: 10px 0;
   }
   .qr-wrapper {
     padding: 6px;
@@ -602,7 +602,7 @@ export default {
     line-height: 40px;
   }
   .accordion-body {
-    padding: 0 8px 14px 8px;
+    padding: 14px 0;
   }
   .qr-wrapper {
     padding: 8px;
