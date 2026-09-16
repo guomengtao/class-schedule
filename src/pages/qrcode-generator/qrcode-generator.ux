@@ -1,469 +1,695 @@
-<import name="unlock-dialog" src="../../components/unlock-dialog"></import>
 <template>
-  <div class="page" style="background-color: {{ theme.bg }}">
+  <div class="page-root" style="background-color: {{ theme.bg }}">
     <div class="header">
       <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
-      <text class="title" style="color: {{ theme.text }}">二维码</text>
+      <text class="title-text" style="color: {{ theme.text }}">二维码</text>
+      <div class="spacer"></div>
     </div>
 
-    <div class="input-section" onclick="openInput" style="background-color: {{ theme.card }}">
-      <text class="input-text" if="{{ inputText }}" style="color: {{ theme.text }}">{{ inputText }}</text>
-      <text class="input-hint" if="{{ !inputText }}" style="color: {{ theme.textMuted }}">输入文字</text>
+    <div class="add-btn" onclick="startAdd" style="background-color: {{ theme.card }}">
+      <text class="add-btn-text" style="color: {{ theme.accent }}">＋ 添加二维码</text>
     </div>
 
-    <div class="qr-container" if="{{ inputText }}">
-      <div class="qr-wrapper" style="background-color: #ffffff">
-        <qrcode value="{{ inputText }}" style="color: #000000; background-color: #ffffff; width: 180px; height: 180px;"></qrcode>
-      </div>
-      <text class="qr-hint" style="color: {{ theme.textSecondary }}">扫描查看</text>
-    </div>
-
-    <div class="empty-state" if="{{ !inputText }}">
-      <text class="empty-icon"></text>
-      <text class="empty-text" style="color: {{ theme.textMuted }}">输入或选择内容</text>
-    </div>
-
-    <div class="presets-section">
-      <text class="presets-label" style="color: {{ theme.textSecondary }}">快捷内容</text>
-      <div class="presets-grid">
-        <div class="preset-row">
-          <input class="preset-btn" type="button" value="Hello World" onclick="usePreset(0)" style="background-color: {{ theme.card }}; color: {{ theme.text }}" />
-          <input class="preset-btn" type="button" value="网址示例" onclick="usePreset(1)" style="background-color: {{ theme.card }}; color: {{ theme.text }}" />
+    <div class="list-area">
+      <div class="{{ $item.expanded ? 'accordion-item-expanded' : 'accordion-item' }}" for="{{ items }}" style="background-color: {{ theme.card }}">
+        <div class="accordion-header" onclick="toggleItem($idx)">
+          <text class="item-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+          <text class="item-arrow" style="color: {{ theme.textMuted }}">{{ $item.expanded ? '▲' : '▼' }}</text>
         </div>
-        <div class="preset-row">
-          <input class="preset-btn" type="button" value="手机号码" onclick="usePreset(2)" style="background-color: {{ theme.card }}; color: {{ theme.text }}" />
-          <input class="preset-btn" type="button" value="WiFi信息" onclick="usePreset(3)" style="background-color: {{ theme.card }}; color: {{ theme.text }}" />
-        </div>
-        <div class="preset-row">
-          <input class="preset-btn" type="button" value="邮箱地址" onclick="usePreset(4)" style="background-color: {{ theme.card }}; color: {{ theme.text }}" />
-          <input class="preset-btn" type="button" value="纯数字" onclick="usePreset(5)" style="background-color: {{ theme.card }}; color: {{ theme.text }}" />
+
+        <div class="accordion-body" if="{{ $item.expanded }}">
+          <div class="qr-wrapper" style="background-color: #ffffff">
+            <qrcode value="{{ $item.content }}" style="color: #000000; background-color: #ffffff; width: {{ qrSize }}px; height: {{ qrSize }}px;"></qrcode>
+          </div>
+          <text class="content-text" style="color: {{ theme.textSecondary }}">{{ $item.content }}</text>
+          <div class="action-row">
+            <div class="action-btn edit-btn" onclick="startEdit($idx)" style="background-color: {{ theme.cardLight }}">
+              <text class="action-btn-text" style="color: {{ theme.accent }}">编辑</text>
+            </div>
+            <div class="action-btn delete-btn" onclick="deleteItem($idx)" style="background-color: {{ theme.deleteBg }}">
+              <text class="action-btn-text" style="color: {{ theme.deleteText }}">删除</text>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <unlock-dialog id="unlockDialog"></unlock-dialog>
-
-    <div class="footer-actions">
-      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">钉首页</text>
+      <div class="empty-state" if="{{ items.length === 0 }}">
+        <text class="empty-text" style="color: {{ theme.textMuted }}">暂无二维码，点击上方添加</text>
+      </div>
     </div>
-  </div>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
-var pinHelper = require("../../data/pin-helper.js")
 const store = require("../../data/store.js")
-const authStore = require("../../data/auth-store.js")
+var pinHelper = require("../../data/pin-helper.js")
 
-var PRESETS = [
-  "Hello World",
-  "https://www.example.com",
-  "13800138000",
-  "WIFI:S:MyWiFi;T:WPA;P:12345678;;",
-  "user@example.com",
-  "1234567890"
-]
+var STORAGE_KEY = "qrcode_items_list"
+var loadingStorage = false
+
+function generateId() {
+  return "qrc_" + Date.now() + "_" + Math.floor(Math.random() * 10000)
+}
+
+function loadItems(callback) {
+  if (loadingStorage) {
+    setTimeout(function() { loadItems(callback) }, 50)
+    return
+  }
+  loadingStorage = true
+  var storage = require("@system.storage")
+  storage.get({
+    key: STORAGE_KEY,
+    success: function(data) {
+      loadingStorage = false
+      if (data) {
+        try {
+          var arr = JSON.parse(data)
+          for (var i = 0; i < arr.length; i++) {
+            if (!arr[i].expanded) arr[i].expanded = false
+          }
+          callback(arr)
+        } catch (e) {
+          callback([])
+        }
+      } else {
+        callback([])
+      }
+    },
+    fail: function() {
+      loadingStorage = false
+      callback([])
+    }
+  })
+}
+
+function saveItems(items, callback) {
+  var storage = require("@system.storage")
+  var clean = []
+  for (var i = 0; i < items.length; i++) {
+    clean.push({ id: items[i].id, name: items[i].name, content: items[i].content })
+  }
+  storage.set({
+    key: STORAGE_KEY,
+    value: JSON.stringify(clean),
+    success: function() { if (callback) callback() },
+    fail: function() { if (callback) callback() }
+  })
+}
 
 export default {
   private: {
-    isPro: false,
+    items: [],
+    qrSize: 140,
     theme: {
-      bg: '#1a1a2e',
-      card: '#16213e',
-      cardLight: '#0f3460',
-      accent: '#7ec8e3',
-      text: '#ffffff',
-      textSecondary: '#888899',
-      textMuted: '#555566',
-      border: '#0f3460',
-      borderLight: '#2a2a5a',
-      keyBg: '#1a1a3e',
-      keyBorder: '#2a2a5a',
-      btnSecondary: '#333355',
-      btnSecondaryText: '#a0a0b0',
-      deleteBg: '#2a1a3e',
-      deleteText: '#e08080',
-      icon: '·',
-      progressOngoing: 'rgba(126,200,227,0.2)',
-      progressDone: 'rgba(74,138,154,0.25)'
+      bg: "#1a1a2e",
+      card: "#16213e",
+      cardLight: "#0f3460",
+      accent: "#7ec8e3",
+      text: "#ffffff",
+      textSecondary: "#888899",
+      textMuted: "#555566",
+      deleteBg: "#2a1a3e",
+      deleteText: "#e08080"
     },
-    inputText: ""
+    addingName: "",
+    editingId: "",
+    editingName: ""
   },
 
   onInit() {
     var self = this
     store.getTheme(function(t) { self.theme = t })
-    this.checkProStatus()
+    this.calcQrSize()
   },
 
   onShow() {
-    this.loadInputText()
-    this.checkProStatus()
-    this.checkInputResult()
+    this.loadItems()
+    this.checkAddResult()
+    this.checkEditResult()
   },
 
-  checkInputResult() {
+  calcQrSize() {
+    var self = this
+    var device = require("@system.device")
+    device.getInfo({
+      success: function(info) {
+        var w = info.screenWidth || 192
+        var pagePad = w > 300 ? 24 : 16
+        var bodyPad = w > 300 ? 24 : 12
+        var wrapperPad = 12
+        var size = w - pagePad - bodyPad - wrapperPad
+        if (size < 100) size = 100
+        if (size > 320) size = 320
+        self.qrSize = size
+      },
+      fail: function() {
+        self.qrSize = 140
+      }
+    })
+  },
+
+  loadItems() {
+    var self = this
+    loadItems(function(arr) { self.items = arr })
+  },
+
+  startAdd() {
+    var storage = require("@system.storage")
+    storage.set({ key: "chinese_input_title", value: "二维码名称", success: function() {} })
+    storage.set({ key: "chinese_input_placeholder", value: "如：我的网址", success: function() {} })
+    storage.set({ key: "chinese_input_value", value: "", success: function() {} })
+    storage.set({ key: "chinese_input_maxlen", value: "5", success: function() {} })
+    storage.set({ key: "chinese_input_return_key", value: "qrcode_add_name", success: function() {
+      router.push({ uri: "/pages/chinese-input" })
+    }})
+  },
+
+  checkAddResult() {
     var self = this
     var storage = require("@system.storage")
+
     storage.get({
-      key: "chinese_input_result",
+      key: "qrcode_add_name",
       success: function(data) {
         if (data !== undefined && data !== null && data !== "") {
-          self.inputText = data
-          store.setQrcodeText(data)
-          storage.delete({ key: "chinese_input_result", fail: function() {} })
+          var name = data.trim()
+          storage.delete({ key: "qrcode_add_name", fail: function() {} })
+          storage.set({ key: "chinese_input_title", value: "二维码内容", success: function() {} })
+          storage.set({ key: "chinese_input_placeholder", value: "输入网址或文字", success: function() {} })
+          storage.set({ key: "chinese_input_value", value: "", success: function() {} })
+          storage.set({ key: "chinese_input_maxlen", value: "100", success: function() {} })
+          storage.set({ key: "chinese_input_return_key", value: "qrcode_add_content", success: function() {
+            storage.set({ key: "qrcode_add_temp_name", value: name, success: function() {
+              router.push({ uri: "/pages/chinese-input" })
+            }})
+          }})
+        }
+      },
+      fail: function() {}
+    })
+
+    storage.get({
+      key: "qrcode_add_content",
+      success: function(data) {
+        if (data !== undefined && data !== null && data !== "") {
+          var content = data.trim()
+          storage.delete({ key: "qrcode_add_content", fail: function() {} })
+          storage.get({
+            key: "qrcode_add_temp_name",
+            success: function(nameData) {
+              storage.delete({ key: "qrcode_add_temp_name", fail: function() {} })
+              var name = (nameData || "").trim()
+              if (name && content) {
+                self.doAdd(name, content)
+              }
+            },
+            fail: function() {
+              storage.delete({ key: "qrcode_add_temp_name", fail: function() {} })
+            }
+          })
         }
       },
       fail: function() {}
     })
   },
 
-  checkProStatus() {
+  doAdd(name, content) {
     var self = this
-    authStore.checkStatus(function(status) {
-      self.isPro = status.isActivated
+    loadItems(function(arr) {
+      arr.push({
+        id: generateId(),
+        name: name,
+        content: content,
+        expanded: false
+      })
+      self.items = arr
+      saveItems(arr)
     })
   },
 
-  loadInputText() {
+  toggleItem(index) {
+    var item = this.items[index]
+    if (item) {
+      item.expanded = !item.expanded
+      var clone = this.items.slice()
+      var copy = {}
+      copy.id = item.id
+      copy.name = item.name
+      copy.content = item.content
+      copy.expanded = item.expanded
+      clone[index] = copy
+      this.items = clone
+    }
+  },
+
+  startEdit(index) {
+    var item = this.items[index]
+    if (!item) return
+    var storage = require("@system.storage")
+    storage.set({ key: "chinese_input_title", value: "编辑名称", success: function() {} })
+    storage.set({ key: "chinese_input_placeholder", value: "如：我的网址", success: function() {} })
+    storage.set({ key: "chinese_input_value", value: item.name, success: function() {} })
+    storage.set({ key: "chinese_input_maxlen", value: "5", success: function() {} })
+    storage.set({ key: "chinese_input_return_key", value: "qrcode_edit_name", success: function() {
+      storage.set({ key: "qrcode_edit_temp_id", value: item.id, success: function() {
+        router.push({ uri: "/pages/chinese-input" })
+      }})
+    }})
+  },
+
+  checkEditResult() {
     var self = this
-    if (!self.isPro) return
-    store.getQrcodeText(function(text) {
-      if (text) {
-        self.inputText = text
+    var storage = require("@system.storage")
+
+    storage.get({
+      key: "qrcode_edit_name",
+      success: function(data) {
+        if (data !== undefined && data !== null && data !== "") {
+          var name = data.trim()
+          storage.delete({ key: "qrcode_edit_name", fail: function() {} })
+          storage.set({ key: "chinese_input_title", value: "编辑内容", success: function() {} })
+          storage.set({ key: "chinese_input_placeholder", value: "输入网址或文字", success: function() {} })
+          storage.set({ key: "chinese_input_value", value: "", success: function() {} })
+          storage.set({ key: "chinese_input_maxlen", value: "100", success: function() {} })
+          storage.set({ key: "chinese_input_return_key", value: "qrcode_edit_content", success: function() {
+            storage.set({ key: "qrcode_edit_temp_name", value: name, success: function() {
+              router.push({ uri: "/pages/chinese-input" })
+            }})
+          }})
+        }
+      },
+      fail: function() {}
+    })
+
+    storage.get({
+      key: "qrcode_edit_content",
+      success: function(data) {
+        if (data !== undefined && data !== null && data !== "") {
+          var content = data.trim()
+          storage.delete({ key: "qrcode_edit_content", fail: function() {} })
+          storage.get({
+            key: "qrcode_edit_temp_name",
+            success: function(nameData) {
+              storage.delete({ key: "qrcode_edit_temp_name", fail: function() {} })
+              storage.get({
+                key: "qrcode_edit_temp_id",
+                success: function(idData) {
+                  storage.delete({ key: "qrcode_edit_temp_id", fail: function() {} })
+                  var name = (nameData || "").trim()
+                  var id = (idData || "").trim()
+                  if (id && name && content) {
+                    self.doEdit(id, name, content)
+                  }
+                },
+                fail: function() {}
+              })
+            },
+            fail: function() {}
+          })
+        }
+      },
+      fail: function() {}
+    })
+  },
+
+  doEdit(id, name, content) {
+    var self = this
+    loadItems(function(arr) {
+      for (var i = 0; i < arr.length; i++) {
+        if (arr[i].id === id) {
+          arr[i].name = name
+          arr[i].content = content
+          self.items = arr
+          saveItems(arr)
+          return
+        }
       }
     })
   },
 
-  openInput() {
-    var storage = require("@system.storage")
-    storage.set({ key: "chinese_input_title", value: "二维码内容", success: function() {} })
-    storage.set({ key: "chinese_input_placeholder", value: "输入文字", success: function() {} })
-    storage.set({ key: "chinese_input_value", value: this.inputText, success: function() {} })
-    storage.set({ key: "chinese_input_maxlen", value: "100", success: function() {} })
-    storage.set({ key: "chinese_input_return_key", value: "chinese_input_result", success: function() {
-      router.push({ uri: "/pages/chinese-input" })
-    }})
-  },
-
-  usePreset(index) {
+  deleteItem(index) {
     var self = this
-    if (!self.isPro) {
-      store.showUnlockDialog({
-        title: "解锁二维码生成",
-        description: "一次性解锁，永久使用全部高级功能",
-        benefits: ["文字转二维码", "快捷内容模板", "多课表管理", "首页自定义"],
-        cancelText: "暂不需要"
-      })
-      return
-    }
-    var text = PRESETS[index]
-    if (text) {
-      this.inputText = text
-      store.setQrcodeText(text)
-    }
+    loadItems(function(arr) {
+      if (index >= 0 && index < arr.length) {
+        arr.splice(index, 1)
+        self.items = arr
+        saveItems(arr)
+      }
+    })
   },
 
   goBack() {
-    store.setQrcodeText(this.inputText)
     router.back()
-  },
-
-  pinToHome() {
-    pinHelper.pinPage("二维码生成", "/pages/qrcode-generator")
   }
 }
 </script>
 
 <style>
-.page {
+.page-root {
+  flex-direction: column;
   width: 100%;
   height: 100%;
-  flex-direction: column;
-  padding: 44px 8px 8px 8px;
+  padding: 8px;
 }
 
 .header {
   flex-direction: row;
   align-items: center;
-  height: 48px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  height: 44px;
+  flex-shrink: 0;
 }
 
 .back-btn {
-  width: 48px;
-  height: 40px;
-  border-radius: 8px;
-  font-size: 28px;
-  text-align: center;
-  margin-right: 8px;
+  width: 40px;
+  height: 36px;
+  border-radius: 18px;
+  font-size: 22px;
   line-height: 36px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
-.title {
-  font-size: 36px;
+.title-text {
+  flex: 1;
+  font-size: 26px;
   font-weight: bold;
-  flex: 1;
+  line-height: 34px;
   text-align: center;
-  margin-right: 56px;
-  line-height: 44px;
-}
-
-.input-section {
-  padding: 16px 14px;
-  border-radius: 12px;
-  margin-bottom: 12px;
-}
-
-.input-text {
-  font-size: 32px;
-  font-weight: bold;
-  line-height: 40px;
+  margin: 0 4px;
   lines: 1;
-  text-overflow: ellipsis;
 }
 
-.input-hint {
-  font-size: 28px;
-  line-height: 36px;
-  lines: 1;
-  text-overflow: ellipsis;
+.spacer {
+  width: 40px;
+  flex-shrink: 0;
 }
 
-.qr-container {
-  flex-direction: column;
-  align-items: center;
-}
-
-.qr-wrapper {
-  padding: 12px;
-  border-radius: 12px;
-  margin-top: 12px;
-  align-items: center;
-  justify-content: center;
-}
-
-.qr-hint {
-  font-size: 24px;
-  margin-top: 12px;
-  text-align: center;
-  line-height: 32px;
-  lines: 1;
-  text-overflow: ellipsis;
-}
-
-.empty-state {
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 24px 0;
-}
-
-.empty-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-  line-height: 56px;
-}
-
-.empty-text {
-  font-size: 28px;
-  text-align: center;
-  line-height: 36px;
-  lines: 1;
-  text-overflow: ellipsis;
-}
-
-.presets-section {
-  flex: 1;
-  flex-direction: column;
-  padding-top: 16px;
-}
-
-.presets-label {
-  font-size: 24px;
-  margin-bottom: 10px;
-  line-height: 32px;
-  lines: 1;
-  text-overflow: ellipsis;
-}
-
-.presets-grid {
-  flex-direction: column;
-}
-
-.preset-row {
-  flex-direction: row;
-  margin-bottom: 8px;
-}
-
-.preset-btn {
-  flex: 1;
+.add-btn {
   height: 44px;
-  border-radius: 10px;
-  font-size: 28px;
-  text-align: center;
-  line-height: 40px;
-  lines: 1;
-  text-overflow: ellipsis;
-}
-
-.footer-actions {
-  flex-direction: row;
+  border-radius: 12px;
   justify-content: center;
-  padding: 20px 0 8px 0;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-shrink: 0;
 }
 
-.pin-link {
+.add-btn-text {
+  font-size: 22px;
+  font-weight: bold;
+  line-height: 30px;
+  lines: 1;
+}
+
+.list-area {
+  flex: 1;
+  flex-direction: column;
+}
+
+.accordion-item {
+  flex-direction: column;
+  border-radius: 12px;
+  margin-bottom: 6px;
+}
+
+.accordion-item-expanded {
+  flex-direction: column;
+  border-radius: 12px;
+  margin-bottom: 6px;
+}
+
+.accordion-header {
+  flex-direction: row;
+  align-items: center;
+  padding: 10px 12px;
+}
+
+.item-name {
+  flex: 1;
   font-size: 24px;
-  text-align: center;
+  font-weight: bold;
   line-height: 34px;
   lines: 1;
   text-overflow: ellipsis;
 }
 
+.item-arrow {
+  font-size: 16px;
+  line-height: 34px;
+  flex-shrink: 0;
+  margin-left: 6px;
+}
+
+.accordion-body {
+  flex-direction: column;
+  align-items: center;
+  padding: 0 6px 10px 6px;
+}
+
+.qr-wrapper {
+  padding: 6px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.content-text {
+  font-size: 20px;
+  line-height: 28px;
+  lines: 3;
+  text-overflow: ellipsis;
+  text-align: center;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.action-row {
+  flex-direction: row;
+  width: 100%;
+}
+
+.action-btn {
+  flex: 1;
+  height: 40px;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.edit-btn {
+  margin-right: 4px;
+}
+
+.delete-btn {
+  margin-left: 4px;
+}
+
+.action-btn-text {
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 28px;
+  lines: 1;
+}
+
+.empty-state {
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 0;
+}
+
+.empty-text {
+  font-size: 22px;
+  line-height: 30px;
+  text-align: center;
+}
+
 @media (shape: capsule), (shape: pill-shaped) {
-  .page {
-    padding: 30px 16px 30px 16px;
+  .page-root {
+    padding: 8px;
   }
   .header {
-    height: 48px;
-    margin-bottom: 8px;
-    flex-direction: row;
-    align-items: center;
-  }
-  .back-btn {
-    width: 48px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 24px;
-    text-align: center;
-    line-height: 40px;
-    flex-shrink: 0;
-  }
-  .title {
-    font-size: 28px;
-    line-height: 44px;
-    text-align: center;
-    flex: 1;
-    lines: 1;
-    text-overflow: ellipsis;
-    margin: 0 4px;
-  }
-  .input-section {
-    padding: 12px 14px;
+    height: 44px;
     margin-bottom: 10px;
   }
-  .input-text {
-    font-size: 26px;
+  .back-btn {
+    width: 40px;
+    height: 36px;
+    font-size: 22px;
     line-height: 36px;
   }
-  .input-hint {
+  .title-text {
+    font-size: 26px;
+    line-height: 34px;
+  }
+  .add-btn {
+    height: 44px;
+    margin-bottom: 8px;
+  }
+  .add-btn-text {
     font-size: 22px;
     line-height: 30px;
   }
-  .qr-hint {
+  .accordion-header {
+    padding: 10px 12px;
+  }
+  .item-name {
+    font-size: 24px;
+    line-height: 34px;
+  }
+  .item-arrow {
+    font-size: 16px;
+    line-height: 34px;
+  }
+  .accordion-body {
+    padding: 0 6px 10px 6px;
+  }
+  .qr-wrapper {
+    padding: 6px;
+    margin-bottom: 8px;
+  }
+  .content-text {
     font-size: 20px;
     line-height: 28px;
-    margin-top: 8px;
+  }
+  .action-btn {
+    height: 40px;
+  }
+  .action-btn-text {
+    font-size: 20px;
+    line-height: 28px;
   }
   .empty-text {
     font-size: 22px;
     line-height: 30px;
-  }
-  .presets-label {
-    font-size: 20px;
-    line-height: 28px;
-  }
-  .preset-row {
-    margin-bottom: 8px;
-  }
-  .preset-btn {
-    height: 44px;
-    font-size: 22px;
-    line-height: 36px;
-    margin-right: 4px;
-    margin-left: 4px;
-  }
-  .pin-link {
-    font-size: 20px;
-    line-height: 28px;
   }
 }
 
 @media (shape: rect) {
-  .page {
-    padding: 44px 6px 6px 6px;
+  .page-root {
+    padding: 12px;
   }
   .header {
-    height: 36px;
-    margin-bottom: 8px;
+    height: 48px;
+    margin-bottom: 14px;
   }
   .back-btn {
-    width: 36px;
-    height: 32px;
-    font-size: 24px;
-  }
-  .title {
+    width: 48px;
+    height: 40px;
     font-size: 28px;
-    margin-right: 44px;
+    line-height: 40px;
   }
-  .input-section {
-    padding: 12px;
-    margin-bottom: 8px;
+  .title-text {
+    font-size: 30px;
+    line-height: 40px;
   }
-  .input-text {
+  .spacer {
+    width: 48px;
+  }
+  .add-btn {
+    height: 50px;
+    margin-bottom: 10px;
+  }
+  .add-btn-text {
+    font-size: 26px;
+    line-height: 34px;
+  }
+  .accordion-header {
+    padding: 14px 16px;
+  }
+  .item-name {
     font-size: 28px;
+    line-height: 40px;
   }
-  .input-hint {
-    font-size: 24px;
-  }
-  .qr-hint {
+  .item-arrow {
     font-size: 20px;
+    line-height: 40px;
+  }
+  .accordion-body {
+    padding: 0 8px 14px 8px;
+  }
+  .qr-wrapper {
+    padding: 8px;
+    margin-bottom: 10px;
+  }
+  .content-text {
+    font-size: 22px;
+    line-height: 30px;
+  }
+  .action-btn {
+    height: 44px;
+  }
+  .action-btn-text {
+    font-size: 22px;
+    line-height: 30px;
   }
   .empty-text {
     font-size: 24px;
-  }
-  .preset-btn {
-    height: 36px;
-    font-size: 24px;
-  }
-  .pin-link {
-    font-size: 20px;
+    line-height: 34px;
   }
 }
 
 @media (shape: circle) {
-  .page {
-    padding: 44px 36px 44px 36px;
+  .page-root {
+    padding: 8px;
   }
   .header {
-    padding: 0 20px;
-    justify-content: center;
+    height: 44px;
+    margin-bottom: 10px;
   }
   .back-btn {
-    width: 44px;
-    font-size: 28px;
+    width: 40px;
+    height: 36px;
+    font-size: 22px;
+    line-height: 36px;
   }
-}
-
-.keyboard-area {
-  flex-direction: column;
-  margin-top: 10px;
-}
-
-.keyboard-close-row {
-  flex-direction: row;
-  justify-content: flex-end;
-  margin-bottom: 4px;
-}
-
-.keyboard-done-btn {
-  width: 56px;
-  height: 34px;
-  border-radius: 8px;
-  font-size: 24px;
-  font-weight: bold;
-  text-align: center;
+  .title-text {
+    font-size: 26px;
+    line-height: 34px;
+  }
+  .add-btn {
+    height: 44px;
+    margin-bottom: 8px;
+  }
+  .add-btn-text {
+    font-size: 22px;
+    line-height: 30px;
+  }
+  .accordion-header {
+    padding: 10px 12px;
+  }
+  .item-name {
+    font-size: 24px;
+    line-height: 34px;
+  }
+  .item-arrow {
+    font-size: 16px;
+    line-height: 34px;
+  }
+  .accordion-body {
+    padding: 0 6px 10px 6px;
+  }
+  .qr-wrapper {
+    padding: 6px;
+    margin-bottom: 8px;
+  }
+  .content-text {
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .action-btn {
+    height: 40px;
+  }
+  .action-btn-text {
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .empty-text {
+    font-size: 22px;
+    line-height: 30px;
+  }
 }
 </style>
