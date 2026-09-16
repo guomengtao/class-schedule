@@ -1,50 +1,52 @@
 <template>
   <div class="page-root" style="background-color: {{ theme.bg }}">
+
     <div class="header">
-      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
+      <text class="back-btn" onclick="goBack"
+            style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
       <text class="title" style="color: {{ theme.text }}">打赏支持</text>
-      <text class="version-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">V2</text>
+      <div class="header-spacer"></div>
     </div>
 
     <div class="tab-bar">
-      <div class="tab-item {{ currentTab === 0 ? 'tab-active' : '' }}" onclick="switchTab(0)" style="background-color: {{ currentTab === 0 ? '#07C160' : theme.card }}">
-        <text class="tab-text" style="color: {{ currentTab === 0 ? '#ffffff' : theme.textSecondary }}">微信</text>
+      <div class="tab-item" onclick="switchTab(0)"
+           style="background-color: {{ currentTab === 0 ? '#07C160' : theme.card }}">
+        <text class="tab-text"
+              style="color: {{ currentTab === 0 ? '#ffffff' : theme.textSecondary }}">微信</text>
       </div>
-      <div class="tab-item {{ currentTab === 1 ? 'tab-active' : '' }}" onclick="switchTab(1)" style="background-color: {{ currentTab === 1 ? '#1677FF' : theme.card }}">
-        <text class="tab-text" style="color: {{ currentTab === 1 ? '#ffffff' : theme.textSecondary }}">支付宝</text>
+      <div class="tab-item" onclick="switchTab(1)"
+           style="background-color: {{ currentTab === 1 ? '#1677FF' : theme.card }}">
+        <text class="tab-text"
+              style="color: {{ currentTab === 1 ? '#ffffff' : theme.textSecondary }}">支付宝</text>
       </div>
-      <div class="tab-item {{ currentTab === 2 ? 'tab-active' : '' }}" onclick="switchTab(2)" style="background-color: {{ currentTab === 2 ? '#FF6B35' : theme.card }}">
-        <text class="tab-text" style="color: {{ currentTab === 2 ? '#ffffff' : theme.textSecondary }}">爱发电</text>
+      <div class="tab-item" onclick="switchTab(2)"
+           style="background-color: {{ currentTab === 2 ? '#FF6B35' : theme.card }}">
+        <text class="tab-text"
+              style="color: {{ currentTab === 2 ? '#ffffff' : theme.textSecondary }}">爱发电</text>
       </div>
     </div>
 
     <div class="content-area">
       <div class="qr-card" style="background-color: {{ theme.card }}">
-        <div class="platform-header">
-          <text class="platform-icon" style="color: {{ platformColor }}">{{ platformIcon }}</text>
-          <text class="platform-name" style="color: {{ platformColor }}">{{ platformName }}</text>
-        </div>
-
-        <text class="platform-desc" style="color: {{ theme.textSecondary }}">{{ platformDesc }}</text>
-
         <div class="qr-wrapper">
-          <qrcode value="{{ qrText }}" style="color: #000000; background-color: #ffffff; width: {{ qrSize }}px; height: {{ qrSize }}px;"></qrcode>
+          <qrcode value="{{ qrText }}"
+                  style="width: {{ qrSize }}px; height: {{ qrSize }}px; color: #000000; background-color: #ffffff;"></qrcode>
         </div>
-
-        <text class="scan-hint" style="color: {{ theme.textMuted }}">请使用 {{ platformName }} 扫码</text>
+        <text class="scan-hint" style="color: {{ theme.textSecondary }}">请使用 {{ platformName }} 扫码</text>
       </div>
     </div>
 
     <div class="thanks-section">
       <text class="thanks-icon" style="color: {{ theme.accent }}">♥</text>
       <text class="thanks-text" style="color: {{ theme.textSecondary }}">感谢您的支持</text>
-      <text class="thanks-sub" style="color: {{ theme.textMuted }}">每一份支持都是我前进的动力</text>
     </div>
+
   </div>
 </template>
 
 <script>
 import router from "@system.router"
+import device from "@system.device"
 const store = require("../../data/store.js")
 
 var WECHAT_URL = "wxp://f2f0i7FYfQ5xBhxQtXDwsQpkyGZLB7UsjrRjsrXn02Qx8NQHjn8WlZEnozT2BURX_JRy"
@@ -52,9 +54,9 @@ var ALIPAY_URL = "https://qr.alipay.com/fkx11582syvbdeymczggr3c"
 var AFDIAN_URL = "https://ifdian.net/a/peipeijin/plan"
 
 var PLATFORMS = [
-  { name: "微信", desc: "微信扫一扫，向我付款", color: "#07C160", icon: "💬" },
-  { name: "支付宝", desc: "支付宝扫一扫，向我转账", color: "#1677FF", icon: "🔵" },
-  { name: "爱发电", desc: "浏览器扫码访问我的主页", color: "#FF6B35", icon: "⚡" }
+  { name: "微信",   color: "#07C160" },
+  { name: "支付宝", color: "#1677FF" },
+  { name: "爱发电", color: "#FF6B35" }
 ]
 
 var QR_TEXTS = [WECHAT_URL, ALIPAY_URL, AFDIAN_URL]
@@ -66,44 +68,49 @@ export default {
       card: "#16213e",
       accent: "#7ec8e3",
       text: "#ffffff",
-      textSecondary: "#888899",
-      textMuted: "#555566"
+      textSecondary: "#9a9ab0"
     },
     currentTab: 0,
     qrText: WECHAT_URL,
-    qrSize: 150,
-    platformName: "微信",
-    platformDesc: "微信扫一扫，向我付款",
-    platformColor: "#07C160",
-    platformIcon: "💬"
+    qrSize: 144,
+    platformName: "微信"
   },
 
   onInit() {
     var self = this
-    store.getTheme(function(t) {
+    store.getTheme(function (t) {
       self.theme = t
     })
-    self.setQrSize()
+    self.calcQrSize()
   },
 
   onShow() {
     var self = this
-    store.getTheme(function(t) {
+    store.getTheme(function (t) {
       self.theme = t
     })
   },
 
-  setQrSize() {
-    this.qrSize = 150
+  calcQrSize() {
+    var self = this
+    device.getInfo({
+      success: function (info) {
+        var w = info.screenWidth || 192
+        var size = Math.floor(w - 8 * 2 - 8 * 2 - 6 * 2 - 4)
+        if (size > 200) size = 200
+        if (size < 80) size = 80
+        self.qrSize = size
+      },
+      fail: function () {
+        self.qrSize = 144
+      }
+    })
   },
 
   switchTab(index) {
     this.currentTab = index
     this.qrText = QR_TEXTS[index]
     this.platformName = PLATFORMS[index].name
-    this.platformDesc = PLATFORMS[index].desc
-    this.platformColor = PLATFORMS[index].color
-    this.platformIcon = PLATFORMS[index].icon
   },
 
   goBack() {
@@ -117,68 +124,64 @@ export default {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  padding: 30px 16px 30px 16px;
+  padding: 44px 8px 24px 8px;
 }
 
 .header {
   flex-direction: row;
   align-items: center;
-  height: 48px;
-  margin-bottom: 10px;
+  height: 40px;
+  padding: 0 6px;
   flex-shrink: 0;
 }
 
 .back-btn {
-  width: 48px;
+  width: 40px;
   height: 40px;
   border-radius: 20px;
-  font-size: 24px;
-  text-align: center;
+  font-size: 22px;
   line-height: 40px;
+  text-align: center;
   flex-shrink: 0;
 }
 
 .title {
-  font-size: 28px;
-  font-weight: bold;
   flex: 1;
+  font-size: 26px;
+  font-weight: bold;
+  line-height: 40px;
   text-align: center;
-  line-height: 44px;
   lines: 1;
   margin: 0 4px;
 }
 
-.version-tag {
+.header-spacer {
   width: 40px;
-  height: 28px;
-  border-radius: 14px;
-  font-size: 18px;
-  font-weight: bold;
-  line-height: 28px;
-  text-align: center;
+  height: 40px;
   flex-shrink: 0;
 }
 
 .tab-bar {
   flex-direction: row;
-  margin-bottom: 12px;
-  border-radius: 12px;
+  height: 40px;
+  margin-top: 8px;
   flex-shrink: 0;
 }
 
 .tab-item {
   flex: 1;
-  height: 44px;
+  height: 40px;
+  border-radius: 10px;
+  margin: 0 2px;
   justify-content: center;
   align-items: center;
-  border-radius: 12px;
-  margin: 0 3px;
 }
 
 .tab-text {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: bold;
   line-height: 32px;
+  text-align: center;
   lines: 1;
 }
 
@@ -192,157 +195,100 @@ export default {
   flex-direction: column;
   align-items: center;
   border-radius: 16px;
-  padding: 20px 16px;
-}
-
-.platform-header {
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.platform-icon {
-  font-size: 32px;
-  line-height: 40px;
-  margin-right: 8px;
-}
-
-.platform-name {
-  font-size: 32px;
-  font-weight: bold;
-  line-height: 40px;
-  lines: 1;
-}
-
-.platform-desc {
-  font-size: 20px;
-  line-height: 28px;
-  lines: 1;
-  margin-bottom: 16px;
-  text-align: center;
+  padding: 14px 8px;
 }
 
 .qr-wrapper {
-  padding: 10px;
+  padding: 6px;
   background-color: #ffffff;
-  border-radius: 14px;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 14px;
+  border-radius: 12px;
 }
 
 .scan-hint {
-  font-size: 22px;
-  line-height: 30px;
+  font-size: 20px;
+  line-height: 28px;
+  text-align: center;
   lines: 1;
+  margin-top: 12px;
 }
 
 .thanks-section {
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  padding: 14px 0 8px 0;
+  justify-content: center;
+  height: 28px;
   flex-shrink: 0;
 }
 
 .thanks-icon {
-  font-size: 36px;
-  line-height: 44px;
-  margin-bottom: 6px;
+  font-size: 20px;
+  line-height: 28px;
+  margin-right: 6px;
 }
 
 .thanks-text {
-  font-size: 24px;
-  font-weight: bold;
-  line-height: 32px;
-  lines: 1;
-  margin-bottom: 4px;
-}
-
-.thanks-sub {
   font-size: 20px;
   line-height: 28px;
   lines: 1;
-  text-align: center;
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page-root {
-    padding: 30px 16px 30px 16px;
+    padding: 44px 8px 24px 8px;
   }
   .header {
-    height: 48px;
-    margin-bottom: 10px;
-    flex-direction: row;
-    align-items: center;
+    height: 40px;
+    padding: 0 6px;
   }
   .back-btn {
-    width: 48px;
+    width: 40px;
     height: 40px;
     border-radius: 20px;
-    font-size: 24px;
+    font-size: 22px;
     line-height: 40px;
   }
   .title {
-    font-size: 28px;
-    line-height: 44px;
-    text-align: center;
-    margin: 0 4px;
+    font-size: 26px;
+    line-height: 40px;
   }
-  .version-tag {
+  .header-spacer {
     width: 40px;
-    height: 28px;
-    border-radius: 14px;
-    font-size: 18px;
-    line-height: 28px;
+    height: 40px;
   }
   .tab-bar {
-    border-radius: 12px;
-    margin-bottom: 12px;
+    height: 40px;
+    margin-top: 8px;
   }
   .tab-item {
-    height: 44px;
-    border-radius: 12px;
-    margin: 0 3px;
+    height: 40px;
+    border-radius: 10px;
+    margin: 0 2px;
   }
   .tab-text {
-    font-size: 24px;
+    font-size: 22px;
     line-height: 32px;
   }
   .qr-card {
-    padding: 20px 16px;
+    padding: 14px 8px;
     border-radius: 16px;
   }
-  .platform-icon {
-    font-size: 32px;
-    line-height: 40px;
-  }
-  .platform-name {
-    font-size: 32px;
-    line-height: 40px;
-  }
-  .platform-desc {
-    font-size: 20px;
-    line-height: 28px;
-    margin-bottom: 16px;
-  }
   .qr-wrapper {
-    padding: 10px;
-    border-radius: 14px;
-    margin-bottom: 14px;
+    padding: 6px;
+    border-radius: 12px;
   }
   .scan-hint {
-    font-size: 22px;
-    line-height: 30px;
+    font-size: 20px;
+    line-height: 28px;
+    margin-top: 12px;
+  }
+  .thanks-section {
+    height: 28px;
   }
   .thanks-icon {
-    font-size: 36px;
-    line-height: 44px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .thanks-text {
-    font-size: 24px;
-    line-height: 32px;
-  }
-  .thanks-sub {
     font-size: 20px;
     line-height: 28px;
   }
@@ -350,120 +296,126 @@ export default {
 
 @media (shape: rect) {
   .page-root {
-    padding: 44px 12px 16px 12px;
+    padding: 40px 12px 20px 12px;
   }
   .header {
     height: 44px;
-    margin-bottom: 12px;
+    padding: 0;
   }
   .back-btn {
     width: 44px;
-    height: 36px;
-    font-size: 28px;
-    line-height: 36px;
+    height: 44px;
+    border-radius: 22px;
+    font-size: 24px;
+    line-height: 44px;
   }
   .title {
-    font-size: 30px;
-    line-height: 40px;
+    font-size: 28px;
+    line-height: 44px;
   }
-  .version-tag {
+  .header-spacer {
     width: 44px;
-    height: 30px;
-    font-size: 20px;
-    line-height: 30px;
+    height: 44px;
+  }
+  .tab-bar {
+    height: 46px;
+    margin-top: 10px;
   }
   .tab-item {
-    height: 48px;
+    height: 46px;
+    border-radius: 12px;
+    margin: 0 4px;
   }
   .tab-text {
-    font-size: 28px;
-    line-height: 38px;
-  }
-  .qr-card {
-    padding: 24px 20px;
-  }
-  .platform-name {
-    font-size: 36px;
-    line-height: 48px;
-  }
-  .platform-desc {
-    font-size: 22px;
-    line-height: 30px;
-  }
-  .scan-hint {
     font-size: 24px;
     line-height: 34px;
   }
-  .thanks-icon {
-    font-size: 40px;
-    line-height: 52px;
+  .qr-card {
+    padding: 18px 12px;
+    border-radius: 18px;
   }
-  .thanks-text {
-    font-size: 28px;
-    line-height: 38px;
+  .qr-wrapper {
+    padding: 8px;
+    border-radius: 14px;
   }
-  .thanks-sub {
+  .scan-hint {
     font-size: 22px;
     line-height: 30px;
+    margin-top: 14px;
+  }
+  .thanks-section {
+    height: 32px;
+  }
+  .thanks-icon {
+    font-size: 22px;
+    line-height: 32px;
+  }
+  .thanks-text {
+    font-size: 22px;
+    line-height: 32px;
   }
 }
 
 @media (shape: circle) {
   .page-root {
-    padding: 44px 36px 44px 36px;
+    padding: 50px 28px 36px 28px;
   }
   .header {
-    height: 44px;
-    margin-bottom: 12px;
+    height: 38px;
+    padding: 0;
   }
   .back-btn {
-    width: 44px;
+    width: 38px;
     height: 38px;
+    border-radius: 19px;
     font-size: 22px;
     line-height: 38px;
   }
   .title {
-    font-size: 28px;
+    font-size: 26px;
     line-height: 38px;
+    margin: 0 2px;
   }
-  .version-tag {
-    width: 40px;
-    height: 28px;
-    font-size: 18px;
+  .header-spacer {
+    width: 38px;
+    height: 38px;
+  }
+  .tab-bar {
+    height: 42px;
+    margin-top: 8px;
   }
   .tab-item {
-    height: 46px;
+    height: 42px;
+    border-radius: 11px;
+    margin: 0 2px;
   }
   .tab-text {
-    font-size: 26px;
-    line-height: 36px;
+    font-size: 22px;
+    line-height: 32px;
   }
   .qr-card {
-    padding: 24px 20px;
+    padding: 12px 6px;
+    border-radius: 14px;
   }
-  .platform-name {
-    font-size: 36px;
-    line-height: 48px;
-  }
-  .platform-desc {
-    font-size: 22px;
-    line-height: 30px;
+  .qr-wrapper {
+    padding: 5px;
+    border-radius: 10px;
   }
   .scan-hint {
-    font-size: 24px;
-    line-height: 34px;
+    font-size: 20px;
+    line-height: 28px;
+    margin-top: 10px;
+  }
+  .thanks-section {
+    height: 28px;
   }
   .thanks-icon {
-    font-size: 42px;
-    line-height: 56px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .thanks-text {
-    font-size: 28px;
-    line-height: 38px;
-  }
-  .thanks-sub {
-    font-size: 22px;
-    line-height: 30px;
+    font-size: 20px;
+    line-height: 28px;
   }
 }
 </style>
