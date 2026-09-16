@@ -74,8 +74,19 @@ export default {
     device.getInfo({
       success: function (info) {
         var w = info.screenWidth || 192
-        var size = Math.floor(w - 8 * 2 - 12 * 2 - 6 * 2 - 4)
-        if (size > 140) size = 140
+        var size
+        var maxSize
+        if (w > 300) {
+          size = Math.floor(w - 12 * 2 - 16 * 2 - 8 * 2 - 4)
+          maxSize = 280
+        } else if (w > 200) {
+          size = Math.floor(w - 10 * 2 - 14 * 2 - 7 * 2 - 4)
+          maxSize = 180
+        } else {
+          size = Math.floor(w - 8 * 2 - 12 * 2 - 6 * 2 - 4)
+          maxSize = 140
+        }
+        if (size > maxSize) size = maxSize
         if (size < 80) size = 80
         self.qrSize = size
       },
