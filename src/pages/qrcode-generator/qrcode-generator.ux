@@ -11,7 +11,7 @@
     </div>
 
     <div class="list-area">
-      <div class="{{ $item.expanded ? 'accordion-item-expanded' : 'accordion-item' }}" for="{{ items }}" style="background-color: {{ theme.card }}">
+      <div class="accordion-item" for="{{ items }}" style="background-color: {{ theme.card }}">
         <div class="accordion-header" onclick="toggleItem($idx)">
           <text class="item-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
           <text class="item-arrow" style="color: {{ theme.textMuted }}">{{ $item.expanded ? '▲' : '▼' }}</text>
@@ -43,7 +43,6 @@
 <script>
 import router from "@system.router"
 const store = require("../../data/store.js")
-var pinHelper = require("../../data/pin-helper.js")
 
 var STORAGE_KEY = "qrcode_items_list"
 var loadingStorage = false
@@ -134,19 +133,19 @@ export default {
     var self = this
     var device = require("@system.device")
     device.getInfo({
-      success: function(info) {
+      success: function (info) {
         var w = info.screenWidth || 192
         var pagePad = w > 300 ? 24 : 16
-        var bodyPad = w > 300 ? 24 : 12
+        var bodyPad = 0
         var wrapperPad = 12
         var size = w - pagePad - bodyPad - wrapperPad
         if (size < 100) size = 100
         if (size > 320) size = 320
         self.qrSize = size
       },
-      fail: function() {
+      fail: function () {
         self.qrSize = 140
-      }
+      },
     })
   },
 
@@ -414,12 +413,6 @@ export default {
   margin-bottom: 6px;
 }
 
-.accordion-item-expanded {
-  flex-direction: column;
-  border-radius: 12px;
-  margin-bottom: 6px;
-}
-
 .accordion-header {
   flex-direction: row;
   align-items: center;
@@ -445,7 +438,7 @@ export default {
 .accordion-body {
   flex-direction: column;
   align-items: center;
-  padding: 0 6px 10px 6px;
+  padding: 10px 0;
 }
 
 .qr-wrapper {
