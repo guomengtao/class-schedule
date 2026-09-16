@@ -24,7 +24,7 @@
           <text class="arrow" style="color: {{ theme.textMuted }}">{{ showTheme ? 'v' : '›' }}</text>
         </div>
       </div>
-      <div if="{{ showTheme }}" class="theme-grid">
+      <div if="{{ showTheme }}" style="flex-direction: column">
         <div for="{{ themes }}" class="theme-item {{ currentThemeKey === $item.key ? 'active' : '' }}" onclick="selectTheme($item.key)" style="border-color: {{ currentThemeKey === $item.key ? theme.accent : 'transparent' }}">
           <div class="theme-dot" style="background-color: {{ $item.accent }}"></div>
           <text class="theme-name" style="color: {{ currentThemeKey === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.name }}</text>
@@ -576,12 +576,6 @@ export default {
   margin: 6px 0;
 }
 
-.theme-grid {
-  flex-direction: row;
-  flex-wrap: wrap;
-  margin-top: 14px;
-}
-
 .theme-item {
   flex-direction: column;
   align-items: center;
@@ -734,35 +728,6 @@ export default {
   line-height: 36px;
 }
 
-.default-homepage-body {
-  padding: 8px 0;
-}
-
-.section-label {
-  font-size: 28px;
-  margin: 12px 0 8px 0;
-  line-height: 38px;
-}
-
-.page-options {
-  flex-direction: row;
-  flex-wrap: wrap;
-}
-
-.page-option {
-  height: 38px;
-  border-radius: 8px;
-  padding: 0 14px;
-  margin: 0 8px 8px 0;
-  align-items: center;
-  justify-content: center;
-}
-
-.page-option-text {
-  font-size: 28px;
-  line-height: 38px;
-}
-
 @media (shape: circle) {
   .settings-page {
     padding: 44px 36px 44px 36px;
@@ -897,35 +862,15 @@ export default {
     line-height: 38px;
   }
 
-  .default-homepage-body {
-    padding: 12px 0;
-  }
+  
 
-  .section-label {
-    font-size: 34px;
-    margin: 16px 0 10px 0;
-    line-height: 44px;
-  }
+  
 
-  .page-options {
-    flex-direction: column;
-    flex-wrap: nowrap;
-  }
+  
 
-  .page-option {
-    width: 100%;
-    height: 50px;
-    border-radius: 12px;
-    margin: 0 0 8px 0;
-    padding: 0 16px;
-    align-items: center;
-    justify-content: center;
-  }
+  
 
-  .page-option-text {
-    font-size: 32px;
-    line-height: 50px;
-  }
+  
 
   .toggle-btn {
     width: 80px;
