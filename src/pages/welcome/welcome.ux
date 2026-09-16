@@ -5,13 +5,8 @@
       <text class="app-subtitle" style="color: {{ theme.textSecondary }}">你的随身课程助手</text>
     </div>
 
-    <div class="countdown-area" show="{{ showCountdown }}">
-      <text class="countdown-text" style="color: {{ theme.accent }}">{{ countdownText }}</text>
-      <text class="countdown-hint" style="color: {{ theme.textSecondary }}">即将进入 {{ targetPageLabel }}</text>
-    </div>
-
     <div class="action-area">
-      <input class="enter-btn" type="button" value="进入{{ targetPageLabel }}" onclick="enterSchedule" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="enter-btn" type="button" value="进入首页" onclick="enterSchedule" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       <input class="settings-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
     </div>
   </div>
@@ -31,13 +26,7 @@ export default {
       textSecondary: '#888899',
       textMuted: '#555566'
     },
-    showCountdown: false,
-    countdownText: "",
-    targetPageLabel: "标准页",
-    targetPage: "index",
-    autoSeconds: 3,
-    countdownRemaining: 0,
-    countdownTimer: null
+    targetPage: "index"
   },
 
   onInit() {
@@ -45,127 +34,27 @@ export default {
     store.getTheme(function(t) {
       self.theme = t
     })
-    this.loadDefaultHomepage()
+    store.getDefaultHomepage(function(settings) {
+      self.targetPage = settings.targetPage || "index"
+    })
   },
 
   onShow() {
     var self = this
-    self._hasEntered = false
     store.getTheme(function(t) {
       self.theme = t
     }, true)
-    this.loadDefaultHomepage(true)
-  },
-
-  onDestroy() {
-    this.stopCountdown()
-  },
-
-  loadDefaultHomepage(forceRefresh) {
-    var self = this
-    store.getDefaultHomepage(function(settings) {
-      self.targetPage = settings.targetPage || "index"
-      self.autoSeconds = settings.autoSeconds
-      if (self.autoSeconds === undefined || self.autoSeconds === null) self.autoSeconds = 3
-      self.targetPageLabel = self.targetPage === "week-view" ? "总课表" : "标准页"
-      console.log("[INDEX] loadDefaultHomepage: autoSeconds=" + self.autoSeconds + " targetPage=" + self.targetPage)
-      self.startCountdownIfNeeded()
-    }, forceRefresh)
-  },
-
-  startCountdownIfNeeded() {
-    this.stopCountdown()
-    var self = this
-    console.log("[INDEX] startCountdownIfNeeded: autoSeconds=" + self.autoSeconds + " showCountdown=" + self.showCountdown)
-    if (self.autoSeconds === -1) {
-      self.showCountdown = false
-      self.countdownText = ""
-      return
-    }
-    self.countdownRemaining = self.autoSeconds
-    if (self.countdownRemaining === 0) {
-      self.showCountdown = false
-      self.doEnter()
-      return
-    }
-    self.showCountdown = true
-    self.updateCountdownText()
-    console.log("[INDEX] starting countdown: remaining=" + self.countdownRemaining + " showCountdown=" + self.showCountdown)
-    self.countdownTimer = setInterval(function() {
-      self.countdownRemaining = self.countdownRemaining - 1
-      if (self.countdownRemaining <= 0) {
-        self.stopCountdown()
-        self.showCountdown = false
-        self.doEnter()
-      } else {
-        self.updateCountdownText()
-      }
-    }, 1000)
-  },
-
-  updateCountdownText() {
-    this.countdownText = String(this.countdownRemaining)
-  },
-
-  stopCountdown() {
-    if (this.countdownTimer) {
-      clearInterval(this.countdownTimer)
-      this.countdownTimer = null
-    }
-  },
-
-  doEnter() {
-    var that = this
-    this.stopCountdown()
-    var router = require("@system.router")
-    var uri = "/pages/" + this.targetPage
-    console.log("[welcome] doEnter: " + uri)
-    router.replace({
-      uri: uri,
-      success: function() {
-        console.log("[welcome] router.replace success")
-        that._hasEntered = true
-      },
-      fail: function(err) {
-        console.error("[welcome] router.replace failed: " + (err ? JSON.stringify(err) : "unknown"))
-        that._hasEntered = false
-        try {
-          var prompt = require("@system.prompt")
-          prompt.showToast({ message: "无法打开首页" })
-        } catch (e) {
-          console.error("[welcome] showToast failed: " + e.message)
-        }
-      }
-    })
   },
 
   enterSchedule() {
-    this.stopCountdown()
-    var that = this
     var router = require("@system.router")
     var uri = "/pages/" + this.targetPage
-    console.log("[welcome] enterSchedule: " + uri)
     router.replace({
-      uri: uri,
-      success: function() {
-        console.log("[welcome] router.replace success")
-        that._hasEntered = true
-      },
-      fail: function(err) {
-        console.error("[welcome] router.replace failed: " + (err ? JSON.stringify(err) : "unknown"))
-        that._hasEntered = false
-        try {
-          var prompt = require("@system.prompt")
-          prompt.showToast({ message: "无法打开首页" })
-        } catch (e) {
-          console.error("[welcome] showToast failed: " + e.message)
-        }
-      }
+      uri: uri
     })
   },
 
   openSettings() {
-    this.stopCountdown()
     var router = require("@system.router")
     router.push({ uri: "/pages/settings" })
   }
@@ -198,25 +87,6 @@ export default {
 .app-subtitle {
   font-size: 16px;
   line-height: 22px;
-}
-
-.countdown-area {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.countdown-text {
-  font-size: 56px;
-  font-weight: bold;
-  line-height: 64px;
-}
-
-.countdown-hint {
-  font-size: 14px;
-  margin-top: 4px;
-  line-height: 20px;
 }
 
 .action-area {
@@ -257,12 +127,6 @@ export default {
   }
   .app-subtitle {
     font-size: 14px;
-  }
-  .countdown-text {
-    font-size: 44px;
-  }
-  .countdown-hint {
-    font-size: 12px;
   }
   .enter-btn {
     width: 180px;
