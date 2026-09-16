@@ -162,6 +162,14 @@
             <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
           </div>
         </div>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="openVibrationLabV2">
+          <text class="row-label" style="color: {{ theme.text }}">震动自定义 V2</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">胶囊版</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -476,6 +484,10 @@ export default {
 
   openVibrationLab() {
     router.push({ uri: "/pages/vibration-lab" })
+  },
+
+  openVibrationLabV2() {
+    router.push({ uri: "/pages/vibration-lab-v2" })
   },
 
   openTestArea() {
