@@ -7,7 +7,7 @@
       <text class="title" style="color: {{ theme.text }}">打赏支持</text>
     </div>
 
-    <scroll class="scroll-area">
+    <scroll class="scroll-area" style="height: {{ scrollHeight }}px;">
       <div class="qr-card" for="{{ platforms }}" style="background-color: {{ theme.card }}">
         <text class="platform-name" style="color: {{ $item.color }}">{{ $item.name }}</text>
         <div class="qr-wrapper">
@@ -51,7 +51,8 @@ export default {
       textSecondary: "#9a9ab0"
     },
     platforms: PLATFORMS,
-    qrSize: 120
+    qrSize: 120,
+    scrollHeight: 300
   },
 
   onInit() {
@@ -59,7 +60,7 @@ export default {
     store.getTheme(function (t) {
       self.theme = t
     })
-    self.calcQrSize()
+    self.calcSizes()
   },
 
   onShow() {
@@ -69,18 +70,23 @@ export default {
     })
   },
 
-  calcQrSize() {
+  calcSizes() {
     var self = this
     device.getInfo({
       success: function (info) {
         var w = info.screenWidth || 192
-        var size = Math.floor(w - 8 * 2 - 12 * 2 - 6 * 2 - 4)
-        if (size > 140) size = 140
-        if (size < 80) size = 80
-        self.qrSize = size
+        var h = info.screenHeight || 490
+        var qrSize = Math.floor(w - 8 * 2 - 12 * 2 - 6 * 2 - 4)
+        if (qrSize > 140) qrSize = 140
+        if (qrSize < 80) qrSize = 80
+        self.qrSize = qrSize
+        var scrollH = h - 44 - 40 - 8 - 34 - 20
+        if (scrollH < 200) scrollH = 200
+        self.scrollHeight = scrollH
       },
       fail: function () {
         self.qrSize = 120
+        self.scrollHeight = 300
       }
     })
   },
