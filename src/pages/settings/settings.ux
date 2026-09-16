@@ -24,10 +24,18 @@
           <text class="arrow" style="color: {{ theme.textMuted }}">{{ showTheme ? 'v' : '›' }}</text>
         </div>
       </div>
-      <div if="{{ showTheme }}" style="flex-direction: row">
-        <div for="{{ themes }}" class="theme-item {{ currentThemeKey === $item.key ? 'active' : '' }}" onclick="selectTheme($item.key)" style="border-color: {{ currentThemeKey === $item.key ? theme.accent : 'transparent' }}">
-          <div class="theme-dot" style="background-color: {{ $item.accent }}"></div>
-          <text class="theme-name" style="color: {{ currentThemeKey === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.name }}</text>
+      <div if="{{ showTheme }}" style="flex-direction: column">
+        <div style="flex-direction: row; justify-content: center">
+          <div for="{{ themesRow1 }}" class="theme-item {{ currentThemeKey === $item.key ? 'active' : '' }}" onclick="selectTheme($item.key)" style="border-color: {{ currentThemeKey === $item.key ? theme.accent : 'transparent' }}">
+            <div class="theme-dot" style="background-color: {{ $item.accent }}"></div>
+            <text class="theme-name" style="color: {{ currentThemeKey === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.name }}</text>
+          </div>
+        </div>
+        <div style="flex-direction: row; justify-content: center">
+          <div for="{{ themesRow2 }}" class="theme-item {{ currentThemeKey === $item.key ? 'active' : '' }}" onclick="selectTheme($item.key)" style="border-color: {{ currentThemeKey === $item.key ? theme.accent : 'transparent' }}">
+            <div class="theme-dot" style="background-color: {{ $item.accent }}"></div>
+            <text class="theme-name" style="color: {{ currentThemeKey === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.name }}</text>
+          </div>
         </div>
       </div>
     </div>
@@ -230,6 +238,8 @@ export default {
     },
     currentThemeKey: "blue",
     themes: [],
+    themesRow1: [],
+    themesRow2: [],
     versionText: "",
     showPremiumDialog: false,
     showFontSize: false,
@@ -242,6 +252,9 @@ export default {
   onInit() {
     var self = this
     this.themes = store.getAvailableThemes ? store.getAvailableThemes() : []
+    var mid = Math.ceil(this.themes.length / 2)
+    this.themesRow1 = this.themes.slice(0, mid)
+    this.themesRow2 = this.themes.slice(mid)
 
     store.getTheme(function(t, name) {
       self.theme = t
@@ -579,7 +592,7 @@ export default {
 .theme-item {
   flex-direction: column;
   align-items: center;
-  width: 20%;
+  flex: 1;
   padding: 12px 0;
   border-radius: 8px;
   border: 2px solid transparent;
