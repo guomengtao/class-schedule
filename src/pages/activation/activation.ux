@@ -878,7 +878,7 @@ export default {
 
 .cell {
   flex: 1;
-  height: 50px;
+  height: 52px;
   border-radius: 8px;
   border-width: 1px;
   border-style: solid;
