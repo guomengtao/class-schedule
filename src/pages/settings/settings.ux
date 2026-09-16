@@ -24,7 +24,7 @@
           <text class="arrow" style="color: {{ theme.textMuted }}">{{ showTheme ? 'v' : '›' }}</text>
         </div>
       </div>
-      <div if="{{ showTheme }}" style="flex-direction: column">
+      <div if="{{ showTheme }}" style="flex-direction: row">
         <div for="{{ themes }}" class="theme-item {{ currentThemeKey === $item.key ? 'active' : '' }}" onclick="selectTheme($item.key)" style="border-color: {{ currentThemeKey === $item.key ? theme.accent : 'transparent' }}">
           <div class="theme-dot" style="background-color: {{ $item.accent }}"></div>
           <text class="theme-name" style="color: {{ currentThemeKey === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.name }}</text>
