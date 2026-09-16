@@ -26,12 +26,12 @@
           <div class="switch-thumb" style="left: {{ showPinnedBar ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
         </div>
       </div>
-    </div>
-
-    <div class="section" style="background-color: {{ theme.card }}">
-      <div class="item-row item-row-last" onclick="openPinnedPages">
-        <text class="item-label" style="color: {{ theme.text }}">钉首页</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">管理</text>
+      <div if="{{ showPinnedBar }}">
+        <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+        <div class="item-row item-row-last" onclick="openPinnedPages">
+          <text class="item-label" style="color: {{ theme.text }}">管理钉首页</text>
+          <text class="item-hint" style="color: {{ theme.textMuted }}">管理</text>
+        </div>
       </div>
     </div>
 
@@ -65,13 +65,15 @@
           <div class="switch-thumb" style="left: {{ showCustomContent ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
         </div>
       </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="input-row" onclick="openCustomContentEdit">
-        <text class="input-text" style="color: {{ customContent && showCustomContent ? theme.text : theme.textMuted }}">{{ customContent || '输入...' }}</text>
-        <text class="input-arrow" style="color: {{ theme.textMuted }}">›</text>
-      </div>
-      <div class="preview-row" if="{{ customContent && showCustomContent }}">
-        <text class="preview-text" style="color: {{ theme.accent }}">{{ customContent }}</text>
+      <div if="{{ showCustomContent }}">
+        <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+        <div class="input-row" onclick="openCustomContentEdit">
+          <text class="input-text" style="color: {{ customContent ? theme.text : theme.textMuted }}">{{ customContent || '输入...' }}</text>
+          <text class="input-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+        <div class="preview-row" if="{{ customContent }}">
+          <text class="preview-text" style="color: {{ theme.accent }}">{{ customContent }}</text>
+        </div>
       </div>
     </div>
 
