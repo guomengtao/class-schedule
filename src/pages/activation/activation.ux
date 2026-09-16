@@ -867,7 +867,7 @@ export default {
 .cells-grid {
   flex-direction: column;
   border-radius: 12px;
-  padding: 4px;
+  padding: 0px;
   margin-bottom: 12px;
 }
 
@@ -878,11 +878,11 @@ export default {
 
 .cell {
   flex: 1;
-  height: 52px;
+  height: 50px;
   border-radius: 8px;
   border-width: 1px;
   border-style: solid;
-  margin: 1px;
+  margin: 0px;
   justify-content: center;
   align-items: center;
 }
@@ -918,8 +918,8 @@ export default {
   border-style: solid;
   justify-content: center;
   align-items: center;
-  margin-left: 5px;
-  margin-right: 5px;
+  margin-left: 12px;
+  margin-right: 12px;
 }
 
 .keypad-text {
