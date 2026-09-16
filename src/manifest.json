@@ -108,6 +108,9 @@
       "pages/test-area-v2": {
         "component": "test-area-v2"
       },
+      "pages/donate-v2": {
+        "component": "donate-v2"
+      },
       "pages/activation": {
         "component": "activation"
       },

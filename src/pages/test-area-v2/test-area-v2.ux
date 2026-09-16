@@ -33,7 +33,8 @@ var SECTIONS = [
     items: [
       { name: "倒数日", desc: "事件倒计时管理，记录重要日期", icon: "📅", uri: "/pages/countdown-manage" },
       { name: "二维码生成", desc: "文字/链接转为二维码图片", icon: "📱", uri: "/pages/qrcode-generator" },
-      { name: "已钉页面", desc: "首页快捷入口管理", icon: "📌", uri: "/pages/pinned-pages" }
+      { name: "已钉页面", desc: "首页快捷入口管理", icon: "📌", uri: "/pages/pinned-pages" },
+      { name: "打赏 V2", desc: "胶囊屏新版打赏，支持微信/支付宝/爱发电", icon: "💝", uri: "/pages/donate-v2" }
     ]
   },
   {
