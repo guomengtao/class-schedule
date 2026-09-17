@@ -5,7 +5,7 @@
              style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">编辑课程(胶囊)</text>
       <div class="trash-btn" onclick="onDeleteCourse" style="background-color: {{ deleteConfirm ? theme.deleteText : theme.deleteBg }}">
-        <text class="trash-icon" style="color: {{ deleteConfirm ? theme.text : theme.deleteText }}">x</text>
+        <image class="trash-icon" src="../../common/icons/dark/icon_trash.png"></image>
       </div>
     </div>
 
@@ -402,9 +402,8 @@ export default {
 }
 
 .trash-icon {
-  font-size: 28px;
-  font-weight: bold;
-  text-align: center;
+  width: 24px;
+  height: 24px;
 }
 
 .step-dots {
