@@ -2,7 +2,7 @@
   <div class="page-root" style="background-color: {{ theme.bg }}">
     <div class="header">
       <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
-      <text class="title-text" style="color: {{ theme.text }}">二维码</text>
+      <text class="home-link" onclick="goHome" style="color: {{ theme.accent }}">⌂ 课程首页</text>
       <div class="spacer"></div>
     </div>
 
@@ -354,6 +354,10 @@ export default {
 
   goBack() {
     router.back()
+  },
+
+  goHome() {
+    router.push({ uri: "/pages/index" })
   }
 }
 </script>
@@ -383,7 +387,7 @@ export default {
   flex-shrink: 0;
 }
 
-.title-text {
+.home-link {
   flex: 1;
   font-size: 26px;
   font-weight: bold;
@@ -527,7 +531,7 @@ export default {
     font-size: 22px;
     line-height: 36px;
   }
-  .title-text {
+  .home-link {
     font-size: 26px;
     line-height: 34px;
   }
@@ -589,7 +593,7 @@ export default {
     font-size: 28px;
     line-height: 40px;
   }
-  .title-text {
+  .home-link {
     font-size: 30px;
     line-height: 40px;
   }
@@ -654,7 +658,7 @@ export default {
     font-size: 22px;
     line-height: 36px;
   }
-  .title-text {
+  .home-link {
     font-size: 26px;
     line-height: 34px;
   }
