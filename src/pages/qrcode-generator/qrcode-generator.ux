@@ -1,7 +1,7 @@
 <template>
   <div class="page-root" style="background-color: {{ theme.bg }}">
     <div class="home-bar" onclick="goHome" style="background-color: {{ theme.card }}">
-      <image class="home-icon" src="{{ homeIconSrc }}"></image>
+      <text class="home-date" style="color: {{ theme.accent }}">{{ todayDate }}</text>
     </div>
 
     <div class="header">
@@ -129,7 +129,8 @@ export default {
       deleteBg: "#2a1a3e",
       deleteText: "#e08080"
     },
-    homeIconSrc: "../../common/icons/dark/icon_home.png",
+    iconTheme: "dark",
+    todayDate: "",
     addingName: "",
     editingId: "",
     editingName: ""
@@ -141,6 +142,7 @@ export default {
       self.theme = t
       self.updateIconSrc(themeName)
     })
+    this.setTodayDate()
     this.calcQrSize()
   },
 
@@ -156,8 +158,14 @@ export default {
   },
 
   updateIconSrc: function(themeName) {
-    var isLight = themeName === 'light' || themeName === 'warm'
-    this.homeIconSrc = isLight ? '../../common/icons/light/icon_home.png' : '../../common/icons/dark/icon_home.png'
+    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+  },
+
+  setTodayDate: function() {
+    var d = new Date()
+    var m = d.getMonth() + 1
+    var day = d.getDate()
+    this.todayDate = (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day
   },
 
   calcQrSize() {
@@ -414,9 +422,10 @@ export default {
   flex-shrink: 0;
 }
 
-.home-icon {
-  width: 32px;
-  height: 32px;
+.home-date {
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 32px;
 }
 
 .title-text {
