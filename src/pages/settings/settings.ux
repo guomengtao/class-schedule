@@ -237,6 +237,7 @@ export default {
       progressDone: 'rgba(74,138,154,0.25)'
     },
     currentThemeKey: "blue",
+    iconTheme: "dark",
     themes: [],
     themesRow1: [],
     themesRow2: [],
@@ -259,6 +260,7 @@ export default {
     store.getTheme(function(t, name) {
       self.theme = t
       self.currentThemeKey = name || "blue"
+      self.updateIconSrc(name)
     })
 
     store.getBaseFontSize(function(size) {
@@ -272,6 +274,14 @@ export default {
 
   onShow() {
     this.loadNickname()
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.updateIconSrc(themeName)
+    })
+  },
+
+  updateIconSrc: function(themeName) {
+    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
   },
 
   updatePreviews() {
@@ -505,12 +515,12 @@ export default {
 }
 
 .back-btn {
-  width: 64px;
-  height: 38px;
+  width: 48px;
+  height: 40px;
   border-radius: 8px;
-  font-size: 20px;
-  line-height: 38px;
+  font-size: 22px;
   text-align: center;
+  line-height: 40px;
 }
 
 .header-title {
