@@ -17,16 +17,16 @@ rinuo@qq.com<template>
     <text class="empty-msg" if="{{ backupList.length === 0 }}" style="color: {{ theme.textMuted }}">暂无备份</text>
 
     <div class="backup-row" for="$item in backupList" style="background-color: {{ theme.card }}">
-      <div class="backup-row-left">
-        <text class="backup-row-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-        <text class="backup-row-meta" style="color: {{ theme.textSecondary }}">{{ $item.time }} {{ $item.courseCount }}门 {{ $item.scheduleCount }}表</text>
-      </div>
-      <div class="backup-row-actions">
-        <input class="row-restore-btn" type="button" value="恢复" onclick="restoreBackup($idx)"
-               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        <input class="row-delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}"
-               onclick="handleDeleteBackup($idx)"
-               style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : 'transparent' }}; color: {{ deleteConfirmIndex === $idx ? theme.text : theme.deleteText }}; border-color: {{ theme.deleteText }}" />
+      <text class="backup-row-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+      <div class="backup-row-footer">
+        <text class="backup-row-meta" style="color: {{ theme.textSecondary }}">{{ $item.courseCount }}门课程 · {{ $item.scheduleCount }}张课表</text>
+        <div class="backup-row-actions">
+          <input class="row-restore-btn" type="button" value="恢复" onclick="restoreBackup($idx)"
+                 style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+          <input class="row-delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}"
+                 onclick="handleDeleteBackup($idx)"
+                 style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : 'transparent' }}; color: {{ deleteConfirmIndex === $idx ? theme.text : theme.deleteText }}; border-color: {{ theme.deleteText }}" />
+        </div>
       </div>
     </div>
 
@@ -492,17 +492,10 @@ export default {
 }
 
 .backup-row {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 12px;
-  padding: 18px 16px;
-  margin-bottom: 12px;
-}
-
-.backup-row-left {
   flex-direction: column;
-  flex: 1;
+  border-radius: 12px;
+  padding: 14px 14px;
+  margin-bottom: 10px;
 }
 
 .backup-row-name {
@@ -510,18 +503,29 @@ export default {
   font-weight: bold;
   margin-bottom: 8px;
   line-height: 42px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.backup-row-footer {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .backup-row-meta {
   font-size: 28px;
   line-height: 36px;
+  lines: 1;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+  margin-right: 8px;
 }
 
 .backup-row-actions {
   flex-direction: row;
   align-items: center;
   flex-shrink: 0;
-  margin-left: 12px;
 }
 
 .row-restore-btn {
@@ -653,17 +657,32 @@ export default {
     font-size: 28px;
   }
   .backup-row {
-    padding: 16px 14px;
+    flex-direction: column;
+    padding: 14px 12px;
     margin-bottom: 10px;
   }
   .backup-row-name {
     font-size: 30px;
     line-height: 40px;
     margin-bottom: 6px;
+    lines: 1;
+    text-overflow: ellipsis;
+  }
+  .backup-row-footer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
   }
   .backup-row-meta {
     font-size: 26px;
     line-height: 34px;
+    lines: 1;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    margin-right: 6px;
+  }
+  .backup-row-actions {
+    margin-left: 0;
   }
   .info-section {
     padding: 18px 16px;
@@ -687,6 +706,10 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 30px 12px 30px 12px;
+  }
+
   .header {
     height: 48px;
     margin-bottom: 8px;
@@ -753,6 +776,65 @@ export default {
     font-size: 22px;
   }
 
+  .backup-row {
+    flex-direction: column;
+    border-radius: 12px;
+    padding: 12px 8px;
+    margin-bottom: 8px;
+  }
+
+  .backup-row-name {
+    font-size: 30px;
+    font-weight: bold;
+    line-height: 40px;
+    margin-bottom: 4px;
+    lines: 3;
+    text-overflow: ellipsis;
+  }
+
+  .backup-row-footer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+
+  .backup-row-meta {
+    font-size: 26px;
+    line-height: 34px;
+    lines: 1;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    margin-right: 6px;
+  }
+
+  .backup-row-actions {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-left: 0;
+  }
+
+  .row-restore-btn {
+    width: 60px;
+    height: 36px;
+    border-radius: 6px;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin-right: 6px;
+  }
+
+  .row-delete-btn {
+    width: 60px;
+    height: 36px;
+    border-radius: 6px;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    border-width: 1px;
+  }
+
 }
 
 @media (shape: rect) {
@@ -779,6 +861,7 @@ export default {
     font-size: 24px;
   }
   .backup-row {
+    flex-direction: column;
     padding: 14px 12px;
     margin-bottom: 8px;
   }
@@ -786,10 +869,24 @@ export default {
     font-size: 26px;
     line-height: 36px;
     margin-bottom: 4px;
+    lines: 1;
+    text-overflow: ellipsis;
+  }
+  .backup-row-footer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
   }
   .backup-row-meta {
     font-size: 24px;
     line-height: 32px;
+    lines: 1;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    margin-right: 6px;
+  }
+  .backup-row-actions {
+    margin-left: 0;
   }
   .info-section {
     padding: 14px 12px;
