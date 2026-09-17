@@ -369,6 +369,8 @@ export default {
 
 .item-label {
   font-size: 32px;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .item-hint {
@@ -401,6 +403,8 @@ export default {
 .input-text {
   font-size: 32px;
   flex: 1;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .input-arrow {
@@ -497,6 +501,8 @@ export default {
 .benefit-item {
   font-size: 32px;
   margin-bottom: 10px;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .modal-btn-primary {
@@ -545,7 +551,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
-    padding: 30px 12px 8px 12px;
+    padding: 30px 8px 30px 8px;
   }
 
   .header {
@@ -564,7 +570,7 @@ export default {
     flex-shrink: 0;
   }
   .title {
-    font-size: 32px;
+    font-size: 36px;
     line-height: 48px;
     text-align: center;
     flex: 1;
@@ -578,28 +584,28 @@ export default {
   }
 
   .input-text {
-    font-size: 30px;
+    font-size: 32px;
     line-height: 44px;
   }
 
   .preview-text {
-    font-size: 30px;
+    font-size: 32px;
   }
 
   .unit-chip {
-    padding: 10px 14px;
-    border-radius: 14px;
-    margin: 5px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    margin: 4px;
   }
 
   .unit-text {
-    font-size: 28px;
-    line-height: 36px;
+    font-size: 26px;
+    line-height: 34px;
   }
 
   .colon-sep {
-    font-size: 28px;
-    margin: 0 4px;
+    font-size: 26px;
+    margin: 0 3px;
   }
 
   .time-preview {
@@ -621,21 +627,25 @@ export default {
   }
 
   .modal-card {
-    width: 90%;
+    width: 92%;
     border-radius: 12px;
-    padding: 18px 16px;
+    padding: 14px 10px;
   }
 
   .modal-title {
-    font-size: 26px;
+    font-size: 36px;
     margin-bottom: 10px;
-    line-height: 34px;
+    line-height: 44px;
+    lines: 2;
+    text-align: center;
   }
 
   .modal-desc {
-    font-size: 20px;
+    font-size: 28px;
     margin-bottom: 14px;
-    line-height: 30px;
+    line-height: 36px;
+    lines: 3;
+    text-align: center;
   }
 
   .benefit-list {
@@ -644,22 +654,24 @@ export default {
   }
 
   .benefit-item {
-    font-size: 20px;
+    font-size: 32px;
     margin-bottom: 6px;
-    line-height: 28px;
+    line-height: 40px;
+    lines: 1;
+    text-overflow: ellipsis;
   }
 
   .modal-btn-primary {
     height: 44px;
     border-radius: 22px;
-    font-size: 24px;
+    font-size: 28px;
     margin-bottom: 8px;
   }
 
   .modal-btn-secondary {
     height: 38px;
     border-radius: 19px;
-    font-size: 22px;
+    font-size: 28px;
   }
 
 }
