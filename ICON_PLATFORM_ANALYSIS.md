@@ -15,19 +15,19 @@
 
 ## 候选方案对比
 
-### 1. Phosphor Icons ★★★★☆ 推荐
+### 1. Phosphor Icons ★★★★☆
 
 | 维度 | 评价 |
 |------|------|
 | 风格 | 6 种粗细（thin/light/regular/bold/fill/duotone），非常灵活 |
 | 低调 | ⭐⭐⭐⭐⭐ 极简线条，无多余装饰，最"不张扬" |
 | 数量 | 1,000+，覆盖所有常用场景 |
-| 体积 | SVG 单个 ~500B-2KB，总计约 30-50KB |
-| 配色适应 | 可通过 `currentColor` 适配任意主题色 |
+| 体积 | PNG 48px 单张 ~0.5KB，总计约 10KB |
+| 配色适应 | PNG 颜色固定；官网可按颜色导出，或后期批量换色 |
 | 许可证 | MIT，完全免费 |
-| 快应用兼容 | SVG inline 需转为 base64 或 path data，略麻烦 |
+| 快应用兼容 | ⭐⭐⭐⭐⭐ 直接 `<image>` 标签引用 PNG，零兼容问题 |
 
-**适配方案**：提取所需图标的 SVG path data，内联到组件中，`fill`/`stroke` 使用主题变量。
+**适配方案**：从 phosphoricons.com 选择 Regular 风格，下载 48px PNG，放入 `src/common/`。
 
 ---
 
@@ -38,12 +38,12 @@
 | 风格 | 极简线条，仅一种粗细（1.5px stroke），极其克制 |
 | 低调 | ⭐⭐⭐⭐⭐ 极致简约，几乎是最低调的开源图标集 |
 | 数量 | Feather 287 个，Lucide 850+ |
-| 体积 | 单个 ~300B-1KB，极轻量 |
-| 配色适应 | `stroke="currentColor"` 无缝适配 |
+| 体积 | PNG 48px 单张 ~0.3KB，极轻量 |
+| 配色适应 | PNG 颜色固定；从 lucide.dev 按颜色导出，或后期批量换色 |
 | 许可证 | MIT |
-| 快应用兼容 | 与 Phosphor 类似，需内联 path data |
+| 快应用兼容 | ⭐⭐⭐⭐⭐ 直接 `<image>` 标签引用 PNG，零兼容问题 |
 
-**适配方案**：对于课程表这种图标量小的场景，Feather 的克制风格天然匹配"不张扬"需求。
+**适配方案**：从 lucide.dev 下载 48px PNG，放入 `src/common/`。Lucide 的克制风格天然匹配"不张扬"需求。
 
 ---
 
@@ -109,26 +109,29 @@
 | 理由 | 详情 |
 |------|------|
 | **最克制** | 仅 1.5px 统一描边，无任何多余设计元素 |
-| **体积极小** | 单图标 path data 仅 200-500 字符 |
-| **配色自由** | `stroke="currentColor"` 一行搞定多主题 |
+| **体积极小** | 单图标 ~300B-1KB，极轻量 |
 | **数量刚好** | 课程表场景不超过 20 个图标，Feather 287 个够用 |
 | **MIT 协议** | 商业使用无忧 |
 | **中文社区接受度高** | 大量中文项目使用，风格符合国内审美 |
 
 ### 次选：Phosphor Icons
 
-当需要更多图标或需要填充/线条双套风格时使用。Phosphor 的 Regular 粗细(1.5px) 与 Feather 非常接近。
+当需要多个风格变体（填充/线条）时使用。Phosphor 的 Regular 粗细(1.5px) 与 Feather 几乎一致。
 
 ---
 
 ## 实施建议
+
+### 原则：不使用 SVG，直接使用下载的 PNG 图
+
+快应用不支持 SVG 标签，SVG inline / base64 方案兼容性差，调试成本高。**直接下载 PNG 位图**是最简单、最稳定、最兼容的方案。
 
 ### 第一步：确定图标清单
 
 课程表场景需要的图标（预估 15-20 个）：
 
 ```
-首页 home         ← 已有，当前用的是 PNG
+首页 home
 返回 arrow-left
 设置 settings
 搜索 search
@@ -150,53 +153,94 @@
 感叹号 alert-circle
 ```
 
-### 第二步：提取 SVG Path Data
+### 第二步：从图标库网站下载 PNG
 
-```bash
-# 安装 lucide（Feather 的现代化 fork）
-npm install lucide-static
+#### Lucide (lucide.dev) 下载方式
 
-# 提取 path data
-node -e "
-const fs = require('fs');
-const icons = ['home', 'arrow-left', 'plus', 'trash-2', 'check', 'x'];
-icons.forEach(name => {
-  const svg = fs.readFileSync('node_modules/lucide-static/icons/' + name + '.svg', 'utf8');
-  const match = svg.match(/<path[^>]*\/>/g);
-  console.log(name, match);
-});
-"
+```
+https://lucide.dev/icons/home        → 浏览器打开
+https://lucide.dev/api/icons/home    → 直接下载 SVG
+
+# 命令行批量下载 PNG（推荐用 48px 尺寸，适配胶囊屏）
+# Lucide 官网每个图标页面可下载 PNG，选择 size=48, stroke-width=1.5
+# 或者用以下脚本：
+
+for icon in home arrow-left plus check x settings trash-2; do
+  curl -o "src/common/icon_${icon}.png" \
+    "https://lucide.dev/api/icons/${icon}?size=48&color=%237ec8e3"
+done
 ```
 
-### 第三步：内联到快应用组件
+#### Phosphor Icons (phosphoricons.com) 下载方式
 
-快应用不支持 SVG 标签，但 `<image>` 标签支持 base64 编码的 SVG 转 PNG 或者直接用 path data 画。
+```
+https://phosphoricons.com/?q=home    → 在线选择粗细/尺寸，右键下载 PNG
+```
 
-**方案 A：Base64 PNG**（推荐，兼容性最好）
+推荐下载参数：
+- **尺寸**：48px（胶囊屏无需更大）
+- **风格**：Regular（线条）或 Fill（填充，按需）
+- **颜色**：使用主题色（如 `#7ec8e3` 蓝），或中性灰色 `#666666` 适配多主题
+
+### 第三步：存放到项目中
+
+```
+src/common/
+├── home.png              ← 已有
+├── icon_arrow-left.png
+├── icon_plus.png
+├── icon_check.png
+├── icon_x.png
+├── icon_settings.png
+├── icon_trash-2.png
+├── icon_edit.png
+├── icon_qr-code.png
+├── icon_share.png
+├── icon_download.png
+├── icon_upload-cloud.png
+├── icon_refresh-cw.png
+├── icon_book-open.png
+├── icon_clock.png
+├── icon_chevron-down.png
+├── icon_chevron-up.png
+├── icon_info.png
+├── icon_alert-circle.png
+└── icon_search.png
+```
+
+### 第四步：在快应用中使用
 
 ```html
-<image src="data:image/svg+xml;base64,..."></image>
+<image class="home-icon" src="../../common/icon_home.png"></image>
 ```
 
-快应用 `<image>` 标签支持 base64 data URI。
+注意路径是相对于当前 `.ux` 文件所在页面目录。
 
-**方案 B：Canvas 绘制**（备选）
+### 第五步：多主题适配
 
-用 `<canvas>` + JS 绘制 path data，但性能开销大，不推荐。
+PNG 颜色固定，处理多主题有几种策略：
 
-### 第四步：主题色适配
+**策略 A：统一中性色（推荐，最简单）**
 
-因为使用 Base64 内联，颜色在构建时注入或运行时动态替换：
+全部图标使用中性灰色（`#888888` 或 `#999999`），在浅色和深色背景下都不过分突兀。
 
-```javascript
-// 构建一套核心图标，颜色用占位符
-const iconTpl = (name, color) => {
-  const svg = svgMap[name];
-  return 'data:image/svg+xml,' + encodeURIComponent(
-    svg.replace(/stroke="currentColor"/g, `stroke="${color}"`)
-  );
-};
+**策略 B：使用主题近似的颜色**
+
+第一版选择一个主推主题的颜色（如当前蓝色 `#7ec8e3`），后续做多主题时再批量替换颜色。
+
+**策略 C：多套 PNG（包体积允许时）**
+
 ```
+src/common/
+├── icons/light/     ← 浅色主题用
+│   ├── home.png
+│   └── ...
+└── icons/dark/      ← 深色主题用
+    ├── home.png
+    └── ...
+```
+
+每套约 20 张 × 0.5KB = 10KB，两套 20KB，rpk 占比仅 2%，完全可接受。
 
 ---
 
@@ -204,12 +248,12 @@ const iconTpl = (name, color) => {
 
 | 方案 | 预估体积 | rpk 占比 |
 |------|----------|----------|
-| Feather 20 图标 Base64 | ~15KB | 1.5% |
-| Phosphor 20 图标 Base64 | ~25KB | 2.5% |
-| PNG 多主题 20×3 | ~30KB | 3% |
+| Lucide 20 图标 PNG (48px) | ~10KB | 1% |
+| 浅色+深色双套 PNG | ~20KB | 2% |
+| Phosphor 20 图标 PNG (48px) | ~12KB | 1.2% |
 | 当前 home.png 单张 | 0.3KB | 0.03% |
 
-即使采用 Feather 全集 15KB，对 1MB rpk 包影响微乎其微。
+即使双套主题 20KB，对 1MB rpk 包影响微乎其微。
 
 ---
 
@@ -219,16 +263,17 @@ const iconTpl = (name, color) => {
 |---|---|---|---|---|---|
 | 克制/不张扬 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 | 体积 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
-| 多风格适配 | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ |
+| 多风格适配 | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ |
 | 维护成本 | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ |
-| 快应用兼容 | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| 快应用兼容 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 | 综合推荐 | 🥇 | 🥈 | 🥉 | — | — |
 
 ---
 
 ## 最终建议
 
-1. **立即采用 Feather Icons (Lucide)**，风格与"不张扬"需求完美匹配
-2. 如需填充风格或更多选择，补充 **Phosphor Icons** 的 Fill 系列
-3. 逐步替换现有页面中的 emoji 字符图标（如 `◀`、`⌂`），统一视觉语言
-4. 后续如需动态主题切换，仅需替换颜色变量即可全部图标变色
+1. **禁止使用 SVG inline / base64**，兼容性差，调试困难
+2. **立即采用 Lucide 图标库**，从官网逐一下载 PNG（48px, 1.5px stroke）放入 `src/common/`
+3. 首次使用中性灰色（`#888888`），一个颜色适配浅色/深色双主题
+4. 如需多套配色，以后可追加 `src/common/icons/dark/` 目录，成本仅 10KB
+5. 逐步替换现有页面中的 emoji 字符图标（如 `◀`、`⌂`），统一视觉语言
