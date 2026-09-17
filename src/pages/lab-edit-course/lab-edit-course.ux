@@ -5,7 +5,7 @@
              style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">编辑课程(胶囊)</text>
       <div class="trash-btn" onclick="onDeleteCourse" style="background-color: {{ deleteConfirm ? theme.deleteText : theme.deleteBg }}">
-        <image class="trash-icon" src="../../common/icons/dark/icon_trash.png"></image>
+        <image class="trash-icon" src="{{ trashIconSrc }}"></image>
       </div>
     </div>
 
@@ -194,6 +194,7 @@ export default {
     endMin: 45,
     step: 1,
     deleteConfirm: false,
+    trashIconSrc: "../../common/icons/dark/icon_trash.png",
     deleteTimer: null,
     showCursor: false,
     theme: {
@@ -215,13 +216,19 @@ export default {
 
   onInit() {
     var self = this
-    store.getTheme(function(t) { self.theme = t })
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
     this.initDemoData()
   },
 
   onShow() {
     var self = this
-    store.getTheme(function(t) { self.theme = t })
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
 
     var storage = require("@system.storage")
     storage.get({
@@ -234,6 +241,11 @@ export default {
       },
       fail: function() {}
     })
+  },
+
+  updateIconSrc: function(themeName) {
+    var isLight = themeName === 'light' || themeName === 'warm'
+    this.trashIconSrc = isLight ? '../../common/icons/light/icon_trash.png' : '../../common/icons/dark/icon_trash.png'
   },
 
   initDemoData() {

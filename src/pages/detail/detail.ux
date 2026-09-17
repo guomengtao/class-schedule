@@ -4,7 +4,7 @@
       <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
       <text class="title" style="color: {{ theme.text }}">编辑课程</text>
       <div class="header-trash-btn" onclick="deleteCourse" style="background-color: {{ deleteConfirm ? theme.deleteText : theme.deleteBg }}">
-        <image class="header-trash-icon" src="../../common/icons/dark/icon_trash.png"></image>
+        <image class="header-trash-icon" src="{{ trashIconSrc }}"></image>
       </div>
     </div>
 
@@ -175,6 +175,7 @@ export default {
     step: 1,
     courseIndex: 0,
     deleteConfirm: false,
+    trashIconSrc: "../../common/icons/dark/icon_trash.png",
     presetCourses: [],
     startHour: 8,
     startMin: 0,
@@ -226,8 +227,9 @@ export default {
   onInit() {
     this.deleteConfirm = false
     var self = this
-    store.getTheme(function(t) {
+    store.getTheme(function(t, themeName) {
       self.theme = t
+      self.updateIconSrc(themeName)
     })
     store.getFontSizes(function(sizes) {
       self.applyFontSizes(sizes)
@@ -276,8 +278,9 @@ export default {
 
   onShow() {
     var self = this
-    store.getTheme(function(t) {
+    store.getTheme(function(t, themeName) {
       self.theme = t
+      self.updateIconSrc(themeName)
     })
     self.loadCoursesWithData()
 
@@ -309,6 +312,11 @@ export default {
     this.btnStyle = "font-size: " + s.btn + "px"
     this.btnHeight = s.btnHeight
     this.pickerValueStyle = "font-size: " + s.pickerValue + "px"
+  },
+
+  updateIconSrc: function(themeName) {
+    var isLight = themeName === 'light' || themeName === 'warm'
+    this.trashIconSrc = isLight ? '../../common/icons/light/icon_trash.png' : '../../common/icons/dark/icon_trash.png'
   },
 
   loadCoursesWithData() {
