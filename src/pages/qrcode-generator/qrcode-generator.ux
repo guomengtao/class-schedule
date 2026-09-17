@@ -45,6 +45,7 @@ import router from "@system.router"
 const store = require("../../data/store.js")
 
 var STORAGE_KEY = "qrcode_items_list"
+var DEFAULT_ITEM = { id: "demo_wechat", name: "微信打赏", content: "wxp://f2f0i7FYfQ5xBhxQtXDwsQpkyGZLB7UsjrRjsrXn02Qx8NQHjn8WlZEnozT2BURX_JRy" }
 var loadingStorage = false
 
 function generateId() {
@@ -62,25 +63,37 @@ function loadItems(callback) {
     key: STORAGE_KEY,
     success: function(data) {
       loadingStorage = false
+      var arr = []
       if (data) {
         try {
-          var arr = JSON.parse(data)
-          for (var i = 0; i < arr.length; i++) {
-            if (!arr[i].expanded) arr[i].expanded = false
-          }
-          callback(arr)
+          arr = JSON.parse(data)
         } catch (e) {
-          callback([])
+          arr = []
         }
-      } else {
-        callback([])
       }
+      if (arr.length === 0) {
+        arr = [cloneItem(DEFAULT_ITEM)]
+        saveItems(arr)
+      }
+      for (var i = 0; i < arr.length; i++) {
+        if (!arr[i].expanded) arr[i].expanded = false
+      }
+      callback(arr)
     },
     fail: function() {
       loadingStorage = false
-      callback([])
+      callback([cloneItem(DEFAULT_ITEM)])
     }
   })
+}
+
+function cloneItem(item) {
+  var c = {}
+  c.id = item.id
+  c.name = item.name
+  c.content = item.content
+  c.expanded = item.expanded || false
+  return c
 }
 
 function saveItems(items, callback) {
@@ -349,7 +362,6 @@ export default {
 .page-root {
   flex-direction: column;
   width: 100%;
-  height: 100%;
   padding: 8px;
 }
 
