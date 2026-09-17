@@ -1,7 +1,8 @@
 <template>
   <div class="page-root" style="background-color: {{ theme.bg }}">
     <div class="home-bar" onclick="goHome" style="background-color: {{ theme.card }}">
-      <image class="home-icon"></image>
+      <image class="home-icon-light" src="../../common/icons/light/icon_home.png"></image>
+      <image class="home-icon-dark" src="../../common/icons/dark/icon_home.png"></image>
     </div>
 
     <div class="header">
@@ -400,15 +401,22 @@ export default {
   flex-shrink: 0;
 }
 
-.home-icon {
+.home-icon-light,
+.home-icon-dark {
   width: 32px;
   height: 32px;
-  background-image: url('../../common/icons/light/icon_home.png');
+}
+
+.home-icon-dark {
+  display: none;
 }
 
 @media (prefers-color-scheme: dark) {
-  .home-icon {
-    background-image: url('../../common/icons/dark/icon_home.png');
+  .home-icon-light {
+    display: none;
+  }
+  .home-icon-dark {
+    display: flex;
   }
 }
 
