@@ -11,8 +11,10 @@
       <div class="rename-display" onclick="startRename(editingIndex)" style="background-color: {{ theme.cardLight }}; border-color: {{ theme.accent }}">
         <text class="rename-text" style="color: {{ theme.text }}">{{ editName || '输入新名称' }}</text>
       </div>
-      <input class="rename-ok-btn" type="button" value="保存" onclick="finishEdit" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      <input class="rename-cancel-btn" type="button" value="取消" onclick="cancelEdit" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+      <div class="rename-btn-row">
+        <input class="rename-ok-btn" type="button" value="保存" onclick="finishEdit" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="rename-cancel-btn" type="button" value="取消" onclick="cancelEdit" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+      </div>
     </div>
 
     <div for="{{ list }}" class="item" style="background-color: {{ theme.card }}">
@@ -597,6 +599,12 @@ export default {
   align-items: center;
 }
 
+.rename-btn-row {
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .rename-text {
   font-size: 20px;
   line-height: 28px;
@@ -822,8 +830,8 @@ export default {
     line-height: 28px;
   }
   .title {
-    font-size: 20px;
-    line-height: 28px;
+    font-size: 30px;
+    line-height: 40px;
   }
   .item {
     padding: 8px 10px;
@@ -943,6 +951,96 @@ export default {
     height: 38px;
     border-radius: 19px;
     font-size: 22px;
+  }
+
+  .item {
+    padding: 10px 8px;
+    margin-bottom: 8px;
+  }
+
+  .item-left {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .name {
+    font-size: 20px;
+    lines: 2;
+    text-overflow: ellipsis;
+    margin-left: 8px;
+    line-height: 28px;
+  }
+
+  .course-count {
+    font-size: 20px;
+    margin-left: 4px;
+    flex-shrink: 0;
+    line-height: 28px;
+  }
+
+  .expand-arrow {
+    font-size: 20px;
+    padding: 2px;
+  }
+
+  .action-row {
+    flex-wrap: wrap;
+  }
+
+  .action-btn {
+    flex: none;
+    width: 47%;
+    height: 36px;
+    margin-right: 6%;
+    margin-bottom: 6px;
+  }
+
+  .action-btn:nth-child(2n) {
+    margin-right: 0;
+  }
+
+  .action-btn-text {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .rename-bar {
+    flex-direction: column;
+    padding: 10px 8px;
+  }
+
+  .rename-display {
+    width: 100%;
+    flex: none;
+    height: 38px;
+    margin-bottom: 8px;
+    font-size: 20px;
+  }
+
+  .rename-btn-row {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .rename-ok-btn {
+    width: 48%;
+    height: 36px;
+    font-size: 20px;
+    margin-left: 0;
+  }
+
+  .rename-cancel-btn {
+    width: 48%;
+    height: 36px;
+    font-size: 20px;
+    margin-left: 0;
+  }
+
+  .add-btn {
+    height: 42px;
+    font-size: 20px;
+    line-height: 28px;
   }
 
 }

@@ -4,7 +4,7 @@
       <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
       <text class="title" style="color: {{ theme.text }}">编辑课程</text>
       <div class="header-trash-btn" onclick="deleteCourse" style="background-color: {{ deleteConfirm ? theme.deleteText : theme.deleteBg }}">
-        <image class="header-trash-icon" src="{{ trashIconSrc }}"></image>
+        <image class="header-trash-icon" src="../../common/icons/{{ iconTheme }}/icon_trash.png"></image>
       </div>
     </div>
 
@@ -175,7 +175,7 @@ export default {
     step: 1,
     courseIndex: 0,
     deleteConfirm: false,
-    trashIconSrc: "../../common/icons/dark/icon_trash.png",
+    iconTheme: "dark",
     presetCourses: [],
     startHour: 8,
     startMin: 0,
@@ -315,8 +315,7 @@ export default {
   },
 
   updateIconSrc: function(themeName) {
-    var isLight = themeName === 'light' || themeName === 'warm'
-    this.trashIconSrc = isLight ? '../../common/icons/light/icon_trash.png' : '../../common/icons/dark/icon_trash.png'
+    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
   },
 
   loadCoursesWithData() {
