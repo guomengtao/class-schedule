@@ -1,8 +1,12 @@
 <template>
   <div class="page-root" style="background-color: {{ theme.bg }}">
+    <div class="home-bar" onclick="goHome" style="background-color: {{ theme.card }}">
+      <text class="home-bar-text" style="color: {{ theme.accent }}">◀ 返回课程首页</text>
+    </div>
+
     <div class="header">
       <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
-      <text class="home-link" onclick="goHome" style="color: {{ theme.accent }}">⌂ 课程首页</text>
+      <text class="title-text" style="color: {{ theme.text }}">二维码</text>
       <div class="spacer"></div>
     </div>
 
@@ -387,7 +391,23 @@ export default {
   flex-shrink: 0;
 }
 
-.home-link {
+.home-bar {
+  height: 40px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+
+.home-bar-text {
+  font-size: 22px;
+  font-weight: bold;
+  line-height: 30px;
+  lines: 1;
+}
+
+.title-text {
   flex: 1;
   font-size: 26px;
   font-weight: bold;
@@ -531,9 +551,17 @@ export default {
     font-size: 22px;
     line-height: 36px;
   }
-  .home-link {
+  .title-text {
     font-size: 26px;
     line-height: 34px;
+  }
+  .home-bar {
+    height: 40px;
+    margin-bottom: 6px;
+  }
+  .home-bar-text {
+    font-size: 22px;
+    line-height: 30px;
   }
   .add-btn {
     height: 44px;
@@ -593,9 +621,17 @@ export default {
     font-size: 28px;
     line-height: 40px;
   }
-  .home-link {
+  .title-text {
     font-size: 30px;
     line-height: 40px;
+  }
+  .home-bar {
+    height: 46px;
+    margin-bottom: 8px;
+  }
+  .home-bar-text {
+    font-size: 26px;
+    line-height: 34px;
   }
   .spacer {
     width: 48px;
@@ -658,9 +694,17 @@ export default {
     font-size: 22px;
     line-height: 36px;
   }
-  .home-link {
+  .title-text {
     font-size: 26px;
     line-height: 34px;
+  }
+  .home-bar {
+    height: 40px;
+    margin-bottom: 6px;
+  }
+  .home-bar-text {
+    font-size: 22px;
+    line-height: 30px;
   }
   .add-btn {
     height: 44px;
