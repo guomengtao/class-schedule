@@ -220,7 +220,7 @@ export default {
       var count = dayMap[dayNames[d]] || 0
       if (count > maxCount) {
         maxCount = count
-        maxDay = dayNames[d] + " (" + count + "节)"
+        maxDay = dayNames[d]
       }
     }
     self.busiestDay = maxDay
@@ -351,12 +351,16 @@ export default {
   font-size: 40px;
   font-weight: bold;
   line-height: 48px;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .overview-label {
   font-size: 24px;
   margin-top: 6px;
   line-height: 32px;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .section {
@@ -413,6 +417,9 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
+  .stats-page {
+    padding: 30px 8px 30px 8px;
+  }
   .header {
     height: 48px;
     margin-bottom: 8px;
@@ -428,13 +435,58 @@ export default {
     line-height: 40px;
     flex-shrink: 0;
   }
-  .title {
+  .header-title {
     font-size: 28px;
     line-height: 44px;
     text-align: center;
     flex: 1;
     lines: 1;
     margin: 0 4px;
+  }
+  .overview {
+    padding: 14px 6px;
+    margin-bottom: 8px;
+  }
+  .overview-row {
+    flex-wrap: wrap;
+  }
+  .overview-number {
+    font-size: 40px;
+    lines: 1;
+    text-overflow: ellipsis;
+  }
+  .overview-label {
+    font-size: 24px;
+    lines: 1;
+    text-overflow: ellipsis;
+  }
+  .section {
+    padding: 14px 8px;
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  .rank-name {
+    font-size: 28px;
+    width: auto;
+    flex-shrink: 1;
+    lines: 1;
+    text-overflow: ellipsis;
+    margin-right: 6px;
+  }
+  .rank-bar-wrap {
+    margin: 0 6px;
+  }
+  .rank-count {
+    font-size: 24px;
+    width: auto;
+    min-width: 24px;
+  }
+  .empty-text {
+    font-size: 28px;
+    padding: 16px 0;
   }
 
 }
@@ -460,37 +512,44 @@ export default {
     padding: 14px 10px;
     margin-bottom: 8px;
   }
+  .overview-row {
+    flex-wrap: wrap;
+  }
   .overview-number {
-    font-size: 32px;
+    font-size: 40px;
   }
   .overview-label {
-    font-size: 20px;
+    font-size: 24px;
   }
   .section {
     padding: 12px 12px;
     margin-bottom: 8px;
   }
   .section-title {
-    font-size: 24px;
+    font-size: 28px;
     margin-bottom: 8px;
   }
   .rank-item {
     padding: 6px 0;
   }
   .rank-name {
-    font-size: 24px;
-    width: 64px;
+    font-size: 28px;
+    width: auto;
+    flex-shrink: 1;
+    lines: 1;
+    text-overflow: ellipsis;
   }
   .rank-bar-wrap {
     height: 14px;
     margin: 0 8px;
   }
   .rank-count {
-    font-size: 20px;
-    width: 28px;
+    font-size: 24px;
+    width: auto;
+    min-width: 28px;
   }
   .empty-text {
-    font-size: 24px;
+    font-size: 28px;
     padding: 16px 0;
   }
 }

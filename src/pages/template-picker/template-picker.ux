@@ -2,7 +2,7 @@
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
-      <text class="title" style="color: {{ theme.text }}">模板选择</text>
+      <text class="title" style="color: {{ theme.text }}">周模板</text>
     </div>
 
     <scroll class="scroll-wrap">
@@ -142,6 +142,8 @@ export default {
   font-size: 32px;
   font-weight: bold;
   line-height: 40px;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .card-desc {
@@ -179,10 +181,10 @@ export default {
     padding: 14px 12px;
   }
   .card-name {
-    font-size: 28px;
+    font-size: 32px;
   }
   .card-desc {
-    font-size: 24px;
+    font-size: 28px;
   }
   .radio-dot {
     font-size: 24px;
@@ -191,6 +193,9 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 30px 8px 30px 8px;
+  }
   .header {
     height: 48px;
     margin-bottom: 8px;
@@ -213,6 +218,26 @@ export default {
     flex: 1;
     lines: 1;
     margin: 0 4px;
+  }
+  .card {
+    padding: 12px 10px;
+    margin-bottom: 8px;
+  }
+  .radio-dot {
+    margin-right: 6px;
+  }
+  .card-name {
+    font-size: 32px;
+    lines: 1;
+    text-overflow: ellipsis;
+  }
+  .card-desc {
+    font-size: 28px;
+    lines: 1;
+    text-overflow: ellipsis;
+  }
+  .card-check {
+    margin-left: 6px;
   }
 
 }
