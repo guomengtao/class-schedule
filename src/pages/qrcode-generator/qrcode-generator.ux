@@ -1,7 +1,7 @@
 <template>
   <div class="page-root" style="background-color: {{ theme.bg }}">
     <div class="home-bar" onclick="goHome" style="background-color: {{ theme.card }}">
-      <text class="home-bar-text" style="color: {{ theme.accent }}">◀ 返回课程首页</text>
+      <image class="home-icon" src="../../common/home.png"></image>
     </div>
 
     <div class="header">
@@ -400,11 +400,9 @@ export default {
   flex-shrink: 0;
 }
 
-.home-bar-text {
-  font-size: 22px;
-  font-weight: bold;
-  line-height: 30px;
-  lines: 1;
+.home-icon {
+  width: 32px;
+  height: 32px;
 }
 
 .title-text {
@@ -559,9 +557,9 @@ export default {
     height: 40px;
     margin-bottom: 6px;
   }
-  .home-bar-text {
-    font-size: 22px;
-    line-height: 30px;
+  .home-icon {
+    width: 28px;
+    height: 28px;
   }
   .add-btn {
     height: 44px;
@@ -629,9 +627,9 @@ export default {
     height: 46px;
     margin-bottom: 8px;
   }
-  .home-bar-text {
-    font-size: 26px;
-    line-height: 34px;
+  .home-icon {
+    width: 32px;
+    height: 32px;
   }
   .spacer {
     width: 48px;
@@ -702,9 +700,9 @@ export default {
     height: 40px;
     margin-bottom: 6px;
   }
-  .home-bar-text {
-    font-size: 22px;
-    line-height: 30px;
+  .home-icon {
+    width: 28px;
+    height: 28px;
   }
   .add-btn {
     height: 44px;
