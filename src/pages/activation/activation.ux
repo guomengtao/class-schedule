@@ -240,7 +240,7 @@ const version = require("../../data/version.js")
 const crypto = require("../../lib/crypto.js")
 
 var ACTIVATION_URL = "https://app-auth.gudq.com/activate.html?deviceId="
-var AFDIAN_URL = "https://www.ifdian.net/item/54100fe4a1e011f1a3f452540025c377"
+var AFDIAN_REDIRECT_URL = "https://app-auth.gudq.com/go/ev-timetable?deviceId="
 
 function doVibrate() {
   try {
@@ -278,7 +278,7 @@ export default {
     historyList: [],
     installTimeText: '',
     expireTimeText: '',
-    afdianUrl: AFDIAN_URL,
+    afdianUrl: '',
     deviceId: '',
     deviceIdDisplay: '获取中...',
     qrText: '',
@@ -443,6 +443,18 @@ export default {
         }
       }
       self.qrText = qr
+
+      var afd = AFDIAN_REDIRECT_URL + encodeURIComponent(self.deviceId)
+      if (self.deviceInfoParams) {
+        afd = afd + '&' + self.deviceInfoParams
+      }
+      if (self.versionText) {
+        afd = afd + '&r=' + encodeURIComponent(self.versionText)
+      }
+      if (self.channelParam) {
+        afd = afd + '&c=' + encodeURIComponent(self.channelParam)
+      }
+      self.afdianUrl = afd
     }
   },
 
