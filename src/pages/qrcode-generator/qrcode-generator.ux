@@ -486,7 +486,7 @@ export default {
 }
 
 .item-arrow {
-  font-size: 16px;
+  font-size: 20px;
   line-height: 34px;
   flex-shrink: 0;
   margin-left: 6px;
@@ -600,7 +600,7 @@ export default {
     line-height: 34px;
   }
   .item-arrow {
-    font-size: 16px;
+    font-size: 20px;
     line-height: 34px;
   }
   .accordion-body {
@@ -743,7 +743,7 @@ export default {
     line-height: 34px;
   }
   .item-arrow {
-    font-size: 16px;
+    font-size: 20px;
     line-height: 34px;
   }
   .accordion-body {

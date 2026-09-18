@@ -472,8 +472,8 @@ export default {
     padding: 8px;
   }
   .preview-code {
-    font-size: 18px;
-    line-height: 24px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .loading-section {
     padding: 16px 12px;

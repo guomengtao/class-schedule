@@ -242,6 +242,12 @@ var THEMES = {
 module.exports = {
   THEMES: THEMES,
 
+  // 清空内存缓存：备份恢复、恢复出厂等直接写存储之后必须调用，
+  // 否则会读到过期数据。
+  clearCache: function() {
+    _cache = {}
+  },
+
   getTheme: function(callback, forceRefresh) {
     if (!forceRefresh && _cache.theme) {
       callback(_cache.theme, _cache.themeName)
@@ -338,6 +344,12 @@ module.exports = {
     })
   },
 
+  // 同步取字号，供需要即时计算的场景使用（读不到时给默认 48）
+  getBaseFontSizeSync: function() {
+    if (_cache.baseFontSize !== undefined) return _cache.baseFontSize
+    return 48
+  },
+
   getBaseFontSize: function(callback, forceRefresh) {
     if (!forceRefresh && _cache.baseFontSize !== undefined) {
       console.log("[store] getBaseFontSize: from cache = " + _cache.baseFontSize)
@@ -413,27 +425,36 @@ module.exports = {
   },
 
   getScheduleNames: function(callback) {
+    if (_cache.scheduleNames) {
+      callback(_cache.scheduleNames)
+      return
+    }
     storage.get({
       key: "scheduleNames",
       success: function(data) {
         if (data) {
           try {
             var names = JSON.parse(data)
+            _cache.scheduleNames = names
             callback(names)
           } catch (e) {
-            callback(DEFAULT_NAMES.slice())
+            _cache.scheduleNames = DEFAULT_NAMES.slice()
+            callback(_cache.scheduleNames)
           }
         } else {
-          callback(DEFAULT_NAMES.slice())
+          _cache.scheduleNames = DEFAULT_NAMES.slice()
+          callback(_cache.scheduleNames)
         }
       },
       fail: function() {
-        callback(DEFAULT_NAMES.slice())
+        _cache.scheduleNames = DEFAULT_NAMES.slice()
+        callback(_cache.scheduleNames)
       }
     })
   },
 
   setScheduleNames: function(names, callback) {
+    _cache.scheduleNames = names
     storage.set({
       key: "scheduleNames",
       value: JSON.stringify(names),
@@ -443,18 +464,27 @@ module.exports = {
   },
 
   getCurrentScheduleIndex: function(callback) {
+    if (_cache.currentScheduleIndex !== undefined) {
+      callback(_cache.currentScheduleIndex)
+      return
+    }
     storage.get({
       key: "currentScheduleIndex",
       success: function(data) {
         var idx = parseInt(data)
         if (isNaN(idx) || idx < 0) { idx = 0 }
+        _cache.currentScheduleIndex = idx
         callback(idx)
       },
-      fail: function() { callback(0) }
+      fail: function() {
+        _cache.currentScheduleIndex = 0
+        callback(0)
+      }
     })
   },
 
   setCurrentScheduleIndex: function(index, callback) {
+    _cache.currentScheduleIndex = index
     storage.set({
       key: "currentScheduleIndex",
       value: String(index),

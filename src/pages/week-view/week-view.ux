@@ -138,11 +138,11 @@ var TEMPLATE_CONFIGS = {
   "minimal-char": {
     showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
     showDayCount: false, showTotal: false,
-    nameDisplay: "char",
+    nameDisplay: "full",
     dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
-    cellRadius: "12px", rowHeight: 54, cellHeight: 50, rowNumWidth: 0,
-    nameFontSize: 20, nameLineHeight: 28, nameFontWeight: "bold", infoFontSize: 0,
-    useColorScheme: true, denseMode: false, cellWidth: 50
+    cellRadius: "12px", rowHeight: 60, cellHeight: 56, rowNumWidth: 0,
+    nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "bold", infoFontSize: 0,
+    useColorScheme: true, denseMode: false, cellWidth: 60
   },
   "minimal-en": {
     showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
@@ -150,7 +150,7 @@ var TEMPLATE_CONFIGS = {
     nameDisplay: "en-abbr",
     dayLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     cellRadius: "8px", rowHeight: 54, cellHeight: 50, rowNumWidth: 0,
-    nameFontSize: 20, nameLineHeight: 28, nameFontWeight: "bold", infoFontSize: 0,
+    nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "bold", infoFontSize: 0,
     useColorScheme: true, denseMode: false
   },
   "standard-block": {
@@ -159,7 +159,7 @@ var TEMPLATE_CONFIGS = {
     nameDisplay: "full",
     dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
     cellRadius: "6px", rowHeight: 72, cellHeight: 64, rowNumWidth: 50,
-    nameFontSize: 20, nameLineHeight: 28, nameFontWeight: "normal", infoFontSize: 0,
+    nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "normal", infoFontSize: 0,
     useColorScheme: true, denseMode: false
   },
   "compact-grid": {
@@ -168,7 +168,7 @@ var TEMPLATE_CONFIGS = {
     nameDisplay: "full",
     dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
     cellRadius: "3px", rowHeight: 52, cellHeight: 48, rowNumWidth: 40,
-    nameFontSize: 20, nameLineHeight: 28, nameFontWeight: "normal", infoFontSize: 0,
+    nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "normal", infoFontSize: 0,
     useColorScheme: true, denseMode: true, cellWidth: 50, rowNumMode: "index"
   },
   "color-pastel": {
@@ -177,7 +177,7 @@ var TEMPLATE_CONFIGS = {
     nameDisplay: "full",
     dayLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     cellRadius: "10px", rowHeight: 72, cellHeight: 64, rowNumWidth: 50,
-    nameFontSize: 20, nameLineHeight: 28, nameFontWeight: "normal", infoFontSize: 0,
+    nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "normal", infoFontSize: 0,
     useColorScheme: false, denseMode: false, rowNumMode: "index"
   }
 }
@@ -204,7 +204,7 @@ export default {
     firstLoad: true,
     currentTplId: "minimal-char",
     templateList: [
-      { id: "minimal-char", label: "单字", activeColor: "#e67e22" },
+      { id: "minimal-char", label: "极简", activeColor: "#e67e22" },
       { id: "standard-block", label: "标准", activeColor: "#3498db" },
       { id: "compact-grid", label: "紧凑", activeColor: "#2ecc71" },
       { id: "minimal-en", label: "英文", activeColor: "#9b59b6" },
@@ -213,13 +213,13 @@ export default {
     // template config
     showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
     showDayCount: false, showTotal: false,
-    nameDisplay: "char",
+    nameDisplay: "full",
     cellRadius: "12px",
-    rowHeight: 42,
-    cellHeight: 38,
+    rowHeight: 60,
+    cellHeight: 56,
     rowNumWidth: 0,
-    nameFontSize: 20,
-    nameLineHeight: 28,
+    nameFontSize: 28,
+    nameLineHeight: 34,
     nameFontWeight: "bold",
     infoFontSize: 0,
     cellWidth: 60,
@@ -986,7 +986,7 @@ export default {
     padding: 0 4px;
   }
   .wv-tpl {
-    height: 32px;
+    height: 44px;
     padding: 0 8px;
     margin: 0 2px;
   }
@@ -1013,8 +1013,8 @@ export default {
     line-height: 40px;
   }
   .wv-tpl {
-    height: 40px;
-    padding: 0 6px;
+    height: 48px;
+    padding: 0 8px;
     margin: 0 2px;
   }
   .wv-tpl-text {
@@ -1041,7 +1041,7 @@ export default {
     line-height: 40px;
   }
   .wv-tpl {
-    height: 32px;
+    height: 44px;
     padding: 0 6px;
     margin: 0 2px;
   }

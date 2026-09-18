@@ -128,11 +128,12 @@ export default {
 }
 
 .back-btn {
-  width: 48px;
-  height: 28px;
-  border-radius: 6px;
-  font-size: 11px;
+  width: 56px;
+  height: 44px;
+  border-radius: 22px;
+  font-size: 20px;
   text-align: center;
+  line-height: 40px;
 }
 
 .title {
@@ -144,10 +145,10 @@ export default {
 }
 
 .hint {
-  font-size: 17px;
+  font-size: 20px;
   margin-bottom: 10px;
   padding: 0 4px;
-  line-height: 24px;
+  line-height: 28px;
 }
 
 .items {
@@ -187,10 +188,11 @@ export default {
 
 .reset-btn {
   width: 100%;
-  height: 30px;
-  border-radius: 6px;
-  font-size: 18px;
+  height: 44px;
+  border-radius: 22px;
+  font-size: 20px;
   text-align: center;
+  line-height: 40px;
   margin-top: 6px;
   flex-shrink: 0;
 }

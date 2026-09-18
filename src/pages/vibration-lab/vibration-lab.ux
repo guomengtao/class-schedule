@@ -972,9 +972,9 @@ export default {
     font-size: 20px; line-height: 28px;
   }
   .step-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 18px;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
   }
   .step-value {
     font-size: 20px;
@@ -1241,8 +1241,8 @@ export default {
     font-size: 20px; line-height: 28px;
   }
   .step-value {
-    font-size: 18px;
-    width: 70px;
+    font-size: 20px;
+    width: 74px;
   }
   .quick-btn {
     width: 42px;

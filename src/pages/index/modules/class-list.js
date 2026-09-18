@@ -2,24 +2,15 @@ var store = require("../../../data/store.js")
 var prompt = require("@system.prompt")
 
 var fullDayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
-var isCapsule = false
 
-var device = require("@system.device")
-device.getInfo({
-  success: function(data) {
-    var shape = data.screenShape || ""
-    isCapsule = (shape === "capsule" || shape === "pill-shaped")
-  }
-})
-
-function shortenTime(timeStr) {
-  if (!isCapsule) return timeStr
+// 屏型由 index.ux 统一探测后通过 instance.isCapsule 传入，这里不再重复调用
+// device.getInfo（它是异步 IPC，重复调用会拖慢首屏）。
+// 胶囊屏只展示开始时间，避免时间文本过长把地点挤掉。
+function shortenTime(timeStr, capsule) {
+  if (!capsule) return timeStr
   var parts = timeStr.split("-")
   if (parts.length < 2) return timeStr
-  var start = parts[0].trim()
-  var end = parts[1].trim()
-  var startHour = start.split(":")[0]
-  return startHour + "-" + end
+  return parts[0].trim()
 }
 
 function getRealTodayName() {
@@ -57,20 +48,27 @@ function init(instance) {
     }
     var rawClasses = dayData ? dayData.classes : []
     var classes = []
+    var capsule = self.isCapsule === true
     var currentFontSize = self.displaySize
     var currentMetaFontSize = self.metaFontSize
+    // 行高固定为字号的 1.2 倍，避免行高小于字号导致文字上下被裁切/重叠
+    var currentLineHeight = Math.round(currentFontSize * 1.2)
+    var currentMetaLineHeight = Math.round(currentMetaFontSize * 1.2)
     for (var j = 0; j < rawClasses.length; j++) {
       var src = rawClasses[j]
       classes.push({
         id: src.id,
         name: src.name,
-        time: shortenTime(src.time),
+        time: src.time,
+        timeDisplay: shortenTime(src.time, capsule),
         teacher: src.teacher || "",
         location: src.location || "",
         progress: 0,
         progressColor: "transparent",
         fontSize: currentFontSize,
-        metaFontSize: currentMetaFontSize
+        metaFontSize: currentMetaFontSize,
+        lineHeight: currentLineHeight,
+        metaLineHeight: currentMetaLineHeight
       })
     }
     classes.sort(function(a, b) {

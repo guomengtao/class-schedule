@@ -68,10 +68,10 @@
         <div class="progress-bg" if="{{ isToday }}" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
         <div class="class-card-accent" style="background-color: {{ theme.accent }}"></div>
         <div class="class-card-body">
-          <text class="grid-item-name" style="color: {{ theme.text }}; font-size: {{ $item.fontSize }}px">{{ $item.name }}</text>
+          <text class="grid-item-name" style="color: {{ theme.text }}; font-size: {{ $item.fontSize }}px; line-height: {{ $item.lineHeight }}px">{{ $item.name }}</text>
           <div class="class-card-meta">
-            <text class="grid-item-time" style="color: {{ theme.accent }}; font-size: {{ $item.metaFontSize }}px">{{ $item.time }}</text>
-            <text class="grid-item-location" if="{{ $item.location }}" style="color: {{ theme.textMuted }}; font-size: {{ $item.metaFontSize }}px">{{ $item.location }}</text>
+            <text class="grid-item-time" style="color: {{ theme.accent }}; font-size: {{ $item.metaFontSize }}px; line-height: {{ $item.metaLineHeight }}px">{{ $item.timeDisplay }}</text>
+            <text class="grid-item-location" if="{{ $item.location }}" style="color: {{ theme.textMuted }}; font-size: {{ $item.metaFontSize }}px; line-height: {{ $item.metaLineHeight }}px">{{ $item.location }}</text>
           </div>
         </div>
       </div>
@@ -118,25 +118,38 @@ const database = require("../../data/database.js")
 const device = require("@system.device")
 
 var isCapsuleScreen = false
+var indexInstance = null
 
+// 屏型是异步返回的。这里拿到真实形状后回填给实例并重算字号，
+// 否则首帧会用默认值（非胶囊）导致适配不生效。
 device.getInfo({
   success: function(data) {
     var shape = data.screenShape || ""
-    isCapsuleScreen = (shape === "capsule" || shape === "pill-shaped")
+    var capsule = (shape === "capsule" || shape === "pill-shaped")
+    isCapsuleScreen = capsule
+    if (indexInstance && indexInstance.isCapsule !== capsule) {
+      indexInstance.isCapsule = capsule
+      indexInstance.applyFontSizes()
+      if (indexInstance.initialized && typeof indexInstance.loadDayClasses === 'function') {
+        try { indexInstance.loadDayClasses() } catch (e) {}
+      }
+      try { indexInstance.$forceUpdate() } catch (e) {}
+    }
   },
   fail: function() {}
 })
 
 var modules = {}
+// 关键模块先初始化保证首屏出内容，defer 的模块延后到首帧之后
 var moduleNames = [
   { key: "clock" },
-  { key: "quickAdd" },
   { key: "dayNav" },
-  { key: "statusBar" },
-  { key: "customContent" },
-  { key: "pinnedPages" },
+  { key: "classList" },
   { key: "bottomButtons" },
-  { key: "classList" }
+  { key: "quickAdd", defer: true },
+  { key: "statusBar", defer: true },
+  { key: "customContent", defer: true },
+  { key: "pinnedPages", defer: true }
 ]
 
 function loadModule(key, mod) {
@@ -214,17 +227,16 @@ export default {
 
   onInit() {
     var self = this
-    console.log("[index] onInit START, isCapsuleScreen=", isCapsuleScreen)
+    indexInstance = self
     self.isCapsule = isCapsuleScreen
     self.initialized = false
     self.isLoading = true
     self.loadError = false
+    self._skipNextShow = true
     store.getTheme(function(t) { self.theme = t })
     self.loadHomepageSettings()
-    console.log("[index] onInit: loadHomepageSettings called, _loadTimeout setting...")
 
     self._loadTimeout = setTimeout(function() {
-      console.error("[index] TIMEOUT 8s! isLoading=", self.isLoading)
       if (self.isLoading) {
         self.loadError = true
         self.isLoading = false
@@ -232,39 +244,34 @@ export default {
       }
     }, 8000)
 
-    console.log("[index] onInit: calling database.init...")
     database.init(function() {
-      console.log("[index] database.init callback OK")
       database.getAllCourses(function(schedule) {
-        console.log("[index] getAllCourses callback, schedule length=", schedule ? schedule.length : 0)
         if (self._loadTimeout) clearTimeout(self._loadTimeout)
         self.schedule = schedule
-        store.getBaseFontSize(function(size) {
-          console.log("[index] getBaseFontSize callback, size=", size)
-          self.displaySize = size
-          self.metaFontSize = Math.round(size * 0.71)
-          self.dayTitleSize = size
-          self.initAllModules()
-          self.initialized = true
-          self.isLoading = false
-          self.loadError = false
-          console.log("[index] onInit DONE, isLoading=false, initialized=true")
-        })
+        self.applyFontSizes()
+        self.initAllModules()
+        self.initialized = true
+        self.isLoading = false
+        self.loadError = false
+        try { self.$forceUpdate() } catch (e) {}
       })
     })
-    console.log("[index] onInit: after database.init call (async)")
   },
 
   onShow() {
     var self = this
-    console.log("[index] onShow START, initialized=", self.initialized)
-    if (!self.initialized) {
-      console.log("[index] onShow: not initialized, return early")
-      return
-    }
+    if (!self.initialized) return
+
     self.isCapsule = isCapsuleScreen
     store.getTheme(function(t) { self.theme = t })
     self.loadHomepageSettings()
+
+    // onInit 刚刚完成首次加载，这里不重复整条读取链
+    if (self._skipNextShow) {
+      self._skipNextShow = false
+      try { self.$forceUpdate() } catch (e) {}
+      return
+    }
 
     if (modules.customContent && modules.customContent.refresh) {
       modules.customContent.refresh(self)
@@ -276,47 +283,53 @@ export default {
       self.quickAdd.loadPreset()
     }
 
-    // Chain: schedule index → font size → schedule data → refresh UI
     store.getCurrentScheduleIndex(function(idx) {
-      database.setScheduleIndex(idx, function() {
-        store.getScheduleNames(function(names) {
-          if (names && idx < names.length) {
-            self.currentScheduleName = names[idx]
-          } else {
-            self.currentScheduleName = '课程表' + (idx + 1)
-          }
+      // 课表没有切换时不必再次写盘，直接刷新数据
+      if (database.getScheduleIndex() === idx) {
+        self.loadScheduleData(idx, true)
+      } else {
+        database.setScheduleIndex(idx, function() {
+          self.loadScheduleData(idx, true)
         })
-        store.getBaseFontSize(function(size) {
-          self.displaySize = size
-          self.metaFontSize = Math.round(size * 0.71)
-          self.dayTitleSize = size
-          // After font size is loaded, fetch fresh schedule data
-          database.getAllCoursesWithIndex(idx, function(schedule) {
-            if (!schedule || schedule.length === 0) {
-              database.getAllCourses(function(fallback) {
-                self.schedule = fallback
-                if (self.refreshClasses && typeof self.refreshClasses === 'function') {
-                  self.refreshClasses()
-                }
-                try { self.$forceUpdate() } catch (e) {}
-              })
-              return
-            }
-            self.schedule = schedule
-            if (self.refreshClasses && typeof self.refreshClasses === 'function') {
-              self.refreshClasses()
-            }
-            try { self.$forceUpdate() } catch (e) {}
-          }, true)
-        }, true)
-      })
+      }
     })
 
     try { this.$forceUpdate() } catch (e) {}
   },
 
+  // 读取指定课表的数据并刷新界面
+  loadScheduleData(idx, forceRefresh) {
+    var self = this
+    store.getScheduleNames(function(names) {
+      if (names && idx < names.length) {
+        self.currentScheduleName = names[idx]
+      } else {
+        self.currentScheduleName = '课程表' + (idx + 1)
+      }
+    })
+    self.applyFontSizes()
+    database.getAllCoursesWithIndex(idx, function(schedule) {
+      if (!schedule || schedule.length === 0) {
+        database.getAllCourses(function(fallback) {
+          self.schedule = fallback
+          if (self.refreshClasses && typeof self.refreshClasses === 'function') {
+            self.refreshClasses()
+          }
+          try { self.$forceUpdate() } catch (e) {}
+        })
+        return
+      }
+      self.schedule = schedule
+      if (self.refreshClasses && typeof self.refreshClasses === 'function') {
+        self.refreshClasses()
+      }
+      try { self.$forceUpdate() } catch (e) {}
+    }, forceRefresh)
+  },
+
   onDestroy() {
     if (this._loadTimeout) clearTimeout(this._loadTimeout)
+    if (this._deferTimer) clearTimeout(this._deferTimer)
     if (this.stopClockTimer && typeof this.stopClockTimer === 'function') this.stopClockTimer()
     if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
     if (this.stopProgressTimer && typeof this.stopProgressTimer === 'function') this.stopProgressTimer()
@@ -325,12 +338,41 @@ export default {
     }
   },
 
+  // 把用户设置的字号映射到字号规范的档位，并做屏型收敛：
+  // 默认 48 → 正文 32 / 次要 26 / 星期标题 36；最大只到规范上限 40。
+  computeFontSizes(size) {
+    var norm = Math.round(size * 32 / 48)
+    if (norm < 20) norm = 20
+    if (norm > 40) norm = 40
+    norm = Math.round(norm / 4) * 4
+    if (this.isCapsule) {
+      return {
+        display: Math.min(norm, 32),
+        meta: Math.min(Math.max(norm - 8, 20), 24),
+        dayTitle: Math.min(norm + 4, 32)
+      }
+    }
+    return {
+      display: Math.min(norm, 40),
+      meta: Math.max(norm - 6, 20),
+      dayTitle: Math.min(norm + 4, 40)
+    }
+  },
+
+  applyFontSizes() {
+    var f = this.computeFontSizes(store.getBaseFontSizeSync())
+    this.displaySize = f.display
+    this.metaFontSize = f.meta
+    this.dayTitleSize = f.dayTitle
+  },
+
   loadFontScale() {
     var self = this
     store.getBaseFontSize(function(size) {
-      self.displaySize = size
-      self.metaFontSize = Math.round(size * 0.71)
-      self.dayTitleSize = size
+      var f = self.computeFontSizes(size)
+      self.displaySize = f.display
+      self.metaFontSize = f.meta
+      self.dayTitleSize = f.dayTitle
       if (self.refreshClasses && typeof self.refreshClasses === 'function') {
         self.refreshClasses()
       }
@@ -362,45 +404,53 @@ export default {
 
   initAllModules() {
     var self = this
-    console.log("[index] initAllModules START")
+    var deferred = []
 
     for (var i = 0; i < moduleNames.length; i++) {
       var m = moduleNames[i]
-      var mod = modules[m.key]
-      if (mod && mod.init) {
-        try {
-          console.log("[index] initAllModules: [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + "...")
-          mod.init(self)
-          console.log("[index] initAllModules: [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " OK")
-        } catch (e) {
-          console.error("[index] [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " FAIL: " + (e.message || e))
-        }
-      } else {
-        console.log("[index] initAllModules: [" + (i + 1) + "/" + moduleNames.length + "] " + m.key + " SKIP (no init)")
+      if (m.defer) {
+        deferred.push(m.key)
+        continue
       }
+      self.initOneModule(m.key)
     }
 
-    console.log("[index] initAllModules: all inited, calling post-init...")
     if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
-      console.log("[index] initAllModules: loadDayClasses...")
       try { self.loadDayClasses() } catch (e) { console.error("[index] loadDayClasses: " + (e.message || e)) }
     }
     if (self.startProgressTimer && typeof self.startProgressTimer === 'function') {
-      console.log("[index] initAllModules: startProgressTimer...")
-      try { self.startProgressTimer() } catch (e) { console.error("[index] startProgressTimer: " + (e.message || e)) }
-    }
-    if (self.updateStatus && typeof self.updateStatus === 'function') {
-      console.log("[index] initAllModules: updateStatus + startStatusTimer...")
-      try { self.updateStatus() } catch (e) { console.error("[index] updateStatus: " + (e.message || e)) }
-      if (self.startStatusTimer && typeof self.startStatusTimer === 'function') {
-        try { self.startStatusTimer() } catch (e) { console.error("[index] startStatusTimer: " + (e.message || e)) }
-      }
+      try { self.startProgressTimer() } catch (e) {}
     }
     if (self.updateHideWeekend && typeof self.updateHideWeekend === 'function') {
-      console.log("[index] initAllModules: updateHideWeekend...")
-      try { self.updateHideWeekend() } catch (e) { console.error("[index] updateHideWeekend: " + (e.message || e)) }
+      try { self.updateHideWeekend() } catch (e) {}
     }
-    console.log("[index] initAllModules DONE")
+
+    // 次要模块延后到首帧之后初始化，先把课程列表渲染出来
+    if (deferred.length > 0) {
+      self._deferTimer = setTimeout(function() {
+        self._deferTimer = null
+        for (var j = 0; j < deferred.length; j++) {
+          self.initOneModule(deferred[j])
+        }
+        if (self.updateStatus && typeof self.updateStatus === 'function') {
+          try { self.updateStatus() } catch (e) {}
+        }
+        if (self.startStatusTimer && typeof self.startStatusTimer === 'function') {
+          try { self.startStatusTimer() } catch (e) {}
+        }
+      }, 50)
+    }
+  },
+
+  initOneModule(key) {
+    var mod = modules[key]
+    if (mod && mod.init) {
+      try {
+        mod.init(this)
+      } catch (e) {
+        console.error("[index] module " + key + " init failed: " + (e.message || e))
+      }
+    }
   },
 
   goBack() {
@@ -431,15 +481,11 @@ export default {
       database.getAllCourses(function(schedule) {
         if (self._loadTimeout) clearTimeout(self._loadTimeout)
         self.schedule = schedule
-        store.getBaseFontSize(function(size) {
-          self.displaySize = size
-          self.metaFontSize = Math.round(size * 0.71)
-          self.dayTitleSize = size
-          self.initAllModules()
-          self.initialized = true
-          self.isLoading = false
-          self.loadError = false
-        })
+        self.applyFontSizes()
+        self.initAllModules()
+        self.initialized = true
+        self.isLoading = false
+        self.loadError = false
       })
     })
   },
@@ -672,7 +718,6 @@ export default {
 .grid-item-name {
   font-weight: bold;
   margin-bottom: 6px;
-  max-lines: 2;
   text-overflow: ellipsis;
   lines: 1;
   line-height: 32px;
@@ -874,7 +919,8 @@ export default {
     width: 36px;
     height: 36px;
     border-radius: 18px;
-    font-size: 18px;
+    font-size: 20px;
+    line-height: 36px;
   }
   .day-nav-circle {
     width: 36px;
@@ -884,9 +930,9 @@ export default {
   }
   .add-btn,
   .style-btn {
-    height: 36px;
-    border-radius: 18px;
-    font-size: 16px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 20px;
   }
   .bottom-buttons {
     margin-bottom: 8px;
@@ -930,35 +976,35 @@ export default {
     margin-left: 2px;
   }
   .day-nav-text {
-    font-size: 16px;
-    line-height: 24px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .custom-content-text {
-    font-size: 18px;
-    line-height: 26px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .status-bar {
     padding: 6px 8px;
     margin-bottom: 4px;
   }
   .status-tag-compact {
-    font-size: 16px;
+    font-size: 20px;
     padding: 1px 6px;
-    line-height: 22px;
+    line-height: 26px;
     margin-right: 4px;
   }
   .status-middle-compact {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
-    line-height: 24px;
+    line-height: 28px;
     lines: 1;
     text-overflow: ellipsis;
     flex: 1;
     width: 100%;
   }
   .status-right-compact {
-    font-size: 16px;
-    line-height: 22px;
+    font-size: 20px;
+    line-height: 26px;
   }
   .section-label {
     font-size: 20px;
@@ -969,7 +1015,7 @@ export default {
     padding: 8px 12px;
   }
   .quick-add-title {
-    font-size: 18px;
+    font-size: 20px;
   }
   .quick-add-scroll {
     height: 48px;
@@ -979,7 +1025,7 @@ export default {
     padding: 4px 10px;
   }
   .quick-add-tag-text {
-    font-size: 16px;
+    font-size: 20px;
   }
   .add-btn {
     flex: 0 0 40px;
@@ -994,38 +1040,44 @@ export default {
     flex: 1;
     height: 40px;
     border-radius: 20px;
-    font-size: 18px;
+    font-size: 20px;
     line-height: 40px;
   }
+  /* 胶囊屏改为上下两行：课程名独占一行，时间与地点在第二行。
+     原先左右并排时课程名只剩约 40px，连一个字都放不下。 */
   .class-card-body {
-    padding: 8px 10px 8px 10px;
-    flex-direction: row;
-    align-items: center;
+    padding: 6px 10px 6px 10px;
+    flex-direction: column;
+    align-items: flex-start;
   }
   .grid-item-name {
     margin-bottom: 0;
-    flex: 1;
-    margin-right: 6px;
+    width: 100%;
+    flex: 0 0 auto;
     lines: 1;
     text-overflow: ellipsis;
   }
   .class-card-meta {
-    flex-direction: column;
+    flex-direction: row;
     flex-shrink: 0;
-    align-items: flex-end;
+    align-items: center;
+    width: 100%;
+    margin-top: 2px;
   }
   .grid-item-time {
-    font-size: 13px;
-    margin-right: 0;
-    margin-bottom: 1px;
+    font-size: 20px;
+    margin-right: 6px;
+    margin-bottom: 0;
     lines: 1;
   }
   .grid-item-location {
-    font-size: 13px;
+    font-size: 20px;
     lines: 1;
+    text-overflow: ellipsis;
+    flex: 1;
   }
   .week-text {
-    font-size: 18px;
+    font-size: 20px;
   }
   .left-accent-4 {
     height: 24px;
@@ -1044,36 +1096,36 @@ export default {
     margin-bottom: 3px;
   }
   .clock-text {
-    font-size: 18px;
-    line-height: 26px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .header {
     padding: 3px 0;
     margin-bottom: 3px;
   }
   .nav-btn {
-    width: 34px;
-    height: 34px;
-    border-radius: 17px;
-    font-size: 18px;
-    line-height: 34px;
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    font-size: 20px;
+    line-height: 36px;
   }
   .day-title {
-    font-size: 24px;
+    font-size: 26px;
     font-weight: bold;
     text-align: center;
     flex: 1;
     lines: 1;
   }
   .day-nav-circle {
-    width: 34px;
-    height: 34px;
-    border-radius: 17px;
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
     margin-left: 2px;
   }
   .day-nav-text {
-    font-size: 15px;
-    line-height: 22px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .custom-content-bar {
     padding: 6px 8px;
@@ -1081,8 +1133,8 @@ export default {
     margin-bottom: 3px;
   }
   .custom-content-text {
-    font-size: 17px;
-    line-height: 24px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .status-bar {
     padding: 6px 8px;
@@ -1090,37 +1142,37 @@ export default {
     margin-bottom: 3px;
   }
   .status-tag {
-    font-size: 17px;
+    font-size: 20px;
     padding: 2px 6px;
     margin-right: 6px;
-    line-height: 24px;
+    line-height: 28px;
   }
   .status-middle {
-    font-size: 17px;
-    line-height: 24px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .status-right {
-    font-size: 17px;
-    line-height: 24px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .status-tag-compact {
-    font-size: 14px;
-    padding: 1px 5px;
-    line-height: 20px;
-    margin-right: 3px;
+    font-size: 20px;
+    padding: 1px 6px;
+    line-height: 26px;
+    margin-right: 4px;
   }
   .status-middle-compact {
-    font-size: 16px;
+    font-size: 20px;
     font-weight: bold;
-    line-height: 22px;
+    line-height: 28px;
     lines: 1;
     text-overflow: ellipsis;
     flex: 1;
     width: 100%;
   }
   .status-right-compact {
-    font-size: 14px;
-    line-height: 20px;
+    font-size: 20px;
+    line-height: 26px;
   }
   .pinned-bar {
     padding: 4px 6px;
@@ -1128,8 +1180,8 @@ export default {
     margin-bottom: 3px;
   }
   .pinned-tag-text {
-    font-size: 17px;
-    line-height: 24px;
+    font-size: 20px;
+    line-height: 28px;
     lines: 1;
   }
   .pinned-tag {
@@ -1139,8 +1191,8 @@ export default {
     margin-bottom: 3px;
   }
   .section-label {
-    font-size: 18px;
-    line-height: 26px;
+    font-size: 20px;
+    line-height: 28px;
     padding: 5px 4px;
   }
   .quick-add {
@@ -1152,49 +1204,49 @@ export default {
     border-radius: 8px;
   }
   .quick-add-title {
-    font-size: 17px;
-    line-height: 24px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .quick-add-time {
-    font-size: 17px;
+    font-size: 20px;
     margin-right: 5px;
-    line-height: 24px;
+    line-height: 28px;
   }
   .quick-add-arrow {
-    font-size: 17px;
-    line-height: 24px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .quick-add-scroll {
-    height: 42px;
+    height: 44px;
   }
   .quick-add-tag {
-    border-radius: 18px;
-    padding: 3px 8px;
+    border-radius: 20px;
+    padding: 4px 10px;
     margin-right: 6px;
   }
   .quick-add-tag-text {
-    font-size: 15px;
-    line-height: 22px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .quick-add-empty {
-    font-size: 17px;
-    line-height: 24px;
+    font-size: 20px;
+    line-height: 28px;
     padding: 5px 10px;
   }
   .add-btn {
     flex: 1;
-    height: 38px;
-    border-radius: 19px;
-    font-size: 17px;
-    line-height: 38px;
+    height: 42px;
+    border-radius: 21px;
+    font-size: 20px;
+    line-height: 42px;
     margin-right: 3px;
   }
   .style-btn {
     flex: 1;
-    height: 38px;
-    border-radius: 19px;
-    font-size: 17px;
-    line-height: 38px;
+    height: 42px;
+    border-radius: 21px;
+    font-size: 20px;
+    line-height: 42px;
   }
   .bottom-buttons {
     margin-bottom: 3px;
@@ -1207,9 +1259,8 @@ export default {
   .class-card-body {
     padding: 10px 12px 10px 12px;
   }
+  /* 字号与行高由脚本按屏型计算后内联下发，这里只保留布局相关属性 */
   .grid-item-name {
-    font-size: 17px;
-    line-height: 25px;
     margin-bottom: 4px;
     lines: 1;
     text-overflow: ellipsis;
@@ -1220,15 +1271,11 @@ export default {
     flex-wrap: wrap;
   }
   .grid-item-time {
-    font-size: 13px;
-    line-height: 21px;
     margin-right: 10px;
     lines: 1;
     flex-shrink: 0;
   }
   .grid-item-location {
-    font-size: 13px;
-    line-height: 21px;
     lines: 1;
     flex-shrink: 0;
   }
@@ -1236,15 +1283,15 @@ export default {
     padding: 16px;
   }
   .empty-text {
-    font-size: 17px;
-    line-height: 24px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .week-indicator {
     padding: 8px 6px;
   }
   .week-text {
-    font-size: 17px;
-    line-height: 24px;
+    font-size: 20px;
+    line-height: 28px;
   }
   .left-accent-4 {
     height: 20px;

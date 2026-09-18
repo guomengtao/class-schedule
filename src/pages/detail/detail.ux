@@ -83,13 +83,41 @@
     </div>
 
     <div class="form-section" if="{{ step === 3 }}">
-      <text class="step-title" style="color: {{ theme.text }}">位置</text>
+      <text class="step-title" style="color: {{ theme.text }}">位置与星期</text>
       <text class="step-hint" style="color: {{ theme.textSecondary }}">{{ courseName }} | {{ courseTime }}</text>
       <div class="location-display" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
         <text class="location-text" style="color: {{ theme.text }}">{{ courseLocation || '如：301教室' }}</text>
         <text class="location-cursor" show="{{ showCursor }}">_</text>
       </div>
       <text class="optional-hint" style="color: {{ theme.textMuted }}">选填</text>
+
+      <text class="weekday-label" style="color: {{ theme.accent }}">上课日</text>
+      <scroll scroll-x="true" class="weekday-scroll">
+        <div class="weekday-row">
+          <div class="weekday-btn {{ dayIndex === 1 ? 'weekday-btn-active' : '' }}" onclick="selectDay(1)" style="background-color: {{ dayIndex === 1 ? theme.accent : theme.card }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 1 ? theme.bg : theme.text }}">一</text>
+          </div>
+          <div class="weekday-btn {{ dayIndex === 2 ? 'weekday-btn-active' : '' }}" onclick="selectDay(2)" style="background-color: {{ dayIndex === 2 ? theme.accent : theme.card }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 2 ? theme.bg : theme.text }}">二</text>
+          </div>
+          <div class="weekday-btn {{ dayIndex === 3 ? 'weekday-btn-active' : '' }}" onclick="selectDay(3)" style="background-color: {{ dayIndex === 3 ? theme.accent : theme.card }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 3 ? theme.bg : theme.text }}">三</text>
+          </div>
+          <div class="weekday-btn {{ dayIndex === 4 ? 'weekday-btn-active' : '' }}" onclick="selectDay(4)" style="background-color: {{ dayIndex === 4 ? theme.accent : theme.card }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 4 ? theme.bg : theme.text }}">四</text>
+          </div>
+          <div class="weekday-btn {{ dayIndex === 5 ? 'weekday-btn-active' : '' }}" onclick="selectDay(5)" style="background-color: {{ dayIndex === 5 ? theme.accent : theme.card }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 5 ? theme.bg : theme.text }}">五</text>
+          </div>
+          <div class="weekday-btn {{ dayIndex === 6 ? 'weekday-btn-active' : '' }}" onclick="selectDay(6)" style="background-color: {{ dayIndex === 6 ? theme.accent : theme.card }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 6 ? theme.bg : theme.text }}">六</text>
+          </div>
+          <div class="weekday-btn {{ dayIndex === 0 ? 'weekday-btn-active' : '' }}" onclick="selectDay(0)" style="background-color: {{ dayIndex === 0 ? theme.accent : theme.card }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 0 ? theme.bg : theme.text }}">日</text>
+          </div>
+        </div>
+      </scroll>
+
       <div class="step-nav">
         <input class="prev-btn" type="button" value="后退" onclick="prevStep" style="height: 48px; background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
         <input class="next-btn" type="button" value="下一步" onclick="nextStep" style="height: 48px; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
@@ -103,6 +131,8 @@
         <text class="confirm-value" style="color: {{ theme.text }}">{{ courseName }}</text>
         <text class="confirm-label" style="color: {{ theme.accent }}">时间</text>
         <text class="confirm-value" style="color: {{ theme.text }}">{{ courseTime }}</text>
+        <text class="confirm-label" style="color: {{ theme.accent }}">星期</text>
+        <text class="confirm-value" style="color: {{ theme.text }}">{{ day }}</text>
         <text class="confirm-label" style="color: {{ theme.accent }}">位置</text>
         <text class="confirm-value" style="color: {{ theme.text }}">{{ courseLocation || '(无)' }}</text>
       </div>
@@ -140,6 +170,8 @@ var defaultCourses = [
   { name: "生物", time: "10:55 - 11:40", teacher: "老师", location: "" }
 ]
 
+var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+
 function padZero(n) {
   return n < 10 ? "0" + n : String(n)
 }
@@ -171,6 +203,8 @@ export default {
     courseTeacher: "",
     courseNotes: "",
     day: "",
+    dayIndex: 0,
+    originalDay: "",
     classId: "",
     step: 1,
     courseIndex: 0,
@@ -354,6 +388,10 @@ export default {
       self.selectCourse(0)
       return
     }
+    // 记录原始星期，用于判断用户是否把课程挪到了别的日子
+    self.originalDay = self.day
+    self.dayIndex = DAY_NAMES.indexOf(self.day)
+    if (self.dayIndex < 0) self.dayIndex = 0
 
     database.getAllCourses(function(data) {
       var found = false
@@ -391,9 +429,17 @@ export default {
             if (foundIndex >= 0) {
               self.courseIndex = foundIndex
             } else {
-              self.courseIndex = 0
-              self.courseName = self.presetCourses[0].name
-              self.courseTeacher = self.presetCourses[0].teacher
+              // 课程名不在预设库里（例如预设名被改过或删过）。
+              // 把它临时加入列表并选中，保留原课程名，
+              // 避免静默把课程改成预设库里的第一门课。
+              self.presetCourses.push({
+                name: c.name,
+                teacher: c.teacher || "",
+                time: c.time || ""
+              })
+              self.courseIndex = self.presetCourses.length - 1
+              self.courseName = c.name
+              self.courseTeacher = c.teacher || ""
             }
             found = true
             break
@@ -542,6 +588,12 @@ export default {
     }
   },
 
+  // 切换上课星期
+  selectDay(index) {
+    this.dayIndex = index
+    this.day = DAY_NAMES[index]
+  },
+
   goBack() {
     router.back()
   },
@@ -563,6 +615,25 @@ export default {
       teacher: this.courseTeacher || "TBD",
       location: this.courseLocation || "",
       notes: this.courseNotes || ""
+    }
+    // 星期被改过：更新是按 星期+id 定位的，必须先把原星期的记录删掉，
+    // 再插入到新的星期，否则会提示"课程不存在"。
+    if (this.originalDay && this.originalDay !== this.day) {
+      database.deleteCourse(this.classId, this.originalDay, function(delErr) {
+        if (delErr) {
+          prompt.showToast({ message: "更新失败: " + delErr })
+          return
+        }
+        database.insertCourse(updatedCourse, function(addErr) {
+          if (addErr) {
+            prompt.showToast({ message: "更新失败: " + addErr })
+          } else {
+            prompt.showToast({ message: "课程已更新" })
+            router.back()
+          }
+        })
+      })
+      return
     }
     database.updateCourse(updatedCourse, function(err) {
       if (!err) {
@@ -790,6 +861,44 @@ export default {
   text-align: center;
 }
 
+/* 上课日选择（编辑页新增，允许把课程改到别的星期） */
+.weekday-label {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.weekday-scroll {
+  width: 100%;
+  height: 52px;
+}
+
+.weekday-row {
+  flex-direction: row;
+  justify-content: center;
+}
+
+.weekday-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  justify-content: center;
+  align-items: center;
+  margin: 0 2px;
+}
+
+.weekday-btn-active {
+  background-color: #7ec8e3;
+}
+
+.weekday-text {
+  font-size: 24px;
+  line-height: 44px;
+  font-weight: bold;
+  text-align: center;
+}
+
 .location-display {
   width: 100%;
   height: 56px;
@@ -1007,20 +1116,26 @@ export default {
   }
   .back-btn {
     width: 40px;
-    height: 30px;
-    border-radius: 15px;
+    height: 36px;
+    border-radius: 18px;
     font-size: 20px;
     text-align: center;
-    line-height: 30px;
+    line-height: 36px;
+    flex-shrink: 0;
+  }
+  .header-trash-btn {
+    width: 36px;
+    height: 36px;
     flex-shrink: 0;
   }
   .title {
-    font-size: 26px;
+    font-size: 24px;
     line-height: 34px;
     text-align: center;
     flex: 1;
     lines: 1;
-    margin: 0 4px;
+    margin: 0 2px;
+    text-overflow: ellipsis;
   }
   .step-indicator {
     margin-bottom: 10px;
@@ -1045,23 +1160,27 @@ export default {
     line-height: 28px;
     margin-bottom: 10px;
   }
+  /* 箭头用固定窄宽度，卡片自适应剩余空间，避免两者相加超出屏幕 */
   .swipe-arrow {
-    width: 36px;
+    width: 32px;
     height: 36px;
     border-radius: 18px;
     font-size: 22px;
     line-height: 34px;
+    flex-shrink: 0;
   }
   .course-card {
-    width: 140px;
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
     height: 80px;
     padding: 12px;
-    margin: 0 8px;
+    margin: 0 4px;
   }
   .card-course-name {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: bold;
-    line-height: 36px;
+    line-height: 32px;
     lines: 1;
     text-align: center;
   }
@@ -1070,57 +1189,57 @@ export default {
     line-height: 52px;
   }
   .course-index-hint {
-    font-size: 18px;
-    line-height: 26px;
+    font-size: 20px;
+    line-height: 28px;
     margin-bottom: 8px;
   }
   .manage-btn {
-    height: 36px;
+    height: 44px;
     font-size: 20px;
-    line-height: 34px;
-    border-radius: 18px;
+    line-height: 44px;
+    border-radius: 22px;
     lines: 1;
   }
   .next-btn {
-    height: 36px;
+    height: 44px;
     font-size: 20px;
-    line-height: 34px;
-    border-radius: 18px;
+    line-height: 44px;
+    border-radius: 22px;
     lines: 1;
   }
   .prev-btn {
-    height: 36px;
+    height: 44px;
     font-size: 20px;
-    line-height: 34px;
-    border-radius: 18px;
+    line-height: 44px;
+    border-radius: 22px;
     lines: 1;
   }
   .save-btn {
-    height: 36px;
+    height: 44px;
     font-size: 20px;
-    line-height: 34px;
-    border-radius: 18px;
+    line-height: 44px;
+    border-radius: 22px;
     lines: 1;
   }
   .step-nav {
     margin-top: 10px;
   }
   .stepper-btn {
-    width: 38px;
-    height: 32px;
-    font-size: 22px;
-    line-height: 30px;
-    border-radius: 16px;
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    line-height: 40px;
+    border-radius: 20px;
   }
   .stepper-val {
-    font-size: 32px;
+    font-size: 30px;
     line-height: 40px;
-    width: 48px;
+    width: 40px;
   }
   .stepper-label {
-    font-size: 22px;
-    line-height: 30px;
-    width: 48px;
+    font-size: 20px;
+    line-height: 40px;
+    width: 40px;
   }
   .picker-label {
     font-size: 24px;
@@ -1129,7 +1248,7 @@ export default {
     margin-bottom: 6px;
   }
   .stepper-time {
-    padding: 8px;
+    padding: 6px;
     margin-bottom: 6px;
   }
   .location-display {
@@ -1155,13 +1274,32 @@ export default {
     margin-bottom: 16px;
   }
   .delete-btn {
-    height: 36px;
-    font-size: 20px;
-    line-height: 34px;
-    border-radius: 18px;
+    height: 44px;
+    font-size: 22px;
+    line-height: 44px;
+    border-radius: 22px;
   }
   .delete-section {
     margin-top: 12px;
+  }
+  /* 上课日选择：按钮放大到 44px，保证手指点得准 */
+  .weekday-label {
+    font-size: 22px;
+    line-height: 30px;
+    margin-bottom: 4px;
+  }
+  .weekday-scroll {
+    height: 48px;
+  }
+  .weekday-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
+    margin: 0 1px;
+  }
+  .weekday-text {
+    font-size: 20px;
+    line-height: 40px;
   }
 }
 

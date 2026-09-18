@@ -10,8 +10,26 @@ var _cache = {}
 var _cacheDirty = {}
 var _migrationDone = false
 
+// 调试日志开关。这些日志在首屏读取路径上会大量拼接字符串，默认关闭。
+var DEBUG = false
+
 function log(msg) {
-  console.log("[DB] " + msg)
+  if (DEBUG) console.log("[DB] " + msg)
+}
+
+var _storeRef = null
+function getStore() {
+  if (!_storeRef) {
+    try { _storeRef = require("./store.js") } catch (e) { _storeRef = null }
+  }
+  return _storeRef
+}
+
+function clearStoreCache() {
+  var s = getStore()
+  if (s && s.clearCache) {
+    try { s.clearCache() } catch (e) {}
+  }
 }
 
 function logErr(msg) {
@@ -523,6 +541,7 @@ module.exports = {
     })
   },
 
+  // 切换课表。写盘后同步清掉 store 的课表序号缓存，避免读到过期值。
   setScheduleIndex: function(index, callback) {
     log("setScheduleIndex: " + index)
     currentScheduleIndex = index
@@ -530,13 +549,25 @@ module.exports = {
       key: "currentScheduleIndex",
       value: String(index),
       success: function() {
-        log("setScheduleIndex saved")
+        clearStoreCache()
         if (callback) callback()
       },
       fail: function() {
+        clearStoreCache()
         if (callback) callback()
       }
     })
+  },
+
+  // 重置全部内存状态：备份恢复后调用，强制重新从存储加载
+  resetCache: function() {
+    _cache = {}
+    _cacheDirty = {}
+    _migrationDone = false
+    ready = false
+    pendingCallbacks = []
+    currentScheduleIndex = 0
+    clearStoreCache()
   },
 
   getScheduleIndex: function() {
@@ -700,6 +731,7 @@ module.exports = {
 
     function finalizeReset(hadError) {
       invalidateCache()
+      clearStoreCache()
       storage.set({
         key: "scheduleNames",
         value: JSON.stringify(names),
@@ -782,6 +814,8 @@ module.exports = {
     }
 
     function finalizeEmpty(cb) {
+      invalidateCache()
+      clearStoreCache()
       var names = ["课程表1"]
       storage.set({
         key: "scheduleNames",

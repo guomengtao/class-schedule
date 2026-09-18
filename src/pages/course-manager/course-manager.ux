@@ -13,12 +13,16 @@
 
     <scroll class="course-list-scroll" scroll-y="{{true}}">
       <div for="{{ courseList }}" class="course-item" style="background-color: {{ theme.card }}">
-        <div class="item-index" style="background-color: {{ theme.accent }}">
-          <text class="index-text">{{ $idx + 1 }}</text>
+        <div class="item-main">
+          <div class="item-index" style="background-color: {{ theme.accent }}">
+            <text class="index-text">{{ $idx + 1 }}</text>
+          </div>
+          <text class="course-name" style="color: {{ theme.text }}" lines="1">{{ $item.name }}</text>
         </div>
-        <text class="course-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-        <input class="edit-btn" type="button" value="编辑" onclick="startRename($idx)" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}" onclick="deleteCourse($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === $idx ? theme.text : theme.deleteText }}" />
+        <div class="item-actions">
+          <input class="edit-btn" type="button" value="编辑" onclick="startRename($idx)" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+          <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}" onclick="deleteCourse($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === $idx ? theme.text : theme.deleteText }}" />
+        </div>
       </div>
       <text if="{{ courseList.length === 0 }}" class="empty-hint" style="color: {{ theme.textMuted }}; text-align: center; padding: 40px 10px;">暂无课程</text>
     </scroll>
@@ -300,38 +304,38 @@ export default {
 .header {
   flex-direction: row;
   align-items: center;
-  height: 36px;
-  margin-bottom: 6px;
+  height: 44px;
+  margin-bottom: 8px;
   flex-shrink: 0;
 }
 
 .back-btn {
-  width: 36px;
-  height: 26px;
-  border-radius: 13px;
-  font-size: 18px;
+  width: 48px;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 22px;
   text-align: center;
-  line-height: 26px;
+  line-height: 40px;
   flex-shrink: 0;
 }
 
 .title {
-  font-size: 26px;
+  font-size: 28px;
   font-weight: bold;
   flex: 1;
   text-align: center;
-  line-height: 34px;
+  line-height: 36px;
   lines: 1;
 }
 
 .add-btn {
-  width: 56px;
-  height: 26px;
-  border-radius: 13px;
-  font-size: 18px;
+  width: 80px;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 22px;
   font-weight: bold;
   text-align: center;
-  line-height: 24px;
+  line-height: 36px;
   flex-shrink: 0;
 }
 
@@ -351,15 +355,15 @@ export default {
 }
 
 .clear-btn {
-  width: 54px;
-  height: 26px;
-  border-radius: 13px;
-  font-size: 18px;
+  width: 64px;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 22px;
   font-weight: bold;
   text-align: center;
-  line-height: 24px;
+  line-height: 36px;
   flex-shrink: 0;
-  margin-left: 4px;
+  margin-left: 6px;
 }
 
 .course-list-scroll {
@@ -371,59 +375,161 @@ export default {
 .course-item {
   flex-direction: row;
   align-items: center;
-  border-radius: 8px;
-  padding: 8px;
-  margin-bottom: 5px;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+
+.item-main {
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  min-width: 0;
+}
+
+.item-actions {
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 6px;
 }
 
 .item-index {
-  width: 24px;
-  height: 24px;
-  border-radius: 12px;
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
   justify-content: center;
   align-items: center;
   flex-shrink: 0;
-  margin-right: 4px;
+  margin-right: 8px;
 }
 
 .index-text {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   color: #ffffff;
   text-align: center;
-  line-height: 22px;
+  line-height: 26px;
 }
 
 .course-name {
   flex: 1;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
-  line-height: 32px;
+  line-height: 36px;
   lines: 1;
+  text-overflow: ellipsis;
 }
 
 .edit-btn {
-  width: 36px;
-  height: 24px;
-  border-radius: 12px;
-  font-size: 18px;
+  width: 56px;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 22px;
   font-weight: bold;
   text-align: center;
-  line-height: 22px;
+  line-height: 36px;
   flex-shrink: 0;
-  margin-left: 4px;
 }
 
 .delete-btn {
-  width: 36px;
-  height: 24px;
-  border-radius: 12px;
-  font-size: 18px;
-  line-height: 22px;
+  width: 56px;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 22px;
+  line-height: 36px;
   font-weight: bold;
   text-align: center;
   flex-shrink: 0;
-  margin-left: 3px;
+  margin-left: 8px;
+}
+
+@media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 30px 12px 56px 12px;
+  }
+  .header {
+    height: 48px;
+    margin-bottom: 8px;
+  }
+  .back-btn {
+    width: 44px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 22px;
+    line-height: 40px;
+  }
+  .title {
+    font-size: 26px;
+    line-height: 34px;
+  }
+  .add-btn {
+    width: 64px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 22px;
+    line-height: 36px;
+  }
+  .clear-bar {
+    padding: 4px 0;
+    margin-bottom: 6px;
+  }
+  .clear-hint {
+    font-size: 22px;
+    line-height: 30px;
+  }
+  .clear-btn {
+    width: 56px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 22px;
+    line-height: 36px;
+  }
+  .course-item {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: 14px;
+  }
+  .item-main {
+    width: 100%;
+  }
+  .item-index {
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+    margin-right: 8px;
+  }
+  .index-text {
+    font-size: 20px;
+    line-height: 26px;
+  }
+  .course-name {
+    font-size: 28px;
+    line-height: 36px;
+  }
+  .item-actions {
+    width: 100%;
+    justify-content: flex-end;
+    margin-left: 0;
+    margin-top: 8px;
+  }
+  .edit-btn {
+    width: 56px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 22px;
+    line-height: 36px;
+  }
+  .delete-btn {
+    width: 56px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 22px;
+    line-height: 36px;
+    margin-left: 10px;
+  }
 }
 
 @media (shape: circle) {
@@ -431,24 +537,26 @@ export default {
     padding: 38px 36px 44px 36px;
   }
   .header {
-    height: 44px;
+    height: 48px;
     margin-bottom: 10px;
   }
   .back-btn {
-    width: 42px;
-    height: 32px;
+    width: 48px;
+    height: 40px;
+    border-radius: 20px;
     font-size: 22px;
-    line-height: 32px;
+    line-height: 40px;
   }
   .title {
     font-size: 30px;
     line-height: 40px;
   }
   .add-btn {
-    width: 64px;
-    height: 32px;
+    width: 72px;
+    height: 40px;
+    border-radius: 20px;
     font-size: 22px;
-    line-height: 30px;
+    line-height: 36px;
   }
   .course-item {
     padding: 10px;
@@ -465,32 +573,34 @@ export default {
     line-height: 26px;
   }
   .course-name {
-    font-size: 26px;
-    line-height: 34px;
+    font-size: 28px;
+    line-height: 36px;
   }
   .edit-btn {
-    width: 44px;
-    height: 28px;
-    font-size: 20px;
-    line-height: 26px;
-    margin-left: 4px;
+    width: 52px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 22px;
+    line-height: 36px;
   }
   .delete-btn {
-    width: 44px;
-    height: 28px;
-    font-size: 20px;
-    line-height: 26px;
-    margin-left: 3px;
+    width: 52px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 22px;
+    line-height: 36px;
+    margin-left: 6px;
   }
   .clear-hint {
     font-size: 22px;
     line-height: 30px;
   }
   .clear-btn {
-    width: 58px;
-    height: 28px;
+    width: 64px;
+    height: 40px;
+    border-radius: 20px;
     font-size: 22px;
-    line-height: 26px;
+    line-height: 36px;
   }
 }
 
@@ -503,30 +613,33 @@ export default {
     margin-bottom: 10px;
   }
   .back-btn {
-    width: 44px;
-    height: 34px;
+    width: 48px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 22px;
-    line-height: 34px;
+    line-height: 40px;
   }
   .title {
     font-size: 30px;
     line-height: 40px;
   }
   .add-btn {
-    width: 70px;
-    height: 34px;
+    width: 80px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 24px;
-    line-height: 32px;
+    line-height: 40px;
   }
   .clear-hint {
     font-size: 24px;
     line-height: 32px;
   }
   .clear-btn {
-    width: 60px;
-    height: 32px;
+    width: 64px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 24px;
-    line-height: 30px;
+    line-height: 40px;
   }
   .course-item {
     padding: 10px;
@@ -547,18 +660,19 @@ export default {
     line-height: 36px;
   }
   .edit-btn {
-    width: 48px;
-    height: 30px;
+    width: 56px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 20px;
-    line-height: 28px;
-    margin-left: 4px;
+    line-height: 40px;
   }
   .delete-btn {
-    width: 48px;
-    height: 30px;
+    width: 56px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 20px;
-    line-height: 28px;
-    margin-left: 3px;
+    line-height: 40px;
+    margin-left: 6px;
   }
 }
 </style>

@@ -376,6 +376,8 @@ export default {
         self.restoreProgress = -1
         self.resultMessage = "已恢复 " + total + " 项"
         self.resultSuccess = true
+        // 备份是直接写存储的，先清掉内存缓存再重新加载，否则会读到恢复前的旧数据
+        if (database.resetCache) database.resetCache()
         database.init(function() {
           store.getTheme(function() {}, true)
         })

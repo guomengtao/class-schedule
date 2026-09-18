@@ -867,11 +867,11 @@ export default {
   }
 
   .back-btn {
-    width: 36px;
-    height: 28px;
-    border-radius: 14px;
-    font-size: 18px;
-    line-height: 28px;
+    width: 44px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 20px;
+    line-height: 40px;
   }
 
   .title {
@@ -965,8 +965,8 @@ export default {
   }
 
   .vibe-desc {
-    font-size: 18px;
-    line-height: 26px;
+    font-size: 20px;
+    line-height: 28px;
   }
 
   .stepper-row {
@@ -1013,8 +1013,8 @@ export default {
   }
 
   .preset-info {
-    font-size: 18px;
-    line-height: 24px;
+    font-size: 20px;
+    line-height: 28px;
   }
 
   .empty-text {
@@ -1033,15 +1033,16 @@ export default {
   }
 
   .saved-info {
-    font-size: 18px;
-    line-height: 24px;
+    font-size: 20px;
+    line-height: 28px;
   }
 
   .delete-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 18px;
-    line-height: 28px;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 20px;
+    line-height: 36px;
   }
 
   .save-btn {
@@ -1051,8 +1052,8 @@ export default {
   }
 
   .pin-link {
-    font-size: 18px;
-    line-height: 24px;
+    font-size: 20px;
+    line-height: 28px;
   }
 }
 </style>
