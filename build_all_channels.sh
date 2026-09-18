@@ -2,8 +2,6 @@
 # 批量构建所有渠道包
 # 逐个构建，每次清理临时目录
 
-set -e
-
 ROOT="/Users/Banner/Documents/guomengtao/tom/class/class"
 TEMP="/Users/Banner/Documents/guomengtao/tom/class/.temp_class"
 RELEASE="$ROOT/release"
@@ -58,8 +56,10 @@ for CHANNEL in "${CHANNELS[@]}"; do
   echo ""
   echo "=== Building channel: $CHANNEL (v$VERSION) ==="
 
-  # 清理临时目录
-  rm -rf "$TEMP"
+  # 清理临时目录 (双重保险)
+  rm -rf "$TEMP" 2>/dev/null || true
+  sleep 2
+  rm -rf "$TEMP" 2>/dev/null || true
 
   # 注入渠道参数 (sed -i 直接修改文件，避免重定向截断风险)
   sed -i '' "s/channel: \".*\"/channel: \"$CHANNEL\"/" src/data/version.js
