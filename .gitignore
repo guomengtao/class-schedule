@@ -7,4 +7,6 @@
 .trae/
 .DS_Store
 _rpk_check/
-/dist
+/dist/
+/distrelease/
+release/

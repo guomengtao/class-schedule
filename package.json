@@ -13,7 +13,7 @@
     "build": "node scripts/build.js",
     "build:dev": "npm run clean && aiot build",
     "prerelease": "node scripts/bump-version.js",
-    "release": "aiot release --enable-jsc",
+    "release": "aiot release --enable-jsc && node scripts/rename-rpk.js",
     "lint": "eslint --format codeframe --fix --ext .ux,.js src/",
     "postinstall": "patch-package"
   },

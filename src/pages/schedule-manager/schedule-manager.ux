@@ -985,18 +985,14 @@ export default {
 
   .action-row {
     flex-wrap: wrap;
+    justify-content: space-between;
   }
 
   .action-btn {
     flex: none;
-    width: 47%;
+    width: calc(50% - 4px);
     height: 36px;
-    margin-right: 6%;
     margin-bottom: 6px;
-  }
-
-  .action-btn:nth-child(2n) {
-    margin-right: 0;
   }
 
   .action-btn-text {

@@ -74,7 +74,7 @@
 
       <div class="section">
         <text class="section-title" style="color: {{ theme.text }}">星期</text>
-        <scroll scroll-direction="horizontal" class="weekday-scroll">
+        <scroll scroll-x="true" class="weekday-scroll">
         <div class="weekday-row">
           <div class="weekday-btn {{ dayIndex === 1 ? 'weekday-btn-active' : '' }}"
                onclick="selectDay(1)"

@@ -292,7 +292,8 @@ export default {
     verifyDetail: '',
     verifySuccess: false,
     versionText: '',
-    deviceInfoParams: ''
+    deviceInfoParams: '',
+    channelParam: version.channel || ''
   },
 
   onInit() {
@@ -430,6 +431,16 @@ export default {
       }
       if (self.versionText) {
         qr = qr + '&r=' + encodeURIComponent(self.versionText)
+      }
+      if (self.channelParam) {
+        qr = qr + '&c=' + encodeURIComponent(self.channelParam)
+      }
+      if (qr.length > 200 && self.channelParam) {
+        qr = ACTIVATION_URL + encodeURIComponent(self.deviceId) + '&c=' + encodeURIComponent(self.channelParam)
+        if (self.versionText) {
+          var tmp = qr + '&r=' + encodeURIComponent(self.versionText)
+          if (tmp.length <= 200) qr = tmp
+        }
       }
       self.qrText = qr
     }

@@ -21,7 +21,13 @@ manifest.versionName = newVersionName
 manifest.versionCode = newVersionCode
 fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n")
 
-var versionContent = "module.exports = { versionName: \"" + newVersionName + "\", versionCode: " + newVersionCode + " }\n"
+var channel = "t-9p-d"
+try {
+  var oldContent = fs.readFileSync(versionPath, "utf8")
+  var match = oldContent.match(/channel:\s*"([^"]+)"/)
+  if (match) channel = match[1]
+} catch (e) {}
+var versionContent = "module.exports = { versionName: \"" + newVersionName + "\", versionCode: " + newVersionCode + ", channel: \"" + channel + "\" }\n"
 fs.writeFileSync(versionPath, versionContent)
 
 console.log("Version bumped: " + oldVersionName + " -> " + newVersionName)
