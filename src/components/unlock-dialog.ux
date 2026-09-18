@@ -31,7 +31,7 @@ export default {
     title: "解锁高级功能",
     description: "一次性解锁，永久使用全部高级功能",
     benefits: ["多课表管理", "数据备份与恢复", "首页自定义", "多套主题"],
-    cancelText: "暂不需要",
+    cancelText: "继续使用标准版",
     feature: "",
     onSuccess: null,
     onPayFail: null,
@@ -66,7 +66,7 @@ export default {
     this.title = options.title || "解锁高级功能"
     this.description = options.description || "一次性解锁，永久使用全部高级功能"
     this.benefits = options.benefits || ["多课表管理", "数据备份与恢复", "首页自定义", "多套主题"]
-    this.cancelText = options.cancelText || "暂不需要"
+    this.cancelText = options.cancelText || "继续使用标准版"
     this.feature = options.feature || ""
     this.onSuccess = options.onSuccess || null
     this.onPayFail = options.onPayFail || null
@@ -159,8 +159,8 @@ export default {
 
 .unlock-btn {
   width: 100%;
-  height: 42px;
-  border-radius: 21px;
+  height: 48px;
+  border-radius: 24px;
   font-size: 28px;
   font-weight: bold;
   margin-bottom: 8px;
@@ -168,8 +168,8 @@ export default {
 
 .cancel-btn {
   width: 100%;
-  height: 36px;
-  border-radius: 18px;
+  height: 48px;
+  border-radius: 24px;
   font-size: 26px;
 }
 
@@ -212,15 +212,15 @@ export default {
   }
 
   .unlock-btn {
-    height: 44px;
-    border-radius: 22px;
+    height: 48px;
+    border-radius: 24px;
     font-size: 24px;
     margin-bottom: 8px;
   }
 
   .cancel-btn {
-    height: 38px;
-    border-radius: 19px;
+    height: 48px;
+    border-radius: 24px;
     font-size: 22px;
   }
 }

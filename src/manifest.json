@@ -1,11 +1,12 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.6.4",
-  "versionCode": 833,
-  "minPlatformVersion": 1000,
+  "versionName": "1.6.7",
+  "versionCode": 836,
+  "minPlatformVersion": 1050,
   "icon": "logo.png",
   "deviceTypeList": [
+    "band",
     "watch"
   ],
   "features": [
@@ -50,7 +51,7 @@
       "课程管理": "course-manager, course-manager-v2, custom-content-edit, countdown-manage",
       "课表视图": "schedule-manager, week-view, schedule-qrcode",
       "设置与系统": "settings, homepage-settings, reset-data, backup-restore, activation, device-info, pinned-pages, template-picker",
-      "实验室工具": "test-area, test-area-v2, vibration-lab, vibration-lab-v2, qrcode-generator, black-screen-check, chinese-input",
+      "实验室工具": "test-area, test-area-v2, vibration-lab, vibration-lab-v2, qrcode-generator, black-screen-check, chinese-input, header-demo1, header-demo2",
       "实验室课程": "lab-add-course, lab-edit-course",
       "其他": "statistics, donate"
     },
@@ -204,6 +205,16 @@
         "component": "donate",
         "group": "其他",
         "name_cn": "打赏支持"
+      },
+      "pages/header-demo1": {
+        "component": "header-demo1",
+        "group": "实验室工具",
+        "name_cn": "Header CSS Demo1"
+      },
+      "pages/header-demo2": {
+        "component": "header-demo2",
+        "group": "实验室工具",
+        "name_cn": "Header CSS Demo2"
       }
     }
   }

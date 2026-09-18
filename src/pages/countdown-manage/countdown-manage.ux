@@ -19,7 +19,7 @@
       <div for="{{ (idx, item) in countdownList }}" class="countdown-row" style="background-color: {{ theme.card }}">
         <div class="row-left">
           <div class="row-index" style="background-color: {{ item.daysLeft >= 0 ? theme.accent : theme.textMuted }}">
-            <text class="index-num" style="font-size: {{ item.daysLeft >= 100 ? '18px' : '22px' }}">{{ item.daysLeft >= 0 ? item.daysLeft : '已过' }}</text>
+            <text class="index-num" style="font-size: {{ item.daysLeft >= 100 ? '20px' : '22px' }}">{{ item.daysLeft >= 0 ? item.daysLeft : '已过' }}</text>
           </div>
           <div class="row-info">
             <div class="row-title-line">

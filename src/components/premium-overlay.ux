@@ -11,7 +11,7 @@
       </div>
       <input class="modal-btn-primary" type="button" value="立即解锁" onclick="doUnlock"
              style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      <input class="modal-btn-secondary" type="button" value="暂不需要" onclick="doCancel"
+      <input class="modal-btn-secondary" type="button" value="继续使用标准版" onclick="doCancel"
              style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
     </div>
   </div>
@@ -22,6 +22,12 @@ import router from "@system.router"
 const store = require("../data/store.js")
 var premiumOverlay = require("../data/premium-overlay.js")
 
+// 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
+var DEBUG = false
+function dlog() {
+  if (DEBUG) console.log.apply(console, arguments)
+}
+
 export default {
   private: {
     visible: false,
@@ -29,43 +35,43 @@ export default {
   },
 
   onInit() {
-    console.log("[PREMIUM-UI] onInit: component created")
+    dlog("[PREMIUM-UI] onInit: component created")
     var self = this
     store.getTheme(function(t) {
       self.theme = t
     })
     premiumOverlay._register(self)
-    console.log("[PREMIUM-UI] onInit: registered with premiumOverlay module")
+    dlog("[PREMIUM-UI] onInit: registered with premiumOverlay module")
   },
 
   onDestroy() {
-    console.log("[PREMIUM-UI] onDestroy: component destroyed")
+    dlog("[PREMIUM-UI] onDestroy: component destroyed")
     premiumOverlay._unregister(this)
   },
 
   show() {
-    console.log("[PREMIUM-UI] show: overlay visible = true")
+    dlog("[PREMIUM-UI] show: overlay visible = true")
     this.visible = true
   },
 
   hide() {
-    console.log("[PREMIUM-UI] hide: overlay visible = false")
+    dlog("[PREMIUM-UI] hide: overlay visible = false")
     this.visible = false
   },
 
   doUnlock() {
-    console.log("[PREMIUM-UI] doUnlock: user clicked '立即解锁', navigating to activation")
+    dlog("[PREMIUM-UI] doUnlock: user clicked '立即解锁', navigating to activation")
     this.hide()
     router.push({ uri: "/pages/activation" })
   },
 
   doCancel() {
-    console.log("[PREMIUM-UI] doCancel: user clicked cancel / tapped outside, close dialog")
+    dlog("[PREMIUM-UI] doCancel: user clicked cancel / tapped outside, close dialog")
     this.hide()
   },
 
   stopBubble() {
-    console.log("[PREMIUM-UI] stopBubble: tap on card, prevent close")
+    dlog("[PREMIUM-UI] stopBubble: tap on card, prevent close")
   }
 }
 </script>
@@ -93,17 +99,17 @@ export default {
 }
 
 .modal-title {
-  font-size: 18px;
+  font-size: 26px;
   font-weight: bold;
   margin-bottom: 8px;
   text-align: center;
 }
 
 .modal-desc {
-  font-size: 12px;
+  font-size: 22px;
   text-align: center;
   margin-bottom: 16px;
-  line-height: 18px;
+  line-height: 30px;
 }
 
 .benefit-list {
@@ -113,24 +119,24 @@ export default {
 }
 
 .benefit-item {
-  font-size: 13px;
+  font-size: 22px;
   margin-bottom: 6px;
 }
 
 .modal-btn-primary {
   width: 100%;
-  height: 36px;
-  border-radius: 18px;
-  font-size: 14px;
+  height: 48px;
+  border-radius: 24px;
+  font-size: 24px;
   font-weight: bold;
   margin-bottom: 8px;
 }
 
 .modal-btn-secondary {
   width: 100%;
-  height: 32px;
-  border-radius: 16px;
-  font-size: 13px;
+  height: 48px;
+  border-radius: 24px;
+  font-size: 22px;
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
@@ -162,15 +168,15 @@ export default {
   }
 
   .modal-btn-primary {
-    height: 44px;
-    border-radius: 22px;
+    height: 48px;
+    border-radius: 24px;
     font-size: 24px;
     margin-bottom: 8px;
   }
 
   .modal-btn-secondary {
-    height: 38px;
-    border-radius: 19px;
+    height: 48px;
+    border-radius: 24px;
     font-size: 22px;
   }
 }

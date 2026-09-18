@@ -849,7 +849,7 @@ export default {
 
   .arrow {
     font-size: 32px;
-    line-height: 38px;
+    line-height: 39px;
   }
 
   .modal-card {

@@ -69,6 +69,12 @@
 <script>
 import router from "@system.router"
 const store = require("../../data/store.js")
+
+// 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
+var DEBUG = false
+function dlog() {
+  if (DEBUG) console.log.apply(console, arguments)
+}
 const database = require("../../data/database.js")
 const prompt = require("@system.prompt")
 
@@ -81,7 +87,7 @@ var log = (function() {
     if (data !== undefined) {
       try { line += " " + JSON.stringify(data) } catch(e) { line += " " + String(data) }
     }
-    console.log(line)
+    dlog(line)
   }
 })()
 
@@ -151,7 +157,7 @@ var TEMPLATE_CONFIGS = {
     dayLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     cellRadius: "8px", rowHeight: 54, cellHeight: 50, rowNumWidth: 0,
     nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "bold", infoFontSize: 0,
-    useColorScheme: true, denseMode: false
+    useColorScheme: true, denseMode: false, cellWidth: 60
   },
   "standard-block": {
     showRowNum: true, showRoom: false, showTeacher: false, showTime: true,
@@ -160,7 +166,7 @@ var TEMPLATE_CONFIGS = {
     dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
     cellRadius: "6px", rowHeight: 72, cellHeight: 64, rowNumWidth: 50,
     nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "normal", infoFontSize: 0,
-    useColorScheme: true, denseMode: false
+    useColorScheme: true, denseMode: false, cellWidth: 70
   },
   "compact-grid": {
     showRowNum: true, showRoom: false, showTeacher: false, showTime: false,
@@ -178,7 +184,7 @@ var TEMPLATE_CONFIGS = {
     dayLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     cellRadius: "10px", rowHeight: 72, cellHeight: 64, rowNumWidth: 50,
     nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "normal", infoFontSize: 0,
-    useColorScheme: false, denseMode: false, rowNumMode: "index"
+    useColorScheme: false, denseMode: false, rowNumMode: "index", cellWidth: 70
   }
 }
 
@@ -1004,9 +1010,9 @@ export default {
   }
   .wv-back {
     width: 48px;
-    height: 40px;
+    height: 48px;
     font-size: 24px;
-    line-height: 40px;
+    line-height: 48px;
   }
   .wv-title {
     font-size: 30px;

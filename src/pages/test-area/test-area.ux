@@ -28,7 +28,9 @@ const store = require("../../data/store.js")
 var GALLERY = [
   { name: "倒数日", desc: "事件倒计时管理", uri: "/pages/countdown-manage" },
   { name: "二维码生成", desc: "文字转二维码工具", uri: "/pages/qrcode-generator" },
-  { name: "已钉页面", desc: "首页置顶入口管理", uri: "/pages/pinned-pages" }
+  { name: "已钉页面", desc: "首页置顶入口管理", uri: "/pages/pinned-pages" },
+  { name: "Header CSS Demo1", desc: "方案一测试页1 — CSS import 共享头部", uri: "/pages/header-demo1" },
+  { name: "Header CSS Demo2", desc: "方案一测试页2 — 同CSS不同页面", uri: "/pages/header-demo2" }
 ]
 
 export default {
@@ -69,6 +71,7 @@ export default {
   width: 100%;
   height: 100%;
   padding: 38px 8px 10px 8px;
+  overflow: hidden;
 }
 
 .header {

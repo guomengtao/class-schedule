@@ -141,8 +141,14 @@
         <input class="save-btn" type="button" value="更新" onclick="updateCourse" style="height: 48px; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
       <div class="delete-section">
+        <text class="delete-hint" if="{{ deleteConfirm }}" style="color: {{ theme.deleteText }}">再次点击确认删除</text>
         <input class="delete-btn" type="button" value="{{ deleteConfirm ? '确认' : '删除' }}" onclick="deleteCourse" style="height: 48px; background-color: {{ deleteConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirm ? theme.text : theme.deleteText }}" />
       </div>
+    </div>
+
+    <div class="undo-bar" if="{{ undoVisible }}">
+      <text class="undo-msg" style="color: {{ theme.text }}">{{ undoMessage }}</text>
+      <text class="undo-btn" onclick="undoDelete" style="color: {{ theme.accent }}">撤销</text>
     </div>
   </scroll>
 </template>
@@ -210,19 +216,15 @@ export default {
     courseIndex: 0,
     deleteConfirm: false,
     iconTheme: "dark",
+    undoVisible: false,
+    undoMessage: "",
+    undoBackup: null,
+    undoTimer: null,
     presetCourses: [],
     startHour: 8,
     startMin: 0,
     endHour: 8,
     endMin: 45,
-    titleStyle: "",
-    labelStyle: "",
-    hintStyle: "",
-    inputStyle: "",
-    inputHeight: 80,
-    btnStyle: "",
-    btnHeight: 72,
-    pickerValueStyle: "",
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -265,11 +267,6 @@ export default {
       self.theme = t
       self.updateIconSrc(themeName)
     })
-    store.getFontSizes(function(sizes) {
-      self.applyFontSizes(sizes)
-    })
-    this.applyFontSizes({title: 36, label: 34, hint: 28, input: 34, inputHeight: 80, btn: 28, btnHeight: 72, pickerValue: 40})
-
     var storage = require("@system.storage")
     var classIdLoaded = false
     var dayLoaded = false
@@ -335,17 +332,6 @@ export default {
     var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
     var now = new Date()
     this.day = dayNames[now.getDay()]
-  },
-
-  applyFontSizes(s) {
-    this.titleStyle = "font-size: " + s.title + "px"
-    this.labelStyle = "font-size: " + s.label + "px"
-    this.hintStyle = "font-size: " + s.hint + "px"
-    this.inputStyle = "font-size: " + s.input + "px"
-    this.inputHeight = s.inputHeight
-    this.btnStyle = "font-size: " + s.btn + "px"
-    this.btnHeight = s.btnHeight
-    this.pickerValueStyle = "font-size: " + s.pickerValue + "px"
   },
 
   updateIconSrc: function(themeName) {
@@ -616,32 +602,38 @@ export default {
       location: this.courseLocation || "",
       notes: this.courseNotes || ""
     }
-    // 星期被改过：更新是按 星期+id 定位的，必须先把原星期的记录删掉，
-    // 再插入到新的星期，否则会提示"课程不存在"。
-    if (this.originalDay && this.originalDay !== this.day) {
-      database.deleteCourse(this.classId, this.originalDay, function(delErr) {
-        if (delErr) {
-          prompt.showToast({ message: "更新失败: " + delErr })
-          return
-        }
-        database.insertCourse(updatedCourse, function(addErr) {
-          if (addErr) {
-            prompt.showToast({ message: "更新失败: " + addErr })
-          } else {
+    // 时间冲突检测：同天已有课程时间重叠时，先提示，需再次确认才保存
+    var self = this
+    database.checkDayConflict(updatedCourse.day, updatedCourse, String(this.classId), function(conflict) {
+      if (conflict && !self.conflictConfirmed) {
+        prompt.showToast({ message: "时间冲突：与《" + conflict.name + "》" + conflict.time + " 重叠，再点确认保存" })
+        self.conflictConfirmed = true
+        return
+      }
+      self.conflictConfirmed = false
+      // 星期被改过：更新是按 星期+id 定位的，必须先把原星期的记录删掉，
+      // 再插入到新的星期，否则会提示"课程不存在"。
+      if (self.originalDay && self.originalDay !== self.day) {
+        // 跨星期更新：旧位置删除 + 新位置插入合并为一次原子写盘，
+        // 避免"删成功插失败"导致课程永久丢失（数据稳定性维度 P1）。
+        database.updateCourseAcrossDays(updatedCourse, self.originalDay, function(err) {
+          if (!err) {
             prompt.showToast({ message: "课程已更新" })
             router.back()
+          } else {
+            prompt.showToast({ message: "更新失败: " + err })
           }
         })
-      })
-      return
-    }
-    database.updateCourse(updatedCourse, function(err) {
-      if (!err) {
-        prompt.showToast({ message: "课程已更新" })
-        router.back()
-      } else {
-        prompt.showToast({ message: "更新失败: " + err })
+        return
       }
+      database.updateCourse(updatedCourse, function(err) {
+        if (!err) {
+          prompt.showToast({ message: "课程已更新" })
+          router.back()
+        } else {
+          prompt.showToast({ message: "更新失败: " + err })
+        }
+      })
     })
   },
 
@@ -649,9 +641,12 @@ export default {
     if (!this.deleteConfirm) {
       this.deleteConfirm = true
       var self = this
+      // 确认超时后必须给出显式反馈，否则用户再点会误以为"点了没反应"
       this.deleteTimer = setTimeout(function() {
         self.deleteConfirm = false
-      }, 5000)
+        self.deleteTimer = null
+        prompt.showToast({ message: "已取消删除" })
+      }, 8000)
       return
     }
     if (this.deleteTimer) {
@@ -659,20 +654,75 @@ export default {
       this.deleteTimer = null
     }
     var self = this
+    // 暂存被删课程的完整字段，用于撤销时原样恢复
+    var backup = {
+      id: String(self.classId),
+      day: self.day,
+      name: self.courseName,
+      time: self.courseTime,
+      location: self.courseLocation || "",
+      teacher: self.courseTeacher || "TBD",
+      notes: self.courseNotes || ""
+    }
     database.deleteCourse(self.classId, self.day, function(err) {
       if (!err) {
-        prompt.showToast({ message: "课程已删除" })
-        router.back()
+        // 删除已生效：给 5 秒撤销窗口，期间停留本页，超时自动返回首页
+        self.showUndo("课程已删除", backup)
       } else {
         prompt.showToast({ message: "删除失败: " + err })
       }
     })
   },
 
+  showUndo(message, backup) {
+    this.undoBackup = backup
+    this.undoVisible = true
+    this.undoMessage = message
+    var self = this
+    if (this.undoTimer) clearTimeout(this.undoTimer)
+    this.undoTimer = setTimeout(function() {
+      self.finishDelete()
+    }, 5000)
+  },
+
+  hideUndo() {
+    if (this.undoTimer) {
+      clearTimeout(this.undoTimer)
+      this.undoTimer = null
+    }
+    this.undoVisible = false
+  },
+
+  undoDelete() {
+    if (!this.undoBackup) {
+      this.hideUndo()
+      return
+    }
+    var self = this
+    var b = this.undoBackup
+    database.insertCourse(b, function(err) {
+      if (!err) {
+        prompt.showToast({ message: "已恢复", duration: 300 })
+      } else {
+        prompt.showToast({ message: "恢复失败: " + err })
+      }
+      self.hideUndo()
+    })
+  },
+
+  finishDelete() {
+    this.hideUndo()
+    router.back()
+  },
+
   onDestroy() {
     if (this.deleteTimer) {
       clearTimeout(this.deleteTimer)
       this.deleteTimer = null
+    }
+    if (this.undoTimer) {
+      clearTimeout(this.undoTimer)
+      this.undoTimer = null
     }
   }
 }
@@ -808,7 +858,7 @@ export default {
   font-size: 56px;
   font-weight: bold;
   text-align: center;
-  line-height: 64px;
+  line-height: 68px;
 }
 
 .stepper-time {
@@ -841,7 +891,7 @@ export default {
 
 .stepper-btn {
   width: 48px;
-  height: 40px;
+  height: 48px;
   border-radius: 10px;
   font-size: 28px;
   font-weight: bold;
@@ -999,6 +1049,13 @@ export default {
   margin-top: 20px;
 }
 
+.delete-hint {
+  font-size: 24px;
+  line-height: 32px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
 .delete-btn {
   width: 100%;
   border-radius: 12px;
@@ -1063,14 +1120,14 @@ export default {
   }
   .add-card-icon {
     font-size: 48px;
-    line-height: 56px;
+    line-height: 58px;
   }
   .picker-label {
     font-size: 28px;
   }
   .stepper-btn {
-    width: 42px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     font-size: 24px;
   }
   .stepper-val {
@@ -1106,26 +1163,27 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .edit-course-page {
-    padding: 38px 8px 50px 8px;
+    padding: 38px 16px 50px 16px;
   }
   .header {
-    height: 40px;
+    height: 48px;
     margin-bottom: 8px;
     flex-direction: row;
     align-items: center;
   }
+  /* 垃圾桶是破坏性操作，36px 既容易点空也容易误触，提到 44px */
   .back-btn {
-    width: 40px;
-    height: 36px;
-    border-radius: 18px;
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 20px;
     text-align: center;
-    line-height: 36px;
+    line-height: 44px;
     flex-shrink: 0;
   }
   .header-trash-btn {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     flex-shrink: 0;
   }
   .title {
@@ -1161,12 +1219,13 @@ export default {
     margin-bottom: 10px;
   }
   /* 箭头用固定窄宽度，卡片自适应剩余空间，避免两者相加超出屏幕 */
+  /* 轮播箭头再大就会挤压中间的课程卡片，取 44px 并同步收窄宽度 */
   .swipe-arrow {
-    width: 32px;
-    height: 36px;
+    width: 36px;
+    height: 44px;
     border-radius: 18px;
     font-size: 22px;
-    line-height: 34px;
+    line-height: 42px;
     flex-shrink: 0;
   }
   .course-card {
@@ -1186,60 +1245,66 @@ export default {
   }
   .add-card-icon {
     font-size: 44px;
-    line-height: 52px;
+    line-height: 53px;
   }
   .course-index-hint {
     font-size: 20px;
     line-height: 28px;
     margin-bottom: 8px;
   }
+  /* 与模板内联的 height: 48px 对齐，消除"内联压制媒体查询"的不可预测性 */
   .manage-btn {
-    height: 44px;
+    height: 48px;
     font-size: 20px;
-    line-height: 44px;
-    border-radius: 22px;
+    line-height: 48px;
+    border-radius: 24px;
     lines: 1;
   }
   .next-btn {
-    height: 44px;
+    height: 48px;
     font-size: 20px;
-    line-height: 44px;
-    border-radius: 22px;
+    line-height: 48px;
+    border-radius: 24px;
     lines: 1;
   }
   .prev-btn {
-    height: 44px;
+    height: 48px;
     font-size: 20px;
-    line-height: 44px;
-    border-radius: 22px;
+    line-height: 48px;
+    border-radius: 24px;
     lines: 1;
   }
   .save-btn {
-    height: 44px;
+    height: 48px;
     font-size: 20px;
-    line-height: 44px;
-    border-radius: 22px;
+    line-height: 48px;
+    border-radius: 24px;
     lines: 1;
   }
   .step-nav {
     margin-top: 10px;
   }
+  /* 胶囊屏一行放不下「小时 − 08 +」4 个元素（需 172px > 160px），
+     改为标签独占一行、控件一行 */
+  .stepper-row {
+    flex-wrap: wrap;
+  }
   .stepper-btn {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 48px;
     font-size: 24px;
-    line-height: 40px;
-    border-radius: 20px;
+    line-height: 48px;
+    border-radius: 22px;
   }
   .stepper-val {
-    font-size: 30px;
-    line-height: 40px;
-    width: 40px;
+    font-size: 28px;
+    line-height: 48px;
+    width: 56px;
   }
   .stepper-label {
     font-size: 20px;
-    line-height: 40px;
-    width: 40px;
+    line-height: 28px;
+    width: 100%;
   }
   .picker-label {
     font-size: 24px;
@@ -1274,13 +1339,18 @@ export default {
     margin-bottom: 16px;
   }
   .delete-btn {
-    height: 44px;
+    height: 48px;
     font-size: 22px;
-    line-height: 44px;
-    border-radius: 22px;
+    line-height: 48px;
+    border-radius: 24px;
   }
   .delete-section {
     margin-top: 12px;
+  }
+  .delete-hint {
+    font-size: 22px;
+    line-height: 30px;
+    margin-bottom: 8px;
   }
   /* 上课日选择：按钮放大到 44px，保证手指点得准 */
   .weekday-label {
@@ -1292,9 +1362,9 @@ export default {
     height: 48px;
   }
   .weekday-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 22px;
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
     margin: 0 1px;
   }
   .weekday-text {
@@ -1348,8 +1418,8 @@ export default {
     width: 48px;
   }
   .stepper-btn {
-    width: 38px;
-    height: 32px;
+    width: 48px;
+    height: 48px;
     font-size: 24px;
   }
   .stepper-val {
@@ -1385,6 +1455,37 @@ export default {
     line-height: 40px;
     border-radius: 21px;
     lines: 1;
+  }
+}
+
+.undo-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  flex-direction: row;
+  align-items: center;
+  background-color: #0f3460;
+  padding: 14px 20px;
+  height: 60px;
+}
+.undo-msg {
+  font-size: 24px;
+  flex: 1;
+  lines: 1;
+}
+.undo-btn {
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 32px;
+  text-align: center;
+  flex-shrink: 0;
+  padding: 0 10px;
+}
+
+@media (shape: capsule), (shape: pill-shaped) {
+  .undo-bar {
+    bottom: 56px;
   }
 }
 </style>

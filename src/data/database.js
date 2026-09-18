@@ -388,6 +388,146 @@ function deleteCourseStorage(id, day, callback) {
   })
 }
 
+// 跨星期更新：把"从原星期删除该 id" + "插入到新星期"合并为一次读 + 一次写盘。
+// 避免 updateCourse 先 deleteCourse 再 insertCourse 两段写盘之间插入失败导致课程永久丢失。
+function updateCourseAcrossDaysStorage(course, originalDay, callback) {
+  log("updateCourseAcrossDaysStorage: " + course.id + " " + originalDay + " -> " + course.day)
+  storage.get({
+    key: STORAGE_KEY + "_" + currentScheduleIndex,
+    success: function(val) {
+      var schedule = []
+      if (val) {
+        try {
+          schedule = JSON.parse(val)
+        } catch (e) {
+          logErr("updateCourseAcrossDaysStorage JSON parse failed: " + e)
+          callback(formatError("updateCourseAcrossDaysStorage", "JSON parse failed: " + e))
+          return
+        }
+      }
+      // 1) 从原星期删除该 id（移动后旧位置必须清掉）
+      for (var i = 0; i < schedule.length; i++) {
+        if (schedule[i].day === originalDay) {
+          var classes = schedule[i].classes
+          var filtered = []
+          for (var j = 0; j < classes.length; j++) {
+            if (classes[j].id !== course.id) {
+              filtered.push(classes[j])
+            }
+          }
+          schedule[i].classes = filtered
+          break
+        }
+      }
+      // 2) 插入到目标星期（若同天，上面已删除，这里重新插入；同一次写盘，原子）
+      var dayData = null
+      for (var k = 0; k < schedule.length; k++) {
+        if (schedule[k].day === course.day) {
+          dayData = schedule[k]
+          break
+        }
+      }
+      if (dayData) {
+        dayData.classes.push({
+          id: course.id,
+          name: course.name,
+          time: course.time,
+          teacher: course.teacher,
+          location: course.location,
+          notes: course.notes || ""
+        })
+      } else {
+        schedule.push({
+          day: course.day,
+          classes: [{
+            id: course.id,
+            name: course.name,
+            time: course.time,
+            teacher: course.teacher,
+            location: course.location,
+            notes: course.notes || ""
+          }]
+        })
+      }
+      saveToStorageWithIndex(currentScheduleIndex, schedule, function(err) {
+        log("updateCourseAcrossDaysStorage " + (err ? "failed" : "success"))
+        callback(err)
+      })
+    },
+    fail: function(e) {
+      logErr("updateCourseAcrossDaysStorage get failed: " + JSON.stringify(e))
+      callback(formatError("updateCourseAcrossDaysStorage", (e && e.message) || JSON.stringify(e)))
+    }
+  })
+}
+
+// 把 "HH:MM - HH:MM" 解析为 {s, e} 分钟数；单时刻按点处理；格式异常返回 null
+function parseTimeToMinutes(t) {
+  if (!t) return null
+  var parts = t.split(":")
+  if (parts.length < 2) return null
+  var h = parseInt(parts[0], 10)
+  var m = parseInt(parts[1], 10)
+  if (isNaN(h) || isNaN(m)) return null
+  return h * 60 + m
+}
+
+function parseTimeRange(timeStr) {
+  if (!timeStr) return null
+  var segs = timeStr.split(" - ")
+  if (segs.length >= 2) {
+    var s = parseTimeToMinutes(segs[0])
+    var e = parseTimeToMinutes(segs[1])
+    if (s === null || e === null) return null
+    return { s: s, e: e }
+  }
+  var p = parseTimeToMinutes(timeStr)
+  return p === null ? null : { s: p, e: p }
+}
+
+function rangesOverlap(a, b) {
+  return a.s < b.e && b.s < a.e
+}
+
+// 检测某天是否已有与 newCourse 时间重叠的课程（排除 excludeId）。
+// 返回冲突课程对象（含 name/time）或 null。存储解析失败/无数据/无重叠均返回 null（放行）。
+function checkDayConflictStorage(day, newCourse, excludeId, callback) {
+  storage.get({
+    key: STORAGE_KEY + "_" + currentScheduleIndex,
+    success: function(val) {
+      var schedule = []
+      if (val) {
+        try {
+          schedule = JSON.parse(val)
+        } catch (e) {
+          logErr("checkDayConflictStorage JSON parse failed: " + e)
+          callback(null)
+          return
+        }
+      }
+      var nr = parseTimeRange(newCourse.time)
+      if (!nr) { callback(null); return }
+      var dayData = null
+      for (var i = 0; i < schedule.length; i++) {
+        if (schedule[i].day === day) { dayData = schedule[i]; break }
+      }
+      if (!dayData || !dayData.classes.length) { callback(null); return }
+      for (var j = 0; j < dayData.classes.length; j++) {
+        var c = dayData.classes[j]
+        if (excludeId && c.id === excludeId) continue
+        var cr = parseTimeRange(c.time)
+        if (!cr) continue
+        if (rangesOverlap(nr, cr)) { callback(c); return }
+      }
+      callback(null)
+    },
+    fail: function(e) {
+      logErr("checkDayConflictStorage get failed: " + JSON.stringify(e))
+      callback(null)
+    }
+  })
+}
+
 function clearScheduleByIndexStorage(index, callback) {
   log("clearScheduleByIndexStorage: " + index)
   var key = STORAGE_KEY + "_" + index
@@ -528,6 +668,25 @@ module.exports = {
         if (!err) invalidateCache(currentScheduleIndex)
         if (callback) callback(err)
       })
+    })
+  },
+
+  // 跨星期更新：旧位置删除 + 新位置插入合并为一次原子写盘，杜绝"删成功插失败"丢课
+  updateCourseAcrossDays: function(course, originalDay, callback) {
+    log("updateCourseAcrossDays called: " + course.id + " " + originalDay + " -> " + course.day)
+    ensureReady(function() {
+      updateCourseAcrossDaysStorage(course, originalDay, function(err) {
+        if (!err) invalidateCache(currentScheduleIndex)
+        if (callback) callback(err)
+      })
+    })
+  },
+
+  // 检测某天时间冲突（排除 excludeId）。返回冲突课程对象或 null
+  checkDayConflict: function(day, newCourse, excludeId, callback) {
+    log("checkDayConflict: " + day + " vs " + (newCourse && newCourse.id))
+    ensureReady(function() {
+      checkDayConflictStorage(day, newCourse, excludeId, function(c) { callback(c) })
     })
   },
 

@@ -1,3 +1,9 @@
+// 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
+var DEBUG = false
+function dlog() {
+  if (DEBUG) console.log.apply(console, arguments)
+}
+
 var storage = require("@system.storage")
 var authStore = require("./auth-store")
 
@@ -333,14 +339,14 @@ module.exports = {
   },
 
   setBaseFontSize: function(size, callback) {
-    console.log("[store] setBaseFontSize: " + size)
+    dlog("[store] setBaseFontSize: " + size)
     _cache.baseFontSize = size
     delete _cache.fontSizes
     storage.set({
       key: "baseFontSize",
       value: String(size),
-      success: function() { console.log("[store] setBaseFontSize: saved"); if (callback) callback() },
-      fail: function() { console.log("[store] setBaseFontSize: save failed"); if (callback) callback() }
+      success: function() { dlog("[store] setBaseFontSize: saved"); if (callback) callback() },
+      fail: function() { dlog("[store] setBaseFontSize: save failed"); if (callback) callback() }
     })
   },
 
@@ -352,11 +358,11 @@ module.exports = {
 
   getBaseFontSize: function(callback, forceRefresh) {
     if (!forceRefresh && _cache.baseFontSize !== undefined) {
-      console.log("[store] getBaseFontSize: from cache = " + _cache.baseFontSize)
+      dlog("[store] getBaseFontSize: from cache = " + _cache.baseFontSize)
       callback(_cache.baseFontSize)
       return
     }
-    console.log("[store] getBaseFontSize: reading from storage" + (forceRefresh ? " (forced)" : ""))
+    dlog("[store] getBaseFontSize: reading from storage" + (forceRefresh ? " (forced)" : ""))
     storage.get({
       key: "baseFontSize",
       success: function(data) {
@@ -364,12 +370,12 @@ module.exports = {
         if (size < 20) size = 20
         if (size > 76) size = 76
         _cache.baseFontSize = size
-        console.log("[store] getBaseFontSize: from storage = " + size)
+        dlog("[store] getBaseFontSize: from storage = " + size)
         callback(size)
       },
       fail: function() {
         _cache.baseFontSize = 48
-        console.log("[store] getBaseFontSize: storage failed, default 48")
+        dlog("[store] getBaseFontSize: storage failed, default 48")
         callback(48)
       }
     })
@@ -384,23 +390,28 @@ module.exports = {
       var r = size / 48
       if (r < 0.5) r = 0.583
       if (r > 2.0) r = 1.583
+      // 所有字号强制不低于 20px 护栏（最小档 r=0.583 时，
+      // 20*r≈12、14*r≈8 都会踩线）；height 类字段不受此限制
+      function fz(base) {
+        return Math.max(20, Math.round(base * r))
+      }
       var sizes = {
-        courseName:   Math.round(28 * r),
-        courseTime:   Math.round(24 * r),
-        dayTitle:     Math.round(36 * r),
-        title:        Math.round(28 * r),
-        label:        Math.round(24 * r),
-        hint:         Math.round(20 * r),
-        input:        Math.round(26 * r),
+        courseName:   fz(28),
+        courseTime:   fz(24),
+        dayTitle:     fz(36),
+        title:        fz(28),
+        label:        fz(24),
+        hint:         fz(20),
+        input:        fz(26),
         inputHeight:  Math.round(80 * r),
-        btn:          Math.round(28 * r),
+        btn:          fz(28),
         btnHeight:    Math.round(72 * r),
-        pickerValue:  Math.round(36 * r),
-        display:      Math.round(17 * r),
-        candidate:    Math.round(16 * r),
-        pinyin:       Math.round(14 * r),
-        key:          Math.round(15 * r),
-        preview:      Math.round(28 * r)
+        pickerValue:  fz(36),
+        display:      fz(17),
+        candidate:    fz(16),
+        pinyin:       fz(14),
+        key:          fz(15),
+        preview:      fz(28)
       }
       _cache.fontSizes = sizes
       callback(sizes)

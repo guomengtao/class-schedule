@@ -126,7 +126,7 @@ export default {
   width: 48px;
   height: 28px;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 20px;
   text-align: center;
 }
 
@@ -152,7 +152,7 @@ export default {
 }
 
 .status-text {
-  font-size: 18px;
+  font-size: 20px;
   margin-bottom: 4px;
   line-height: 26px;
 }
@@ -187,7 +187,7 @@ export default {
 }
 
 .step-badge-text {
-  font-size: 15px;
+  font-size: 20px;
   font-weight: bold;
 }
 
@@ -197,7 +197,7 @@ export default {
 }
 
 .step-desc {
-  font-size: 18px;
+  font-size: 20px;
   margin-top: 4px;
   line-height: 26px;
   padding-left: 34px;
@@ -254,7 +254,7 @@ export default {
     margin-right: 10px;
   }
   .step-badge-text {
-    font-size: 18px;
+    font-size: 20px;
   }
   .step-title {
     font-size: 26px;
@@ -331,12 +331,12 @@ export default {
   width: 80px;
   height: 28px;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 20px;
   text-align: center;
 }
 
 .nav-page {
-  font-size: 18px;
+  font-size: 20px;
   margin-left: 8px;
   margin-right: 8px;
   flex-shrink: 0;
@@ -349,7 +349,7 @@ export default {
   .nav-btn {
     width: 100px;
     height: 36px;
-    font-size: 18px;
+    font-size: 20px;
   }
   .nav-page {
     font-size: 24px;

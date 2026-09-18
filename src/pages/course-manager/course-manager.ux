@@ -20,12 +20,19 @@
           <text class="course-name" style="color: {{ theme.text }}" lines="1">{{ $item.name }}</text>
         </div>
         <div class="item-actions">
-          <input class="edit-btn" type="button" value="编辑" onclick="startRename($idx)" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+          <!-- 确认态下隐藏"编辑"并改显提示，既给出明确文案，也避免误触相邻按钮 -->
+          <text class="item-del-hint" if="{{ deleteConfirmIndex === $idx }}" style="color: {{ theme.deleteText }}">再点确认</text>
+          <input class="edit-btn" if="{{ deleteConfirmIndex !== $idx }}" type="button" value="编辑" onclick="startRename($idx)" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
           <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}" onclick="deleteCourse($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === $idx ? theme.text : theme.deleteText }}" />
         </div>
       </div>
-      <text if="{{ courseList.length === 0 }}" class="empty-hint" style="color: {{ theme.textMuted }}; text-align: center; padding: 40px 10px;">暂无课程</text>
+      <text if="{{ courseList.length === 0 }}" class="empty-hint" style="color: {{ theme.textMuted }}; text-align: center; padding: 40px 10px;">暂无课程，点击右上角 + 添加</text>
     </scroll>
+
+    <div class="undo-bar" if="{{ undoVisible }}">
+      <text class="undo-msg" style="color: {{ theme.text }}">{{ undoMessage }}</text>
+      <text class="undo-btn" onclick="undoDelete" style="color: {{ theme.accent }}">撤销</text>
+    </div>
   </div>
 </template>
 
@@ -77,7 +84,11 @@ export default {
     editingIndex: -1,
     isAdding: false,
     clearAllConfirm: false,
-    deleteConfirmIndex: -1
+    deleteConfirmIndex: -1,
+    undoVisible: false,
+    undoMessage: "",
+    undoBackup: null,
+    undoTimer: null
   },
 
   sortByTime: function(list) {
@@ -243,19 +254,57 @@ export default {
     if (this.deleteConfirmIndex !== idx) {
       this.deleteConfirmIndex = idx
       var self = this
+      // 确认超时后必须给出显式反馈，否则用户再点会误以为"点了没反应"
       this.deleteTimer = setTimeout(function() {
         self.deleteConfirmIndex = -1
-      }, 5000)
+        self.deleteTimer = null
+        prompt.showToast({ message: "已取消删除" })
+      }, 8000)
       return
     }
     if (this.deleteTimer) {
       clearTimeout(this.deleteTimer)
       this.deleteTimer = null
     }
+    // 真正删除：先暂存被删课程，再删除并持久化，然后给 5 秒撤销窗口。
+    // 二次确认只降低误删概率，撤销才能挽回已发生的误删（数据安全性维度）。
+    this.undoBackup = { course: this.courseList[idx], index: idx }
     this.courseList.splice(idx, 1)
     this.deleteConfirmIndex = -1
     this.saveCourses()
-    prompt.showToast({ message: "课程已删除" })
+    this.showUndo("课程已删除")
+  },
+
+  showUndo(message) {
+    this.undoVisible = true
+    this.undoMessage = message
+    var self = this
+    if (this.undoTimer) clearTimeout(this.undoTimer)
+    this.undoTimer = setTimeout(function() {
+      self.hideUndo()
+    }, 5000)
+  },
+
+  hideUndo() {
+    if (this.undoTimer) {
+      clearTimeout(this.undoTimer)
+      this.undoTimer = null
+    }
+    this.undoVisible = false
+  },
+
+  undoDelete() {
+    if (!this.undoBackup) {
+      this.hideUndo()
+      return
+    }
+    // 恢复：把课程按时间重新插入列表并写回，保证顺序正确
+    this.courseList.push(this.undoBackup.course)
+    this.courseList = this.sortByTime(this.courseList)
+    this.saveCourses()
+    this.undoBackup = null
+    this.hideUndo()
+    prompt.showToast({ message: "已恢复", duration: 300 })
   },
 
   clearAllCourses() {
@@ -264,7 +313,9 @@ export default {
       var self = this
       this.clearTimer = setTimeout(function() {
         self.clearAllConfirm = false
-      }, 5000)
+        self.clearTimer = null
+        prompt.showToast({ message: "已取消清除" })
+      }, 8000)
       return
     }
     if (this.clearTimer) {
@@ -289,6 +340,10 @@ export default {
     if (this.clearTimer) {
       clearTimeout(this.clearTimer)
       this.clearTimer = null
+    }
+    if (this.undoTimer) {
+      clearTimeout(this.undoTimer)
+      this.undoTimer = null
     }
   }
 }
@@ -394,6 +449,15 @@ export default {
   margin-left: 6px;
 }
 
+.item-del-hint {
+  font-size: 22px;
+  font-weight: bold;
+  line-height: 30px;
+  text-align: center;
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+
 .item-index {
   width: 30px;
   height: 30px;
@@ -446,18 +510,19 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
-    padding: 30px 12px 56px 12px;
+    padding: 30px 16px 56px 16px;
   }
   .header {
     height: 48px;
     margin-bottom: 8px;
   }
+  /* header 是 ◀ + 标题 + 添加，3×48 会挤没标题，取 44px */
   .back-btn {
     width: 44px;
-    height: 40px;
-    border-radius: 20px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 22px;
-    line-height: 40px;
+    line-height: 44px;
   }
   .title {
     font-size: 26px;
@@ -465,10 +530,10 @@ export default {
   }
   .add-btn {
     width: 64px;
-    height: 40px;
-    border-radius: 20px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 22px;
-    line-height: 36px;
+    line-height: 44px;
   }
   .clear-bar {
     padding: 4px 0;
@@ -479,11 +544,11 @@ export default {
     line-height: 30px;
   }
   .clear-btn {
-    width: 56px;
-    height: 40px;
-    border-radius: 20px;
+    width: 60px;
+    height: 48px;
+    border-radius: 24px;
     font-size: 22px;
-    line-height: 36px;
+    line-height: 48px;
   }
   .course-item {
     flex-direction: column;
@@ -515,19 +580,24 @@ export default {
     margin-left: 0;
     margin-top: 8px;
   }
+  .item-del-hint {
+    font-size: 22px;
+    line-height: 30px;
+    margin-right: 10px;
+  }
   .edit-btn {
     width: 56px;
-    height: 40px;
-    border-radius: 20px;
+    height: 48px;
+    border-radius: 24px;
     font-size: 22px;
-    line-height: 36px;
+    line-height: 48px;
   }
   .delete-btn {
     width: 56px;
-    height: 40px;
-    border-radius: 20px;
+    height: 48px;
+    border-radius: 24px;
     font-size: 22px;
-    line-height: 36px;
+    line-height: 48px;
     margin-left: 10px;
   }
 }
@@ -674,5 +744,30 @@ export default {
     line-height: 40px;
     margin-left: 6px;
   }
+}
+
+.undo-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  flex-direction: row;
+  align-items: center;
+  background-color: #0f3460;
+  padding: 14px 20px;
+  height: 60px;
+}
+.undo-msg {
+  font-size: 24px;
+  flex: 1;
+  lines: 1;
+}
+.undo-btn {
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 32px;
+  text-align: center;
+  flex-shrink: 0;
+  padding: 0 10px;
 }
 </style>

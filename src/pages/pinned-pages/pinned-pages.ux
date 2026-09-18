@@ -152,7 +152,7 @@ export default {
 .empty-icon {
   font-size: 48px;
   margin-bottom: 16px;
-  line-height: 56px;
+  line-height: 58px;
 }
 
 .empty-title {

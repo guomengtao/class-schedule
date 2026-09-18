@@ -77,6 +77,12 @@ var storage = require("@system.storage")
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 
+// 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
+var DEBUG = false
+function dlog() {
+  if (DEBUG) console.log.apply(console, arguments)
+}
+
 var BACKUP_LIST_KEY = "backup_list"
 var MAX_BACKUPS = 20
 
@@ -102,20 +108,20 @@ export default {
   },
 
   _logStatus() {
-    console.log("[BACKUP] ===== ACCOUNT STATUS DEBUG =====")
+    dlog("[BACKUP] ===== ACCOUNT STATUS DEBUG =====")
 
     store.isPremiumUnlocked(function(unlocked) {
-      console.log("[BACKUP] isPremiumUnlocked: " + unlocked)
-      console.log("[BACKUP] status: " + (unlocked ? "高级会员" : "标准版"))
+      dlog("[BACKUP] isPremiumUnlocked: " + unlocked)
+      dlog("[BACKUP] status: " + (unlocked ? "高级会员" : "标准版"))
     })
 
     storage.get({
       key: "premium_unlocked",
       success: function(data) {
-        console.log("[BACKUP] premium_unlocked storage: " + (data || "empty"))
+        dlog("[BACKUP] premium_unlocked storage: " + (data || "empty"))
       },
       fail: function() {
-        console.log("[BACKUP] premium_unlocked storage: NOT FOUND")
+        dlog("[BACKUP] premium_unlocked storage: NOT FOUND")
       }
     })
 
@@ -125,23 +131,23 @@ export default {
         if (data) {
           try {
             var auth = JSON.parse(data)
-            console.log("[BACKUP] auth_data: isActivated=" + auth.isActivated + " | isPermanent=" + auth.isPermanent + " | expireAt=" + (auth.expireAt || "none"))
+            dlog("[BACKUP] auth_data: isActivated=" + auth.isActivated + " | isPermanent=" + auth.isPermanent + " | expireAt=" + (auth.expireAt || "none"))
           } catch (e) {
-            console.log("[BACKUP] auth_data: parse error: " + e.message)
+            dlog("[BACKUP] auth_data: parse error: " + e.message)
           }
         } else {
-          console.log("[BACKUP] auth_data: empty")
+          dlog("[BACKUP] auth_data: empty")
         }
       },
       fail: function() {
-        console.log("[BACKUP] auth_data: NOT FOUND")
+        dlog("[BACKUP] auth_data: NOT FOUND")
       }
     })
-    console.log("[BACKUP] ===== STATUS DEBUG END =====")
+    dlog("[BACKUP] ===== STATUS DEBUG END =====")
   },
 
   onInit() {
-    console.log("[BACKUP] onInit: page created")
+    dlog("[BACKUP] onInit: page created")
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this.loadBackupList()
@@ -149,12 +155,12 @@ export default {
   },
 
   onReady() {
-    console.log("[BACKUP] onReady: all components ready, checking premium...")
+    dlog("[BACKUP] onReady: all components ready, checking premium...")
     this.checkAndShowOverlay()
   },
 
   onShow() {
-    console.log("[BACKUP] onShow: page shown")
+    dlog("[BACKUP] onShow: page shown")
     var self = this
     store.getTheme(function(t) { self.theme = t })
     this._logStatus()
@@ -162,23 +168,23 @@ export default {
   },
 
   checkAndShowOverlay() {
-    console.log("[BACKUP] checkAndShowOverlay: START, calling store.isPremiumUnlocked...")
+    dlog("[BACKUP] checkAndShowOverlay: START, calling store.isPremiumUnlocked...")
     var self = this
     store.isPremiumUnlocked(function(unlocked) {
-      console.log("[BACKUP] checkAndShowOverlay: CALLBACK fired, unlocked=" + unlocked)
+      dlog("[BACKUP] checkAndShowOverlay: CALLBACK fired, unlocked=" + unlocked)
       if (!unlocked) {
-        console.log("[BACKUP] checkAndShowOverlay: setting showDialog=true, was=" + self.showDialog)
+        dlog("[BACKUP] checkAndShowOverlay: setting showDialog=true, was=" + self.showDialog)
         self.showDialog = true
-        console.log("[BACKUP] checkAndShowOverlay: showDialog now=" + self.showDialog)
+        dlog("[BACKUP] checkAndShowOverlay: showDialog now=" + self.showDialog)
       } else {
-        console.log("[BACKUP] checkAndShowOverlay: user IS premium, skip overlay")
+        dlog("[BACKUP] checkAndShowOverlay: user IS premium, skip overlay")
       }
     })
-    console.log("[BACKUP] checkAndShowOverlay: END (async pending)")
+    dlog("[BACKUP] checkAndShowOverlay: END (async pending)")
   },
 
   goToPremium() {
-    console.log("[BACKUP] goToPremium: navigating to premium page")
+    dlog("[BACKUP] goToPremium: navigating to premium page")
     this.showDialog = false
     router.push({ uri: "/pages/activation" })
   },
@@ -231,17 +237,17 @@ export default {
   },
 
   doBackup() {
-    console.log("[BACKUP] doBackup: START, user clicked backup, checking premium...")
+    dlog("[BACKUP] doBackup: START, user clicked backup, checking premium...")
     var self = this
     store.isPremiumUnlocked(function(unlocked) {
-      console.log("[BACKUP] doBackup: CALLBACK, unlocked=" + unlocked + ", showDialog=" + self.showDialog)
+      dlog("[BACKUP] doBackup: CALLBACK, unlocked=" + unlocked + ", showDialog=" + self.showDialog)
       if (unlocked) {
-        console.log("[BACKUP] doBackup: premium, performing backup")
+        dlog("[BACKUP] doBackup: premium, performing backup")
         self.performBackup()
       } else {
-        console.log("[BACKUP] doBackup: NOT premium, setting showDialog=true")
+        dlog("[BACKUP] doBackup: NOT premium, setting showDialog=true")
         self.showDialog = true
-        console.log("[BACKUP] doBackup: showDialog now=" + self.showDialog)
+        dlog("[BACKUP] doBackup: showDialog now=" + self.showDialog)
       }
     })
   },
@@ -334,17 +340,17 @@ export default {
   },
 
   restoreBackup(index) {
-    console.log("[BACKUP] restoreBackup: START, index=" + index + ", checking premium...")
+    dlog("[BACKUP] restoreBackup: START, index=" + index + ", checking premium...")
     var self = this
     store.isPremiumUnlocked(function(unlocked) {
-      console.log("[BACKUP] restoreBackup: CALLBACK, unlocked=" + unlocked + ", showDialog=" + self.showDialog)
+      dlog("[BACKUP] restoreBackup: CALLBACK, unlocked=" + unlocked + ", showDialog=" + self.showDialog)
       if (unlocked) {
-        console.log("[BACKUP] restoreBackup: premium, performing restore")
+        dlog("[BACKUP] restoreBackup: premium, performing restore")
         self.performRestore(index)
       } else {
-        console.log("[BACKUP] restoreBackup: NOT premium, setting showDialog=true")
+        dlog("[BACKUP] restoreBackup: NOT premium, setting showDialog=true")
         self.showDialog = true
-        console.log("[BACKUP] restoreBackup: showDialog now=" + self.showDialog)
+        dlog("[BACKUP] restoreBackup: showDialog now=" + self.showDialog)
       }
     })
   },

@@ -2,12 +2,19 @@
 var store = require("./data/store.js")
 var database = require("./data/database.js")
 var authStore = require("./data/auth-store.js")
+
+// 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
+var DEBUG = false
+function dlog() {
+  if (DEBUG) console.log.apply(console, arguments)
+}
+
 var resident = null
 
 try {
   resident = require("@system.resident")
 } catch (e) {
-  console.warn("[BACKGROUND] resident not available: " + e)
+  dlog("[BACKGROUND] resident not available: " + e)
 }
 
 function startResident() {
@@ -18,14 +25,14 @@ function startResident() {
     resident.start({
       message: "课程表后台运行中",
       success: function() {
-        console.log("[BACKGROUND] resident started")
+        dlog("[BACKGROUND] resident started")
       },
       fail: function(data, code) {
-        console.warn("[BACKGROUND] resident start fail: " + code)
+        dlog("[BACKGROUND] resident start fail: " + code)
       }
     })
   } catch (e) {
-    console.warn("[BACKGROUND] resident error: " + e)
+    dlog("[BACKGROUND] resident error: " + e)
   }
 }
 
@@ -36,14 +43,14 @@ function stopResident() {
   try {
     resident.stop({
       success: function() {
-        console.log("[BACKGROUND] resident stopped")
+        dlog("[BACKGROUND] resident stopped")
       },
       fail: function(data, code) {
-        console.warn("[BACKGROUND] resident stop fail: " + code)
+        dlog("[BACKGROUND] resident stop fail: " + code)
       }
     })
   } catch (e) {
-    console.warn("[BACKGROUND] resident error: " + e)
+    dlog("[BACKGROUND] resident error: " + e)
   }
 }
 

@@ -185,6 +185,7 @@ export default {
     day: "",
     nextId: 100,
     isSaving: false,
+    conflictConfirmed: false,
     timePicker: false,
     pickTarget: "",
     selectedHour: 8,
@@ -439,7 +440,6 @@ export default {
     if (!this.courseTime) { prompt.showToast({ message: "请先设置时间" }); return }
     if (!this.day) { this.setDefaultDay() }
 
-    this.isSaving = true
     var self = this
     var newCourse = {
       id: String(this.nextId),
@@ -449,6 +449,21 @@ export default {
       location: this.courseLocation || "",
       notes: ""
     }
+    // 时间冲突检测：同天已有课程时间重叠时，先提示，需再次确认才保存
+    database.checkDayConflict(this.day, newCourse, null, function(conflict) {
+      if (conflict && !self.conflictConfirmed) {
+        prompt.showToast({ message: "时间冲突：与《" + conflict.name + "》" + conflict.time + " 重叠，再点确认添加" })
+        self.conflictConfirmed = true
+        return
+      }
+      self.conflictConfirmed = false
+      self.doInsert(newCourse)
+    })
+  },
+
+  doInsert(newCourse) {
+    this.isSaving = true
+    var self = this
     this.nextId++
     var storage = require("@system.storage")
     storage.set({ key: "add_course_nextId", value: String(this.nextId) })
@@ -765,28 +780,30 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page-root {
-    padding: 30px 8px 30px 8px;
+    padding: 30px 16px 30px 16px;
   }
   .header {
     margin-bottom: 10px;
   }
+  /* header 只有 ◀ + 标题，宽度够，但 48px 会挤压"添加课程"4 字，
+     故取 44px（原 30px 只有规范要求的 62%） */
   .back-btn {
-    width: 38px;
-    height: 30px;
-    border-radius: 15px;
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 20px;
-    line-height: 28px;
+    line-height: 44px;
   }
   .title {
     font-size: 28px;
     line-height: 36px;
   }
   .mgmt-btn {
-    width: 48px;
-    height: 30px;
-    border-radius: 8px;
+    width: 56px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 22px;
-    line-height: 28px;
+    line-height: 44px;
   }
   .section {
     margin-bottom: 10px;
@@ -856,11 +873,11 @@ export default {
     width: 32px;
   }
   .adjust-btn {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 10px;
     font-size: 24px;
-    line-height: 44px;
+    line-height: 48px;
   }
   .adjust-num {
     font-size: 24px;
@@ -869,10 +886,10 @@ export default {
   }
   .confirm-btn {
     width: 88px;
-    height: 44px;
+    height: 48px;
     border-radius: 10px;
     font-size: 22px;
-    line-height: 44px;
+    line-height: 48px;
   }
   .input-box {
     height: 48px;
@@ -887,15 +904,15 @@ export default {
     font-size: 24px;
     line-height: 32px;
   }
-  /* 星期按钮放大到 44px，保证手指点得准（原先 30px 极易点错星期） */
+  /* 星期按钮放大到 48px，保证手指点得准（原先 30px 极易点错星期） */
   .weekday-scroll {
     width: 100%;
-    height: 48px;
+    height: 52px;
   }
   .weekday-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 22px;
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
     margin: 0 1px;
   }
   .weekday-text {
@@ -909,10 +926,10 @@ export default {
   }
   .cancel-btn {
     width: 100%;
-    height: 44px;
+    height: 48px;
     border-radius: 10px;
     font-size: 24px;
-    line-height: 44px;
+    line-height: 48px;
     margin-bottom: 8px;
   }
   .save-btn {

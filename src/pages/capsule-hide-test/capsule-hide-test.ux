@@ -26,6 +26,12 @@
 <script>
 import router from "@system.router"
 import device from "@system.device"
+
+// 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
+var DEBUG = false
+function dlog() {
+  if (DEBUG) console.log.apply(console, arguments)
+}
 const store = require("../../data/store.js")
 
 export default {
@@ -44,26 +50,26 @@ export default {
 
   onInit() {
     var self = this
-    console.log("[DEBUG] ========== capsule-hide-test onInit START ==========")
+    dlog("[DEBUG] ========== capsule-hide-test onInit START ==========")
     store.getTheme(function(t) { self.theme = t })
 
     device.getInfo({
       success: function(data) {
-        console.log("[DEBUG] device.getInfo SUCCESS, raw data:", JSON.stringify(data))
+        dlog("[DEBUG] device.getInfo SUCCESS, raw data:", JSON.stringify(data))
         self.screenType = data.screenShape || "unknown"
         self.screenTypeLabel = self.translateShape(self.screenType)
-        console.log("[DEBUG] screenShape =", data.screenShape)
-        console.log("[DEBUG] translateShape result =", self.screenTypeLabel)
-        console.log("[DEBUG] screenWidth =", data.screenWidth, "screenHeight =", data.screenHeight)
-        console.log("[DEBUG] isRound =", data.isRound, "shape =", data.shape)
-        console.log("[DEBUG] @media condition: (shape: capsule) OR (shape: pill-shaped)")
+        dlog("[DEBUG] screenShape =", data.screenShape)
+        dlog("[DEBUG] translateShape result =", self.screenTypeLabel)
+        dlog("[DEBUG] screenWidth =", data.screenWidth, "screenHeight =", data.screenHeight)
+        dlog("[DEBUG] isRound =", data.isRound, "shape =", data.shape)
+        dlog("[DEBUG] @media condition: (shape: capsule) OR (shape: pill-shaped)")
         var matchShape = (self.screenType === "capsule" || self.screenType === "pill-shaped")
-        console.log("[DEBUG] shape:", self.screenType, "-> match =", matchShape)
-        console.log("[DEBUG] FINAL: .capsule-hide should hide =", matchShape)
-        console.log("[DEBUG] ========== capsule-hide-test onInit END ==========")
+        dlog("[DEBUG] shape:", self.screenType, "-> match =", matchShape)
+        dlog("[DEBUG] FINAL: .capsule-hide should hide =", matchShape)
+        dlog("[DEBUG] ========== capsule-hide-test onInit END ==========")
       },
       fail: function(err) {
-        console.log("[DEBUG] device.getInfo FAIL, err:", JSON.stringify(err))
+        dlog("[DEBUG] device.getInfo FAIL, err:", JSON.stringify(err))
         self.screenTypeLabel = "获取失败"
       }
     })
@@ -71,7 +77,7 @@ export default {
 
   onShow() {
     var self = this
-    console.log("[DEBUG] onShow triggered, current screenType =", self.screenType)
+    dlog("[DEBUG] onShow triggered, current screenType =", self.screenType)
     store.getTheme(function(t) { self.theme = t })
   },
 

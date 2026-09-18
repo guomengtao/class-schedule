@@ -117,6 +117,12 @@ const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 const device = require("@system.device")
 
+// 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
+var DEBUG = false
+function dlog() {
+  if (DEBUG) console.log.apply(console, arguments)
+}
+
 var isCapsuleScreen = false
 var indexInstance = null
 
@@ -130,6 +136,10 @@ device.getInfo({
     if (indexInstance && indexInstance.isCapsule !== capsule) {
       indexInstance.isCapsule = capsule
       indexInstance.applyFontSizes()
+      // 星期标题是否缩写取决于屏型，回填后需重新计算
+      if (typeof indexInstance.updateDayDisplay === 'function') {
+        try { indexInstance.updateDayDisplay() } catch (e) {}
+      }
       if (indexInstance.initialized && typeof indexInstance.loadDayClasses === 'function') {
         try { indexInstance.loadDayClasses() } catch (e) {}
       }
@@ -169,7 +179,7 @@ loadModule("pinnedPages", require("./modules/pinned-pages.js"))
 loadModule("bottomButtons", require("./modules/bottom-buttons.js"))
 loadModule("classList", require("./modules/class-list.js"))
 
-console.log("[index] SCRIPT loaded, modules:", Object.keys(modules))
+dlog("[index] SCRIPT loaded, modules:", Object.keys(modules))
 
 export default {
   private: {
@@ -915,12 +925,13 @@ export default {
   .schedule-page {
     padding: 44px 36px 44px 36px;
   }
+  /* 圆屏横向空间同样紧张，取 44px 而非规范 48px */
   .nav-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 18px;
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 20px;
-    line-height: 36px;
+    line-height: 44px;
   }
   .day-nav-circle {
     width: 36px;
@@ -941,7 +952,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .schedule-page {
-    padding: 30px 12px 30px 12px;
+    padding: 30px 16px 30px 16px;
   }
   .clock-row {
     padding: 4px 0;
@@ -955,12 +966,14 @@ export default {
     padding: 2px 0;
     margin-bottom: 4px;
   }
+  /* 胶囊屏 header 横向要放 ◀ 标题 [总] ▶，192px 物理宽下
+     3×48px 会把标题挤没，故取 44px 作为物理上限 */
   .nav-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 18px;
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 20px;
-    line-height: 36px;
+    line-height: 44px;
   }
   .day-title {
     font-size: 26px;
@@ -970,9 +983,9 @@ export default {
     lines: 1;
   }
   .day-nav-circle {
-    width: 36px;
-    height: 36px;
-    border-radius: 18px;
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
     margin-left: 2px;
   }
   .day-nav-text {
@@ -1028,20 +1041,20 @@ export default {
     font-size: 20px;
   }
   .add-btn {
-    flex: 0 0 40px;
-    width: 40px;
-    height: 40px;
-    border-radius: 20px;
+    flex: 0 0 48px;
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
     font-size: 24px;
-    line-height: 40px;
+    line-height: 48px;
     margin-right: 4px;
   }
   .style-btn {
     flex: 1;
-    height: 40px;
-    border-radius: 20px;
+    height: 48px;
+    border-radius: 24px;
     font-size: 20px;
-    line-height: 40px;
+    line-height: 48px;
   }
   /* 胶囊屏改为上下两行：课程名独占一行，时间与地点在第二行。
      原先左右并排时课程名只剩约 40px，连一个字都放不下。 */
@@ -1103,12 +1116,13 @@ export default {
     padding: 3px 0;
     margin-bottom: 3px;
   }
+  /* 方屏横向空间充足，按规范取 48px */
   .nav-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 18px;
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
     font-size: 20px;
-    line-height: 36px;
+    line-height: 48px;
   }
   .day-title {
     font-size: 26px;

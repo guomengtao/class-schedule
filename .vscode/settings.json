@@ -1,5 +1,5 @@
 {
     "trae.tab.enableRename": false,
     "trae.tab.enableAutoImport": false,
-    "aiot.emulator.hideQtWindow": false
+    "aiot.emulator.hideQtWindow": true
 }

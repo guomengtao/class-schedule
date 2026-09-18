@@ -135,6 +135,12 @@
 <script>
 import router from "@system.router"
 var pinHelper = require("../../data/pin-helper.js")
+
+// 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
+var DEBUG = false
+function dlog() {
+  if (DEBUG) console.log.apply(console, arguments)
+}
 import vibrator from "@system.vibrator"
 import prompt from "@system.prompt"
 const store = require("../../data/store.js")
@@ -324,7 +330,7 @@ export default {
         currentTaskId = data.id
       },
       fail: function(data, code) {
-        console.warn("[VIBRATION] start fail, code=" + code + ", fallback to vibrate")
+        dlog("[VIBRATION] start fail, code=" + code + ", fallback to vibrate")
         self.fallbackVibrate()
       }
     })
@@ -484,7 +490,7 @@ export default {
       count: pattern.count,
       success: function() {},
       fail: function(data, code) {
-        console.warn("[VIBRATION-LAB] vibrator.start fail, code=" + code + ", fallback")
+        dlog("[VIBRATION-LAB] vibrator.start fail, code=" + code + ", fallback")
         self.fallbackVibratePattern(pattern)
       }
     })

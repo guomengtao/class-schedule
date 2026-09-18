@@ -89,6 +89,12 @@
 <script>
 import router from "@system.router"
 import prompt from "@system.prompt"
+
+// 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
+var DEBUG = false
+function dlog() {
+  if (DEBUG) console.log.apply(console, arguments)
+}
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 
@@ -119,7 +125,7 @@ export default {
     })
   },
   onReady() {
-    console.log("[RESET-DATA] onReady: checking premium...")
+    dlog("[RESET-DATA] onReady: checking premium...")
     this.checkAndShowOverlay()
   },
 
@@ -144,7 +150,7 @@ export default {
       self.presetDone = true
       if (!err) {
         prompt.showToast({ message: "默认课程已恢复" })
-        console.log("[RESET] Course presets restored successfully")
+        dlog("[RESET] Course presets restored successfully")
       } else {
         prompt.showToast({ message: "恢复失败: " + err })
       }
@@ -173,7 +179,7 @@ export default {
         self.fullDone = true
         if (!err && !presetErr) {
           prompt.showToast({ message: "全部数据已重置" })
-          console.log("[RESET] Full demo data restored successfully")
+          dlog("[RESET] Full demo data restored successfully")
         } else {
           prompt.showToast({ message: "重置失败: " + (err || presetErr) })
         }
@@ -202,7 +208,7 @@ export default {
       self.emptyDone = true
       if (!err) {
         prompt.showToast({ message: "已重置为空" })
-        console.log("[RESET] Empty reset completed successfully")
+        dlog("[RESET] Empty reset completed successfully")
       } else {
         prompt.showToast({ message: "重置失败: " + err })
       }
@@ -210,18 +216,18 @@ export default {
   },
 
   checkAndShowOverlay() {
-    console.log("[RESET-DATA] checkAndShowOverlay: checking premium...")
+    dlog("[RESET-DATA] checkAndShowOverlay: checking premium...")
     var self = this
     store.isPremiumUnlocked(function(unlocked) {
       if (!unlocked) {
-        console.log("[RESET-DATA] checkAndShowOverlay: not premium, showing dialog")
+        dlog("[RESET-DATA] checkAndShowOverlay: not premium, showing dialog")
         self.showDialog = true
       }
     })
   },
 
   goToPremium() {
-    console.log("[RESET-DATA] goToPremium: navigating to activation")
+    dlog("[RESET-DATA] goToPremium: navigating to activation")
     this.showDialog = false
     router.push({ uri: "/pages/activation" })
   },

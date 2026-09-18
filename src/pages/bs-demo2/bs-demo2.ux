@@ -87,7 +87,7 @@ export default {
   width: 48px;
   height: 28px;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 20px;
   text-align: center;
 }
 
@@ -104,7 +104,7 @@ export default {
 }
 
 .desc {
-  font-size: 17px;
+  font-size: 20px;
   margin-bottom: 12px;
   padding: 0 4px;
 }
@@ -123,7 +123,7 @@ export default {
 }
 
 .card-text {
-  font-size: 18px;
+  font-size: 20px;
   margin-bottom: 4px;
   line-height: 26px;
 }
@@ -141,12 +141,12 @@ export default {
   width: 80px;
   height: 28px;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 20px;
   text-align: center;
 }
 
 .nav-page {
-  font-size: 18px;
+  font-size: 20px;
   margin-left: 8px;
   margin-right: 8px;
   flex-shrink: 0;

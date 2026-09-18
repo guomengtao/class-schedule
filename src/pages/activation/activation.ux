@@ -233,6 +233,12 @@
 <script>
 import router from "@system.router"
 import prompt from "@system.prompt"
+
+// 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
+var DEBUG = false
+function dlog() {
+  if (DEBUG) console.log.apply(console, arguments)
+}
 import vibrator from "@system.vibrator"
 const store = require("../../data/store.js")
 const authStore = require("../../data/auth-store.js")
@@ -352,7 +358,7 @@ export default {
         }
       })
     } catch (e) {
-      console.warn('[ACTIVATION] loadStatus error: ' + e)
+      dlog('[ACTIVATION] loadStatus error: ' + e)
     }
   },
 
@@ -363,7 +369,7 @@ export default {
         self.historyList = history || []
       })
     } catch (e) {
-      console.warn('[ACTIVATION] loadHistory error: ' + e)
+      dlog('[ACTIVATION] loadHistory error: ' + e)
     }
   },
 
