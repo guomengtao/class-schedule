@@ -4,13 +4,15 @@
       <input class="back-btn" type="button" value="◀" onclick="goBack"
              style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
       <text class="title" style="color: {{ theme.text }}">添加课程</text>
-      <input class="mgmt-btn" type="button" value="管理" onclick="openCourseManager"
-             style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
     </div>
 
     <scroll class="main-scroll" scroll-y="true">
       <div class="section">
-        <text class="section-title" style="color: {{ theme.text }}">选择课程</text>
+        <div class="section-title-row">
+          <text class="section-title" style="color: {{ theme.text }}">选择课程</text>
+          <input class="mgmt-btn" type="button" value="管理" onclick="openCourseManager"
+                 style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+        </div>
         <scroll class="course-scroll" scroll-x="true">
           <div class="course-item {{ courseIndex === idx ? 'course-item-selected' : '' }}"
                for="{{ (idx, c) in presetCourses }}"
@@ -504,13 +506,21 @@ export default {
   flex-shrink: 0;
 }
 
+.section-title-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
 .section-title {
   font-size: 26px;
   line-height: 36px;
   font-weight: bold;
-  margin-bottom: 8px;
   max-lines: 1;
   text-overflow: ellipsis;
+  flex-shrink: 1;
+  margin-right: 8px;
 }
 
 .course-scroll {
@@ -758,10 +768,17 @@ export default {
   .section {
     margin-bottom: 10px;
   }
+  .section-title-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
   .section-title {
     font-size: 24px;
     line-height: 32px;
-    margin-bottom: 6px;
+    flex-shrink: 1;
+    margin-right: 6px;
   }
   .course-scroll {
     height: 60px;
