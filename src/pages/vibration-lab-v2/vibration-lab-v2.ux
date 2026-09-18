@@ -856,4 +856,203 @@ export default {
   text-align: center;
   line-height: 28px;
 }
+
+@media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 30px 8px 16px 8px;
+  }
+
+  .header {
+    margin-bottom: 8px;
+  }
+
+  .back-btn {
+    width: 36px;
+    height: 28px;
+    border-radius: 14px;
+    font-size: 18px;
+    line-height: 28px;
+  }
+
+  .title {
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .hero {
+    padding: 12px 10px;
+    margin-bottom: 8px;
+  }
+
+  .hero-name {
+    font-size: 24px;
+    line-height: 32px;
+  }
+
+  .hero-desc {
+    font-size: 20px;
+    line-height: 26px;
+  }
+
+  .play-btn {
+    width: 70px;
+    height: 36px;
+    border-radius: 6px;
+    font-size: 20px;
+    line-height: 30px;
+    margin-right: 6px;
+  }
+
+  .stop-btn {
+    width: 70px;
+    height: 36px;
+    border-radius: 6px;
+    font-size: 20px;
+    line-height: 30px;
+  }
+
+  .section {
+    padding: 10px 8px;
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-size: 22px;
+    line-height: 30px;
+    margin-bottom: 6px;
+  }
+
+  .section-subtitle {
+    font-size: 20px;
+    line-height: 26px;
+    margin-bottom: 4px;
+  }
+
+  .remind-label {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .toggle-btn {
+    width: 48px;
+    height: 36px;
+    font-size: 20px;
+    line-height: 30px;
+  }
+
+  .minute-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    font-size: 22px;
+    line-height: 32px;
+  }
+
+  .minute-value {
+    font-size: 22px;
+    min-width: 44px;
+    line-height: 30px;
+  }
+
+  .vibe-item {
+    padding: 8px 8px;
+    margin-bottom: 4px;
+  }
+
+  .vibe-label {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .vibe-desc {
+    font-size: 18px;
+    line-height: 26px;
+  }
+
+  .stepper-row {
+    margin-bottom: 6px;
+  }
+
+  .step-btn {
+    width: 38px;
+    height: 34px;
+    border-radius: 6px;
+    font-size: 22px;
+    line-height: 30px;
+  }
+
+  .step-value {
+    font-size: 24px;
+    width: 74px;
+    line-height: 32px;
+  }
+
+  .quick-row {
+    margin-bottom: 6px;
+  }
+
+  .quick-btn {
+    width: 48px;
+    height: 34px;
+    border-radius: 6px;
+    font-size: 20px;
+    line-height: 30px;
+    margin: 0 2px;
+  }
+
+  .preset-item {
+    width: 47%;
+    padding: 8px 6px;
+    margin-bottom: 6px;
+    margin-right: 6%;
+  }
+
+  .preset-name {
+    font-size: 20px;
+    line-height: 26px;
+  }
+
+  .preset-info {
+    font-size: 18px;
+    line-height: 24px;
+  }
+
+  .empty-text {
+    font-size: 20px;
+    line-height: 26px;
+  }
+
+  .saved-item {
+    padding: 8px 8px;
+    margin-bottom: 4px;
+  }
+
+  .saved-name {
+    font-size: 22px;
+    line-height: 30px;
+  }
+
+  .saved-info {
+    font-size: 18px;
+    line-height: 24px;
+  }
+
+  .delete-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+    line-height: 28px;
+  }
+
+  .save-btn {
+    height: 40px;
+    font-size: 24px;
+    line-height: 34px;
+  }
+
+  .pin-link {
+    font-size: 18px;
+    line-height: 24px;
+  }
+}
 </style>
