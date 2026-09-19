@@ -5,9 +5,11 @@
     </div>
 
     <div class="header">
-      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
-      <text class="title-text" style="color: {{ theme.text }}">二维码</text>
-      <div class="spacer"></div>
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">二维码</text>
+      <div class="header-placeholder"></div>
     </div>
 
     <div class="add-btn" onclick="startAdd" style="background-color: {{ theme.card }}">
@@ -389,28 +391,12 @@ export default {
 </script>
 
 <style>
+@import '../../common/header.css';
+
 .page-root {
   flex-direction: column;
   width: 100%;
   padding: 8px;
-}
-
-.header {
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 10px;
-  height: 44px;
-  flex-shrink: 0;
-}
-
-.back-btn {
-  width: 40px;
-  height: 36px;
-  border-radius: 18px;
-  font-size: 22px;
-  line-height: 36px;
-  text-align: center;
-  flex-shrink: 0;
 }
 
 .home-bar {
@@ -426,21 +412,6 @@ export default {
   font-size: 28px;
   font-weight: bold;
   line-height: 34px;
-}
-
-.title-text {
-  flex: 1;
-  font-size: 26px;
-  font-weight: bold;
-  line-height: 34px;
-  text-align: center;
-  margin: 0 4px;
-  lines: 1;
-}
-
-.spacer {
-  width: 40px;
-  flex-shrink: 0;
 }
 
 .add-btn {
@@ -561,22 +532,7 @@ export default {
   .page-root {
     padding: 8px;
   }
-  .header {
-    height: 44px;
-    margin-top: 12px;
-    margin-bottom: 10px;
-  }
-  .back-btn {
-    width: 40px;
-    height: 36px;
-    font-size: 22px;
-    line-height: 36px;
-  }
-  .title-text {
-    font-size: 26px;
-    line-height: 34px;
-  }
-  .home-bar {
+        .home-bar {
     height: 40px;
     margin-bottom: 6px;
   }
@@ -631,22 +587,7 @@ export default {
   .page-root {
     padding: 12px;
   }
-  .header {
-    height: 48px;
-    margin-top: 16px;
-    margin-bottom: 14px;
-  }
-  .back-btn {
-    width: 48px;
-    height: 40px;
-    font-size: 28px;
-    line-height: 40px;
-  }
-  .title-text {
-    font-size: 30px;
-    line-height: 40px;
-  }
-  .home-bar {
+        .home-bar {
     height: 46px;
     margin-bottom: 8px;
   }
@@ -654,10 +595,7 @@ export default {
     width: 32px;
     height: 32px;
   }
-  .spacer {
-    width: 48px;
-  }
-  .add-btn {
+    .add-btn {
     height: 50px;
     margin-bottom: 10px;
   }
@@ -704,22 +642,7 @@ export default {
   .page-root {
     padding: 8px;
   }
-  .header {
-    height: 44px;
-    margin-top: 12px;
-    margin-bottom: 10px;
-  }
-  .back-btn {
-    width: 40px;
-    height: 36px;
-    font-size: 22px;
-    line-height: 36px;
-  }
-  .title-text {
-    font-size: 26px;
-    line-height: 34px;
-  }
-  .home-bar {
+        .home-bar {
     height: 40px;
     margin-bottom: 6px;
   }

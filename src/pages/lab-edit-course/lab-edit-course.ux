@@ -1,8 +1,9 @@
 <template>
   <div class="page-root" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="◀" onclick="goBack"
-             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
       <text class="title" style="color: {{ theme.text }}">编辑课程(胶囊)</text>
       <div class="trash-btn" onclick="onDeleteCourse" style="background-color: {{ deleteConfirm ? theme.deleteText : theme.deleteBg }}">
         <image class="trash-icon" src="../../common/icons/{{ iconTheme }}/icon_trash.png"></image>
@@ -907,4 +908,6 @@ export default {
     font-size: 28px;
   }
 }
+.back-btn-wrapper { width: 48px; height: 40px; border-radius: 8px; justify-content: center; align-items: center; }
+.back-btn-icon { width: 24px; height: 24px; }
 </style>

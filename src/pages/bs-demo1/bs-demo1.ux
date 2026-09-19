@@ -1,8 +1,11 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
       <text class="header-title" style="color: {{ theme.text }}">Demo1: min-height</text>
+      <div class="header-placeholder"></div>
     </div>
 
     <text class="info" style="color: {{ theme.accent }}">测试: 根容器用 min-height:100% (Vela不支持)</text>
@@ -70,6 +73,8 @@ export default {
 </script>
 
 <style>
+@import '../../common/header.css';
+
 .page {
   flex-direction: column;
   padding: 44px 6px 10px 6px;
@@ -80,14 +85,6 @@ export default {
   flex-direction: row;
   align-items: center;
   margin-bottom: 10px;
-}
-
-.back-btn {
-  width: 48px;
-  height: 28px;
-  border-radius: 6px;
-  font-size: 20px;
-  text-align: center;
 }
 
 .header-title {
@@ -134,11 +131,7 @@ export default {
   .back-header {
     margin-bottom: 14px;
   }
-  .back-btn {
-    width: 64px;
-    height: 40px;
-    font-size: 24px;
-  }
+  
   .header-title {
     font-size: 30px;
     margin-left: 12px;
@@ -164,29 +157,9 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  .header {
-    height: 48px;
-    margin-bottom: 8px;
-    flex-direction: row;
-    align-items: center;
-  }
-  .back-btn {
-    width: 48px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 24px;
-    text-align: center;
-    line-height: 40px;
-    flex-shrink: 0;
-  }
-  .title {
-    font-size: 28px;
-    line-height: 44px;
-    text-align: center;
-    flex: 1;
-    lines: 1;
-    margin: 0 4px;
-  }
+  
+  
+  
 
 }
 
@@ -194,11 +167,7 @@ export default {
   .page {
     padding: 44px 6px 6px 6px;
   }
-  .back-btn {
-    width: 50px;
-    height: 40px;
-    font-size: 24px;
-  }
+  
   .header-title {
     font-size: 26px;
   }

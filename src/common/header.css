@@ -4,7 +4,7 @@
 .header {
   flex-direction: row;
   align-items: center;
-  height: 40px;
+  height: 44px;
   margin-bottom: 10px;
 }
 
@@ -29,15 +29,29 @@
 }
 
 .header-placeholder {
-  width: 40px;
-  height: 30px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
+}
+
+.back-btn-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.back-btn-icon {
+  width: 24px;
+  height: 24px;
 }
 
 /* ====== Rect Screen (336x480) ====== */
 @media screen and (shape: rect) {
   .header {
-    height: 44px;
+    height: 48px;
     margin-bottom: 14px;
   }
 
@@ -55,15 +69,20 @@
   }
 
   .header-placeholder {
-    width: 44px;
-    height: 34px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .back-btn-wrapper {
+    width: 48px;
+    height: 48px;
   }
 }
 
 /* ====== Circular Screen (466x466) ====== */
 @media screen and (shape: circle) {
   .header {
-    height: 44px;
+    height: 48px;
     margin-bottom: 14px;
   }
 
@@ -81,7 +100,12 @@
   }
 
   .header-placeholder {
-    width: 44px;
-    height: 34px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .back-btn-wrapper {
+    width: 48px;
+    height: 48px;
   }
 }

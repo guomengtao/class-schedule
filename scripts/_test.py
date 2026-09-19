@@ -1,0 +1,1 @@
+open('/Users/Banner/Documents/guomengtao/tom/class/class/scripts/_test_output.txt','w').write('it_works!')

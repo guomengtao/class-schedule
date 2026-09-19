@@ -3,8 +3,11 @@
   <stack class="page-root">
   <scroll class="page" scroll-y="true" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
-      <text class="title" style="color: {{ theme.text }}">课程表管理</text>
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">课程表管理</text>
+      <div class="header-placeholder"></div>
     </div>
 
     <div class="rename-bar" if="{{ editingIndex >= 0 }}" style="background-color: {{ theme.card }}">
@@ -26,7 +29,7 @@
           <text class="name" style="color: {{ theme.text }}">{{ $item.name }}</text>
           <text class="course-count" style="color: {{ theme.textMuted }}">{{ $item.courseCount }}门</text>
         </div>
-        <text class="expand-arrow" onclick="expandItem($idx)" style="color: {{ theme.accent }}">{{ expandedIndex === $idx ? '▲' : '▼' }}</text>
+        <image class="expand-arrow-img" src="../../common/icons/{{ iconTheme }}/{{ expandedIndex === $idx ? 'icon_chevron_up.png' : 'icon_chevron_down.png' }}" onclick="expandItem($idx)"></image>
       </div>
 
       <div class="actions" if="{{ expandedIndex === $idx }}">
@@ -97,6 +100,7 @@ const database = require("../../data/database.js")
 
 export default {
   private: {
+    iconTheme: "dark",
     list: [],
     currentIndex: 0,
     expandedIndex: -1,
@@ -120,8 +124,9 @@ export default {
 
   onInit() {
     var self = this
-    store.getTheme(function(t) {
+    store.getTheme(function(t, themeName) {
       self.theme = t
+      self.updateIconSrc(themeName)
     })
     this.loadData()
   },
@@ -136,8 +141,9 @@ export default {
 
   onShow() {
     var self = this
-    store.getTheme(function(t) {
+    store.getTheme(function(t, themeName) {
       self.theme = t
+      self.updateIconSrc(themeName)
     })
     this.loadData()
     this.checkAndShowOverlay()
@@ -527,42 +533,21 @@ export default {
       clearTimeout(this.deleteTimer)
       this.deleteTimer = null
     }
+  },
+
+  updateIconSrc(themeName) {
+    this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
   }
 }
 </script>
 
 <style>
+@import '../../common/header.css';
+
 .page {
   flex-direction: column;
   padding: 44px 12px 12px 12px;
   height: 100%;
-}
-
-.header {
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 12px;
-  flex-shrink: 0;
-}
-
-.back-btn {
-  width: 48px;
-  height: 36px;
-  border-radius: 8px;
-  font-size: 28px;
-  text-align: center;
-  flex-shrink: 0;
-  line-height: 36px;
-}
-
-.title {
-  font-size: 30px;
-  font-weight: bold;
-  flex: 1;
-  text-align: center;
-  lines: 1;
-  text-overflow: ellipsis;
-  line-height: 40px;
 }
 
 .footer-actions {
@@ -823,16 +808,8 @@ export default {
   .page {
     padding: 44px 36px 44px 36px;
   }
-  .back-btn {
-    width: 40px;
-    height: 30px;
-    font-size: 20px;
-    line-height: 28px;
-  }
-  .title {
-    font-size: 30px;
-    line-height: 40px;
-  }
+  
+  
   .item {
     padding: 8px 10px;
     margin-bottom: 8px;
@@ -887,29 +864,9 @@ export default {
   .page {
     padding: 30px 16px 30px 16px;
   }
-  .header {
-    height: 48px;
-    margin-bottom: 8px;
-    flex-direction: row;
-    align-items: center;
-  }
-  .back-btn {
-    width: 48px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 24px;
-    text-align: center;
-    line-height: 40px;
-    flex-shrink: 0;
-  }
-  .title {
-    font-size: 28px;
-    line-height: 44px;
-    text-align: center;
-    flex: 1;
-    lines: 1;
-    margin: 0 4px;
-  }
+  
+  
+  
 
   .modal-card {
     width: 90%;

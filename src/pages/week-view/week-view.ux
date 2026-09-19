@@ -2,7 +2,9 @@
   <div class="wv-page" style="background-color:{{ theme.bg }}">
     <!-- header -->
     <div class="wv-header">
-      <input class="wv-back" type="button" value="◀" onclick="goBack" style="background-color:{{ theme.card }};color:{{ theme.accent }}" />
+      <div class="wv-back-wrapper" onclick="goBack" style="background-color:{{ theme.card }}">
+        <image class="wv-back-icon" src="../common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
       <text class="wv-title" style="color:{{ theme.text }}">总课表</text>
     </div>
 
@@ -77,6 +79,7 @@ function dlog() {
 }
 const database = require("../../data/database.js")
 const prompt = require("@system.prompt")
+const device = require("@system.device")
 
 // --- debug logger ---
 var log = (function() {
@@ -204,6 +207,7 @@ export default {
     hideWeekend: true,
     viewIndex: 0,
     todayIndex: 0,
+    isCapsule: false,
     currentCourseDay: "",
     currentCourseTime: "",
     initDone: false,
@@ -264,6 +268,21 @@ export default {
     var dayIdx = now.getDay()
     self.todayIndex = dayIdx === 0 ? 6 : dayIdx - 1
     log("todayIndex=" + self.todayIndex + " dayIdx=" + dayIdx)
+    // 屏型异步返回：胶囊屏下要关闭行号列并收敛列宽，否则可视列数跌到 1.57
+    device.getInfo({
+      success: function(data) {
+        var shape = data.screenShape || ""
+        var capsule = (shape === "capsule" || shape === "pill-shaped")
+        if (self.isCapsule !== capsule) {
+          self.isCapsule = capsule
+          // 模板可能已按默认（非胶囊）应用过，屏型回填后需重新应用
+          if (self.currentTplId) {
+            self.applyTemplate(self.currentTplId)
+          }
+        }
+      },
+      fail: function() {}
+    })
     store.getTheme(function(t) {
       self.theme = t
     })
@@ -370,11 +389,20 @@ export default {
     this.cellRadius = cfg.cellRadius
     this.rowHeight = cfg.rowHeight
     this.cellHeight = cfg.cellHeight
-    this.rowNumWidth = cfg.rowNumWidth
+    // 胶囊屏：行号列会吃掉 40~50px，160px 内容区下可视列数仅 1.57（规范下限 2.5）。
+    // 窄屏关闭行号列，把宽度全部让给课程格。
+    if (this.isCapsule === true) {
+      this.rowNumWidth = 0
+      this.showRowNum = false
+    } else {
+      this.rowNumWidth = cfg.rowNumWidth
+    }
     this.nameFontSize = cfg.nameFontSize
     this.nameLineHeight = cfg.nameLineHeight || (cfg.nameFontSize + 6)
     this.nameFontWeight = cfg.nameFontWeight
-    this.cellWidth = cfg.cellWidth || Math.max(100, this.nameFontSize * 5)
+    var w = cfg.cellWidth || Math.max(100, this.nameFontSize * 5)
+    // 胶囊屏把列宽收敛到 ≤60px：160px 内容区 ÷ 60 ≈ 2.67 列，落入规范 2.5~3.5 区间
+    this.cellWidth = (this.isCapsule === true) ? Math.min(w, 60) : w
     this.rowNumMode = cfg.rowNumMode || "time"
     this.infoFontSize = cfg.infoFontSize
     this.useColorScheme = cfg.useColorScheme
@@ -1046,8 +1074,9 @@ export default {
     font-size: 30px;
     line-height: 40px;
   }
+  /* 模板切换按钮提到规范的 48px */
   .wv-tpl {
-    height: 44px;
+    height: 48px;
     padding: 0 6px;
     margin: 0 2px;
   }
@@ -1056,4 +1085,6 @@ export default {
     line-height: 32px;
   }
 }
+.wv-back-wrapper { width: 52px; height: 48px; border-radius: 8px; justify-content: center; align-items: center; }
+.wv-back-icon { width: 24px; height: 24px; }
 </style>

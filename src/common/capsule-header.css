@@ -1,0 +1,99 @@
+/* ====== Capsule Screen Unified Header Styles ====== */
+/* For all pages: header max 3 elements (back + title + 1 action).
+ * Extra buttons must move to .capsule-toolbar below the header.
+ * Import: @import '../../common/capsule-header.css';
+ * Target: 192px physical width capsule screen (160px content area).
+ */
+
+/* ── Header row: 3 elements max ── */
+.capsule-header {
+  flex-direction: row;
+  align-items: center;
+  height: 44px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.capsule-back {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
+}
+
+.capsule-back > image {
+  width: 24px;
+  height: 24px;
+}
+
+.capsule-title {
+  flex: 1;
+  font-size: 26px;
+  font-weight: bold;
+  text-align: center;
+  lines: 1;
+  text-overflow: ellipsis;
+  line-height: 36px;
+  margin: 0 4px;
+}
+
+.capsule-action {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
+}
+
+.capsule-placeholder {
+  width: 44px;
+  flex-shrink: 0;
+}
+
+/* ── Toolbar row: overflow buttons go here ── */
+.capsule-toolbar {
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  height: 48px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+
+.capsule-tool-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  justify-content: center;
+  align-items: center;
+}
+
+.capsule-tool-text {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 28px;
+}
+
+.capsule-tool-label {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 28px;
+}
+
+/* ── Toolbar with wider buttons for text labels ── */
+.capsule-tool-wide {
+  width: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+  height: 44px;
+  border-radius: 22px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}

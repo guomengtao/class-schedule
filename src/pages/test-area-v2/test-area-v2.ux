@@ -1,8 +1,11 @@
 <template>
   <div class="page-root" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
-      <text class="title" style="color: {{ theme.text }}">测试区</text>
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">测试区</text>
+      <div class="header-placeholder"></div>
       <div class="spacer"></div>
     </div>
 
@@ -59,39 +62,13 @@ export default {
 </script>
 
 <style>
+@import '../../common/header.css';
+
 .page-root {
   flex-direction: column;
   width: 100%;
   height: 100%;
   padding: 8px;
-}
-
-.header {
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 10px;
-  height: 44px;
-  flex-shrink: 0;
-}
-
-.back-btn {
-  width: 40px;
-  height: 36px;
-  border-radius: 18px;
-  font-size: 22px;
-  line-height: 36px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.title {
-  flex: 1;
-  font-size: 26px;
-  font-weight: bold;
-  line-height: 34px;
-  text-align: center;
-  margin: 0 4px;
-  lines: 1;
 }
 
 .spacer {
@@ -126,20 +103,9 @@ export default {
   .page-root {
     padding: 8px;
   }
-  .header {
-    height: 44px;
-    margin-bottom: 10px;
-  }
-  .back-btn {
-    width: 40px;
-    height: 36px;
-    font-size: 22px;
-    line-height: 36px;
-  }
-  .title {
-    font-size: 26px;
-    line-height: 34px;
-  }
+  
+  
+  
   .card {
     padding: 10px 12px;
     margin-bottom: 6px;
@@ -158,20 +124,9 @@ export default {
   .page-root {
     padding: 12px;
   }
-  .header {
-    height: 48px;
-    margin-bottom: 14px;
-  }
-  .back-btn {
-    width: 48px;
-    height: 40px;
-    font-size: 28px;
-    line-height: 40px;
-  }
-  .title {
-    font-size: 30px;
-    line-height: 40px;
-  }
+  
+  
+  
   .spacer {
     width: 48px;
   }
@@ -193,20 +148,9 @@ export default {
   .page-root {
     padding: 8px;
   }
-  .header {
-    height: 44px;
-    margin-bottom: 10px;
-  }
-  .back-btn {
-    width: 40px;
-    height: 36px;
-    font-size: 22px;
-    line-height: 36px;
-  }
-  .title {
-    font-size: 26px;
-    line-height: 34px;
-  }
+  
+  
+  
   .card {
     padding: 12px 16px;
     margin-bottom: 6px;

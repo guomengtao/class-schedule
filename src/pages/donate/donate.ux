@@ -2,9 +2,11 @@
   <div class="page-root" style="background-color: {{ theme.bg }}">
 
     <div class="header">
-      <text class="back-btn" onclick="goBack"
-            style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
-      <text class="title" style="color: {{ theme.text }}">打赏支持</text>
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">打赏支持</text>
+      <div class="header-placeholder"></div>
     </div>
 
     <div class="content-area">
@@ -103,38 +105,13 @@ export default {
 </script>
 
 <style>
+@import '../../common/header.css';
+
 .page-root {
   flex-direction: column;
   width: 100%;
   height: 100%;
   padding: 44px 8px 20px 8px;
-}
-
-.header {
-  flex-direction: row;
-  align-items: center;
-  height: 40px;
-  flex-shrink: 0;
-}
-
-.back-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
-  font-size: 22px;
-  line-height: 40px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.title {
-  flex: 1;
-  font-size: 26px;
-  font-weight: bold;
-  line-height: 40px;
-  text-align: center;
-  lines: 1;
-  margin: 0 4px;
 }
 
 .content-area {
@@ -197,20 +174,9 @@ export default {
   .page-root {
     padding: 44px 8px 20px 8px;
   }
-  .header {
-    height: 40px;
-  }
-  .back-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 22px;
-    line-height: 40px;
-  }
-  .title {
-    font-size: 26px;
-    line-height: 40px;
-  }
+  
+  
+  
   .qr-card {
     padding: 14px 12px;
     border-radius: 16px;
@@ -246,20 +212,9 @@ export default {
   .page-root {
     padding: 40px 12px 20px 12px;
   }
-  .header {
-    height: 44px;
-  }
-  .back-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 22px;
-    font-size: 24px;
-    line-height: 44px;
-  }
-  .title {
-    font-size: 28px;
-    line-height: 44px;
-  }
+  
+  
+  
   .qr-card {
     padding: 18px 16px;
     border-radius: 18px;
@@ -295,21 +250,9 @@ export default {
   .page-root {
     padding: 50px 28px 36px 28px;
   }
-  .header {
-    height: 38px;
-  }
-  .back-btn {
-    width: 38px;
-    height: 38px;
-    border-radius: 19px;
-    font-size: 22px;
-    line-height: 38px;
-  }
-  .title {
-    font-size: 26px;
-    line-height: 38px;
-    margin: 0 2px;
-  }
+  
+  
+  
   .qr-card {
     padding: 12px 10px;
     border-radius: 14px;

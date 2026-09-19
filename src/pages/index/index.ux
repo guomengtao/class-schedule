@@ -5,20 +5,37 @@
     </div>
 
     <div class="header">
-      <input class="nav-btn" type="button" value="&#9664;" onclick="prevDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <div class="nav-btn-circle" onclick="prevDay" style="background-color: {{ theme.cardLight }}">
+        <image class="nav-btn-img" src="../../common/icons/{{ iconTheme }}/icon_arrow_left.png"></image>
+      </div>
       <text class="day-title" style="font-size: {{ dayTitleSize }}px; color: {{ theme.text }}">{{ dayDisplayText }}</text>
-      <div class="day-nav-btns">
+      <div class="day-nav-btns" if="{{ !isCapsule }}">
         <div class="day-nav-circle" onclick="goToWeekView" if="{{ showDayNavZong }}" style="background-color: {{ theme.cardLight }}">
           <text class="day-nav-text" style="color: {{ theme.accent }}">总</text>
         </div>
-        <div class="day-nav-circle" onclick="goToToday" if="{{ !isCapsule && showDayNavJin }}" style="background-color: {{ theme.cardLight }}">
+        <div class="day-nav-circle" onclick="goToToday" if="{{ showDayNavJin }}" style="background-color: {{ theme.cardLight }}">
           <text class="day-nav-text" style="color: {{ theme.accent }}">今</text>
         </div>
-        <div class="day-nav-circle" onclick="goToTomorrow" if="{{ !isCapsule && showDayNavMing }}" style="background-color: {{ theme.cardLight }}">
+        <div class="day-nav-circle" onclick="goToTomorrow" if="{{ showDayNavMing }}" style="background-color: {{ theme.cardLight }}">
           <text class="day-nav-text" style="color: {{ theme.accent }}">明</text>
         </div>
       </div>
-      <input class="nav-btn" type="button" value="&#9654;" onclick="nextDay" style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <div class="nav-btn-circle" onclick="nextDay" style="background-color: {{ theme.cardLight }}">
+        <image class="nav-btn-img" src="../../common/icons/{{ iconTheme }}/icon_arrow_right.png"></image>
+      </div>
+    </div>
+
+    <!-- Capsule screen: overflow day-nav buttons moved below header -->
+    <div class="nav-toolbar" if="{{ isCapsule && (showDayNavZong || showDayNavJin || showDayNavMing) }}">
+      <div class="day-nav-circle" onclick="goToWeekView" if="{{ showDayNavZong }}" style="background-color: {{ theme.cardLight }}">
+        <text class="day-nav-text" style="color: {{ theme.accent }}">总</text>
+      </div>
+      <div class="day-nav-circle" onclick="goToToday" if="{{ showDayNavJin }}" style="background-color: {{ theme.cardLight }}">
+        <text class="day-nav-text" style="color: {{ theme.accent }}">今</text>
+      </div>
+      <div class="day-nav-circle" onclick="goToTomorrow" if="{{ showDayNavMing }}" style="background-color: {{ theme.cardLight }}">
+        <text class="day-nav-text" style="color: {{ theme.accent }}">明</text>
+      </div>
     </div>
 
     <div class="custom-content-bar" if="{{ showCustomContent && customContent }}" style="background-color: {{ theme.cardLight }}">
@@ -82,7 +99,7 @@
         <text class="quick-add-title" style="color: {{ theme.accent }}">快速添加</text>
         <div class="quick-add-info">
           <text class="quick-add-time" if="{{ quickAdd.expanded }}" style="color: {{ theme.textSecondary }}">{{ quickAdd.time }}</text>
-          <text class="quick-add-arrow" style="color: {{ theme.accent }}">{{ quickAdd.expanded ? '▲' : '▼' }}</text>
+          <image class="quick-add-arrow-img" src="../../common/icons/{{ iconTheme }}/{{ quickAdd.expanded ? 'icon_chevron_up' : 'icon_chevron_down' }}.png"></image>
         </div>
       </div>
       <div class="quick-add-row-scroll" if="{{ quickAdd.expanded }}">
@@ -101,12 +118,16 @@
     
 
     <div class="bottom-buttons">
-      <input class="add-btn" type="button" value="{{ isCapsule ? '+' : '+ 添加课程' }}" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <div class="add-btn-wrapper" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}">
+        <image class="add-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_plus.png"></image>
+        <text class="add-btn-label" if="{{ !isCapsule }}" style="color: {{ theme.bg }}">添加课程</text>
+      </div>
       <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
     </div>
 
     <div class="week-indicator" onclick="openScheduleManager">
-      <text class="week-text" style="color: {{ theme.accent }}">⇄ {{ currentScheduleName }}</text>
+      <image class="week-swap-icon" src="../../common/icons/{{ iconTheme }}/icon_swap.png"></image>
+      <text class="week-text" style="color: {{ theme.accent }}">{{ currentScheduleName }}</text>
     </div>
   </div>
 </template>
@@ -184,6 +205,7 @@ dlog("[index] SCRIPT loaded, modules:", Object.keys(modules))
 export default {
   private: {
     isCapsule: false,
+    iconTheme: "dark",
     isLoading: true,
     loadError: false,
     skeletonCards: [1, 2, 3],
@@ -243,7 +265,10 @@ export default {
     self.isLoading = true
     self.loadError = false
     self._skipNextShow = true
-    store.getTheme(function(t) { self.theme = t })
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
     self.loadHomepageSettings()
 
     self._loadTimeout = setTimeout(function() {
@@ -273,7 +298,10 @@ export default {
     if (!self.initialized) return
 
     self.isCapsule = isCapsuleScreen
-    store.getTheme(function(t) { self.theme = t })
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
     self.loadHomepageSettings()
 
     // onInit 刚刚完成首次加载，这里不重复整条读取链
@@ -468,9 +496,10 @@ export default {
   },
 
   onBackPress() {
-    var app = require("@system.app")
-    app.exit()
-    return true
+    // 同上：退出成功才消费返回键；失败要 return false 交还系统默认行为，
+    // 否则会出现"按返回键无反应、应用退不出去"。
+    var utils = require("../../data/utils.js")
+    return utils.exitApp() === true
   },
 
   retryLoad() {
@@ -534,6 +563,10 @@ export default {
       if (self.loadDayClasses && typeof self.loadDayClasses === 'function') self.loadDayClasses()
       if (self.updateStatus && typeof self.updateStatus === 'function') self.updateStatus()
     })
+  },
+
+  updateIconSrc(themeName) {
+    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
   }
 }
 </script>
@@ -575,18 +608,32 @@ export default {
   flex: 1;
   }
 
-.nav-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 22px;
-  font-size: 24px;
-  line-height: 44px;
-  text-align: center;
-  border-width: 0;
+.nav-btn-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.nav-btn-img {
+  width: 24px;
+  height: 24px;
 }
 
 .day-nav-btns {
   flex-direction: row;
+}
+
+.nav-toolbar {
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  height: 48px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+  padding: 0 4px;
 }
 
 .day-nav-circle {
@@ -826,9 +873,10 @@ export default {
   line-height: 28px;
 }
 
-.quick-add-arrow {
-  font-size: 20px;
-  line-height: 28px;
+.quick-add-arrow-img {
+  width: 20px;
+  height: 20px;
+  margin-left: 4px;
 }
 
 .quick-add-row-scroll {
@@ -871,16 +919,26 @@ export default {
   flex-shrink: 0;
 }
 
-.add-btn {
+.add-btn-wrapper {
   flex: 1;
   height: 44px;
   border-radius: 22px;
-  font-size: 20px;
-  font-weight: bold;
-  text-align: center;
   border-width: 0;
   margin-right: 4px;
-  line-height: 44px;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.add-btn-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.add-btn-label {
+  font-size: 20px;
+  font-weight: bold;
+  margin-left: 4px;
 }
 
 .style-btn {
@@ -898,10 +956,17 @@ export default {
   padding: 12px 8px;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  flex-direction: row;
+}
+
+.week-swap-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
 }
 
 .week-text {
+  flex-shrink: 0;
   font-size: 20px;
   line-height: 28px;
   text-align: center;
@@ -926,12 +991,16 @@ export default {
     padding: 44px 36px 44px 36px;
   }
   /* 圆屏横向空间同样紧张，取 44px 而非规范 48px */
-  .nav-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 22px;
-    font-size: 20px;
-    line-height: 44px;
+  /* 胶囊屏 header 实际只有 ◀ + 标题 + ▶（总/今/明已移到 nav-toolbar），
+     48×2 = 96px，标题仍有 64px（单字 26px 绰绰有余），可提到 48px */
+  .nav-btn-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+  }
+  .nav-btn-img {
+    width: 22px;
+    height: 22px;
   }
   .day-nav-circle {
     width: 36px;
@@ -939,11 +1008,17 @@ export default {
     border-radius: 18px;
     margin-left: 2px;
   }
-  .add-btn,
+  .add-btn-wrapper,
   .style-btn {
     height: 40px;
     border-radius: 20px;
-    font-size: 20px;
+  }
+  .add-btn-icon {
+    width: 22px;
+    height: 22px;
+  }
+  .add-btn-label {
+    font-size: 18px;
   }
   .bottom-buttons {
     margin-bottom: 8px;
@@ -968,12 +1043,16 @@ export default {
   }
   /* 胶囊屏 header 横向要放 ◀ 标题 [总] ▶，192px 物理宽下
      3×48px 会把标题挤没，故取 44px 作为物理上限 */
-  .nav-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 22px;
-    font-size: 20px;
-    line-height: 44px;
+  /* 胶囊屏 header 实际只有 ◀ + 标题 + ▶（总/今/明已移到 nav-toolbar），
+     48×2 = 96px，标题仍有 64px（单字 26px 绰绰有余），可提到 48px */
+  .nav-btn-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+  }
+  .nav-btn-img {
+    width: 22px;
+    height: 22px;
   }
   .day-title {
     font-size: 26px;
@@ -982,10 +1061,12 @@ export default {
     flex: 1;
     lines: 1;
   }
+  /* 胶囊屏下「总 / 今 / 明」已移到 header 下方的 nav-toolbar，不再与标题抢宽度，
+     48×3 + 间距 = 150px < 160px 内容区，可提到规范的 48px */
   .day-nav-circle {
-    width: 44px;
-    height: 44px;
-    border-radius: 22px;
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
     margin-left: 2px;
   }
   .day-nav-text {
@@ -1040,14 +1121,21 @@ export default {
   .quick-add-tag-text {
     font-size: 20px;
   }
-  .add-btn {
+  .add-btn-wrapper {
     flex: 0 0 48px;
     width: 48px;
     height: 48px;
     border-radius: 24px;
-    font-size: 24px;
-    line-height: 48px;
     margin-right: 4px;
+    justify-content: center;
+    align-items: center;
+  }
+  .add-btn-icon {
+    width: 24px;
+    height: 24px;
+  }
+  .add-btn-label {
+    display: none;
   }
   .style-btn {
     flex: 1;
@@ -1117,12 +1205,9 @@ export default {
     margin-bottom: 3px;
   }
   /* 方屏横向空间充足，按规范取 48px */
-  .nav-btn {
+  .nav-btn-img {
     width: 48px;
     height: 48px;
-    border-radius: 24px;
-    font-size: 20px;
-    line-height: 48px;
   }
   .day-title {
     font-size: 26px;
@@ -1226,12 +1311,14 @@ export default {
     margin-right: 5px;
     line-height: 28px;
   }
-  .quick-add-arrow {
-    font-size: 20px;
-    line-height: 28px;
+  .quick-add-arrow-img {
+    width: 20px;
+    height: 20px;
+    margin-left: 4px;
   }
+  /* 快捷添加标签按钮提到规范的 48px（容器跟随） */
   .quick-add-scroll {
-    height: 44px;
+    height: 48px;
   }
   .quick-add-tag {
     border-radius: 20px;
@@ -1247,13 +1334,18 @@ export default {
     line-height: 28px;
     padding: 5px 10px;
   }
-  .add-btn {
+  .add-btn-wrapper {
     flex: 1;
     height: 42px;
     border-radius: 21px;
-    font-size: 20px;
-    line-height: 42px;
     margin-right: 3px;
+  }
+  .add-btn-icon {
+    width: 24px;
+    height: 24px;
+  }
+  .add-btn-label {
+    font-size: 20px;
   }
   .style-btn {
     flex: 1;

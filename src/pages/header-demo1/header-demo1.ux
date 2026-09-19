@@ -2,8 +2,9 @@
   <div class="page-root" style="background-color: {{ theme.bg }}">
     <!-- Header: CSS classes from @import '../../common/header.css' -->
     <div class="header">
-      <input class="header-back" type="button" value="◀" onclick="goBack"
-             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
       <text class="header-title" style="color: {{ theme.text }}">Header Demo 1</text>
       <div class="header-placeholder"></div>
     </div>
@@ -58,6 +59,7 @@ const store = require("../../data/store.js")
 
 export default {
   private: {
+    iconTheme: "dark",
     theme: {
       bg: "#1a1a2e",
       card: "#16213e",
@@ -70,12 +72,22 @@ export default {
 
   onInit() {
     var self = this
-    store.getTheme(function(t) { self.theme = t })
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
   },
 
   onShow() {
     var self = this
-    store.getTheme(function(t) { self.theme = t })
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
+  },
+
+  updateIconSrc(themeName) {
+    this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
   },
 
   goBack() {
@@ -228,4 +240,5 @@ export default {
     font-size: 20px;
   }
 }
+
 </style>

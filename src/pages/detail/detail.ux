@@ -742,8 +742,8 @@ export default {
 }
 
 .header-trash-btn {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 10px;
   justify-content: center;
   align-items: center;
@@ -756,11 +756,11 @@ export default {
 
 .back-btn {
   width: 48px;
-  height: 40px;
-  border-radius: 8px;
+  height: 48px;
+  border-radius: 10px;
   font-size: 28px;
   text-align: center;
-  line-height: 36px;
+  line-height: 48px;
 }
 
 .title {
@@ -1079,11 +1079,12 @@ export default {
 
 .keyboard-done-btn {
   width: 56px;
-  height: 34px;
-  border-radius: 8px;
+  height: 44px;
+  border-radius: 10px;
   font-size: 24px;
   font-weight: bold;
   text-align: center;
+  line-height: 44px;
 }
 
 @media (shape: circle) {
@@ -1094,9 +1095,10 @@ export default {
     margin-bottom: 12px;
   }
   .back-btn {
-    width: 44px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     font-size: 28px;
+    line-height: 48px;
   }
   .title {
     font-size: 36px;
@@ -1126,8 +1128,8 @@ export default {
     font-size: 28px;
   }
   .stepper-btn {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     font-size: 24px;
   }
   .stepper-val {
@@ -1165,34 +1167,42 @@ export default {
   .edit-course-page {
     padding: 38px 16px 50px 16px;
   }
+  /* 胶囊屏 header 改两行：第一行放两个按钮（48px 达标），第二行标题独占整宽。
+     此前 48×3 = 144px 会把 160px 内容区里的标题挤到只剩 16px，只能在
+     「按钮 44px」和「标题看不见」之间二选一；换行后两者兼得。
+     竖向 +34px，根容器是 scroll，可滚动消化。 */
   .header {
-    height: 48px;
+    height: auto;
     margin-bottom: 8px;
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
   }
-  /* 垃圾桶是破坏性操作，36px 既容易点空也容易误触，提到 44px */
+  /* header 换行后按钮不再与标题抢宽度，可以提到规范的 48px */
   .back-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 22px;
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
     font-size: 20px;
     text-align: center;
-    line-height: 44px;
+    line-height: 48px;
     flex-shrink: 0;
   }
   .header-trash-btn {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     flex-shrink: 0;
   }
   .title {
     font-size: 24px;
     line-height: 34px;
     text-align: center;
-    flex: 1;
+    /* order 让标题排到两个按钮之后，配合 width:100% 换到第二行独占整宽 */
+    order: 1;
+    width: 100%;
+    flex: 0 0 100%;
     lines: 1;
-    margin: 0 2px;
+    margin: 4px 0 0 0;
     text-overflow: ellipsis;
   }
   .step-indicator {
@@ -1218,23 +1228,32 @@ export default {
     line-height: 28px;
     margin-bottom: 10px;
   }
-  /* 箭头用固定窄宽度，卡片自适应剩余空间，避免两者相加超出屏幕 */
-  /* 轮播箭头再大就会挤压中间的课程卡片，取 44px 并同步收窄宽度 */
+  /* 轮播区改纵向：卡片独占第一行（全宽 160px），两个箭头落到第二行两端。
+     横向布局下箭头 48×2 = 96px 会把卡片压到 56px（课名只剩 2 字），等于
+     牺牲已达标的可读性；改纵向后箭头 48px 达标，卡片反而由 80px 变全宽。 */
+  .swiper-wrapper {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
   .swipe-arrow {
-    width: 36px;
-    height: 44px;
-    border-radius: 18px;
+    order: 1;
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
     font-size: 22px;
-    line-height: 42px;
+    line-height: 46px;
     flex-shrink: 0;
+    margin-top: 8px;
   }
   .course-card {
-    flex: 1 1 auto;
-    width: auto;
+    order: 0;
+    flex: 0 0 100%;
+    width: 100%;
     min-width: 0;
     height: 80px;
     padding: 12px;
-    margin: 0 4px;
+    margin: 0;
   }
   .card-course-name {
     font-size: 24px;
@@ -1316,8 +1335,9 @@ export default {
     padding: 6px;
     margin-bottom: 6px;
   }
+  /* 地点框点击唤起键盘，属触控目标，提到规范的 48px */
   .location-display {
-    height: 44px;
+    height: 48px;
     padding: 0 10px;
   }
   .location-text {
@@ -1381,9 +1401,10 @@ export default {
     margin-bottom: 10px;
   }
   .back-btn {
-    width: 44px;
-    height: 36px;
+    width: 48px;
+    height: 48px;
     font-size: 28px;
+    line-height: 48px;
   }
   .title {
     font-size: 34px;
@@ -1442,18 +1463,18 @@ export default {
   .next-btn,
   .save-btn {
     flex: 1;
-    height: 42px;
+    height: 48px;
     font-size: 24px;
-    line-height: 40px;
-    border-radius: 21px;
+    line-height: 48px;
+    border-radius: 24px;
     lines: 1;
   }
   .manage-btn {
     width: 80px;
-    height: 42px;
+    height: 48px;
     font-size: 24px;
-    line-height: 40px;
-    border-radius: 21px;
+    line-height: 48px;
+    border-radius: 24px;
     lines: 1;
   }
 }

@@ -2,7 +2,9 @@
 <template>
   <div class="settings-page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
       <text class="header-title" style="color: {{ theme.text }}">设置</text>
     </div>
 
@@ -42,7 +44,7 @@
 
     <div class="group" style="background-color: {{ theme.card }}">
       <div class="group-title-row" onclick="toggleFontSize">
-        <text class="group-title" style="color: {{ theme.text }}">字体大小</text>
+        <text class="group-title" style="color: {{ theme.text }}">首页课程字号</text>
         <div class="row-right">
           <text class="row-hint" style="color: {{ theme.textMuted }}">{{ displaySize }}px</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">{{ showFontSize ? 'v' : '›' }}</text>
@@ -57,6 +59,9 @@
         <div class="preview-box" style="background-color: {{ theme.cardLight }}">
           <text class="preview-text" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">数学 08:00</text>
         </div>
+        <!-- 本项设计上只作用于首页课程卡片（其余页面用固定字号保证布局与触控达标），
+             必须显式告知用户作用范围，否则会被理解为"设置没生效" -->
+        <text class="scope-hint" style="color: {{ theme.textMuted }}">仅影响首页课程卡片，其他页面为固定字号</text>
       </div>
     </div>
 
@@ -131,6 +136,22 @@
           <text class="row-label" style="color: {{ theme.text }}">震动自定义 V2</text>
           <div class="row-right">
             <text class="row-hint" style="color: {{ theme.textMuted }}">胶囊版</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="openHeaderDemo1">
+          <text class="row-label" style="color: {{ theme.text }}">Header Demo1</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">CSS共享头部</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="openHeaderDemo2">
+          <text class="row-label" style="color: {{ theme.text }}">Header Demo2</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">CSS共享头部</text>
             <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
           </div>
         </div>
@@ -333,8 +354,9 @@ export default {
     var self = this
     this.currentThemeKey = themeKey
     store.setTheme(themeKey, function() {
-      store.getTheme(function(t) {
+      store.getTheme(function(t, themeName) {
         self.theme = t
+        self.updateIconSrc(themeName)
       })
     })
   },
@@ -414,6 +436,14 @@ export default {
 
   openVibrationLabV2() {
     router.push({ uri: "/pages/vibration-lab-v2" })
+  },
+
+  openHeaderDemo1() {
+    router.push({ uri: "/pages/header-demo1" })
+  },
+
+  openHeaderDemo2() {
+    router.push({ uri: "/pages/header-demo2" })
   },
 
   openTestArea() {
@@ -514,13 +544,17 @@ export default {
   padding: 0 4px;
 }
 
-.back-btn {
+.back-btn-wrapper {
   width: 48px;
   height: 40px;
   border-radius: 8px;
-  font-size: 22px;
-  text-align: center;
-  line-height: 40px;
+  justify-content: center;
+  align-items: center;
+}
+
+.back-btn-icon {
+  width: 24px;
+  height: 24px;
 }
 
 .header-title {
@@ -658,6 +692,14 @@ export default {
   text-align: center;
 }
 
+/* 作用范围说明：20px 为规范下限，行高取 1.2 倍 */
+.scope-hint {
+  font-size: 20px;
+  line-height: 24px;
+  text-align: center;
+  margin-top: 8px;
+}
+
 .toggle-btn {
   width: 60px;
   height: 36px;
@@ -760,11 +802,9 @@ export default {
     padding: 0 20px;
     justify-content: center;
   }
-  .back-btn {
+  .back-btn-wrapper {
     width: 52px;
     height: 40px;
-    font-size: 24px;
-    line-height: 40px;
   }
   .header-title {
     font-size: 30px;
@@ -816,13 +856,10 @@ export default {
     flex-direction: row;
     align-items: center;
   }
-  .back-btn {
+  .back-btn-wrapper {
     width: 48px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 24px;
-    text-align: center;
-    line-height: 40px;
+    height: 48px;
+    border-radius: 24px;
     flex-shrink: 0;
   }
   .header-title {
@@ -871,18 +908,18 @@ export default {
   }
 
   .modal-btn-primary {
-    height: 44px;
-    border-radius: 22px;
+    height: 48px;
+    border-radius: 24px;
     font-size: 24px;
     margin-bottom: 8px;
-    line-height: 44px;
+    line-height: 48px;
   }
 
   .modal-btn-secondary {
-    height: 38px;
-    border-radius: 19px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 22px;
-    line-height: 38px;
+    line-height: 44px;
   }
 
   .theme-name {
@@ -906,11 +943,9 @@ export default {
   .back-header {
     margin-bottom: 6px;
   }
-  .back-btn {
+  .back-btn-wrapper {
     width: 50px;
-    height: 40px;
-    font-size: 24px;
-    line-height: 40px;
+    height: 48px;
   }
   .header-title {
     font-size: 30px;
@@ -926,14 +961,14 @@ export default {
   }
   .toggle-btn {
     width: 52px;
-    height: 38px;
+    height: 48px;
     font-size: 24px;
-    line-height: 38px;
+    line-height: 48px;
   }
   .save-btn {
-    height: 42px;
+    height: 48px;
     font-size: 24px;
-    line-height: 42px;
+    line-height: 48px;
   }
 }
 </style>
