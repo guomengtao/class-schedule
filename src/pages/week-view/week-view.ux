@@ -3,7 +3,7 @@
     <!-- header -->
     <div class="wv-header">
       <div class="wv-back-wrapper" onclick="goBack" style="background-color:{{ theme.card }}">
-        <image class="wv-back-icon" src="../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="wv-back-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="wv-title" style="color:{{ theme.text }}">总课表</text>
     </div>
@@ -15,11 +15,11 @@
         <div class="wv-day-row">
           <text if="{{ showRowNum }}" class="wv-day-spacer" style="width:{{ rowNumWidth }}px"></text>
           <text if="{{ !showRowNum }}" class="wv-day-spacer" style="width:0px"></text>
-          <text class="wv-day-cell {{ $idx === todayIndex ? 'wv-today' : '' }}" for="{{ weekDays }}" style="width:{{ cellWidth }}px;color:{{ $idx === todayIndex ? theme.accent : theme.textSecondary }}">{{ $item }}</text>
+          <text class="wv-day-cell {{ $idx === todayIndex ? 'wv-today' : '' }}" for="{{ weekDays }}" lines="1" style="width:{{ cellWidth }}px;color:{{ $idx === todayIndex ? theme.accent : theme.textSecondary }}">{{ $item }}</text>
         </div>
         <div for="{{ skeletonRows }}" class="wv-row" style="min-height:{{ rowHeight }}px">
           <text if="{{ showRowNum }}" class="wv-time" style="width:{{ rowNumWidth }}px"></text>
-          <text if="{{ !showRowNum }}" class="wv-time" style="width:0px"></text>
+          <text if="{{ !showRowNum }}" class="wv-time" style="width:0px;padding-right:0"></text>
           <div class="wv-cells">
             <div for="{{ weekDays }}" class="wv-skel-cell" style="width:{{ cellWidth }}px;height:{{ cellHeight }}px;border-radius:{{ cellRadius }};background-color:{{ theme.borderLight }};"></div>
           </div>
@@ -32,19 +32,19 @@
         <div class="wv-day-row">
           <text if="{{ showRowNum }}" class="wv-day-spacer" style="width:{{ rowNumWidth }}px"></text>
           <text if="{{ !showRowNum }}" class="wv-day-spacer" style="width:0px"></text>
-          <text class="wv-day-cell {{ $idx === todayIndex ? 'wv-today' : '' }}" for="{{ weekDays }}" style="width:{{ cellWidth }}px;color:{{ $idx === todayIndex ? theme.accent : theme.textSecondary }};font-size:{{ transparentCells ? '20px' : '' }}">{{ $item }}</text>
+          <text class="wv-day-cell {{ $idx === todayIndex ? 'wv-today' : '' }}" for="{{ weekDays }}" lines="1" style="width:{{ cellWidth }}px;color:{{ $idx === todayIndex ? theme.accent : theme.textSecondary }};font-size:{{ transparentCells ? '20px' : '' }}">{{ $item }}</text>
         </div>
 
         <!-- course rows -->
         <div for="{{ timeSlots }}" class="wv-row" style="min-height:{{ rowHeight }}px">
           <text if="{{ showRowNum }}" class="wv-time" style="width:{{ rowNumWidth }}px;color:{{ theme.textSecondary }}">{{ rowNumMode === 'index' ? ($idx + 1) : $item.time }}</text>
-          <text if="{{ !showRowNum }}" class="wv-time" style="width:0px"></text>
+          <text if="{{ !showRowNum }}" class="wv-time" style="width:0px;padding-right:0"></text>
           <div class="wv-cells">
-            <div for="{{ $item.cells }}" class="wv-cell {{ $item.isCurrent ? 'wv-now' : '' }} {{ !$item.course ? 'wv-cell-empty' : '' }} {{ transparentCells ? 'wv-cell-text' : '' }}" onclick="showDetail($item.day, $item.course)" style="width:{{ cellWidth }}px;background-color:{{ getCellBg($item.course) }};border-radius:{{ cellRadius }};height:{{ cellHeight }}px">
+            <div for="{{ $item.cells }}" class="wv-cell {{ $item.isCurrent ? 'wv-now' : '' }} {{ !$item.course ? 'wv-cell-empty' : '' }} {{ transparentCells ? 'wv-cell-text' : '' }} {{ cellBordered ? 'wv-cell-bordered' : '' }}" onclick="showDetail($item.day, $item.course)" style="width:{{ cellWidth }}px;margin:{{ cellMargin }}px;background-color:{{ getCellBg($item.course) }};border-radius:{{ cellRadius }};height:{{ cellHeight }}px;{{ cellBordered ? 'border-color:' + theme.borderLight : '' }}">
               <text if="{{ $item.course }}" class="wv-name" style="color:{{ getCellTextColor($item.course) }};font-size:{{ nameFontSize }}px;line-height:{{ nameLineHeight }}px;font-weight:{{ nameFontWeight }}">{{ getDisplayName($item.course) }}</text>
               <text if="{{ $item.course && showRoom && $item.course.location }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.location }}</text>
               <text if="{{ $item.course && showTeacher && $item.course.teacher }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.teacher }}</text>
-              <text if="{{ $item.course && $item.course.extraCount > 0 }}" class="wv-extra" style="color:{{ theme.textMuted }}">+{{ $item.course.extraCount }}</text>
+              <text if="{{ $item.course && $item.course.extraCount > 0 && currentTplId !== 'minimal-char' && currentTplId !== 'minimal-clean' }}" class="wv-extra" style="color:{{ theme.textMuted }}">+{{ $item.course.extraCount }}</text>
               <text if="{{ !$item.course && !transparentCells }}" class="wv-empty" style="color:{{ theme.textMuted }}">·</text>
             </div>
           </div>
@@ -102,6 +102,35 @@ var DAY_NAME_MAP = {
   "Thursday": "Thursday", "Friday": "Friday", "Saturday": "Saturday", "Sunday": "Sunday"
 }
 
+// Week-view compute cache: avoids rebuilding timeSlots when data/template unchanged
+var _renderCache = null
+
+// Data-layer cache: stores raw allCourses to skip storage I/O across template switches
+var _cachedAllCourses = null
+var _cachedViewIndex = -1
+
+function dataFingerprint(allCourses) {
+  var parts = []
+  var keys = Object.keys(allCourses).sort()
+  for (var i = 0; i < keys.length; i++) {
+    var day = keys[i]
+    var courses = allCourses[day] || []
+    for (var j = 0; j < courses.length; j++) {
+      parts.push(day + "|" + courses[j].id + "|" + courses[j].time + "|" + courses[j].name)
+    }
+  }
+  return parts.join(",")
+}
+
+function clearRenderCache() {
+  _renderCache = null
+}
+
+function clearDataCache() {
+  _cachedAllCourses = null
+  _cachedViewIndex = -1
+}
+
 var SUBJECT_COLORS = {
   "math": "rgba(74,144,217,0.3)",
   "eng": "rgba(80,184,108,0.3)",
@@ -147,17 +176,17 @@ var TEMPLATE_CONFIGS = {
   "minimal-char": {
     showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
     showDayCount: false, showTotal: false,
-    nameDisplay: "full",
+    nameDisplay: "char",
     dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
-    cellRadius: "12px", rowHeight: 60, cellHeight: 56, rowNumWidth: 0,
-    nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "bold", infoFontSize: 0,
-    useColorScheme: true, denseMode: false, cellWidth: 60
+    cellRadius: "6px", rowHeight: 58, cellHeight: 52, rowNumWidth: 0,
+    nameFontSize: 36, nameLineHeight: 42, nameFontWeight: "bold", infoFontSize: 0,
+    useColorScheme: true, denseMode: false, cellWidth: 42, cellMargin: 0
   },
   "minimal-en": {
     showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
     showDayCount: false, showTotal: false,
     nameDisplay: "en-abbr",
-    dayLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    dayLabels: ["M", "T", "W", "T", "F", "S", "S"],
     cellRadius: "8px", rowHeight: 54, cellHeight: 50, rowNumWidth: 0,
     nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "bold", infoFontSize: 0,
     useColorScheme: true, denseMode: false, cellWidth: 60
@@ -174,17 +203,27 @@ var TEMPLATE_CONFIGS = {
   "compact-grid": {
     showRowNum: true, showRoom: false, showTeacher: false, showTime: false,
     showDayCount: true, showTotal: true,
-    nameDisplay: "full",
+    nameDisplay: "char",
     dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
-    cellRadius: "3px", rowHeight: 52, cellHeight: 48, rowNumWidth: 40,
-    nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "normal", infoFontSize: 0,
-    useColorScheme: true, denseMode: true, cellWidth: 50, rowNumMode: "index"
+    cellRadius: "4px", rowHeight: 54, cellHeight: 48, rowNumWidth: 40,
+    nameFontSize: 32, nameLineHeight: 38, nameFontWeight: "bold", infoFontSize: 0,
+    useColorScheme: true, denseMode: true, cellWidth: 40, rowNumMode: "index",
+    cellBordered: true, cellMargin: 0
+  },
+  "minimal-clean": {
+    showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
+    showDayCount: false, showTotal: false,
+    nameDisplay: "char",
+    dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
+    cellRadius: "10px", rowHeight: 66, cellHeight: 58, rowNumWidth: 0,
+    nameFontSize: 24, nameLineHeight: 30, nameFontWeight: "normal", infoFontSize: 0,
+    useColorScheme: true, denseMode: false, cellWidth: 42, cellMargin: 0
   },
   "color-pastel": {
     showRowNum: true, showRoom: false, showTeacher: false, showTime: true,
     showDayCount: false, showTotal: true,
     nameDisplay: "full",
-    dayLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
     cellRadius: "10px", rowHeight: 72, cellHeight: 64, rowNumWidth: 50,
     nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "normal", infoFontSize: 0,
     useColorScheme: false, denseMode: false, rowNumMode: "index", cellWidth: 70
@@ -216,10 +255,11 @@ export default {
     currentTplId: "minimal-char",
     templateList: [
       { id: "minimal-char", label: "极简", activeColor: "#e67e22" },
+      { id: "minimal-clean", label: "清爽", activeColor: "#27ae60" },
       { id: "standard-block", label: "标准", activeColor: "#3498db" },
       { id: "compact-grid", label: "紧凑", activeColor: "#2ecc71" },
       { id: "minimal-en", label: "英文", activeColor: "#9b59b6" },
-      { id: "color-pastel", label: "柔和", activeColor: "#e74c3c" }
+      { id: "color-pastel", label: "跟随系统", activeColor: "#e74c3c" }
     ],
     // template config
     showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
@@ -345,6 +385,7 @@ export default {
         self.firstLoad = false
         return
       }
+      clearDataCache()
       var storage = require("@system.storage")
       storage.get({
         key: "weekview_index",
@@ -372,8 +413,19 @@ export default {
   switchTemplate(id) {
     var self = this
     log("switchTemplate -> " + id)
+    clearRenderCache()
     self.applyTemplate(id)
     store.setWeekViewTemplate(id)
+
+    // Reuse data-layer cache if available, skip storage I/O
+    if (_cachedAllCourses && _cachedViewIndex === self.viewIndex) {
+      log("switchTemplate data cache hit, re-rendering")
+      self.isLoading = true
+      self.renderScheduleData(_cachedAllCourses)
+      return
+    }
+
+    // Fallback: no cache yet, read from storage
     self.isLoading = true
     self.loadData()
   },
@@ -410,9 +462,11 @@ export default {
     this.infoFontSize = cfg.infoFontSize
     this.useColorScheme = cfg.useColorScheme
     this.transparentCells = cfg.transparentCells === true
+    this.cellBordered = cfg.cellBordered === true
+    this.cellMargin = cfg.cellMargin !== undefined ? cfg.cellMargin : 1
     this.templateDayLabels = cfg.dayLabels || ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"]
     this.applyWeekendFilter()
-    this.gridContentWidth = this.rowNumWidth + this.weekDays.length * this.cellWidth
+    this.gridContentWidth = this.rowNumWidth + this.weekDays.length * (this.cellWidth + 2 * this.cellMargin + (this.cellBordered ? 2 : 0))
   },
 
   applyWeekendFilter() {
@@ -445,6 +499,13 @@ export default {
         }
       })
     })
+
+    // Check data-layer cache: if we already loaded this viewIndex, skip I/O
+    if (_cachedAllCourses && _cachedViewIndex === self.viewIndex) {
+      log("loadData data cache hit, skipping storage I/O")
+      self.renderScheduleData(_cachedAllCourses)
+      return
+    }
 
     var dataLoaded = false
     database.getAllCoursesWithIndex(this.viewIndex, function(schedule) {
@@ -497,6 +558,11 @@ export default {
       }
 
       self.renderScheduleData(allCourses)
+
+      // Save to data-layer cache for template switches
+      _cachedAllCourses = allCourses
+      _cachedViewIndex = self.viewIndex
+      log("loadData saved to data cache viewIndex=" + self.viewIndex)
     })
 
     setTimeout(function() {
@@ -538,6 +604,22 @@ export default {
   renderScheduleData(allCourses) {
     var self = this
     log("renderScheduleData displayDayNames=" + JSON.stringify(self.displayDayNames) + " allCourses keys=" + Object.keys(allCourses).join(","))
+
+    // Compute cache key: data fingerprint + template + weekend + capsule
+    var fp = dataFingerprint(allCourses)
+    var cacheKey = self.viewIndex + "|" + self.currentTplId + "|" + self.hideWeekend + "|" + self.isCapsule
+
+    if (_renderCache && _renderCache.key === cacheKey && _renderCache.fp === fp) {
+      log("renderScheduleData cache hit, skipping rebuild")
+      self.timeSlots = _renderCache.timeSlots
+      self.totalCourses = _renderCache.totalCourses
+      self.totalDays = _renderCache.totalDays
+      self.dayCounts = _renderCache.dayCounts
+      self.detectCurrentCourse(allCourses)
+      self.isLoading = false
+      return
+    }
+
     // log per-day course list
     var dayNames = self.displayDayNames
     for (var d = 0; d < dayNames.length; d++) {
@@ -571,6 +653,17 @@ export default {
     }
     self.dayCounts = dayCounts
     log("renderScheduleData dayCounts=" + JSON.stringify(dayCounts))
+
+    // Save to cache
+    _renderCache = {
+      key: cacheKey,
+      fp: fp,
+      timeSlots: self.timeSlots,
+      totalCourses: total,
+      totalDays: totalDays,
+      dayCounts: dayCounts
+    }
+
     self.isLoading = false
   },
 
@@ -872,6 +965,10 @@ export default {
   opacity: 0.3;
 }
 
+.wv-cell-bordered {
+  border: 1px solid;
+}
+
 .wv-cell-text {
   background-color: transparent !important;
   margin: 2px 1px;
@@ -1038,16 +1135,13 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .wv-page {
-    padding: 30px 16px 30px 16px;
+    padding: 44px 0 8px 0;
   }
   .wv-header {
     margin-bottom: 8px;
   }
-  .wv-back {
-    width: 48px;
-    height: 48px;
-    font-size: 24px;
-    line-height: 48px;
+  .wv-grid-scroll {
+    padding: 0;
   }
   .wv-title {
     font-size: 30px;
