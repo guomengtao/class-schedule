@@ -99,7 +99,7 @@
       <div class="quick-add-header" onclick="quickAdd.toggle">
         <text class="quick-add-title" style="color: {{ theme.accent }}">快速添加</text>
         <div class="quick-add-info">
-          <text class="quick-add-time" if="{{ quickAdd.expanded }}" style="color: {{ theme.textSecondary }}">{{ quickAdd.time }}</text>
+          <text class="quick-add-time" if="{{ quickAdd.expanded && !isCapsule }}" style="color: {{ theme.textSecondary }}">{{ quickAdd.time }}</text>
           <image class="quick-add-arrow-img" src="../../common/icons/{{ iconTheme }}/{{ quickAdd.expanded ? 'icon_chevron_up' : 'icon_chevron_down' }}.png"></image>
         </div>
       </div>
@@ -110,6 +110,9 @@
           <div class="quick-add-tags">
             <div for="{{ quickAdd.courseNames }}" class="quick-add-tag" onclick="quickAdd.addCourse($item)" style="background-color: {{ theme.cardLight }}">
               <text class="quick-add-tag-text" style="color: {{ theme.text }}">{{ $item }}</text>
+            </div>
+            <div class="quick-add-tag quick-add-plus" onclick="openCourseManager" style="background-color: {{ theme.cardLight }}">
+              <text class="quick-add-tag-text" style="color: {{ theme.accent }}">+</text>
             </div>
           </div>
         </scroll>
@@ -623,6 +626,10 @@ export default {
     })
   },
 
+  openCourseManager() {
+    router.push({ uri: "/pages/course-manager" })
+  },
+
   goToTomorrow() {
     var self = this
     store.getHideWeekend(function(hide) {
@@ -992,6 +999,11 @@ export default {
 .quick-add-tag-text {
   font-size: 20px;
   line-height: 28px;
+}
+
+.quick-add-plus .quick-add-tag-text {
+  font-size: 24px;
+  font-weight: bold;
 }
 
 .quick-add-empty {
