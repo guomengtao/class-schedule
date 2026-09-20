@@ -2,8 +2,10 @@
 description: 
 alwaysApply: true
 enabled: true
-updatedAt: 2026-09-19T09:36:49.663Z
+updatedAt: 2026-09-20T02:56:32.528Z
 provider: 
 ---
 
-每次对话完成，用mac的弹出和语音 给我通知，提醒我一下
+开发优先适配 胶囊屏幕 ，确保窄屏幕显示合理。
+每次对话完成，用mac的先弹出系统通知，再语音播报（中文），提醒用户。语音用 say -v Tingting。
+所有md文件必须使用中文书写。

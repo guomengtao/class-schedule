@@ -8,9 +8,19 @@ var fullDayNames = ["星期日", "星期一", "星期二", "星期三", "星期�
 // 胶囊屏只展示开始时间，避免时间文本过长把地点挤掉。
 function shortenTime(timeStr, capsule) {
   if (!capsule) return timeStr
-  var parts = timeStr.split("-")
-  if (parts.length < 2) return timeStr
-  return parts[0].trim()
+  return timeStr.replace(/ - /g, "-")
+}
+
+// 估算文本渲染宽度：中文/全角字 = fontSize, 数字/字母 = fontSize * 0.55
+function estimateTextWidth(text, fontSize) {
+  if (!text || !fontSize) return 0
+  var width = 0
+  for (var i = 0; i < text.length; i++) {
+    var code = text.charCodeAt(i)
+    if (code > 127) { width += fontSize }
+    else { width += Math.round(fontSize * 0.55) }
+  }
+  return width
 }
 
 function getRealTodayName() {
@@ -26,7 +36,6 @@ function init(instance) {
   instance.currentClasses = []
   instance.currentScheduleName = "课程表1"
   instance.progressTimer = null
-
   store.getCurrentScheduleIndex(function(idx) {
     store.getScheduleNames(function(names) {
       if (names && idx < names.length) {
@@ -49,6 +58,8 @@ function init(instance) {
     var rawClasses = dayData ? dayData.classes : []
     var classes = []
     var capsule = self.isCapsule === true
+    // 胶囊屏卡片正文字体区域可用宽度：屏幕198 - 页padding32 - 卡片accent5 - body padding20 = 141, 留余量取120
+    var capsuleCardTextWidth = 120
     var currentFontSize = self.displaySize
     var currentMetaFontSize = self.metaFontSize
     // 行高固定为字号的 1.2 倍，避免行高小于字号导致文字上下被裁切/重叠
@@ -56,6 +67,10 @@ function init(instance) {
     var currentMetaLineHeight = Math.round(currentMetaFontSize * 1.2)
     for (var j = 0; j < rawClasses.length; j++) {
       var src = rawClasses[j]
+      var nameWidth = estimateTextWidth(src.name, currentFontSize)
+      var locWidth = estimateTextWidth(src.location || "", currentMetaFontSize)
+      // 胶囊屏：课程名 + 空格 + 教室 超出可用宽度时需要换行
+      var needsWrap = capsule && src.location && (nameWidth + currentMetaFontSize * 0.3 + locWidth) > capsuleCardTextWidth
       classes.push({
         id: src.id,
         name: src.name,
@@ -63,6 +78,7 @@ function init(instance) {
         timeDisplay: shortenTime(src.time, capsule),
         teacher: src.teacher || "",
         location: src.location || "",
+        locationWrap: needsWrap,
         progress: 0,
         progressColor: "transparent",
         fontSize: currentFontSize,

@@ -221,11 +221,25 @@ function getAllCoursesStorageWithIndex(index, callback) {
   })
 }
 
+// 每次写盘成功后累加版本号。首页（index）返回前台时比对这个值，
+// 只要不一致就强制重新读盘 —— 解决"从编辑页删除后回首页，列表还留着已删课程"的问题。
+function markDataDirty() {
+  try {
+    storage.set({
+      key: STORAGE_KEY + "_dirty",
+      value: String(Date.now()),
+      success: function() {},
+      fail: function() {}
+    })
+  } catch (e) {}
+}
+
 function saveToStorageWithIndex(index, schedule, callback) {
   storage.set({
     key: STORAGE_KEY + "_" + index,
     value: JSON.stringify(schedule),
     success: function() {
+      markDataDirty()
       if (callback) callback(null)
     },
     fail: function(e) {

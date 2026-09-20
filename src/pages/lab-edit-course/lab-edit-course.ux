@@ -25,13 +25,11 @@
       <text class="step-sub" style="color: {{ theme.textSecondary }}">共 {{ demoCourses.length }} 门</text>
 
       <div class="swiper-row">
-        <input class="arrow-btn" type="button" value="◀" onclick="swipePrev"
-               style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+        <image class="arrow-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_arrow_left.png" onclick="swipePrev" style="background-color: {{ theme.cardLight }}" />
         <div class="course-card" onclick="swipeNext" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
           <text class="card-name" style="color: {{ theme.text }}">{{ demoCourses[courseIndex].name }}</text>
         </div>
-        <input class="arrow-btn" type="button" value="▶" onclick="swipeNext"
-               style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+        <image class="arrow-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_arrow_right.png" onclick="swipeNext" style="background-color: {{ theme.cardLight }}" />
       </div>
 
       <text class="index-text" style="color: {{ theme.textMuted }}">{{ courseIndex + 1 }} / {{ demoCourses.length }}</text>
@@ -469,16 +467,10 @@ export default {
   margin-bottom: 8px;
 }
 
-.arrow-btn {
+.arrow-btn-icon {
   width: 36px;
   height: 36px;
   border-radius: 18px;
-  font-size: 22px;
-  line-height: 32px;
-  font-weight: bold;
-  text-align: center;
-  background-color: transparent;
-  border: none;
 }
 
 .course-card {
@@ -714,11 +706,10 @@ export default {
     height: 120px;
     padding: 24px;
   }
-  .arrow-btn {
+  .arrow-btn-icon {
     width: 50px;
     height: 50px;
     border-radius: 25px;
-    font-size: 28px;
   }
   .dot {
     width: 20px;
@@ -785,12 +776,10 @@ export default {
     padding: 16px;
     border-radius: 12px;
   }
-  .arrow-btn {
+  .arrow-btn-icon {
     width: 44px;
     height: 44px;
     border-radius: 22px;
-    font-size: 24px;
-    line-height: 40px;
   }
   .index-text {
     font-size: 20px;
@@ -881,10 +870,9 @@ export default {
   .card-name {
     font-size: 32px;
   }
-  .arrow-btn {
+  .arrow-btn-icon {
     width: 44px;
     height: 44px;
-    font-size: 26px;
   }
   .manage-btn,
   .next-btn,

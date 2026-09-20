@@ -142,6 +142,12 @@ var tables = [
     desc: "多文件 Demo 列表",
     columns: ["id", "name", "time"],
     type: "array"
+  },
+  {
+    key: "homepage_template",
+    desc: "首页模板选择",
+    columns: ["value"],
+    type: "value"
   }
 ]
 

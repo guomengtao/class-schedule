@@ -1,11 +1,10 @@
 <template>
   <scroll class="edit-course-page" scroll-y="true" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <text class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}; color: {{ theme.accent }}">◀</text>
-      <text class="title" style="color: {{ theme.text }}">编辑课程</text>
-      <div class="header-trash-btn" onclick="deleteCourse" style="background-color: {{ deleteConfirm ? theme.deleteText : theme.deleteBg }}">
-        <image class="header-trash-icon" src="../../common/icons/{{ iconTheme }}/icon_trash.png"></image>
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
+      <text class="title" style="color: {{ theme.text }}">编辑课程</text>
     </div>
 
     <div class="step-indicator">
@@ -18,30 +17,39 @@
       <text class="step-dot {{ step >= 4 ? 'active' : '' }}" style="background-color: {{ step >= 4 ? theme.accent : theme.border }}"></text>
     </div>
 
-    <div class="form-section" if="{{ step === 1 }}">
-      <text class="step-title" style="color: {{ theme.text }}">选择</text>
-      <text class="step-hint" style="color: {{ theme.textSecondary }}">{{ presetCourses.length }}门</text>
-
-      <div class="swiper-wrapper">
-        <input class="swipe-arrow" type="button" value="◀" onclick="swipePrev" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
-        <div class="course-card" if="{{ courseIndex < presetCourses.length }}" onclick="swipeNext" style="background-color: {{ theme.card }}">
-          <text class="card-course-name" style="color: {{ theme.text }}">{{ presetCourses[courseIndex].name }}</text>
-        </div>
-        <div class="course-card add-card" if="{{ courseIndex === presetCourses.length }}" onclick="openCourseManager" style="background-color: {{ theme.cardLight }}">
-          <text class="add-card-icon" style="color: {{ theme.accent }}">+</text>
-        </div>
-        <input class="swipe-arrow" type="button" value="▶" onclick="swipeNext" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
-      </div>
-
-      <text class="course-index-hint" style="color: {{ theme.textMuted }}">{{ courseIndex < presetCourses.length ? courseIndex + 1 : '+' }} / {{ presetCourses.length + 1 }}</text>
-
-      <div class="step-nav">
-        <input class="manage-btn" type="button" value="管理" onclick="openCourseManager" style="height: 48px; background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-        <input class="next-btn" type="button" value="下一步" onclick="nextStep" style="height: 48px; background-color: {{ courseIndex < presetCourses.length ? theme.accent : theme.border }}; color: {{ courseIndex < presetCourses.length ? theme.bg : theme.textMuted }}" />
-      </div>
+    <div class="missing-state" if="{{ courseMissing }}" style="background-color: {{ theme.card }}; border-color: {{ theme.border }}">
+      <text class="missing-title" style="color: {{ theme.text }}">这门课已经不在了</text>
+      <text class="missing-desc" style="color: {{ theme.textSecondary }}">它可能已被删除，或被移到了其他星期</text>
+      <text class="missing-desc" style="color: {{ theme.textMuted }}">你可以返回首页，或重新添加一门课程</text>
+      <input class="missing-btn" type="button" value="返回首页" onclick="goBack" style="height: 48px; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="missing-btn-ghost" type="button" value="去添加课程" onclick="openAddCourse" style="height: 48px; background-color: transparent; border-color: {{ theme.accent }}; color: {{ theme.accent }}" />
     </div>
 
-    <div class="form-section" if="{{ step === 2 }}">
+    <div class="form-section" if="{{ !courseMissing && step === 1 }}">
+      <text class="step-title" style="color: {{ theme.text }}">选择课程</text>
+      <text class="step-hint" style="color: {{ theme.textSecondary }}">共 {{ presetCourses.length }} 门 · 可左右滑动</text>
+
+      <div class="swiper-wrapper">
+        <image class="swipe-arrow-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png" onclick="swipePrev" style="background-color: {{ theme.cardLight }}" />
+        <div class="course-card" if="{{ courseIndex < presetCourses.length }}" onclick="swipeNext" onswipe="onCardSwipe" ontouchstart="onCardTouchStart" ontouchend="onCardTouchEnd" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+          <text class="card-course-name" style="color: {{ theme.text }}">{{ presetCourses[courseIndex].name }}</text>
+        </div>
+        <div class="course-card add-card" if="{{ courseIndex === presetCourses.length }}" onclick="openCourseManager" onswipe="onCardSwipe" ontouchstart="onCardTouchStart" ontouchend="onCardTouchEnd" style="background-color: {{ theme.cardLight }}; border-color: {{ theme.border }}">
+          <text class="add-card-icon" style="color: {{ theme.accent }}">+</text>
+        </div>
+        <image class="swipe-arrow-icon" src="../../common/icons/{{ iconTheme }}/icon_chevron_right.png" onclick="swipeNext" style="background-color: {{ theme.cardLight }}" />
+      </div>
+
+      <text class="course-index-hint" style="color: {{ theme.textSecondary }}">{{ courseIndex < presetCourses.length ? courseIndex + 1 : '+' }} / {{ presetCourses.length + 1 }}</text>
+
+      <div class="step-nav">
+        <input class="step-delete-btn" type="button" value="删除" onclick="deleteCourse" style="height: 48px; background-color: {{ deleteConfirm ? theme.deleteText : 'transparent' }}; border-color: {{ theme.deleteText }}; color: {{ deleteConfirm ? theme.text : theme.deleteText }}" />
+        <input class="next-btn" type="button" value="下一步" onclick="nextStep" style="height: 48px; background-color: {{ courseIndex < presetCourses.length ? theme.accent : theme.border }}; color: {{ courseIndex < presetCourses.length ? theme.bg : theme.textMuted }}" />
+      </div>
+      <text class="delete-hint" if="{{ deleteConfirm }}" style="color: {{ theme.deleteText }}">再次点击确认删除</text>
+    </div>
+
+    <div class="form-section" if="{{ !courseMissing && step === 2 }}">
       <text class="step-title" style="color: {{ theme.text }}">时间 · {{ courseName }}</text>
 
       <text class="picker-label" style="color: {{ theme.text }}">开始</text>
@@ -82,7 +90,7 @@
       </div>
     </div>
 
-    <div class="form-section" if="{{ step === 3 }}">
+    <div class="form-section" if="{{ !courseMissing && step === 3 }}">
       <text class="step-title" style="color: {{ theme.text }}">位置与星期</text>
       <text class="step-hint" style="color: {{ theme.textSecondary }}">{{ courseName }} | {{ courseTime }}</text>
       <div class="location-display" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
@@ -92,31 +100,32 @@
       <text class="optional-hint" style="color: {{ theme.textMuted }}">选填</text>
 
       <text class="weekday-label" style="color: {{ theme.accent }}">上课日</text>
-      <scroll scroll-x="true" class="weekday-scroll">
+      <scroll scroll-x="true" class="weekday-scroll" id="weekdayScroll" scroll-left="{{ weekdayScrollLeft }}">
         <div class="weekday-row">
-          <div class="weekday-btn {{ dayIndex === 1 ? 'weekday-btn-active' : '' }}" onclick="selectDay(1)" style="background-color: {{ dayIndex === 1 ? theme.accent : theme.card }}">
-            <text class="weekday-text" style="color: {{ dayIndex === 1 ? theme.bg : theme.text }}">一</text>
+          <div class="weekday-btn {{ dayIndex === 1 ? (dayConfirmed ? 'weekday-btn-active' : 'weekday-btn-pending') : '' }}" onclick="selectDay(1)" ontouchstart="onDayTouch" style="background-color: {{ dayIndex === 1 ? (dayConfirmed ? theme.accent : 'transparent') : theme.card }}; border-color: {{ dayIndex === 1 ? theme.accent : 'transparent' }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 1 ? (dayConfirmed ? theme.bg : theme.accent) : theme.text }}">一</text>
           </div>
-          <div class="weekday-btn {{ dayIndex === 2 ? 'weekday-btn-active' : '' }}" onclick="selectDay(2)" style="background-color: {{ dayIndex === 2 ? theme.accent : theme.card }}">
-            <text class="weekday-text" style="color: {{ dayIndex === 2 ? theme.bg : theme.text }}">二</text>
+          <div class="weekday-btn {{ dayIndex === 2 ? (dayConfirmed ? 'weekday-btn-active' : 'weekday-btn-pending') : '' }}" onclick="selectDay(2)" ontouchstart="onDayTouch" style="background-color: {{ dayIndex === 2 ? (dayConfirmed ? theme.accent : 'transparent') : theme.card }}; border-color: {{ dayIndex === 2 ? theme.accent : 'transparent' }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 2 ? (dayConfirmed ? theme.bg : theme.accent) : theme.text }}">二</text>
           </div>
-          <div class="weekday-btn {{ dayIndex === 3 ? 'weekday-btn-active' : '' }}" onclick="selectDay(3)" style="background-color: {{ dayIndex === 3 ? theme.accent : theme.card }}">
-            <text class="weekday-text" style="color: {{ dayIndex === 3 ? theme.bg : theme.text }}">三</text>
+          <div class="weekday-btn {{ dayIndex === 3 ? (dayConfirmed ? 'weekday-btn-active' : 'weekday-btn-pending') : '' }}" onclick="selectDay(3)" ontouchstart="onDayTouch" style="background-color: {{ dayIndex === 3 ? (dayConfirmed ? theme.accent : 'transparent') : theme.card }}; border-color: {{ dayIndex === 3 ? theme.accent : 'transparent' }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 3 ? (dayConfirmed ? theme.bg : theme.accent) : theme.text }}">三</text>
           </div>
-          <div class="weekday-btn {{ dayIndex === 4 ? 'weekday-btn-active' : '' }}" onclick="selectDay(4)" style="background-color: {{ dayIndex === 4 ? theme.accent : theme.card }}">
-            <text class="weekday-text" style="color: {{ dayIndex === 4 ? theme.bg : theme.text }}">四</text>
+          <div class="weekday-btn {{ dayIndex === 4 ? (dayConfirmed ? 'weekday-btn-active' : 'weekday-btn-pending') : '' }}" onclick="selectDay(4)" ontouchstart="onDayTouch" style="background-color: {{ dayIndex === 4 ? (dayConfirmed ? theme.accent : 'transparent') : theme.card }}; border-color: {{ dayIndex === 4 ? theme.accent : 'transparent' }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 4 ? (dayConfirmed ? theme.bg : theme.accent) : theme.text }}">四</text>
           </div>
-          <div class="weekday-btn {{ dayIndex === 5 ? 'weekday-btn-active' : '' }}" onclick="selectDay(5)" style="background-color: {{ dayIndex === 5 ? theme.accent : theme.card }}">
-            <text class="weekday-text" style="color: {{ dayIndex === 5 ? theme.bg : theme.text }}">五</text>
+          <div class="weekday-btn {{ dayIndex === 5 ? (dayConfirmed ? 'weekday-btn-active' : 'weekday-btn-pending') : '' }}" onclick="selectDay(5)" ontouchstart="onDayTouch" style="background-color: {{ dayIndex === 5 ? (dayConfirmed ? theme.accent : 'transparent') : theme.card }}; border-color: {{ dayIndex === 5 ? theme.accent : 'transparent' }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 5 ? (dayConfirmed ? theme.bg : theme.accent) : theme.text }}">五</text>
           </div>
-          <div class="weekday-btn {{ dayIndex === 6 ? 'weekday-btn-active' : '' }}" onclick="selectDay(6)" style="background-color: {{ dayIndex === 6 ? theme.accent : theme.card }}">
-            <text class="weekday-text" style="color: {{ dayIndex === 6 ? theme.bg : theme.text }}">六</text>
+          <div class="weekday-btn {{ dayIndex === 6 ? (dayConfirmed ? 'weekday-btn-active' : 'weekday-btn-pending') : '' }}" onclick="selectDay(6)" ontouchstart="onDayTouch" style="background-color: {{ dayIndex === 6 ? (dayConfirmed ? theme.accent : 'transparent') : theme.card }}; border-color: {{ dayIndex === 6 ? theme.accent : 'transparent' }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 6 ? (dayConfirmed ? theme.bg : theme.accent) : theme.text }}">六</text>
           </div>
-          <div class="weekday-btn {{ dayIndex === 0 ? 'weekday-btn-active' : '' }}" onclick="selectDay(0)" style="background-color: {{ dayIndex === 0 ? theme.accent : theme.card }}">
-            <text class="weekday-text" style="color: {{ dayIndex === 0 ? theme.bg : theme.text }}">日</text>
+          <div class="weekday-btn {{ dayIndex === 0 ? (dayConfirmed ? 'weekday-btn-active' : 'weekday-btn-pending') : '' }}" onclick="selectDay(0)" ontouchstart="onDayTouch" style="background-color: {{ dayIndex === 0 ? (dayConfirmed ? theme.accent : 'transparent') : theme.card }}; border-color: {{ dayIndex === 0 ? theme.accent : 'transparent' }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 0 ? (dayConfirmed ? theme.bg : theme.accent) : theme.text }}">日</text>
           </div>
         </div>
       </scroll>
+      <text class="day-confirm-hint" style="color: {{ dayConfirmed ? theme.textSecondary : theme.accent }}">{{ dayConfirmed ? ('已选 ' + day) : '点按高亮的日期确认' }}</text>
 
       <div class="step-nav">
         <input class="prev-btn" type="button" value="后退" onclick="prevStep" style="height: 48px; background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
@@ -124,7 +133,7 @@
       </div>
     </div>
 
-    <div class="form-section" if="{{ step === 4 }}">
+    <div class="form-section" if="{{ !courseMissing && step === 4 }}">
       <text class="step-title" style="color: {{ theme.text }}">确认</text>
       <div class="confirm-card" style="background-color: {{ theme.card }}">
         <text class="confirm-label" style="color: {{ theme.accent }}">课程</text>
@@ -140,15 +149,12 @@
         <input class="prev-btn" type="button" value="后退" onclick="prevStep" style="height: 48px; background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
         <input class="save-btn" type="button" value="更新" onclick="updateCourse" style="height: 48px; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
-      <div class="delete-section">
-        <text class="delete-hint" if="{{ deleteConfirm }}" style="color: {{ theme.deleteText }}">再次点击确认删除</text>
-        <input class="delete-btn" type="button" value="{{ deleteConfirm ? '确认' : '删除' }}" onclick="deleteCourse" style="height: 48px; background-color: {{ deleteConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirm ? theme.text : theme.deleteText }}" />
-      </div>
     </div>
 
-    <div class="undo-bar" if="{{ undoVisible }}">
+    <!-- 删除后的撤销条：悬浮卡片样式，撤销做成独立按钮而不是裸文字 -->
+    <div class="undo-bar" if="{{ undoVisible }}" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
       <text class="undo-msg" style="color: {{ theme.text }}">{{ undoMessage }}</text>
-      <text class="undo-btn" onclick="undoDelete" style="color: {{ theme.accent }}">撤销</text>
+      <input class="undo-btn" type="button" value="撤销" onclick="undoDelete" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
   </scroll>
 </template>
@@ -216,6 +222,12 @@ export default {
     courseIndex: 0,
     deleteConfirm: false,
     iconTheme: "dark",
+    touchStartX: 0,
+    touchStartY: 0,
+    lastSwipeAt: 0,
+    weekdayScrollLeft: 0,
+    dayConfirmed: false,
+    courseMissing: false,
     undoVisible: false,
     undoMessage: "",
     undoBackup: null,
@@ -433,13 +445,22 @@ export default {
         }
       }
       if (!found) {
-        self.selectCourse(0)
+        // 课程已删除或 id 失效：不再用「toast + 自动返回」（那一秒多页面是空的，看起来像白屏），
+        // 改为停留在页内显示友好说明 + 明确引导，由用户自己决定下一步。
+        self.courseMissing = true
+        try { self.$forceUpdate() } catch (e) {}
+        return
       }
+      self.courseMissing = false
     })
   },
 
   openCourseManager() {
     router.push({ uri: "/pages/course-manager" })
+  },
+
+  openAddCourse() {
+    router.push({ uri: "/pages/add-course" })
   },
 
   padZero(n) {
@@ -482,8 +503,60 @@ export default {
     }
   },
 
+  // 课程名卡片左右滑动切换：优先用 swipe 手势；若框架未触发该事件，
+  // 由 ontouchstart / ontouchend 的位移兜底。两者用时间戳去重，避免一次滑动切换两门。
+  onCardSwipe(e) {
+    this.lastSwipeAt = Date.now()
+    var d = e.direction
+    if (d === 'left') {
+      this.swipeNext()
+    } else if (d === 'right') {
+      this.swipePrev()
+    }
+  },
+
+  onCardTouchStart(e) {
+    var t = e.touches && e.touches[0]
+    if (t) {
+      this.touchStartX = t.clientX
+      this.touchStartY = t.clientY
+    }
+  },
+
+  onCardTouchEnd(e) {
+    var t = e.changedTouches && e.changedTouches[0]
+    if (!t) {
+      return
+    }
+    if (Date.now() - this.lastSwipeAt < 400) {
+      return
+    }
+    var dx = t.clientX - this.touchStartX
+    var dy = t.clientY - this.touchStartY
+    // 横向位移 > 30px 且明显大于纵向，避免与页面纵向滚动冲突
+    if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy)) {
+      if (dx < 0) {
+        this.swipeNext()
+      } else {
+        this.swipePrev()
+      }
+    }
+  },
+
   updateTimeString() {
-    this.courseTime = formatTime(this.startHour, this.startMin) + " - " + formatTime(this.endHour, this.endMin)
+    this.courseTime = formatTime(this.startHour, this.startMin) + "-" + formatTime(this.endHour, this.endMin)
+  },
+
+  adjustEndTime() {
+    var startTotal = this.startHour * 60 + this.startMin
+    var endTotal = this.endHour * 60 + this.endMin
+    if (endTotal <= startTotal) {
+      endTotal = startTotal + 45
+      if (endTotal >= 1440) { endTotal = 1439 }
+      this.endHour = Math.floor(endTotal / 60)
+      this.endMin = endTotal % 60
+    }
+    this.updateTimeString()
   },
 
   increaseStartHour() {
@@ -492,7 +565,7 @@ export default {
     } else {
       this.startHour = 0
     }
-    this.updateTimeString()
+    this.adjustEndTime()
   },
   decreaseStartHour() {
     if (this.startHour > 0) {
@@ -500,7 +573,7 @@ export default {
     } else {
       this.startHour = 23
     }
-    this.updateTimeString()
+    this.adjustEndTime()
   },
   increaseStartMin() {
     if (this.startMin < 59) {
@@ -508,7 +581,7 @@ export default {
     } else {
       this.startMin = 0
     }
-    this.updateTimeString()
+    this.adjustEndTime()
   },
   decreaseStartMin() {
     if (this.startMin > 0) {
@@ -516,7 +589,7 @@ export default {
     } else {
       this.startMin = 59
     }
-    this.updateTimeString()
+    this.adjustEndTime()
   },
   increaseEndHour() {
     if (this.endHour < 23) {
@@ -524,7 +597,7 @@ export default {
     } else {
       this.endHour = 0
     }
-    this.updateTimeString()
+    this.adjustEndTime()
   },
   decreaseEndHour() {
     if (this.endHour > 0) {
@@ -532,7 +605,7 @@ export default {
     } else {
       this.endHour = 23
     }
-    this.updateTimeString()
+    this.adjustEndTime()
   },
   increaseEndMin() {
     if (this.endMin < 59) {
@@ -540,7 +613,7 @@ export default {
     } else {
       this.endMin = 0
     }
-    this.updateTimeString()
+    this.adjustEndTime()
   },
   decreaseEndMin() {
     if (this.endMin > 0) {
@@ -548,7 +621,7 @@ export default {
     } else {
       this.endMin = 59
     }
-    this.updateTimeString()
+    this.adjustEndTime()
   },
 
   showKeyboard() {
@@ -563,22 +636,63 @@ export default {
   },
 
   nextStep() {
+    // 第 3 步必须先点按确认上课日：否则"自动滚过去但用户没看见"就进入了下一步
+    if (this.step === 3 && !this.dayConfirmed) {
+      prompt.showToast({ message: "请点按高亮的日期确认上课日" })
+      this.scrollToCurrentDay()
+      return
+    }
     if (this.step < 4) {
       this.step = this.step + 1
+      if (this.step === 3) {
+        this.enterDayStep()
+      }
     }
   },
 
   prevStep() {
     if (this.step > 1) {
       this.step = this.step - 1
+      if (this.step === 3) {
+        this.enterDayStep()
+      }
     }
   },
 
-  // 切换上课星期
+  // 进入「位置与星期」步骤：编辑时旧日期已加载，直接预确认，用户无需多点一次；如需改期仍可点选。
+  enterDayStep() {
+    this.dayConfirmed = true
+    this.scrollToCurrentDay()
+  },
+
+  scrollToCurrentDay() {
+    // 模板里的排列顺序：一 二 三 四 五 六 日，与 dayIndex(0=周日) 不一致，需换算
+    var order = [1, 2, 3, 4, 5, 6, 0]
+    var pos = order.indexOf(this.dayIndex)
+    if (pos < 0) { pos = 0 }
+    var left = pos * 52 // 每项 48px 宽 + 左右 margin
+    this.weekdayScrollLeft = left
+    var self = this
+    // 部分运行时不响应 scroll-left 属性，用组件方法兜底（不支持时静默跳过）
+    setTimeout(function() {
+      try {
+        var el = self.$element("weekdayScroll")
+        if (el && typeof el.scrollTo === "function") {
+          el.scrollTo({ left: left })
+        }
+      } catch (e) {}
+    }, 80)
+  },
+
+  // 切换上课星期：点按即为明确确认
   selectDay(index) {
     this.dayIndex = index
     this.day = DAY_NAMES[index]
+    this.dayConfirmed = true
   },
+
+  // 星期按钮的空触摸处理器：保证 ontouchstart 存在，避免点击被父级手势拦截
+  onDayTouch() {},
 
   goBack() {
     router.back()
@@ -669,7 +783,13 @@ export default {
         // 删除已生效：给 5 秒撤销窗口，期间停留本页，超时自动返回首页
         self.showUndo("课程已删除", backup)
       } else {
-        prompt.showToast({ message: "删除失败: " + err })
+        var msg = String(err)
+        if (msg.indexOf("课程不存在") !== -1 || msg.indexOf("not found") !== -1) {
+          prompt.showToast({ message: "课程已被删除，请返回首页", duration: 2000 })
+          setTimeout(function() { router.back() }, 2100)
+        } else {
+          prompt.showToast({ message: "删除失败: " + err })
+        }
       }
     })
   },
@@ -741,7 +861,7 @@ export default {
   margin-bottom: 14px;
 }
 
-.header-trash-btn {
+.back-btn-wrapper {
   width: 48px;
   height: 48px;
   border-radius: 10px;
@@ -749,18 +869,9 @@ export default {
   align-items: center;
 }
 
-.header-trash-icon {
+.back-btn-icon {
   width: 24px;
   height: 24px;
-}
-
-.back-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
-  font-size: 28px;
-  text-align: center;
-  line-height: 48px;
 }
 
 .title {
@@ -795,6 +906,62 @@ export default {
   flex-direction: column;
 }
 
+/* 课程已删除/失效时的友好状态：取代原来的「toast + 自动返回」，
+   避免停留在空白页造成白屏观感 */
+.missing-state {
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 16px;
+  border-width: 1px;
+  border-style: solid;
+  padding: 24px 18px;
+  margin-top: 8px;
+}
+
+.missing-title {
+  font-size: 32px;
+  font-weight: bold;
+  line-height: 42px;
+  text-align: center;
+  lines: 1;
+  margin-bottom: 10px;
+}
+
+.missing-desc {
+  font-size: 24px;
+  line-height: 34px;
+  text-align: center;
+  lines: 2;
+  margin-bottom: 6px;
+}
+
+.missing-btn {
+  width: 100%;
+  height: 48px;
+  border-radius: 24px;
+  font-size: 26px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 48px;
+  lines: 1;
+  margin-top: 16px;
+}
+
+.missing-btn-ghost {
+  width: 100%;
+  height: 48px;
+  border-radius: 24px;
+  border-width: 2px;
+  border-style: solid;
+  font-size: 26px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 48px;
+  lines: 1;
+  margin-top: 10px;
+}
+
 .step-title {
   font-size: 34px;
   font-weight: bold;
@@ -812,32 +979,36 @@ export default {
   lines: 1;
 }
 
+/* 左箭头 / 课程卡 / 右箭头 必须同一行：箭头 flex-shrink:0 保证不被挤压，
+   卡片 flex:1 + min-width:0 吃掉剩余宽度，长课名用 ellipsis 截断而不是撑破一行 */
 .swiper-wrapper {
   flex-direction: row;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
   margin-bottom: 12px;
 }
 
-.swipe-arrow {
-  width: 50px;
-  height: 50px;
-  border-radius: 25px;
-  font-size: 28px;
-  font-weight: bold;
-  text-align: center;
+.swipe-arrow-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  flex-shrink: 0;
 }
 
+/* 边框颜色由内联绑定主题色，这里只定形状，避免写死 #7ec8e3 */
 .course-card {
+  flex: 1;
+  min-width: 0;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 14px;
-  padding: 24px;
-  margin: 0 12px;
-  border: 3px solid #7ec8e3;
-  width: 200px;
-  min-height: 80px;
+  border-radius: 16px;
+  padding: 14px 12px;
+  margin: 0 8px;
+  border-width: 2px;
+  border-style: solid;
+  min-height: 88px;
 }
 
 .card-course-name {
@@ -929,10 +1100,13 @@ export default {
   justify-content: center;
 }
 
+/* 固定 border-width，只让内联绑定切换 border-color，避免选中态引起尺寸跳动 */
 .weekday-btn {
   width: 48px;
   height: 48px;
   border-radius: 24px;
+  border-width: 2px;
+  border-style: solid;
   justify-content: center;
   align-items: center;
   margin: 0 2px;
@@ -940,6 +1114,57 @@ export default {
 
 .weekday-btn-active {
   background-color: #7ec8e3;
+}
+
+/* 待确认态：自动滚动定位到当前日期后，用描边高亮提示用户点按确认 */
+.weekday-btn-pending {
+  background-color: transparent;
+}
+
+.day-confirm-hint {
+  font-size: 22px;
+  line-height: 30px;
+  text-align: center;
+  lines: 1;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+/* 撤销条：悬浮卡片样式（圆角 + 描边 + 左右留白），撤销做成独立按钮而不是裸文字。
+   背景/描边由内联绑定主题色，避免写死颜色导致另一套主题下发灰。 */
+.undo-bar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  height: 64px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 16px;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0 10px 0 16px;
+}
+
+.undo-msg {
+  font-size: 24px;
+  flex: 1;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.undo-btn {
+  width: 72px;
+  height: 44px;
+  border-radius: 12px;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 44px;
+  lines: 1;
+  flex-shrink: 0;
+  margin-left: 8px;
 }
 
 .weekday-text {
@@ -1012,13 +1237,17 @@ export default {
   text-align: center;
 }
 
-.manage-btn {
+/* 删除按钮为次要操作：透明底 + 危险色描边，与实心的「下一步」形成主次分层 */
+.step-delete-btn {
   width: 100px;
+  height: 48px;
   border-radius: 12px;
+  border-width: 2px;
+  border-style: solid;
   font-size: 28px;
   font-weight: bold;
   text-align: center;
-  line-height: 44px;
+  line-height: 48px;
   lines: 1;
 }
 
@@ -1042,28 +1271,14 @@ export default {
   font-size: 34px;
   line-height: 42px;
   lines: 1;
-}
-
-.delete-section {
-  align-items: center;
-  margin-top: 20px;
+  text-overflow: ellipsis;
 }
 
 .delete-hint {
   font-size: 24px;
   line-height: 32px;
   text-align: center;
-  margin-bottom: 8px;
-}
-
-.delete-btn {
-  width: 100%;
-  border-radius: 12px;
-  font-size: 28px;
-  font-weight: bold;
-  text-align: center;
-  line-height: 44px;
-  lines: 1;
+  margin-top: 8px;
 }
 
 .keyboard-area {
@@ -1094,11 +1309,9 @@ export default {
   .header {
     margin-bottom: 12px;
   }
-  .back-btn {
+  .back-btn-wrapper {
     width: 48px;
     height: 48px;
-    font-size: 28px;
-    line-height: 48px;
   }
   .title {
     font-size: 36px;
@@ -1106,16 +1319,13 @@ export default {
   .step-indicator {
     margin-bottom: 12px;
   }
-  .step-title {
-    font-size: 28px;
-  }
   .step-hint {
     font-size: 24px;
   }
   .course-card {
-    width: 160px;
-    height: 100px;
-    padding: 18px;
+    width: 200px;
+    min-height: 104px;
+    padding: 16px;
   }
   .card-course-name {
     font-size: 28px;
@@ -1157,7 +1367,7 @@ export default {
     width: 100px;
     font-size: 24px;
   }
-  .manage-btn {
+  .step-delete-btn {
     width: 80px;
     font-size: 24px;
   }
@@ -1167,42 +1377,28 @@ export default {
   .edit-course-page {
     padding: 38px 16px 50px 16px;
   }
-  /* 胶囊屏 header 改两行：第一行放两个按钮（48px 达标），第二行标题独占整宽。
-     此前 48×3 = 144px 会把 160px 内容区里的标题挤到只剩 16px，只能在
-     「按钮 44px」和「标题看不见」之间二选一；换行后两者兼得。
-     竖向 +34px，根容器是 scroll，可滚动消化。 */
+  /* 顶部删除按钮移除后 header 只剩「返回 + 标题」，不再需要换行：
+     48 + 标题(flex:1) 在 160px 内容区内放得下，恢复单行。 */
   .header {
     height: auto;
     margin-bottom: 8px;
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
   }
-  /* header 换行后按钮不再与标题抢宽度，可以提到规范的 48px */
-  .back-btn {
+  .back-btn-wrapper {
     width: 48px;
     height: 48px;
     border-radius: 24px;
-    font-size: 20px;
-    text-align: center;
-    line-height: 48px;
-    flex-shrink: 0;
-  }
-  .header-trash-btn {
-    width: 48px;
-    height: 48px;
     flex-shrink: 0;
   }
   .title {
     font-size: 24px;
     line-height: 34px;
     text-align: center;
-    /* order 让标题排到两个按钮之后，配合 width:100% 换到第二行独占整宽 */
-    order: 1;
-    width: 100%;
-    flex: 0 0 100%;
+    flex: 1;
+    min-width: 0;
     lines: 1;
-    margin: 4px 0 0 0;
     text-overflow: ellipsis;
   }
   .step-indicator {
@@ -1227,40 +1423,92 @@ export default {
     font-size: 20px;
     line-height: 28px;
     margin-bottom: 10px;
+    lines: 1;
+    text-overflow: ellipsis;
   }
-  /* 轮播区改纵向：卡片独占第一行（全宽 160px），两个箭头落到第二行两端。
-     横向布局下箭头 48×2 = 96px 会把卡片压到 56px（课名只剩 2 字），等于
-     牺牲已达标的可读性；改纵向后箭头 48px 达标，卡片反而由 80px 变全宽。 */
+  /* 三个元素强制一行：箭头宽度压到 36px（高度仍 48px 达标），
+     卡片 flex:1 吃掉剩余约 80px，课名 22px + ellipsis 兜底。
+     192px 物理宽度下这是唯一能同时满足「一行」与「触控高度 48px」的分配。 */
   .swiper-wrapper {
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    align-items: center;
     justify-content: space-between;
   }
-  .swipe-arrow {
-    order: 1;
-    width: 48px;
+  .swipe-arrow-icon {
+    width: 36px;
     height: 48px;
-    border-radius: 24px;
-    font-size: 22px;
-    line-height: 46px;
+    border-radius: 18px;
     flex-shrink: 0;
-    margin-top: 8px;
   }
   .course-card {
-    order: 0;
-    flex: 0 0 100%;
-    width: 100%;
+    flex: 1;
     min-width: 0;
+    width: auto;
     height: 80px;
-    padding: 12px;
-    margin: 0;
+    padding: 6px;
+    margin: 0 4px;
   }
   .card-course-name {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: bold;
-    line-height: 32px;
+    line-height: 30px;
     lines: 1;
     text-align: center;
+    text-overflow: ellipsis;
+  }
+  .day-confirm-hint {
+    font-size: 18px;
+    line-height: 26px;
+    margin-top: 4px;
+    margin-bottom: 6px;
+  }
+  .missing-title {
+    font-size: 24px;
+    line-height: 32px;
+    margin-bottom: 8px;
+  }
+  .missing-desc {
+    font-size: 18px;
+    line-height: 26px;
+    margin-bottom: 4px;
+  }
+  .missing-btn,
+  .missing-btn-ghost {
+    font-size: 20px;
+    line-height: 48px;
+    margin-top: 10px;
+  }
+  .missing-btn-ghost {
+    margin-top: 8px;
+  }
+  /* 胶囊屏 192px：内容区只有 160px，单行放「文案 + 64px 按钮」会把文案压到几十 px，
+     改为两行：第一行整宽文案居中，第二行整宽撤销按钮（高度提到 48px 合规）。
+     bottom 56px 用于避开底部系统 UI。 */
+  .undo-bar {
+    left: 8px;
+    right: 8px;
+    bottom: 56px;
+    height: auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 12px;
+  }
+  .undo-msg {
+    flex: none;
+    width: 100%;
+    font-size: 20px;
+    line-height: 28px;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .undo-btn {
+    width: 100%;
+    height: 48px;
+    font-size: 20px;
+    line-height: 48px;
+    margin-left: 0;
   }
   .add-card-icon {
     font-size: 44px;
@@ -1272,7 +1520,8 @@ export default {
     margin-bottom: 8px;
   }
   /* 与模板内联的 height: 48px 对齐，消除"内联压制媒体查询"的不可预测性 */
-  .manage-btn {
+  .step-delete-btn {
+    width: 64px;
     height: 48px;
     font-size: 20px;
     line-height: 48px;
@@ -1353,24 +1602,17 @@ export default {
   .confirm-value {
     font-size: 26px;
     line-height: 34px;
+    lines: 2;
+    text-overflow: ellipsis;
   }
   .confirm-card {
     padding: 12px;
     margin-bottom: 16px;
   }
-  .delete-btn {
-    height: 48px;
-    font-size: 22px;
-    line-height: 48px;
-    border-radius: 24px;
-  }
-  .delete-section {
-    margin-top: 12px;
-  }
   .delete-hint {
     font-size: 22px;
     line-height: 30px;
-    margin-bottom: 8px;
+    margin-top: 8px;
   }
   /* 上课日选择：按钮放大到 44px，保证手指点得准 */
   .weekday-label {
@@ -1400,11 +1642,9 @@ export default {
   .header {
     margin-bottom: 10px;
   }
-  .back-btn {
+  .back-btn-wrapper {
     width: 48px;
     height: 48px;
-    font-size: 28px;
-    line-height: 48px;
   }
   .title {
     font-size: 34px;
@@ -1423,9 +1663,8 @@ export default {
     font-size: 24px;
   }
   .course-card {
-    width: 140px;
-    min-height: 70px;
-    padding: 16px;
+    min-height: 84px;
+    padding: 12px;
   }
   .card-course-name {
     font-size: 28px;
@@ -1469,7 +1708,7 @@ export default {
     border-radius: 24px;
     lines: 1;
   }
-  .manage-btn {
+  .step-delete-btn {
     width: 80px;
     height: 48px;
     font-size: 24px;
@@ -1479,34 +1718,5 @@ export default {
   }
 }
 
-.undo-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  flex-direction: row;
-  align-items: center;
-  background-color: #0f3460;
-  padding: 14px 20px;
-  height: 60px;
-}
-.undo-msg {
-  font-size: 24px;
-  flex: 1;
-  lines: 1;
-}
-.undo-btn {
-  font-size: 24px;
-  font-weight: bold;
-  line-height: 32px;
-  text-align: center;
-  flex-shrink: 0;
-  padding: 0 10px;
-}
 
-@media (shape: capsule), (shape: pill-shaped) {
-  .undo-bar {
-    bottom: 56px;
-  }
-}
 </style>

@@ -1,4 +1,5 @@
 /.nyc_output
+/.cache/
 /coverage
 /node_modules
 /sign

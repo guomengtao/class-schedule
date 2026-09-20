@@ -1,0 +1,554 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <!-- 顶栏：进度 + 当前步标题 -->
+    <div class="topbar">
+      <text class="topbar-title" style="color: {{ theme.text }}">{{ stepTitle }}</text>
+      <text class="topbar-step" style="color: {{ theme.textSecondary }}">{{ step }}/4</text>
+    </div>
+
+    <!-- Step 1 课程名：纵向列表（替代横向滚动条，课名完整不截断） -->
+    <scroll class="content" scroll-y="true" if="{{ step === 1 }}">
+      <div class="list">
+        <div class="list-item" for="{{ presetCourses }}" onclick="selectCourse($item)"
+             style="background-color: {{ courseName === $item ? theme.accent : theme.card }}">
+          <text class="item-text" style="color: {{ courseName === $item ? theme.bg : theme.text }}">{{ $item }}</text>
+        </div>
+      </div>
+    </scroll>
+
+    <!-- Step 2 时间：快捷时段 + 滑动滚轮 -->
+    <div class="content" if="{{ step === 2 }}">
+      <text class="section-title" style="color: {{ theme.textSecondary }}">快捷时段（横向滑动）</text>
+      <scroll class="quick-scroll" scroll-x="true">
+        <div class="quick-row">
+          <div class="quick-btn" for="{{ quickSlots }}" onclick="applyQuick($item)"
+               style="background-color: {{ theme.card }}">
+            <text class="quick-text" style="color: {{ theme.text }}">{{ $item.label }}</text>
+          </div>
+        </div>
+      </scroll>
+
+      <div class="time-row">
+        <div class="time-box" onclick="pickTime('start')"
+             style="background-color: {{ theme.card }}; border-color: {{ pickTarget === 'start' ? theme.accent : 'transparent' }}">
+          <text class="time-val" style="color: {{ theme.text }}">{{ startText }}</text>
+          <text class="time-label" style="color: {{ theme.textSecondary }}">开始</text>
+        </div>
+        <text class="time-sep" style="color: {{ theme.textMuted }}">至</text>
+        <div class="time-box" onclick="pickTime('end')"
+             style="background-color: {{ theme.card }}; border-color: {{ pickTarget === 'end' ? theme.accent : 'transparent' }}">
+          <text class="time-val" style="color: {{ theme.text }}">{{ endText }}</text>
+          <text class="time-label" style="color: {{ theme.textSecondary }}">结束</text>
+        </div>
+      </div>
+
+      <text class="section-title" style="color: {{ theme.textSecondary }}">{{ pickTarget === 'start' ? '滑动选开始' : '滑动选结束' }}</text>
+      <div class="wheel-row">
+        <scroll class="wheel-col" scroll-y="true" id="wheelHour" onscroll="onWheelScrollHour">
+          <div class="wheel-pad"></div>
+          <div class="wheel-item" for="{{ hours }}" onclick="tapHour($item)">
+            <text class="wheel-text {{ wheelHour === $item ? 'wheel-text-active' : '' }}"
+                  style="color: {{ wheelHour === $item ? theme.accent : theme.textSecondary }}">{{ $item }}</text>
+          </div>
+          <div class="wheel-pad"></div>
+        </scroll>
+        <text class="wheel-colon" style="color: {{ theme.text }}">:</text>
+        <scroll class="wheel-col" scroll-y="true" id="wheelMin" onscroll="onWheelScrollMin">
+          <div class="wheel-pad"></div>
+          <div class="wheel-item" for="{{ mins }}" onclick="tapMin($item)">
+            <text class="wheel-text {{ wheelMin === $item ? 'wheel-text-active' : '' }}"
+                  style="color: {{ wheelMin === $item ? theme.accent : theme.textSecondary }}">{{ $item }}</text>
+          </div>
+          <div class="wheel-pad"></div>
+        </scroll>
+      </div>
+    </div>
+
+    <!-- Step 3 星期：纵向列表（替代横向滚动） -->
+    <scroll class="content" scroll-y="true" if="{{ step === 3 }}">
+      <div class="list">
+        <div class="list-item" for="{{ weekdays }}" onclick="selectDay($idx + 1)"
+             style="background-color: {{ dayIndex === ($idx + 1) ? theme.accent : theme.card }}">
+          <text class="item-text" style="color: {{ dayIndex === ($idx + 1) ? theme.bg : theme.text }}">周{{ $item }}</text>
+        </div>
+      </div>
+    </scroll>
+
+    <!-- Step 4 位置：选择优先，输入兜底 -->
+    <scroll class="content" scroll-y="true" if="{{ step === 4 }}">
+      <text class="section-title" style="color: {{ theme.textSecondary }}">常用地点（可跳过）</text>
+      <div class="list">
+        <div class="list-item" for="{{ commonLocations }}" onclick="selectLocation($item)"
+             style="background-color: {{ courseLocation === $item ? theme.accent : theme.card }}">
+          <text class="item-text" style="color: {{ courseLocation === $item ? theme.bg : theme.text }}">{{ $item }}</text>
+        </div>
+      </div>
+    </scroll>
+
+    <!-- 底部固定操作栏 -->
+    <div class="bottombar">
+      <input class="btn btn-secondary" type="button" value="上一步" onclick="prevStep"
+             style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+      <input class="btn btn-primary" type="button" value="{{ step === 4 ? '保存' : '下一步' }}" onclick="nextStep"
+             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const prompt = require("@system.prompt")
+const store = require("../../data/store.js")
+const database = require("../../data/database.js")
+const device = require("@system.device")
+
+var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+var ROW_H = 48
+
+function padZero(n) {
+  return n < 10 ? "0" + n : String(n)
+}
+
+function buildHours() {
+  var arr = []
+  for (var i = 0; i < 24; i++) { arr.push(padZero(i)) }
+  return arr
+}
+
+function buildMins() {
+  var arr = []
+  for (var i = 0; i < 60; i += 5) { arr.push(padZero(i)) }
+  return arr
+}
+
+var HOURS = buildHours()
+var MINS = buildMins()
+
+// 常见作息快捷时段：一次点击设定开始，并自动带出结束（+45 分钟）
+var QUICK_SLOTS = [
+  { h: 8, m: 0, label: "08:00" },
+  { h: 8, m: 45, label: "08:45" },
+  { h: 10, m: 0, label: "10:00" },
+  { h: 13, m: 30, label: "13:30" },
+  { h: 15, m: 0, label: "15:00" },
+  { h: 19, m: 0, label: "19:00" }
+]
+
+export default {
+  private: {
+    theme: {
+      bg: "#1a1a2e", card: "#16213e", cardLight: "#0f3460",
+      accent: "#7ec8e3", text: "#ffffff", textSecondary: "#888899", textMuted: "#555566",
+      border: "#0f3460"
+    },
+    step: 1,
+    stepTitle: "选择课程",
+    hours: HOURS,
+    mins: MINS,
+    quickSlots: QUICK_SLOTS,
+    weekdays: ["一", "二", "三", "四", "五", "六", "日"],
+    presetCourses: ["语文", "数学", "英语", "物理", "化学", "生物", "历史", "地理", "政治", "体育", "音乐", "美术", "信息"],
+    commonLocations: ["教室", "实验室", "操场", "图书馆", "机房", "暂不填写"],
+
+    courseName: "",
+    dayIndex: 1,
+    day: "星期一",
+    startHour: 8, startMin: 0, endHour: 8, endMin: 45,
+    startText: "08:00", endText: "08:45",
+    wheelHour: "08", wheelMin: "00",
+    pickTarget: "start",
+    endTouched: false,
+    courseLocation: "",
+    isCapsule: false,
+    isSaving: false,
+    conflictConfirmed: false,
+    _snapHourTimer: null,
+    _snapMinTimer: null
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    })
+    // 屏型探测：胶囊屏启用分步（本页即分步形态，仅用于记录）
+    device.getInfo({
+      success: function(data) {
+        var shape = data.screenShape || ""
+        self.isCapsule = (shape === "capsule" || shape === "pill-shaped")
+      },
+      fail: function() {}
+    })
+    this.updateTimeText()
+  },
+
+  // ---------- Step 1 ----------
+  selectCourse(name) {
+    this.courseName = name
+    // 选完即进入下一步，减少一次点击
+    this.gotoStep(2)
+  },
+
+  // ---------- Step 2 ----------
+  applyQuick(slot) {
+    this.startHour = slot.h
+    this.startMin = slot.m
+    this.endTouched = false
+    this.applyEndFromStart()
+    this.wheelHour = padZero(this.startHour)
+    this.wheelMin = padZero(this.startMin)
+    this.pickTarget = "start"
+    this.updateTimeText()
+    prompt.showToast({ message: "已设为 " + slot.label + " 起" })
+  },
+
+  pickTime(target) {
+    this.pickTarget = target
+    if (target === "start") {
+      this.wheelHour = padZero(this.startHour)
+      this.wheelMin = padZero(this.startMin)
+    } else {
+      this.wheelHour = padZero(this.endHour)
+      this.wheelMin = padZero(this.endMin)
+    }
+  },
+
+  // 滚轮滚动：按行高换算当前居中项，实时回写时间
+  onWheelScrollHour(e) {
+    var top = (e && e.scrollTop) || 0
+    var idx = Math.round(top / ROW_H)
+    if (idx < 0) { idx = 0 }
+    if (idx >= HOURS.length) { idx = HOURS.length - 1 }
+    var val = HOURS[idx]
+    if (val !== this.wheelHour) {
+      this.wheelHour = val
+      this.applyWheelToTarget()
+    }
+    this.scheduleSnap("wheelHour", "hours", "wheelHour", "_snapHourTimer", idx)
+  },
+
+  onWheelScrollMin(e) {
+    var top = (e && e.scrollTop) || 0
+    var idx = Math.round(top / ROW_H)
+    if (idx < 0) { idx = 0 }
+    if (idx >= MINS.length) { idx = MINS.length - 1 }
+    var val = MINS[idx]
+    if (val !== this.wheelMin) {
+      this.wheelMin = val
+      this.applyWheelToTarget()
+    }
+    this.scheduleSnap("wheelMin", "mins", "wheelMin", "_snapMinTimer", idx)
+  },
+
+  // 停止滚动后对齐到整行（若运行时不支持 scrollTo 则静默跳过，不影响点击选择）
+  scheduleSnap(elId, listKey, valueKey, timerKey, idx) {
+    var self = this
+    if (self[timerKey]) { clearTimeout(self[timerKey]) }
+    self[timerKey] = setTimeout(function() {
+      try {
+        var el = self.$element(elId)
+        if (el && typeof el.scrollTo === "function") {
+          el.scrollTo({ top: idx * ROW_H })
+        }
+      } catch (e) {}
+    }, 150)
+  },
+
+  // 点击行直接选中：吸附不可用时的兜底，保证功能完整
+  tapHour(h) {
+    this.wheelHour = h
+    this.applyWheelToTarget()
+  },
+
+  tapMin(m) {
+    this.wheelMin = m
+    this.applyWheelToTarget()
+  },
+
+  applyWheelToTarget() {
+    var h = parseInt(this.wheelHour, 10)
+    var m = parseInt(this.wheelMin, 10)
+    if (this.pickTarget === "start") {
+      this.startHour = h
+      this.startMin = m
+      if (!this.endTouched) { this.applyEndFromStart() }
+    } else {
+      this.endHour = h
+      this.endMin = m
+      this.endTouched = true
+    }
+    this.updateTimeText()
+  },
+
+  applyEndFromStart() {
+    var total = this.startHour * 60 + this.startMin + 45
+    this.endHour = Math.floor(total / 60) % 24
+    this.endMin = total % 60
+    this.updateTimeText()
+  },
+
+  updateTimeText() {
+    this.startText = padZero(this.startHour) + ":" + padZero(this.startMin)
+    this.endText = padZero(this.endHour) + ":" + padZero(this.endMin)
+  },
+
+  // ---------- Step 3 ----------
+  selectDay(idx) {
+    this.dayIndex = idx
+    this.day = DAY_NAMES[idx]
+  },
+
+  // ---------- Step 4 ----------
+  selectLocation(loc) {
+    this.courseLocation = (loc === "暂不填写") ? "" : loc
+  },
+
+  // ---------- 分步导航 ----------
+  gotoStep(n) {
+    if (n < 1) { n = 1 }
+    if (n > 4) { n = 4 }
+    this.step = n
+    if (n === 1) { this.stepTitle = "选择课程" }
+    else if (n === 2) { this.stepTitle = "上课时间" }
+    else if (n === 3) { this.stepTitle = "选择星期" }
+    else { this.stepTitle = "上课位置" }
+  },
+
+  prevStep() {
+    if (this.step > 1) { this.gotoStep(this.step - 1) }
+  },
+
+  nextStep() {
+    if (this.step === 1 && !this.courseName) {
+      prompt.showToast({ message: "请先选择课程" })
+      return
+    }
+    if (this.step < 4) {
+      this.gotoStep(this.step + 1)
+      return
+    }
+    this.saveCourse()
+  },
+
+  // ---------- 保存 ----------
+  saveCourse() {
+    if (this.isSaving) { return }
+    if (!this.courseName) { prompt.showToast({ message: "请先选择课程" }); return }
+
+    // 结束时间异常（含跨天导致的倒置）自动修正
+    var s = this.startHour * 60 + this.startMin
+    var e = this.endHour * 60 + this.endMin
+    if (e <= s) {
+      this.applyEndFromStart()
+      prompt.showToast({ message: "结束时间已自动调整" })
+    }
+
+    this.isSaving = true
+    var self = this
+    var timeStr = padZero(this.startHour) + ":" + padZero(this.startMin) + " - " + padZero(this.endHour) + ":" + padZero(this.endMin)
+    var newCourse = {
+      id: String(Date.now()),
+      day: this.day,
+      name: this.courseName,
+      time: timeStr,
+      teacher: "",
+      location: this.courseLocation || "",
+      notes: ""
+    }
+
+    database.checkDayConflict(this.day, newCourse, null, function(conflict) {
+      if (conflict && !self.conflictConfirmed) {
+        prompt.showToast({ message: "时间冲突：与《" + conflict.name + "》重叠，再点保存" })
+        self.conflictConfirmed = true
+        self.isSaving = false
+        return
+      }
+      self.conflictConfirmed = false
+      database.insertCourse(newCourse, function(err) {
+        if (!err) {
+          prompt.showToast({ message: "课程已添加" })
+          router.back()
+        } else {
+          self.isSaving = false
+          prompt.showToast({ message: "保存失败，请重试" })
+        }
+      })
+    })
+  },
+
+  onDestroy() {
+    if (this._snapHourTimer) { clearTimeout(this._snapHourTimer); this._snapHourTimer = null }
+    if (this._snapMinTimer) { clearTimeout(this._snapMinTimer); this._snapMinTimer = null }
+  }
+}
+</script>
+
+<style>
+.page {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  padding: 16px;
+}
+
+.topbar {
+  height: 34px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.topbar-title {
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: bold;
+}
+.topbar-step {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+.content {
+  flex: 1;
+  flex-direction: column;
+}
+
+.section-title {
+  font-size: 20px;
+  line-height: 24px;
+  margin-bottom: 6px;
+}
+
+.list {
+  flex-direction: column;
+}
+.list-item {
+  height: 48px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  padding: 0 12px;
+  justify-content: center;
+}
+.item-text {
+  font-size: 24px;
+  line-height: 30px;
+}
+
+.quick-scroll {
+  height: 48px;
+  margin-bottom: 10px;
+}
+.quick-row {
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+.quick-btn {
+  height: 48px;
+  padding: 0 10px;
+  border-radius: 12px;
+  margin-right: 6px;
+  justify-content: center;
+  align-items: center;
+}
+.quick-text {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+.time-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.time-box {
+  flex: 1;
+  height: 64px;
+  border-radius: 12px;
+  border-width: 2px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.time-val {
+  font-size: 26px;
+  line-height: 32px;
+  font-weight: bold;
+}
+.time-label {
+  font-size: 20px;
+  line-height: 24px;
+}
+.time-sep {
+  font-size: 20px;
+  line-height: 24px;
+  margin: 0 6px;
+}
+
+/* 滚轮：行高 48px（触控下限），3 行可见 = 144px，上下留白使首尾项可居中 */
+.wheel-row {
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  height: 144px;
+}
+.wheel-col {
+  width: 76px;
+  height: 144px;
+}
+.wheel-pad {
+  height: 48px;
+}
+.wheel-item {
+  height: 48px;
+  justify-content: center;
+  align-items: center;
+}
+.wheel-text {
+  font-size: 24px;
+  line-height: 30px;
+}
+.wheel-text-active {
+  font-size: 28px;
+  font-weight: bold;
+}
+.wheel-colon {
+  font-size: 24px;
+  line-height: 30px;
+  width: 8px;
+  text-align: center;
+}
+
+.bottombar {
+  flex-direction: row;
+  margin-top: 8px;
+}
+.btn {
+  height: 48px;
+  border-radius: 24px;
+  font-size: 22px;
+  flex: 1;
+}
+.btn-secondary {
+  margin-right: 8px;
+}
+
+@media (shape: capsule), (shape: pill-shaped) {
+  /* 胶囊屏内容区 160px：滚轮两列 76×2 + 冒号 8 = 160 */
+  .page {
+    padding: 12px 16px;
+  }
+  .wheel-col {
+    width: 76px;
+  }
+  .wheel-row {
+    height: 144px;
+  }
+  .list-item {
+    height: 48px;
+  }
+  .btn {
+    height: 48px;
+  }
+}
+</style>

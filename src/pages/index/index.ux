@@ -8,7 +8,7 @@
       <div class="nav-btn-circle" onclick="prevDay" style="background-color: {{ theme.cardLight }}">
         <image class="nav-btn-img" src="../../common/icons/{{ iconTheme }}/icon_arrow_left.png"></image>
       </div>
-      <text class="day-title" style="font-size: {{ dayTitleSize }}px; color: {{ theme.text }}">{{ dayDisplayText }}</text>
+      <text class="day-title" style="font-size: {{ dayTitleSize }}px; color: {{ dayTitleColor || theme.text }}">{{ dayDisplayText }}</text>
       <div class="day-nav-btns" if="{{ !isCapsule }}">
         <div class="day-nav-circle" onclick="goToWeekView" if="{{ showDayNavZong }}" style="background-color: {{ theme.cardLight }}">
           <text class="day-nav-text" style="color: {{ theme.accent }}">总</text>
@@ -85,11 +85,12 @@
         <div class="progress-bg" if="{{ isToday }}" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
         <div class="class-card-accent" style="background-color: {{ theme.accent }}"></div>
         <div class="class-card-body">
-          <text class="grid-item-name" style="color: {{ theme.text }}; font-size: {{ $item.fontSize }}px; line-height: {{ $item.lineHeight }}px">{{ $item.name }}</text>
-          <div class="class-card-meta">
-            <text class="grid-item-time" style="color: {{ theme.accent }}; font-size: {{ $item.metaFontSize }}px; line-height: {{ $item.metaLineHeight }}px">{{ $item.timeDisplay }}</text>
-            <text class="grid-item-location" if="{{ $item.location }}" style="color: {{ theme.textMuted }}; font-size: {{ $item.metaFontSize }}px; line-height: {{ $item.metaLineHeight }}px">{{ $item.location }}</text>
+          <div class="card-name-row">
+            <text class="grid-item-name" style="color: {{ theme.text }}; font-size: {{ $item.fontSize }}px; line-height: {{ $item.lineHeight }}px">{{ $item.name }}</text>
+            <text class="grid-item-location-inline" if="{{ $item.location && !$item.locationWrap }}" style="color: {{ theme.textMuted }}; font-size: {{ $item.metaFontSize }}px; line-height: {{ $item.metaLineHeight }}px">{{ $item.location }}</text>
           </div>
+          <text class="grid-item-location" if="{{ $item.location && $item.locationWrap }}" style="color: {{ theme.textMuted }}; font-size: {{ $item.metaFontSize }}px; line-height: {{ $item.metaLineHeight }}px">{{ $item.location }}</text>
+          <text class="grid-item-time" style="color: {{ theme.accent }}; font-size: {{ $item.metaFontSize }}px; line-height: {{ $item.metaLineHeight }}px">{{ $item.timeDisplay }}</text>
         </div>
       </div>
     </scroll>
@@ -118,14 +119,17 @@
     
 
     <div class="bottom-buttons">
-      <div class="add-btn-wrapper" onclick="openAddCoursePage" style="background-color: {{ theme.accent }}">
+      <!-- 加号按钮：实心强调色块改为透明底 + 强调色描边，避免底部出现一块不透明色块 -->
+      <div class="add-btn-wrapper" onclick="openAddCoursePage"
+           style="background-color: transparent; border-width: 2px; border-color: {{ theme.accent }}">
         <image class="add-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_plus.png"></image>
-        <text class="add-btn-label" if="{{ !isCapsule }}" style="color: {{ theme.bg }}">添加课程</text>
+        <text class="add-btn-label" if="{{ !isCapsule }}" style="color: {{ theme.accent }}">添加课程</text>
       </div>
       <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
     </div>
 
     <div class="week-indicator" onclick="openScheduleManager">
+      <!-- 课表切换：repeat 循环箭头表达「切换课表」 -->
       <image class="week-swap-icon" src="../../common/icons/{{ iconTheme }}/icon_swap.png"></image>
       <text class="week-text" style="color: {{ theme.accent }}">{{ currentScheduleName }}</text>
     </div>
@@ -142,6 +146,22 @@ const device = require("@system.device")
 var DEBUG = false
 function dlog() {
   if (DEBUG) console.log.apply(console, arguments)
+}
+
+// Homepage template configs: control day title color and other display properties
+var HOMEPAGE_TEMPLATES = {
+  "default": {
+    name: "Default",
+    dayTitleColor: "text"         // uses theme.text (default)
+  },
+  "accent-title": {
+    name: "Accent Title",
+    dayTitleColor: "accent"       // uses theme.accent (accent color)
+  },
+  "soft-title": {
+    name: "Soft Title",
+    dayTitleColor: "textSecondary" // uses theme.textSecondary (secondary text)
+  }
 }
 
 var isCapsuleScreen = false
@@ -206,6 +226,7 @@ export default {
   private: {
     isCapsule: false,
     iconTheme: "dark",
+    _lastDirty: "",
     isLoading: true,
     loadError: false,
     skeletonCards: [1, 2, 3],
@@ -235,6 +256,8 @@ export default {
     displaySize: 48,
     metaFontSize: 34,
     dayTitleSize: 48,
+    dayTitleColor: "",
+    _homepageTplId: "default",
     quickAdd: {
       expanded: false,
       courseNames: [],
@@ -268,6 +291,8 @@ export default {
     store.getTheme(function(t, themeName) {
       self.theme = t
       self.updateIconSrc(themeName)
+      // Re-apply template after theme is set to ensure correct color resolution
+      self.applyHomepageTemplate()
     })
     self.loadHomepageSettings()
 
@@ -278,6 +303,18 @@ export default {
         try { self.$forceUpdate() } catch (e) {}
       }
     }, 8000)
+
+    // 记录当前写盘版本号作为基准，避免首次进入被误判成"数据被改过"而重复刷一次
+    var bootStorage = require("@system.storage")
+    bootStorage.get({
+      key: "allCourses_dirty",
+      success: function(val) {
+        self._lastDirty = val || ""
+      },
+      fail: function() {
+        self._lastDirty = ""
+      }
+    })
 
     database.init(function() {
       database.getAllCourses(function(schedule) {
@@ -301,15 +338,10 @@ export default {
     store.getTheme(function(t, themeName) {
       self.theme = t
       self.updateIconSrc(themeName)
-    })
+      // Re-apply template color after theme update
+      self.applyHomepageTemplate()
+    }, true) // forceRefresh=true: ensure theme change from settings always takes effect
     self.loadHomepageSettings()
-
-    // onInit 刚刚完成首次加载，这里不重复整条读取链
-    if (self._skipNextShow) {
-      self._skipNextShow = false
-      try { self.$forceUpdate() } catch (e) {}
-      return
-    }
 
     if (modules.customContent && modules.customContent.refresh) {
       modules.customContent.refresh(self)
@@ -321,18 +353,57 @@ export default {
       self.quickAdd.loadPreset()
     }
 
-    store.getCurrentScheduleIndex(function(idx) {
-      // 课表没有切换时不必再次写盘，直接刷新数据
-      if (database.getScheduleIndex() === idx) {
-        self.loadScheduleData(idx, true)
-      } else {
-        database.setScheduleIndex(idx, function() {
-          self.loadScheduleData(idx, true)
-        })
+    // 关键：先比对写盘版本号（由 database 在每次写盘成功后累加），
+    // 只要别的页面改动过课程（增删改），就必须重新读盘，即使 _skipNextShow 还没消耗。
+    var storage = require("@system.storage")
+    storage.get({
+      key: "allCourses_dirty",
+      success: function(val) {
+        self.resumeRefresh(val)
+      },
+      fail: function() {
+        self.resumeRefresh(null)
       }
     })
 
     try { this.$forceUpdate() } catch (e) {}
+  },
+
+  // dirtyVal: 存储中的写盘版本号，null 表示取不到（按未变更处理）
+  resumeRefresh(dirtyVal) {
+    var self = this
+    var dataChanged = false
+    if (dirtyVal !== undefined && dirtyVal !== null && dirtyVal !== "") {
+      dataChanged = (String(dirtyVal) !== String(self._lastDirty))
+    }
+    self._lastDirty = dirtyVal || ""
+
+    // onInit 刚完成首次加载，且数据没被别的页面改过 —— 不重复整条读取链
+    if (self._skipNextShow && !dataChanged) {
+      self._skipNextShow = false
+      try { self.$forceUpdate() } catch (e) {}
+      return
+    }
+    self._skipNextShow = false
+
+    store.getCurrentScheduleIndex(function(idx) {
+      var doLoad = function() {
+        // 课表没有切换时不必再次写盘，直接刷新数据
+        if (database.getScheduleIndex() === idx) {
+          self.loadScheduleData(idx, true)
+        } else {
+          database.setScheduleIndex(idx, function() {
+            self.loadScheduleData(idx, true)
+          })
+        }
+      }
+      // 数据变更时立即读，不等 50ms：删除/新增后回首页要第一时间反映
+      setTimeout(doLoad, dataChanged ? 0 : 50)
+      // 二次兜底：写盘回调与跨页返回存在竞态，稍后再刷一次确保最终一致
+      if (dataChanged) {
+        setTimeout(doLoad, 400)
+      }
+    })
   },
 
   // 读取指定课表的数据并刷新界面
@@ -438,6 +509,17 @@ export default {
         self.updateClock()
       }
     }, true)
+  },
+
+  applyHomepageTemplate() {
+    var self = this
+    store.getHomepageTemplate(function(tplId) {
+      self._homepageTplId = tplId
+      var tpl = HOMEPAGE_TEMPLATES[tplId] || HOMEPAGE_TEMPLATES["default"]
+      var colorKey = tpl.dayTitleColor || "text"
+      self.dayTitleColor = self.theme[colorKey] || self.theme.text
+      try { self.$forceUpdate() } catch (e) {}
+    })
   },
 
   initAllModules() {
@@ -557,8 +639,9 @@ export default {
       if (self.currentDayIndex === tomorrowIdx) return
       self.currentDayIndex = tomorrowIdx
       self.currentDay = dayNames[tomorrowIdx]
+      // 与 day-nav.js 的 dayShortMap 保持一致：胶囊屏用「周一 / 周二 …」，非胶囊屏用「星期一」
       self.dayDisplayText = isCapsuleScreen
-        ? ({ "星期日": "日", "星期一": "一", "星期二": "二", "星期三": "三", "星期四": "四", "星期五": "五", "星期六": "六" })[self.currentDay] || self.currentDay
+        ? ({ "星期日": "周日", "星期一": "周一", "星期二": "周二", "星期三": "周三", "星期四": "周四", "星期五": "周五", "星期六": "周六" })[self.currentDay] || self.currentDay
         : self.currentDay
       if (self.loadDayClasses && typeof self.loadDayClasses === 'function') self.loadDayClasses()
       if (self.updateStatus && typeof self.updateStatus === 'function') self.updateStatus()
@@ -774,29 +857,35 @@ export default {
 
 .grid-item-name {
   font-weight: bold;
-  margin-bottom: 6px;
   text-overflow: ellipsis;
   lines: 1;
-  line-height: 32px;
+  flex-shrink: 1;
 }
 
-.class-card-meta {
+.card-name-row {
   flex-direction: row;
-  align-items: center;
-  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 6px;
 }
 
-.grid-item-time {
-  margin-right: 14px;
+.grid-item-location-inline {
+  margin-left: 6px;
   lines: 1;
   flex-shrink: 0;
-  line-height: 28px;
 }
 
 .grid-item-location {
   lines: 1;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.grid-item-time {
+  lines: 1;
+  text-overflow: ellipsis;
   flex-shrink: 0;
-  line-height: 28px;
 }
 
 .empty-card {
@@ -923,7 +1012,6 @@ export default {
   flex: 1;
   height: 44px;
   border-radius: 22px;
-  border-width: 0;
   margin-right: 4px;
   flex-direction: row;
   justify-content: center;
@@ -1144,30 +1232,32 @@ export default {
     font-size: 20px;
     line-height: 48px;
   }
-  /* 胶囊屏改为上下两行：课程名独占一行，时间与地点在第二行。
-     原先左右并排时课程名只剩约 40px，连一个字都放不下。 */
+  /* 胶囊屏：课程名独占一行（或与短教室名同行），时间独占一行，教室长时另起一行 */
   .class-card-body {
     padding: 6px 10px 6px 10px;
     flex-direction: column;
     align-items: flex-start;
   }
+  .card-name-row {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 2px;
+  }
   .grid-item-name {
     margin-bottom: 0;
-    width: 100%;
-    flex: 0 0 auto;
+    flex-shrink: 1;
     lines: 1;
     text-overflow: ellipsis;
   }
-  .class-card-meta {
-    flex-direction: row;
+  .grid-item-location-inline {
+    margin-left: 4px;
+    lines: 1;
     flex-shrink: 0;
-    align-items: center;
-    width: 100%;
-    margin-top: 2px;
   }
   .grid-item-time {
     font-size: 20px;
-    margin-right: 6px;
     margin-bottom: 0;
     lines: 1;
   }
@@ -1175,7 +1265,7 @@ export default {
     font-size: 20px;
     lines: 1;
     text-overflow: ellipsis;
-    flex: 1;
+    margin-bottom: 2px;
   }
   .week-text {
     font-size: 20px;
@@ -1204,10 +1294,10 @@ export default {
     padding: 3px 0;
     margin-bottom: 3px;
   }
-  /* 方屏横向空间充足，按规范取 48px */
+  /* 方屏: 圆圈容器保持48px, 箭头三角缩小到24px与胶囊屏一致 */
   .nav-btn-img {
-    width: 48px;
-    height: 48px;
+    width: 24px;
+    height: 24px;
   }
   .day-title {
     font-size: 26px;

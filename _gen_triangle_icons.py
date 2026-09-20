@@ -1,7 +1,18 @@
 #!/usr/bin/env python3
-"""Generate solid triangle arrow icons to replace line-arrow icons."""
-from PIL import Image, ImageDraw
-import os
+"""[DEPRECATED] Generate solid triangle arrow icons to replace line-arrow icons.
+
+**已废弃：禁止使用。** 本项目统一从 Lucide 官方源获取图标，不允许自己绘制图形
+（自己绘制的 path 曾出现抄错导致图标变形的问题）。
+
+请使用：
+    python3 _gen_lucide_icons.py
+"""
+import sys
+
+sys.exit("本脚本已废弃，改用 _gen_lucide_icons.py（图标一律取自 Lucide 官方源）")
+
+from PIL import Image, ImageDraw  # noqa: E402
+import os  # noqa: E402
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 ICONS_DIR = os.path.join(BASE, "src", "common", "icons")

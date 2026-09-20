@@ -193,6 +193,7 @@ var TEMPLATE_CONFIGS = {
 
 export default {
   private: {
+    iconTheme: "dark",
     allWeekDays: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
     allDayNames: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
     weekDays: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
@@ -283,8 +284,9 @@ export default {
       },
       fail: function() {}
     })
-    store.getTheme(function(t) {
+    store.getTheme(function(t, themeName) {
       self.theme = t
+      self.updateIconSrc(themeName)
     })
     store.getHideWeekend(function(hide) {
       self.hideWeekend = hide
@@ -331,8 +333,9 @@ export default {
   onShow() {
     var self = this
     log("onShow start")
-    store.getTheme(function(t) {
+    store.getTheme(function(t, themeName) {
       self.theme = t
+      self.updateIconSrc(themeName)
     })
     store.getHideWeekend(function(hide) {
       self.hideWeekend = hide
@@ -739,6 +742,10 @@ export default {
         prompt.showToast({ message: "请重试" })
       }
     })
+  },
+
+  updateIconSrc(themeName) {
+    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
   },
 
   goBack() {

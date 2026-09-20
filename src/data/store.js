@@ -910,5 +910,26 @@ module.exports = {
       success: function() { if (callback) callback() },
       fail: function() { if (callback) callback() }
     })
+  },
+
+  getHomepageTemplate: function(callback) {
+    storage.get({
+      key: "homepage_template",
+      success: function(data) {
+        callback(data || "default")
+      },
+      fail: function() {
+        callback("default")
+      }
+    })
+  },
+
+  setHomepageTemplate: function(templateId, callback) {
+    storage.set({
+      key: "homepage_template",
+      value: templateId,
+      success: function() { if (callback) callback() },
+      fail: function() { if (callback) callback() }
+    })
   }
 }

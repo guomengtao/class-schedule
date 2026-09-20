@@ -8,7 +8,7 @@
       <div class="header-placeholder"></div>
     </div>
 
-    <scroll class="main-scroll" scroll-y="true">
+    <scroll class="content-scroll" scroll-y="true">
       <div class="section">
         <div class="section-title-row">
           <text class="section-title" style="color: {{ theme.text }}">选择课程</text>
@@ -31,36 +31,44 @@
 
       <div class="section">
         <text class="section-title" style="color: {{ theme.text }}">上课时间</text>
-        <div class="time-row">
-          <div class="time-box" onclick="pickTime('start')" style="background-color: {{ theme.card }}">
-            <text class="time-val" style="color: {{ theme.text }}">{{ padZero(startHour) }}:{{ padZero(startMin) }}</text>
-            <text class="time-label" style="color: {{ theme.textSecondary }}">开始</text>
+        <text class="picker-label" style="color: {{ theme.text }}">开始</text>
+        <div class="stepper-time" style="background-color: {{ theme.card }}">
+          <div class="stepper-row">
+            <text class="stepper-label" style="color: {{ theme.text }}">小时</text>
+            <input class="stepper-btn" type="button" value="-" onclick="decreaseStartHour"
+                   style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+            <text class="stepper-val" style="color: {{ theme.text }}">{{ padZero(startHour) }}</text>
+            <input class="stepper-btn" type="button" value="+" onclick="increaseStartHour"
+                   style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
           </div>
-          <text class="time-sep" style="color: {{ theme.textMuted }}">至</text>
-          <div class="time-box" onclick="pickTime('end')" style="background-color: {{ theme.card }}">
-            <text class="time-val" style="color: {{ theme.text }}">{{ padZero(endHour) }}:{{ padZero(endMin) }}</text>
-            <text class="time-label" style="color: {{ theme.textSecondary }}">结束</text>
+          <div class="stepper-row">
+            <text class="stepper-label" style="color: {{ theme.text }}">分钟</text>
+            <input class="stepper-btn" type="button" value="-" onclick="decreaseStartMin"
+                   style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+            <text class="stepper-val" style="color: {{ theme.text }}">{{ padZero(startMin) }}</text>
+            <input class="stepper-btn" type="button" value="+" onclick="increaseStartMin"
+                   style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
           </div>
         </div>
-        <div class="time-adjust" if="{{ timePicker }}">
-          <div class="adjust-group">
-            <text class="adjust-label" style="color: {{ theme.text }}">时</text>
-            <input class="adjust-btn" type="button" value="-" onclick="decreaseSelectedHour"
+
+        <text class="picker-label" style="color: {{ theme.text }}">结束</text>
+        <div class="stepper-time" style="background-color: {{ theme.card }}">
+          <div class="stepper-row">
+            <text class="stepper-label" style="color: {{ theme.text }}">小时</text>
+            <input class="stepper-btn" type="button" value="-" onclick="decreaseEndHour"
                    style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="adjust-num" style="color: {{ theme.text }}">{{ padZero(selectedHour) }}</text>
-            <input class="adjust-btn" type="button" value="+" onclick="increaseSelectedHour"
-                   style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-          </div>
-          <div class="adjust-group">
-            <text class="adjust-label" style="color: {{ theme.text }}">分</text>
-            <input class="adjust-btn" type="button" value="-" onclick="decreaseSelectedMin"
-                   style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="adjust-num" style="color: {{ theme.text }}">{{ padZero(selectedMin) }}</text>
-            <input class="adjust-btn" type="button" value="+" onclick="increaseSelectedMin"
+            <text class="stepper-val" style="color: {{ theme.text }}">{{ padZero(endHour) }}</text>
+            <input class="stepper-btn" type="button" value="+" onclick="increaseEndHour"
                    style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
           </div>
-          <input class="confirm-btn" type="button" value="确定" onclick="confirmTimePick"
-                 style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+          <div class="stepper-row">
+            <text class="stepper-label" style="color: {{ theme.text }}">分钟</text>
+            <input class="stepper-btn" type="button" value="-" onclick="decreaseEndMin"
+                   style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+            <text class="stepper-val" style="color: {{ theme.text }}">{{ padZero(endMin) }}</text>
+            <input class="stepper-btn" type="button" value="+" onclick="increaseEndMin"
+                   style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+          </div>
         </div>
       </div>
 
@@ -74,46 +82,46 @@
         </div>
       </div>
 
-      <div class="section">
+      <div class="weekday-section">
         <text class="section-title" style="color: {{ theme.text }}">星期</text>
-        <scroll scroll-x="true" class="weekday-scroll">
-        <div class="weekday-row">
-          <div class="weekday-btn {{ dayIndex === 1 ? 'weekday-btn-active' : '' }}"
-               onclick="selectDay(1)"
-               style="background-color: {{ dayIndex === 1 ? theme.accent : theme.card }}">
-            <text class="weekday-text" style="color: {{ dayIndex === 1 ? theme.bg : theme.text }}">一</text>
+        <scroll scroll-x="true" class="weekday-scroll" id="weekdayScroll" scroll-left="{{ weekdayScrollLeft }}">
+          <div class="weekday-row">
+            <div class="weekday-btn {{ dayIndex === 1 ? 'weekday-btn-active' : '' }}"
+                 onclick="selectDay(1)"
+                 style="background-color: {{ dayIndex === 1 ? theme.accent : theme.card }}">
+              <text class="weekday-text" style="color: {{ dayIndex === 1 ? theme.bg : theme.text }}">一</text>
+            </div>
+            <div class="weekday-btn {{ dayIndex === 2 ? 'weekday-btn-active' : '' }}"
+                 onclick="selectDay(2)"
+                 style="background-color: {{ dayIndex === 2 ? theme.accent : theme.card }}">
+              <text class="weekday-text" style="color: {{ dayIndex === 2 ? theme.bg : theme.text }}">二</text>
+            </div>
+            <div class="weekday-btn {{ dayIndex === 3 ? 'weekday-btn-active' : '' }}"
+                 onclick="selectDay(3)"
+                 style="background-color: {{ dayIndex === 3 ? theme.accent : theme.card }}">
+              <text class="weekday-text" style="color: {{ dayIndex === 3 ? theme.bg : theme.text }}">三</text>
+            </div>
+            <div class="weekday-btn {{ dayIndex === 4 ? 'weekday-btn-active' : '' }}"
+                 onclick="selectDay(4)"
+                 style="background-color: {{ dayIndex === 4 ? theme.accent : theme.card }}">
+              <text class="weekday-text" style="color: {{ dayIndex === 4 ? theme.bg : theme.text }}">四</text>
+            </div>
+            <div class="weekday-btn {{ dayIndex === 5 ? 'weekday-btn-active' : '' }}"
+                 onclick="selectDay(5)"
+                 style="background-color: {{ dayIndex === 5 ? theme.accent : theme.card }}">
+              <text class="weekday-text" style="color: {{ dayIndex === 5 ? theme.bg : theme.text }}">五</text>
+            </div>
+            <div class="weekday-btn {{ dayIndex === 6 ? 'weekday-btn-active' : '' }}"
+                 onclick="selectDay(6)"
+                 style="background-color: {{ dayIndex === 6 ? theme.accent : theme.card }}">
+              <text class="weekday-text" style="color: {{ dayIndex === 6 ? theme.bg : theme.text }}">六</text>
+            </div>
+            <div class="weekday-btn {{ dayIndex === 0 ? 'weekday-btn-active' : '' }}"
+                 onclick="selectDay(0)"
+                 style="background-color: {{ dayIndex === 0 ? theme.accent : theme.card }}">
+              <text class="weekday-text" style="color: {{ dayIndex === 0 ? theme.bg : theme.text }}">日</text>
+            </div>
           </div>
-          <div class="weekday-btn {{ dayIndex === 2 ? 'weekday-btn-active' : '' }}"
-               onclick="selectDay(2)"
-               style="background-color: {{ dayIndex === 2 ? theme.accent : theme.card }}">
-            <text class="weekday-text" style="color: {{ dayIndex === 2 ? theme.bg : theme.text }}">二</text>
-          </div>
-          <div class="weekday-btn {{ dayIndex === 3 ? 'weekday-btn-active' : '' }}"
-               onclick="selectDay(3)"
-               style="background-color: {{ dayIndex === 3 ? theme.accent : theme.card }}">
-            <text class="weekday-text" style="color: {{ dayIndex === 3 ? theme.bg : theme.text }}">三</text>
-          </div>
-          <div class="weekday-btn {{ dayIndex === 4 ? 'weekday-btn-active' : '' }}"
-               onclick="selectDay(4)"
-               style="background-color: {{ dayIndex === 4 ? theme.accent : theme.card }}">
-            <text class="weekday-text" style="color: {{ dayIndex === 4 ? theme.bg : theme.text }}">四</text>
-          </div>
-          <div class="weekday-btn {{ dayIndex === 5 ? 'weekday-btn-active' : '' }}"
-               onclick="selectDay(5)"
-               style="background-color: {{ dayIndex === 5 ? theme.accent : theme.card }}">
-            <text class="weekday-text" style="color: {{ dayIndex === 5 ? theme.bg : theme.text }}">五</text>
-          </div>
-          <div class="weekday-btn {{ dayIndex === 6 ? 'weekday-btn-active' : '' }}"
-               onclick="selectDay(6)"
-               style="background-color: {{ dayIndex === 6 ? theme.accent : theme.card }}">
-            <text class="weekday-text" style="color: {{ dayIndex === 6 ? theme.bg : theme.text }}">六</text>
-          </div>
-          <div class="weekday-btn {{ dayIndex === 0 ? 'weekday-btn-active' : '' }}"
-               onclick="selectDay(0)"
-               style="background-color: {{ dayIndex === 0 ? theme.accent : theme.card }}">
-            <text class="weekday-text" style="color: {{ dayIndex === 0 ? theme.bg : theme.text }}">日</text>
-          </div>
-        </div>
         </scroll>
       </div>
     </scroll>
@@ -179,19 +187,17 @@ export default {
     courseLocation: "",
     courseIndex: 0,
     presetCourses: [],
+    iconTheme: "dark",
     startHour: 8,
     startMin: 0,
     endHour: 8,
     endMin: 45,
     dayIndex: 1,
+    weekdayScrollLeft: 0,
     day: "",
     nextId: 100,
     isSaving: false,
     conflictConfirmed: false,
-    timePicker: false,
-    pickTarget: "",
-    selectedHour: 8,
-    selectedMin: 0,
     theme: {
       bg: "#1a1a2e",
       card: "#16213e",
@@ -221,8 +227,9 @@ export default {
 
   onInit() {
     var self = this
-    store.getTheme(function(t) {
+    store.getTheme(function(t, themeName) {
       self.theme = t
+      self.updateIconSrc(themeName)
     })
     this.loadCourses()
     this.setDefaultDay()
@@ -240,8 +247,9 @@ export default {
 
   onShow() {
     var self = this
-    store.getTheme(function(t) {
+    store.getTheme(function(t, themeName) {
       self.theme = t
+      self.updateIconSrc(themeName)
     })
     this.refreshCourseList()
     var storage = require("@system.storage")
@@ -292,11 +300,13 @@ export default {
         self.dayIndex = idx
         self.day = DAY_NAMES[idx]
         storage.delete({ key: "add_course_day", fail: function() {} })
+        self.scrollToCurrentDay()
       },
       fail: function() {
         var idx = new Date().getDay()
         self.dayIndex = idx
         self.day = DAY_NAMES[idx]
+        self.scrollToCurrentDay()
       }
     })
   },
@@ -372,54 +382,89 @@ export default {
     this.courseTime = c.time
   },
 
-  pickTime(target) {
-    this.pickTarget = target
-    if (target === "start") {
-      this.selectedHour = this.startHour
-      this.selectedMin = this.startMin
-    } else {
-      this.selectedHour = this.endHour
-      this.selectedMin = this.endMin
-    }
-    this.timePicker = true
+  // 时间步进：与编辑页（detail.ux）完全一致，改完立即回写 courseTime
+  increaseStartHour() {
+    if (this.startHour < 23) { this.startHour = this.startHour + 1 }
+    else { this.startHour = 0 }
+    this.adjustEndTime()
+  },
+  decreaseStartHour() {
+    if (this.startHour > 0) { this.startHour = this.startHour - 1 }
+    else { this.startHour = 23 }
+    this.adjustEndTime()
+  },
+  increaseStartMin() {
+    if (this.startMin < 59) { this.startMin = this.startMin + 1 }
+    else { this.startMin = 0 }
+    this.adjustEndTime()
+  },
+  decreaseStartMin() {
+    if (this.startMin > 0) { this.startMin = this.startMin - 1 }
+    else { this.startMin = 59 }
+    this.adjustEndTime()
+  },
+  increaseEndHour() {
+    if (this.endHour < 23) { this.endHour = this.endHour + 1 }
+    else { this.endHour = 0 }
+    this.adjustEndTime()
+  },
+  decreaseEndHour() {
+    if (this.endHour > 0) { this.endHour = this.endHour - 1 }
+    else { this.endHour = 23 }
+    this.adjustEndTime()
+  },
+  increaseEndMin() {
+    if (this.endMin < 59) { this.endMin = this.endMin + 1 }
+    else { this.endMin = 0 }
+    this.adjustEndTime()
+  },
+  decreaseEndMin() {
+    if (this.endMin > 0) { this.endMin = this.endMin - 1 }
+    else { this.endMin = 59 }
+    this.adjustEndTime()
   },
 
-  confirmTimePick() {
-    if (this.pickTarget === "start") {
-      this.startHour = this.selectedHour
-      this.startMin = this.selectedMin
-    } else {
-      this.endHour = this.selectedHour
-      this.endMin = this.selectedMin
+  adjustEndTime() {
+    var startTotal = this.startHour * 60 + this.startMin
+    var endTotal = this.endHour * 60 + this.endMin
+    if (endTotal <= startTotal) {
+      endTotal = startTotal + 45
+      if (endTotal >= 1440) { endTotal = 1439 }
+      this.endHour = Math.floor(endTotal / 60)
+      this.endMin = endTotal % 60
     }
-    this.timePicker = false
     this.updateTimeString()
   },
 
-  increaseSelectedHour() {
-    if (this.selectedHour < 23) { this.selectedHour = this.selectedHour + 1 }
-    else { this.selectedHour = 0 }
-  },
-  decreaseSelectedHour() {
-    if (this.selectedHour > 0) { this.selectedHour = this.selectedHour - 1 }
-    else { this.selectedHour = 23 }
-  },
-  increaseSelectedMin() {
-    if (this.selectedMin < 55) { this.selectedMin = this.selectedMin + 5 }
-    else { this.selectedMin = 0 }
-  },
-  decreaseSelectedMin() {
-    if (this.selectedMin >= 5) { this.selectedMin = this.selectedMin - 5 }
-    else { this.selectedMin = 55 }
-  },
-
   updateTimeString() {
-    this.courseTime = padZero(this.startHour) + ":" + padZero(this.startMin) + " - " + padZero(this.endHour) + ":" + padZero(this.endMin)
+    this.courseTime = padZero(this.startHour) + ":" + padZero(this.startMin) + "-" + padZero(this.endHour) + ":" + padZero(this.endMin)
   },
 
   selectDay(idx) {
     this.dayIndex = idx
     this.day = DAY_NAMES[idx]
+    this.scrollToCurrentDay()
+  },
+
+  // 自动滚动到当前选中的星期：模板排列是「一二三四五六日」，dayIndex 0=周日排在末尾，
+  // 胶囊屏 160px 仅能看到约 3 个按钮，若不滚动用户看不到已选的周日，需二次滑动。
+  // 与编辑课程页(detail.ux)的 scrollToCurrentDay 保持一致：属性先行 + $element.scrollTo 兜底。
+  scrollToCurrentDay() {
+    var order = [1, 2, 3, 4, 5, 6, 0]
+    var pos = order.indexOf(this.dayIndex)
+    if (pos < 0) { pos = 0 }
+    var left = pos * 52 // 每项 48px 宽 + 左右 margin 约 4px
+    this.weekdayScrollLeft = left
+    var self = this
+    // 部分运行时不响应 scroll-left 属性，用组件方法兜底（不支持时静默跳过）
+    setTimeout(function() {
+      try {
+        var el = self.$element("weekdayScroll")
+        if (el && typeof el.scrollTo === "function") {
+          el.scrollTo({ left: left })
+        }
+      } catch (e) {}
+    }, 80)
   },
 
   showKeyboard() {
@@ -430,6 +475,10 @@ export default {
     storage.set({ key: "chinese_input_maxlen", value: "10" })
     storage.set({ key: "chinese_input_return_key", value: "chinese_input_result" })
     router.push({ uri: "/pages/chinese-input" })
+  },
+
+  updateIconSrc(themeName) {
+    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
   },
 
   goBack() {
@@ -489,7 +538,13 @@ export default {
   width: 100%;
   height: 100%;
   flex-direction: column;
-  padding: 30px 16px 30px 16px;
+  padding: 30px 16px 12px 16px;
+}
+
+.content-scroll {
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
 }
 
 .mgmt-btn {
@@ -502,11 +557,6 @@ export default {
   background-color: transparent;
   border: none;
   flex-shrink: 0;
-}
-
-.main-scroll {
-  flex: 1;
-  flex-direction: column;
 }
 
 .section {
@@ -574,94 +624,56 @@ export default {
   text-align: center;
 }
 
-.time-row {
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-}
-
-.time-box {
-  width: 150px;
-  height: 70px;
-  border-radius: 14px;
-  padding: 10px;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.time-val {
-  font-size: 32px;
-  line-height: 42px;
+/* 时间步进区：与编辑页（detail.ux）保持同一套结构与数值 */
+.picker-label {
+  font-size: 30px;
   font-weight: bold;
+  line-height: 40px;
+  margin-top: 8px;
+  margin-bottom: 8px;
   text-align: center;
 }
 
-.time-label {
-  font-size: 20px;
-  line-height: 28px;
-}
-
-.time-sep {
-  font-size: 26px;
-  line-height: 36px;
-  margin: 0 12px;
-  font-weight: bold;
-}
-
-.time-adjust {
+.stepper-time {
   flex-direction: column;
   align-items: center;
-  margin-top: 10px;
-  padding: 12px;
   border-radius: 14px;
-  background-color: #16213e;
+  padding: 12px;
+  margin-bottom: 10px;
 }
 
-.adjust-group {
+.stepper-row {
   flex-direction: row;
   align-items: center;
   justify-content: center;
   margin-bottom: 8px;
 }
 
-.adjust-label {
-  font-size: 24px;
-  line-height: 34px;
-  width: 40px;
+.stepper-label {
+  font-size: 28px;
+  line-height: 40px;
+  width: 60px;
   text-align: center;
 }
 
-.adjust-btn {
-  width: 44px;
-  height: 44px;
+.stepper-btn {
+  width: 48px;
+  height: 48px;
   border-radius: 10px;
-  font-size: 24px;
-  line-height: 44px;
+  font-size: 28px;
+  line-height: 48px;
   font-weight: bold;
   text-align: center;
   background-color: transparent;
   border: none;
 }
 
-.adjust-num {
-  font-size: 30px;
-  line-height: 44px;
+.stepper-val {
+  font-size: 40px;
+  line-height: 48px;
   font-weight: bold;
-  width: 52px;
+  width: 60px;
   text-align: center;
-}
-
-.confirm-btn {
-  width: 100px;
-  height: 44px;
-  border-radius: 10px;
-  font-size: 24px;
-  line-height: 44px;
-  font-weight: bold;
-  text-align: center;
-  background-color: transparent;
-  border: none;
 }
 
 .input-box {
@@ -687,9 +699,19 @@ export default {
   line-height: 36px;
 }
 
+/* 星期独立区块：与可滚动内容区及底部确认栏分隔，避免挤成一行 */
+.weekday-section {
+  flex-direction: column;
+  flex-shrink: 0;
+  margin-top: 14px;
+  border-top-width: 1px;
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
 .weekday-scroll {
   width: 100%;
   height: 48px;
+  margin-top: 8px;
 }
 
 .weekday-row {
@@ -718,10 +740,12 @@ export default {
   text-align: center;
 }
 
+/* Bottom bar fixed outside scroll, always visible */
 .bottom-bar {
   flex-direction: row;
   justify-content: space-between;
-  margin-top: 10px;
+  margin-top: 8px;
+  padding-top: 8px;
   flex-shrink: 0;
 }
 
@@ -755,7 +779,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page-root {
-    padding: 30px 16px 30px 16px;
+    padding: 24px 16px 24px 16px;
   }
     /* header 只有 ◀ + 标题，宽度够，但 48px 会挤压"添加课程"4 字，
      故取 44px（原 30px 只有规范要求的 62%） */
@@ -801,59 +825,54 @@ export default {
     font-size: 34px;
     line-height: 44px;
   }
-  /* 两个时间盒改为自适应平分剩余宽度，避免固定宽度叠加后超出屏幕 */
-  .time-box {
-    flex: 1 1 0;
+  /* 标题显示完整：胶囊屏内容区只有 160px，公共 header.css 的
+     返回按钮(48) + 右侧占位(48) 就把标题压到 64px，「添加课程」4 字(26px)
+     放不下会被截断。这里让占位归零，把 48px 还给标题（112px 可用）。 */
+  .header-placeholder {
     width: 0;
-    min-width: 0;
-    height: 64px;
-    border-radius: 10px;
-    padding: 4px;
+    height: 0;
+    margin: 0;
   }
-  .time-val {
+  .header-title {
     font-size: 24px;
-    line-height: 30px;
+    line-height: 32px;
+    flex: 1;
+    min-width: 0;
+    lines: 1;
+    text-align: center;
+    text-overflow: ellipsis;
   }
-  .time-label {
-    font-size: 20px;
-    line-height: 24px;
-  }
-  .time-sep {
-    font-size: 20px;
-    line-height: 30px;
-    margin: 0 2px;
-  }
-  .time-adjust {
-    margin-top: 8px;
-    padding: 10px 6px;
-    border-radius: 12px;
-  }
-  .adjust-group {
+  /* 时间步进：胶囊屏一行放不下「小时 − 08 +」4 个元素，改为标签独占一行 */
+  .picker-label {
+    font-size: 24px;
+    line-height: 32px;
+    margin-top: 6px;
     margin-bottom: 6px;
   }
-  .adjust-label {
-    font-size: 22px;
-    line-height: 32px;
-    width: 32px;
+  .stepper-time {
+    padding: 6px;
+    margin-bottom: 6px;
   }
-  .adjust-btn {
-    width: 48px;
+  .stepper-row {
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .stepper-label {
+    font-size: 20px;
+    line-height: 28px;
+    width: 100%;
+  }
+  .stepper-btn {
+    width: 44px;
     height: 48px;
-    border-radius: 10px;
+    border-radius: 22px;
     font-size: 24px;
     line-height: 48px;
   }
-  .adjust-num {
-    font-size: 24px;
-    line-height: 40px;
-    width: 40px;
-  }
-  .confirm-btn {
-    width: 88px;
-    height: 48px;
-    border-radius: 10px;
-    font-size: 22px;
+  .stepper-val {
+    font-size: 28px;
     line-height: 48px;
+    width: 56px;
   }
   .input-box {
     height: 48px;
@@ -869,9 +888,13 @@ export default {
     line-height: 32px;
   }
   /* 星期按钮放大到 48px，保证手指点得准（原先 30px 极易点错星期） */
+  .weekday-section {
+    margin-top: 10px;
+  }
   .weekday-scroll {
     width: 100%;
     height: 52px;
+    padding-top: 4px;
   }
   .weekday-btn {
     width: 48px;
@@ -884,24 +907,24 @@ export default {
     line-height: 28px;
   }
   .bottom-bar {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
     margin-top: 8px;
+    padding-top: 6px;
   }
   .cancel-btn {
-    width: 100%;
-    height: 48px;
-    border-radius: 10px;
-    font-size: 24px;
-    line-height: 48px;
-    margin-bottom: 8px;
+    flex: 1;
+    width: auto;
+    height: 44px;
+    line-height: 44px;
+    font-size: 22px;
+    margin: 0 6px 0 0;
   }
   .save-btn {
-    width: 100%;
-    height: 48px;
-    border-radius: 10px;
-    font-size: 24px;
-    line-height: 48px;
+    flex: 2;
+    width: auto;
+    height: 44px;
+    line-height: 44px;
+    font-size: 22px;
   }
 }
 </style>

@@ -303,12 +303,12 @@
         <div static style="position: absolute;left: {{(screenWidth - 192)/2}}px;top: 0px;width: 192px;height: 110px;">
           <img static style="position: absolute;left: 3px;top: 47px;width: 186px;height: 60px;" src="./assets/arc/search.png" />
           <!-- 候选横滚行：整词在前、单字随后（拼音已在键盘上方独立小字行显示，这里不放 cval） -->
-          <scroll id="cvalWaiting" scroll-x="{{true}}" style="position: absolute;left: 15px;top: 56px;width: 144px;height: 42px;">
+          <scroll id="cvalWaiting" scroll-x="{{true}}" style="position: absolute;left: 15px;top: 56px;width: 120px;height: 42px;">
             <div style="position: absolute;left: 0px;top: 0px;height: 42px;padding-right:20px">
               <text for="{{resultRow0}}" show="{{resultRow0.length > $idx}}" class="calbtn02" style="padding-right:10px" @click="onRsSelect(resultRow0[$idx])">{{resultRow0[$idx]}}</text>
             </div>
           </scroll>
-          <img show="{{resultRow0.length > 0}}" style="position: absolute;left: 30px;top: 57px;width: 60px;height: 40px;" src="./assets/arc/down2.png" @click="onBtnClick('down')" />
+          <img show="{{resultRow0.length > 0}}" style="position: absolute;left: 130px;top: 57px;width: 50px;height: 40px;" src="./assets/arc/down2.png" @click="onBtnClick('down')" />
           <!-- 带变量的相对路径在 aiot-tookit 2.0.4 中修复 -->
           <img src="./assets/arc/{{lang}}.png" style="position: absolute;top:0px;left:9px;width: 48px;height: 42px;" @click="onBtnClick('lang')" show="{{downFlag==='' && !numFlag && !numFlag_jp}}" />
           <img src="./assets/arc/back2.png" style="position: absolute;top:0px;left:9px;width: 48px;height: 42px;" @click="onBtnClick('switchCn')" show="{{numFlag && lang==='cn' ||numFlag_jp && lang==='jp' }}" />
@@ -866,6 +866,14 @@ export default {
 	margin-right:10px;
 	lines:1;
 	text-overflow:ellipsis;
+	flex-shrink:0;
+}
+/* 下展分页容器：每个候选按内容自然宽度排列，防止 flex:1 等分挤压文字 */
+.list3 .item {
+	flex:none;
+	width:auto;
+	padding-left:6px;
+	padding-right:6px;
 }
 .calbtnfull {
 	color:#fff;
@@ -924,7 +932,7 @@ export default {
 	top:38px;
 	left:78px;
 	width:324px;
-	height:160px;
+	height:218px;
 	flex-direction:column;
 	background-color:#262626;
 	border-radius:12px

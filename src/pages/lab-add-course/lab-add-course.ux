@@ -1,8 +1,9 @@
 <template>
   <div class="page-root" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <input class="back-btn" type="button" value="◀" onclick="goBack"
-             style="background-color: {{ theme.card }}; color: {{ theme.accent }}" />
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
       <text class="title" style="color: {{ theme.text }}">添加课程(胶囊)</text>
     </div>
 
@@ -21,13 +22,15 @@
       <text class="step-sub" style="color: {{ theme.textSecondary }}">共 {{ presetCourses.length }} 门</text>
 
       <div class="swiper-row">
-        <input class="arrow-btn" type="button" value="◀" onclick="swipePrev"
-               style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+        <div class="arrow-btn-wrapper" onclick="swipePrev" style="background-color: {{ theme.cardLight }}">
+          <image class="arrow-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_arrow_left.png"></image>
+        </div>
         <div class="course-card" onclick="swipeNext" style="background-color: {{ theme.card }}">
           <text class="card-name" style="color: {{ theme.text }}">{{ presetCourses[courseIndex].name }}</text>
         </div>
-        <input class="arrow-btn" type="button" value="▶" onclick="swipeNext"
-               style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+        <div class="arrow-btn-wrapper" onclick="swipeNext" style="background-color: {{ theme.cardLight }}">
+          <image class="arrow-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_arrow_right.png"></image>
+        </div>
       </div>
 
       <text class="index-text" style="color: {{ theme.textMuted }}">{{ courseIndex + 1 }} / {{ presetCourses.length }}</text>
@@ -178,6 +181,7 @@ function parseTimeParts(timeStr) {
 
 export default {
   private: {
+    iconTheme: "dark",
     courseName: "",
     courseTime: "",
     courseLocation: "",
@@ -228,8 +232,9 @@ export default {
 
   onInit() {
     var self = this
-    store.getTheme(function(t) {
+    store.getTheme(function(t, themeName) {
       self.theme = t
+      self.updateIconSrc(themeName)
     })
     this.loadCourses()
 
@@ -405,6 +410,10 @@ export default {
     router.back()
   },
 
+  updateIconSrc(themeName) {
+    this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
+  },
+
   saveCourse() {
     if (this.isSaving) { return }
     if (!this.courseName) { prompt.showToast({ message: "请先选择课程" }); return }
@@ -452,15 +461,18 @@ export default {
   flex-shrink: 0;
 }
 
-.back-btn {
+.back-btn-wrapper {
   width: 52px;
   height: 52px;
   border-radius: 26px;
-  font-size: 28px;
-  line-height: 48px;
-  text-align: center;
-  background-color: transparent;
-  border: none;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.back-btn-icon {
+  width: 26px;
+  height: 26px;
 }
 
 .title {
@@ -523,16 +535,18 @@ export default {
   margin-bottom: 10px;
 }
 
-.arrow-btn {
+.arrow-btn-wrapper {
   width: 44px;
   height: 44px;
   border-radius: 22px;
-  font-size: 26px;
-  line-height: 40px;
-  font-weight: bold;
-  text-align: center;
-  background-color: transparent;
-  border: none;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.arrow-btn-icon {
+  width: 22px;
+  height: 22px;
 }
 
 .course-card {

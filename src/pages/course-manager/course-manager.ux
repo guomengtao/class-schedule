@@ -1,12 +1,12 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
-      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+      <div class="back-btn-wrapper {{ isCapsule ? 'back-btn-cap' : '' }}" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon {{ isCapsule ? 'back-icon-cap' : '' }}" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">课程管理</text>
+      <text class="header-title {{ isCapsule ? 'header-title-cap' : '' }}" style="color: {{ theme.text }}">课程管理</text>
       <input class="add-btn" if="{{ !isCapsule }}" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      <div class="header-placeholder" if="{{ isCapsule }}"></div>
+      <div class="header-placeholder {{ isCapsule ? 'placeholder-cap' : '' }}" if="{{ isCapsule }}"></div>
     </div>
 
     <div class="add-toolbar" if="{{ isCapsule }}">
@@ -24,7 +24,7 @@
           <div class="item-index" style="background-color: {{ theme.accent }}">
             <text class="index-text">{{ $idx + 1 }}</text>
           </div>
-          <text class="course-name" style="color: {{ theme.text }}" lines="1">{{ $item.name }}</text>
+          <text class="course-name" style="color: {{ theme.text }}" lines="{{ isCapsule ? 2 : 1 }}">{{ $item.name }}</text>
         </div>
         <div class="item-actions">
           <!-- 确认态下隐藏"编辑"并改显提示，既给出明确文案，也避免误触相邻按钮 -->
@@ -36,9 +36,9 @@
       <text if="{{ courseList.length === 0 }}" class="empty-hint" style="color: {{ theme.textMuted }}; text-align: center; padding: 40px 10px;">暂无课程，点击右上角 + 添加</text>
     </scroll>
 
-    <div class="undo-bar" if="{{ undoVisible }}">
+    <div class="undo-bar" if="{{ undoVisible }}" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
       <text class="undo-msg" style="color: {{ theme.text }}">{{ undoMessage }}</text>
-      <text class="undo-btn" onclick="undoDelete" style="color: {{ theme.accent }}">撤销</text>
+      <input class="undo-btn" type="button" value="撤销" onclick="undoDelete" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
   </div>
 </template>
@@ -68,6 +68,7 @@ var defaultCourses = [
 
 export default {
   private: {
+    iconTheme: "dark",
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -122,16 +123,18 @@ export default {
       },
       fail: function() {}
     })
-    store.getTheme(function(t) {
+    store.getTheme(function(t, themeName) {
       self.theme = t
+      self.updateIconSrc(themeName)
     })
     this.loadCourses()
   },
 
   onShow() {
     var self = this
-    store.getTheme(function(t) {
+    store.getTheme(function(t, themeName) {
       self.theme = t
+      self.updateIconSrc(themeName)
     })
     this.loadCourses()
 
@@ -344,6 +347,10 @@ export default {
     prompt.showToast({ message: "所有课程已清除" })
   },
 
+  updateIconSrc(themeName) {
+    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+  },
+
   goBack() {
     router.back()
   },
@@ -524,6 +531,35 @@ export default {
   margin-left: 8px;
 }
 
+.back-btn-cap {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.back-icon-cap {
+  width: 20px;
+  height: 20px;
+}
+
+.header-title-cap {
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.placeholder-cap {
+  width: 40px;
+}
+
+.course-name {
+  flex: 1;
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 36px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
     padding: 30px 16px 56px 16px;
@@ -569,6 +605,7 @@ export default {
     border-radius: 14px;
   }
   .item-main {
+    flex: none;
     width: 100%;
   }
   .item-index {
@@ -582,8 +619,10 @@ export default {
     line-height: 26px;
   }
   .course-name {
-    font-size: 28px;
-    line-height: 36px;
+    font-size: 22px;
+    line-height: 30px;
+    lines: 2;
+    text-overflow: ellipsis;
   }
   .item-actions {
     width: 100%;
@@ -610,6 +649,31 @@ export default {
     font-size: 22px;
     line-height: 48px;
     margin-left: 10px;
+  }
+  .undo-msg {
+    flex: none;
+    width: 100%;
+    font-size: 20px;
+    line-height: 28px;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .undo-bar {
+    left: 8px;
+    right: 8px;
+    bottom: 56px;
+    height: auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 12px;
+  }
+  .undo-btn {
+    width: 100%;
+    height: 48px;
+    font-size: 20px;
+    line-height: 48px;
+    margin-left: 0;
   }
 }
 
@@ -729,26 +793,33 @@ export default {
 
 .undo-bar {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  height: 64px;
   flex-direction: row;
   align-items: center;
-  background-color: #0f3460;
-  padding: 14px 20px;
-  height: 60px;
+  justify-content: space-between;
+  border-radius: 16px;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0 10px 0 16px;
 }
 .undo-msg {
   font-size: 24px;
   flex: 1;
   lines: 1;
+  text-overflow: ellipsis;
 }
 .undo-btn {
+  width: 72px;
+  height: 44px;
+  border-radius: 12px;
   font-size: 24px;
   font-weight: bold;
-  line-height: 32px;
   text-align: center;
+  line-height: 44px;
   flex-shrink: 0;
-  padding: 0 10px;
+  margin-left: 8px;
 }
 </style>

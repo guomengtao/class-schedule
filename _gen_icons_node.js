@@ -1,3 +1,9 @@
+// [DEPRECATED] 已废弃：禁止使用。
+// 本项目统一从 Lucide 官方源获取图标，不允许自己绘制图形（自绘 path 曾抄错导致图标变形）。
+// 请改用：python3 _gen_lucide_icons.py
+console.error("本脚本已废弃，改用 _gen_lucide_icons.py（图标一律取自 Lucide 官方源）");
+process.exit(1);
+
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");

@@ -10,14 +10,26 @@
     </div>
 
     <div class="input-display" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
-      <text class="input-text" style="color: {{ theme.text }}">{{ inputText || placeholder }}</text>
-      <text class="cursor" show="{{ showCursor }}" style="color: {{ theme.accent }}">|</text>
+      <scroll class="input-scroll" scroll-x="true">
+        <div class="input-chars">
+          <text if="{{ !inputText && !beforeChars.length && !afterChars.length }}" class="input-placeholder" style="color: {{ theme.textSecondary }}">{{ placeholder }}</text>
+          <div for="{{beforeChars}}" @click="moveCursor(beforeChars[$idx])" class="input-char-wrap">
+            <text class="input-char" style="color: {{ theme.text }}">{{ $item }}</text>
+          </div>
+          <div class="cursor" style="background-color: {{ theme.text }}"></div>
+          <div for="{{afterChars}}" @click="moveCursorAfter(afterChars[$idx])" class="input-char-wrap">
+            <text class="input-char" style="color: {{ theme.text }}">{{ $item }}</text>
+          </div>
+          <div class="cursor-end-zone" @click="moveCursorEnd"></div>
+        </div>
+      </scroll>
     </div>
 
-    <div class="keyboard-area">
-      <div class="keyboard-close-row">
-        <input class="done-btn" type="button" value="完成" onclick="confirmInput" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      </div>
+    <div class="done-row">
+      <input class="done-btn" type="button" value="完成" onclick="confirmInput" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+
+    <scroll class="keyboard-scroll" scroll-y="true">
       <input-method
         hide="{{ false }}"
         keyboardtype="QWERTY"
@@ -27,7 +39,7 @@
         oncomplete="onCharacter"
         ondelete="onDeleteChar"
       ></input-method>
-    </div>
+    </scroll>
   </div>
 </template>
 
@@ -44,7 +56,11 @@ export default {
     maxlen: "10",
     returnKey: "chinese_input_result",
     showCursor: false,
+    cursorPos: 0,
+    beforeChars: [],
+    afterChars: [],
     screenType: "pill-shaped",
+    iconTheme: "dark",
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -58,6 +74,9 @@ export default {
   onInit() {
     var self = this
     store.getTheme(function(t) { self.theme = t })
+    store.getThemeName(function(name) {
+      self.iconTheme = (name === 'light' || name === 'warm') ? 'light' : 'dark'
+    })
     device.getInfo({
       success: function(data) {
         var shape = data.screenShape || "circle"
@@ -85,6 +104,8 @@ export default {
     }, fail: function() {} })
     storage.get({ key: "chinese_input_value", success: function(data) {
       if (data) self.inputText = data
+      self.cursorPos = self.inputText.length
+      self.updateCharArrays()
     }, fail: function() {} })
     storage.get({ key: "chinese_input_maxlen", success: function(data) {
       if (data) self.maxlen = data
@@ -98,13 +119,50 @@ export default {
     if (e && e.detail && e.detail.content) {
       var maxLen = parseInt(this.maxlen) || 10
       if (this.inputText.length < maxLen) {
-        this.inputText += e.detail.content
+        var pos = this.cursorPos
+        this.inputText = this.inputText.slice(0, pos) + e.detail.content + this.inputText.slice(pos)
+        this.cursorPos = pos + 1
+        this.updateCharArrays()
       }
     }
   },
 
   onDeleteChar() {
-    this.inputText = this.inputText.slice(0, -1)
+    var pos = this.cursorPos
+    if (pos > 0) {
+      this.inputText = this.inputText.slice(0, pos - 1) + this.inputText.slice(pos)
+      this.cursorPos = pos - 1
+      this.updateCharArrays()
+    }
+  },
+
+  updateCharArrays() {
+    var text = this.inputText
+    var pos = Math.min(this.cursorPos, text.length)
+    this.cursorPos = Math.max(0, pos)
+    this.beforeChars = text.slice(0, this.cursorPos).split('')
+    this.afterChars = text.slice(this.cursorPos).split('')
+  },
+
+  moveCursor(ch) {
+    var idx = this.beforeChars.indexOf(ch)
+    if (idx >= 0) {
+      this.cursorPos = idx
+      this.updateCharArrays()
+    }
+  },
+
+  moveCursorAfter(ch) {
+    var idx = this.afterChars.indexOf(ch)
+    if (idx >= 0) {
+      this.cursorPos = this.cursorPos + 1 + idx
+      this.updateCharArrays()
+    }
+  },
+
+  moveCursorEnd() {
+    this.cursorPos = this.inputText.length
+    this.updateCharArrays()
   },
 
   confirmInput() {
@@ -131,137 +189,127 @@ export default {
 </script>
 
 <style>
-@import '../../common/header.css';
-
 .page {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  padding: 38px 6px 2px 6px;
+  padding: 30px 0 0 0;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  height: 48px;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+
+.back-btn-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.back-btn-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.header-title {
+  flex: 1;
+  font-size: 26px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 34px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.header-placeholder {
+  width: 0;
+  height: 0;
+  margin: 0;
 }
 
 .input-display {
   flex-direction: row;
   align-items: center;
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: 10px;
   border-width: 2px;
-  margin-bottom: 4px;
-  min-height: 36px;
+  margin: 0 4px 6px 4px;
+  min-height: 44px;
   flex-shrink: 0;
 }
 
-.input-text {
-  font-size: 24px;
+.input-scroll {
   flex: 1;
-  lines: 1;
+  flex-direction: row;
+}
+
+.input-chars {
+  flex-direction: row;
+  align-items: center;
+}
+
+.input-placeholder {
+  font-size: 24px;
+}
+
+.input-char {
+  font-size: 26px;
+}
+
+.input-char-wrap {
+  flex-shrink: 0;
+}
+
+.cursor-end-zone {
+  width: 12px;
+  height: 26px;
+  flex-shrink: 0;
 }
 
 .cursor {
-  font-size: 24px;
-  margin-left: 2px;
-}
-
-.keyboard-area {
-  flex: 1;
-  flex-direction: column;
-  min-height: 0;
-  overflow: visible;
-}
-
-.keyboard-close-row {
-  flex-direction: row;
-  justify-content: flex-end;
-  margin-bottom: 2px;
+  width: 2px;
+  height: 26px;
+  margin: 0 2px;
   flex-shrink: 0;
-  height: 28px;
+  animation-name: blink;
+  animation-duration: 1200ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.done-row {
+  flex-direction: row;
+  justify-content: center;
+  padding: 0 4px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .done-btn {
-  width: 56px;
-  height: 26px;
-  border-radius: 13px;
-  font-size: 20px;
+  width: 160px;
+  height: 38px;
+  border-radius: 19px;
+  font-size: 22px;
   font-weight: bold;
-  line-height: 28px;
+  line-height: 34px;
+  border: none;
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
-  .page {
-    padding: 30px 16px 30px 16px;
-  }
-  
-  
-  
-  .input-display {
-    min-height: 44px;
-    padding: 8px 12px;
-    border-radius: 12px;
-    margin-bottom: 6px;
-  }
-  .input-text {
-    font-size: 28px;
-    line-height: 36px;
-  }
-  .cursor {
-    font-size: 28px;
-    line-height: 36px;
-  }
-  .keyboard-close-row {
-    height: 36px;
-  }
-  .done-btn {
-    width: 72px;
-    height: 38px;
-    border-radius: 19px;
-    font-size: 24px;
-    line-height: 34px;
-  }
-}
-
-@media (shape: circle) {
-  .page {
-    padding: 38px 20px 16px 20px;
-  }
-  
-  
-  
-  .input-display {
-    min-height: 42px;
-    padding: 8px 12px;
-  }
-  .input-text {
-    font-size: 26px;
-  }
-  .cursor {
-    font-size: 26px;
-  }
-  .keyboard-close-row {
-    height: 32px;
-  }
-  .done-btn {
-    width: 64px;
-    height: 30px;
-    font-size: 22px;
-    line-height: 28px;
-  }
-}
-
-@media (shape: rect) {
-  .page {
-    padding: 38px 10px 8px 10px;
-  }
-  
-  
-  
-  .input-display {
-    min-height: 42px;
-  }
-  .input-text {
-    font-size: 26px;
-  }
-  .done-btn {
-    font-size: 22px;
-  }
+.keyboard-scroll {
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
 }
 </style>

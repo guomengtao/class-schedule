@@ -99,16 +99,6 @@
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
-      <div class="row" onclick="openTestArea">
-        <text class="row-label" style="color: {{ theme.text }}">测试区</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">实验功能</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-    </div>
-
-    <div class="group" style="background-color: {{ theme.card }}">
       <div class="group-title-row" onclick="toggleTools">
         <text class="group-title" style="color: {{ theme.text }}">工具</text>
         <div class="row-right">
@@ -152,6 +142,46 @@
           <text class="row-label" style="color: {{ theme.text }}">Header Demo2</text>
           <div class="row-right">
             <text class="row-hint" style="color: {{ theme.textMuted }}">CSS共享头部</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="openAddCourseV2">
+          <text class="row-label" style="color: {{ theme.text }}">添加课程 V2</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">胶囊版·滚轮选时</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="openCountdownManage">
+          <text class="row-label" style="color: {{ theme.text }}">倒数日</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">事件倒计时</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="openQRCodeGenerator">
+          <text class="row-label" style="color: {{ theme.text }}">二维码生成</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">文字转二维码</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="openPinnedPages">
+          <text class="row-label" style="color: {{ theme.text }}">已钉页面</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">首页置顶管理</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="openStatistics">
+          <text class="row-label" style="color: {{ theme.text }}">数据统计</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">使用数据</text>
             <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
           </div>
         </div>
@@ -446,8 +476,20 @@ export default {
     router.push({ uri: "/pages/header-demo2" })
   },
 
-  openTestArea() {
-    router.push({ uri: "/pages/test-area-v2" })
+  openAddCourseV2() {
+    router.push({ uri: "/pages/add-course-v2" })
+  },
+
+  openCountdownManage() {
+    router.push({ uri: "/pages/countdown-manage" })
+  },
+
+  openQRCodeGenerator() {
+    router.push({ uri: "/pages/qrcode-generator" })
+  },
+
+  openStatistics() {
+    router.push({ uri: "/pages/statistics" })
   },
 
   openActivation() {
