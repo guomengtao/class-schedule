@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.6.37",
-  "versionCode": 866,
+  "versionName": "1.6.49",
+  "versionCode": 878,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
@@ -200,6 +200,11 @@
         "component": "statistics",
         "group": "其他",
         "name_cn": "统计"
+      },
+      "pages/workday-info": {
+        "component": "workday-info",
+        "group": "课表视图",
+        "name_cn": "调课说明"
       }
     }
   }

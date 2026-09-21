@@ -11,18 +11,6 @@ function shortenTime(timeStr, capsule) {
   return timeStr.replace(/ - /g, "-")
 }
 
-// 估算文本渲染宽度：中文/全角字 = fontSize, 数字/字母 = fontSize * 0.55
-function estimateTextWidth(text, fontSize) {
-  if (!text || !fontSize) return 0
-  var width = 0
-  for (var i = 0; i < text.length; i++) {
-    var code = text.charCodeAt(i)
-    if (code > 127) { width += fontSize }
-    else { width += Math.round(fontSize * 0.55) }
-  }
-  return width
-}
-
 function getRealTodayName() {
   return fullDayNames[new Date().getDay()]
 }
@@ -46,11 +34,13 @@ function init(instance) {
     })
   })
 
-  instance.loadDayClasses = function() {
+  instance.loadDayClasses = function(overrideWeekDay) {
+    if (overrideWeekDay === undefined) overrideWeekDay = -1
     var self = instance
     var dayData = null
+    var queryDay = (overrideWeekDay >= 0) ? fullDayNames[overrideWeekDay] : self.currentDay
     for (var i = 0; i < self.schedule.length; i++) {
-      if (self.schedule[i].day === self.currentDay) {
+      if (self.schedule[i].day === queryDay) {
         dayData = self.schedule[i]
         break
       }
@@ -58,8 +48,6 @@ function init(instance) {
     var rawClasses = dayData ? dayData.classes : []
     var classes = []
     var capsule = self.isCapsule === true
-    // 胶囊屏卡片正文字体区域可用宽度：屏幕198 - 页padding32 - 卡片accent5 - body padding20 = 141, 留余量取120
-    var capsuleCardTextWidth = 120
     var currentFontSize = self.displaySize
     var currentMetaFontSize = self.metaFontSize
     // 行高固定为字号的 1.2 倍，避免行高小于字号导致文字上下被裁切/重叠
@@ -67,10 +55,8 @@ function init(instance) {
     var currentMetaLineHeight = Math.round(currentMetaFontSize * 1.2)
     for (var j = 0; j < rawClasses.length; j++) {
       var src = rawClasses[j]
-      var nameWidth = estimateTextWidth(src.name, currentFontSize)
-      var locWidth = estimateTextWidth(src.location || "", currentMetaFontSize)
-      // 胶囊屏：课程名 + 空格 + 教室 超出可用宽度时需要换行
-      var needsWrap = capsule && src.location && (nameWidth + currentMetaFontSize * 0.3 + locWidth) > capsuleCardTextWidth
+      // Capsule: always wrap location to a separate line for consistent layout
+      var needsWrap = capsule && !!src.location
       classes.push({
         id: src.id,
         name: src.name,
@@ -100,9 +86,34 @@ function init(instance) {
   }
 
   instance.refreshClasses = function() {
-    instance.loadDayClasses()
-    if (instance.updateStatus && typeof instance.updateStatus === 'function') {
-      instance.updateStatus()
+    var self = instance
+    console.log("[refreshClasses] entering, has reloadHolidayState=" + (!!self.reloadHolidayState) + " holidayReminderOn=" + self.holidayReminderOn + " isHoliday=" + self.isHoliday)
+    if (self.reloadHolidayState && typeof self.reloadHolidayState === 'function') {
+      var d = self.currentDate
+      console.log("[refreshClasses] currentDate=" + (d ? d.toDateString() : "null"))
+      var m = (d.getMonth() + 1)
+      var day = d.getDate()
+      var dateStr = d.getFullYear() + "-" + (m < 10 ? "0" + m : m) + "-" + (day < 10 ? "0" + day : day)
+      console.log("[refreshClasses] dateStr=" + dateStr + ", calling reloadHolidayState")
+      self.reloadHolidayState(dateStr, function(overrideWeekDay) {
+        console.log("[refreshClasses] reloadHolidayState callback, overrideWeekDay=" + overrideWeekDay)
+        if (overrideWeekDay === -2) {
+          self.currentClasses = []
+        } else {
+          self.loadDayClasses(overrideWeekDay >= 0 ? overrideWeekDay : -1)
+        }
+        console.log("[refreshClasses] after callback, isHoliday=" + self.isHoliday + " isWorkday=" + self.isWorkday + " holidayReminderOn=" + self.holidayReminderOn)
+        if (self.updateStatus && typeof self.updateStatus === 'function') {
+          self.updateStatus()
+        }
+        try { self.$forceUpdate && self.$forceUpdate() } catch (e) {}
+      })
+    } else {
+      console.log("[refreshClasses] ⚠ FALLBACK: reloadHolidayState not available, using loadDayClasses directly")
+      self.loadDayClasses()
+      if (self.updateStatus && typeof self.updateStatus === 'function') {
+        self.updateStatus()
+      }
     }
   }
 

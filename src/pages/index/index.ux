@@ -4,6 +4,10 @@
       <text class="clock-text" style="color: {{ theme.textSecondary }}">{{ currentTime }}</text>
     </div>
 
+    <div class="date-row" if="{{ !isLoading }}">
+      <text class="date-text" style="color: {{ theme.textSecondary }}">{{ currentDateStr }}</text>
+    </div>
+
     <div class="header">
       <div class="nav-btn-circle" onclick="prevDay" style="background-color: {{ theme.cardLight }}">
         <image class="nav-btn-img" src="/common/icons/{{ iconTheme }}/icon_arrow_left.png"></image>
@@ -63,6 +67,11 @@
       </block>
     </div>
 
+    <div class="workday-tip-bar" if="{{ isWorkday && holidayReminderOn && !isLoading }}" style="background-color: {{ theme.cardLight }}">
+      <text class="workday-tip-text" style="color: {{ theme.accent }}">今天调休，按{{ overrideDayName }}课表</text>
+      <text class="workday-info-btn" style="background-color: {{ theme.card }}; color: {{ theme.textSecondary }}" onclick="goToWorkdayInfo">?</text>
+    </div>
+
     <div class="pinned-bar" if="{{ showPinnedBar && hasPinned }}" style="background-color: {{ theme.cardLight }}">
       <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
       <div class="pinned-content">
@@ -88,7 +97,11 @@
         <text class="empty-text" style="color: {{ theme.textMuted }}">数据加载失败</text>
         <input class="retry-btn" type="button" value="点击重试" onclick="retryLoad" style="margin-top: 12px; height: 44px; background-color: {{ theme.accent }}; color: {{ theme.bg }}; border-radius: 22px; font-size: 20px; line-height: 44px; padding: 0 20px;" />
       </div>
-      <div if="{{ !isLoading && !loadError && currentClasses.length === 0 }}" class="empty-card">
+      <div if="{{ !isLoading && !loadError && isHoliday && holidayReminderOn }}" class="holiday-greeting-card" style="background-color: {{ theme.card }}">
+        <text class="holiday-greeting-name" style="color: {{ theme.accent }}">{{ holidayName }}</text>
+        <text class="holiday-greeting-text" style="color: {{ theme.text }}">{{ holidayGreeting }}</text>
+      </div>
+      <div if="{{ !isLoading && !loadError && currentClasses.length === 0 && !(isHoliday && holidayReminderOn) }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
       </div>
       <div for="{{ currentClasses }}" class="class-grid-item" onclick="goToClassDetail($item)" style="background-color: {{ theme.card }}">
@@ -115,7 +128,12 @@
       </div>
       <div class="quick-add-row-scroll" if="{{ quickAdd.expanded }}">
         <text class="quick-add-empty" if="{{ quickAdd.disabled }}" style="color: {{ theme.textMuted }}">今天课程已排满</text>
-        <text class="quick-add-empty" if="{{ !quickAdd.disabled && quickAdd.courseNames.length === 0 }}" style="color: {{ theme.textMuted }}">暂无已添加课程，请先添加课程</text>
+        <div if="{{ !quickAdd.disabled && quickAdd.courseNames.length === 0 }}" style="flex-direction: row; align-items: center; padding: 0 8px;">
+          <text class="quick-add-empty" style="color: {{ theme.textMuted }}">暂无课程，点击添加</text>
+          <div class="quick-add-tag quick-add-plus" onclick="openCourseManager" style="background-color: {{ theme.cardLight }}">
+            <text class="quick-add-tag-text quick-add-plus-text" style="color: {{ theme.accent }}">+</text>
+          </div>
+        </div>
         <scroll class="quick-add-scroll" scroll-x="{{true}}" if="{{ !quickAdd.disabled && quickAdd.courseNames.length > 0 }}">
           <div class="quick-add-tags">
             <div for="{{ quickAdd.courseNames }}" class="quick-add-tag" onclick="quickAdd.addCourse($item)" style="background-color: {{ theme.cardLight }}">
@@ -156,7 +174,7 @@ const database = require("../../data/database.js")
 const device = require("@system.device")
 
 // 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
-var DEBUG = false
+var DEBUG = true
 function dlog() {
   if (DEBUG) console.log.apply(console, arguments)
 }
@@ -178,6 +196,32 @@ var HOMEPAGE_TEMPLATES = {
 }
 
 var isCapsuleScreen = false
+
+var fullDayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+
+var dayShortMap = {
+  "星期日": "周日", "星期一": "周一", "星期二": "周二", "星期三": "周三",
+  "星期四": "周四", "星期五": "周五", "星期六": "周六"
+}
+
+function pad(n) {
+  return n < 10 ? "0" + n : "" + n
+}
+
+function sameDate(a, b) {
+  return a.getFullYear() === b.getFullYear() &&
+         a.getMonth() === b.getMonth() &&
+         a.getDate() === b.getDate()
+}
+
+function dateToDateStr(d) {
+  return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate())
+}
+
+function formatDateShort(d) {
+  return pad(d.getMonth() + 1) + "-" + pad(d.getDate())
+}
+
 var indexInstance = null
 
 // 屏型是异步返回的。这里拿到真实形状后回填给实例并重算字号，
@@ -208,6 +252,7 @@ var modules = {}
 var moduleNames = [
   { key: "clock" },
   { key: "dayNav" },
+  { key: "holiday" },
   { key: "classList" },
   { key: "bottomButtons" },
   { key: "quickAdd", defer: true },
@@ -232,6 +277,7 @@ loadModule("customContent", require("./modules/custom-content.js"))
 loadModule("pinnedPages", require("./modules/pinned-pages.js"))
 loadModule("bottomButtons", require("./modules/bottom-buttons.js"))
 loadModule("classList", require("./modules/class-list.js"))
+loadModule("holiday", require("./modules/holiday.js"))
 
 dlog("[index] SCRIPT loaded, modules:", Object.keys(modules))
 
@@ -239,7 +285,7 @@ export default {
   private: {
     isCapsule: false,
     iconTheme: "dark",
-    _lastDirty: "",
+    lastDirty: "",
     isLoading: true,
     loadError: false,
     skeletonCards: [1, 2, 3],
@@ -270,7 +316,7 @@ export default {
     metaFontSize: 34,
     dayTitleSize: 48,
     dayTitleColor: "",
-    _homepageTplId: "default",
+    homepageTplId: "default",
     quickAdd: {
       expanded: false,
       courseNames: [],
@@ -280,6 +326,14 @@ export default {
       addCourse: function() {}
     },
     currentScheduleName: "课程表1",
+    isHoliday: false,
+    isWorkday: false,
+    holidayGreeting: "",
+    holidayName: "",
+    overrideDayName: "",
+    holidayReminderOn: false,
+    currentDateStr: "",
+    isTodayDate: true,
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -300,7 +354,7 @@ export default {
     self.initialized = false
     self.isLoading = true
     self.loadError = false
-    self._skipNextShow = true
+    self.skipNextShow = true
     store.getTheme(function(t, themeName) {
       self.theme = t
       self.updateIconSrc(themeName)
@@ -309,7 +363,7 @@ export default {
     })
     self.loadHomepageSettings()
 
-    self._loadTimeout = setTimeout(function() {
+    self.loadTimeout = setTimeout(function() {
       if (self.isLoading) {
         self.loadError = true
         self.isLoading = false
@@ -322,20 +376,21 @@ export default {
     bootStorage.get({
       key: "allCourses_dirty",
       success: function(val) {
-        self._lastDirty = val || ""
+        self.lastDirty = val || ""
       },
       fail: function() {
-        self._lastDirty = ""
+        self.lastDirty = ""
       }
     })
 
     database.init(function() {
       database.getAllCourses(function(schedule) {
-        if (self._loadTimeout) clearTimeout(self._loadTimeout)
+        if (self.loadTimeout) clearTimeout(self.loadTimeout)
         self.schedule = schedule
         self.applyFontSizes()
         self.initAllModules()
         self.initialized = true
+        self.skipNextShow = false
         self.isLoading = false
         self.loadError = false
         try { self.$forceUpdate() } catch (e) {}
@@ -367,7 +422,7 @@ export default {
     }
 
     // 关键：先比对写盘版本号（由 database 在每次写盘成功后累加），
-    // 只要别的页面改动过课程（增删改），就必须重新读盘，即使 _skipNextShow 还没消耗。
+    // 只要别的页面改动过课程（增删改），就必须重新读盘，即使 skipNextShow 还没消耗。
     var storage = require("@system.storage")
     storage.get({
       key: "allCourses_dirty",
@@ -387,24 +442,29 @@ export default {
     var self = this
     var dataChanged = false
     if (dirtyVal !== undefined && dirtyVal !== null && dirtyVal !== "") {
-      dataChanged = (String(dirtyVal) !== String(self._lastDirty))
+      dataChanged = (String(dirtyVal) !== String(self.lastDirty))
     }
-    self._lastDirty = dirtyVal || ""
+    self.lastDirty = dirtyVal || ""
+
+    dlog("[resumeRefresh] skipNextShow=", self.skipNextShow, "dataChanged=", dataChanged, "dirtyVal=", dirtyVal)
 
     // onInit 刚完成首次加载，且数据没被别的页面改过 —— 不重复整条读取链
-    if (self._skipNextShow && !dataChanged) {
-      self._skipNextShow = false
+    if (self.skipNextShow && !dataChanged) {
+      dlog("[resumeRefresh] ⚠ EARLY RETURN — skipping data reload")
+      self.skipNextShow = false
       try { self.$forceUpdate() } catch (e) {}
       return
     }
-    self._skipNextShow = false
+    self.skipNextShow = false
 
     store.getCurrentScheduleIndex(function(idx) {
+      dlog("[resumeRefresh] store idx=", idx, "database idx=", database.getScheduleIndex())
       var doLoad = function() {
         // 课表没有切换时不必再次写盘，直接刷新数据
         if (database.getScheduleIndex() === idx) {
           self.loadScheduleData(idx, true)
         } else {
+          dlog("[resumeRefresh] schedule index mismatch, syncing...")
           database.setScheduleIndex(idx, function() {
             self.loadScheduleData(idx, true)
           })
@@ -416,21 +476,25 @@ export default {
       if (dataChanged) {
         setTimeout(doLoad, 400)
       }
-    })
+    }, true)
   },
 
   // 读取指定课表的数据并刷新界面
   loadScheduleData(idx, forceRefresh) {
     var self = this
+    dlog("[loadScheduleData] idx=", idx, "forceRefresh=", forceRefresh)
     store.getScheduleNames(function(names) {
       if (names && idx < names.length) {
         self.currentScheduleName = names[idx]
       } else {
         self.currentScheduleName = '课程表' + (idx + 1)
       }
+      dlog("[loadScheduleData] currentScheduleName=", self.currentScheduleName)
+      try { self.$forceUpdate() } catch (e) {}
     })
     self.applyFontSizes()
     database.getAllCoursesWithIndex(idx, function(schedule) {
+      dlog("[loadScheduleData] schedule loaded, courses=", schedule ? schedule.length : 0)
       if (!schedule || schedule.length === 0) {
         database.getAllCourses(function(fallback) {
           self.schedule = fallback
@@ -443,6 +507,7 @@ export default {
       }
       self.schedule = schedule
       if (self.refreshClasses && typeof self.refreshClasses === 'function') {
+        dlog("[loadScheduleData] calling refreshClasses")
         self.refreshClasses()
       }
       try { self.$forceUpdate() } catch (e) {}
@@ -450,13 +515,16 @@ export default {
   },
 
   onDestroy() {
-    if (this._loadTimeout) clearTimeout(this._loadTimeout)
-    if (this._deferTimer) clearTimeout(this._deferTimer)
+    if (this.loadTimeout) clearTimeout(this.loadTimeout)
+    if (this.deferTimer) clearTimeout(this.deferTimer)
     if (this.stopClockTimer && typeof this.stopClockTimer === 'function') this.stopClockTimer()
     if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
     if (this.stopProgressTimer && typeof this.stopProgressTimer === 'function') this.stopProgressTimer()
     if (modules.customContent && modules.customContent.destroy) {
       modules.customContent.destroy()
+    }
+    if (modules.holiday && modules.holiday.destroy) {
+      modules.holiday.destroy()
     }
   },
 
@@ -527,7 +595,7 @@ export default {
   applyHomepageTemplate() {
     var self = this
     store.getHomepageTemplate(function(tplId) {
-      self._homepageTplId = tplId
+      self.homepageTplId = tplId
       var tpl = HOMEPAGE_TEMPLATES[tplId] || HOMEPAGE_TEMPLATES["default"]
       var colorKey = tpl.dayTitleColor || "text"
       self.dayTitleColor = self.theme[colorKey] || self.theme.text
@@ -549,19 +617,33 @@ export default {
     }
 
     if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
-      try { self.loadDayClasses() } catch (e) { console.error("[index] loadDayClasses: " + (e.message || e)) }
-    }
-    if (self.startProgressTimer && typeof self.startProgressTimer === 'function') {
-      try { self.startProgressTimer() } catch (e) {}
-    }
-    if (self.updateHideWeekend && typeof self.updateHideWeekend === 'function') {
-      try { self.updateHideWeekend() } catch (e) {}
+      if (self.reloadHolidayState && typeof self.reloadHolidayState === 'function') {
+        var d = self.currentDate
+        var dateStr = d ? (d.getFullYear() + "-" + (d.getMonth() + 1 < 10 ? "0" : "") + (d.getMonth() + 1) + "-" + (d.getDate() < 10 ? "0" : "") + d.getDate()) : ""
+        self.reloadHolidayState(dateStr, function(overrideWeekDay) {
+          if (overrideWeekDay === -2) {
+            self.currentClasses = []
+            self.isToday = true
+          } else {
+            try { self.loadDayClasses(overrideWeekDay) } catch (e) { console.error("[index] loadDayClasses: " + (e.message || e)) }
+          }
+          if (self.startProgressTimer && typeof self.startProgressTimer === 'function') {
+            try { self.startProgressTimer() } catch (e) {}
+          }
+          if (self.updateHideWeekend && typeof self.updateHideWeekend === 'function') {
+            try { self.updateHideWeekend() } catch (e) {}
+          }
+          try { self.$forceUpdate() } catch (e) {}
+        })
+      } else {
+        try { self.loadDayClasses() } catch (e) { console.error("[index] loadDayClasses: " + (e.message || e)) }
+      }
     }
 
     // 次要模块延后到首帧之后初始化，先把课程列表渲染出来
     if (deferred.length > 0) {
-      self._deferTimer = setTimeout(function() {
-        self._deferTimer = null
+      self.deferTimer = setTimeout(function() {
+        self.deferTimer = null
         for (var j = 0; j < deferred.length; j++) {
           self.initOneModule(deferred[j])
         }
@@ -603,7 +685,7 @@ export default {
     self.loadError = false
     try { self.$forceUpdate() } catch (e) {}
 
-    self._loadTimeout = setTimeout(function() {
+    self.loadTimeout = setTimeout(function() {
       if (self.isLoading) {
         self.loadError = true
         self.isLoading = false
@@ -613,11 +695,12 @@ export default {
 
     database.init(function() {
       database.getAllCourses(function(schedule) {
-        if (self._loadTimeout) clearTimeout(self._loadTimeout)
+        if (self.loadTimeout) clearTimeout(self.loadTimeout)
         self.schedule = schedule
         self.applyFontSizes()
         self.initAllModules()
         self.initialized = true
+        self.skipNextShow = false
         self.isLoading = false
         self.loadError = false
       })
@@ -636,33 +719,47 @@ export default {
     })
   },
 
+  goToWorkdayInfo() {
+    router.push({ uri: "/pages/workday-info" })
+  },
+
   openCourseManager() {
     router.push({ uri: "/pages/course-manager" })
   },
 
   goToTomorrow() {
     var self = this
-    store.getHideWeekend(function(hide) {
-      var dayNamesFull = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
-      var dayNames = hide ? ["星期一", "星期二", "星期三", "星期四", "星期五"] : dayNamesFull
-      var todayIdx = new Date().getDay()
-      if (hide && (todayIdx === 0 || todayIdx === 6)) {
-        todayIdx = 0
-      } else if (hide) {
-        todayIdx = todayIdx - 1
-      }
-      var tomorrowIdx = todayIdx + 1
-      if (tomorrowIdx >= dayNames.length) tomorrowIdx = 0
-      if (self.currentDayIndex === tomorrowIdx) return
-      self.currentDayIndex = tomorrowIdx
-      self.currentDay = dayNames[tomorrowIdx]
-      // 与 day-nav.js 的 dayShortMap 保持一致：胶囊屏用「周一 / 周二 …」，非胶囊屏用「星期一」
-      self.dayDisplayText = isCapsuleScreen
-        ? ({ "星期日": "周日", "星期一": "周一", "星期二": "周二", "星期三": "周三", "星期四": "周四", "星期五": "周五", "星期六": "周六" })[self.currentDay] || self.currentDay
-        : self.currentDay
-      if (self.loadDayClasses && typeof self.loadDayClasses === 'function') self.loadDayClasses()
+    var tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    tomorrow = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate())
+    if (self.currentDate) {
+      if (sameDate(self.currentDate, tomorrow)) return
+    }
+    self.currentDate = tomorrow
+    self.currentDayIndex = tomorrow.getDay()
+    self.currentDay = fullDayNames[tomorrow.getDay()]
+    self.dayDisplayText = isCapsuleScreen
+      ? dayShortMap[self.currentDay] || self.currentDay
+      : self.currentDay
+    self.currentDateStr = formatDateShort(tomorrow)
+    self.isTodayDate = false
+    self.skipNextShow = true
+    if (self.reloadHolidayState && typeof self.reloadHolidayState === 'function') {
+      self.reloadHolidayState(dateToDateStr(tomorrow), function(overrideWeekDay) {
+        if (overrideWeekDay === -2) {
+          self.currentClasses = []
+          self.isToday = true
+        } else if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
+          self.loadDayClasses(overrideWeekDay)
+        }
+        if (self.updateStatus && typeof self.updateStatus === 'function') self.updateStatus()
+        try { self.$forceUpdate() } catch (e) {}
+      })
+    } else if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
+      self.loadDayClasses()
       if (self.updateStatus && typeof self.updateStatus === 'function') self.updateStatus()
-    })
+      try { self.$forceUpdate() } catch (e) {}
+    }
   },
 
   updateIconSrc(themeName) {
@@ -698,7 +795,21 @@ export default {
   font-size: 20px;
   text-align: center;
   width: 100%;
-  line-height: 28px;
+}
+
+.date-row {
+  padding: 2px 0;
+  flex-shrink: 0;
+}
+
+.date-text {
+  font-size: 22px;
+  line-height: 30px;
+  text-align: center;
+  width: 100%;
+}
+
+.header { line-height: 28px;
 }
 
 .day-title {
@@ -1094,6 +1205,53 @@ export default {
 
 .left-accent-6 {
   height: 28px;
+}
+
+.workday-tip-bar {
+  flex-direction: row;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.workday-tip-text {
+  font-size: 18px;
+  line-height: 26px;
+  flex: 1;
+}
+
+.workday-info-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 28px;
+  text-align: center;
+  flex-shrink: 0;
+  margin-left: 6px;
+}
+
+.holiday-greeting-card {
+  flex-direction: column;
+  padding: 14px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.holiday-greeting-name {
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 28px;
+  margin-bottom: 2px;
+}
+
+.holiday-greeting-text {
+  font-size: 22px;
+  line-height: 30px;
 }
 
 @media (shape: circle) {
@@ -1523,6 +1681,10 @@ export default {
   }
   .left-accent-6 {
     height: 24px;
+  }
+  .holiday-greeting-text {
+    font-size: 22px;
+    line-height: 30px;
   }
 }
 </style>

@@ -27,7 +27,7 @@
 
     <div class="form-section" if="{{ !courseMissing && step === 1 }}">
       <text class="step-title" style="color: {{ theme.text }}">选择课程</text>
-      <text class="step-hint" style="color: {{ theme.textSecondary }}">共 {{ presetCourses.length }} 门 · 可左右滑动</text>
+      <text class="step-hint" style="color: {{ theme.textSecondary }}">共 {{ displayCourseCount }} 门 · 可左右滑动</text>
 
       <div class="swiper-wrapper">
         <image class="swipe-arrow-icon" src="/common/icons/{{ iconTheme }}/icon_back.png" onclick="swipePrev" style="background-color: {{ theme.cardLight }}" />
@@ -40,7 +40,7 @@
         <image class="swipe-arrow-icon" src="/common/icons/{{ iconTheme }}/icon_chevron_right.png" onclick="swipeNext" style="background-color: {{ theme.cardLight }}" />
       </div>
 
-      <text class="course-index-hint" style="color: {{ theme.textSecondary }}">{{ courseIndex < presetCourses.length ? courseIndex + 1 : '+' }} / {{ presetCourses.length + 1 }}</text>
+      <text class="course-index-hint" style="color: {{ theme.textSecondary }}">{{ courseIndex < presetCourses.length ? courseIndex + 1 : '+' }} / {{ displayCourseCount }}</text>
 
       <div class="step-nav">
         <input class="step-delete-btn" type="button" value="删除" onclick="deleteCourse" style="height: 48px; background-color: {{ deleteConfirm ? theme.deleteText : 'transparent' }}; border-color: {{ theme.deleteText }}; color: {{ deleteConfirm ? theme.text : theme.deleteText }}" />
@@ -233,6 +233,7 @@ export default {
     undoBackup: null,
     undoTimer: null,
     presetCourses: [],
+    displayCourseCount: 0,
     startHour: 8,
     startMin: 0,
     endHour: 8,
@@ -371,10 +372,12 @@ export default {
         } else {
           self.presetCourses = self.sortByTime(defaultCourses.slice())
         }
+        self.displayCourseCount = self.presetCourses.length
         self.loadExistingCourseData()
       },
       fail: function() {
         self.presetCourses = self.sortByTime(defaultCourses.slice())
+        self.displayCourseCount = self.presetCourses.length
         self.loadExistingCourseData()
       }
     })

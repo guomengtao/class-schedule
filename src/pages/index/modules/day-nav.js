@@ -3,23 +3,63 @@ var store = require("../../../data/store.js")
 var fullDayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 var weekdayNames = ["星期一", "星期二", "星期三", "星期四", "星期五"]
 
-// 胶囊屏缩写：保留「周」字（周一 / 周二 …），比单字「一 / 二」更易辨认。
-// 胶囊屏 header 为 ◀ + 标题 + ▶，160 − 48×2 = 64px，两个 26px 字（52px）放得下。
 var dayShortMap = {
   "星期日": "周日", "星期一": "周一", "星期二": "周二", "星期三": "周三",
   "星期四": "周四", "星期五": "周五", "星期六": "周六"
+}
+
+function pad(n) {
+  return n < 10 ? "0" + n : "" + n
+}
+
+function dateToDateStr(d) {
+  return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate())
+}
+
+function formatDateShort(d) {
+  return pad(d.getMonth() + 1) + "-" + pad(d.getDate())
 }
 
 function getRealTodayIndex() {
   return new Date().getDay()
 }
 
-// 屏型由 index.ux 统一探测后回填到 instance.isCapsule，这里不再重复调用
-// device.getInfo（异步 IPC，重复调用会拖慢首屏）。
+function sameDate(a, b) {
+  return a.getFullYear() === b.getFullYear() &&
+         a.getMonth() === b.getMonth() &&
+         a.getDate() === b.getDate()
+}
+
 function updateDayDisplay(instance) {
   instance.dayDisplayText = instance.isCapsule
     ? (dayShortMap[instance.currentDay] || instance.currentDay)
     : instance.currentDay
+}
+
+function syncDayFromDate(instance, d) {
+  instance.currentDayIndex = d.getDay()
+  instance.currentDay = fullDayNames[instance.currentDayIndex]
+  instance.currentDateStr = formatDateShort(d)
+  instance.isTodayDate = sameDate(d, new Date())
+  updateDayDisplay(instance)
+}
+
+function persistDateToHoliday(instance, d) {
+  var dateStr = dateToDateStr(d)
+  if (instance.reloadHolidayState) {
+    instance.reloadHolidayState(dateStr, function(overrideWeekDay) {
+      if (overrideWeekDay === -2) {
+        instance.currentClasses = []
+        instance.isToday = true
+      } else if (instance.loadDayClasses) {
+        instance.loadDayClasses(overrideWeekDay)
+      }
+      if (instance.updateStatus) instance.updateStatus()
+    })
+  } else if (instance.loadDayClasses) {
+    instance.loadDayClasses()
+    if (instance.updateStatus) instance.updateStatus()
+  }
 }
 
 function init(instance) {
@@ -27,60 +67,36 @@ function init(instance) {
   instance.dayNavNames = fullDayNames
   instance.hideWeekend = false
 
-  var todayIdx = getRealTodayIndex()
-  instance.currentDay = fullDayNames[todayIdx]
-  instance.currentDayIndex = todayIdx
-  instance.dayDisplayText = fullDayNames[todayIdx]
-  updateDayDisplay(instance)
+  var now = new Date()
+  instance.currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  syncDayFromDate(instance, instance.currentDate)
 
-  // 供 index.ux 拿到真实屏型后回调刷新（此时 isCapsule 才被回填）
   instance.updateDayDisplay = function() {
     updateDayDisplay(instance)
   }
 
   instance.prevDay = function() {
     var self = instance
-    var names = self.dayNavNames || fullDayNames
-    if (self.currentDayIndex > 0) {
-      self.currentDayIndex--
-    } else {
-      self.currentDayIndex = names.length - 1
-    }
-    self.currentDay = names[self.currentDayIndex]
-    updateDayDisplay(self)
-    if (self.loadDayClasses) self.loadDayClasses()
-    if (self.updateStatus) self.updateStatus()
+    self.currentDate.setDate(self.currentDate.getDate() - 1)
+    syncDayFromDate(self, self.currentDate)
+    persistDateToHoliday(self, self.currentDate)
   }
 
   instance.nextDay = function() {
     var self = instance
-    var names = self.dayNavNames || fullDayNames
-    if (self.currentDayIndex < names.length - 1) {
-      self.currentDayIndex++
-    } else {
-      self.currentDayIndex = 0
-    }
-    self.currentDay = names[self.currentDayIndex]
-    updateDayDisplay(self)
-    if (self.loadDayClasses) self.loadDayClasses()
-    if (self.updateStatus) self.updateStatus()
+    self.currentDate.setDate(self.currentDate.getDate() + 1)
+    syncDayFromDate(self, self.currentDate)
+    persistDateToHoliday(self, self.currentDate)
   }
 
   instance.goToToday = function() {
     var self = instance
-    var names = self.dayNavNames || fullDayNames
-    var todayIdx = getRealTodayIndex()
-    if (self.hideWeekend && (todayIdx === 0 || todayIdx === 6)) {
-      todayIdx = 0
-    } else if (self.hideWeekend) {
-      todayIdx = todayIdx - 1
-    }
-    if (self.currentDayIndex === todayIdx) return
-    self.currentDayIndex = todayIdx
-    self.currentDay = names[todayIdx]
-    updateDayDisplay(self)
-    if (self.loadDayClasses) self.loadDayClasses()
-    if (self.updateStatus) self.updateStatus()
+    var today = new Date()
+    today = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    if (sameDate(self.currentDate, today)) return
+    self.currentDate = today
+    syncDayFromDate(self, self.currentDate)
+    persistDateToHoliday(self, self.currentDate)
   }
 
   instance.updateHideWeekend = function() {
@@ -88,19 +104,6 @@ function init(instance) {
     store.getHideWeekend(function(hide) {
       self.hideWeekend = hide
       self.dayNavNames = hide ? weekdayNames : fullDayNames
-      var todayIdx = getRealTodayIndex()
-      if (hide && (todayIdx === 0 || todayIdx === 6)) {
-        todayIdx = 0
-      } else if (hide) {
-        todayIdx = todayIdx - 1
-      }
-      if (self.currentDayIndex !== todayIdx) {
-        self.currentDayIndex = todayIdx
-        self.currentDay = self.dayNavNames[todayIdx]
-        updateDayDisplay(self)
-        if (self.loadDayClasses) self.loadDayClasses()
-        if (self.updateStatus) self.updateStatus()
-      }
     })
   }
 }

@@ -474,8 +474,8 @@ module.exports = {
     })
   },
 
-  getCurrentScheduleIndex: function(callback) {
-    if (_cache.currentScheduleIndex !== undefined) {
+  getCurrentScheduleIndex: function(callback, forceRefresh) {
+    if (!forceRefresh && _cache.currentScheduleIndex !== undefined) {
       callback(_cache.currentScheduleIndex)
       return
     }
@@ -928,6 +928,27 @@ module.exports = {
     storage.set({
       key: "homepage_template",
       value: templateId,
+      success: function() { if (callback) callback() },
+      fail: function() { if (callback) callback() }
+    })
+  },
+
+  getHolidayReminderEnabled: function(scheduleIndex, callback) {
+    storage.get({
+      key: "holidayReminderEnabled_" + scheduleIndex,
+      success: function(data) {
+        callback(data === "1")
+      },
+      fail: function() {
+        callback(true)
+      }
+    })
+  },
+
+  setHolidayReminderEnabled: function(scheduleIndex, enabled, callback) {
+    storage.set({
+      key: "holidayReminderEnabled_" + scheduleIndex,
+      value: enabled ? "1" : "0",
       success: function() { if (callback) callback() },
       fail: function() { if (callback) callback() }
     })

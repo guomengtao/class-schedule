@@ -47,7 +47,7 @@
       <div class="group-title-row" onclick="toggleFontSize">
         <text class="group-title" style="color: {{ theme.text }}">课程字号</text>
         <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">{{ displaySize }}px</text>
+          <text class="size-indicator" style="color: {{ theme.textMuted }}">{{ displaySize }}px</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">{{ showFontSize ? 'v' : '›' }}</text>
         </div>
       </div>
@@ -58,7 +58,7 @@
           <input class="scale-btn" type="button" value="+" onclick="increaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
         </div>
         <div class="preview-box" style="background-color: {{ theme.cardLight }}">
-          <text class="preview-text" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">数学 08:00</text>
+          <text class="preview-text" style="font-size: {{ previewDisplaySize }}px; color: {{ theme.text }}">数学 08:00</text>
         </div>
         <!-- 本项设计上只作用于首页课程卡片（其余页面用固定字号保证布局与触控达标），
              必须显式告知用户作用范围，否则会被理解为"设置没生效" -->
@@ -169,6 +169,7 @@ export default {
     nickname: "",
     displaySize: 48,
     previewClassSize: 48,
+    previewDisplaySize: 32,
     hideWeekend: true,
     theme: {
       bg: '#1a1a2e',
@@ -218,6 +219,7 @@ export default {
 
     store.getBaseFontSize(function(size) {
       self.displaySize = size
+      self.updatePreviews()
     }, true)
     this.loadNickname()
     this.loadHideWeekend()
@@ -237,13 +239,19 @@ export default {
   },
 
   updatePreviews() {
-    var r = this.displaySize / 48
-    this.previewClassSize = Math.round(28 * r)
+    // Use same formula as index.ux computeFontSizes to preview actual homepage size
+    var norm = Math.round(this.displaySize * 32 / 48)
+    if (norm < 20) norm = 20
+    if (norm > 40) norm = 40
+    norm = Math.round(norm / 4) * 4
+    this.previewDisplaySize = Math.min(norm, 40)
+    this.previewClassSize = this.previewDisplaySize
   },
 
   setSize(size) {
     this.displaySize = size
     store.setBaseFontSize(size)
+    this.updatePreviews()
   },
 
   set20() { this.setSize(20) },
@@ -498,6 +506,14 @@ export default {
   margin-right: 6px;
   max-lines: 1;
   line-height: 38px;
+}
+
+.size-indicator {
+  font-size: 24px;
+  margin-right: 6px;
+  max-lines: 1;
+  line-height: 32px;
+  flex-shrink: 0;
 }
 
 .arrow {
@@ -840,6 +856,47 @@ export default {
     line-height: 46px;
   }
 
+  .group-title-row {
+    margin-bottom: 10px;
+  }
+
+  .group-title {
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .font-size-body {
+    margin-top: 0;
+  }
+
+  .scale-row {
+    margin-bottom: 12px;
+  }
+
+  .scale-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    font-size: 26px;
+    line-height: 48px;
+  }
+
+  .scale-value {
+    font-size: 28px;
+    width: 80px;
+    line-height: 38px;
+  }
+
+  .preview-box {
+    border-radius: 10px;
+    padding: 14px;
+  }
+
+  .scope-hint {
+    font-size: 18px;
+    line-height: 22px;
+    margin-top: 6px;
+  }
 }
 
 @media (shape: rect) {

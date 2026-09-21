@@ -51,6 +51,16 @@
       <text class="sheet-title" style="color: {{ theme.text }}">{{ sheetName }}</text>
       <text class="sheet-sub" style="color: {{ theme.textMuted }}">{{ sheetCount }} 门课程</text>
 
+      <div class="sheet-switch-row" onclick="toggleHolidayReminder">
+        <text class="sheet-switch-label" style="color: {{ theme.text }}">假期提醒</text>
+        <div class="switch-track"
+             style="background-color: {{ holidayReminderOn ? theme.accent : theme.btnSecondary }}">
+          <div class="switch-thumb"
+               style="background-color: {{ theme.card }}; {{ holidayReminderOn ? 'margin-left: 24px;' : 'margin-left: 2px;' }}">
+          </div>
+        </div>
+      </div>
+
       <div class="sheet-grid">
         <div class="sheet-btn" onclick="sheetRename" style="background-color: {{ theme.cardLight }}">
           <text class="sheet-btn-text" style="color: {{ theme.text }}">重命名</text>
@@ -115,6 +125,7 @@ export default {
     sheetIndex: -1,
     sheetName: "",
     sheetCount: 0,
+    holidayReminderOn: false,
     showDialog: false,
     theme: {
       bg: '#1a1a2e',
@@ -170,9 +181,10 @@ export default {
   loadData() {
     var self = this
     store.getScheduleNames(function(names) {
+      console.log("[loadData] names=" + JSON.stringify(names) + " count=" + names.length)
       var list = []
       for (var i = 0; i < names.length; i++) {
-        list.push({ name: names[i], courseCount: 0 })
+        list.push({ name: names[i], courseCount: 0, holidayOn: false })
       }
       self.list = list
       for (var i = 0; i < names.length; i++) {
@@ -186,6 +198,9 @@ export default {
             }
             self.list[idx].courseCount = count
           })
+          store.getHolidayReminderEnabled(idx, function(on) {
+            self.list[idx].holidayOn = on
+          })
         })(i)
       }
     })
@@ -198,6 +213,7 @@ export default {
     this.sheetIndex = idx
     this.sheetName = this.list[idx].name
     this.sheetCount = this.list[idx].courseCount
+    this.holidayReminderOn = this.list[idx].holidayOn || false
     this.deleteConfirmIndex = -1
     if (this.deleteTimer) {
       clearTimeout(this.deleteTimer)
@@ -212,6 +228,15 @@ export default {
       clearTimeout(this.deleteTimer)
       this.deleteTimer = null
     }
+  },
+
+  toggleHolidayReminder() {
+    var idx = this.sheetIndex
+    if (idx < 0 || idx >= this.list.length) return
+    var newVal = !this.holidayReminderOn
+    this.holidayReminderOn = newVal
+    this.list[idx].holidayOn = newVal
+    store.setHolidayReminderEnabled(idx, newVal)
   },
 
   sheetRename() {
@@ -249,13 +274,18 @@ export default {
   },
 
   toggle(idx) {
+    console.log("[toggle] called with idx=" + idx + " currentIndex=" + this.currentIndex + " list.length=" + this.list.length)
     if (idx === this.currentIndex) {
+      console.log("[toggle] EARLY RETURN: already on this schedule")
       return
     }
     var self = this
     this.currentIndex = idx
+    console.log("[toggle] set currentIndex to " + idx + ", calling store.setCurrentScheduleIndex")
     store.setCurrentScheduleIndex(idx, function() {
+      console.log("[toggle] store.setCurrentScheduleIndex success, calling database.setScheduleIndex")
       database.setScheduleIndex(idx, function() {
+        console.log("[toggle] database.setScheduleIndex success, showing toast")
         prompt.showToast({ message: "已切换到 " + self.list[idx].name })
       })
     })
@@ -766,7 +796,36 @@ export default {
   font-size: 20px;
   line-height: 28px;
   text-align: center;
-  margin-bottom: 18px;
+  margin-bottom: 10px;
+}
+
+.sheet-switch-row {
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding: 0 4px;
+  margin-bottom: 10px;
+}
+
+.sheet-switch-label {
+  font-size: 22px;
+  line-height: 30px;
+}
+
+.switch-track {
+  width: 52px;
+  height: 30px;
+  border-radius: 15px;
+  flex-direction: row;
+  align-items: center;
+}
+
+.switch-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 13px;
 }
 
 .sheet-grid {
