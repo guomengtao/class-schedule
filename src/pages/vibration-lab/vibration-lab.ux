@@ -3,7 +3,7 @@
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">震动自定义</text>
       <div class="header-placeholder"></div>
@@ -165,6 +165,7 @@ var fallbackTimer = null
 
 export default {
   private: {
+    iconTheme: "dark",
     isPro: false,
     theme: {
       bg: '#1a1a2e',
@@ -211,8 +212,9 @@ export default {
         count: presetMap[key].count
       }
     })
-    store.getTheme(function(t) {
+    store.getTheme(function(t, themeName) {
       self.theme = t
+      self.updateIconSrc(themeName)
     })
     this.loadPresets()
     this.loadRemindSettings()
@@ -225,6 +227,10 @@ export default {
     authStore.checkStatus(function(status) {
       self.isPro = status.isActivated
     })
+  },
+
+  updateIconSrc: function(themeName) {
+    this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
   },
 
   loadPresets() {

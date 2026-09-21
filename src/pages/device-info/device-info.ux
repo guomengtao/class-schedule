@@ -2,7 +2,7 @@
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">设备信息</text>
       <div class="header-placeholder"></div>
@@ -273,21 +273,39 @@ export default {
   line-height: 30px;
 }
 
+/*
+ * Capsule screen width budget (192px screen):
+ *   192 - 16*2(page padding) = 160px content area
+ *   160 - 12*2(menu-item padding) = 136px inner width
+ *
+ *   Horizontal layout fails: shortest label "品牌"(2ch*22px=44px)
+ *   leaves only 136-44-8(gap)=84px for value; longest label
+ *   "平台版本名称"(6ch*22px=132px) leaves just 136-132-8=-4px.
+ *   Most device info values (model names, IDs, versions) exceed 84px.
+ *
+ *   Solution: stacked vertical layout, label on top, value wraps below.
+ */
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
     padding: 30px 16px 30px 16px;
   }
   .menu-item {
-    padding: 12px 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 12px;
     margin-bottom: 8px;
   }
   .menu-label {
-    font-size: 28px;
-    line-height: 36px;
+    font-size: 22px;
+    line-height: 30px;
+    margin-bottom: 2px;
   }
   .menu-value {
-    font-size: 26px;
-    line-height: 34px;
+    font-size: 20px;
+    line-height: 28px;
+    text-align: left;
+    margin-left: 0;
+    lines: 0;
   }
   .retry-btn {
     height: 38px;

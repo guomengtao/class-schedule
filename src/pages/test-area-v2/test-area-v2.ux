@@ -2,7 +2,7 @@
   <div class="page-root" style="background-color: {{ theme.bg }}">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">测试区</text>
       <div class="header-placeholder"></div>
@@ -13,7 +13,7 @@
       <list-item type="testItem" class="list-item" for="{{ items }}" onclick="openPage($item.uri)"
                  style="border-bottom-color: {{ theme.border }}">
         <text class="item-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-        <image class="item-arrow-img" src="../../common/icons/{{ iconTheme }}/icon_chevron_right.png"></image>
+        <image class="item-arrow-img" src="/common/icons/{{ iconTheme }}/icon_chevron_right.png"></image>
       </list-item>
     </list>
   </div>

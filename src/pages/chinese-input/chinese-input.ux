@@ -3,7 +3,7 @@
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">{{ pageTitle }}</text>
       <div class="header-placeholder"></div>
@@ -166,7 +166,6 @@ export default {
   },
 
   confirmInput() {
-    var self = this
     var storage = require("@system.storage")
     var text = this.inputText.trim()
     var key = this.returnKey || "chinese_input_result"

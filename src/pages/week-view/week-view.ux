@@ -3,7 +3,7 @@
     <!-- header -->
     <div class="wv-header">
       <div class="wv-back-wrapper" onclick="goBack" style="background-color:{{ theme.card }}">
-        <image class="wv-back-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="wv-back-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="wv-title" style="color:{{ theme.text }}">总课表</text>
     </div>
@@ -15,7 +15,7 @@
         <div class="wv-day-row">
           <text if="{{ showRowNum }}" class="wv-day-spacer" style="width:{{ rowNumWidth }}px"></text>
           <text if="{{ !showRowNum }}" class="wv-day-spacer" style="width:0px"></text>
-          <text class="wv-day-cell {{ $idx === todayIndex ? 'wv-today' : '' }}" for="{{ weekDays }}" lines="1" style="width:{{ cellWidth }}px;color:{{ $idx === todayIndex ? theme.accent : theme.textSecondary }}">{{ $item }}</text>
+          <text class="wv-day-cell {{ $idx === todayIndex ? 'wv-today' : '' }}" for="{{ weekDays }}" style="width:{{ cellWidth }}px;color:{{ $idx === todayIndex ? theme.accent : theme.textSecondary }}">{{ $item }}</text>
         </div>
         <div for="{{ skeletonRows }}" class="wv-row" style="min-height:{{ rowHeight }}px">
           <text if="{{ showRowNum }}" class="wv-time" style="width:{{ rowNumWidth }}px"></text>
@@ -32,7 +32,7 @@
         <div class="wv-day-row">
           <text if="{{ showRowNum }}" class="wv-day-spacer" style="width:{{ rowNumWidth }}px"></text>
           <text if="{{ !showRowNum }}" class="wv-day-spacer" style="width:0px"></text>
-          <text class="wv-day-cell {{ $idx === todayIndex ? 'wv-today' : '' }}" for="{{ weekDays }}" lines="1" style="width:{{ cellWidth }}px;color:{{ $idx === todayIndex ? theme.accent : theme.textSecondary }};font-size:{{ transparentCells ? '20px' : '' }}">{{ $item }}</text>
+          <text class="wv-day-cell {{ $idx === todayIndex ? 'wv-today' : '' }}" for="{{ weekDays }}" style="width:{{ cellWidth }}px;color:{{ $idx === todayIndex ? theme.accent : theme.textSecondary }};font-size:{{ transparentCells ? '20px' : '' }}">{{ $item }}</text>
         </div>
 
         <!-- course rows -->
@@ -41,7 +41,7 @@
           <text if="{{ !showRowNum }}" class="wv-time" style="width:0px;padding-right:0"></text>
           <div class="wv-cells">
             <div for="{{ $item.cells }}" class="wv-cell {{ $item.isCurrent ? 'wv-now' : '' }} {{ !$item.course ? 'wv-cell-empty' : '' }} {{ transparentCells ? 'wv-cell-text' : '' }} {{ cellBordered ? 'wv-cell-bordered' : '' }}" onclick="showDetail($item.day, $item.course)" style="width:{{ cellWidth }}px;margin:{{ cellMargin }}px;background-color:{{ getCellBg($item.course) }};border-radius:{{ cellRadius }};height:{{ cellHeight }}px;{{ cellBordered ? 'border-color:' + theme.borderLight : '' }}">
-              <text if="{{ $item.course }}" class="wv-name" style="color:{{ getCellTextColor($item.course) }};font-size:{{ nameFontSize }}px;line-height:{{ nameLineHeight }}px;font-weight:{{ nameFontWeight }}">{{ getDisplayName($item.course) }}</text>
+              <text if="{{ $item.course }}" class="wv-name {{ transparentCells ? 'wv-name-transparent' : '' }} {{ $item.isCurrent && transparentCells ? 'wv-name-now' : '' }}" style="color:{{ getCellTextColor($item.course) }};font-size:{{ nameFontSize }}px;line-height:{{ nameLineHeight }}px;font-weight:{{ nameFontWeight }}">{{ getDisplayName($item.course) }}</text>
               <text if="{{ $item.course && showRoom && $item.course.location }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.location }}</text>
               <text if="{{ $item.course && showTeacher && $item.course.teacher }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.teacher }}</text>
               <text if="{{ $item.course && $item.course.extraCount > 0 && currentTplId !== 'minimal-char' && currentTplId !== 'minimal-clean' }}" class="wv-extra" style="color:{{ theme.textMuted }}">+{{ $item.course.extraCount }}</text>
@@ -186,7 +186,7 @@ var TEMPLATE_CONFIGS = {
     showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
     showDayCount: false, showTotal: false,
     nameDisplay: "en-abbr",
-    dayLabels: ["M", "T", "W", "T", "F", "S", "S"],
+    dayLabels: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
     cellRadius: "8px", rowHeight: 54, cellHeight: 50, rowNumWidth: 0,
     nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "bold", infoFontSize: 0,
     useColorScheme: true, denseMode: false, cellWidth: 60
@@ -922,6 +922,7 @@ export default {
   flex-shrink: 0;
   text-overflow: ellipsis;
   line-height: 28px;
+  lines: 1;
 }
 
 .wv-day-cell.wv-today {
@@ -979,7 +980,7 @@ export default {
   opacity: 0;
 }
 
-.wv-cell-text .wv-name {
+.wv-name-transparent {
   text-align: center;
   font-weight: 400;
   letter-spacing: 0.3px;
@@ -994,7 +995,7 @@ export default {
   background-color: transparent !important;
 }
 
-.wv-cell-text.wv-now .wv-name {
+.wv-name-now {
   color: #7ec8e3 !important;
   font-weight: 500;
 }

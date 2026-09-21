@@ -1,0 +1,335 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">工具</text>
+      <div class="header-placeholder"></div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <div class="item-row" onclick="openDeviceInfo">
+        <text class="item-label" style="color: {{ theme.text }}">设备信息</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">调试</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openVibrationLab">
+        <text class="item-label" style="color: {{ theme.text }}">震动自定义</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">震动方案</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openCountdownManage">
+        <text class="item-label" style="color: {{ theme.text }}">倒数日</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">事件倒计时</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openQRCodeGenerator">
+        <text class="item-label" style="color: {{ theme.text }}">二维码生成</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">文字转二维码</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row">
+        <text class="item-label" style="color: {{ theme.text }}">已钉页面</text>
+        <div class="switch-track" style="background-color: {{ isHomePinned ? theme.accent : theme.border }}" onclick="toggleHomePin">
+          <div class="switch-thumb" style="left: {{ isHomePinned ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
+        </div>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openStatistics">
+        <text class="item-label" style="color: {{ theme.text }}">数据统计</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">使用数据</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openBlackScreenCheck">
+        <text class="item-label" style="color: {{ theme.text }}">黑屏检测</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">诊断</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openScheduleManagerV2">
+        <text class="item-label" style="color: {{ theme.accent }}">课程表管理 V2</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">极简+面板</text>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+var pinHelper = require("../../data/pin-helper.js")
+
+export default {
+  private: {
+    iconTheme: "dark",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a',
+      keyBg: '#1a1a3e',
+      keyBorder: '#2a2a5a',
+      btnSecondary: '#333355',
+      btnSecondaryText: '#a0a0b0',
+      deleteBg: '#2a1a3e',
+      deleteText: '#e08080',
+      icon: '●',
+      progressOngoing: 'rgba(126,200,227,0.2)',
+      progressDone: 'rgba(74,138,154,0.25)'
+    },
+    isHomePinned: false
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
+    this.loadHomePin()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.updateIconSrc(themeName)
+    })
+    this.loadHomePin()
+  },
+
+  updateIconSrc: function(themeName) {
+    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+  },
+
+  loadHomePin() {
+    var self = this
+    pinHelper.isPinned("/pages/index", function(yes) {
+      self.isHomePinned = yes
+    })
+  },
+
+  toggleHomePin() {
+    var self = this
+    if (self.isHomePinned) {
+      pinHelper.unpinPage("/pages/index", function() {
+        self.isHomePinned = false
+      })
+    } else {
+      pinHelper.pinPage("Ev课程表", "/pages/index", function() {
+        self.isHomePinned = true
+      })
+    }
+  },
+
+  openDeviceInfo() {
+    router.push({ uri: "/pages/device-info" })
+  },
+
+  openVibrationLab() {
+    router.push({ uri: "/pages/vibration-lab" })
+  },
+
+  openCountdownManage() {
+    router.push({ uri: "/pages/countdown-manage" })
+  },
+
+  openQRCodeGenerator() {
+    router.push({ uri: "/pages/qrcode-generator" })
+  },
+
+  openStatistics() {
+    router.push({ uri: "/pages/statistics" })
+  },
+
+  openBlackScreenCheck() {
+    router.push({ uri: "/pages/black-screen-check" })
+  },
+
+  openScheduleManagerV2() {
+    router.push({ uri: "/pages/schedule-manager" })
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 44px 10px 12px 10px;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 0 4px;
+}
+
+.back-btn-wrapper {
+  width: 48px;
+  height: 40px;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.back-btn-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.header-title {
+  flex: 1;
+  font-size: 30px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 40px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.header-placeholder {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.section {
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 18px 14px;
+  margin-bottom: 14px;
+}
+
+.item-row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.item-label {
+  font-size: 30px;
+  line-height: 40px;
+}
+
+.item-hint {
+  font-size: 28px;
+  margin-left: 8px;
+  line-height: 38px;
+}
+
+.row-divider {
+  height: 1px;
+  margin: 6px 0;
+}
+
+.switch-track {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.switch-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  position: absolute;
+  top: 2px;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+  .back-header {
+    margin-bottom: 8px;
+    padding: 0 20px;
+    justify-content: center;
+  }
+  .back-btn-wrapper {
+    width: 52px;
+    height: 40px;
+  }
+  .header-title {
+    font-size: 30px;
+    line-height: 40px;
+  }
+  .item-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 30px 16px 30px 16px;
+  }
+
+  .back-header {
+    height: 48px;
+    margin-bottom: 8px;
+    flex-direction: row;
+    align-items: center;
+  }
+  .back-btn-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    flex-shrink: 0;
+  }
+  .header-title {
+    font-size: 28px;
+    line-height: 44px;
+    text-align: center;
+    flex: 1;
+    lines: 1;
+    text-overflow: ellipsis;
+    margin: 0 4px;
+  }
+  .header-placeholder {
+    width: 48px;
+    height: 48px;
+  }
+  .section {
+    padding: 12px 10px;
+  }
+  .item-row {
+    padding: 14px 0;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .item-label {
+    font-size: 32px;
+    line-height: 44px;
+  }
+  .item-hint {
+    display: none;
+  }
+  .switch-track {
+    width: 48px;
+    height: 26px;
+    border-radius: 13px;
+    margin-top: 6px;
+  }
+  .switch-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 11px;
+    top: 2px;
+  }
+}
+</style>

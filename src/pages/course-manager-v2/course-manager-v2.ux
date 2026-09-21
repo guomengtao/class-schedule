@@ -2,10 +2,15 @@
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">课程管理</text>
-      <input class="add-btn" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="add-btn" if="{{ !isCapsule }}" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <div class="header-placeholder" if="{{ isCapsule }}"></div>
+    </div>
+
+    <div class="add-toolbar" if="{{ isCapsule }}">
+      <input class="add-btn-toolbar" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
     <div class="toolbar" if="{{ courseList.length > 0 }}">
@@ -44,6 +49,7 @@
 <script>
 import router from "@system.router"
 import prompt from "@system.prompt"
+import device from "@system.device"
 const store = require("../../data/store.js")
 
 var COURSE_KEY = "course_preset_list"
@@ -66,6 +72,7 @@ var defaultCourses = [
 export default {
   private: {
     iconTheme: "dark",
+    isCapsule: false,
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -95,6 +102,13 @@ export default {
 
   onInit() {
     var self = this
+    device.getInfo({
+      success: function(data) {
+        var shape = data.screenShape || ""
+        self.isCapsule = (shape === "capsule" || shape === "pill-shaped")
+      },
+      fail: function() {}
+    })
     store.getTheme(function(t) {
       self.theme = t
     })
@@ -486,12 +500,19 @@ export default {
   .page {
     padding: 30px 16px 30px 16px;
   }
-        .add-btn {
-    width: 80px;
-    height: 52px;
-    border-radius: 26px;
-    font-size: 28px;
+  .add-toolbar {
+    justify-content: flex-end;
+    height: 48px;
+    margin-bottom: 4px;
+  }
+  .add-btn-toolbar {
+    width: 72px;
+    height: 48px;
+    border-radius: 24px;
+    font-size: 22px;
     line-height: 48px;
+    font-weight: bold;
+    text-align: center;
   }
   .toolbar {
     padding: 8px 0;

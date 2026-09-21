@@ -2,11 +2,11 @@
   <div class="page-root" style="background-color: {{ theme.bg }}">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="title" style="color: {{ theme.text }}">编辑课程(胶囊)</text>
       <div class="trash-btn" onclick="onDeleteCourse" style="background-color: {{ deleteConfirm ? theme.deleteText : theme.deleteBg }}">
-        <image class="trash-icon" src="../../common/icons/{{ iconTheme }}/icon_trash.png"></image>
+        <image class="trash-icon" src="/common/icons/{{ iconTheme }}/icon_trash.png"></image>
       </div>
     </div>
 
@@ -25,11 +25,11 @@
       <text class="step-sub" style="color: {{ theme.textSecondary }}">共 {{ demoCourses.length }} 门</text>
 
       <div class="swiper-row">
-        <image class="arrow-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_arrow_left.png" onclick="swipePrev" style="background-color: {{ theme.cardLight }}" />
+        <image class="arrow-btn-icon" src="/common/icons/{{ iconTheme }}/icon_arrow_left.png" onclick="swipePrev" style="background-color: {{ theme.cardLight }}" />
         <div class="course-card" onclick="swipeNext" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
           <text class="card-name" style="color: {{ theme.text }}">{{ demoCourses[courseIndex].name }}</text>
         </div>
-        <image class="arrow-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_arrow_right.png" onclick="swipeNext" style="background-color: {{ theme.cardLight }}" />
+        <image class="arrow-btn-icon" src="/common/icons/{{ iconTheme }}/icon_arrow_right.png" onclick="swipeNext" style="background-color: {{ theme.cardLight }}" />
       </div>
 
       <text class="index-text" style="color: {{ theme.textMuted }}">{{ courseIndex + 1 }} / {{ demoCourses.length }}</text>

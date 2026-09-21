@@ -3,18 +3,19 @@
   <div class="settings-page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">设置</text>
+      <div class="header-placeholder"></div>
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
-      <div class="row" onclick="openNicknameEdit">
-        <text class="row-label" style="color: {{ theme.text }}">昵称</text>
-        <div class="row-right">
-          <text class="row-value" if="{{ nickname }}" style="color: {{ theme.accent }}">{{ nickname }}</text>
+      <div class="row nickname-row" onclick="openNicknameEdit">
+        <text class="row-label nickname-label" style="color: {{ theme.text }}">昵称</text>
+        <div class="row-right nickname-value-wrap">
+          <text class="row-value nickname-value" if="{{ nickname }}" style="color: {{ theme.accent }}">{{ nickname }}</text>
           <text class="row-hint" if="{{ !nickname }}" style="color: {{ theme.textMuted }}">点击设置</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          <text class="arrow nickname-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
     </div>
@@ -44,7 +45,7 @@
 
     <div class="group" style="background-color: {{ theme.card }}">
       <div class="group-title-row" onclick="toggleFontSize">
-        <text class="group-title" style="color: {{ theme.text }}">首页课程字号</text>
+        <text class="group-title" style="color: {{ theme.text }}">课程字号</text>
         <div class="row-right">
           <text class="row-hint" style="color: {{ theme.textMuted }}">{{ displaySize }}px</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">{{ showFontSize ? 'v' : '›' }}</text>
@@ -75,14 +76,8 @@
       <div if="{{ showSchedule }}" style="flex-direction: column">
         <div class="row">
           <text class="row-label" style="color: {{ theme.text }}">隐藏周末</text>
-          <input class="toggle-btn" type="button" value="{{ hideWeekend ? '开' : '关' }}" onclick="toggleHideWeekend" style="background-color: {{ hideWeekend ? theme.accent : theme.border }}; color: {{ hideWeekend ? theme.bg : theme.textSecondary }}" />
-        </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="openTemplatePicker">
-          <text class="row-label" style="color: {{ theme.text }}">模版选择</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.accent }}">{{ currentTemplateName }}</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          <div class="switch-track" style="background-color: {{ hideWeekend ? theme.accent : theme.border }}" onclick="toggleHideWeekend">
+            <div class="switch-thumb" style="left: {{ hideWeekend ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
           </div>
         </div>
       </div>
@@ -99,91 +94,11 @@
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
-      <div class="group-title-row" onclick="toggleTools">
-        <text class="group-title" style="color: {{ theme.text }}">工具</text>
+      <div class="row" onclick="openTools">
+        <text class="row-label" style="color: {{ theme.text }}">工具</text>
         <div class="row-right">
-          <text class="arrow" style="color: {{ theme.textMuted }}">{{ showTools ? 'v' : '›' }}</text>
-        </div>
-      </div>
-      <div if="{{ showTools }}" style="flex-direction: column">
-        <div class="row" onclick="openDeviceInfo">
-          <text class="row-label" style="color: {{ theme.text }}">设备信息</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">调试</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
-        </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="openVibrationLab">
-          <text class="row-label" style="color: {{ theme.text }}">震动自定义</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">震动方案</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
-        </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="openVibrationLabV2">
-          <text class="row-label" style="color: {{ theme.text }}">震动自定义 V2</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">胶囊版</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
-        </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="openHeaderDemo1">
-          <text class="row-label" style="color: {{ theme.text }}">Header Demo1</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">CSS共享头部</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
-        </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="openHeaderDemo2">
-          <text class="row-label" style="color: {{ theme.text }}">Header Demo2</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">CSS共享头部</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
-        </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="openAddCourseV2">
-          <text class="row-label" style="color: {{ theme.text }}">添加课程 V2</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">胶囊版·滚轮选时</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
-        </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="openCountdownManage">
-          <text class="row-label" style="color: {{ theme.text }}">倒数日</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">事件倒计时</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
-        </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="openQRCodeGenerator">
-          <text class="row-label" style="color: {{ theme.text }}">二维码生成</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">文字转二维码</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
-        </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="openPinnedPages">
-          <text class="row-label" style="color: {{ theme.text }}">已钉页面</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">首页置顶管理</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
-        </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="openStatistics">
-          <text class="row-label" style="color: {{ theme.text }}">数据统计</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">使用数据</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
+          <text class="row-hint" style="color: {{ theme.textMuted }}">调试、二维码等</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
     </div>
@@ -212,14 +127,6 @@
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
-      <div class="row" onclick="openBlackScreenCheck">
-        <text class="row-label" style="color: {{ theme.text }}">黑屏检测</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">诊断</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
@@ -230,10 +137,6 @@
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
-    </div>
-
-    <div class="save-area">
-      <input class="save-btn" type="button" value="保存" onclick="saveSettings" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
     <text class="version-text" style="color: {{ theme.textMuted }}">v{{ versionText }}</text>
@@ -297,8 +200,7 @@ export default {
     showFontSize: false,
     showTheme: false,
     showSchedule: false,
-    showTools: false,
-    currentTemplateName: "Minimal Char"
+    
   },
 
   onInit() {
@@ -319,7 +221,6 @@ export default {
     }, true)
     this.loadNickname()
     this.loadHideWeekend()
-    this.loadTemplateName()
     this.versionText = version.versionName
   },
 
@@ -448,56 +349,12 @@ export default {
     }})
   },
 
-  openPinnedPages() {
-    router.push({ uri: "/pages/pinned-pages" })
-  },
-
-  toggleTools() {
-    this.showTools = !this.showTools
-  },
-
-  openDeviceInfo() {
-    router.push({ uri: "/pages/device-info" })
-  },
-
-  openVibrationLab() {
-    router.push({ uri: "/pages/vibration-lab" })
-  },
-
-  openVibrationLabV2() {
-    router.push({ uri: "/pages/vibration-lab-v2" })
-  },
-
-  openHeaderDemo1() {
-    router.push({ uri: "/pages/header-demo1" })
-  },
-
-  openHeaderDemo2() {
-    router.push({ uri: "/pages/header-demo2" })
-  },
-
-  openAddCourseV2() {
-    router.push({ uri: "/pages/add-course-v2" })
-  },
-
-  openCountdownManage() {
-    router.push({ uri: "/pages/countdown-manage" })
-  },
-
-  openQRCodeGenerator() {
-    router.push({ uri: "/pages/qrcode-generator" })
-  },
-
-  openStatistics() {
-    router.push({ uri: "/pages/statistics" })
+  openTools() {
+    router.push({ uri: "/pages/tools" })
   },
 
   openActivation() {
     router.push({ uri: "/pages/activation" })
-  },
-
-  openBlackScreenCheck() {
-    router.push({ uri: "/pages/black-screen-check" })
   },
 
   openDonate() {
@@ -528,43 +385,12 @@ export default {
     router.push({ uri: "/pages/reset-data" })
   },
 
-  loadTemplateName() {
-    var self = this
-    store.getWeekViewTemplate(function(id) {
-      var names = {
-        "minimal-char": "Minimal Char",
-        "minimal-en": "Minimal EN",
-        "standard-block": "Standard Block",
-        "compact-grid": "Compact Grid",
-        "color-pastel": "Color Pastel"
-      }
-      self.currentTemplateName = names[id] || "Minimal Char"
-    })
-  },
-
-  openTemplatePicker() {
-    router.push({ uri: "/pages/template-picker" })
-  },
-
   goToWelcome() {
     router.push({ uri: "/pages/welcome" })
   },
 
   goBack() {
     router.back()
-  },
-
-  saveSettings() {
-    var self = this
-    store.setTheme(this.currentThemeKey, function() {
-      store.setBaseFontSize(self.displaySize, function() {
-        store.setHideWeekend(self.hideWeekend, function() {
-          store.getTheme(function(t) {
-            self.theme = t
-          })
-        })
-      })
-    })
   }
 }
 </script>
@@ -592,6 +418,7 @@ export default {
   border-radius: 8px;
   justify-content: center;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .back-btn-icon {
@@ -600,10 +427,19 @@ export default {
 }
 
 .header-title {
+  flex: 1;
   font-size: 30px;
   font-weight: bold;
-  margin-left: 12px;
+  text-align: center;
   line-height: 40px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.header-placeholder {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
 }
 
 .group {
@@ -673,6 +509,22 @@ export default {
 .divider {
   height: 1px;
   margin: 6px 0;
+}
+
+.switch-track {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.switch-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  position: absolute;
+  top: 2px;
 }
 
 .theme-item {
@@ -750,21 +602,6 @@ export default {
   font-weight: bold;
   text-align: center;
   line-height: 36px;
-}
-
-.save-area {
-  margin-top: 22px;
-  padding-bottom: 8px;
-}
-
-.save-btn {
-  width: 100%;
-  height: 48px;
-  border-radius: 12px;
-  font-size: 28px;
-  font-weight: bold;
-  text-align: center;
-  line-height: 48px;
 }
 
 .version-text {
@@ -873,11 +710,6 @@ export default {
     font-size: 24px;
     line-height: 38px;
   }
-  .save-btn {
-    height: 42px;
-    font-size: 24px;
-    line-height: 42px;
-  }
   .version-text {
     font-size: 20px;
     line-height: 28px;
@@ -915,6 +747,38 @@ export default {
 
   .row {
     padding: 14px 0;
+  }
+
+  .nickname-row {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px 0;
+  }
+
+  .nickname-label {
+    font-size: 28px;
+    line-height: 36px;
+    margin-bottom: 2px;
+  }
+
+  .nickname-value-wrap {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+  }
+
+  .nickname-value {
+    font-size: 28px;
+    line-height: 38px;
+    flex: 1;
+    lines: 1;
+    text-overflow: ellipsis;
+  }
+
+  .nickname-arrow {
+    font-size: 28px;
+    flex-shrink: 0;
+    margin-left: 4px;
   }
 
   .row-label {
@@ -1003,11 +867,6 @@ export default {
   }
   .toggle-btn {
     width: 52px;
-    height: 48px;
-    font-size: 24px;
-    line-height: 48px;
-  }
-  .save-btn {
     height: 48px;
     font-size: 24px;
     line-height: 48px;

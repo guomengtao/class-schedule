@@ -3,7 +3,7 @@
 
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">打赏支持</text>
       <div class="header-placeholder"></div>
@@ -45,6 +45,7 @@ var PLATFORMS = [
 
 export default {
   private: {
+    iconTheme: "dark",
     theme: {
       bg: "#1a1a2e",
       card: "#16213e",
@@ -58,17 +59,23 @@ export default {
 
   onInit() {
     var self = this
-    store.getTheme(function (t) {
+    store.getTheme(function (t, themeName) {
       self.theme = t
+      self.updateIconSrc(themeName)
     })
     self.calcQrSize()
   },
 
   onShow() {
     var self = this
-    store.getTheme(function (t) {
+    store.getTheme(function (t, themeName) {
       self.theme = t
+      self.updateIconSrc(themeName)
     })
+  },
+
+  updateIconSrc: function(themeName) {
+    this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
   },
 
   calcQrSize() {

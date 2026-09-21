@@ -489,6 +489,9 @@ function parseTimeToMinutes(t) {
 function parseTimeRange(timeStr) {
   if (!timeStr) return null
   var segs = timeStr.split(" - ")
+  if (segs.length < 2) {
+    segs = timeStr.split("-")
+  }
   if (segs.length >= 2) {
     var s = parseTimeToMinutes(segs[0])
     var e = parseTimeToMinutes(segs[1])

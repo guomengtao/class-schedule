@@ -6,7 +6,7 @@
 
     <div class="header">
       <div class="nav-btn-circle" onclick="prevDay" style="background-color: {{ theme.cardLight }}">
-        <image class="nav-btn-img" src="../../common/icons/{{ iconTheme }}/icon_arrow_left.png"></image>
+        <image class="nav-btn-img" src="/common/icons/{{ iconTheme }}/icon_arrow_left.png"></image>
       </div>
       <text class="day-title" style="font-size: {{ dayTitleSize }}px; color: {{ dayTitleColor || theme.text }}">{{ dayDisplayText }}</text>
       <div class="day-nav-btns" if="{{ !isCapsule }}">
@@ -21,7 +21,7 @@
         </div>
       </div>
       <div class="nav-btn-circle" onclick="nextDay" style="background-color: {{ theme.cardLight }}">
-        <image class="nav-btn-img" src="../../common/icons/{{ iconTheme }}/icon_arrow_right.png"></image>
+        <image class="nav-btn-img" src="/common/icons/{{ iconTheme }}/icon_arrow_right.png"></image>
       </div>
     </div>
 
@@ -45,7 +45,17 @@
 
     <div class="status-bar" if="{{ showStatusBar }}" style="background-color: {{ theme.cardLight }}">
       <div class="left-accent left-accent-6" if="{{ !isCapsule }}" style="background-color: {{ theme.accent }}"></div>
-      <text if="{{ isCapsule }}" class="status-middle status-middle-compact" style="color: {{ theme.text }}; flex:1;" lines="1">{{ statusTag }}:{{ statusMainText }}</text>
+      <!-- Capsule: two-line compact layout with accent + tag badge + time / course name -->
+      <div if="{{ isCapsule }}" class="status-capsule-row">
+        <div class="status-capsule-accent" style="background-color: {{ theme.accent }}"></div>
+        <div class="status-capsule-body">
+          <div class="status-capsule-line1">
+            <text class="status-capsule-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
+            <text class="status-capsule-time" if="{{ statusTimeText }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
+          </div>
+          <text class="status-capsule-name" style="color: {{ theme.text }}">{{ statusMainText }}</text>
+        </div>
+      </div>
       <block if="{{ !isCapsule }}">
         <text class="status-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
         <text class="status-middle" style="color: {{ theme.text }}">{{ statusMainText }}</text>
@@ -100,7 +110,7 @@
         <text class="quick-add-title" style="color: {{ theme.accent }}">快速添加</text>
         <div class="quick-add-info">
           <text class="quick-add-time" if="{{ quickAdd.expanded && !isCapsule }}" style="color: {{ theme.textSecondary }}">{{ quickAdd.time }}</text>
-          <image class="quick-add-arrow-img" src="../../common/icons/{{ iconTheme }}/{{ quickAdd.expanded ? 'icon_chevron_up' : 'icon_chevron_down' }}.png"></image>
+          <image class="quick-add-arrow-img" src="/common/icons/{{ iconTheme }}/{{ quickAdd.expanded ? 'icon_chevron_up' : 'icon_chevron_down' }}.png"></image>
         </div>
       </div>
       <div class="quick-add-row-scroll" if="{{ quickAdd.expanded }}">
@@ -112,7 +122,7 @@
               <text class="quick-add-tag-text" style="color: {{ theme.text }}">{{ $item }}</text>
             </div>
             <div class="quick-add-tag quick-add-plus" onclick="openCourseManager" style="background-color: {{ theme.cardLight }}">
-              <text class="quick-add-tag-text" style="color: {{ theme.accent }}">+</text>
+              <text class="quick-add-tag-text quick-add-plus-text" style="color: {{ theme.accent }}">+</text>
             </div>
           </div>
         </scroll>
@@ -125,7 +135,7 @@
       <!-- 加号按钮：实心强调色块改为透明底 + 强调色描边，避免底部出现一块不透明色块 -->
       <div class="add-btn-wrapper" onclick="openAddCoursePage"
            style="background-color: transparent; border-width: 2px; border-color: {{ theme.accent }}">
-        <image class="add-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_plus.png"></image>
+        <image class="add-btn-icon" src="/common/icons/{{ iconTheme }}/icon_plus.png"></image>
         <text class="add-btn-label" if="{{ !isCapsule }}" style="color: {{ theme.accent }}">添加课程</text>
       </div>
       <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
@@ -133,7 +143,7 @@
 
     <div class="week-indicator" onclick="openScheduleManager">
       <!-- 课表切换：repeat 循环箭头表达「切换课表」 -->
-      <image class="week-swap-icon" src="../../common/icons/{{ iconTheme }}/icon_swap.png"></image>
+      <image class="week-swap-icon" src="/common/icons/{{ iconTheme }}/icon_swap.png"></image>
       <text class="week-text" style="color: {{ theme.accent }}">{{ currentScheduleName }}</text>
     </div>
   </div>
@@ -1001,7 +1011,7 @@ export default {
   line-height: 28px;
 }
 
-.quick-add-plus .quick-add-tag-text {
+.quick-add-plus-text {
   font-size: 24px;
   font-weight: bold;
 }
@@ -1178,27 +1188,52 @@ export default {
     line-height: 28px;
   }
   .status-bar {
-    padding: 6px 8px;
+    padding: 8px 8px;
     margin-bottom: 4px;
   }
-  .status-tag-compact {
-    font-size: 20px;
-    padding: 1px 6px;
-    line-height: 26px;
-    margin-right: 4px;
+  /* Capsule status bar: two-line layout for narrow 160px content area */
+  .status-capsule-row {
+    flex-direction: row;
+    align-items: center;
+    flex: 1;
   }
-  .status-middle-compact {
-    font-size: 20px;
+  .status-capsule-accent {
+    width: 3px;
+    height: 42px;
+    border-radius: 2px;
+    margin-right: 8px;
+    flex-shrink: 0;
+    align-self: center;
+  }
+  .status-capsule-body {
+    flex: 1;
+    flex-direction: column;
+  }
+  .status-capsule-line1 {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+  }
+  .status-capsule-tag {
+    font-size: 18px;
+    padding: 1px 8px;
+    border-radius: 4px;
+    line-height: 24px;
+    flex-shrink: 0;
+  }
+  .status-capsule-time {
+    font-size: 18px;
+    line-height: 24px;
+    margin-left: 6px;
+    flex-shrink: 0;
+  }
+  .status-capsule-name {
+    font-size: 22px;
     font-weight: bold;
     line-height: 28px;
     lines: 1;
     text-overflow: ellipsis;
-    flex: 1;
-    width: 100%;
-  }
-  .status-right-compact {
-    font-size: 20px;
-    line-height: 26px;
   }
   .section-label {
     font-size: 20px;
@@ -1356,25 +1391,7 @@ export default {
     font-size: 20px;
     line-height: 28px;
   }
-  .status-tag-compact {
-    font-size: 20px;
-    padding: 1px 6px;
-    line-height: 26px;
-    margin-right: 4px;
-  }
-  .status-middle-compact {
-    font-size: 20px;
-    font-weight: bold;
-    line-height: 28px;
-    lines: 1;
-    text-overflow: ellipsis;
-    flex: 1;
-    width: 100%;
-  }
-  .status-right-compact {
-    font-size: 20px;
-    line-height: 26px;
-  }
+  
   .pinned-bar {
     padding: 4px 6px;
     border-radius: 6px;

@@ -3,7 +3,7 @@
   <div class="stats-page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">课程统计</text>
       <div class="header-placeholder"></div>
@@ -78,6 +78,7 @@ var dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四",
 
 export default {
   private: {
+    iconTheme: "dark",
     isPro: false,
     theme: {
       bg: '#1a1a2e',
@@ -109,8 +110,9 @@ export default {
 
   onInit() {
     var self = this
-    store.getTheme(function(t) {
+    store.getTheme(function(t, themeName) {
       self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
     })
     this.loadStatistics()
     this.checkProStatus()
@@ -118,8 +120,9 @@ export default {
 
   onShow() {
     var self = this
-    store.getTheme(function(t) {
+    store.getTheme(function(t, themeName) {
       self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
     })
     this.loadStatistics()
     this.checkProStatus()
@@ -412,12 +415,10 @@ export default {
   
   
   .header-title {
-    font-size: 28px;
-    line-height: 44px;
+    font-size: 20px;
+    line-height: 28px;
     text-align: center;
     flex: 1;
-    lines: 1;
-    margin: 0 4px;
   }
   .overview {
     padding: 14px 6px;

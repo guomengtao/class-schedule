@@ -2,7 +2,7 @@
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <div class="back-btn-wrapper {{ isCapsule ? 'back-btn-cap' : '' }}" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon {{ isCapsule ? 'back-icon-cap' : '' }}" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="back-btn-icon {{ isCapsule ? 'back-icon-cap' : '' }}" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title {{ isCapsule ? 'header-title-cap' : '' }}" style="color: {{ theme.text }}">课程管理</text>
       <input class="add-btn" if="{{ !isCapsule }}" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
@@ -24,7 +24,7 @@
           <div class="item-index" style="background-color: {{ theme.accent }}">
             <text class="index-text">{{ $idx + 1 }}</text>
           </div>
-          <text class="course-name" style="color: {{ theme.text }}" lines="{{ isCapsule ? 2 : 1 }}">{{ $item.name }}</text>
+          <text class="course-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
         </div>
         <div class="item-actions">
           <!-- 确认态下隐藏"编辑"并改显提示，既给出明确文案，也避免误触相邻按钮 -->

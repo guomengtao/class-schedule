@@ -2,7 +2,7 @@
   <scroll class="edit-course-page" scroll-y="true" style="background-color: {{ theme.bg }}">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="title" style="color: {{ theme.text }}">编辑课程</text>
     </div>
@@ -30,14 +30,14 @@
       <text class="step-hint" style="color: {{ theme.textSecondary }}">共 {{ presetCourses.length }} 门 · 可左右滑动</text>
 
       <div class="swiper-wrapper">
-        <image class="swipe-arrow-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png" onclick="swipePrev" style="background-color: {{ theme.cardLight }}" />
+        <image class="swipe-arrow-icon" src="/common/icons/{{ iconTheme }}/icon_back.png" onclick="swipePrev" style="background-color: {{ theme.cardLight }}" />
         <div class="course-card" if="{{ courseIndex < presetCourses.length }}" onclick="swipeNext" onswipe="onCardSwipe" ontouchstart="onCardTouchStart" ontouchend="onCardTouchEnd" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
           <text class="card-course-name" style="color: {{ theme.text }}">{{ presetCourses[courseIndex].name }}</text>
         </div>
         <div class="course-card add-card" if="{{ courseIndex === presetCourses.length }}" onclick="openCourseManager" onswipe="onCardSwipe" ontouchstart="onCardTouchStart" ontouchend="onCardTouchEnd" style="background-color: {{ theme.cardLight }}; border-color: {{ theme.border }}">
           <text class="add-card-icon" style="color: {{ theme.accent }}">+</text>
         </div>
-        <image class="swipe-arrow-icon" src="../../common/icons/{{ iconTheme }}/icon_chevron_right.png" onclick="swipeNext" style="background-color: {{ theme.cardLight }}" />
+        <image class="swipe-arrow-icon" src="/common/icons/{{ iconTheme }}/icon_chevron_right.png" onclick="swipeNext" style="background-color: {{ theme.cardLight }}" />
       </div>
 
       <text class="course-index-hint" style="color: {{ theme.textSecondary }}">{{ courseIndex < presetCourses.length ? courseIndex + 1 : '+' }} / {{ presetCourses.length + 1 }}</text>
@@ -544,7 +544,7 @@ export default {
   },
 
   updateTimeString() {
-    this.courseTime = formatTime(this.startHour, this.startMin) + "-" + formatTime(this.endHour, this.endMin)
+    this.courseTime = formatTime(this.startHour, this.startMin) + " - " + formatTime(this.endHour, this.endMin)
   },
 
   adjustEndTime() {

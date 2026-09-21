@@ -3,7 +3,7 @@
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header" style="background-color: {{ theme.bg }}">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="title" style="color: {{ theme.text }}">震动自定义</text>
     </div>

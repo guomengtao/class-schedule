@@ -4,7 +4,7 @@
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">导出</text>
       <div class="header-placeholder"></div>
@@ -72,6 +72,7 @@ const authStore = require("../../data/auth-store.js")
 
 export default {
   private: {
+    iconTheme: "dark",
     isPro: false,
     theme: {
       bg: '#1a1a2e',
@@ -89,8 +90,9 @@ export default {
 
   onInit() {
     var self = this
-    store.getTheme(function(t) {
+    store.getTheme(function(t, themeName) {
       self.theme = t
+      self.updateIconSrc(themeName)
     })
     this.loadData()
     this.checkProStatus()
@@ -98,11 +100,16 @@ export default {
 
   onShow() {
     var self = this
-    store.getTheme(function(t) {
+    store.getTheme(function(t, themeName) {
       self.theme = t
+      self.updateIconSrc(themeName)
     })
     this.loadData()
     this.checkProStatus()
+  },
+
+  updateIconSrc: function(themeName) {
+    this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
   },
 
   checkProStatus() {

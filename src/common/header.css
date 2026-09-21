@@ -109,3 +109,28 @@
     height: 48px;
   }
 }
+
+/* ====== Capsule Screen (192px width, ~160px content) ====== */
+/* Title area: content_width - 40px(back) - 40px(placeholder) = 80~96px */
+/* 4 Chinese chars at 20px = 80px, fits exactly on 16px-padding pages */
+@media (shape: capsule), (shape: pill-shaped) {
+  .header-title {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .back-btn-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+  }
+
+  .back-btn-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .header-placeholder {
+    width: 40px;
+  }
+}

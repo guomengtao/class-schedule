@@ -4,7 +4,7 @@
   <scroll class="page" scroll-y="true" style="background-color: {{ theme.bg }}">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">课程表管理</text>
       <div class="header-placeholder"></div>
@@ -21,41 +21,15 @@
     </div>
 
     <div for="{{ list }}" class="item" style="background-color: {{ theme.card }}">
-      <div class="item-row">
-        <div class="item-left" onclick="toggle($idx)">
-          <div class="box" style="background-color: {{ $idx === currentIndex ? theme.accent : theme.cardLight }}; border-color: {{ theme.accent }}">
-            <text class="check" style="color: {{ $idx === currentIndex ? theme.bg : theme.textMuted }}">{{ $idx === currentIndex ? '✓' : '' }}</text>
-          </div>
-          <text class="name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-          <text class="course-count" style="color: {{ theme.textMuted }}">{{ $item.courseCount }}门</text>
-        </div>
-        <image class="expand-arrow-img" src="../../common/icons/{{ iconTheme }}/{{ expandedIndex === $idx ? 'icon_chevron_up.png' : 'icon_chevron_down.png' }}" onclick="expandItem($idx)"></image>
+      <div class="item-main" onclick="toggle($idx)">
+        <div class="indicator"
+             style="background-color: {{ $idx === currentIndex ? theme.accent : 'transparent' }}; border-color: {{ $idx === currentIndex ? theme.accent : theme.textMuted }}"></div>
+        <text class="name" style="color: {{ $idx === currentIndex ? theme.accent : theme.text }}; font-weight: {{ $idx === currentIndex ? 'bold' : 'normal' }}">{{ $item.name }}</text>
       </div>
-
-      <div class="actions" if="{{ expandedIndex === $idx }}">
-        <div class="action-row">
-          <div class="action-btn" onclick="startRename($idx)" style="background-color: {{ theme.cardLight }}">
-            <text class="action-btn-text" style="color: {{ theme.text }}">重命名</text>
-          </div>
-          <div class="action-btn" onclick="copySchedule($idx)" style="background-color: {{ theme.cardLight }}">
-            <text class="action-btn-text" style="color: {{ theme.text }}">复制</text>
-          </div>
-          <div class="action-btn" onclick="openQrPopup($idx)" style="background-color: {{ theme.cardLight }}">
-            <text class="action-btn-text" style="color: {{ theme.text }}">导出</text>
-          </div>
-        </div>
-        <div class="action-divider" style="background-color: {{ theme.border || theme.borderLight }}"></div>
-        <div class="action-row">
-          <div class="action-btn" onclick="openWeekView($idx)" style="background-color: {{ theme.cardLight }}">
-            <text class="action-btn-text" style="color: {{ theme.text }}">总览</text>
-          </div>
-          <div class="action-btn" onclick="openScheduleStats($idx)" style="background-color: {{ theme.cardLight }}">
-            <text class="action-btn-text" style="color: {{ theme.text }}">统计</text>
-          </div>
-          <div class="action-btn delete-btn" if="{{ list.length > 1 }}" onclick="deleteSchedule($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}">
-            <text class="action-btn-text" style="color: {{ deleteConfirmIndex === $idx ? theme.text : theme.deleteText }}">{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}</text>
-          </div>
-        </div>
+      <div class="more-hit" onclick="openSheet($idx)">
+        <div class="more-dot" style="background-color: {{ theme.textMuted }}"></div>
+        <div class="more-dot" style="background-color: {{ theme.textMuted }}"></div>
+        <div class="more-dot" style="background-color: {{ theme.textMuted }}"></div>
       </div>
     </div>
 
@@ -71,6 +45,38 @@
       <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 20px;">固定到首页</text>
     </div>
   </scroll>
+
+  <div class="overlay-sheet" if="{{ sheetIndex >= 0 }}" onclick="closeSheet">
+    <div class="sheet-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
+      <text class="sheet-title" style="color: {{ theme.text }}">{{ sheetName }}</text>
+      <text class="sheet-sub" style="color: {{ theme.textMuted }}">{{ sheetCount }} 门课程</text>
+
+      <div class="sheet-grid">
+        <div class="sheet-btn" onclick="sheetRename" style="background-color: {{ theme.cardLight }}">
+          <text class="sheet-btn-text" style="color: {{ theme.text }}">重命名</text>
+        </div>
+        <div class="sheet-btn" onclick="sheetCopy" style="background-color: {{ theme.cardLight }}">
+          <text class="sheet-btn-text" style="color: {{ theme.text }}">复制</text>
+        </div>
+        <div class="sheet-btn" onclick="sheetExport" style="background-color: {{ theme.cardLight }}">
+          <text class="sheet-btn-text" style="color: {{ theme.text }}">导出</text>
+        </div>
+        <div class="sheet-btn" onclick="sheetWeekView" style="background-color: {{ theme.cardLight }}">
+          <text class="sheet-btn-text" style="color: {{ theme.text }}">总览</text>
+        </div>
+        <div class="sheet-btn" onclick="sheetStats" style="background-color: {{ theme.cardLight }}">
+          <text class="sheet-btn-text" style="color: {{ theme.text }}">统计</text>
+        </div>
+        <div class="sheet-btn" if="{{ list.length > 1 }}" onclick="sheetDelete"
+             style="background-color: {{ deleteConfirmIndex === sheetIndex ? theme.deleteText : theme.deleteBg }}">
+          <text class="sheet-btn-text" style="color: {{ deleteConfirmIndex === sheetIndex ? theme.text : theme.deleteText }}">{{ deleteConfirmIndex === sheetIndex ? '确认删除' : '删除' }}</text>
+        </div>
+      </div>
+
+      <input class="sheet-close" type="button" value="取消" onclick="closeSheet"
+             style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+    </div>
+  </div>
 
   <div class="overlay-modal" if="{{ showDialog }}" onclick="dismissDialog">
     <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
@@ -103,10 +109,12 @@ export default {
     iconTheme: "dark",
     list: [],
     currentIndex: 0,
-    expandedIndex: -1,
     editingIndex: -1,
     editName: "",
     deleteConfirmIndex: -1,
+    sheetIndex: -1,
+    sheetName: "",
+    sheetCount: 0,
     showDialog: false,
     theme: {
       bg: '#1a1a2e',
@@ -186,12 +194,58 @@ export default {
     })
   },
 
-  expandItem(idx) {
-    if (this.expandedIndex === idx) {
-      this.expandedIndex = -1
-    } else {
-      this.expandedIndex = idx
+  openSheet(idx) {
+    this.sheetIndex = idx
+    this.sheetName = this.list[idx].name
+    this.sheetCount = this.list[idx].courseCount
+    this.deleteConfirmIndex = -1
+    if (this.deleteTimer) {
+      clearTimeout(this.deleteTimer)
+      this.deleteTimer = null
     }
+  },
+
+  closeSheet() {
+    this.sheetIndex = -1
+    this.deleteConfirmIndex = -1
+    if (this.deleteTimer) {
+      clearTimeout(this.deleteTimer)
+      this.deleteTimer = null
+    }
+  },
+
+  sheetRename() {
+    var idx = this.sheetIndex
+    this.closeSheet()
+    this.startRename(idx)
+  },
+
+  sheetCopy() {
+    var idx = this.sheetIndex
+    this.closeSheet()
+    this.copySchedule(idx)
+  },
+
+  sheetExport() {
+    var idx = this.sheetIndex
+    this.closeSheet()
+    this.openQrPopup(idx)
+  },
+
+  sheetWeekView() {
+    var idx = this.sheetIndex
+    this.closeSheet()
+    this.openWeekView(idx)
+  },
+
+  sheetStats() {
+    var idx = this.sheetIndex
+    this.closeSheet()
+    this.openScheduleStats(idx)
+  },
+
+  sheetDelete() {
+    this.deleteSchedule(this.sheetIndex)
   },
 
   toggle(idx) {
@@ -200,7 +254,6 @@ export default {
     }
     var self = this
     this.currentIndex = idx
-    this.expandedIndex = -1
     store.setCurrentScheduleIndex(idx, function() {
       database.setScheduleIndex(idx, function() {
         prompt.showToast({ message: "已切换到 " + self.list[idx].name })
@@ -423,8 +476,13 @@ export default {
 
     // Shift course data in storage first (delete + shift allCourses keys)
     database.deleteScheduleAndShift(index, totalBeforeDelete, function() {
-      // Now safe to update in-memory list
-      self.list.splice(index, 1)
+      var newList = []
+      for (var i = 0; i < self.list.length; i++) {
+        if (i !== index) {
+          newList.push({ name: self.list[i].name, courseCount: self.list[i].courseCount })
+        }
+      }
+      self.list = newList
 
       if (needSwitch) {
         self.currentIndex = 0
@@ -439,6 +497,7 @@ export default {
 
       store.setScheduleNames(names, function() {
         prompt.showToast({ message: "已删除 " + deletedName })
+        self.closeSheet()
         if (needSwitch) {
           database.setScheduleIndex(0, function() {})
         } else if (index < self.currentIndex) {
@@ -619,100 +678,129 @@ export default {
 }
 
 .item {
-  flex-direction: column;
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin-bottom: 12px;
+  flex-direction: row;
+  align-items: center;
+  height: 60px;
+  padding: 0 4px 0 14px;
+  margin-bottom: 10px;
+  border-radius: 14px;
   flex-shrink: 0;
 }
 
-.item-row {
-  flex-direction: row;
-  align-items: center;
-  min-height: 44px;
-}
-
-.item-left {
+.item-main {
   flex-direction: row;
   align-items: center;
   flex: 1;
+  min-width: 0;
+  height: 100%;
 }
 
-.box {
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
+.indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
   border-width: 2px;
   border-style: solid;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
-}
-
-.check {
-  font-size: 20px;
-  font-weight: bold;
-  lines: 1;
-  text-overflow: ellipsis;
-  line-height: 28px;
+  margin-right: 12px;
 }
 
 .name {
-  font-size: 20px;
-  font-weight: bold;
-  margin-left: 10px;
-  lines: 1;
-  text-overflow: ellipsis;
-  line-height: 28px;
-}
-
-.course-count {
-  font-size: 20px;
-  margin-left: 6px;
-  lines: 1;
-  text-overflow: ellipsis;
-  line-height: 28px;
-}
-
-.expand-arrow {
-  font-size: 20px;
-  padding: 4px;
-  flex-shrink: 0;
-  lines: 1;
-  text-overflow: ellipsis;
-  line-height: 28px;
-}
-
-.actions {
-  flex-direction: column;
-  padding-top: 12px;
-  margin-top: 10px;
-}
-
-.action-divider {
-  height: 1px;
-  margin: 8px 0;
-}
-
-.action-row {
-  flex-direction: row;
-  margin-bottom: 6px;
-}
-
-.action-btn {
   flex: 1;
-  height: 34px;
-  border-radius: 8px;
+  min-width: 0;
+  font-size: 24px;
+  line-height: 32px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.more-hit {
+  width: 56px;
+  height: 60px;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-right: 8px;
+  flex-shrink: 0;
 }
 
-.action-btn-text {
-  font-size: 20px;
-  line-height: 28px;
+.more-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin: 3px 0;
+}
+
+.overlay-sheet {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.55);
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  z-index: 1000;
+}
+
+.sheet-card {
+  width: 100%;
+  border-radius: 20px 20px 0 0;
+  padding: 20px 14px 16px 14px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sheet-title {
+  font-size: 26px;
+  font-weight: bold;
+  line-height: 34px;
+  text-align: center;
+  margin-bottom: 4px;
   lines: 1;
   text-overflow: ellipsis;
+}
+
+.sheet-sub {
+  font-size: 20px;
+  line-height: 28px;
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.sheet-grid {
+  width: 100%;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin: 0 -4px 10px -4px;
+}
+
+.sheet-btn {
+  flex: 1 1 45%;
+  min-width: 45%;
+  height: 52px;
+  margin: 0 4px 8px 4px;
+  border-radius: 12px;
+  align-items: center;
+  justify-content: center;
+}
+
+.sheet-btn-text {
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: bold;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.sheet-close {
+  width: 100%;
+  height: 48px;
+  border-radius: 24px;
+  font-size: 22px;
+  line-height: 30px;
+  text-align: center;
 }
 
 .add-section {
@@ -808,29 +896,25 @@ export default {
   .page {
     padding: 44px 36px 44px 36px;
   }
-  
-  
+
   .item {
-    padding: 8px 10px;
+    height: 52px;
+    padding: 0 2px 0 12px;
     margin-bottom: 8px;
   }
-  .name {
-    font-size: 20px;
-    line-height: 28px;
-    margin-left: 6px;
+
+  .more-hit {
+    width: 52px;
+    height: 52px;
   }
-  .course-count {
-    font-size: 20px;
-    line-height: 28px;
+
+  .more-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 2.5px;
+    margin: 2.5px 0;
   }
-  .action-btn {
-    height: 30px;
-    margin-right: 4px;
-  }
-  .action-btn-text {
-    font-size: 20px;
-    line-height: 28px;
-  }
+
   .rename-display {
     font-size: 20px;
     line-height: 28px;
@@ -862,140 +946,94 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
-    padding: 30px 16px 30px 16px;
-  }
-  
-  
-  
-
-  .modal-card {
-    width: 90%;
-    border-radius: 12px;
-    padding: 18px 16px;
-  }
-
-  .modal-title {
-    font-size: 26px;
-    margin-bottom: 10px;
-    line-height: 34px;
-  }
-
-  .modal-desc {
-    font-size: 20px;
-    margin-bottom: 14px;
-    line-height: 30px;
-  }
-
-  .benefit-list {
-    margin-bottom: 14px;
-    padding-left: 8px;
-  }
-
-  .benefit-item {
-    font-size: 20px;
-    margin-bottom: 6px;
-    line-height: 28px;
-  }
-
-  .modal-btn-primary {
-    height: 44px;
-    border-radius: 22px;
-    font-size: 24px;
-    margin-bottom: 8px;
-  }
-
-  .modal-btn-secondary {
-    height: 38px;
-    border-radius: 19px;
-    font-size: 22px;
+    padding: 44px 10px 20px 10px;
   }
 
   .item {
-    padding: 10px 8px;
-    margin-bottom: 8px;
-  }
-
-  .item-left {
-    flex: 1;
-    min-width: 0;
+    height: 64px;
+    padding: 0 2px 0 14px;
+    margin-bottom: 10px;
   }
 
   .name {
-    font-size: 20px;
-    lines: 2;
-    text-overflow: ellipsis;
-    margin-left: 8px;
-    line-height: 28px;
+    font-size: 24px;
+    line-height: 32px;
   }
 
-  .course-count {
-    font-size: 20px;
-    margin-left: 4px;
-    flex-shrink: 0;
-    line-height: 28px;
+  .more-hit {
+    width: 60px;
+    height: 64px;
   }
 
-  .expand-arrow {
-    font-size: 20px;
-    padding: 2px;
+  .more-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    margin: 3.5px 0;
   }
 
-  .action-row {
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
-
-  .action-btn {
-    flex: none;
-    width: calc(50% - 4px);
-    height: 36px;
-    margin-bottom: 6px;
-  }
-
-  .action-btn-text {
-    font-size: 20px;
-    line-height: 28px;
+  .sheet-card {
+    border-radius: 20px 20px 0 0;
+    padding: 20px 12px 16px 12px;
   }
 
   .rename-bar {
     flex-direction: column;
-    padding: 10px 8px;
+    padding: 10px;
+    margin-bottom: 8px;
   }
 
   .rename-display {
     width: 100%;
     flex: none;
-    height: 38px;
+    height: 44px;
     margin-bottom: 8px;
     font-size: 20px;
   }
 
-  .rename-btn-row {
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
-  }
-
-  .rename-ok-btn {
-    width: 48%;
-    height: 36px;
-    font-size: 20px;
-    margin-left: 0;
-  }
-
-  .rename-cancel-btn {
-    width: 48%;
-    height: 36px;
-    font-size: 20px;
-    margin-left: 0;
-  }
-
-  .add-btn {
-    height: 42px;
+  .rename-text {
     font-size: 20px;
     line-height: 28px;
   }
 
+  .rename-btn-row {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .rename-ok-btn,
+  .rename-cancel-btn {
+    width: 48%;
+    height: 44px;
+    font-size: 20px;
+    line-height: 28px;
+    margin-left: 0;
+  }
+
+  .add-section {
+    margin-top: 8px;
+  }
+  .add-btn {
+    height: 44px;
+    font-size: 20px;
+    line-height: 28px;
+    border-radius: 12px;
+  }
+
+  .footer-actions {
+    padding: 8px 0 4px 0;
+  }
+  .pin-link {
+    font-size: 20px;
+    line-height: 28px;
+    padding: 10px 24px;
+    min-height: 44px;
+  }
+
+  .overlay-modal {
+    padding: 44px 16px;
+  }
 }
 
 @media (shape: rect) {

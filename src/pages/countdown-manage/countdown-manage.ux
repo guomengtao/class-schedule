@@ -2,7 +2,7 @@
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">倒数日</text>
       <input class="add-btn" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
@@ -58,6 +58,7 @@ var STORAGE_KEY = "countdownDays"
 
 export default {
   private: {
+    iconTheme: "dark",
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',

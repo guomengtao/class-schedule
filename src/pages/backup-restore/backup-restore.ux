@@ -2,7 +2,7 @@ rinuo@qq.com<template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="../../common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">备份</text>
       <div class="header-placeholder"></div>
@@ -100,6 +100,7 @@ var DATA_KEYS = [
 
 export default {
   private: {
+    iconTheme: "dark",
     theme: store.DEFAULT_THEME,
     backupList: [],
     resultMessage: "",
@@ -152,7 +153,7 @@ export default {
   onInit() {
     dlog("[BACKUP] onInit: page created")
     var self = this
-    store.getTheme(function(t) { self.theme = t })
+    store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
     this.loadBackupList()
     this._logStatus()
   },
@@ -165,9 +166,12 @@ export default {
   onShow() {
     dlog("[BACKUP] onShow: page shown")
     var self = this
-    store.getTheme(function(t) { self.theme = t })
+    store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
     this._logStatus()
-    this.checkAndShowOverlay()
+  },
+
+  updateIconSrc: function(themeName) {
+    this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
   },
 
   checkAndShowOverlay() {
