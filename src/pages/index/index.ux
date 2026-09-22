@@ -720,7 +720,7 @@ export default {
   },
 
   goToWorkdayInfo() {
-    router.push({ uri: "/pages/workday-info" })
+    router.push({ uri: "/pages/workday-info", params: { showRules: "1" } })
   },
 
   openCourseManager() {
