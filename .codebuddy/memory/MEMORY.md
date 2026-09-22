@@ -31,7 +31,25 @@
 - 冲分要求**真实代码改进**并同步文档，不接受只改数字虚报
 - 要求同步维护守护手册，便于日后查阅"如何保持满分"
 
+## 单元测试约定（2026-09-23）
+- 手环/快应用场景三种套路：①**纯函数** → 从 `.ux` 正则提取 `<script>` 再截片段 + `/tmp` 跑 `node`（零依赖）；②**依赖 storage** → 劫持 `Module.prototype.require` 注入**内存 fake `@system.storage`**（一个 `{}` 对象实现 get/set/delete），再 require 真实 `database.js` 跑 CRUD；③**页面方法** → `new Function("require", script+";return page;")(require)` 注入 mock（`new Function` 无 require，必须显式传）
+- **不会留冗余数据**：fake 全内存、脚本放 `/tmp`、不进工作区与 git；仅真机测试才落盘（需 cleanup）
+- 已验证：课程 **增 / 改 / 删** 均可单测（fake storage 下全部 PASS）
+
 ## 工具约定（2026-09-20）
 - 每次对话完成用 mac 弹窗 + 语音通知：`osascript -e 'display notification "正文" with title "标题"' ; say -v Tingting "正文"`（用 `;` 不用 `&&`，保证弹窗失败也发声）
 - 实现说明文档：`docs/Mac语音通知实现说明.md`
 - 本机中文语音注册名：普通话 `Tingting`（非 `Ting-Ting`）、粤语 `Sinji`、台湾腔 `Meijia`；以 `say -v '?'` 实测为准
+
+## 表盘与手机侧同步探索结论（2026-09-22）
+- **表盘 `.bin` ≠ 快应用 `.rpk`**，是两套隔离的运行时。表盘：**无自定义数据源 / 无存储 / 无输入法**，只能"预设内容 + 按星期等系统数据源自动切换显示哪一组"；改内容必须重新打包安装。**凡"要能输入能编辑的课程应用"，本质就是快应用**
+- 表盘 ↔ 快应用**无通信通道**；表盘也**无法被外部写入数据**（无数据槽）。米坛"课程表小程序"产物实为 `.rpk`
+- **手机侧导入课表的可行路径 = AstroBox 插件**：Rust → WASM（wasm32-wasip2），**一次开发全平台**（Windows/macOS/iOS/Android/Linux/浏览器；iOS 为 Pulley64 **解释模式**，性能较低）；通过 `interconnect.send_qaic_message` 把课表发给**手环上的快应用**；宿主负责蓝牙 + Protobuf。官方插件文档 `plugindoc.astrobox.online`，参考实现 `AzumaChiaki/Varclass-Astrobox-rust`（MIT）
+- **竞品**：`Jursin/Schedule-Vela`（腕上课程表，GPL-3.0 开源快应用）、Var课程表（爱发电付费）**均已支持 AstroBox 插件/同步器导入课表**（可导入拾光/WakeUp/星链/CSES 配置）。Ev课程表优势 = **手环上直接编辑**；短板 = **无手机侧批量导入**
+- 本轮表盘相关分析文档（docs/）：`表盘开发可行性分析（讨论稿）.md`、`表盘联动性与仓库结构深度分析.md`、`独立课程表盘能力边界分析.md`、`表盘数据固化机制解析.md`、`AstroBox插件与课表同步路径分析.md`
+- **本项目已迈出该步**：EV 同步器插件（`EV Schedule Sync`，`.abp`）已发布 **v1.0.20** 内测，仓库 `guomengtao/app-auth`（`releases/tag/ev-schedule-sync-v1.0.20`）；具备设备菜单 / 守卫检查 / Demo JSON 导入校验。⚠️ **包名只是"寻址"，不等于"接收"**：必须改代码 —— `manifest.json` 补 `system.interconnect` feature（目前缺失）+ `connect.onmessage` → 解析 → 写 `allCourses_N` → 刷新；解析/存储沿用格式 A 与 `try/catch` 约定；官方示例的**箭头函数要改成 `function`**（本仓禁 ES6+ 风险语法）。✅ 2026-09-22 已落地接收骨架：`manifest.json` 加 feature + `app.ux` 增量 `initSyncReceiver()`（存 `astrobox_sync_data`）+ 键表登记；**尚未真机验证，也未 commit**
+- **守门人原则（2026-09-23）**：同步数据开放边界 **100% 由手环侧决定** —— 导出按域白名单 `SYNC_ALLOWED_SCOPES`（schedule / profile / homepage / appearance / pinned），不在白名单的域（授权等）插件**永远拿不到也改不掉**；`pinned`（钉首页）在白名单但**非默认**，需显式 `scopes` 才返回；`update_settings` 只认白名单字段
+- 钉首页数据在 `src/data/pin-helper.js`（KEY `pinned_pages`，结构 `[{name, uri}]`）：`getList` / `isPinned` 可静默调用；**`pinPage` / `unpinPage` 会弹 Toast**，同步场景若要静默写入须直接用 storage 写 `pinned_pages`
+- **权限表模型（2026-09-23 已落地 `src/app.ux`）**：`SYNC_ACCESS` 用 read/write 双维定义每个域——`schedule`/`profile`/`homepage`/`appearance` 读写、`version` 只读(always/false)、`pinned` 显式只读(explicit/false)、`auth` 禁止(never)；`SYNC_FIELD_DOMAIN` 映射 update_settings 字段到域；`syncCanRead`/`syncCanWrite` 守卫；version 由 `require("./data/version.js")` 读取且写被忽略。改权限只动 `SYNC_ACCESS` 一张表
+- 同步协议三件套：`import`（宽容解析，写前备份 `astrobox_sync_backup`）/ `export`（按域）/ `update_settings`（nickname·homepage·homepageTemplate·baseFontSize 20~76）；配置编辑必须 **读→改→写** 否则丢字段
+- **提交约定（2026-09-23 用户新规则）**：每次改动**立即**执行 `git add -A && git commit` 并注明改动说明，不再只提醒不提交；未跟踪的临时脚本/文档也一并纳入（遵守 `add -A`）。既有禁止性规则不变：禁止 `git clean`/`reset --hard`/`rm -rf` 等破坏性命令，恢复一律用 `git checkout HEAD~1 -- <路径>`

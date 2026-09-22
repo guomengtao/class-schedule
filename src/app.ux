@@ -55,6 +55,470 @@ function stopResident() {
   }
 }
 
+var interconnect = null
+
+try {
+  interconnect = require("@system.interconnect")
+} catch (e) {
+  dlog("[SYNC] interconnect not available: " + e)
+}
+
+// ===== 同步协议（插件 ↔ 手环）=====
+// 插件 → 手环：
+//   { "action": "import", "payload": {...} }  导入课表
+//   { "action": "export" }                   请求导出
+//   直接发课表数据（无 action，按导入处理，兼容已对接格式）
+// 手环 → 插件：
+//   { "ok": true, "count": N }                          导入回包
+//   { "ok": true, "action": "export", "data": [...] }   导出回包（格式 A）
+
+var SYNC_DAY_NAMES = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+// 默认节次时间表，仅当插件使用 start_period/end_period 时兜底
+var SYNC_PERIOD_TIMES = [
+  "08:00 - 08:45", "08:55 - 09:40", "10:00 - 10:45", "10:55 - 11:40",
+  "14:00 - 14:45", "14:55 - 15:40", "16:00 - 16:45", "16:55 - 17:40"
+]
+
+function syncNormalizeDay(v) {
+  var s = String(v === null || v === undefined ? "" : v).trim()
+  if (s === "") {
+    return ""
+  }
+  if (/^[1-7]$/.test(s)) {
+    return SYNC_DAY_NAMES[Number(s) - 1]
+  }
+  if (s.indexOf("星期") === 0) {
+    return s
+  }
+  var map = {
+    "Monday": "星期一", "Tuesday": "星期二", "Wednesday": "星期三",
+    "Thursday": "星期四", "Friday": "星期五", "Saturday": "星期六", "Sunday": "星期日",
+    "Mon": "星期一", "Tue": "星期二", "Wed": "星期三",
+    "Thu": "星期四", "Fri": "星期五", "Sat": "星期六", "Sun": "星期日"
+  }
+  return map[s] || s
+}
+
+// 生成 "HH:MM - HH:MM"，兼容 time / startTime+endTime / 节次 三种写法
+function syncBuildTime(c) {
+  if (c.time) {
+    return String(c.time)
+  }
+  if (c.startTime && c.endTime) {
+    return String(c.startTime) + " - " + String(c.endTime)
+  }
+  var sp = parseInt(c.start_period || c.startPeriod || 0, 10)
+  var ep = parseInt(c.end_period || c.endPeriod || sp, 10)
+  if (sp >= 1 && ep >= sp && ep <= SYNC_PERIOD_TIMES.length) {
+    var s = SYNC_PERIOD_TIMES[sp - 1].split(" - ")
+    var e = SYNC_PERIOD_TIMES[ep - 1].split(" - ")
+    return s[0] + " - " + e[1]
+  }
+  return ""
+}
+
+// 宽容取课程数组：支持 [] / {courses:[]} / {schedules:[{courses:[]}]} / {payload:{...}}
+function syncExtractCourses(payload) {
+  var list = null
+  if (payload && payload.length !== undefined && typeof payload !== "string") {
+    list = payload
+  } else if (payload && payload.courses) {
+    list = payload.courses
+  } else if (payload && payload.schedules && payload.schedules[0] && payload.schedules[0].courses) {
+    list = payload.schedules[0].courses
+  } else if (payload && payload.payload) {
+    return syncExtractCourses(payload.payload)
+  }
+  return (list && list.length) ? list : null
+}
+
+// Course[] → 格式 A（按 day 分组）
+function syncToFormatA(list) {
+  var result = []
+  var indexMap = {}
+  var idSeq = 1
+  for (var i = 0; i < list.length; i++) {
+    var c = list[i] || {}
+    var day = syncNormalizeDay(c.day || c.dayOfWeek || c.day_of_week)
+    var name = String(c.name || c.courseName || "").trim()
+    if (!day || !name) {
+      continue
+    }
+    var time = syncBuildTime(c)
+    if (!time) {
+      continue
+    }
+    if (indexMap[day] === undefined) {
+      indexMap[day] = result.length
+      result.push({ day: day, classes: [] })
+    }
+    result[indexMap[day]].classes.push({
+      id: String(idSeq++),
+      name: name,
+      time: time,
+      teacher: String(c.teacher || ""),
+      location: String(c.location || c.classroom || c.room || ""),
+      notes: String(c.notes || c.note || "")
+    })
+  }
+  return result
+}
+
+function syncReply(connect, payload) {
+  try {
+    connect.send({ data: payload })
+  } catch (e) {
+    dlog("[SYNC] reply failed: " + e)
+  }
+}
+
+// 导入：转格式 A 后单次原子写盘；写前先备份旧课表，便于回退
+function syncHandleImport(connect, payload) {
+  var list = syncExtractCourses(payload)
+  if (!list) {
+    dlog("[SYNC] import: no courses")
+    syncReply(connect, { ok: false, reason: "no courses" })
+    return
+  }
+  var data = syncToFormatA(list)
+  if (!data.length) {
+    dlog("[SYNC] import: convert empty")
+    syncReply(connect, { ok: false, reason: "convert empty" })
+    return
+  }
+
+  var count = 0
+  for (var i = 0; i < data.length; i++) {
+    count += data[i].classes.length
+  }
+
+  var storage = require("@system.storage")
+  var index = 0
+  try {
+    index = database.getScheduleIndex()
+  } catch (e) {
+    index = 0
+  }
+  var key = "allCourses_" + index
+
+  storage.get({
+    key: key,
+    success: function (oldVal) {
+      storage.set({
+        key: "astrobox_sync_backup",
+        value: oldVal || "[]",
+        success: function () {
+          storage.set({
+            key: key,
+            value: JSON.stringify(data),
+            success: function () {
+              database.resetCache()
+              dlog("[SYNC] import ok: " + count)
+              syncReply(connect, { ok: true, count: count })
+            },
+            fail: function () {
+              syncReply(connect, { ok: false, reason: "write failed" })
+            }
+          })
+        },
+        fail: function () {
+          syncReply(connect, { ok: false, reason: "backup failed" })
+        }
+      })
+    },
+    fail: function () {
+      syncReply(connect, { ok: false, reason: "read failed" })
+    }
+  })
+}
+
+// ===== 导出作用域（白名单模型）=====
+// 只有在这里出现的域才会被读取并返回；未开放的域，插件读不到也改不掉。
+// schedule   课表
+// profile    昵称
+// homepage   首页设置
+// appearance 首页模板 + 字号
+// pinned     钉首页列表（**默认不开放**，需插件显式传 scopes 才会返回）
+// ===== 数据开放策略（守门人模型）=====
+// 想调整"哪些可读 / 只读 / 禁止读 / 可写"，只改这张表即可。
+//
+//   read:  "always"   —— 默认导出就返回（任意读）
+//          "explicit" —— 需插件显式传 scopes 才返回
+//          "never"    —— 永远不返回（禁止读）
+//   write: true/false —— 是否允许 update_settings 写入
+//
+// 组合出的策略：
+//   任意读+可写   → read:"always"   write:true   （如 nickname / 课表）
+//   只读          → read:"always"   write:false  （如 version 版本号）
+//   显式才给只读 → read:"explicit" write:false   （如 pinned 钉首页）
+//   禁止读写     → read:"never"    write:false   （如 auth 授权）
+var SYNC_ACCESS = {
+  schedule:   { read: "always",   write: true  },  // 课表：可读可写（import 覆盖）
+  profile:    { read: "always",   write: true  },  // 昵称等：可读可写
+  homepage:   { read: "always",   write: true  },  // 首页设置：可读可写
+  appearance: { read: "always",   write: true  },  // 模板 + 字号：可读可写
+  version:    { read: "always",   write: false },  // 版本号：只读
+  pinned:     { read: "explicit", write: false },  // 钉首页：只读（须显式请求）
+  auth:       { read: "never",    write: false }   // 授权：禁止读、禁止写
+}
+
+// update_settings 的字段 → 所属域（写权限判断用）
+var SYNC_FIELD_DOMAIN = {
+  nickname: "profile",
+  homepage: "homepage",
+  homepageTemplate: "appearance",
+  baseFontSize: "appearance",
+  pinned: "pinned"
+}
+
+// 默认就返回的域（read:"always" 者），用于 export 回显
+var SYNC_DEFAULT_SCOPES = ["schedule", "profile", "homepage", "appearance", "version"]
+
+var SYNC_ALL_SCOPES = ["schedule", "profile", "homepage", "appearance", "version", "pinned", "auth"]
+
+function syncGetPolicy(name) {
+  return SYNC_ACCESS[name] || null
+}
+
+function syncWantScope(scopes, name) {
+  if (!scopes) {
+    return false
+  }
+  for (var i = 0; i < scopes.length; i++) {
+    if (scopes[i] === name) {
+      return true
+    }
+  }
+  return false
+}
+
+// 是否可读：never 一律拒绝；explicit 需被显式请求；always 默认给
+function syncCanRead(name, requested) {
+  var p = syncGetPolicy(name)
+  if (!p || p.read === "never") {
+    return false
+  }
+  if (p.read === "explicit") {
+    return requested
+  }
+  return true
+}
+
+// 是否可写：按字段所属域的 write 策略
+function syncCanWrite(field) {
+  var domain = SYNC_FIELD_DOMAIN[field]
+  if (!domain) {
+    return false
+  }
+  var p = syncGetPolicy(domain)
+  return !!(p && p.write === true)
+}
+
+// 读取版本号（只读，来源 data/version.js），失败时返回空
+function syncCollectVersion() {
+  try {
+    var v = require("./data/version.js")
+    return { versionName: v.versionName || "", versionCode: v.versionCode || 0 }
+  } catch (e) {
+    return { versionName: "", versionCode: 0 }
+  }
+}
+
+// 按域收集数据，只收集策略允许且被请求的域
+function syncCollectScopes(scopes, callback) {
+  var result = {}
+  var pending = 0
+  var done = 0
+  var finished = false
+
+  function finish() {
+    done++
+    if (done === pending && !finished) {
+      finished = true
+      callback(result)
+    }
+  }
+
+  var list = []
+  for (var i = 0; i < SYNC_ALL_SCOPES.length; i++) {
+    var nm = SYNC_ALL_SCOPES[i]
+    if (syncCanRead(nm, syncWantScope(scopes, nm))) {
+      list.push(nm)
+    }
+  }
+
+  if (syncWantScope(list, "schedule")) {
+    pending++
+    database.getAllCourses(function (courses) {
+      result.schedule = courses || []
+      finish()
+    })
+  }
+  if (syncWantScope(list, "profile")) {
+    pending++
+    store.getNickname(function (n) {
+      result.nickname = n || ""
+      finish()
+    })
+  }
+  if (syncWantScope(list, "homepage")) {
+    pending++
+    store.getHomepageSettings(function (h) {
+      result.homepage = h || {}
+      finish()
+    })
+  }
+  if (syncWantScope(list, "appearance")) {
+    pending++
+    store.getHomepageTemplate(function (t) {
+      result.homepageTemplate = t || "default"
+      finish()
+    })
+    pending++
+    store.getBaseFontSize(function (f) {
+      result.baseFontSize = f || 48
+      finish()
+    })
+  }
+  if (syncWantScope(list, "pinned")) {
+    pending++
+    try {
+      var pinHelper = require("./data/pin-helper.js")
+      pinHelper.getList(function (p) {
+        result.pinned = p || []
+        finish()
+      })
+    } catch (e) {
+      result.pinned = []
+      finish()
+    }
+  }
+  if (syncWantScope(list, "version")) {
+    var ver = syncCollectVersion()
+    result.versionName = ver.versionName
+    result.versionCode = ver.versionCode
+  }
+
+  if (pending === 0) {
+    callback(result)
+  }
+}
+
+// 导出：默认返回默认域集合；插件可用 scopes 指定（pinned 需显式指定）
+function syncHandleExport(connect, scopes) {
+  syncCollectScopes(scopes, function (data) {
+    syncReply(connect, {
+      ok: true,
+      action: "export",
+      version: 1,
+      scopes: scopes || SYNC_DEFAULT_SCOPES,
+      data: data
+    })
+  })
+}
+
+// 编辑配置：昵称 / 首页设置 / 首页模板 / 字号，支持任意组合
+function syncHandleUpdateSettings(connect, payload) {
+  if (!payload) {
+    syncReply(connect, { ok: false, reason: "empty" })
+    return
+  }
+
+  var pending = 0
+  var done = 0
+  var replied = false
+  function finish() {
+    done++
+    if (done === pending && !replied) {
+      replied = true
+      syncReply(connect, { ok: true, action: "update_settings" })
+    }
+  }
+
+  if (payload.nickname !== undefined && syncCanWrite("nickname")) {
+    pending++
+    store.setNickname(String(payload.nickname), finish)
+  }
+  if (payload.homepage !== undefined && syncCanWrite("homepage")) {
+    pending++
+    store.setHomepageSettings(payload.homepage, finish)
+  }
+  if (payload.homepageTemplate !== undefined && syncCanWrite("homepageTemplate")) {
+    pending++
+    store.setHomepageTemplate(String(payload.homepageTemplate), finish)
+  }
+  if (payload.baseFontSize !== undefined && syncCanWrite("baseFontSize")) {
+    var size = parseInt(payload.baseFontSize, 10)
+    if (size >= 20 && size <= 76) {
+      pending++
+      store.setBaseFontSize(size, finish)
+    }
+  }
+
+  if (pending === 0) {
+    syncReply(connect, { ok: false, reason: "no known field" })
+  }
+}
+
+function initSyncReceiver() {
+  if (!interconnect) {
+    return
+  }
+  var connect = interconnect.instance()
+
+  connect.onmessage = function (data) {
+    var raw = (data && data.data) || ""
+    var parsed = null
+    try {
+      parsed = JSON.parse(raw)
+    } catch (e) {
+      dlog("[SYNC] parse failed: " + e)
+      return
+    }
+    if (!parsed) {
+      return
+    }
+
+    // 原始报文始终留档，便于排错与后续补转换
+    var storage = require("@system.storage")
+    storage.set({
+      key: "astrobox_sync_data",
+      value: JSON.stringify(parsed),
+      fail: function () {}
+    })
+
+    if (parsed.action === "export") {
+      // scopes 支持数组；也兼容单字符串 scope
+      var scopes = parsed.scopes
+      if (!scopes && parsed.scope) {
+        scopes = [parsed.scope]
+      }
+      syncHandleExport(connect, scopes)
+      return
+    }
+    if (parsed.action === "update_settings") {
+      syncHandleUpdateSettings(connect, parsed.payload || parsed)
+      return
+    }
+    if (parsed.action === "import") {
+      syncHandleImport(connect, parsed.payload || parsed)
+      return
+    }
+    // 无 action：兼容已对接格式，按导入处理
+    syncHandleImport(connect, parsed)
+  }
+
+  connect.onopen = function () {
+    dlog("[SYNC] opened")
+  }
+  connect.onerror = function (data) {
+    dlog("[SYNC] error: " + (data && data.code))
+  }
+  connect.onclose = function () {
+    dlog("[SYNC] closed")
+  }
+}
+
 function migrateFontScale() {
   var storage = require("@system.storage")
   storage.get({
@@ -97,6 +561,7 @@ export default {
     migrateFontScale()
     migrateBuiltinHolidays()
     this.initBackgroundRunning()
+    initSyncReceiver()
   },
 
   initBackgroundRunning() {

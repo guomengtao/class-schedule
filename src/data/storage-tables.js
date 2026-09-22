@@ -148,6 +148,18 @@ var tables = [
     desc: "首页模板选择",
     columns: ["value"],
     type: "value"
+  },
+  {
+    key: "astrobox_sync_data",
+    desc: "同步器（AstroBox 插件）发来的原始报文，留档便于排错",
+    columns: ["raw"],
+    type: "object"
+  },
+  {
+    key: "astrobox_sync_backup",
+    desc: "导入前自动备份的上一份课表，用于导入出错时回退",
+    columns: ["backup"],
+    type: "object"
   }
 ]
 
