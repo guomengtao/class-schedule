@@ -9,7 +9,8 @@
       <div class="header-placeholder"></div>
     </div>
 
-    <div class="content-area">
+    <!-- 二维码放大到可用宽度 100% 后，三张卡片总高远超屏幕，需要纵向滚动才能全部看到 -->
+    <scroll class="content-area" scroll-y="true">
       <div class="qr-card" for="{{ platforms }}" style="background-color: {{ theme.card }}">
         <text class="platform-name" style="color: {{ $item.color }}">{{ $item.name }}</text>
         <div class="qr-wrapper">
@@ -18,7 +19,7 @@
         </div>
         <text class="scan-hint" style="color: {{ theme.textSecondary }}">请使用 {{ $item.name }} 扫码</text>
       </div>
-    </div>
+    </scroll>
 
     <div class="thanks-section">
       <text class="thanks-icon" style="color: {{ theme.accent }}">♥</text>
@@ -78,26 +79,44 @@ export default {
     this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
   },
 
+  // 各屏型的内边距必须与样式表里的数值保持一致，否则算出的尺寸会溢出或留白
+  //   可用宽度 = 屏宽 − (页面左右 padding + 卡片左右 padding + 白色底框左右 padding) × 2
+  //   capsule : page 6 / card 8 / wrapper 4   ← 胶囊屏要求二维码铺满可用宽度
+  //   rect    : page 12 / card 16 / wrapper 8
+  //   circle  : page 28 / card 10 / wrapper 5
+  QR_PADDINGS: {
+    capsule: { sum: 6 + 8 + 4, max: 200 },
+    rect: { sum: 12 + 16 + 8, max: 280 },
+    circle: { sum: 28 + 10 + 5, max: 280 }
+  },
+
+  computeQrSize(w, shape) {
+    var conf
+    if (shape === "capsule" || shape === "pill-shaped") {
+      conf = this.QR_PADDINGS.capsule
+    } else if (shape === "rect") {
+      conf = this.QR_PADDINGS.rect
+    } else if (shape === "circle") {
+      conf = this.QR_PADDINGS.circle
+    } else {
+      // 未识别屏型：按宽度保守回落，沿用原有分档逻辑
+      if (w > 300) return Math.floor(w - 12 * 2 - 16 * 2 - 8 * 2 - 4)
+      if (w > 200) return Math.floor(w - 10 * 2 - 14 * 2 - 7 * 2 - 4)
+      return Math.floor(w - 8 * 2 - 12 * 2 - 6 * 2 - 4)
+    }
+    var size = Math.floor(w - conf.sum * 2)
+    if (size > conf.max) size = conf.max
+    if (size < 80) size = 80
+    return size
+  },
+
   calcQrSize() {
     var self = this
     device.getInfo({
       success: function (info) {
         var w = info.screenWidth || 192
-        var size
-        var maxSize
-        if (w > 300) {
-          size = Math.floor(w - 12 * 2 - 16 * 2 - 8 * 2 - 4)
-          maxSize = 280
-        } else if (w > 200) {
-          size = Math.floor(w - 10 * 2 - 14 * 2 - 7 * 2 - 4)
-          maxSize = 180
-        } else {
-          size = Math.floor(w - 8 * 2 - 12 * 2 - 6 * 2 - 4)
-          maxSize = 140
-        }
-        if (size > maxSize) size = maxSize
-        if (size < 80) size = 80
-        self.qrSize = size
+        var shape = info.screenShape || ""
+        self.qrSize = self.computeQrSize(w, shape)
       },
       fail: function () {
         self.qrSize = 120
@@ -123,6 +142,7 @@ export default {
 
 .content-area {
   flex-direction: column;
+  flex: 1;
   margin-top: 8px;
 }
 
@@ -178,14 +198,16 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
+  /* 胶囊屏：压缩各级内边距，让二维码占到可用宽度的 100%
+     数值与脚本 QR_PADDINGS.capsule 对应：page 6 / card 8 / wrapper 4 */
   .page-root {
-    padding: 44px 8px 20px 8px;
+    padding: 40px 6px 16px 6px;
   }
   
   
   
   .qr-card {
-    padding: 14px 12px;
+    padding: 10px 8px;
     border-radius: 16px;
     margin-bottom: 10px;
   }
@@ -194,8 +216,10 @@ export default {
     line-height: 34px;
   }
   .qr-wrapper {
-    padding: 6px;
+    padding: 4px;
     border-radius: 12px;
+    width: 100%;
+    align-items: center;
   }
   .scan-hint {
     font-size: 20px;
