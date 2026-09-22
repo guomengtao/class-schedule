@@ -331,12 +331,26 @@ function syncCollectScopes(scopes, callback) {
   var pending = 0
   var done = 0
   var finished = false
+  var registered = false
+  var timer = null
+
+  function complete() {
+    if (finished) {
+      return
+    }
+    finished = true
+    if (timer) {
+      try { clearTimeout(timer) } catch (e) {}
+      timer = null
+    }
+    callback(result)
+  }
 
   function finish() {
     done++
-    if (done === pending && !finished) {
-      finished = true
-      callback(result)
+    // 只有全部任务注册完毕后再判定完成，避免同步回调导致提前回包（只含部分域）
+    if (registered && done === pending) {
+      complete()
     }
   }
 
@@ -400,9 +414,25 @@ function syncCollectScopes(scopes, callback) {
     result.versionCode = ver.versionCode
   }
 
+  // 所有收集任务已注册完毕，此时才能判定完成
+  registered = true
+
   if (pending === 0) {
-    callback(result)
+    complete()
+    return
   }
+  if (done === pending) {
+    complete()
+    return
+  }
+  // 超时兜底：个别异步回调若长期不返回，也要按期回包（返回已收集到的部分数据），
+  // 避免插件侧等到宿主超时后报 "Plugin thread dropped the response"
+  try {
+    timer = setTimeout(function () {
+      dlog("[SYNC] export timeout, partial reply")
+      complete()
+    }, 2000)
+  } catch (e) {}
 }
 
 // 导出：默认返回默认域集合；插件可用 scopes 指定（pinned 需显式指定）
@@ -499,6 +529,18 @@ function initSyncReceiver() {
       fail: function () {}
     })
 
+    if (parsed.action === "ping") {
+      // 通道探针：同步立即回，最快往返；联调第一步用它判定通道是否双向通
+      var pv = syncCollectVersion()
+      syncReply(connect, {
+        ok: true,
+        action: "ping",
+        pong: true,
+        versionName: pv.versionName,
+        versionCode: pv.versionCode
+      })
+      return
+    }
     if (parsed.action === "export") {
       // scopes 支持数组；也兼容单字符串 scope
       var scopes = parsed.scopes
