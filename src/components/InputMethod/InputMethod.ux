@@ -320,8 +320,8 @@
         </div>
         <!-- 这里使用show会导致每次输入都会加载全部候选列表，很卡 -->
         <div style="position: absolute;top: 47px;width: 100%;height: 263px;background-color: black;" if="{{downFlag==='down'}}">
-          <div style="position: absolute;left: {{(screenWidth - 192)/2}}px;width: 192px;height: 263px;"> 
-            <list static class="list66">
+          <div style="position: absolute;left: {{(screenWidth - l66DownPanelWidth)/2}}px;width: {{l66DownPanelWidth}}px;height: 263px;"> 
+            <list static class="list66" style="width: {{l66DownPanelWidth - 6}}px;">
               <list-item type="waitingRows66" class="item66" for="{{itemArray in resultList2}}">
                 <div class="item column center" for="{{item in itemArray}}">
                   <text class="calbtn-down-text" @click="onRsSelect(item)">{{item}}</text>
@@ -405,6 +405,8 @@ export default {
     // 针对screenShape为rect的设备，会自动获取screenWidth并绑定到根div
     // 这样便能同时适配n67和o65甚至是后续设备，但实际效果可能受designWidth影响
     screenWidth: 336,
+    // 胶囊屏更多候选面板宽度（由 adjustScreenWidth 动态计算，适配窄屏）
+    l66DownPanelWidth: 192,
     keys: {
       full: [
         ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
@@ -655,6 +657,8 @@ export default {
   setResultListAll() {
     // 首页展示序列：整词在前，单字随后，截断到 maxlength
     const cap = parseInt(this.maxlength);
+    // 胶囊屏下展每行只放 1 个候选，避免 .item { flex:1 } 把窄屏切成 30px 小格
+    const rowCap = (this.screentype === 'pill-shaped') ? 1 : cap;
     let row0 = [];
     let row0IsWord = [];
     for (let i = 0; i < this.resultWordList.length && row0.length < cap; i++) {
@@ -670,12 +674,12 @@ export default {
     this.resultRow0 = row0;
     this.resultRow0IsWord = row0IsWord;
 
-    // 下展分页（down 展开）：整词优先，再单字，每页 maxlength 个
+    // 下展分页（down 展开）：整词优先，再单字，每页 rowCap 个（胶囊 1 个，其他屏 maxlength 个）
     this.resultList2 = [];
     let array = [];
     for (let i = 0; i < this.resultWordList.length; i++) {
       array.push(this.resultWordList[i]);
-      if (array.length === cap) {
+      if (array.length === rowCap) {
         this.resultList2.push(array);
         array = [];
       }
@@ -683,7 +687,7 @@ export default {
     for (let i = 0; i < this.resultList.length; i++) {
       if (this.resultWordList.indexOf(this.resultList[i]) !== -1) continue;
       array.push(this.resultList[i]);
-      if (array.length === cap) {
+      if (array.length === rowCap) {
         this.resultList2.push(array);
         array = [];
       }
@@ -813,9 +817,12 @@ export default {
     device.getInfo({
       success: function(data) {
         self.screenWidth = data.screenWidth;
+        // 胶囊屏更多候选面板：宽度适配视口，保证左右各留 6px 边距
+        self.l66DownPanelWidth = Math.min(Math.max(data.screenWidth - 12, 120), 192);
       },
       fail: function() {
         self.screenWidth = 336;
+        self.l66DownPanelWidth = 192;
       }
     })
   }
@@ -867,6 +874,9 @@ export default {
 	lines:1;
 	text-overflow:ellipsis;
 	flex-shrink:0;
+	max-width:100%;
+	width:auto;
+	min-width:0;
 }
 /* 下展分页容器：每个候选按内容自然宽度排列，防止 flex:1 等分挤压文字 */
 .list3-item {
@@ -995,7 +1005,8 @@ export default {
 	position:absolute;
 	left:3px;
 	top:0px;
-	width:186px;
+	max-width:186px;
+	width:100%;
 	height:186px;
 	border-radius:30px;
 	background-color:#262626;
@@ -1004,6 +1015,15 @@ export default {
 }
 .item66 {
 	height:42px;
+}
+/* 胶囊屏下展候选：每行一个占满宽度，覆盖 .item { flex:1 } 均分行为；
+   与圆屏 .list3-item 的 flex:none 同理，只是 .list66 之前漏了这条 */
+.list66 .item {
+	flex:none;
+	width:100%;
+	min-width:0;
+	padding-left:6px;
+	padding-right:6px;
 }
 .waiting-keys {
 	width:36px;
