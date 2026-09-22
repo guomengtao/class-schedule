@@ -638,7 +638,8 @@ export default {
     })
     migrateFontScale()
     migrateBuiltinHolidays()
-    this.initBackgroundRunning()
+    // 自动常驻保活：保证 interconnect 同步消息随时可收，无需用户手工开启「后台运行」
+    startResident()
     initSyncReceiver()
   },
 
@@ -651,7 +652,7 @@ export default {
   },
 
   onDestroy() {
-    stopResident()
+    // 不再主动 stopResident：保持常驻以持续接收同步消息（如需停止由系统或用户决定）
   }
 }
 </script>
