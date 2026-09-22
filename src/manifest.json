@@ -1,12 +1,11 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.6.49",
-  "versionCode": 878,
+  "versionName": "1.6.50",
+  "versionCode": 879,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
-    "band",
     "watch"
   ],
   "features": [
@@ -49,9 +48,9 @@
     "_groups": {
       "核心主流程": "welcome, index, detail, add-course",
       "课程管理": "course-manager, course-manager-v2, custom-content-edit, countdown-manage",
-      "课表视图": "schedule-manager, week-view, schedule-qrcode",
+      "课表视图": "schedule-manager, week-view, schedule-qrcode, workday-info",
       "设置与系统": "settings, tools, homepage-settings, reset-data, backup-restore, activation, device-info, pinned-pages",
-      "实验室工具": "test-area, test-area-v2, vibration-lab, vibration-lab-v2, qrcode-generator, black-screen-check, chinese-input",
+      "实验室工具": "test-area-v2, vibration-lab, vibration-lab-v2, qrcode-generator, black-screen-check, chinese-input",
       "实验室课程": "lab-add-course, lab-edit-course",
       "其他": "statistics, donate"
     },

@@ -4,6 +4,9 @@
 - Ev课程表（小米手环快应用，快应用/Vela），包名 `com.application.watch.classschedule`
 - 评分体系文档：`docs/标准版完善度综合评分.md`；守护手册：`docs/标准版100分评分标准.md`
 - 姊妹文档：胶囊屏专项走查报告、标准版对高级版控制方式、项目完善度分析、Ev课程表_手环字号规范_v1
+- `manifest.json` 的 `deviceTypeList` 只能是 `["watch"]`（Vela 官方《项目配置》：可选 watch/tv/car/phone，现仅支持 watch；`band` 非法）
+  - 注：aiot-toolkit 不校验取值，写 `band` 也能构建并额外生成 `manifest-band.json`；仓库历史里为"手环11装不上"曾加过 `band`，属推测性方案，非官方取值。若手环11再次出现"装完找不到图标"，可临时加回 `band` 做 A/B 验证
+- `manifest.json` 的 `router._groups` / `pages[*].group` / `pages[*].name_cn` 是**自定义元数据**（官方只认 component/path/launchMode），当前被忽略但必须与 `router.pages` 保持同步：分组里列了未注册页、或注册页未进分组，都会误导维护者。改动路由后务必同步
 
 ## 当前状态（2026-09-19）
 - 标准版综合评分 **100 / 100**，八个维度全部满分（第十一轮）

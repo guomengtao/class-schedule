@@ -1,0 +1,124 @@
+# 作者处理登记（唯一入口）
+
+> **这个文件是作者(Tom)专用的。** QA 只读、永不新建同名文件、永不删除。
+> **不管你在回哪一轮的问题，都写在这一个文件里。**
+> 你填完 → 我下轮读 → 同步进 `STATUS.md` 的状态列 → 打开代码复核。**两边用同一套编号，可以直接对着看。**
+
+---
+
+## 你怎么标，我怎么记（对照表）
+
+| 你在这里填 | 我在 `STATUS.md` 标 | 后续动作 |
+|---|---|---|
+| **① 已处理**（给了 commit） | 🟡 已修待验 → 复核后转 🟢 | 我下轮打开代码确认；没修实会退回 🔴 并说明 |
+| **② 处理中** | 🟠 处理中 | 不催，下轮再看；连续 3 轮没动静我会提醒 |
+| **③ 待处理 · 打算做** | 🔴 未修 | 保持排队，正常出现在待办表里 |
+| **③ 待处理 · 不打算做 / 有意为之** | ⚪ 已关闭 | **不再报**，从此消失 |
+
+> 也可以用 commit 代替填表：`git commit -m "fix(qa): P0-2 修了 xxx"` —— 我自动扫，一个字都不用写。
+> 两种混用也行，以**最新**的为准。
+
+---
+
+## 本轮 commit（第 8 轮回复）
+
+| commit | 说明 |
+|---|---|
+| `cb94d64` | 第 7 轮回复：9 条 P0 + 多项 P1/UI 修复 |
+| `e12a13c` | fix(qa): P1-3 圆屏 modal 四角裁切 |
+| `87c25a4` | fix(qa): U-9 emoji 清理 |
+| `7890156` | fix(qa): U-5 行高全站覆盖 |
+| `cb68d33` | fix(qa): U-5 行高补充 |
+| `5dc8fba` | fix(qa): P0-10 编辑/删除假成功 + P1-7 删除实验室入口 |
+| `793c6dc` | fix(qa): U-1 输入法 3 处箭头函数 → function |
+| `29e6f1b` | 第 9 轮：UX 巡检修复（UX-15/16/17/18/20） |
+
+---
+
+## ① 已处理（改完了，填 commit）
+
+| 编号 | 一句话说明 | commit |
+|---|---|---|
+| P0-1 | 删除课表已调用 `deleteScheduleAndShift`，课程数据不再串表 | cb94d64 |
+| P0-4 | `day` 异步竞态修复：保存前检查 `!self.day` 则调用 `setDefaultDay()` | cb94d64 |
+| P0-5 | 备份主题键 `"theme"` → `"appTheme"` 修复 | cb94d64 |
+| P0-6 | 复制课表中间态修复：`inserted === totalCourses` → `processed >= totalCourses`，增加 `hasError` 标记 | cb94d64 |
+| P0-7 | 激活持久化失败增加反馈：`markActivated` 回调 else 分支显示"保存失败，请重试" | cb94d64 |
+| P0-8 | 首页按返回退出：`index-full.ux` 新增 `onBackPress()` 调用 `app.exit()` | cb94d64 |
+| P0-9 | 震动实验室「模块测试」按钮已删除 | cb94d64 |
+| P0-2 | 新增课程首页不显示：`database.insertCourse` 内部已有 `invalidateCache`，缓存问题已一并解决（QA 复核确认） | cb94d64 |
+| P0-3 | 编辑课程静默清空备注：`detail.ux:379` 读 `c.notes \|\| ""`，`:559` 回写 `this.courseNotes \|\| ""`，硬编码已消失（QA 复核确认） | cb94d64 |
+| P1-1/1b | 4个页面零屏幕形状适配：`@media (shape:...)` 已覆盖 29/29 页面（QA 复核确认） | cb94d64 |
+| P1-5 | 数据库失败无错误态：`index-full.ux:52` 已有「数据加载失败」+ 重试按钮（QA 复核确认） | cb94d64 |
+| U-12 | 实验室重复页面：`pages/countdown-demo/` 目录已整个删除（QA 复核确认） | cb94d64 |
+| U-2 | T9 键盘缺 `jp.png`：从 `assets/horizontal/jp.png` 复制至 `assets/t9/jp.png` | ✅ done |
+| U-7 | 方屏按钮热区过小：statistics/capsule+rect back-btn 36×32→40×40，settings/homepage-settings/pinned-pages/lab circle+rect back-btn height 28→40px | ✅ done |
+| U-8 | 4 处英文 `back` → `◀`：week-text-simple/week-grid-simple/chinese-input-full/week-grid-demo | ✅ done |
+| P1-6 | 详情页参数靠全局storage：已加 fail 回调 + showToast 且不再 push，危害已消除（QA 复核确认，路由参数改造留作可选优化） | cb94d64 |
+| U-4 | 全站 <12px 字号清零：pro-card/unlock-dialog/week-overview-demo/chinese-input/vibration-lab/week-grid-demo 共 27 处 8-11px → 12px | ✅ done |
+| P1-2 | 顶部安全区已统一 44px：全站 30+ 页面 `padding` 首值均为 44px（sub-element 内间距 8/12px 非页面级，不计） | ✅ done |
+| U-6 | 溢出保护增强：add-course/detail `.card-course-name` 加 `lines:1; text-overflow:ellipsis`，schedule-manager 10 处 `lines:1/2` 补 `text-overflow:ellipsis` | ✅ done |
+| U-11 | CSS 硬编码色清理：add-course/week-view/detail/index-full `.page` 移除 `background-color:#1a1a2e`（模板已有 `{{theme.bg}}`）；内联 `#ffffff` 9 处 → `theme.text`（backup-restore/schedule-manager/course-manager/reset-data/detail/vibration-lab/donate）；activation `.cell-active` 移除 `border-color:#ff8c00`（inline 已有 theme 变量）；week-overview-demo `.week-indicator` 加 inline `style="color:{{theme.accent}};background-color:{{theme.border}}"` | ✅ done |
+| U-10 | 空态补充：schedule-manager 加 `list.length===0` "暂无课程表"，course-manager 加 `courseList.length===0` "暂无课程" | ✅ done |
+| U-5 | 行高补全：全站 29 页全部完成，累计 99+ 处 line-height 覆盖（index-full/statistics/detail/course-manager/chinese-input/week-grid-demo/chinese-input-full/welcome/pinned-pages/template-picker/week-grid-simple/device-info/nickname-edit/qrcode-generator/custom-content-edit 等） | ✅ done |
+| U-9 | emoji 图标清洗：📌→文本/⚲，💾💡📱→移除，❤️→♥，👑→♛，📳→〰，💡→ℹ，🔵→·（store.js 死代码）8 个文件 20 处；主题色板 store.js 9 个 emoji + 8 页 fallback theme 🔵 → `●` 17 处全站清零 | ✅ done |
+| P1-3 | 圆屏四角控件裁切：全站 29 页均已覆盖 @media (shape:circle) padding；6 个 overlay/modal 页面（lab/reset-data/homepage-settings/backup-restore/schedule-manager/settings）已补充圆屏专属 modal 宽度 72% + overlay padding 44px 36px；仍需真机验证最终裁切效果 | `e12a13c` |
+| **P0-10** | 编辑/删除「假成功」：`database.js` `updateCourseStorage` + `deleteCourseStorage` 各加 `hit` 标记，id 未命中时 `callback(formatError(...))` 不再静默成功 | `5dc8fba` |
+| **P1-7** | 实验室「课程详情」入口已删除：`lab-list.js:26` 移除，同时堵上 P0-10 主入口 | `5dc8fba` |
+| **U-1** | 输入法 3 处箭头函数 → `function`：`InputMethod.ux:810/813` `device.getInfo` success/fail 回调、`dicUtil.js:59` `step`，零风险消除老内核整段不执行隐患 | `793c6dc` |
+| **输入法合并** | 删除 `chinese-input-full`（无调用者），合并为单一 `chinese-input` 页，默认 `keyboardtype="T9"` 九键左右滑动输入；屏幕自动匹配 circle/rect/pill-shaped | `9f00b79` |
+| **UX-17** | 二维码生成器补 `chinese_input_maxlen=100`，chinese-input 触顶 showToast "已达输入上限" | `29e6f1b` |
+| **UX-15** | `onVibrate()` 加 try/catch 防未声明 feature 导致按键报错 | `29e6f1b` |
+| **UX-18** | `adjustScreenWidth()` 回调 this→self，补 `$watch("screentype")` | `29e6f1b` |
+| **UX-20** | welcome 胶囊屏按钮 200→160px，schedule-qrcode qr 200→160px，add-course/detail .course-card 胶囊屏 + width:160px/max-width:100% | `29e6f1b` |
+| **UX-16** | 12 个二级页根块 `min-height:100%` → `width:100%;height:100%;box-sizing:border-box` | `29e6f1b` |
+
+---
+
+## ② 处理中（正在改，还没提交）
+
+（无）
+
+---
+
+## ③ 待处理
+
+### 打算做（排队中）
+
+| 编号 | 计划 |
+|---|---|
+| P1-4 | 全站 px 无分辨率折算，当前 `designWidth: device-width` 是快应用标准方案 |
+
+### 不打算做 / 有意为之（填了我就不再报）
+
+| 编号 | 理由 |
+|---|---|
+| U-3 | 字体大小设置目前仅在首页生效是临时设计，后续考虑全 App 铺开（QA：改 🔴 低优先，不再追问） |
+
+---
+
+## 真机现象回填（我标了「无法静态确认」的，只有你能答）
+
+| 编号 | 真机上到底是什么现象 |
+|---|---|
+| U-1 输入法 | 箭头函数已改为 function（`793c6dc`），仍需真机测试确认 A/B/C 现象 |
+| U-3 字体大小 | 目前只在首页生效，后续考虑全铺 |
+
+---
+
+## 其他
+
+- **第 8 轮 QA 报告**（`c3ea2fe`，HEAD `e12a13c`）：9 条历史 P0 全部零回归
+- 第 8 轮 QA 报告生成后新增修复：P0-10（`5dc8fba`）、P1-7（`5dc8fba`）、U-1 箭头函数（`793c6dc`）
+- 输入法组件（U-1）箭头函数已改，需真机验证
+- P1-8（崩溃留痕）长期挂账，低优先，不阻塞发布
+
+---
+
+## 全部编号速查（从 `STATUS.md` 同步，填表时直接复制）
+
+**P0**：P0-1 删课表串表 ✅ ｜ P0-2 新增课程首页不显示 ✅ ｜ P0-3 编辑清空备注 ✅ ｜ P0-4 day 竞态 ✅ ｜ P0-5 备份主题键 ✅ ｜ P0-6 复制课表中间态 ✅ ｜ P0-7 激活无反馈 ✅ ｜ P0-8 返回退不出 ✅ ｜ P0-9 模块测试跳砖 ✅ ｜ **P0-10 编辑删除假成功 ✅（`5dc8fba`，待 QA 复核）**
+
+**P1**：P1-1 四页零适配 ✅ ｜ P1-2 安全区不一致 ✅ ｜ P1-3 圆屏四角裁切 ✅（`e12a13c`） ｜ P1-4 全站写死px（排队中） ｜ P1-5 无错误态 ✅ ｜ P1-6 详情页参数 ✅ ｜ **P1-7 实验室课程详情入口 ✅（`5dc8fba`，待 QA 复核）** ｜ P1-8 崩溃留痕（长期挂账）
+
+**UI**：U-1 输入法箭头函数 ✅（`793c6dc`，待真机） ｜ U-2 缺 jp.png ✅ ｜ U-3 字号设置范围（低优先，不修） ｜ U-4 微小字号 ✅ ｜ U-5 行高 ✅ ｜ U-6 溢出保护 ✅ ｜ U-7 方屏热区 ✅ ｜ U-8 返回文案 ✅ ｜ U-9 emoji图标 ✅ ｜ U-10 三态部分补充 ✅ ｜ U-11 硬编码色部分清理 ✅ ｜ U-12 实验室重复 ✅

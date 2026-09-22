@@ -55,10 +55,12 @@ function persistDateToHoliday(instance, d) {
         instance.loadDayClasses(overrideWeekDay)
       }
       if (instance.updateStatus) instance.updateStatus()
+      try { instance.$forceUpdate && instance.$forceUpdate() } catch (e) {}
     })
   } else if (instance.loadDayClasses) {
     instance.loadDayClasses()
     if (instance.updateStatus) instance.updateStatus()
+    try { instance.$forceUpdate && instance.$forceUpdate() } catch (e) {}
   }
 }
 

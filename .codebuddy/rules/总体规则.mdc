@@ -9,3 +9,5 @@ provider:
 开发优先适配 胶囊屏幕 ，确保窄屏幕显示合理。
 每次对话完成，用mac的先弹出系统通知，再语音播报（中文），提醒用户。语音用 say -v Tingting。
 所有md文件必须使用中文书写。
+禁止执行 `git clean -fd` / `git clean -fdx` / `git reset --hard` / `rm -rf` 等破坏性命令，也不要"清理/精简" docs、src 目录；确有需要先让用户 `git commit`，恢复一律用 `git checkout HEAD~1 -- <路径>`。
+AI 生成或修改文件后，提醒用户尽快 `git add -A && git commit`（未入库的未跟踪文件会被 `git clean` 直接删除且无法恢复）。

@@ -1,0 +1,708 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">节假日与调休</text>
+      <div class="header-placeholder"></div>
+    </div>
+
+    <scroll class="scroll-area" scroll-y="true">
+      <text if="{{ entries.length === 0 && !showAddForm }}" class="empty-hint" style="color: {{ theme.textMuted }}">还没有设置节假日或调休</text>
+
+      <div for="{{ entries }}" class="entry-card" style="background-color: {{ theme.card }}">
+        <div class="entry-left">
+          <text class="entry-date" style="color: {{ theme.text }}">{{ $item.dateText }}</text>
+          <div class="entry-tag" style="background-color: {{ $item.type === 'holiday' ? theme.accent : theme.btnSecondary }}">
+            <text class="entry-tag-text" style="color: {{ $item.type === 'holiday' ? theme.bg : theme.btnSecondaryText }}">{{ $item.type === 'holiday' ? '假期' : '调休' }}</text>
+          </div>
+        </div>
+        <div class="entry-mid">
+          <text if="{{ $item.type === 'holiday' }}" class="entry-desc" style="color: {{ theme.text }}">{{ $item.name }}</text>
+          <text if="{{ $item.type === 'holiday' }}" class="entry-sub" style="color: {{ theme.textSecondary }}">{{ $item.greeting }}</text>
+          <text if="{{ $item.type === 'workday' }}" class="entry-desc" style="color: {{ theme.text }}">按{{ $item.dayName }}课表</text>
+        </div>
+        <div class="entry-delete" onclick="confirmDelete($idx)" style="background-color: {{ theme.deleteBg }}">
+          <text class="entry-delete-text" style="color: {{ theme.deleteText }}">删除</text>
+        </div>
+      </div>
+
+      <div if="{{ showAddForm }}" class="add-form" style="background-color: {{ theme.card }}">
+        <text class="form-title" style="color: {{ theme.text }}">添加日期</text>
+
+        <div class="date-picker">
+          <div class="picker-col">
+            <text class="picker-label" style="color: {{ theme.textSecondary }}">年</text>
+            <div class="stepper">
+              <input class="step-btn" type="button" value="▲" onclick="stepYear(1)" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+              <text class="step-value" style="color: {{ theme.accent }}">{{ newYear }}</text>
+              <input class="step-btn" type="button" value="▼" onclick="stepYear(-1)" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+            </div>
+          </div>
+          <div class="picker-col">
+            <text class="picker-label" style="color: {{ theme.textSecondary }}">月</text>
+            <div class="stepper">
+              <input class="step-btn" type="button" value="▲" onclick="stepMonth(1)" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+              <text class="step-value" style="color: {{ theme.accent }}">{{ newMonth }}</text>
+              <input class="step-btn" type="button" value="▼" onclick="stepMonth(-1)" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+            </div>
+          </div>
+          <div class="picker-col">
+            <text class="picker-label" style="color: {{ theme.textSecondary }}">日</text>
+            <div class="stepper">
+              <input class="step-btn" type="button" value="▲" onclick="stepDay(1)" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+              <text class="step-value" style="color: {{ theme.accent }}">{{ newDay }}</text>
+              <input class="step-btn" type="button" value="▼" onclick="stepDay(-1)" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+            </div>
+          </div>
+        </div>
+
+        <div class="type-toggle">
+          <text class="toggle-label" style="color: {{ theme.text }}">类型</text>
+          <div class="toggle-btns">
+            <div class="toggle-btn {{ newType === 'holiday' ? 'toggle-on' : '' }}" onclick="setType('holiday')" style="background-color: {{ newType === 'holiday' ? theme.accent : theme.cardLight }}">
+              <text class="toggle-btn-text" style="color: {{ newType === 'holiday' ? theme.bg : theme.textSecondary }}">假期</text>
+            </div>
+            <div class="toggle-btn {{ newType === 'workday' ? 'toggle-on' : '' }}" onclick="setType('workday')" style="background-color: {{ newType === 'workday' ? theme.accent : theme.cardLight }}">
+              <text class="toggle-btn-text" style="color: {{ newType === 'workday' ? theme.bg : theme.textSecondary }}">调休</text>
+            </div>
+          </div>
+        </div>
+
+        <div if="{{ newType === 'holiday' }}" class="holiday-fields">
+          <text class="field-label" style="color: {{ theme.text }}">节日名称</text>
+          <input class="text-input" type="text" value="{{ newHolidayName }}" onchange="onNameChange" placeholder="如：国庆节" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}; border-color: {{ theme.borderLight }}" />
+          <text class="field-label" style="color: {{ theme.text }}">祝福语</text>
+          <input class="text-input" type="text" value="{{ newHolidayGreeting }}" onchange="onGreetingChange" placeholder="如：祝大家节日快乐！" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}; border-color: {{ theme.borderLight }}" />
+        </div>
+
+        <div if="{{ newType === 'workday' }}" class="workday-fields">
+          <text class="field-label" style="color: {{ theme.text }}">使用星期几的课表</text>
+          <div class="weekday-picker">
+            <div for="{{ weekdayOptions }}" class="wd-item {{ newWeekDay === $item.value ? 'wd-on' : '' }}" onclick="setWeekDay($item.value)" style="background-color: {{ newWeekDay === $item.value ? theme.accent : theme.cardLight }}">
+              <text class="wd-text" style="color: {{ newWeekDay === $item.value ? theme.bg : theme.textSecondary }}">{{ $item.label }}</text>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-btns">
+          <input class="form-btn cancel-btn" type="button" value="取消" onclick="cancelAdd" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+          <input class="form-btn save-btn" type="button" value="保存" onclick="saveEntry" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        </div>
+      </div>
+
+      <div if="{{ !showAddForm }}" class="add-section">
+        <input class="add-btn" type="button" value="+ 添加节假日或调休" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      </div>
+
+      <div if="{{ showDeleteConfirm }}" class="delete-confirm" style="background-color: {{ theme.card }}">
+        <text class="delete-confirm-text" style="color: {{ theme.text }}">确定要删除这条记录吗？</text>
+        <div class="delete-confirm-btns">
+          <input class="form-btn cancel-btn" type="button" value="取消" onclick="cancelDelete" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+          <input class="form-btn save-btn" type="button" value="确认删除" onclick="doDelete" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}" />
+        </div>
+      </div>
+
+      <div style="height: 40px"></div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+const prompt = require("@system.prompt")
+
+var fullDayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+
+function pad(n) {
+  return n < 10 ? "0" + n : "" + n
+}
+
+function dateToKey(y, m, d) {
+  return y + "-" + pad(m) + "-" + pad(d)
+}
+
+export default {
+  private: {
+    iconTheme: "dark",
+    theme: {},
+    entries: [],
+    showAddForm: false,
+    showDeleteConfirm: false,
+    deleteIndex: -1,
+    newYear: 2026,
+    newMonth: 1,
+    newDay: 1,
+    newType: "holiday",
+    newHolidayName: "",
+    newHolidayGreeting: "",
+    newWeekDay: 1,
+    weekdayOptions: [
+      { label: "周一", value: 1 },
+      { label: "周二", value: 2 },
+      { label: "周三", value: 3 },
+      { label: "周四", value: 4 },
+      { label: "周五", value: 5 },
+      { label: "周六", value: 6 },
+      { label: "周日", value: 0 }
+    ]
+  },
+
+  onInit() {
+    var self = this
+    var now = new Date()
+    self.newYear = now.getFullYear()
+    self.newMonth = now.getMonth() + 1
+    self.newDay = now.getDate()
+    self.loadData()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    }, true)
+    this.loadData()
+  },
+
+  loadData() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.get({
+      key: "holiday_data",
+      success: function(data) {
+        if (data) {
+          try {
+            var holidayData = JSON.parse(data)
+            var list = []
+            var keys = Object.keys(holidayData).sort()
+            for (var i = 0; i < keys.length; i++) {
+              var key = keys[i]
+              var entry = holidayData[key]
+              var parts = key.split("-")
+              list.push({
+                dateKey: key,
+                dateText: parts[0] + "年" + parseInt(parts[1]) + "月" + parseInt(parts[2]) + "日",
+                type: entry.type,
+                name: entry.name || "",
+                greeting: entry.greeting || "",
+                dayName: entry.dayName || "",
+                weekDay: entry.weekDay
+              })
+            }
+            self.entries = list
+          } catch (e) {
+            self.entries = []
+          }
+        } else {
+          self.entries = []
+        }
+      },
+      fail: function() {
+        self.entries = []
+      }
+    })
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  startAdd() {
+    var now = new Date()
+    this.newYear = now.getFullYear()
+    this.newMonth = now.getMonth() + 1
+    this.newDay = now.getDate()
+    this.newType = "holiday"
+    this.newHolidayName = ""
+    this.newHolidayGreeting = ""
+    this.newWeekDay = 1
+    this.showAddForm = true
+  },
+
+  cancelAdd() {
+    this.showAddForm = false
+  },
+
+  stepYear(delta) {
+    this.newYear = this.newYear + delta
+    if (this.newYear < 2020) this.newYear = 2020
+    if (this.newYear > 2035) this.newYear = 2035
+    this.clampDay()
+  },
+
+  stepMonth(delta) {
+    this.newMonth = this.newMonth + delta
+    if (this.newMonth < 1) { this.newMonth = 12; this.newYear = Math.max(2020, this.newYear - 1) }
+    if (this.newMonth > 12) { this.newMonth = 1; this.newYear = Math.min(2035, this.newYear + 1) }
+    this.clampDay()
+  },
+
+  stepDay(delta) {
+    this.newDay = this.newDay + delta
+    if (this.newDay < 1) {
+      this.newMonth = this.newMonth - 1
+      if (this.newMonth < 1) { this.newMonth = 12; this.newYear = Math.max(2020, this.newYear - 1) }
+      this.newDay = this.daysInMonth(this.newYear, this.newMonth)
+    }
+    var maxD = this.daysInMonth(this.newYear, this.newMonth)
+    if (this.newDay > maxD) {
+      this.newDay = 1
+      this.newMonth = this.newMonth + 1
+      if (this.newMonth > 12) { this.newMonth = 1; this.newYear = Math.min(2035, this.newYear + 1) }
+    }
+  },
+
+  clampDay() {
+    var maxD = this.daysInMonth(this.newYear, this.newMonth)
+    if (this.newDay > maxD) this.newDay = maxD
+    if (this.newDay < 1) this.newDay = 1
+  },
+
+  daysInMonth(y, m) {
+    var days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    if (m === 2 && ((y % 4 === 0 && y % 100 !== 0) || y % 400 === 0)) return 29
+    return days[m - 1]
+  },
+
+  setType(type) {
+    this.newType = type
+  },
+
+  setWeekDay(val) {
+    this.newWeekDay = val
+  },
+
+  onNameChange(e) {
+    this.newHolidayName = e.value || ""
+  },
+
+  onGreetingChange(e) {
+    this.newHolidayGreeting = e.value || ""
+  },
+
+  saveEntry() {
+    var self = this
+    var dateKey = dateToKey(self.newYear, self.newMonth, self.newDay)
+
+    var storage = require("@system.storage")
+    storage.get({
+      key: "holiday_data",
+      success: function(data) {
+        var holidayData = {}
+        if (data) {
+          try { holidayData = JSON.parse(data) } catch (e) {}
+        }
+
+        if (self.newType === "holiday") {
+          holidayData[dateKey] = {
+            type: "holiday",
+            name: self.newHolidayName || "假期",
+            greeting: self.newHolidayGreeting || ""
+          }
+        } else {
+          holidayData[dateKey] = {
+            type: "workday",
+            dayName: fullDayNames[self.newWeekDay] || "星期一",
+            weekDay: self.newWeekDay
+          }
+        }
+
+        storage.set({
+          key: "holiday_data",
+          value: JSON.stringify(holidayData),
+          success: function() {
+            self.showAddForm = false
+            self.loadData()
+            prompt.showToast({ message: "已保存" })
+          },
+          fail: function() {
+            prompt.showToast({ message: "保存失败" })
+          }
+        })
+      },
+      fail: function() {
+        var holidayData = {}
+        if (self.newType === "holiday") {
+          holidayData[dateKey] = {
+            type: "holiday",
+            name: self.newHolidayName || "假期",
+            greeting: self.newHolidayGreeting || ""
+          }
+        } else {
+          holidayData[dateKey] = {
+            type: "workday",
+            dayName: fullDayNames[self.newWeekDay] || "星期一",
+            weekDay: self.newWeekDay
+          }
+        }
+
+        storage.set({
+          key: "holiday_data",
+          value: JSON.stringify(holidayData),
+          success: function() {
+            self.showAddForm = false
+            self.loadData()
+            prompt.showToast({ message: "已保存" })
+          },
+          fail: function() {
+            prompt.showToast({ message: "保存失败" })
+          }
+        })
+      }
+    })
+  },
+
+  confirmDelete(idx) {
+    this.deleteIndex = idx
+    this.showDeleteConfirm = true
+  },
+
+  cancelDelete() {
+    this.showDeleteConfirm = false
+    this.deleteIndex = -1
+  },
+
+  doDelete() {
+    var self = this
+    var idx = self.deleteIndex
+    if (idx < 0 || idx >= self.entries.length) return
+
+    var dateKey = self.entries[idx].dateKey
+    var storage = require("@system.storage")
+    storage.get({
+      key: "holiday_data",
+      success: function(data) {
+        var holidayData = {}
+        if (data) {
+          try { holidayData = JSON.parse(data) } catch (e) {}
+        }
+        delete holidayData[dateKey]
+        storage.set({
+          key: "holiday_data",
+          value: JSON.stringify(holidayData),
+          success: function() {
+            self.showDeleteConfirm = false
+            self.deleteIndex = -1
+            self.loadData()
+            prompt.showToast({ message: "已删除" })
+          },
+          fail: function() {
+            self.showDeleteConfirm = false
+            self.deleteIndex = -1
+            prompt.showToast({ message: "删除失败" })
+          }
+        })
+      },
+      fail: function() {
+        self.showDeleteConfirm = false
+        self.deleteIndex = -1
+      }
+    })
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  padding: 16px 12px 8px 12px;
+  flex-shrink: 0;
+}
+
+.back-btn-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.back-btn-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.header-title {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  flex: 1;
+  lines: 1;
+}
+
+.header-placeholder {
+  width: 44px;
+  height: 44px;
+}
+
+.scroll-area {
+  flex: 1;
+  padding: 8px 12px 0 12px;
+}
+
+.empty-hint {
+  text-align: center;
+  padding: 60px 10px;
+  font-size: 20px;
+}
+
+.entry-card {
+  flex-direction: row;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.entry-left {
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.entry-date {
+  font-size: 18px;
+  font-weight: bold;
+  margin-right: 8px;
+  lines: 1;
+}
+
+.entry-tag {
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.entry-tag-text {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.entry-mid {
+  flex: 1;
+  flex-direction: column;
+}
+
+.entry-desc {
+  font-size: 20px;
+  lines: 1;
+  margin-bottom: 2px;
+}
+
+.entry-sub {
+  font-size: 16px;
+  lines: 1;
+}
+
+.entry-delete {
+  padding: 6px 12px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.entry-delete-text {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.add-section {
+  padding: 10px 0;
+  flex-shrink: 0;
+}
+
+.add-btn {
+  height: 48px;
+  border-radius: 24px;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  width: 100%;
+}
+
+.add-form {
+  flex-direction: column;
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.form-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.date-picker {
+  flex-direction: row;
+  justify-content: space-around;
+  margin-bottom: 14px;
+}
+
+.picker-col {
+  flex-direction: column;
+  align-items: center;
+}
+
+.picker-label {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.stepper {
+  flex-direction: column;
+  align-items: center;
+}
+
+.step-btn {
+  width: 48px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.step-value {
+  font-size: 28px;
+  font-weight: bold;
+  padding: 4px 0;
+  min-width: 56px;
+  text-align: center;
+}
+
+.type-toggle {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.toggle-label {
+  font-size: 18px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.toggle-btns {
+  flex-direction: row;
+  flex: 1;
+}
+
+.toggle-btn {
+  flex: 1;
+  height: 38px;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  margin-right: 6px;
+}
+
+.toggle-btn-text {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.holiday-fields {
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.workday-fields {
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.field-label {
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.text-input {
+  height: 42px;
+  border-radius: 6px;
+  border-width: 1px;
+  padding: 0 10px;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.weekday-picker {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.wd-item {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  margin-right: 6px;
+  margin-bottom: 6px;
+}
+
+.wd-text {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.form-btns {
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.form-btn {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.cancel-btn {
+  margin-right: 8px;
+}
+
+.delete-confirm {
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.delete-confirm-text {
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.delete-confirm-btns {
+  flex-direction: row;
+}
+
+@media (shape: circle) {
+  .header {
+    padding: 20px 36px 10px 36px;
+  }
+
+  .scroll-area {
+    padding: 8px 36px 0 36px;
+  }
+}
+</style>
