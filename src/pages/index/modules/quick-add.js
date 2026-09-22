@@ -38,7 +38,8 @@ function init(instance) {
       var self = instance
       var time = self.quickAdd.calcNext()
       if (self.quickAdd.disabled) return
-      var courseId = String(Date.now())
+      self.quickAdd._idCounter = (self.quickAdd._idCounter || 0) + 1
+      var courseId = String(Date.now()) + "_" + self.quickAdd._idCounter
       var database = require("../../../data/database.js")
       database.insertCourse({
         id: courseId,

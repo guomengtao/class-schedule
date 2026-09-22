@@ -489,7 +489,11 @@ export default {
     if (this.isSaving) { return }
     if (!this.courseName) { prompt.showToast({ message: "请先选择课程" }); return }
     if (!this.courseTime) { prompt.showToast({ message: "请先设置时间" }); return }
-    if (!this.day) { this.setDefaultDay() }
+    if (!this.day) {
+      this.dayIndex = new Date().getDay()
+      this.day = DAY_NAMES[this.dayIndex]
+      this.setDefaultDay()
+    }
 
     var self = this
     var newCourse = {

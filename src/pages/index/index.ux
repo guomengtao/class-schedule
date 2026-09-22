@@ -131,7 +131,7 @@
         <div if="{{ !quickAdd.disabled && quickAdd.courseNames.length === 0 }}" style="flex-direction: row; align-items: center; padding: 0 8px;">
           <text class="quick-add-empty" style="color: {{ theme.textMuted }}">暂无课程，点击添加</text>
           <div class="quick-add-tag quick-add-plus" onclick="openCourseManager" style="background-color: {{ theme.cardLight }}">
-            <text class="quick-add-tag-text quick-add-plus-text" style="color: {{ theme.accent }}">+</text>
+            <text class="quick-add-tag-text quick-add-plus-text" style="color: {{ theme.accent }}">{{ isCapsule ? '管理' : '+' }}</text>
           </div>
         </div>
         <scroll class="quick-add-scroll" scroll-x="{{true}}" if="{{ !quickAdd.disabled && quickAdd.courseNames.length > 0 }}">
@@ -140,7 +140,7 @@
               <text class="quick-add-tag-text" style="color: {{ theme.text }}">{{ $item }}</text>
             </div>
             <div class="quick-add-tag quick-add-plus" onclick="openCourseManager" style="background-color: {{ theme.cardLight }}">
-              <text class="quick-add-tag-text quick-add-plus-text" style="color: {{ theme.accent }}">+</text>
+              <text class="quick-add-tag-text quick-add-plus-text" style="color: {{ theme.accent }}">{{ isCapsule ? '管理' : '+' }}</text>
             </div>
           </div>
         </scroll>
@@ -530,6 +530,8 @@ export default {
 
   // 把用户设置的字号映射到字号规范的档位，并做屏型收敛：
   // 默认 48 → 正文 32 / 次要 26 / 星期标题 36；最大只到规范上限 40。
+  // 胶囊屏上线严格对齐 CSS 媒体查询值：dayTitle ≤ 26px, meta ≤ 20px
+  // 避免内联 font-size 覆盖 CSS 导致标题截断/时间溢出（QA P0-2）
   computeFontSizes(size) {
     var norm = Math.round(size * 32 / 48)
     if (norm < 20) norm = 20
@@ -538,8 +540,8 @@ export default {
     if (this.isCapsule) {
       return {
         display: Math.min(norm, 32),
-        meta: Math.min(Math.max(norm - 8, 20), 24),
-        dayTitle: Math.min(norm + 4, 32)
+        meta: Math.min(Math.max(norm - 8, 20), 20),
+        dayTitle: Math.min(norm + 4, 26)
       }
     }
     return {
