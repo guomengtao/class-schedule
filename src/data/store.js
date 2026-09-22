@@ -700,15 +700,15 @@ module.exports = {
       return
     }
     var defaultSettings = {
-      showQuickAdd: false,
+      showQuickAdd: true,
       showCustomContent: false,
       customContent: randomPick(DEFAULT_QUOTES),
-      showTime: true,
+      showTime: false,
       showStatusBar: true,
       showPinnedBar: false,
       showDayNavZong: true,
-      showDayNavJin: false,
-      showDayNavMing: false,
+      showDayNavJin: true,
+      showDayNavMing: true,
       showLabSection: false,
       timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false }
     }
