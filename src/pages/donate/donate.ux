@@ -44,6 +44,12 @@ var PLATFORMS = [
   { name: "爱发电", color: "#FF6B35", url: AFDIAN_URL }
 ]
 
+var QR_PADDINGS = {
+  capsule: { sum: 0, max: 200 },
+  rect: { sum: 12 + 16 + 8, max: 280 },
+  circle: { sum: 28 + 10 + 5, max: 280 }
+}
+
 export default {
   private: {
     iconTheme: "dark",
@@ -73,31 +79,21 @@ export default {
       self.theme = t
       self.updateIconSrc(themeName)
     })
+    self.calcQrSize()
   },
 
   updateIconSrc: function(themeName) {
     this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
   },
 
-  // 各屏型的内边距必须与样式表里的数值保持一致，否则算出的尺寸会溢出或留白
-  //   可用宽度 = 屏宽 − (页面左右 padding + 卡片左右 padding + 白色底框左右 padding) × 2
-  //   capsule : page 6 / card 8 / wrapper 4   ← 胶囊屏要求二维码铺满可用宽度
-  //   rect    : page 12 / card 16 / wrapper 8
-  //   circle  : page 28 / card 10 / wrapper 5
-  QR_PADDINGS: {
-    capsule: { sum: 6 + 8 + 4, max: 200 },
-    rect: { sum: 12 + 16 + 8, max: 280 },
-    circle: { sum: 28 + 10 + 5, max: 280 }
-  },
-
   computeQrSize(w, shape) {
     var conf
     if (shape === "capsule" || shape === "pill-shaped") {
-      conf = this.QR_PADDINGS.capsule
+      conf = QR_PADDINGS.capsule
     } else if (shape === "rect") {
-      conf = this.QR_PADDINGS.rect
+      conf = QR_PADDINGS.rect
     } else if (shape === "circle") {
-      conf = this.QR_PADDINGS.circle
+      conf = QR_PADDINGS.circle
     } else {
       // 未识别屏型：按宽度保守回落，沿用原有分档逻辑
       if (w > 300) return Math.floor(w - 12 * 2 - 16 * 2 - 8 * 2 - 4)
@@ -116,9 +112,12 @@ export default {
       success: function (info) {
         var w = info.screenWidth || 192
         var shape = info.screenShape || ""
-        self.qrSize = self.computeQrSize(w, shape)
+        var size = self.computeQrSize(w, shape)
+        console.log("[qr] w=" + w + " shape=" + shape + " qrSize=" + size)
+        self.qrSize = size
       },
       fail: function () {
+        console.log("[qr] getInfo failed")
         self.qrSize = 120
       }
     })
@@ -132,6 +131,14 @@ export default {
 
 <style>
 @import '../../common/header.css';
+
+.header-title {
+  font-size: 32px;
+  font-weight: bold;
+  line-height: 42px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
 
 .page-root {
   flex-direction: column;
@@ -198,28 +205,38 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  /* 胶囊屏：压缩各级内边距，让二维码占到可用宽度的 100%
-     数值与脚本 QR_PADDINGS.capsule 对应：page 6 / card 8 / wrapper 4 */
-  .page-root {
-    padding: 40px 6px 16px 6px;
+  .header-title {
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 32px;
+    lines: 1;
+    text-overflow: ellipsis;
   }
-  
-  
-  
+
+  .header {
+    padding: 0 6px;
+    margin-bottom: 8px;
+  }
+  .page-root {
+    padding: 40px 0 16px 0;
+  }
   .qr-card {
-    padding: 10px 8px;
-    border-radius: 16px;
+    width: 100%;
+    padding: 10px 0;
+    border-radius: 0;
     margin-bottom: 10px;
+    align-items: center;
   }
   .platform-name {
     font-size: 26px;
     line-height: 34px;
   }
   .qr-wrapper {
-    padding: 4px;
-    border-radius: 12px;
+    padding: 0;
+    border-radius: 0;
     width: 100%;
     align-items: center;
+    justify-content: center;
   }
   .scan-hint {
     font-size: 20px;
@@ -240,12 +257,17 @@ export default {
 }
 
 @media (shape: rect) {
+  .header-title {
+    font-size: 32px;
+    font-weight: bold;
+    line-height: 42px;
+    lines: 1;
+    text-overflow: ellipsis;
+  }
+
   .page-root {
     padding: 40px 12px 20px 12px;
   }
-  
-  
-  
   .qr-card {
     padding: 18px 16px;
     border-radius: 18px;
@@ -278,12 +300,17 @@ export default {
 }
 
 @media (shape: circle) {
+  .header-title {
+    font-size: 34px;
+    font-weight: bold;
+    line-height: 44px;
+    lines: 1;
+    text-overflow: ellipsis;
+  }
+
   .page-root {
     padding: 50px 28px 36px 28px;
   }
-  
-  
-  
   .qr-card {
     padding: 12px 10px;
     border-radius: 14px;
