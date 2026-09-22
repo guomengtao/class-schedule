@@ -139,7 +139,7 @@
       </div>
     </div>
 
-    <text class="version-text" style="color: {{ theme.textMuted }}">v{{ versionText }}</text>
+    <text class="version-text" style="color: {{ theme.textMuted }}">v{{ versionText }} · #{{ versionCode }}</text>
     <text class="welcome-link" onclick="goToWelcome" style="color: {{ theme.accent }}">欢迎页</text>
 
     <unlock-dialog id="unlockDialog"></unlock-dialog>
@@ -197,6 +197,7 @@ export default {
     themesRow1: [],
     themesRow2: [],
     versionText: "",
+    versionCode: 0,
     showPremiumDialog: false,
     showFontSize: false,
     showTheme: false,
@@ -224,6 +225,7 @@ export default {
     this.loadNickname()
     this.loadHideWeekend()
     this.versionText = version.versionName
+    this.versionCode = version.versionCode
   },
 
   onShow() {
