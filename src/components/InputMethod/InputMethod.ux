@@ -1,3 +1,4 @@
+<import name="input-down-list" src="./InputDownList.ux"></import>
 <template>
   <div class="page" style="flex-direction: column; height: {{hide ? '0px' : 'auto'}}; overflow: {{hide ? 'hidden' : 'visible'}};">
     <!-- 键盘内容懒建：外 if 保证键盘隐藏时整个子树不进 VDOM（chat/search 首进 1s 卡顿根因：
@@ -23,7 +24,7 @@
           <img src="/components/InputMethod/assets/full/bigA.png" style="position: absolute;top:266px;left:119px;width:30px;height:48px;" @click="onBtnClick('switchLow')" show="{{downFlag==='' && upperFlag && lang==='en'}}" />
           <img src="/components/InputMethod/assets/full/A.png" style="position: absolute;top:266px;left:119px;width:30px;height:48px;" @click="onBtnClick('switchUpper')" show="{{downFlag==='' && !upperFlag && lang==='en'}}" />
           <div style="position: absolute;top:38px;left:78px;width:324px;height:52px;background-color:rgb(38,38,38);border-radius: 12px;border: 3px solid #333333" show="{{downFlag===''&& !numFlag}}"></div>
-          <img show="{{resultRow0.length > 0}}" style="position: absolute;top:43px;left:355px;" src="/components/InputMethod/assets/full/down.png" @click="onBtnClick('down')" />
+          <img show="{{resultRow0.length > 0}}" style="position: absolute;top:43px;left:349px;width:56px;height:48px;" src="/components/InputMethod/assets/full/down.png" @click="onBtnClick('down')" />
           <!-- 带变量的相对路径在 aiot-tookit 2.0.4 中修复 -->
           <img src="/components/InputMethod/assets/full/{{lang}}.png" style="position: absolute;top:38px;left:7px;width:67px;height:52px;" @click="onBtnClick('lang')" if="{{downFlag==='' && !numFlag && lang!='jp'}}" />
           <img src="/components/InputMethod/assets/full/jp.png" style="position: absolute;top:38px;left:7px;width:67px;height:52px;" @click="onBtnClick('lang')" if="{{downFlag==='' && !numFlag && lang==='jp'}}" />
@@ -42,14 +43,21 @@
           <div style="position: absolute;top:38px;left:80px;width:320px;height:52px;align-content: center;align-items: center;justify-content: center" show="{{downFlag==='' && !numFlag && lang==='en'}}" @click="onBtnClick('switchNum')" >
             <img src="/components/InputMethod/assets/full/123_boardless.png" />
           </div>
-          <!-- 这里使用show会导致每次输入都会加载全部候选列表，很卡 -->
-          <list class="list3" if="{{downFlag==='down'}}">
-            <list-item type="waitingRows62t9" class="item3" for="{{itemArray in resultList2}}">
-              <div class="item column center list3-item" style="height:52px;" for="{{item in itemArray}}">
-                <text class="calbtn-down-text" @click="onRsSelect(item)">{{item}}</text>
-              </div>
-            </list-item>
-          </list>
+          <!-- 下展面板：三屏共用 InputDownList（scroll + div，替代 Vela <list>，内容随数据即时刷新）
+               面板起点下移到 88px，避开候选行(38~80)，保证展开后候选文字与箭头依然可见 -->
+          <div show="{{downFlag==='down'}}" style="position: absolute;top:88px;left:78px;width:324px;height:224px;">
+            <input-down-list
+              items="{{downFlag==='down' ? downList : []}}"
+              width-pct="100"
+              height="224"
+              item-height="52"
+              font-size="28"
+              close-text="收起"
+              close-height="48"
+              onselect="onDownSelect"
+              onclose="onDownClose"
+            ></input-down-list>
+          </div>
           <div style="position: absolute;top:95px;left:8px;width:464px;height:52px;" show="{{downFlag===''&&!numFlag}}">
             <img src="/components/InputMethod/assets/full/Q.png" style="width:54px;height:52px;margin-right: 4px;" @click="onSelect('Q')" />
             <text class="calbtnfull" for="{{item in keys['full62'][0]}}" @click="onSelect(item)">{{item}}</text>
@@ -88,7 +96,6 @@
           <img src="/components/InputMethod/assets/full/4-2.png" style="position: absolute;top:266px;left:242px;width:30px;height:48px;" @click="onSelect('。')" show="{{numFlag }}" />
           <img src="/components/InputMethod/assets/full/4-1.png" style="position: absolute;top:266px;left:119px;width:30px;height:48px;" @click="onSelect('，')" show="{{numFlag && !numFlag_jp}}" />
           <img src="/components/InputMethod/assets/full/4-1.png" style="position: absolute;top:266px;left:119px;width:30px;height:48px;" @click="onSelect('、')" show="{{numFlag_jp}}" />
-          <img style="position: absolute;top:204px;left:78px;" src="/components/InputMethod/assets/full/up.png" @click="onBtnClick('down')" show="{{downFlag==='down'}}" />
         </div>
         <!-- 九键 -->
         <div else style="width: 480px;height: 321px;">
@@ -119,14 +126,20 @@
           <div style="position: absolute;top:35px;left:95px;width:290px;height:60px;align-content: center;align-items: center;justify-content: center" show="{{downFlag==='' && !numFlag && lang==='en'}}" @click="onBtnClick('switchNum')" >
             <img src="/components/InputMethod/assets/full/123_boardless.png" />
           </div>
-          <!-- 这里使用show会导致每次输入都会加载全部候选列表，很卡 -->
-          <list class="list3" if="{{downFlag==='down'}}">
-            <list-item type="waitingRows62full" class="item3" for="{{itemArray in resultList2}}">
-              <div class="item column center list3-item" style="height:52px;" for="{{item in itemArray}}">
-                <text class="calbtn-down-text" @click="onRsSelect(item)">{{item}}</text>
-              </div>
-            </list-item>
-          </list>
+          <!-- 下展面板：圆屏 T9 分支同样走 InputDownList；起点 96px，避开候选行(39~91) -->
+          <div show="{{downFlag==='down'}}" style="position: absolute;top:96px;left:95px;width:290px;height:210px;">
+            <input-down-list
+              items="{{downFlag==='down' ? downList : []}}"
+              width-pct="100"
+              height="210"
+              item-height="52"
+              font-size="28"
+              close-text="收起"
+              close-height="48"
+              onselect="onDownSelect"
+              onclose="onDownClose"
+            ></input-down-list>
+          </div>
           <div style="position: absolute;top:99px;left:95px;width:294px;height:60px;" show="{{downFlag===''&&!numFlag}}">
             <text class="calbtnt9" @click="onSelect('select')">选择</text>
             <text class="calbtnt9" for="{{item in keys['t9'][0]}}" @click="onSelect(item)">{{item.toUpperCase()}}</text>
@@ -159,7 +172,6 @@
           </div>
           <img src="/components/InputMethod/assets/t9/del.png" style="position: absolute;top:35px;left:389px;width: 60px;height: 60px;" @click="onBtnClick('D')" show="{{downFlag==='' }}" />
           <img src="/components/InputMethod/assets/t9/space.png" style="position: absolute;top:99px;left:389px;width: 60px;height: 60px;" @click="onBtnClick('space')" show="{{downFlag==='' && !numFlag }}" />
-          <img style="position: absolute;top:204px;left:78px;" src="/components/InputMethod/assets/full/up.png" @click="onBtnClick('down')" show="{{downFlag==='down'}}" />
         </div>
       </div>
       <!-- 方屏67 -->
@@ -245,18 +257,19 @@
           <img if="{{!numFlag}}" src="./assets/horizontal/del.png" style="margin-left: 6px;padding: 6px;width: 60px;height: 60px;" @click="onBtnClick('D')" />
           <img else src="./assets/horizontal/del2.png" style="margin-left: 6px;padding: 6px;" @click="onBtnClick('D')" />
         </div>
-        <!-- 这里使用show会导致每次输入都会加载全部候选列表，很卡 -->
-        <div style="position: absolute;left: 0px;top: 0px;width: 100%;height: 252px;background-color: black; justify-content:center; flex-direction:column; align-items:center" if="{{downFlag==='down'}}">
-          <div static class="list67">
-            <list static style="width:100%;height:100%;">
-              <list-item type="waitingRows67" class="item67" for="{{itemArray in resultList2}}">
-                <div class="item column center" for="{{item in itemArray}}">
-                  <text class="calbtn-down-text" @click="onRsSelect(item)">{{item}}</text>
-                </div>
-              </list-item>
-            </list>
-          </div>
-          <img static style="margin-top:5px" src="./assets/horizontal/up2.png" @click="onBtnClick('down')" />
+        <!-- 下展面板：共用 InputDownList；起点下移到 70px，避开顶部候选行(6~66) -->
+        <div style="position: absolute;left: 0px;top: 70px;width: 100%;justify-content:center; flex-direction:column; align-items:center" show="{{downFlag==='down'}}">
+          <input-down-list
+            items="{{downFlag==='down' ? downList : []}}"
+            width-pct="96.4"
+            height="185"
+            item-height="44"
+            font-size="26"
+            close-text="收起"
+            close-height="48"
+            onselect="onDownSelect"
+            onclose="onDownClose"
+          ></input-down-list>
         </div>
       </div>
       <!-- 胶囊屏66 -->
@@ -303,12 +316,12 @@
         <div static style="position: absolute;left: {{(screenWidth - 192)/2}}px;top: 0px;width: 192px;height: 110px;">
           <img static style="position: absolute;left: 3px;top: 47px;width: 186px;height: 60px;" src="/components/InputMethod/assets/arc/search.png" />
           <!-- 候选横滚行：整词在前、单字随后（拼音已在键盘上方独立小字行显示，这里不放 cval） -->
-          <scroll id="cvalWaiting" scroll-x="{{true}}" style="position: absolute;left: 15px;top: 56px;width: 120px;height: 42px;">
+          <scroll id="cvalWaiting" scroll-x="{{true}}" style="position: absolute;left: 15px;top: 56px;width: 108px;height: 42px;">
             <div style="position: absolute;left: 0px;top: 0px;height: 42px;padding-right:20px">
               <text for="{{resultRow0}}" show="{{resultRow0.length > $idx}}" class="calbtn02" style="padding-right:10px" @click="onRsSelect(resultRow0[$idx])">{{resultRow0[$idx]}}</text>
             </div>
           </scroll>
-          <img show="{{resultRow0.length > 0}}" style="position: absolute;left: 130px;top: 57px;width: 50px;height: 40px;" src="/components/InputMethod/assets/arc/down2.png" @click="onBtnClick('down')" />
+          <img show="{{resultRow0.length > 0}}" style="position: absolute;left: 126px;top: 53px;width: 56px;height: 48px;" src="/components/InputMethod/assets/arc/down2.png" @click="onBtnClick('down')" />
           <!-- 带变量的相对路径在 aiot-tookit 2.0.4 中修复 -->
           <img src="/components/InputMethod/assets/arc/{{lang}}.png" style="position: absolute;top:0px;left:9px;width: 48px;height: 42px;" @click="onBtnClick('lang')" show="{{downFlag==='' && !numFlag && !numFlag_jp}}" />
           <img src="/components/InputMethod/assets/arc/back2.png" style="position: absolute;top:0px;left:9px;width: 48px;height: 42px;" @click="onBtnClick('switchCn')" show="{{numFlag && lang==='cn' ||numFlag_jp && lang==='jp' }}" />
@@ -318,17 +331,20 @@
           <img src="/components/InputMethod/assets/arc/a.png" style="position: absolute;top:0px;left:72px;width:48px;height:42px;" @click="onBtnClick('switchUpper')" show="{{downFlag==='' && !upperFlag && lang==='en' }}" />
           <img src="/components/InputMethod/assets/arc/del.png" style="position: absolute;left: 135px;top: 0px;width: 48px;height: 42px;" @click="onBtnClick('D')" />
         </div>
-        <!-- 这里使用show会导致每次输入都会加载全部候选列表，很卡 -->
-        <div style="position: absolute;top: 47px;width: 100%;height: 263px;background-color: black;" if="{{downFlag==='down'}}">
-          <div style="position: absolute;left: {{(screenWidth - l66DownPanelWidth)/2}}px;width: {{l66DownPanelWidth}}px;height: 263px;"> 
-            <list static class="list66" style="width: {{l66DownPanelWidth - 6}}px;">
-              <list-item type="waitingRows66" class="item66" for="{{itemArray in resultList2}}">
-                <div class="item column center" for="{{item in itemArray}}">
-                  <text class="calbtn-down-text" @click="onRsSelect(item)">{{item}}</text>
-                </div>
-              </list-item>
-            </list>
-            <img static style="position: absolute;top:196px;left:56px;width: 80px;height: 60px;" src="/components/InputMethod/assets/arc/up2.png" @click="onBtnClick('down')" />
+        <!-- 下展面板：共用 InputDownList；起点下移到 104px，避开候选行(56~98)与箭头(53~101) -->
+        <div style="position: absolute;top: 104px;width: 100%;justify-content:center; flex-direction:column; align-items:center" show="{{downFlag==='down'}}">
+          <div style="width: {{l66DownPanelWidth}}px;flex-direction: column;align-items: center;">
+            <input-down-list
+              items="{{downFlag==='down' ? downList : []}}"
+              width-pct="100"
+              height="196"
+              item-height="42"
+              font-size="26"
+              close-text="收起"
+              close-height="48"
+              onselect="onDownSelect"
+              onclose="onDownClose"
+            ></input-down-list>
           </div>
         </div>
       </div>
@@ -380,7 +396,8 @@ export default {
     // 拼音分词显示串（如 ni'hao），在 resetResultList 中随 cval 同步更新
     cvalDisplay: "",
     resultList: [],
-    resultList2: [],
+    // 下展候选（一维数组，交给 InputDownList 渲染；替代原二维 resultList2）
+    downList: [],
     // 多拼：整词候选（最前）及其与单字合并后的首页展示序列与对应整词标记
     resultWordList: [],
     resultRow0: [],
@@ -514,6 +531,19 @@ export default {
     this.resetResultList();
     this.downFlag = "";
   },
+  // 下展面板（InputDownList）选中候选 → 复用原有上屏逻辑
+  onDownSelect(e) {
+    if (e && e.detail && e.detail.content) {
+      this.onRsSelect(e.detail.content);
+    }
+  },
+
+  // 下展面板「收起」按钮
+  onDownClose() {
+    this.onVibrate();
+    this.downFlag = "";
+  },
+
   onBtnClick(sign) {
     this.onVibrate();
     switch (sign) {
@@ -656,9 +686,8 @@ export default {
   },
   setResultListAll() {
     // 首页展示序列：整词在前，单字随后，截断到 maxlength
-    const cap = parseInt(this.maxlength);
-    // 胶囊屏下展每行只放 1 个候选，避免 .item { flex:1 } 把窄屏切成 30px 小格
-    const rowCap = (this.screentype === 'pill-shaped') ? 1 : cap;
+    // parseInt 可能得到 NaN（上层传了非数字），此时 maxlength 比较恒 false → 顶行空 → 箭头不显示，故兜底 5
+    const cap = parseInt(this.maxlength) || 5;
     let row0 = [];
     let row0IsWord = [];
     for (let i = 0; i < this.resultWordList.length && row0.length < cap; i++) {
@@ -674,27 +703,17 @@ export default {
     this.resultRow0 = row0;
     this.resultRow0IsWord = row0IsWord;
 
-    // 下展分页（down 展开）：整词优先，再单字，每页 rowCap 个（胶囊 1 个，其他屏 maxlength 个）
-    this.resultList2 = [];
-    let array = [];
+    // 下展候选（展开更多）：同一份数据、一维序列，三屏共用 InputDownList 渲染。
+    // 原来「pill 每行 1 个、其他屏 cap 个」的分页差异正是三份下展实现的根源，统一为每行一个候选。
+    const down = [];
     for (let i = 0; i < this.resultWordList.length; i++) {
-      array.push(this.resultWordList[i]);
-      if (array.length === rowCap) {
-        this.resultList2.push(array);
-        array = [];
-      }
+      down.push(this.resultWordList[i]);
     }
     for (let i = 0; i < this.resultList.length; i++) {
       if (this.resultWordList.indexOf(this.resultList[i]) !== -1) continue;
-      array.push(this.resultList[i]);
-      if (array.length === rowCap) {
-        this.resultList2.push(array);
-        array = [];
-      }
+      down.push(this.resultList[i]);
     }
-    if (array.length > 0) {
-      this.resultList2.push(array);
-    }
+    this.downList = down;
   },
   getResultByWord(val) {
     const that = this;
