@@ -101,6 +101,28 @@
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
+      <div class="item-row" onclick="toggleFontSize">
+        <text class="item-label" style="color: {{ theme.text }}">课程字号</text>
+        <div class="row-right">
+          <text class="item-hint" style="color: {{ theme.textMuted }}">{{ displaySize }}px</text>
+          <text class="fold-arrow" style="color: {{ theme.textMuted }}">{{ showFontSize ? 'v' : '›' }}</text>
+        </div>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}" if="{{ showFontSize }}"></div>
+      <div if="{{ showFontSize }}" class="font-size-body">
+        <div class="scale-row">
+          <input class="scale-btn" type="button" value="−" onclick="decreaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
+          <text class="scale-value" style="color: {{ theme.accent }}">{{ displaySize }}px</text>
+          <input class="scale-btn" type="button" value="+" onclick="increaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
+        </div>
+        <div class="preview-box" style="background-color: {{ theme.cardLight }}">
+          <text class="preview-font" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">数学 08:00</text>
+        </div>
+        <text class="scope-hint" style="color: {{ theme.textMuted }}">仅影响首页课程卡片</text>
+      </div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
       <div class="item-row">
         <text class="item-label" style="color: {{ theme.text }}">钉首页</text>
         <div class="switch-track" style="background-color: {{ showPinnedBar ? theme.accent : theme.border }}" onclick="togglePinnedBar">
@@ -113,25 +135,6 @@
           <text class="item-label" style="color: {{ theme.text }}">管理钉首页</text>
           <text class="item-hint" style="color: {{ theme.textMuted }}">管理</text>
         </div>
-      </div>
-    </div>
-
-    <div class="section" style="background-color: {{ theme.card }}">
-      <div class="item-row">
-        <text class="item-label" style="color: {{ theme.text }}">课程字号</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">{{ displaySize }}px</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="font-size-body">
-        <div class="scale-row">
-          <input class="scale-btn" type="button" value="−" onclick="decreaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
-          <text class="scale-value" style="color: {{ theme.accent }}">{{ displaySize }}px</text>
-          <input class="scale-btn" type="button" value="+" onclick="increaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
-        </div>
-        <div class="preview-box" style="background-color: {{ theme.cardLight }}">
-          <text class="preview-text" style="font-size: {{ displaySize }}px; color: {{ theme.text }}">数学 08:00</text>
-        </div>
-        <text class="scope-hint" style="color: {{ theme.textMuted }}">仅影响首页课程卡片，其他页面为固定字号</text>
       </div>
     </div>
 
@@ -176,6 +179,7 @@ export default {
     showDayNavJin: true,
     showDayNavMing: true,
     displaySize: 48,
+    showFontSize: false,
     timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false },
     timePreview: "",
     showDialog: false
@@ -301,6 +305,9 @@ export default {
     this.showDayNavMing = !this.showDayNavMing
     this.saveSettings()
   },
+  toggleFontSize() {
+    this.showFontSize = !this.showFontSize
+  },
   openCustomContentEdit() {
     router.push({ uri: "/pages/custom-content-edit" })
   },
@@ -389,6 +396,69 @@ export default {
 
 .item-hint {
   font-size: 24px;
+}
+
+.row-right {
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.fold-arrow {
+  font-size: 24px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.font-size-body {
+  flex-direction: column;
+  padding-bottom: 16px;
+}
+
+.scale-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+  margin-bottom: 12px;
+}
+
+.scale-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 40px;
+}
+
+.scale-value {
+  font-size: 28px;
+  font-weight: bold;
+  width: 72px;
+  text-align: center;
+  line-height: 38px;
+}
+
+.preview-box {
+  padding: 14px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.preview-font {
+  font-weight: bold;
+  text-align: center;
+}
+
+.scope-hint {
+  font-size: 20px;
+  line-height: 24px;
+  text-align: center;
+  margin-top: 10px;
 }
 
 .switch-track {
@@ -589,7 +659,7 @@ export default {
     margin-left: 6px;
   }
 
-  .preview-text {
+  .preview-font {
     font-size: 24px;
   }
 
@@ -625,6 +695,45 @@ export default {
     width: 22px;
     height: 22px;
     border-radius: 11px;
+  }
+
+  .fold-arrow {
+    font-size: 20px;
+    width: 18px;
+  }
+
+  .font-size-body {
+    padding-bottom: 12px;
+  }
+
+  .scale-row {
+    margin-top: 12px;
+    margin-bottom: 10px;
+  }
+
+  .scale-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    font-size: 22px;
+    line-height: 36px;
+  }
+
+  .scale-value {
+    font-size: 24px;
+    width: 60px;
+    line-height: 32px;
+  }
+
+  .preview-box {
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .scope-hint {
+    font-size: 18px;
+    line-height: 22px;
+    margin-top: 8px;
   }
 
   .modal-card {

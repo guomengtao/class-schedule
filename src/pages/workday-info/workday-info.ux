@@ -1,141 +1,59 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <div class="header">
+    <div class="header" style="background-color: {{ theme.bg }}">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">节假日与调休</text>
+      <text class="header-title" style="color: {{ theme.text }}">调休信息</text>
+      <div class="header-placeholder"></div>
     </div>
 
     <scroll class="scroll-area" scroll-y="true">
-      <text if="{{ entries.length === 0 && !showAddForm }}" class="empty-hint" style="color: {{ theme.textMuted }}">还没有设置节假日或调休</text>
-
-      <div for="{{ entries }}" class="entry-card" style="background-color: {{ theme.card }}">
-        <div class="entry-left">
-          <text class="entry-date" style="color: {{ theme.text }}">{{ $item.dateText }}</text>
-          <div class="entry-tag" style="background-color: {{ $item.type === 'holiday' ? theme.accent : theme.btnSecondary }}">
-            <text class="entry-tag-text" style="color: {{ $item.type === 'holiday' ? theme.bg : theme.btnSecondaryText }}">{{ $item.type === 'holiday' ? '假期' : '调休' }}</text>
-          </div>
-        </div>
-        <div class="entry-mid">
-          <text if="{{ $item.type === 'holiday' }}" class="entry-desc" style="color: {{ theme.text }}">{{ $item.name }}</text>
-          <text if="{{ $item.type === 'holiday' }}" class="entry-sub" style="color: {{ theme.textSecondary }}">{{ $item.greeting }}</text>
-          <text if="{{ $item.type === 'workday' }}" class="entry-desc" style="color: {{ theme.text }}">按{{ $item.dayName }}课表</text>
-        </div>
-        <div class="entry-delete" onclick="confirmDelete($idx)" style="background-color: {{ theme.deleteBg }}">
-          <text class="entry-delete-text" style="color: {{ theme.deleteText }}">删除</text>
-        </div>
-      </div>
-
-      <div if="{{ showAddForm }}" class="add-form" style="background-color: {{ theme.card }}">
-        <text class="form-title" style="color: {{ theme.text }}">添加日期</text>
-
-        <div class="date-picker">
-          <div class="picker-col">
-            <text class="picker-label" style="color: {{ theme.textSecondary }}">年</text>
-            <div class="stepper">
-              <input class="step-btn" type="button" value="▲" onclick="stepYear(1)" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
-              <text class="step-value" style="color: {{ theme.accent }}">{{ newYear }}</text>
-              <input class="step-btn" type="button" value="▼" onclick="stepYear(-1)" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
-            </div>
-          </div>
-          <div class="picker-col">
-            <text class="picker-label" style="color: {{ theme.textSecondary }}">月</text>
-            <div class="stepper">
-              <input class="step-btn" type="button" value="▲" onclick="stepMonth(1)" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
-              <text class="step-value" style="color: {{ theme.accent }}">{{ newMonth }}</text>
-              <input class="step-btn" type="button" value="▼" onclick="stepMonth(-1)" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
-            </div>
-          </div>
-          <div class="picker-col">
-            <text class="picker-label" style="color: {{ theme.textSecondary }}">日</text>
-            <div class="stepper">
-              <input class="step-btn" type="button" value="▲" onclick="stepDay(1)" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
-              <text class="step-value" style="color: {{ theme.accent }}">{{ newDay }}</text>
-              <input class="step-btn" type="button" value="▼" onclick="stepDay(-1)" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
-            </div>
-          </div>
+      <div class="content-area">
+        <div class="info-section" style="background-color: {{ theme.card }}">
+          <text class="section-title" style="color: {{ theme.accent }}">规则一：对应挪用日（内置标准）</text>
+          <text class="info-text" style="color: {{ theme.text }}">这是全国多数公办中小学沿用的规则，也是我们内置 targetWeekDay 的设定依据。</text>
+          <text class="info-em" style="color: {{ theme.textSecondary }}">核心逻辑：假期里占用了星期几的工作日，调休那天就补星期几的课。</text>
+          <text class="info-text" style="color: {{ theme.text }}">假期之前的调休 → 补假期开头第一个工作日的课</text>
+          <text class="info-text" style="color: {{ theme.text }}">假期之后的调休 → 补假期最后一个工作日的课</text>
+          <text class="info-em" style="color: {{ theme.textSecondary }}">示例：2026年春节占用了周一和周五</text>
+          <text class="info-text" style="color: {{ theme.text }}">2月14日（周六）补班 → 上周一的课</text>
+          <text class="info-text" style="color: {{ theme.text }}">2月28日（周六）补班 → 上周五的课</text>
         </div>
 
-        <div class="type-toggle">
-          <text class="toggle-label" style="color: {{ theme.text }}">类型</text>
-          <div class="toggle-btns">
-            <div class="toggle-btn {{ newType === 'holiday' ? 'toggle-on' : '' }}" onclick="setType('holiday')" style="background-color: {{ newType === 'holiday' ? theme.accent : theme.cardLight }}">
-              <text class="toggle-btn-text" style="color: {{ newType === 'holiday' ? theme.bg : theme.textSecondary }}">假期</text>
-            </div>
-            <div class="toggle-btn {{ newType === 'workday' ? 'toggle-on' : '' }}" onclick="setType('workday')" style="background-color: {{ newType === 'workday' ? theme.accent : theme.cardLight }}">
-              <text class="toggle-btn-text" style="color: {{ newType === 'workday' ? theme.bg : theme.textSecondary }}">调休</text>
-            </div>
-          </div>
+        <div class="info-section" style="background-color: {{ theme.card }}">
+          <text class="section-title" style="color: {{ theme.accent }}">规则二：周末顺推</text>
+          <text class="info-text" style="color: {{ theme.text }}">很多中小学为了降低记忆成本，执行更简单的固定规则：</text>
+          <text class="info-text" style="color: {{ theme.text }}">星期六调休上班 → 一律上周一的课</text>
+          <text class="info-text" style="color: {{ theme.text }}">星期日调休上班 → 一律上周二的课</text>
+          <text class="info-text" style="color: {{ theme.textSecondary }}">规则简单好记，在区县、乡镇级学校很普遍。</text>
         </div>
 
-        <div if="{{ newType === 'holiday' }}" class="holiday-fields">
-          <text class="field-label" style="color: {{ theme.text }}">节日名称</text>
-          <input class="text-input" type="text" value="{{ newHolidayName }}" onchange="onNameChange" placeholder="如：国庆节" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}; border-color: {{ theme.borderLight }}" />
-          <text class="field-label" style="color: {{ theme.text }}">祝福语</text>
-          <input class="text-input" type="text" value="{{ newHolidayGreeting }}" onchange="onGreetingChange" placeholder="如：祝大家节日快乐！" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}; border-color: {{ theme.borderLight }}" />
+        <div class="info-section" style="background-color: {{ theme.card }}">
+          <text class="section-title" style="color: {{ theme.accent }}">补充说明</text>
+          <text class="info-text" style="color: {{ theme.text }}">大学无统一标准：高校自主权高，很多不执行调休补课。</text>
+          <text class="info-text" style="color: {{ theme.text }}">地方差异普遍存在：部分地区有地方性规定，如周六统一补周五的课。</text>
         </div>
 
-        <div if="{{ newType === 'workday' }}" class="workday-fields">
-          <text class="field-label" style="color: {{ theme.text }}">使用星期几的课表</text>
-          <div class="weekday-picker">
-            <div for="{{ weekdayOptions }}" class="wd-item {{ newWeekDay === $item.value ? 'wd-on' : '' }}" onclick="setWeekDay($item.value)" style="background-color: {{ newWeekDay === $item.value ? theme.accent : theme.cardLight }}">
-              <text class="wd-text" style="color: {{ newWeekDay === $item.value ? theme.bg : theme.textSecondary }}">{{ $item.label }}</text>
-            </div>
-          </div>
+        <div class="info-section" style="background-color: {{ theme.card }}">
+          <text class="section-title" style="color: {{ theme.accent }}">产品设计</text>
+          <text class="info-text" style="color: {{ theme.text }}">内置采用「对应挪用日」规则，覆盖最多数公办中小学用户。</text>
+          <text class="info-text" style="color: {{ theme.text }}">自定义优先：正因为全国无统一标准，支持用自定义日期覆盖内置映射，适配不同学校的特殊安排。</text>
+          <text class="info-text" style="color: {{ theme.text }}">首页表现：调休日显示「今天调休，按XX课表」并按 targetWeekDay 自动加载对应课程；假期则展示祝福卡片。</text>
         </div>
 
-        <div class="form-btns">
-          <input class="form-btn cancel-btn" type="button" value="取消" onclick="cancelAdd" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
-          <input class="form-btn save-btn" type="button" value="保存" onclick="saveEntry" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <div class="info-section" style="background-color: {{ theme.card }}">
+          <text class="section-title" style="color: {{ theme.accent }}">官方来源</text>
+          <text class="info-text" style="color: {{ theme.text }}">《国务院办公厅关于2026年部分节假日安排的通知》</text>
+          <text class="info-text" style="color: {{ theme.textSecondary }}">国办发明电〔2025〕7号 · 2025年11月4日发布</text>
+          <text class="info-text" style="color: {{ theme.textSecondary }}">索引号：000014349/2025-00087 · 中国政府网</text>
+        </div>
+
+        <div class="info-section" style="background-color: {{ theme.card }}">
+          <text class="section-title" style="color: {{ theme.accent }}">胶囊屏适配</text>
+          <text class="info-text" style="color: {{ theme.textSecondary }}">优先适配胶囊屏（shape: capsule），192px 窄屏上自动精简布局，字号和间距按媒体查询缩放，确保舒适阅读。</text>
         </div>
       </div>
-
-      <div if="{{ !showAddForm }}" class="add-section">
-        <input class="add-btn" type="button" value="+ 添加节假日或调休" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      </div>
-
-      <div if="{{ !showAddForm && !showDeleteConfirm && !showRestoreConfirm }}" class="preset-section" style="background-color: {{ theme.card }}">
-        <text class="preset-title" style="color: {{ theme.text }}">{{ planYear }}年调休安排</text>
-        <text if="{{ workdayPlan.length === 0 }}" class="preset-desc" style="color: {{ theme.textSecondary }}">今年还没有标记调休上班的日期</text>
-        <text for="{{ workdayPlan }}" class="plan-line" style="color: {{ theme.text }}">{{ $item.text }}</text>
-        <text if="{{ workdayPlan.length > 0 }}" class="plan-note" style="color: {{ theme.textSecondary }}">上面每个调休日会按指定星期的课表上课，可在下方说明中查看规则来源。</text>
-      </div>
-
-      <div if="{{ !showAddForm && !showDeleteConfirm && !showRestoreConfirm }}" class="preset-section" style="background-color: {{ theme.card }}">
-        <text class="preset-title" style="color: {{ theme.text }}">内置官方放假安排</text>
-        <text class="preset-desc" style="color: {{ theme.textSecondary }}">数据：国务院办公厅{{ presetYear }}年节假日安排通知（放假{{ presetHolidayCount }}天、调休{{ presetWorkdayCount }}天）</text>
-        <input class="preset-btn" type="button" value="恢复 / 更新内置数据" onclick="startRestore" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
-      </div>
-
-      <div if="{{ !showAddForm && !showDeleteConfirm && !showRestoreConfirm }}" class="preset-section" style="background-color: {{ theme.card }}">
-        <div class="rules-head" onclick="toggleRules">
-          <text class="preset-title" style="color: {{ theme.text }}">节假日规则与来源</text>
-          <text class="rules-toggle" style="color: {{ theme.accent }}">{{ rulesExpanded ? "收起" : "展开说明" }}</text>
-        </div>
-        <text if="{{ !rulesExpanded }}" class="preset-desc" style="color: {{ theme.textSecondary }}">数据来源、调休补课规则与自定义覆盖说明</text>
-        <block if="{{ rulesExpanded }}">
-          <text for="{{ ruleLines }}" class="rule-line" style="color: {{ theme.textSecondary }}">{{ $item }}</text>
-        </block>
-      </div>
-
-      <div if="{{ showRestoreConfirm }}" class="delete-confirm" style="background-color: {{ theme.card }}">
-        <text class="delete-confirm-text" style="color: {{ theme.text }}">恢复内置数据会覆盖同名日期的设置，自定义日期保留。要继续吗？</text>
-        <div class="delete-confirm-btns">
-          <input class="form-btn cancel-btn" type="button" value="取消" onclick="cancelRestore" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
-          <input class="form-btn save-btn" type="button" value="确认恢复" onclick="doRestore" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        </div>
-      </div>
-
-      <div if="{{ showDeleteConfirm }}" class="delete-confirm" style="background-color: {{ theme.card }}">
-        <text class="delete-confirm-text" style="color: {{ theme.text }}">确定要删除这条记录吗？</text>
-        <div class="delete-confirm-btns">
-          <input class="form-btn cancel-btn" type="button" value="取消" onclick="cancelDelete" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
-          <input class="form-btn save-btn" type="button" value="确认删除" onclick="doDelete" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}" />
-        </div>
-      </div>
-
-      <div style="height: 40px"></div>
     </scroll>
   </div>
 </template>
@@ -143,138 +61,19 @@
 <script>
 import router from "@system.router"
 const store = require("../../data/store.js")
-const prompt = require("@system.prompt")
-const holidayPreset = require("../../data/holiday-preset.js")
-
-var fullDayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
-
-// 节假日规则与来源说明（首页调休提示条上的“?”可直接展开本段）
-var RULE_LINES = [
-  "一、数据来源：国务院办公厅《关于" + holidayPreset.year + "年部分节假日安排的通知》（国办发明电〔2025〕7号），2025年11月4日发布，索引号 000014349/2025-00087，可在中国政府网政策文件库核验。",
-  "二、放假怎么显示：官方公布的假日当天，首页不再加载当天课表，改为显示节日名称与祝福语。",
-  "三、调休怎么上课：官方公布的调休补班日，首页会显示「今天调休，按XX课表」，并按指定星期的课程加载。",
-  "四、判定方式：首页读取当天日期 → 在节假日数据中查找该日期 → 命中「调休」就取它的 weekDay 字段（即是要补的星期几）加载课程；命中「假期」则清空当天课表。",
-  "五、targetWeekDay 取值：1=周一、2=周二、3=周三、4=周四、5=周五、6=周六、0=周日。",
-  "六、关于 targetWeekDay：国务院文件只规定「哪天放假、哪天上班」，从不规定「补星期几的课」。本表采用中小学与高校通行惯例——挪用了假期里的哪一天工作日，就补那一天的课程。",
-  "七、可以覆盖：若你的学校另有调休排课规定，在本页用「添加节假日或调休」改掉对应日期即可覆盖内置映射；自定义的部分不会被「恢复内置数据」清掉。"
-]
-
-function pad(n) {
-  return n < 10 ? "0" + n : "" + n
-}
-
-function dateToKey(y, m, d) {
-  return y + "-" + pad(m) + "-" + pad(d)
-}
 
 export default {
-  public: {
-    // 首页调休提示条“?”跳转时传入 showRules=1，进入后直接展开规则说明
-    showRules: ""
-  },
-
   private: {
     iconTheme: "dark",
-    theme: {},
-    entries: [],
-    showAddForm: false,
-    showDeleteConfirm: false,
-    showRestoreConfirm: false,
-    rulesExpanded: true,
-    ruleLines: RULE_LINES,
-    planYear: new Date().getFullYear(),
-    workdayPlan: [],
-    presetYear: holidayPreset.year,
-    presetHolidayCount: 0,
-    presetWorkdayCount: 0,
-    deleteIndex: -1,
-    newYear: 2026,
-    newMonth: 1,
-    newDay: 1,
-    newType: "holiday",
-    newHolidayName: "",
-    newHolidayGreeting: "",
-    newWeekDay: 1,
-    weekdayOptions: [
-      { label: "周一", value: 1 },
-      { label: "周二", value: 2 },
-      { label: "周三", value: 3 },
-      { label: "周四", value: 4 },
-      { label: "周五", value: 5 },
-      { label: "周六", value: 6 },
-      { label: "周日", value: 0 }
-    ]
+    theme: {}
   },
 
   onInit() {
     var self = this
-    var now = new Date()
-    self.newYear = now.getFullYear()
-    self.newMonth = now.getMonth() + 1
-    self.newDay = now.getDate()
-    self.loadData()
-    self.loadPresetSummary()
-    self.loadWorkdayPlan()
-    self.applyRulesParam()
-  },
-
-  // 本年度调休安排：优先读用户实际数据，读不到时回落到内置官方数据
-  loadWorkdayPlan() {
-    var self = this
-    var year = String(new Date().getFullYear())
-    var storage = require("@system.storage")
-    storage.get({
-      key: "holiday_data",
-      success: function(data) {
-        var src = null
-        if (data) {
-          try {
-            var parsed = JSON.parse(data)
-            if (parsed && Object.keys(parsed).length > 0) src = parsed
-          } catch (e) {}
-        }
-        self.buildWorkdayPlan(src || holidayPreset.buildEntries(), year)
-      },
-      fail: function() {
-        self.buildWorkdayPlan(holidayPreset.buildEntries(), year)
-      }
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
     })
-  },
-
-  buildWorkdayPlan(map, year) {
-    var keys = Object.keys(map)
-    var list = []
-    for (var i = 0; i < keys.length; i++) {
-      var key = keys[i]
-      if (key.indexOf(year) !== 0) continue
-      var entry = map[key]
-      if (!entry || entry.type !== "workday") continue
-      var parts = key.split("-")
-      var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
-      var selfWeekDay = fullDayNames[d.getDay()] || ""
-      var targetName = fullDayNames[entry.weekDay] || ""
-      var suffix = (entry.weekDay >= 0 && entry.weekDay <= 6) ? ("按" + targetName + "课表") : "课表未指定"
-      list.push({
-        dateKey: key,
-        text: parseInt(parts[1], 10) + "月" + parseInt(parts[2], 10) + "日（" + selfWeekDay + "）→ " + suffix + (entry.builtin ? "" : "（自定义）")
-      })
-    }
-    list.sort(function(a, b) {
-      return a.dateKey < b.dateKey ? -1 : (a.dateKey > b.dateKey ? 1 : 0)
-    })
-    this.workdayPlan = list
-  },
-
-  // 由首页“?”按钮带参进入时，直接展开规则说明
-  applyRulesParam() {
-    var want = this.showRules
-    if (want === "1" || want === 1 || want === true) {
-      this.rulesExpanded = true
-    }
-  },
-
-  toggleRules() {
-    this.rulesExpanded = !this.rulesExpanded
   },
 
   onShow() {
@@ -283,634 +82,194 @@ export default {
       self.theme = t
       self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
     }, true)
-    this.loadData()
-  },
-
-  loadData() {
-    var self = this
-    var storage = require("@system.storage")
-    storage.get({
-      key: "holiday_data",
-      success: function(data) {
-        if (data) {
-          try {
-            var holidayData = JSON.parse(data)
-            var list = []
-            var keys = Object.keys(holidayData).sort()
-            for (var i = 0; i < keys.length; i++) {
-              var key = keys[i]
-              var entry = holidayData[key]
-              var parts = key.split("-")
-              list.push({
-                dateKey: key,
-                dateText: parts[0] + "年" + parseInt(parts[1]) + "月" + parseInt(parts[2]) + "日",
-                type: entry.type,
-                name: entry.name || "",
-                greeting: entry.greeting || "",
-                dayName: entry.dayName || "",
-                weekDay: entry.weekDay
-              })
-            }
-            self.entries = list
-          } catch (e) {
-            self.entries = []
-          }
-        } else {
-          self.entries = []
-        }
-      },
-      fail: function() {
-        self.entries = []
-      }
-    })
-  },
-
-  loadPresetSummary() {
-    var builtin = holidayPreset.buildEntries()
-    var keys = Object.keys(builtin)
-    var hCount = 0
-    var wCount = 0
-    for (var i = 0; i < keys.length; i++) {
-      if (builtin[keys[i]].type === "holiday") hCount++
-      else wCount++
-    }
-    this.presetHolidayCount = hCount
-    this.presetWorkdayCount = wCount
-  },
-
-  startRestore() {
-    this.showRestoreConfirm = true
-  },
-
-  cancelRestore() {
-    this.showRestoreConfirm = false
-  },
-
-  doRestore() {
-    var self = this
-    prompt.showToast({ message: "正在恢复…" })
-    holidayPreset.restoreDefault(function(ok, count) {
-      self.showRestoreConfirm = false
-      self.loadData()
-      prompt.showToast({ message: ok ? ("已恢复" + count + "条内置数据") : "恢复失败" })
-    })
   },
 
   goBack() {
     router.back()
-  },
-
-  startAdd() {
-    var now = new Date()
-    this.newYear = now.getFullYear()
-    this.newMonth = now.getMonth() + 1
-    this.newDay = now.getDate()
-    this.newType = "holiday"
-    this.newHolidayName = ""
-    this.newHolidayGreeting = ""
-    this.newWeekDay = 1
-    this.showAddForm = true
-  },
-
-  cancelAdd() {
-    this.showAddForm = false
-  },
-
-  stepYear(delta) {
-    this.newYear = this.newYear + delta
-    if (this.newYear < 2020) this.newYear = 2020
-    if (this.newYear > 2035) this.newYear = 2035
-    this.clampDay()
-  },
-
-  stepMonth(delta) {
-    this.newMonth = this.newMonth + delta
-    if (this.newMonth < 1) { this.newMonth = 12; this.newYear = Math.max(2020, this.newYear - 1) }
-    if (this.newMonth > 12) { this.newMonth = 1; this.newYear = Math.min(2035, this.newYear + 1) }
-    this.clampDay()
-  },
-
-  stepDay(delta) {
-    this.newDay = this.newDay + delta
-    if (this.newDay < 1) {
-      this.newMonth = this.newMonth - 1
-      if (this.newMonth < 1) { this.newMonth = 12; this.newYear = Math.max(2020, this.newYear - 1) }
-      this.newDay = this.daysInMonth(this.newYear, this.newMonth)
-    }
-    var maxD = this.daysInMonth(this.newYear, this.newMonth)
-    if (this.newDay > maxD) {
-      this.newDay = 1
-      this.newMonth = this.newMonth + 1
-      if (this.newMonth > 12) { this.newMonth = 1; this.newYear = Math.min(2035, this.newYear + 1) }
-    }
-  },
-
-  clampDay() {
-    var maxD = this.daysInMonth(this.newYear, this.newMonth)
-    if (this.newDay > maxD) this.newDay = maxD
-    if (this.newDay < 1) this.newDay = 1
-  },
-
-  daysInMonth(y, m) {
-    var days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    if (m === 2 && ((y % 4 === 0 && y % 100 !== 0) || y % 400 === 0)) return 29
-    return days[m - 1]
-  },
-
-  setType(type) {
-    this.newType = type
-  },
-
-  setWeekDay(val) {
-    this.newWeekDay = val
-  },
-
-  onNameChange(e) {
-    this.newHolidayName = e.value || ""
-  },
-
-  onGreetingChange(e) {
-    this.newHolidayGreeting = e.value || ""
-  },
-
-  saveEntry() {
-    var self = this
-    var dateKey = dateToKey(self.newYear, self.newMonth, self.newDay)
-
-    var storage = require("@system.storage")
-    storage.get({
-      key: "holiday_data",
-      success: function(data) {
-        var holidayData = {}
-        if (data) {
-          try { holidayData = JSON.parse(data) } catch (e) {}
-        }
-
-        if (self.newType === "holiday") {
-          holidayData[dateKey] = {
-            type: "holiday",
-            name: self.newHolidayName || "假期",
-            greeting: self.newHolidayGreeting || ""
-          }
-        } else {
-          holidayData[dateKey] = {
-            type: "workday",
-            dayName: fullDayNames[self.newWeekDay] || "星期一",
-            weekDay: self.newWeekDay
-          }
-        }
-
-        storage.set({
-          key: "holiday_data",
-          value: JSON.stringify(holidayData),
-          success: function() {
-            self.showAddForm = false
-            self.loadData()
-            prompt.showToast({ message: "已保存" })
-          },
-          fail: function() {
-            prompt.showToast({ message: "保存失败" })
-          }
-        })
-      },
-      fail: function() {
-        var holidayData = {}
-        if (self.newType === "holiday") {
-          holidayData[dateKey] = {
-            type: "holiday",
-            name: self.newHolidayName || "假期",
-            greeting: self.newHolidayGreeting || ""
-          }
-        } else {
-          holidayData[dateKey] = {
-            type: "workday",
-            dayName: fullDayNames[self.newWeekDay] || "星期一",
-            weekDay: self.newWeekDay
-          }
-        }
-
-        storage.set({
-          key: "holiday_data",
-          value: JSON.stringify(holidayData),
-          success: function() {
-            self.showAddForm = false
-            self.loadData()
-            prompt.showToast({ message: "已保存" })
-          },
-          fail: function() {
-            prompt.showToast({ message: "保存失败" })
-          }
-        })
-      }
-    })
-  },
-
-  confirmDelete(idx) {
-    this.deleteIndex = idx
-    this.showDeleteConfirm = true
-  },
-
-  cancelDelete() {
-    this.showDeleteConfirm = false
-    this.deleteIndex = -1
-  },
-
-  doDelete() {
-    var self = this
-    var idx = self.deleteIndex
-    if (idx < 0 || idx >= self.entries.length) return
-
-    var dateKey = self.entries[idx].dateKey
-    var storage = require("@system.storage")
-    storage.get({
-      key: "holiday_data",
-      success: function(data) {
-        var holidayData = {}
-        if (data) {
-          try { holidayData = JSON.parse(data) } catch (e) {}
-        }
-        delete holidayData[dateKey]
-        storage.set({
-          key: "holiday_data",
-          value: JSON.stringify(holidayData),
-          success: function() {
-            self.showDeleteConfirm = false
-            self.deleteIndex = -1
-            self.loadData()
-            prompt.showToast({ message: "已删除" })
-          },
-          fail: function() {
-            self.showDeleteConfirm = false
-            self.deleteIndex = -1
-            prompt.showToast({ message: "删除失败" })
-          }
-        })
-      },
-      fail: function() {
-        self.showDeleteConfirm = false
-        self.deleteIndex = -1
-      }
-    })
   }
 }
 </script>
 
 <style>
 .page {
-  flex-direction: column;
   width: 100%;
   height: 100%;
+  flex-direction: column;
 }
 
+/* ── 胶囊屏优先（默认） ── */
 .header {
   flex-direction: row;
   align-items: center;
-  padding: 12px 10px 8px 10px;
+  padding: 8px 6px 6px 6px;
   flex-shrink: 0;
 }
 
 .back-btn-wrapper {
-  width: 44px;
-  height: 44px;
-  border-radius: 22px;
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
   justify-content: center;
   align-items: center;
   flex-shrink: 0;
-  margin-right: 4px;
 }
 
 .back-btn-icon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
 }
 
-/* 胶囊屏可用宽度约 192px：去掉右侧占位块后标题可容纳 6 个字，字号降到 18px */
 .header-title {
   font-size: 18px;
   font-weight: bold;
   text-align: center;
   flex: 1;
   lines: 1;
+  text-overflow: ellipsis;
+}
+
+.header-placeholder {
+  width: 36px;
+  flex-shrink: 0;
 }
 
 .scroll-area {
   flex: 1;
-  padding: 8px 12px 0 12px;
-}
-
-.empty-hint {
-  text-align: center;
-  padding: 60px 10px;
-  font-size: 20px;
-}
-
-.entry-card {
-  flex-direction: row;
-  align-items: center;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 8px;
-  flex-shrink: 0;
-}
-
-.entry-left {
-  flex-direction: row;
-  align-items: center;
-  flex-shrink: 0;
-  margin-right: 10px;
-}
-
-.entry-date {
-  font-size: 18px;
-  font-weight: bold;
-  margin-right: 8px;
-  lines: 1;
-}
-
-.entry-tag {
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-
-.entry-tag-text {
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.entry-mid {
-  flex: 1;
-  flex-direction: column;
-}
-
-.entry-desc {
-  font-size: 20px;
-  lines: 1;
-  margin-bottom: 2px;
-}
-
-.entry-sub {
-  font-size: 16px;
-  lines: 1;
-}
-
-.entry-delete {
-  padding: 6px 12px;
-  border-radius: 6px;
-  flex-shrink: 0;
-  margin-left: 8px;
-}
-
-.entry-delete-text {
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.add-section {
-  padding: 10px 0;
-  flex-shrink: 0;
-}
-
-.add-btn {
-  height: 48px;
-  border-radius: 24px;
-  font-size: 20px;
-  font-weight: bold;
-  text-align: center;
   width: 100%;
-}
-
-.preset-section {
   flex-direction: column;
-  padding: 12px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-  flex-shrink: 0;
 }
 
-.preset-title {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 6px;
-  lines: 1;
-}
-
-.rules-head {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-.rules-toggle {
-  font-size: 15px;
-  font-weight: bold;
-  flex-shrink: 0;
-  margin-left: 8px;
-}
-
-.rule-line {
-  font-size: 15px;
-  line-height: 21px;
-  margin-bottom: 8px;
-}
-
-.plan-line {
-  font-size: 15px;
-  line-height: 21px;
-  margin-bottom: 4px;
-}
-
-.plan-note {
-  font-size: 14px;
-  line-height: 19px;
-  margin-top: 4px;
-}
-
-.preset-desc {
-  font-size: 15px;
-  line-height: 20px;
-  margin-bottom: 10px;
-}
-
-.preset-btn {
-  height: 48px;
-  border-radius: 24px;
-  font-size: 18px;
-  font-weight: bold;
-  text-align: center;
+.content-area {
   width: 100%;
-}
-
-.add-form {
   flex-direction: column;
-  padding: 14px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-  flex-shrink: 0;
+  padding: 4px 8px 32px 8px;
 }
 
-.form-title {
-  font-size: 22px;
-  font-weight: bold;
-  margin-bottom: 12px;
-}
-
-.date-picker {
-  flex-direction: row;
-  justify-content: space-around;
+.info-section {
+  flex-direction: column;
+  padding: 14px 12px;
   margin-bottom: 14px;
 }
 
-.picker-col {
-  flex-direction: column;
-  align-items: center;
-}
-
-.picker-label {
-  font-size: 16px;
-  margin-bottom: 4px;
-}
-
-.stepper {
-  flex-direction: column;
-  align-items: center;
-}
-
-.step-btn {
-  width: 48px;
-  height: 28px;
-  border-radius: 6px;
-  font-size: 12px;
-  text-align: center;
-}
-
-.step-value {
-  font-size: 28px;
-  font-weight: bold;
-  padding: 4px 0;
-  min-width: 56px;
-  text-align: center;
-}
-
-.type-toggle {
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 14px;
-}
-
-.toggle-label {
-  font-size: 18px;
-  margin-right: 12px;
-  flex-shrink: 0;
-}
-
-.toggle-btns {
-  flex-direction: row;
-  flex: 1;
-}
-
-.toggle-btn {
-  flex: 1;
-  height: 38px;
-  border-radius: 8px;
-  justify-content: center;
-  align-items: center;
-  margin-right: 6px;
-}
-
-.toggle-btn-text {
+.section-title {
   font-size: 18px;
   font-weight: bold;
-}
-
-.holiday-fields {
-  flex-direction: column;
-  margin-bottom: 12px;
-}
-
-.workday-fields {
-  flex-direction: column;
-  margin-bottom: 12px;
-}
-
-.field-label {
-  font-size: 16px;
-  margin-bottom: 6px;
-}
-
-.text-input {
-  height: 42px;
-  border-radius: 6px;
-  border-width: 1px;
-  padding: 0 10px;
-  font-size: 18px;
   margin-bottom: 10px;
 }
 
-.weekday-picker {
-  flex-direction: row;
-  flex-wrap: wrap;
+.info-text {
+  font-size: 17px;
+  line-height: 26px;
+  margin-bottom: 8px;
 }
 
-.wd-item {
-  height: 36px;
-  padding: 0 12px;
-  border-radius: 8px;
-  justify-content: center;
-  align-items: center;
-  margin-right: 6px;
-  margin-bottom: 6px;
+.info-em {
+  font-size: 17px;
+  line-height: 26px;
+  margin-bottom: 8px;
 }
 
-.wd-text {
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.form-btns {
-  flex-direction: row;
-  justify-content: flex-end;
-  margin-top: 8px;
-}
-
-.form-btn {
-  height: 40px;
-  padding: 0 18px;
-  border-radius: 8px;
-  font-size: 18px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.cancel-btn {
-  margin-right: 8px;
-}
-
-.delete-confirm {
-  flex-direction: column;
-  align-items: center;
-  padding: 16px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-  flex-shrink: 0;
-}
-
-.delete-confirm-text {
-  font-size: 18px;
-  margin-bottom: 12px;
-}
-
-.delete-confirm-btns {
-  flex-direction: row;
-}
-
-@media (shape: circle) {
+/* ── 方屏/大屏 ── */
+@media (shape: rect) {
   .header {
-    padding: 20px 36px 10px 36px;
+    padding: 10px 12px 8px 12px;
   }
 
-  .scroll-area {
-    padding: 8px 36px 0 36px;
+  .back-btn-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+  }
+
+  .back-btn-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .header-title {
+    font-size: 20px;
+  }
+
+  .header-placeholder {
+    width: 40px;
+  }
+
+  .content-area {
+    padding: 6px 14px 40px 14px;
+  }
+
+  .info-section {
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+
+  .section-title {
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+
+  .info-text {
+    font-size: 18px;
+    line-height: 30px;
+    margin-bottom: 10px;
+  }
+
+  .info-em {
+    font-size: 18px;
+    line-height: 28px;
+    margin-bottom: 10px;
+  }
+}
+
+/* ── 圆形屏 ── */
+@media (shape: circle) {
+  .header {
+    padding: 14px 16px 8px 16px;
+  }
+
+  .back-btn-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+  }
+
+  .back-btn-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .header-title {
+    font-size: 18px;
+  }
+
+  .header-placeholder {
+    width: 36px;
+  }
+
+  .content-area {
+    padding: 4px 12px 28px 12px;
+  }
+
+  .info-section {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: 17px;
+    margin-bottom: 8px;
+  }
+
+  .info-text {
+    font-size: 16px;
+    line-height: 24px;
+    margin-bottom: 6px;
+  }
+
+  .info-em {
+    font-size: 16px;
+    line-height: 24px;
+    margin-bottom: 6px;
   }
 }
 </style>
