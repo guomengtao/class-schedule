@@ -29,19 +29,18 @@
       <input class="done-btn" type="button" value="完成" onclick="confirmInput" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
-    <!-- 键盘区：不再用 <scroll> 包裹。
-         旧实现把 <input-method> 放进纵向 scroll，而下展候选面板内部是可滚动列表，
-         Vela 上「scroll 套 list」会导致面板拿不到可视区高度（表现为展开后一片黑/空白）。
-         键盘组件根元素是 position:absolute; bottom:0，本身贴底不需要外层滚动容器。 -->
-    <input-method
-      hide="{{ false }}"
-      keyboardtype="QWERTY"
-      maxlength="{{ maxlen }}"
-      vibratemode="short"
-      screentype="{{ screenType }}"
-      oncomplete="onCharacter"
-      ondelete="onDeleteChar"
-    ></input-method>
+    <!-- 键盘区：下展面板已移除，不再存在「scroll 套 list」的嵌套滚动冲突，恢复原有 scroll 包裹 -->
+    <scroll class="keyboard-scroll" scroll-y="true">
+      <input-method
+        hide="{{ false }}"
+        keyboardtype="QWERTY"
+        maxlength="{{ maxlen }}"
+        vibratemode="short"
+        screentype="{{ screenType }}"
+        oncomplete="onCharacter"
+        ondelete="onDeleteChar"
+      ></input-method>
+    </scroll>
   </div>
 </template>
 
@@ -272,6 +271,12 @@ export default {
   width: 12px;
   height: 26px;
   flex-shrink: 0;
+}
+
+.keyboard-scroll {
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
 }
 
 .cursor {
