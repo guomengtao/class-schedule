@@ -96,6 +96,20 @@
         <input class="add-btn" type="button" value="+ 添加节假日或调休" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       </div>
 
+      <div if="{{ !showAddForm && !showDeleteConfirm }}" class="preset-section" style="background-color: {{ theme.card }}">
+        <text class="preset-title" style="color: {{ theme.text }}">内置官方放假安排</text>
+        <text class="preset-desc" style="color: {{ theme.textSecondary }}">数据：国务院办公厅{{ presetYear }}年节假日安排通知（放假{{ presetHolidayCount }}天、调休{{ presetWorkdayCount }}天）</text>
+        <input class="preset-btn" type="button" value="恢复 / 更新内置数据" onclick="startRestore" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+      </div>
+
+      <div if="{{ showRestoreConfirm }}" class="delete-confirm" style="background-color: {{ theme.card }}">
+        <text class="delete-confirm-text" style="color: {{ theme.text }}">恢复内置数据会覆盖同名日期的设置，自定义日期保留。要继续吗？</text>
+        <div class="delete-confirm-btns">
+          <input class="form-btn cancel-btn" type="button" value="取消" onclick="cancelRestore" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+          <input class="form-btn save-btn" type="button" value="确认恢复" onclick="doRestore" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        </div>
+      </div>
+
       <div if="{{ showDeleteConfirm }}" class="delete-confirm" style="background-color: {{ theme.card }}">
         <text class="delete-confirm-text" style="color: {{ theme.text }}">确定要删除这条记录吗？</text>
         <div class="delete-confirm-btns">
@@ -113,6 +127,7 @@
 import router from "@system.router"
 const store = require("../../data/store.js")
 const prompt = require("@system.prompt")
+const holidayPreset = require("../../data/holiday-preset.js")
 
 var fullDayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
@@ -131,6 +146,10 @@ export default {
     entries: [],
     showAddForm: false,
     showDeleteConfirm: false,
+    showRestoreConfirm: false,
+    presetYear: holidayPreset.year,
+    presetHolidayCount: 0,
+    presetWorkdayCount: 0,
     deleteIndex: -1,
     newYear: 2026,
     newMonth: 1,
@@ -157,6 +176,7 @@ export default {
     self.newMonth = now.getMonth() + 1
     self.newDay = now.getDate()
     self.loadData()
+    self.loadPresetSummary()
   },
 
   onShow() {
@@ -204,6 +224,37 @@ export default {
       fail: function() {
         self.entries = []
       }
+    })
+  },
+
+  loadPresetSummary() {
+    var builtin = holidayPreset.buildEntries()
+    var keys = Object.keys(builtin)
+    var hCount = 0
+    var wCount = 0
+    for (var i = 0; i < keys.length; i++) {
+      if (builtin[keys[i]].type === "holiday") hCount++
+      else wCount++
+    }
+    this.presetHolidayCount = hCount
+    this.presetWorkdayCount = wCount
+  },
+
+  startRestore() {
+    this.showRestoreConfirm = true
+  },
+
+  cancelRestore() {
+    this.showRestoreConfirm = false
+  },
+
+  doRestore() {
+    var self = this
+    prompt.showToast({ message: "正在恢复…" })
+    holidayPreset.restoreDefault(function(ok, count) {
+      self.showRestoreConfirm = false
+      self.loadData()
+      prompt.showToast({ message: ok ? ("已恢复" + count + "条内置数据") : "恢复失败" })
     })
   },
 
@@ -528,6 +579,36 @@ export default {
   height: 48px;
   border-radius: 24px;
   font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  width: 100%;
+}
+
+.preset-section {
+  flex-direction: column;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.preset-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  lines: 1;
+}
+
+.preset-desc {
+  font-size: 15px;
+  line-height: 20px;
+  margin-bottom: 10px;
+}
+
+.preset-btn {
+  height: 48px;
+  border-radius: 24px;
+  font-size: 18px;
   font-weight: bold;
   text-align: center;
   width: 100%;

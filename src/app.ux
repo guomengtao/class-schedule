@@ -2,6 +2,7 @@
 var store = require("./data/store.js")
 var database = require("./data/database.js")
 var authStore = require("./data/auth-store.js")
+var holidayPreset = require("./data/holiday-preset.js")
 
 // 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
 var DEBUG = false
@@ -78,6 +79,12 @@ function migrateFontScale() {
   })
 }
 
+function migrateBuiltinHolidays() {
+  holidayPreset.ensurePreset(function(added) {
+    dlog("[PRESET] builtin holidays added: " + added)
+  })
+}
+
 export default {
   onCreate() {
     database.init()
@@ -88,6 +95,7 @@ export default {
       }
     })
     migrateFontScale()
+    migrateBuiltinHolidays()
     this.initBackgroundRunning()
   },
 
