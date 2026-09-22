@@ -5,7 +5,6 @@
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">节假日与调休</text>
-      <div class="header-placeholder"></div>
     </div>
 
     <scroll class="scroll-area" scroll-y="true">
@@ -97,6 +96,13 @@
       </div>
 
       <div if="{{ !showAddForm && !showDeleteConfirm && !showRestoreConfirm }}" class="preset-section" style="background-color: {{ theme.card }}">
+        <text class="preset-title" style="color: {{ theme.text }}">{{ planYear }}年调休安排</text>
+        <text if="{{ workdayPlan.length === 0 }}" class="preset-desc" style="color: {{ theme.textSecondary }}">今年还没有标记调休上班的日期</text>
+        <text for="{{ workdayPlan }}" class="plan-line" style="color: {{ theme.text }}">{{ $item.text }}</text>
+        <text if="{{ workdayPlan.length > 0 }}" class="plan-note" style="color: {{ theme.textSecondary }}">上面每个调休日会按指定星期的课表上课，可在下方说明中查看规则来源。</text>
+      </div>
+
+      <div if="{{ !showAddForm && !showDeleteConfirm && !showRestoreConfirm }}" class="preset-section" style="background-color: {{ theme.card }}">
         <text class="preset-title" style="color: {{ theme.text }}">内置官方放假安排</text>
         <text class="preset-desc" style="color: {{ theme.textSecondary }}">数据：国务院办公厅{{ presetYear }}年节假日安排通知（放假{{ presetHolidayCount }}天、调休{{ presetWorkdayCount }}天）</text>
         <input class="preset-btn" type="button" value="恢复 / 更新内置数据" onclick="startRestore" style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
@@ -144,12 +150,13 @@ var fullDayNames = ["星期日", "星期一", "星期二", "星期三", "星期�
 
 // 节假日规则与来源说明（首页调休提示条上的“?”可直接展开本段）
 var RULE_LINES = [
-  "1. 数据来源：国务院办公厅《关于2026年部分节假日安排的通知》（国办发明电〔2025〕7号），2025年11月4日发布，索引号 000014349/2025-00087，可在中国政府网政策文件库核验。",
-  "2. 放假日期：官方公布的假日当天，首页不显示当天课表，改为显示节日名称与祝福语。",
-  "3. 调休上班日：官方公布的调休补班日，按「被挪走的那个工作日」对应的星期课表上课。",
-  "4. targetWeekDay 取值：1=周一、2=周二、3=周三、4=周四、5=周五、6=周六、0=周日。",
-  "5. 关于 targetWeekDay：国务院文件只规定「哪天放假、哪天上班」，从不规定「补星期几的课」。本表采用中小学与高校通行惯例——挪用了假期里的哪一天工作日，就补那一天的课程。",
-  "6. 可覆盖：若学校另有调休排课规定，在本页用「添加节假日或调休」或直接修改对应日期即可覆盖内置映射，自定义的部分不会被恢复内置数据清掉。"
+  "一、数据来源：国务院办公厅《关于" + holidayPreset.year + "年部分节假日安排的通知》（国办发明电〔2025〕7号），2025年11月4日发布，索引号 000014349/2025-00087，可在中国政府网政策文件库核验。",
+  "二、放假怎么显示：官方公布的假日当天，首页不再加载当天课表，改为显示节日名称与祝福语。",
+  "三、调休怎么上课：官方公布的调休补班日，首页会显示「今天调休，按XX课表」，并按指定星期的课程加载。",
+  "四、判定方式：首页读取当天日期 → 在节假日数据中查找该日期 → 命中「调休」就取它的 weekDay 字段（即是要补的星期几）加载课程；命中「假期」则清空当天课表。",
+  "五、targetWeekDay 取值：1=周一、2=周二、3=周三、4=周四、5=周五、6=周六、0=周日。",
+  "六、关于 targetWeekDay：国务院文件只规定「哪天放假、哪天上班」，从不规定「补星期几的课」。本表采用中小学与高校通行惯例——挪用了假期里的哪一天工作日，就补那一天的课程。",
+  "七、可以覆盖：若你的学校另有调休排课规定，在本页用「添加节假日或调休」改掉对应日期即可覆盖内置映射；自定义的部分不会被「恢复内置数据」清掉。"
 ]
 
 function pad(n) {
@@ -173,8 +180,10 @@ export default {
     showAddForm: false,
     showDeleteConfirm: false,
     showRestoreConfirm: false,
-    rulesExpanded: false,
+    rulesExpanded: true,
     ruleLines: RULE_LINES,
+    planYear: new Date().getFullYear(),
+    workdayPlan: [],
     presetYear: holidayPreset.year,
     presetHolidayCount: 0,
     presetWorkdayCount: 0,
@@ -205,7 +214,55 @@ export default {
     self.newDay = now.getDate()
     self.loadData()
     self.loadPresetSummary()
+    self.loadWorkdayPlan()
     self.applyRulesParam()
+  },
+
+  // 本年度调休安排：优先读用户实际数据，读不到时回落到内置官方数据
+  loadWorkdayPlan() {
+    var self = this
+    var year = String(new Date().getFullYear())
+    var storage = require("@system.storage")
+    storage.get({
+      key: "holiday_data",
+      success: function(data) {
+        var src = null
+        if (data) {
+          try {
+            var parsed = JSON.parse(data)
+            if (parsed && Object.keys(parsed).length > 0) src = parsed
+          } catch (e) {}
+        }
+        self.buildWorkdayPlan(src || holidayPreset.buildEntries(), year)
+      },
+      fail: function() {
+        self.buildWorkdayPlan(holidayPreset.buildEntries(), year)
+      }
+    })
+  },
+
+  buildWorkdayPlan(map, year) {
+    var keys = Object.keys(map)
+    var list = []
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i]
+      if (key.indexOf(year) !== 0) continue
+      var entry = map[key]
+      if (!entry || entry.type !== "workday") continue
+      var parts = key.split("-")
+      var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
+      var selfWeekDay = fullDayNames[d.getDay()] || ""
+      var targetName = fullDayNames[entry.weekDay] || ""
+      var suffix = (entry.weekDay >= 0 && entry.weekDay <= 6) ? ("按" + targetName + "课表") : "课表未指定"
+      list.push({
+        dateKey: key,
+        text: parseInt(parts[1], 10) + "月" + parseInt(parts[2], 10) + "日（" + selfWeekDay + "）→ " + suffix + (entry.builtin ? "" : "（自定义）")
+      })
+    }
+    list.sort(function(a, b) {
+      return a.dateKey < b.dateKey ? -1 : (a.dateKey > b.dateKey ? 1 : 0)
+    })
+    this.workdayPlan = list
   },
 
   // 由首页“?”按钮带参进入时，直接展开规则说明
@@ -508,7 +565,7 @@ export default {
 .header {
   flex-direction: row;
   align-items: center;
-  padding: 16px 12px 8px 12px;
+  padding: 12px 10px 8px 10px;
   flex-shrink: 0;
 }
 
@@ -519,6 +576,7 @@ export default {
   justify-content: center;
   align-items: center;
   flex-shrink: 0;
+  margin-right: 4px;
 }
 
 .back-btn-icon {
@@ -526,17 +584,13 @@ export default {
   height: 24px;
 }
 
+/* 胶囊屏可用宽度约 192px：去掉右侧占位块后标题可容纳 6 个字，字号降到 18px */
 .header-title {
-  font-size: 24px;
+  font-size: 18px;
   font-weight: bold;
   text-align: center;
   flex: 1;
   lines: 1;
-}
-
-.header-placeholder {
-  width: 44px;
-  height: 44px;
 }
 
 .scroll-area {
@@ -658,6 +712,18 @@ export default {
   font-size: 15px;
   line-height: 21px;
   margin-bottom: 8px;
+}
+
+.plan-line {
+  font-size: 15px;
+  line-height: 21px;
+  margin-bottom: 4px;
+}
+
+.plan-note {
+  font-size: 14px;
+  line-height: 19px;
+  margin-top: 4px;
 }
 
 .preset-desc {
