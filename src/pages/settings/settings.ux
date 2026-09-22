@@ -901,7 +901,7 @@ export default {
 
 @media (shape: rect) {
   .settings-page {
-    padding: 44px 6px 6px 6px;
+    padding: 6px 6px 6px 6px;
   }
   .back-header {
     margin-bottom: 6px;

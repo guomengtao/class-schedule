@@ -271,7 +271,7 @@ export default {
 
 @media (shape: rect) {
   .pinned-pages-page {
-    padding: 44px 12px 16px 12px;
+    padding: 6px 12px 16px 12px;
   }
   
   

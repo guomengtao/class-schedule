@@ -466,6 +466,11 @@ export default {
     this.cellMargin = cfg.cellMargin !== undefined ? cfg.cellMargin : 1
     this.templateDayLabels = cfg.dayLabels || ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"]
     this.applyWeekendFilter()
+    if ((id === "minimal-clean" || id === "minimal-char" || id === "compact-grid") && this.isCapsule !== true) {
+      var cellExtra = 2 * this.cellMargin + (this.cellBordered ? 2 : 0)
+      var availCells = 316 - this.rowNumWidth
+      this.cellWidth = Math.floor(availCells / this.weekDays.length) - cellExtra
+    }
     this.gridContentWidth = this.rowNumWidth + this.weekDays.length * (this.cellWidth + 2 * this.cellMargin + (this.cellBordered ? 2 : 0))
   },
 
@@ -1161,7 +1166,7 @@ export default {
 
 @media (shape: rect) {
   .wv-page {
-    padding: 44px 10px 12px 10px;
+    padding: 6px 10px 12px 10px;
   }
   .wv-header {
     margin-bottom: 8px;

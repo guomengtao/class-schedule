@@ -470,7 +470,7 @@ export default {
 
 @media (shape: rect) {
   .stats-page {
-    padding: 44px 6px 6px 6px;
+    padding: 6px 6px 6px 6px;
   }
   
   

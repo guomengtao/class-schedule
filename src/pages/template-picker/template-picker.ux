@@ -202,7 +202,7 @@ export default {
 
 @media (shape: rect) {
   .page {
-    padding: 44px 16px 12px 16px;
+    padding: 6px 16px 12px 16px;
   }
   
   

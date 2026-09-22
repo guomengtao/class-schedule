@@ -175,7 +175,7 @@ export default {
 
 @media (shape: rect) {
   .page-root {
-    padding: 44px 12px 16px 12px;
+    padding: 6px 12px 16px 12px;
   }
   
   .clock-row {

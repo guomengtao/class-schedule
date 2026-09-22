@@ -1487,7 +1487,7 @@ export default {
 
 @media (shape: rect) {
   .schedule-page {
-    padding: 44px 6px 6px 6px;
+    padding: 6px 6px 6px 6px;
   }
   .clock-row {
     padding: 3px 0;

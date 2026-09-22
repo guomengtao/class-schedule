@@ -266,7 +266,7 @@ export default {
   }
 
   .page-root {
-    padding: 40px 12px 20px 12px;
+    padding: 6px 12px 20px 12px;
   }
   .qr-card {
     padding: 18px 16px;

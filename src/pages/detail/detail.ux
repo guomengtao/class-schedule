@@ -1640,7 +1640,7 @@ export default {
 
 @media (shape: rect) {
   .edit-course-page {
-    padding: 44px 10px 50px 10px;
+    padding: 6px 10px 50px 10px;
   }
   .header {
     margin-bottom: 10px;

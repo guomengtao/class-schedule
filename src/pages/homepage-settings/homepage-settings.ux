@@ -787,7 +787,7 @@ export default {
 
 @media (shape: rect) {
   .page {
-    padding: 44px 8px 8px 8px;
+    padding: 6px 8px 8px 8px;
   }
   
   
