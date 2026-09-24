@@ -9,52 +9,57 @@
     </div>
 
     <div class="crash-banner" if="{{ crashedAt }}" style="background-color: {{ theme.card }}">
-      <text class="crash-banner-text" style="color: #e74c3c">⚠ 上次崩在: {{ crashedAt }}</text>
-      <text class="crash-banner-text" style="color: {{ theme.textSecondary }}">该项建议不要再点</text>
+      <text class="crash-banner-text" style="color: #e74c3c">上次崩在: {{ crashedAt }}</text>
     </div>
 
-    <text class="tip" style="color: {{ theme.textSecondary }}">点哪个测哪个，出结果后再点下一个。标 ⚠ 的可能导致设备重启，建议最后测。</text>
-
     <scroll class="body" scroll-y="true">
-      <div class="btn-item" onclick="doLocalUUID" style="background-color: {{ theme.card }}">
-        <text class="btn-label" style="color: {{ theme.accent }}">本地 UUID</text>
-        <text class="btn-flag" style="color: {{ theme.textMuted }}">安全</text>
+      <div class="cell">
+        <div class="btn-item" onclick="doLocalUUID" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">本地 UUID</text>
+        </div>
+        <text class="item-res" if="{{ r.localUUID }}" style="color: {{ r.localUUID.ok ? theme.text : '#e74c3c' }}">{{ r.localUUID.value }}</text>
       </div>
 
-      <div class="btn-item" onclick="doGetInfo" style="background-color: {{ theme.card }}">
-        <text class="btn-label" style="color: {{ theme.accent }}">getInfo</text>
-        <text class="btn-flag" style="color: {{ theme.textMuted }}">安全</text>
+      <div class="cell">
+        <div class="btn-item" onclick="doGetInfo" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">getInfo</text>
+        </div>
+        <text class="item-res" if="{{ r.getInfo }}" style="color: {{ r.getInfo.ok ? theme.text : '#e74c3c' }}">{{ r.getInfo.value }}</text>
       </div>
 
-      <div class="btn-item" onclick="doGetUA" style="background-color: {{ theme.card }}">
-        <text class="btn-label" style="color: {{ theme.accent }}">getUA</text>
-        <text class="btn-flag" style="color: {{ theme.textMuted }}">安全</text>
+      <div class="cell">
+        <div class="btn-item" onclick="doGetUA" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">getUA</text>
+        </div>
+        <text class="item-res" if="{{ r.getUA }}" style="color: {{ r.getUA.ok ? theme.text : '#e74c3c' }}">{{ r.getUA.value }}</text>
       </div>
 
-      <div class="btn-item" onclick="doGetDeviceId" style="background-color: {{ theme.card }}">
-        <text class="btn-label" style="color: #e74c3c">getDeviceId</text>
-        <text class="btn-flag" style="color: #e74c3c">⚠ 有风险</text>
+      <div class="cell">
+        <div class="btn-item" onclick="doGetDeviceId" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">getDeviceId</text>
+        </div>
+        <text class="item-res" if="{{ r.getDeviceId }}" style="color: {{ r.getDeviceId.ok ? theme.text : '#e74c3c' }}">{{ r.getDeviceId.value }}</text>
       </div>
 
-      <div class="btn-item" onclick="doGetSerial" style="background-color: {{ theme.card }}">
-        <text class="btn-label" style="color: #e74c3c">getSerial</text>
-        <text class="btn-flag" style="color: #e74c3c">⚠ 有风险</text>
+      <div class="cell">
+        <div class="btn-item" onclick="doGetSerial" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">getSerial</text>
+        </div>
+        <text class="item-res" if="{{ r.getSerial }}" style="color: {{ r.getSerial.ok ? theme.text : '#e74c3c' }}">{{ r.getSerial.value }}</text>
       </div>
 
-      <div class="btn-item" onclick="doGetMac" style="background-color: {{ theme.card }}">
-        <text class="btn-label" style="color: #e74c3c">getMac</text>
-        <text class="btn-flag" style="color: #e74c3c">⚠ 有风险</text>
+      <div class="cell">
+        <div class="btn-item" onclick="doGetMac" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">getMac</text>
+        </div>
+        <text class="item-res" if="{{ r.getMac }}" style="color: {{ r.getMac.ok ? theme.text : '#e74c3c' }}">{{ r.getMac.value }}</text>
       </div>
 
-      <div class="btn-item" onclick="doGetId" style="background-color: {{ theme.card }}">
-        <text class="btn-label" style="color: #e74c3c">getId</text>
-        <text class="btn-flag" style="color: #e74c3c">⚠ 有风险</text>
-      </div>
-
-      <text class="result-title" if="{{ results.length > 0 }}" style="color: {{ theme.textSecondary }}">结果</text>
-      <div class="row" for="{{ results }}" style="flex-shrink: 0">
-        <text class="row-label" style="color: {{ theme.accent }}">{{ $item.label }}</text>
-        <text class="row-value" style="color: {{ $item.ok ? theme.text : '#e74c3c' }}">{{ $item.value }}</text>
+      <div class="cell">
+        <div class="btn-item" onclick="doGetId" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">getId</text>
+        </div>
+        <text class="item-res" if="{{ r.getId }}" style="color: {{ r.getId.ok ? theme.text : '#e74c3c' }}">{{ r.getId.value }}</text>
       </div>
     </scroll>
   </div>
@@ -64,7 +69,6 @@
 import router from "@system.router"
 var device = require("@system.device")
 var storage = require("@system.storage")
-var prompt = require("@system.prompt")
 var store = require("../../data/store.js")
 
 var PROGRESS_KEY = "diag_progress_v2"
@@ -91,7 +95,15 @@ export default {
       textSecondary: '#888899',
       textMuted: '#555566'
     },
-    results: [],
+    r: {
+      localUUID: null,
+      getInfo: null,
+      getUA: null,
+      getDeviceId: null,
+      getSerial: null,
+      getMac: null,
+      getId: null
+    },
     crashedAt: '',
     running: false
   },
@@ -121,7 +133,6 @@ export default {
       success: function(data) {
         if (data) {
           self.crashedAt = String(data)
-          self.addResult('⚠ 上次崩在', false, String(data))
           storage.set({ key: PROGRESS_KEY, value: '' })
         }
       },
@@ -129,11 +140,10 @@ export default {
     })
   },
 
-  // ===== 7 个按钮，点哪个测哪个 =====
+  // ===== 7 个按钮，点哪个测哪个，结果直接显示在该按钮下方 =====
 
   doLocalUUID() {
-    var self = this
-    self.beginTest('localUUID', '本地 UUID', false, function(done) {
+    this.runTest('localUUID', function(done) {
       storage.get({
         key: UUID_KEY,
         success: function(data) {
@@ -155,8 +165,7 @@ export default {
   },
 
   doGetInfo() {
-    var self = this
-    self.beginTest('getInfo', 'getInfo', false, function(done) {
+    this.runTest('getInfo', function(done) {
       device.getInfo({
         success: function(ret) {
           var id = ret.deviceId || ret.serialNumber || ret.udid || ''
@@ -168,8 +177,7 @@ export default {
   },
 
   doGetUA() {
-    var self = this
-    self.beginTest('getUA', 'getUA', false, function(done) {
+    this.runTest('getUA', function(done) {
       if (typeof device.getUA !== 'function') { done(false, 'API不存在'); return }
       device.getUA({
         success: function(data) { done(true, JSON.stringify(data)) },
@@ -179,8 +187,7 @@ export default {
   },
 
   doGetDeviceId() {
-    var self = this
-    self.beginTest('getDeviceId', 'getDeviceId', true, function(done) {
+    this.runTest('getDeviceId', function(done) {
       device.getDeviceId({
         success: function(data) {
           var raw = data.deviceId
@@ -192,8 +199,7 @@ export default {
   },
 
   doGetSerial() {
-    var self = this
-    self.beginTest('getSerial', 'getSerial', true, function(done) {
+    this.runTest('getSerial', function(done) {
       device.getSerial({
         success: function(data) {
           var raw = data.serial
@@ -205,8 +211,7 @@ export default {
   },
 
   doGetMac() {
-    var self = this
-    self.beginTest('getMac', 'getMac', true, function(done) {
+    this.runTest('getMac', function(done) {
       if (typeof device.getMac !== 'function') { done(false, 'API不存在'); return }
       device.getMac({
         success: function(data) {
@@ -219,8 +224,7 @@ export default {
   },
 
   doGetId() {
-    var self = this
-    self.beginTest('getId', 'getId', true, function(done) {
+    this.runTest('getId', function(done) {
       if (typeof device.getId !== 'function') { done(false, 'API不存在'); return }
       device.getId({
         success: function(data) { done(true, JSON.stringify(data)) },
@@ -229,58 +233,50 @@ export default {
     })
   },
 
-  // 单次测试公共流程：危险项先确认 → 落盘进度 → 延时 → 执行 → 记录
-  beginTest(key, label, isDanger, runner) {
+  // 单次测试：落盘进度 → 延时 → 执行 → 显示结果
+  runTest(key, runner) {
     var self = this
     if (self.running) return
-
-    var go = function() {
-      self.running = true
-      storage.set({
-        key: PROGRESS_KEY,
-        value: key,
-        success: function() { self.execTest(label, runner) },
-        fail: function() { self.execTest(label, runner) }
-      })
-    }
-
-    if (isDanger) {
-      try {
-        prompt.showDialog({
-          title: '风险提示',
-          message: '测试 ' + label + ' 可能导致设备重启，确定继续？',
-          buttons: [{ text: '取消', color: '#888899' }, { text: '继续', color: '#e74c3c' }],
-          success: function(res) { if (res && res.index === 1) { go() } },
-          fail: function() { go() }
-        })
-      } catch (e) {
-        go()
-      }
-    } else {
-      go()
-    }
+    self.running = true
+    storage.set({
+      key: PROGRESS_KEY,
+      value: key,
+      success: function() { self.execTest(key, runner) },
+      fail: function() { self.execTest(key, runner) }
+    })
   },
 
-  execTest(label, runner) {
+  execTest(key, runner) {
     var self = this
     // 延时确保进度落盘完成后再调用可能崩溃的 API
     setTimeout(function() {
-      try {
-        runner(function(ok, value) {
-          self.running = false
-          self.addResult(label, ok, value)
-          storage.set({ key: PROGRESS_KEY, value: '' })
-        })
-      } catch (e) {
+      var finish = function(ok, value) {
         self.running = false
-        self.addResult(label, false, '异常')
+        self.setRes(key, ok, value)
         storage.set({ key: PROGRESS_KEY, value: '' })
+      }
+      try {
+        runner(finish)
+      } catch (e) {
+        finish(false, '异常')
       }
     }, 350)
   },
 
-  addResult(label, ok, value) {
-    this.results.push({ label: label, ok: ok, value: value })
+  setRes(key, ok, value) {
+    var o = this.r
+    // 整体重建对象后再赋值，确保视图刷新（不用循环）
+    var nr = {
+      localUUID: o.localUUID,
+      getInfo: o.getInfo,
+      getUA: o.getUA,
+      getDeviceId: o.getDeviceId,
+      getSerial: o.getSerial,
+      getMac: o.getMac,
+      getId: o.getId
+    }
+    nr[key] = { ok: ok, value: value }
+    this.r = nr
   },
 
   goBack() {
@@ -314,26 +310,22 @@ export default {
   text-overflow: ellipsis;
 }
 
-.tip {
-  flex-shrink: 0;
-  font-size: 20px;
-  line-height: 27px;
-  padding: 2px 2px 8px 2px;
-}
-
 .body {
   flex: 1;
   flex-direction: column;
 }
 
+.cell {
+  flex-direction: column;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
 .btn-item {
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
   border-radius: 8px;
   padding: 10px 12px;
-  margin-bottom: 6px;
-  flex-shrink: 0;
 }
 
 .btn-label {
@@ -342,36 +334,10 @@ export default {
   lines: 1;
 }
 
-.btn-flag {
-  font-size: 20px;
-  line-height: 28px;
-  lines: 1;
-  flex-shrink: 0;
-  margin-left: 8px;
-}
-
-.result-title {
-  flex-shrink: 0;
+.item-res {
   font-size: 22px;
   line-height: 30px;
-  padding: 8px 2px 4px 2px;
-}
-
-.row {
-  flex-direction: column;
-  padding: 4px 2px;
-  flex-shrink: 0;
-}
-
-.row-label {
-  font-size: 22px;
-  line-height: 30px;
-  lines: 1;
-}
-
-.row-value {
-  font-size: 22px;
-  line-height: 30px;
+  padding: 4px 4px 0 4px;
   lines: 0;
   word-break: break-all;
 }
