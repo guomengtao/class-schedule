@@ -9,22 +9,24 @@
     </div>
 
     <div class="crash-banner" if="{{ crashedAt }}" style="background-color: {{ theme.card }}">
-      <text class="crash-banner-text" style="color: #e74c3c">上次崩在: {{ crashedAt }}</text>
-      <text class="crash-banner-text" style="color: {{ theme.textSecondary }}">已跳过,继续测其它</text>
+      <text class="crash-banner-text" style="color: #e74c3c">⚠ 上次崩在: {{ crashedAt }}</text>
+      <text class="crash-banner-text" style="color: {{ theme.textSecondary }}">该项建议不要再点</text>
     </div>
 
-    <text class="empty-tip" if="{{ results.length === 0 }}" style="color: {{ theme.textMuted }}">点下方「开始测试」逐项检测各设备接口。测试可能触发崩溃，崩过的项会在下次自动跳过。</text>
+    <text class="tip" style="color: {{ theme.textSecondary }}">每次只点一项，出结果后再点下一项。标 ⚠ 的可能导致设备重启，建议最后测。</text>
 
-    <scroll class="list" scroll-y="true">
+    <scroll class="body" scroll-y="true">
+      <div class="btn-item" for="{{ testList }}" onclick="runOne($idx)" style="background-color: {{ theme.card }}">
+        <text class="btn-label" style="color: {{ $item.danger ? '#e74c3c' : theme.accent }}">{{ $item.label }}</text>
+        <text class="btn-flag" style="color: {{ $item.danger ? '#e74c3c' : theme.textMuted }}">{{ $item.danger ? '⚠ 有风险' : '安全' }}</text>
+      </div>
+
+      <text class="result-title" if="{{ results.length > 0 }}" style="color: {{ theme.textSecondary }}">结果</text>
       <div class="row" for="{{ results }}" style="flex-shrink: 0">
-        <text class="row-num" style="color: {{ theme.accent }}">{{ $idx + 1 }}. {{ $item.label }}</text>
+        <text class="row-label" style="color: {{ theme.accent }}">{{ $item.label }}</text>
         <text class="row-value" style="color: {{ $item.ok ? theme.text : '#e74c3c' }}">{{ $item.value }}</text>
       </div>
     </scroll>
-
-    <div class="btn-row">
-      <input class="retry-btn" type="button" value="{{ running ? '测试中...' : '开始测试' }}" onclick="startTests" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-    </div>
   </div>
 </template>
 
@@ -32,6 +34,7 @@
 import router from "@system.router"
 var device = require("@system.device")
 var storage = require("@system.storage")
+var prompt = require("@system.prompt")
 var store = require("../../data/store.js")
 
 var PROGRESS_KEY = "diag_progress_v2"
@@ -58,10 +61,18 @@ export default {
       textSecondary: '#888899',
       textMuted: '#555566'
     },
+    testList: [
+      { key: 'localUUID',   label: '本地 UUID',   danger: false },
+      { key: 'getInfo',     label: 'getInfo',     danger: false },
+      { key: 'getUA',       label: 'getUA',       danger: false },
+      { key: 'getDeviceId', label: 'getDeviceId', danger: true  },
+      { key: 'getSerial',   label: 'getSerial',   danger: true  },
+      { key: 'getMac',      label: 'getMac',      danger: true  },
+      { key: 'getId',       label: 'getId',       danger: true  }
+    ],
     results: [],
     crashedAt: '',
-    running: false,
-    stopped: false
+    running: false
   },
 
   onInit() {
@@ -81,6 +92,7 @@ export default {
     })
   },
 
+  // 只读取上次崩溃记录，绝不自动跑测试
   loadProgress() {
     var self = this
     storage.get({
@@ -88,219 +100,173 @@ export default {
       success: function(data) {
         if (data) {
           self.crashedAt = String(data)
+          self.addResult('⚠ 上次崩在', false, String(data))
+          storage.set({ key: PROGRESS_KEY, value: '' })
         }
       },
       fail: function() {}
     })
   },
 
-  startTests() {
+  // 点击某一项：危险项先二次确认，再单次执行
+  runOne(idx) {
+    var self = this
+    if (self.running) return
+    var item = self.testList[idx]
+    if (!item) return
+
+    if (item.danger) {
+      var go = function() { self.startOne(item) }
+      try {
+        prompt.showDialog({
+          title: '风险提示',
+          message: '测试 ' + item.label + ' 可能导致设备重启，确定继续？',
+          buttons: [{ text: '取消', color: '#888899' }, { text: '继续', color: '#e74c3c' }],
+          success: function(res) {
+            if (res && res.index === 1) { go() }
+          },
+          fail: function() { go() }
+        })
+      } catch (e) {
+        go()
+      }
+      return
+    }
+    self.startOne(item)
+  },
+
+  // 单次执行：先落盘"正在测 X"（崩溃前已记录），延时后再调 API
+  startOne(item) {
     var self = this
     if (self.running) return
     self.running = true
-    self.stopped = false
-    self.results = []
+    storage.set({
+      key: PROGRESS_KEY,
+      value: item.key,
+      success: function() { self.launch(item) },
+      fail: function() { self.launch(item) }
+    })
+  },
 
-    // 全部逐项跑完（安全 + 危险），完整列出每项是否支持/获取不到/崩溃；不再"拿到一个就提前终止"
-    self.runSafeAPIs(function() {
-      self.runDangerousAPIs(function() {
+  launch(item) {
+    var self = this
+    // 延时确保 storage 落盘完成，再调用可能崩溃的 API
+    setTimeout(function() {
+      self.callTest(item.key, function(ok, value) {
         self.running = false
-        self.addResult('完成', true, '全部项目测试完毕')
+        self.addResult(item.label, ok, value)
+        // 没崩、正常返回 → 清除进度记录
+        storage.set({ key: PROGRESS_KEY, value: '' })
       })
-    })
+    }, 350)
   },
 
-  runSafeAPIs(finish) {
-    var self = this
-    var safeTests = ['testLocalUUID', 'testGetInfo', 'testGetUA']
-
-    function runNext(idx) {
-      if (self.stopped) return
-      if (idx >= safeTests.length) {
-        finish()
-        return
-      }
-      var fn = safeTests[idx]
-      if (self.crashedAt === fn) {
-        self.addResult(fn, false, '(已跳过-上次崩)')
-        runNext(idx + 1)
-        return
-      }
-      self.saveProgress(fn, function() {
-        self[fn](function() {
-          self.clearProgress(function() {
-            setTimeout(function() { runNext(idx + 1) }, 400)
-          })
-        })
-      })
+  callTest(key, cb) {
+    var fnName = 'test_' + key
+    if (typeof this[fnName] !== 'function') {
+      cb(false, '未知测试')
+      return
     }
-
-    runNext(0)
-  },
-
-  runDangerousAPIs(finish) {
-    var self = this
-    var dangerTests = ['testGetDeviceId', 'testGetSerial', 'testGetMac', 'testGetId']
-
-    function runNext(idx) {
-      if (self.stopped) return
-      if (idx >= dangerTests.length) {
-        finish()
-        return
-      }
-      var fn = dangerTests[idx]
-      if (self.crashedAt === fn) {
-        self.addResult(fn, false, '(已跳过-上次崩)')
-        runNext(idx + 1)
-        return
-      }
-      self.saveProgress(fn, function() {
-        self[fn](function() {
-          self.clearProgress(function() {
-            setTimeout(function() { runNext(idx + 1) }, 500)
-          })
-        })
-      })
+    try {
+      this[fnName](cb)
+    } catch (e) {
+      cb(false, '异常')
     }
-
-    runNext(0)
   },
 
-  saveProgress(fn, done) {
-    storage.set({
-      key: PROGRESS_KEY,
-      value: fn,
-      success: done,
-      fail: done
-    })
-  },
-
-  clearProgress(done) {
-    storage.set({
-      key: PROGRESS_KEY,
-      value: '',
-      success: done,
-      fail: done
-    })
-  },
-
-  addResult(label, ok, value) {
-    this.results.push({ label: label, ok: ok, value: value })
-  },
-
-  testLocalUUID(done) {
-    var self = this
+  test_localUUID(cb) {
     try {
       storage.get({
         key: UUID_KEY,
         success: function(data) {
           if (data) {
-            self.addResult('本地UUID', true, String(data))
+            cb(true, String(data))
           } else {
             var uuid = generateUUID()
             storage.set({
               key: UUID_KEY,
               value: uuid,
-              success: function() { self.addResult('本地UUID', true, uuid) },
-              fail: function() { self.addResult('本地UUID', false, uuid + '(存储失败)') }
+              success: function() { cb(true, uuid) },
+              fail: function() { cb(false, uuid + '(存储失败)') }
             })
           }
-          done()
         },
-        fail: function() { self.addResult('本地UUID', false, '读取失败'); done() }
+        fail: function() { cb(false, '读取失败') }
       })
-    } catch (e) { self.addResult('本地UUID', false, '异常'); done() }
+    } catch (e) { cb(false, '异常') }
   },
 
-  testGetInfo(done) {
-    var self = this
+  test_getInfo(cb) {
     try {
       device.getInfo({
         success: function(ret) {
           var id = ret.deviceId || ret.serialNumber || ret.udid || ''
-          self.addResult('getInfo隐藏ID', !!id, id || '(无)')
-          done()
+          cb(!!id, id || '(无)')
         },
-        fail: function() { self.addResult('getInfo隐藏ID', false, '获取失败'); done() }
+        fail: function() { cb(false, '获取失败') }
       })
-    } catch (e) { self.addResult('getInfo隐藏ID', false, '异常'); done() }
+    } catch (e) { cb(false, '异常') }
   },
 
-  testGetUA(done) {
-    var self = this
+  test_getUA(cb) {
     try {
-      if (typeof device.getUA !== 'function') {
-        self.addResult('getUA', false, 'API不存在')
-        done()
-        return
-      }
+      if (typeof device.getUA !== 'function') { cb(false, 'API不存在'); return }
       device.getUA({
-        success: function(data) { self.addResult('getUA', true, JSON.stringify(data)); done() },
-        fail: function() { self.addResult('getUA', false, '获取失败'); done() }
+        success: function(data) { cb(true, JSON.stringify(data)) },
+        fail: function() { cb(false, '获取失败') }
       })
-    } catch (e) { self.addResult('getUA', false, '异常'); done() }
+    } catch (e) { cb(false, '异常') }
   },
 
-  testGetDeviceId(done) {
-    var self = this
+  test_getDeviceId(cb) {
     try {
       device.getDeviceId({
         success: function(data) {
           var raw = data.deviceId
-          self.addResult('getDeviceId', !!(raw && raw !== 'NA'), raw || '(空)')
-          done()
+          cb(!!(raw && raw !== 'NA'), raw || '(空)')
         },
-        fail: function() { self.addResult('getDeviceId', false, '获取失败'); done() }
+        fail: function() { cb(false, '获取失败') }
       })
-    } catch (e) { self.addResult('getDeviceId', false, '异常'); done() }
+    } catch (e) { cb(false, '异常') }
   },
 
-  testGetSerial(done) {
-    var self = this
+  test_getSerial(cb) {
     try {
       device.getSerial({
         success: function(data) {
           var raw = data.serial
-          self.addResult('getSerial', !!(raw && raw !== 'NA'), raw || '(空)')
-          done()
+          cb(!!(raw && raw !== 'NA'), raw || '(空)')
         },
-        fail: function() { self.addResult('getSerial', false, '获取失败'); done() }
+        fail: function() { cb(false, '获取失败') }
       })
-    } catch (e) { self.addResult('getSerial', false, '异常'); done() }
+    } catch (e) { cb(false, '异常') }
   },
 
-  testGetMac(done) {
-    var self = this
+  test_getMac(cb) {
     try {
-      if (typeof device.getMac !== 'function') {
-        self.addResult('getMac', false, 'API不存在')
-        done()
-        return
-      }
+      if (typeof device.getMac !== 'function') { cb(false, 'API不存在'); return }
       device.getMac({
         success: function(data) {
           var raw = data.mac || data.address || ''
-          self.addResult('getMac', !!raw, raw || '(空)')
-          done()
+          cb(!!raw, raw || '(空)')
         },
-        fail: function() { self.addResult('getMac', false, '获取失败'); done() }
+        fail: function() { cb(false, '获取失败') }
       })
-    } catch (e) { self.addResult('getMac', false, '异常'); done() }
+    } catch (e) { cb(false, '异常') }
   },
 
-  testGetId(done) {
-    var self = this
+  test_getId(cb) {
     try {
-      if (typeof device.getId !== 'function') {
-        self.addResult('getId', false, 'API不存在')
-        done()
-        return
-      }
+      if (typeof device.getId !== 'function') { cb(false, 'API不存在'); return }
       device.getId({
-        success: function(data) { self.addResult('getId', true, JSON.stringify(data)); done() },
-        fail: function() { self.addResult('getId', false, '获取失败'); done() }
+        success: function(data) { cb(true, JSON.stringify(data)) },
+        fail: function() { cb(false, '获取失败') }
       })
-    } catch (e) { self.addResult('getId', false, '异常'); done() }
+    } catch (e) { cb(false, '异常') }
+  },
+
+  addResult(label, ok, value) {
+    this.results.push({ label: label, ok: ok, value: value })
   },
 
   goBack() {
@@ -330,63 +296,70 @@ export default {
 .crash-banner-text {
   font-size: 20px;
   line-height: 28px;
-  max-lines: 1;
+  lines: 1;
   text-overflow: ellipsis;
 }
 
-.empty-tip {
+.tip {
+  flex-shrink: 0;
+  font-size: 20px;
+  line-height: 27px;
+  padding: 2px 2px 8px 2px;
+}
+
+.body {
+  flex: 1;
+  flex-direction: column;
+}
+
+.btn-item {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+
+.btn-label {
+  font-size: 24px;
+  line-height: 32px;
+  lines: 1;
+}
+
+.btn-flag {
+  font-size: 20px;
+  line-height: 28px;
+  lines: 1;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.result-title {
   flex-shrink: 0;
   font-size: 22px;
   line-height: 30px;
-  padding: 6px 2px 8px 2px;
-}
-
-.list {
-  flex: 1;
-  flex-direction: column;
-  padding-bottom: 4px;
+  padding: 8px 2px 4px 2px;
 }
 
 .row {
-  flex-direction: row;
-  align-items: center;
-  padding: 4px 0;
+  flex-direction: column;
+  padding: 4px 2px;
   flex-shrink: 0;
 }
 
-.row-num {
-  width: 110px;
-  flex-shrink: 0;
+.row-label {
   font-size: 22px;
   line-height: 30px;
-  max-lines: 1;
-  text-overflow: ellipsis;
+  lines: 1;
 }
 
 .row-value {
-  flex: 1;
   font-size: 22px;
   line-height: 30px;
-  max-lines: 2;
-  text-overflow: ellipsis;
+  lines: 0;
   word-break: break-all;
-}
-
-.btn-row {
-  flex-direction: row;
-  justify-content: center;
-  flex-shrink: 0;
-  padding: 6px 0 14px 0;
-}
-
-.retry-btn {
-  width: 160px;
-  height: 40px;
-  border-radius: 8px;
-  font-size: 24px;
-  font-weight: bold;
-  text-align: center;
-  line-height: 40px;
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
