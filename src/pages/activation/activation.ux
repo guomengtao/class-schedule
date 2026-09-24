@@ -390,22 +390,34 @@ export default {
       var device = require("@system.device")
       device.getDeviceId({
         success: function(data) {
-          self.deviceId = data.deviceId || '未知'
-          self.deviceIdDisplay = (data.deviceId || '未知').slice(-6)
-          self.updateQrText()
-          self.fetchDeviceInfo()
+          var raw = data.deviceId || ''
+          if (!raw || raw === 'NA' || raw === 'unknown' || raw === 'null') {
+            self._fallbackToLocalUUID()
+          } else {
+            self.deviceId = raw
+            self.deviceIdDisplay = raw.slice(-6)
+            self.updateQrText()
+            self.fetchDeviceInfo()
+          }
         },
-        fail: function(data, code) {
-          self.deviceId = '获取失败(' + code + ')'
-          self.deviceIdDisplay = '获取失败(' + code + ')'
-          self.qrText = ACTIVATION_URL + 'unknown'
+        fail: function() {
+          self._fallbackToLocalUUID()
         }
       })
     } catch (e) {
-      self.deviceId = '不可用'
-      self.deviceIdDisplay = '不可用'
-      self.qrText = ACTIVATION_URL + 'demo'
+      self._fallbackToLocalUUID()
     }
+  },
+
+  _fallbackToLocalUUID() {
+    var self = this
+    var deviceUuid = require("../../utils/device-uuid.js")
+    deviceUuid.getLocalDeviceId(function(id) {
+      self.deviceId = id
+      self.deviceIdDisplay = id.slice(-6)
+      self.updateQrText()
+      self.fetchDeviceInfo()
+    })
   },
 
   fetchDeviceInfo() {
