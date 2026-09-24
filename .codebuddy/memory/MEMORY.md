@@ -6,6 +6,7 @@
 - 姊妹文档：胶囊屏专项走查报告、标准版对高级版控制方式、项目完善度分析、Ev课程表_手环字号规范_v1
 - `manifest.json` 的 `deviceTypeList` 只能是 `["watch"]`（Vela 官方《项目配置》：可选 watch/tv/car/phone，现仅支持 watch；`band` 非法）
   - 注：aiot-toolkit 不校验取值，写 `band` 也能构建并额外生成 `manifest-band.json`；仓库历史里为"手环11装不上"曾加过 `band`，属推测性方案，非官方取值。若手环11再次出现"装完找不到图标"，可临时加回 `band` 做 A/B 验证
+  - **实测（2026-09-25）**：手环 11 与手环 9 的 `device.getInfo().deviceType` 均返回 **`band`**。注意区分两个概念：`deviceTypeList` 是 manifest 的*声明*，`deviceType` 是设备*自报*；两者不一致实测**不阻断安装与运行**（应用已装上并跑通激活页），但运行时是否触发能力限制（组件/API 白名单）暂无证据
 - `manifest.json` 的 `router._groups` / `pages[*].group` / `pages[*].name_cn` 是**自定义元数据**（官方只认 component/path/launchMode），当前被忽略但必须与 `router.pages` 保持同步：分组里列了未注册页、或注册页未进分组，都会误导维护者。改动路由后务必同步
 
 ## 当前状态（2026-09-19）
@@ -16,6 +17,20 @@
 - **字号设置只作用于「首页课程卡片」**，这是有意设计，不是缺陷。其他页面使用固定字号（保证按钮 ≥48px、行高 1.2×字号、胶囊屏 192px 不溢出）
 - 设置项 UI 必须声明范围：标题「首页课程字号」+ 说明「仅影响首页课程卡片，其他页面为固定字号」
 - **不要做全局字号联动**——会同时拖累字号控制合规性、胶囊屏文字可读性、布局与触控三个维度
+
+## 跑道屏设备实测参数（2026-09-25）
+两台跑道屏设备的 `device.getInfo()` 实测值（取自激活 URL，字段含义见 `src/pages/activation/activation.ux:429-440` 的 `fetchDeviceInfo()`）：
+
+| 设备 | screenShape | screenWidth | screenHeight | deviceType | platformVersionCode | APILevel | osVersionCode | 实测版本 |
+|---|---|---|---|---|---|---|---|---|
+| 小米手环 11 | pill-shaped | **212** | **520** | band | 1200 | 2 | 0 | 1.6.59（channel `g`） |
+| 小米手环 9 | pill-shaped | **192** | **490** | band | 1200 | 2 | 198145 | 1.6.100（channel `t-9p-d`） |
+| 小米手环 10 Pro | rect（既有设计基准 336×480） | 336 | 480 | 未采集 | — | — | — | 未采集 |
+
+关键事实：
+- 跑道屏设备的 `screenShape` 返回 **`pill-shaped`**；而项目多个页面又同时接受 `capsule`（`index.ux` / `week-view.ux` / `course-manager.ux` 都写 `capsule || pill-shaped`），说明**两种值在真机上都出现过** → 任何屏型归一化都必须同时认这两个；而 `device-info.ux` 的 `screenShapeMap` 目前**不认识 `capsule`**，取证时会误判
+- **手环 11 宽 212px**，是项目首次出现的胶囊宽度。所有胶囊规范（字号阶梯、`week-view` 列宽 `160 ÷ cellWidth`、192px 居中算法）都按 **192** 定标；212 比基准宽 **10.4%**，需要单独评估
+- 手环 11 的 `osVersionCode = 0`（未返回），说明新机型 ROM 字段完整度不同 → 不要假设 `getInfo` 字段一定存在
 
 ## 胶囊屏（192px 宽）硬约束
 - `week-view` 可视列数须 ∈ [2.5, 3.5]（`160 ÷ cellWidth`）；胶囊屏关闭行号列（`rowNumWidth = 0`），`cellWidth ≤ 60`
