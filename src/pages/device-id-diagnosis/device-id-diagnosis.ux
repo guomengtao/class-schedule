@@ -13,6 +13,8 @@
       <text class="crash-banner-text" style="color: {{ theme.textSecondary }}">已跳过,继续测其它</text>
     </div>
 
+    <text class="empty-tip" if="{{ results.length === 0 }}" style="color: {{ theme.textMuted }}">点下方「开始测试」逐项检测各设备接口。测试可能触发崩溃，崩过的项会在下次自动跳过。</text>
+
     <scroll class="list" scroll-y="true">
       <div class="row" for="{{ results }}" style="flex-shrink: 0">
         <text class="row-num" style="color: {{ theme.accent }}">{{ $idx + 1 }}. {{ $item.label }}</text>
@@ -20,7 +22,7 @@
       </div>
     </scroll>
 
-    <input class="retry-btn" type="button" value="重新测试" onclick="startTests" style="flex-shrink: 0; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    <input class="retry-btn" type="button" value="{{ running ? '测试中...' : '开始测试' }}" onclick="startTests" style="flex-shrink: 0; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
   </div>
 </template>
 
@@ -66,7 +68,7 @@ export default {
       self.theme = t
       self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
     })
-    self.recoverOrStart()
+    self.loadProgress()
   },
 
   onShow() {
@@ -77,7 +79,7 @@ export default {
     })
   },
 
-  recoverOrStart() {
+  loadProgress() {
     var self = this
     storage.get({
       key: PROGRESS_KEY,
@@ -85,11 +87,8 @@ export default {
         if (data) {
           self.crashedAt = String(data)
         }
-        self.startTests()
       },
-      fail: function() {
-        self.startTests()
-      }
+      fail: function() {}
     })
   },
 
@@ -331,6 +330,13 @@ export default {
   line-height: 28px;
   max-lines: 1;
   text-overflow: ellipsis;
+}
+
+.empty-tip {
+  flex-shrink: 0;
+  font-size: 22px;
+  line-height: 30px;
+  padding: 6px 2px 8px 2px;
 }
 
 .list {
