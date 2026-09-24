@@ -100,13 +100,11 @@ export default {
     self.stopped = false
     self.results = []
 
-    self.runSafeAPIs(function(gotID) {
-      if (gotID) {
-        self.running = false
-        return
-      }
+    // 全部逐项跑完（安全 + 危险），完整列出每项是否支持/获取不到/崩溃；不再"拿到一个就提前终止"
+    self.runSafeAPIs(function() {
       self.runDangerousAPIs(function() {
         self.running = false
+        self.addResult('完成', true, '全部项目测试完毕')
       })
     })
   },
@@ -118,8 +116,7 @@ export default {
     function runNext(idx) {
       if (self.stopped) return
       if (idx >= safeTests.length) {
-        var gotID = self.results.some(function(r) { return r.ok })
-        finish(gotID)
+        finish()
         return
       }
       var fn = safeTests[idx]
@@ -131,12 +128,7 @@ export default {
       self.saveProgress(fn, function() {
         self[fn](function() {
           self.clearProgress(function() {
-            var gotID = self.results.some(function(r) { return r.ok })
-            if (gotID) {
-              self.clearProgress(function() { finish(true) })
-            } else {
-              setTimeout(function() { runNext(idx + 1) }, 500)
-            }
+            setTimeout(function() { runNext(idx + 1) }, 400)
           })
         })
       })
