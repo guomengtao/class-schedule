@@ -11,49 +11,49 @@
     <scroll class="body" scroll-y="true">
       <div class="cell">
         <div class="btn-item" onclick="doLocalUUID" style="background-color: {{ theme.card }}">
-          <text class="btn-label" style="color: {{ theme.accent }}">本地 UUID</text>
+          <text class="btn-label" style="color: {{ theme.accent }}">1. 本地 UUID</text>
         </div>
         <text class="item-res" if="{{ r.localUUID }}" style="color: {{ r.localUUID.ok ? theme.text : '#e74c3c' }}">{{ r.localUUID.value }}</text>
       </div>
 
       <div class="cell">
         <div class="btn-item" onclick="doGetInfo" style="background-color: {{ theme.card }}">
-          <text class="btn-label" style="color: {{ theme.accent }}">getInfo</text>
+          <text class="btn-label" style="color: {{ theme.accent }}">2. getInfo</text>
         </div>
         <text class="item-res" if="{{ r.getInfo }}" style="color: {{ r.getInfo.ok ? theme.text : '#e74c3c' }}">{{ r.getInfo.value }}</text>
       </div>
 
       <div class="cell">
         <div class="btn-item" onclick="doGetUA" style="background-color: {{ theme.card }}">
-          <text class="btn-label" style="color: {{ theme.accent }}">getUA</text>
+          <text class="btn-label" style="color: {{ theme.accent }}">3. getUA</text>
         </div>
         <text class="item-res" if="{{ r.getUA }}" style="color: {{ r.getUA.ok ? theme.text : '#e74c3c' }}">{{ r.getUA.value }}</text>
       </div>
 
       <div class="cell">
         <div class="btn-item" onclick="doGetDeviceId" style="background-color: {{ theme.card }}">
-          <text class="btn-label" style="color: {{ theme.accent }}">getDeviceId</text>
+          <text class="btn-label" style="color: {{ theme.accent }}">4. getDeviceId</text>
         </div>
         <text class="item-res" if="{{ r.getDeviceId }}" style="color: {{ r.getDeviceId.ok ? theme.text : '#e74c3c' }}">{{ r.getDeviceId.value }}</text>
       </div>
 
       <div class="cell">
         <div class="btn-item" onclick="doGetSerial" style="background-color: {{ theme.card }}">
-          <text class="btn-label" style="color: {{ theme.accent }}">getSerial</text>
+          <text class="btn-label" style="color: {{ theme.accent }}">5. getSerial</text>
         </div>
         <text class="item-res" if="{{ r.getSerial }}" style="color: {{ r.getSerial.ok ? theme.text : '#e74c3c' }}">{{ r.getSerial.value }}</text>
       </div>
 
       <div class="cell">
         <div class="btn-item" onclick="doGetMac" style="background-color: {{ theme.card }}">
-          <text class="btn-label" style="color: {{ theme.accent }}">getMac</text>
+          <text class="btn-label" style="color: {{ theme.accent }}">6. getMac</text>
         </div>
         <text class="item-res" if="{{ r.getMac }}" style="color: {{ r.getMac.ok ? theme.text : '#e74c3c' }}">{{ r.getMac.value }}</text>
       </div>
 
       <div class="cell">
         <div class="btn-item" onclick="doGetId" style="background-color: {{ theme.card }}">
-          <text class="btn-label" style="color: {{ theme.accent }}">getId</text>
+          <text class="btn-label" style="color: {{ theme.accent }}">7. getId</text>
         </div>
         <text class="item-res" if="{{ r.getId }}" style="color: {{ r.getId.ok ? theme.text : '#e74c3c' }}">{{ r.getId.value }}</text>
       </div>
