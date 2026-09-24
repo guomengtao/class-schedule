@@ -22,7 +22,9 @@
       </div>
     </scroll>
 
-    <input class="retry-btn" type="button" value="{{ running ? '测试中...' : '开始测试' }}" onclick="startTests" style="flex-shrink: 0; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    <div class="btn-row">
+      <input class="retry-btn" type="button" value="{{ running ? '测试中...' : '开始测试' }}" onclick="startTests" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
   </div>
 </template>
 
@@ -370,15 +372,21 @@ export default {
   word-break: break-all;
 }
 
-.retry-btn {
+.btn-row {
+  flex-direction: row;
+  justify-content: center;
   flex-shrink: 0;
+  padding: 6px 0 14px 0;
+}
+
+.retry-btn {
+  width: 160px;
   height: 40px;
   border-radius: 8px;
   font-size: 24px;
   font-weight: bold;
   text-align: center;
   line-height: 40px;
-  margin-top: 4px;
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
