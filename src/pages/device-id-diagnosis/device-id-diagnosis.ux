@@ -8,10 +8,6 @@
       <div class="header-placeholder"></div>
     </div>
 
-    <div class="crash-banner" if="{{ crashedAt }}" style="background-color: {{ theme.card }}">
-      <text class="crash-banner-text" style="color: #e74c3c">上次崩在: {{ crashedAt }}</text>
-    </div>
-
     <scroll class="body" scroll-y="true">
       <div class="cell">
         <div class="btn-item" onclick="doLocalUUID" style="background-color: {{ theme.card }}">
@@ -104,7 +100,6 @@ export default {
       getMac: null,
       getId: null
     },
-    crashedAt: '',
     running: false
   },
 
@@ -114,7 +109,6 @@ export default {
       self.theme = t
       self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
     })
-    self.loadProgress()
   },
 
   onShow() {
@@ -122,21 +116,6 @@ export default {
     store.getTheme(function(t, themeName) {
       self.theme = t
       self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
-    })
-  },
-
-  // 只读取上次崩溃记录，绝不自动跑测试
-  loadProgress() {
-    var self = this
-    storage.get({
-      key: PROGRESS_KEY,
-      success: function(data) {
-        if (data) {
-          self.crashedAt = String(data)
-          storage.set({ key: PROGRESS_KEY, value: '' })
-        }
-      },
-      fail: function() {}
     })
   },
 
@@ -293,21 +272,6 @@ export default {
   height: 100%;
   flex-direction: column;
   padding: 8px 8px 6px 8px;
-}
-
-.crash-banner {
-  flex-direction: column;
-  flex-shrink: 0;
-  border-radius: 8px;
-  padding: 6px 10px;
-  margin-bottom: 6px;
-}
-
-.crash-banner-text {
-  font-size: 20px;
-  line-height: 28px;
-  lines: 1;
-  text-overflow: ellipsis;
 }
 
 .body {
