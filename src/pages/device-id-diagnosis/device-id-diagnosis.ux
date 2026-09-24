@@ -1,0 +1,403 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">设备ID诊断</text>
+      <div class="header-placeholder"></div>
+    </div>
+
+    <div class="crash-banner" if="{{ crashedAt }}" style="background-color: {{ theme.card }}">
+      <text class="crash-banner-text" style="color: #e74c3c">上次崩在: {{ crashedAt }}</text>
+      <text class="crash-banner-text" style="color: {{ theme.textSecondary }}">已跳过,继续测其它</text>
+    </div>
+
+    <scroll class="list" scroll-y="true">
+      <div class="row" for="{{ results }}" style="flex-shrink: 0">
+        <text class="row-num" style="color: {{ theme.accent }}">{{ $idx + 1 }}. {{ $item.label }}</text>
+        <text class="row-value" style="color: {{ $item.ok ? theme.text : '#e74c3c' }}">{{ $item.value }}</text>
+      </div>
+    </scroll>
+
+    <input class="retry-btn" type="button" value="重新测试" onclick="startTests" style="flex-shrink: 0; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+var device = require("@system.device")
+var storage = require("@system.storage")
+var store = require("../../data/store.js")
+
+var PROGRESS_KEY = "diag_progress_v2"
+var UUID_KEY = "diag_uuid_v1"
+
+function generateUUID() {
+  var d = new Date().getTime()
+  var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+  return uuid.replace(/[xy]/g, function(c) {
+    var r = (d + Math.random() * 16) % 16 | 0
+    d = Math.floor(d / 16)
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16)
+  })
+}
+
+export default {
+  private: {
+    iconTheme: "dark",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566'
+    },
+    results: [],
+    crashedAt: '',
+    running: false,
+    stopped: false
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+    self.recoverOrStart()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+  },
+
+  recoverOrStart() {
+    var self = this
+    storage.get({
+      key: PROGRESS_KEY,
+      success: function(data) {
+        if (data) {
+          self.crashedAt = String(data)
+        }
+        self.startTests()
+      },
+      fail: function() {
+        self.startTests()
+      }
+    })
+  },
+
+  startTests() {
+    var self = this
+    if (self.running) return
+    self.running = true
+    self.stopped = false
+    self.results = []
+
+    self.runSafeAPIs(function(gotID) {
+      if (gotID) {
+        self.running = false
+        return
+      }
+      self.runDangerousAPIs(function() {
+        self.running = false
+      })
+    })
+  },
+
+  runSafeAPIs(finish) {
+    var self = this
+    var safeTests = ['testLocalUUID', 'testGetInfo', 'testGetUA']
+
+    function runNext(idx) {
+      if (self.stopped) return
+      if (idx >= safeTests.length) {
+        var gotID = self.results.some(function(r) { return r.ok })
+        finish(gotID)
+        return
+      }
+      var fn = safeTests[idx]
+      if (self.crashedAt === fn) {
+        self.addResult(fn, false, '(已跳过-上次崩)')
+        runNext(idx + 1)
+        return
+      }
+      self.saveProgress(fn, function() {
+        self[fn](function() {
+          self.clearProgress(function() {
+            var gotID = self.results.some(function(r) { return r.ok })
+            if (gotID) {
+              self.clearProgress(function() { finish(true) })
+            } else {
+              setTimeout(function() { runNext(idx + 1) }, 500)
+            }
+          })
+        })
+      })
+    }
+
+    runNext(0)
+  },
+
+  runDangerousAPIs(finish) {
+    var self = this
+    var dangerTests = ['testGetDeviceId', 'testGetSerial', 'testGetMac', 'testGetId']
+
+    function runNext(idx) {
+      if (self.stopped) return
+      if (idx >= dangerTests.length) {
+        finish()
+        return
+      }
+      var fn = dangerTests[idx]
+      if (self.crashedAt === fn) {
+        self.addResult(fn, false, '(已跳过-上次崩)')
+        runNext(idx + 1)
+        return
+      }
+      self.saveProgress(fn, function() {
+        self[fn](function() {
+          self.clearProgress(function() {
+            setTimeout(function() { runNext(idx + 1) }, 500)
+          })
+        })
+      })
+    }
+
+    runNext(0)
+  },
+
+  saveProgress(fn, done) {
+    storage.set({
+      key: PROGRESS_KEY,
+      value: fn,
+      success: done,
+      fail: done
+    })
+  },
+
+  clearProgress(done) {
+    storage.set({
+      key: PROGRESS_KEY,
+      value: '',
+      success: done,
+      fail: done
+    })
+  },
+
+  addResult(label, ok, value) {
+    this.results.push({ label: label, ok: ok, value: value })
+  },
+
+  testLocalUUID(done) {
+    var self = this
+    try {
+      storage.get({
+        key: UUID_KEY,
+        success: function(data) {
+          if (data) {
+            self.addResult('本地UUID', true, String(data))
+          } else {
+            var uuid = generateUUID()
+            storage.set({
+              key: UUID_KEY,
+              value: uuid,
+              success: function() { self.addResult('本地UUID', true, uuid) },
+              fail: function() { self.addResult('本地UUID', false, uuid + '(存储失败)') }
+            })
+          }
+          done()
+        },
+        fail: function() { self.addResult('本地UUID', false, '读取失败'); done() }
+      })
+    } catch (e) { self.addResult('本地UUID', false, '异常'); done() }
+  },
+
+  testGetInfo(done) {
+    var self = this
+    try {
+      device.getInfo({
+        success: function(ret) {
+          var id = ret.deviceId || ret.serialNumber || ret.udid || ''
+          self.addResult('getInfo隐藏ID', !!id, id || '(无)')
+          done()
+        },
+        fail: function() { self.addResult('getInfo隐藏ID', false, '获取失败'); done() }
+      })
+    } catch (e) { self.addResult('getInfo隐藏ID', false, '异常'); done() }
+  },
+
+  testGetUA(done) {
+    var self = this
+    try {
+      if (typeof device.getUA !== 'function') {
+        self.addResult('getUA', false, 'API不存在')
+        done()
+        return
+      }
+      device.getUA({
+        success: function(data) { self.addResult('getUA', true, JSON.stringify(data)); done() },
+        fail: function() { self.addResult('getUA', false, '获取失败'); done() }
+      })
+    } catch (e) { self.addResult('getUA', false, '异常'); done() }
+  },
+
+  testGetDeviceId(done) {
+    var self = this
+    try {
+      device.getDeviceId({
+        success: function(data) {
+          var raw = data.deviceId
+          self.addResult('getDeviceId', !!(raw && raw !== 'NA'), raw || '(空)')
+          done()
+        },
+        fail: function() { self.addResult('getDeviceId', false, '获取失败'); done() }
+      })
+    } catch (e) { self.addResult('getDeviceId', false, '异常'); done() }
+  },
+
+  testGetSerial(done) {
+    var self = this
+    try {
+      device.getSerial({
+        success: function(data) {
+          var raw = data.serial
+          self.addResult('getSerial', !!(raw && raw !== 'NA'), raw || '(空)')
+          done()
+        },
+        fail: function() { self.addResult('getSerial', false, '获取失败'); done() }
+      })
+    } catch (e) { self.addResult('getSerial', false, '异常'); done() }
+  },
+
+  testGetMac(done) {
+    var self = this
+    try {
+      if (typeof device.getMac !== 'function') {
+        self.addResult('getMac', false, 'API不存在')
+        done()
+        return
+      }
+      device.getMac({
+        success: function(data) {
+          var raw = data.mac || data.address || ''
+          self.addResult('getMac', !!raw, raw || '(空)')
+          done()
+        },
+        fail: function() { self.addResult('getMac', false, '获取失败'); done() }
+      })
+    } catch (e) { self.addResult('getMac', false, '异常'); done() }
+  },
+
+  testGetId(done) {
+    var self = this
+    try {
+      if (typeof device.getId !== 'function') {
+        self.addResult('getId', false, 'API不存在')
+        done()
+        return
+      }
+      device.getId({
+        success: function(data) { self.addResult('getId', true, JSON.stringify(data)); done() },
+        fail: function() { self.addResult('getId', false, '获取失败'); done() }
+      })
+    } catch (e) { self.addResult('getId', false, '异常'); done() }
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+@import '../../common/header.css';
+
+.page {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  padding: 8px 8px 6px 8px;
+}
+
+.crash-banner {
+  flex-direction: column;
+  flex-shrink: 0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+}
+
+.crash-banner-text {
+  font-size: 20px;
+  line-height: 28px;
+  max-lines: 1;
+  text-overflow: ellipsis;
+}
+
+.list {
+  flex: 1;
+  flex-direction: column;
+  padding-bottom: 4px;
+}
+
+.row {
+  flex-direction: row;
+  align-items: center;
+  padding: 4px 0;
+  flex-shrink: 0;
+}
+
+.row-num {
+  width: 110px;
+  flex-shrink: 0;
+  font-size: 22px;
+  line-height: 30px;
+  max-lines: 1;
+  text-overflow: ellipsis;
+}
+
+.row-value {
+  flex: 1;
+  font-size: 22px;
+  line-height: 30px;
+  max-lines: 2;
+  text-overflow: ellipsis;
+  word-break: break-all;
+}
+
+.retry-btn {
+  flex-shrink: 0;
+  height: 40px;
+  border-radius: 8px;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 40px;
+  margin-top: 4px;
+}
+
+@media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 8px 10px 6px 10px;
+  }
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 24px 36px 24px 36px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 6px 10px 12px 10px;
+  }
+}
+</style>
