@@ -39,6 +39,11 @@
 - 教训：**注释声称的"懒加载/延迟初始化"必须回代码复核**，本仓已出现注释与实现漂移
 - **✅ 已落地修复（2026-09-25）**：①`dicUtil.js` 的 `initDict()` 改为分步流水线（`_initBaseTables` → `_buildPy2hz2` 每片 800 键 → `_buildWordTables`，每步 `setTimeout(…,0)`，语义仍是整本词典只是摊到约 10 个 tick）②`chinese-input.ux` 的 `hide` 改绑 `keyboardHidden`（初值 true，`onReady` 里延时展开）让"模板首建"与"词典初始化"分帧 ③移除 `InputMethod.ux` 胶囊分支独有的 `progress type="arc" total-angle:-48deg` 并清掉 `percent66`
 - 副作用：胶囊屏键盘下方弧形进度指示消失（原参数留在模板注释里便于 A/B 恢复）；词典就绪前输入短暂无候选（有守卫安全降级）
+- ⚠️ **该修复尚未经真机验证**：用户复测仍重启，且真机 `r=1.6.100`（仓库已 1.6.103）→ 极可能**没装新包**；且本修复只覆盖"单帧阻塞"，覆盖不到下面两条新候选
+- **新候选 W3 并发 storage I/O（首推）**：`settings.ux:351-360` 点昵称先发 **5 个并发 `storage.set`**，进页面 `chinese-input.ux:97-117` 又 **5 个并发 get** + `getTheme`/`getThemeName` = **7 次并发读**；与 `docs/settings-xiaomi-band9pro-analysis.md`"RTOS 存储 I/O 不支持高并发"同源。修复预案：5 个 key 合并成一个 JSON（并发 4→1）+ 串行化
+- **新候选 W4 内存总量 OOM**：分片只摊时间不减总量（6763 单字 + 3000 词 + 倒排 ×2 + 61 PNG + 200 节点照旧驻留）。判据："先看到键盘再重启"即 OOM。修复预案：裁剪词典 / 延后到首次按键 / 移除 `getDictJp` / 改纯文字键盘
+- **排查重启问题的三条线**：阻塞（看门狗）／内存总量（OOM）／存储并发 I/O —— 不要只针对一条修
+- 每次复测前**先确认真机装机版本号与仓库一致**（`r` 参数即包内 versionName；也可在页面显示 versionName）
 - **待真机回归**：手环 9 / 11 进输入法页不再重启、10 Pro 仍正常；若 9 仍重启则 W1/W2 均非元凶，需抓 `adb logcat`
 - 诊断手段备查：把 `hide` 临时改 `true` / 屏蔽 arc progress / 抓 logcat
 
