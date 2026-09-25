@@ -431,7 +431,12 @@ export default {
     this.$watch("hide", "watchHidePropsChange");
     this.$watch("maxlength", "watchMaxLengthPropsChange");
     this.$watch("keyboardtype", "watchKeyboardTypePropsChange");
-    this.$watch("screentype", "adjustScreenWidth");
+    // 【崩溃修复·方案A】删除本项目额外添加的 this.$watch("screentype", "adjustScreenWidth")。
+    // 官方版没有这一行；真机 A/B（G 官方版通过 / F 我们的版本崩）后确认它是致崩点：
+    // 它会让组件在首次渲染 pill 键盘期间并发触发第二次 device.getInfo，并在回调里改 data，
+    // 造成渲染竞态 → 表现为"卡很久 → 看门狗复位"。
+    // 屏型适配由 onInit 里已有的 adjustScreenWidth() 覆盖，不需要额外 watch。
+    // 详见 docs/官方版对比定位-G通过H崩溃.md
   },
   addAllTxt(txt) {
     var max = this.maxlength
