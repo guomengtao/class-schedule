@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.6.127",
-  "versionCode": 956,
+  "versionName": "1.6.130",
+  "versionCode": 959,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
@@ -188,7 +188,6 @@
         "group": "实验室工具",
         "name_cn": "中文输入"
       },
-
       "pages/statistics": {
         "component": "statistics",
         "group": "其他",
