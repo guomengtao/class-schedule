@@ -36,8 +36,13 @@
 
 ## ⭐ 输入法跑道屏「点页面即重启」—— 实测定案
 
-### ✅ 最终结论（2026-09-25，官方版 A/B 定位）
-- **真凶 = 本项目额外添加的 `this.$watch("screentype", "adjustScreenWidth")`**（官方版没有这一行，已删除）
+### ✅ 最终处置（2026-09-25）：正式组件已整体换成官方原版
+- **先走了方案 A（删 watch，v1.6.120）→ 真机仍然不行** → 组件里还有第二个致崩点，单点回退解决不掉
+- **最终决定（用户）**：正式组件**直接用官方原版** —— `cp InputMethodOfficial.ux InputMethod.ux`，`diff -q` 确认与 **G 项验证通过的那个文件完全一致**
+- 回归的官方特征：`progress type="arc"` 弧线、下展面板 `<list>`、`addAllTxt` 不截断 maxlength、官方版 maxlength 处理
+- `chinese-input.ux` 不传 `dictlazy` → 线上无未知 prop；诊断页传的 `dictlazy` 被 Vela 忽略，编译通过
+- **若官方版仍不行** → 说明问题不在组件（转页面侧/环境侧）
+- 嫌疑点 1（已删除但仍不够，仅供追溯）：本项目额外添加的 `this.$watch("screentype", "adjustScreenWidth")`（官方无此行）
   - 机制：`onInit` 里已调用过一次 `adjustScreenWidth()`（内部 `device.getInfo`），该 watch 注册时又触发一次 → **首次渲染 pill 键盘期间并发第二次 `device.getInfo`，回调里改 data** → 渲染竞态 → "卡很久 → 看门狗复位"
   - **G（官方原版）✅ 通过 / H（分帧版）❌ 崩溃** → 确认**是我们改坏的**，而非官方实现或设备问题（用户最初的直觉正确）
 - **已被本轮实验排除（勿再重复试）**：`progress type="arc"`+负角度、305px 固定高、26 个 `border`+`border-radius` 按键、8 张 PNG、绝对路径、2 个 `scroll-x`、绝对定位堆叠、词典内存、`dictlazy`、并发 storage、**"单帧渲染总量超载"（分帧方案已证伪）**、**"官方实现对弱设备余量不足"（G 在同机通过，证伪）**
