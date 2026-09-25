@@ -35,17 +35,14 @@
          导致键盘上的删除键被遮挡。改成浮层后贴在键盘上方显示，不压键盘也不挡拼音行。
          只针对胶囊屏测试，故屏型切换行已移除。 -->
     <div class="lab-overlay">
-      <div class="lab-btn {{ labFixPanel ? 'lab-btn-on' : '' }}" onclick="toggleFixPanel">
-        <text class="lab-btn-text" style="color: {{ labFixPanel ? theme.bg : theme.text }}">下移</text>
+      <div class="lab-btn {{ labMock ? 'lab-btn-on' : '' }}" onclick="toggleMock">
+        <text class="lab-btn-text" style="color: {{ labMock ? theme.bg : theme.text }}">数据</text>
       </div>
-      <div class="lab-btn {{ labNoBg ? 'lab-btn-on' : '' }}" onclick="toggleNoBg">
-        <text class="lab-btn-text" style="color: {{ labNoBg ? theme.bg : theme.text }}">无底</text>
+      <div class="lab-btn {{ labDebug ? 'lab-btn-on' : '' }}" onclick="toggleDebug">
+        <text class="lab-btn-text" style="color: {{ labDebug ? theme.bg : theme.text }}">诊断</text>
       </div>
       <div class="lab-btn {{ labNoScroll ? 'lab-btn-on' : '' }}" onclick="toggleNoScroll">
         <text class="lab-btn-text" style="color: {{ labNoScroll ? theme.bg : theme.text }}">无滚</text>
-      </div>
-      <div class="lab-btn {{ labMock ? 'lab-btn-on' : '' }}" onclick="toggleMock">
-        <text class="lab-btn-text" style="color: {{ labMock ? theme.bg : theme.text }}">数据</text>
       </div>
     </div>
 
@@ -60,6 +57,7 @@
         labfix="{{ labFixPanel }}"
         labnobg="{{ labNoBg }}"
         labmock="{{ labMock }}"
+        labdebug="{{ labDebug }}"
         oncomplete="onCharacter"
         ondelete="onDeleteChar"
       ></input-method>
@@ -91,6 +89,7 @@ export default {
     labNoBg: false,       // 面板去掉黑底（验证黑底本身的视觉遮挡）
     labNoScroll: false,   // 去掉外层 scroll 包裹（验证"scroll 套 list"）
     labMock: false,       // 注入 40 条测试候选（保证面板撑满，便于观察布局）
+    labDebug: false,      // 诊断模式：用 <div for> 绕过 <list> 渲染候选，用于判断是"数据空"还是"list 不渲染"
     iconTheme: "dark",
     theme: {
       bg: '#1a1a2e',
@@ -122,24 +121,19 @@ export default {
     this.loadParams()
   },
 
-  // 实验台开关：面板下移，避开候选行
-  toggleFixPanel() {
-    this.labFixPanel = !this.labFixPanel
+  // 实验台开关：注入 40 条测试候选（切换后需再输入一次才会重新生成候选）
+  toggleMock() {
+    this.labMock = !this.labMock
   },
 
-  // 实验台开关：面板去掉黑底
-  toggleNoBg() {
-    this.labNoBg = !this.labNoBg
+  // 实验台开关：诊断模式 —— 用 <div for> 绕过 <list> 渲染候选
+  toggleDebug() {
+    this.labDebug = !this.labDebug
   },
 
   // 实验台开关：去掉外层 scroll 包裹
   toggleNoScroll() {
     this.labNoScroll = !this.labNoScroll
-  },
-
-  // 实验台开关：注入 40 条测试候选（切换后需再输入一次才会重新生成候选）
-  toggleMock() {
-    this.labMock = !this.labMock
   },
 
   onReady() {
@@ -383,15 +377,15 @@ export default {
   background-color: rgba(16, 16, 28, 0.92);
 }
 
-/* 胶囊屏宽 192px，4 个按钮需紧凑排列 */
+/* 胶囊屏宽 192px，3 个按钮 */
 .lab-btn {
-  min-width: 42px;
+  min-width: 52px;
   height: 40px;
   border-radius: 8px;
   justify-content: center;
   align-items: center;
-  margin: 0 2px;
-  padding: 0 2px;
+  margin: 0 4px;
+  padding: 0 4px;
   background-color: #2a2a40;
 }
 

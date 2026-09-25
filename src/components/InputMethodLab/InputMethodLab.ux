@@ -321,7 +321,17 @@
         <!-- 这里使用show会导致每次输入都会加载全部候选列表，很卡 -->
         <div style="position: absolute;top: {{labfix ? 104 : 47}}px;width: 100%;height: {{labfix ? 200 : 263}}px;background-color: {{labnobg ? 'transparent' : 'black'}};" if="{{downFlag==='down'}}">
           <div style="position: absolute;left: {{(screenWidth - 192)/2}}px;width: 192px;height: 263px;"> 
-            <list static class="list66">
+            <!-- 【诊断模式】与原 <list> 渲染同一份 resultList2，但改用普通 <div for> 且**不带 static**。
+                 用于区分"数据没生成"与"<list>(static) 不渲染"：本块有字而下面 list 空白 ⇒ list 的锅。 -->
+            <div if="{{labdebug}}" style="position: absolute;left:0px;top:0px;width:100%;flex-direction:column;">
+              <text style="font-size:18px;color:#00ff00;">页={{resultList2.length}} 首行={{resultRow0.length}} 展开={{downFlag}}</text>
+              <div for="{{itemArray in resultList2}}" style="flex-direction:column;width:100%;">
+                <div for="{{item in itemArray}}" style="height:42px;width:100%;">
+                  <text style="font-size:24px;color:#00ffff;" @click="onRsSelect(item)">{{item}}</text>
+                </div>
+              </div>
+            </div>
+            <list static class="list66" if="{{!labdebug}}">
               <list-item type="waitingRows66" class="item66" for="{{itemArray in resultList2}}">
                 <div class="item column center" for="{{item in itemArray}}">
                   <text class="calbtn-down-text" @click="onRsSelect(item)">{{item}}</text>
@@ -390,6 +400,12 @@ export default {
     // 真实词典对多数拼音只给几条候选，撑不满面板看不出布局问题；开启后固定 40 条，
     // 保证面板被填满，便于观察"内容较多时"的表现。
     labmock: {
+      default: false,
+    },
+    // 【实验台开关·页面传入】true = 诊断模式：用 <div for> 绕过 <list> 直接渲染同一份 resultList2。
+    // 判读：本块能显示文字而原 <list> 空白 ⇒ 数据正常、是 <list>（含 static 属性）渲染不出来；
+    //       本块也空白 ⇒ 候选数据本身为空。
+    labdebug: {
       default: false,
     },
   },
