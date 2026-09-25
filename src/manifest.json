@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.6.110",
-  "versionCode": 939,
+  "versionName": "1.6.113",
+  "versionCode": 942,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
