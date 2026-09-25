@@ -1,7 +1,6 @@
-<import name="unlock-dialog" src="../../components/unlock-dialog"></import>
 <template>
-  <stack class="page-root">
-  <scroll class="page" scroll-y="true" style="background-color: {{ theme.bg }}">
+  <stack class="page-root" style="background-color: {{ theme.bg }}">
+  <scroll id="pageScroll" class="page" scroll-y="{{true}}" style="background-color: {{ theme.bg }}">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
@@ -38,8 +37,6 @@
     <div class="add-section">
       <input class="add-btn" type="button" value="+ 新增课程表" onclick="addSchedule" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
-
-    <unlock-dialog id="unlockDialog"></unlock-dialog>
 
     <div class="footer-actions">
       <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 20px;">固定到首页</text>
@@ -167,6 +164,26 @@ export default {
     this.loadData()
     this.checkAndShowOverlay()
     this.checkInputResult()
+    this.logPageWidth()
+  },
+
+  /**
+   * 取证用：打印内容层实际渲染宽度，验证 stack 子元素是否撑满屏幕。
+   * 手环 9(192px) 期望 width=192；若明显小于屏宽则说明宽度塌缩未修好。
+   * 验证通过后本方法可安全删除。
+   */
+  logPageWidth() {
+    var self = this
+    setTimeout(function () {
+      try {
+        self.$element('pageScroll').getScrollRect({
+          success: function (rect) {
+            console.log('[schedule-manager] scroll width=' + rect.width + ' height=' + rect.height)
+          },
+          fail: function () {}
+        })
+      } catch (e) {}
+    }, 500)
   },
 
   checkAndShowOverlay() {
@@ -634,6 +651,9 @@ export default {
 @import '../../common/header.css';
 
 .page {
+  /* stack 的子组件不会被父容器拉伸，scroll 也没有"默认撑满"语义；
+     漏写 width 会让宽度退化为内容宽，未覆盖区域不绘制即露黑底 */
+  width: 100%;
   flex-direction: column;
   padding: 44px 12px 12px 12px;
   height: 100%;
@@ -776,6 +796,7 @@ export default {
 
 .sheet-card {
   width: 100%;
+  align-self: center;
   border-radius: 20px 20px 0 0;
   padding: 20px 14px 16px 14px;
   flex-direction: column;
@@ -882,6 +903,7 @@ export default {
   width: 100%;
   height: 100%;
   position: relative;
+  flex-direction: column;
 }
 
 .overlay-modal {
@@ -899,6 +921,7 @@ export default {
 
 .modal-card {
   width: 80%;
+  align-self: center;
   border-radius: 16px;
   padding: 20px 18px;
   flex-direction: column;

@@ -134,14 +134,7 @@
         ></input-method>
       </div>
 
-      <!-- ===== 二维码回传 ===== -->
-      <div class="qr-cell" if="{{ diagUrl }}">
-        <div class="qr-wrap">
-          <qrcode class="qr-code" value="{{ diagUrl }}" style="color: #000000; background-color: #ffffff;"></qrcode>
-        </div>
-        <text class="qr-tip" style="color: {{ theme.textSecondary }}">手机扫码后把地址栏链接发我（含版本/屏型/崩在哪一项）</text>
-        <text class="qr-text" style="color: {{ theme.textMuted }}">{{ diagUrl }}</text>
-      </div>
+      <!-- 二维码回传：方案暂缓（用户要求），已移除渲染；相关逻辑保留在脚本中待后续讨论 -->
 
       <div class="cell">
         <div class="btn-item" onclick="resetAll" style="background-color: {{ theme.card }}">
