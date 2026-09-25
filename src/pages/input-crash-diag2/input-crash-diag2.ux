@@ -1,6 +1,8 @@
 <import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
 <!-- G 项对照用：官方原版组件（f549d31 导出，仅把 ./assets/ 改为绝对路径，其它一字未动） -->
 <import name="input-method-official" src="../../components/InputMethod/InputMethodOfficial.ux"></import>
+<!-- H 项：分帧挂载版（仅胶囊屏分 3 帧创建键盘子树，外观与当前版完全一致） -->
+<import name="input-method-staged" src="../../components/InputMethod/InputMethodStaged.ux"></import>
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
@@ -86,6 +88,14 @@
         <text class="item-res" if="{{ r.s7 }}" style="color: {{ r.s7.ok ? theme.text : '#e74c3c' }}">{{ r.s7.value }}</text>
       </div>
 
+      <div class="cell">
+        <div class="btn-item" onclick="runOne(8)" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">H. 分帧挂载键盘（候选修复方案）</text>
+        </div>
+        <text class="item-hint" style="color: {{ theme.textSecondary }}">外观与 F 完全一致，只是把键盘分 3 帧画出来</text>
+        <text class="item-res" if="{{ r.s8 }}" style="color: {{ r.s8.ok ? theme.text : '#e74c3c' }}">{{ r.s8.value }}</text>
+      </div>
+
       <!-- ===== 测试宿主区：按当前项渲染不同内容 ===== -->
       <div class="stage" if="{{ stage === 'A' }}">
         <div class="kbd-row" for="row in keyRows">
@@ -154,6 +164,17 @@
         ></input-method-official>
       </div>
 
+      <!-- H 项宿主：分帧挂载版（dictlazy=true，与 F 条件一致，只差分帧） -->
+      <div class="ime-host" if="{{ showImeStaged }}">
+        <input-method-staged
+          hide="{{ false }}"
+          keyboardtype="QWERTY"
+          maxlength="10"
+          screentype="{{ imeScreenType }}"
+          dictlazy="{{ true }}"
+        ></input-method-staged>
+      </div>
+
       <!-- 二维码回传：方案暂缓（用户要求），已移除渲染；相关逻辑保留在脚本中待后续讨论 -->
 
       <div class="cell">
@@ -188,7 +209,8 @@ var STEP_NAME = {
   "4": "D PNG 图片 ×8",
   "5": "E 绝对定位堆叠",
   "6": "F 完整 pill 键盘（我们的版本）",
-  "7": "G 官方原版键盘"
+  "7": "G 官方原版键盘",
+  "8": "H 分帧挂载键盘"
 }
 
 export default {
@@ -219,10 +241,11 @@ export default {
     stage: "",
     showIme: false,
     showImeOfficial: false,
+    showImeStaged: false,
     imeScreenType: "pill-shaped",
     passed: [],
     running: false,
-    r: { s1: null, s2: null, s3: null, s4: null, s5: null, s6: null, s7: null }
+    r: { s1: null, s2: null, s3: null, s4: null, s5: null, s6: null, s7: null, s8: null }
   },
 
   onInit() {
@@ -341,6 +364,7 @@ export default {
       self.stage = ''
       self.showIme = false
       self.showImeOfficial = false
+      self.showImeStaged = false
       setTimeout(function() {
         self.doStep(step, function(ok, value) {
           self.setRes("s" + step, ok, value)
@@ -390,13 +414,18 @@ export default {
       setTimeout(function() { finish(true, "G 通过：官方原版键盘渲染正常") }, 2500)
       return
     }
+    if (step === 8) {
+      self.showImeStaged = true
+      setTimeout(function() { finish(true, "H 通过：分帧挂载键盘渲染正常") }, 3000)
+      return
+    }
     finish(false, "未知步骤")
   },
 
   setRes(key, ok, value) {
     var o = this.r
     this.r = {
-      s1: o.s1, s2: o.s2, s3: o.s3, s4: o.s4, s5: o.s5, s6: o.s6, s7: o.s7
+      s1: o.s1, s2: o.s2, s3: o.s3, s4: o.s4, s5: o.s5, s6: o.s6, s7: o.s7, s8: o.s8
     }
     this.r[key] = { ok: ok, value: value }
   },
@@ -418,8 +447,9 @@ export default {
     self.crashName = ""
     self.stage = ""
     self.showIme = false
-    self.r = { s1: null, s2: null, s3: null, s4: null, s5: null, s6: null, s7: null }
+    self.r = { s1: null, s2: null, s3: null, s4: null, s5: null, s6: null, s7: null, s8: null }
     self.showImeOfficial = false
+    self.showImeStaged = false
     self.updateDiagUrl()
   },
 
