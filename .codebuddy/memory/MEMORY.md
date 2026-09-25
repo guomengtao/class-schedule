@@ -44,7 +44,13 @@
 - **F 与 A~E 的本质差异（= 嫌疑点）**：A~E 是页面内静态 DOM；F 是引入组件，独有 ①根节点 `position:absolute; left:0; bottom:0` ②`onInit` 里**第二次 `device.getInfo`**（`adjustScreenWidth`）③4 个 `$watch` ④`cvalrow-wrap` 等独有节点 ⑤放在 `<scroll>` 父级里（`chinese-input` 同样如此）
 - **修订后主因 R1 = 组件根 `position:absolute; bottom:0` 与父级 `<scroll>` 的组合**（与"F 崩而 A~E 全过"最吻合；第一轮分析中已标为"结构性放大项"）
 - 10 Pro 免疫的原因：结构相同但键盘 255px（pill 305px+28 拼音行）、屏高 480 → **临界型问题**，非"某元素必然崩"
-- ❌ **改法 B 无效（2026-09-25 实测）**：组件根改 `position: relative` 后仍"卡很久→重启" → **定位不是主因，R1 排除**（勿再走此路）
+- ❌ **改法 B 无效且已回滚（2026-09-25）**：组件根改 `position: relative` 后仍"卡很久→重启" → 定位不是主因。**已回滚**（且它会给 10 Pro 首帧带来 relative/absolute 切换差异 —— 因为 `chinese-input.ux` 的 `screenType` 初始值就是 `'pill-shaped'`）
+- **⭐ 官方版 vs 我们的版本对比（回应"会不会是我们改坏了"）**：官方原版 = 提交 `f549d31`（2026-09-10 引入上游 Vela_input_method）。两者在 pill 分支**结构高度一致**：官方**也有** arc progress / `height:305px` / 3 层绝对定位 / 26 个 `.calbtn66`（描边+圆角）/ `cvalrow-wrap` / `onInit` 里的 `adjustScreenWidth`；差异量 **129+/141-**，且我们的改动都是**减法与适配**（移除下展面板、图片路径改绝对、去掉 1 处箭头函数、加 capsule→pill 映射），**未引入任何重元素**。→ **若这些特征足以崩，官方版也会崩**
+- **已实现 A/B 对照（诊断页 G 项）**：`src/components/InputMethod/InputMethodOfficial.ux` = `f549d31` 原版（仅 assets 改绝对路径 + 1 处箭头函数改 `function`；**与当前组件共用同一个 `dicUtil.js`** → 唯一变量 = 组件模板）。`input-crash-diag2` 现为 **A~G 七项**
+  - 判读：**F❌ + G❌ → 官方实现本身在手环 9 上性能不足**（走分帧挂载）；**F❌ + G✅ → 是我们改坏的**（用 `git diff f549d31 HEAD` 逐条回退定位）
+  - ⚠️ G 是最后一项，用「一键跑全部」会受 A~F 累积干扰 → **应以单点 G 为准**
+- **对 10 Pro 的影响**：改法 B 已回滚；保留的改动里只有 `keyboardHidden` 错峰有"首帧晚一帧"的极小影响（要绝对零影响可回滚它）；移除 arc 只影响 pill（rect 用另一条线性 progress）；词典分片与 `dictlazy` 无感
+- 文档：`docs/官方版对照测试与三个质疑回应.md`
 - **⭐⭐ 第三轮反馈（关键证据）**：用户点「一键跑全部」→ **卡了很久 → 重启**；重启后显示 **E**，再跑显示 **F**
   - **"卡很久"** = 主线程长时间阻塞（看门狗复位），非瞬时崩溃
   - **同一项 E：逐项点通过、连续跑却挂** → 差异不在 E 本身，而在"它前面已渲染销毁过 A~D" → **节点/渲染资源累积**

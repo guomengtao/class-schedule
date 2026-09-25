@@ -18,11 +18,12 @@
 		<!-- 这里是480px圆表屏幕的键盘 -->
         <div id="full-keyboard" if="{{keyboardtype!='T9'}}" style="width: 480px;height: 321px;">
           <img src="/components/InputMethod/assets/full/back2.png" style="position: absolute;top:38px;left:7px;width:466px;height:52px;" @click="onBtnClick('switchCn')" show="{{numFlag}}" />
-          <img src="/components/InputMethod/assets/full/123.png" style="position: absolute;top:266px;left:119px;width:30px;height:48px;" @click="onBtnClick('switchNum')" show="{{downFlag==='' && !numFlag && lang==='cn'}}" />
-          <img src="/components/InputMethod/assets/full/123.png" style="position: absolute;top:266px;left:119px;width:30px;height:48px;" @click="onBtnClick('switchNum_jp')" show="{{downFlag==='' && !numFlag && lang==='jp'}}" />
-          <img src="/components/InputMethod/assets/full/bigA.png" style="position: absolute;top:266px;left:119px;width:30px;height:48px;" @click="onBtnClick('switchLow')" show="{{downFlag==='' && upperFlag && lang==='en'}}" />
-          <img src="/components/InputMethod/assets/full/A.png" style="position: absolute;top:266px;left:119px;width:30px;height:48px;" @click="onBtnClick('switchUpper')" show="{{downFlag==='' && !upperFlag && lang==='en'}}" />
+          <img src="/components/InputMethod/assets/full/123.png" style="position: absolute;top:266px;left:119px;width:120px;height:48px;" @click="onBtnClick('switchNum')" show="{{downFlag==='' && !numFlag && lang==='cn'}}" />
+          <img src="/components/InputMethod/assets/full/123.png" style="position: absolute;top:266px;left:119px;width:120px;height:48px;" @click="onBtnClick('switchNum_jp')" show="{{downFlag==='' && !numFlag && lang==='jp'}}" />
+          <img src="/components/InputMethod/assets/full/bigA.png" style="position: absolute;top:266px;left:119px;width:120px;height:48px;" @click="onBtnClick('switchLow')" show="{{downFlag==='' && upperFlag && lang==='en'}}" />
+          <img src="/components/InputMethod/assets/full/A.png" style="position: absolute;top:266px;left:119px;width:120px;height:48px;" @click="onBtnClick('switchUpper')" show="{{downFlag==='' && !upperFlag && lang==='en'}}" />
           <div style="position: absolute;top:38px;left:78px;width:324px;height:52px;background-color:rgb(38,38,38);border-radius: 12px;border: 3px solid #333333" show="{{downFlag===''&& !numFlag}}"></div>
+          <img show="{{resultRow0.length > 0}}" style="position: absolute;top:43px;left:355px;" src="/components/InputMethod/assets/full/down.png" @click="onBtnClick('down')" />
           <!-- 带变量的相对路径在 aiot-tookit 2.0.4 中修复 -->
           <img src="/components/InputMethod/assets/full/{{lang}}.png" style="position: absolute;top:38px;left:7px;width:67px;height:52px;" @click="onBtnClick('lang')" if="{{downFlag==='' && !numFlag && lang!='jp'}}" />
           <img src="/components/InputMethod/assets/full/jp.png" style="position: absolute;top:38px;left:7px;width:67px;height:52px;" @click="onBtnClick('lang')" if="{{downFlag==='' && !numFlag && lang==='jp'}}" />
@@ -31,7 +32,7 @@
             <text class="caltext" style="width:296px;">{{cvalDisplay}}_</text>
           </div>
           <!-- 候选横滚行：整词在前、单字随后，宽度自适应防长词拥挤（对齐 rect/pill 屏方案），容器止于右侧 down 箭头前 -->
-          <div style="position: absolute;top:38px;left:78px;width:315px;height:52px;" show="{{(lang === 'cn' || lang === 'jp') && !numFlag}}">
+          <div style="position: absolute;top:38px;left:78px;width:275px;height:52px;" show="{{(lang === 'cn' || lang === 'jp') && !numFlag}}">
             <scroll scroll-x="{{true}}" style="position:absolute;left:0px;width:100%;height:42px;">
               <div style="position: absolute;left: 0px;height: 42px;padding-left:20px;padding-right:20px">
                 <text for="{{resultRow0}}" show="{{resultRow0.length > $idx}}" class="calbtn02" style="padding-right:10px" @click="onRsSelect(resultRow0[$idx])">{{resultRow0[$idx]}}</text>
@@ -41,6 +42,14 @@
           <div style="position: absolute;top:38px;left:80px;width:320px;height:52px;align-content: center;align-items: center;justify-content: center" show="{{downFlag==='' && !numFlag && lang==='en'}}" @click="onBtnClick('switchNum')" >
             <img src="/components/InputMethod/assets/full/123_boardless.png" />
           </div>
+          <!-- 这里使用show会导致每次输入都会加载全部候选列表，很卡 -->
+          <list class="list3" if="{{downFlag==='down'}}">
+            <list-item type="waitingRows62t9" class="item3" for="{{itemArray in resultList2}}">
+              <div class="item column center" style="height:52px;" for="{{item in itemArray}}">
+                <text class="calbtn-down-text" @click="onRsSelect(item)">{{item}}</text>
+              </div>
+            </list-item>
+          </list>
           <div style="position: absolute;top:95px;left:8px;width:464px;height:52px;" show="{{downFlag===''&&!numFlag}}">
             <img src="/components/InputMethod/assets/full/Q.png" style="width:54px;height:52px;margin-right: 4px;" @click="onSelect('Q')" />
             <text class="calbtnfull" for="{{item in keys['full62'][0]}}" @click="onSelect(item)">{{item}}</text>
@@ -75,10 +84,11 @@
             <img src="/components/InputMethod/assets/full/3-2.png" style="width:72px;height:52px;" @click="onSelect('、')" />
           </div>
           <img src="/components/InputMethod/assets/full/del.png" style="position: absolute;top:38px;left:406px;width:67px;height:52px;" @click="onBtnClick('D')" show="{{downFlag==='' && !numFlag }}" />
-          <img src="/components/InputMethod/assets/full/space.png" style="position: absolute;top:266px;left:242px;width:30px;height:48px;" @click="onBtnClick('space')" show="{{downFlag==='' && !numFlag }}" />
-          <img src="/components/InputMethod/assets/full/4-2.png" style="position: absolute;top:266px;left:242px;width:30px;height:48px;" @click="onSelect('。')" show="{{numFlag }}" />
-          <img src="/components/InputMethod/assets/full/4-1.png" style="position: absolute;top:266px;left:119px;width:30px;height:48px;" @click="onSelect('，')" show="{{numFlag && !numFlag_jp}}" />
-          <img src="/components/InputMethod/assets/full/4-1.png" style="position: absolute;top:266px;left:119px;width:30px;height:48px;" @click="onSelect('、')" show="{{numFlag_jp}}" />
+          <img src="/components/InputMethod/assets/full/space.png" style="position: absolute;top:266px;left:242px;width:120px;height:48px;" @click="onBtnClick('space')" show="{{downFlag==='' && !numFlag }}" />
+          <img src="/components/InputMethod/assets/full/4-2.png" style="position: absolute;top:266px;left:242px;width:120px;height:48px;" @click="onSelect('。')" show="{{numFlag }}" />
+          <img src="/components/InputMethod/assets/full/4-1.png" style="position: absolute;top:266px;left:119px;width:120px;height:48px;" @click="onSelect('，')" show="{{numFlag && !numFlag_jp}}" />
+          <img src="/components/InputMethod/assets/full/4-1.png" style="position: absolute;top:266px;left:119px;width:120px;height:48px;" @click="onSelect('、')" show="{{numFlag_jp}}" />
+          <img style="position: absolute;top:204px;left:78px;" src="/components/InputMethod/assets/full/up.png" @click="onBtnClick('down')" show="{{downFlag==='down'}}" />
         </div>
         <!-- 九键 -->
         <div else style="width: 480px;height: 321px;">
@@ -87,6 +97,7 @@
           <img src="/components/InputMethod/assets/t9/bigA.png" style="position: absolute;top:99px;left:31px;width: 60px;height: 60px;" @click="onBtnClick('switchLow')" show="{{downFlag==='' && !numFlag && upperFlag && lang==='en'}}" />
           <img src="/components/InputMethod/assets/t9/a.png" style="position: absolute;top:99px;left:31px;width: 60px;height: 60px;" @click="onBtnClick('switchUpper')" show="{{downFlag==='' && !numFlag && !upperFlag && lang==='en'}}" />
           <div style="position: absolute;top:35px;left:95px;width:290px;height:60px;background-color:rgb(38,38,38);border-radius: 999px;border: 3px solid #333333" show="{{downFlag===''&& !numFlag}}"></div>
+          <img show="{{resultRow0.length > 0}}" style="position: absolute;top:44px;left:338px;" src="/components/InputMethod/assets/full/down.png" @click="onBtnClick('down')" />
           <!-- 带变量的相对路径在 aiot-tookit 2.0.4 中修复 -->
           <img src="/components/InputMethod/assets/t9/{{lang}}.png" style="position: absolute;top:35px;left:31px;width: 60px;height: 60px;" @click="onBtnClick('lang')" if="{{downFlag==='' && !numFlag}}" />
           <div show="{{downFlag==='' && !numFlag}}" style="position: absolute;top:-4px;left:240px;width:145px;height:40px;justify-content:flex-end">
@@ -98,7 +109,7 @@
           </div>
           <!-- 候选横滚行：整词在前、单字随后，宽度自适应防长词拥挤（对齐 rect/pill 屏方案），容器止于右侧 down 箭头前。
                注意：容器必须给 height（scroll 在无高度容器内不渲染内容，T9 候选曾因此空白） -->
-          <div style="position: absolute;top:39px;left:105px;width:270px;height:52px;" show="{{(lang === 'cn' || lang === 'jp') && !numFlag}}">
+          <div style="position: absolute;top:39px;left:105px;width:233px;height:52px;" show="{{(lang === 'cn' || lang === 'jp') && !numFlag}}">
             <scroll scroll-x="{{true}}" style="position:absolute;left:0px;width:100%;height:42px;">
               <div style="position: absolute;left: 0px;height: 42px;padding-left:20px;padding-right:20px">
                 <text for="{{resultRow0}}" show="{{resultRow0.length > $idx}}" class="calbtn02" style="padding-right:10px" @click="onRsSelect(resultRow0[$idx])">{{resultRow0[$idx]}}</text>
@@ -108,6 +119,14 @@
           <div style="position: absolute;top:35px;left:95px;width:290px;height:60px;align-content: center;align-items: center;justify-content: center" show="{{downFlag==='' && !numFlag && lang==='en'}}" @click="onBtnClick('switchNum')" >
             <img src="/components/InputMethod/assets/full/123_boardless.png" />
           </div>
+          <!-- 这里使用show会导致每次输入都会加载全部候选列表，很卡 -->
+          <list class="list3" if="{{downFlag==='down'}}">
+            <list-item type="waitingRows62full" class="item3" for="{{itemArray in resultList2}}">
+              <div class="item column center" style="height:52px;" for="{{item in itemArray}}">
+                <text class="calbtn-down-text" @click="onRsSelect(item)">{{item}}</text>
+              </div>
+            </list-item>
+          </list>
           <div style="position: absolute;top:99px;left:95px;width:294px;height:60px;" show="{{downFlag===''&&!numFlag}}">
             <text class="calbtnt9" @click="onSelect('select')">选择</text>
             <text class="calbtnt9" for="{{item in keys['t9'][0]}}" @click="onSelect(item)">{{item.toUpperCase()}}</text>
@@ -140,6 +159,7 @@
           </div>
           <img src="/components/InputMethod/assets/t9/del.png" style="position: absolute;top:35px;left:389px;width: 60px;height: 60px;" @click="onBtnClick('D')" show="{{downFlag==='' }}" />
           <img src="/components/InputMethod/assets/t9/space.png" style="position: absolute;top:99px;left:389px;width: 60px;height: 60px;" @click="onBtnClick('space')" show="{{downFlag==='' && !numFlag }}" />
+          <img style="position: absolute;top:204px;left:78px;" src="/components/InputMethod/assets/full/up.png" @click="onBtnClick('down')" show="{{downFlag==='down'}}" />
         </div>
       </div>
       <!-- 方屏67 -->
@@ -176,7 +196,7 @@
               </div>
               <div static style="margin-left: 64px;margin-top: -5px;height: 60px;">
                 <text class="calbtn67" for="{{item in keys['full'][2]}}" @click="onSelect(item)">{{item}}</text>
-                <img static src="./assets/horizontal/space.png" style="width: 60px;height: 60px;" @click="onBtnClick('space')" />
+                <img static src="/components/InputMethod/assets/horizontal/space.png" style="width: 60px;height: 60px;" @click="onBtnClick('space')" />
               </div>
             </div>
             <div if="{{numFlag && !numFlag_jp}}" style="left: 6px; flex-direction: column;">
@@ -204,35 +224,45 @@
           </scroll>
         </div>
         <div style="width: 100%; flex-direction: row; justify-content: center; top:6px; padding:0 6px;">
-          <img src="./assets/horizontal/cn.png" style="padding: 6px;width: 60px;height: 60px;" @click="onBtnClick('lang')" if="{{downFlag==='' && !numFlag && lang==='cn'}}" />
-          <img src="./assets/horizontal/jp.png" style="padding:6px;width:60px;height:60px;" @click="onBtnClick('lang')" if="{{downFlag==='' && !numFlag && lang==='jp'}}" />
+          <img src="/components/InputMethod/assets/horizontal/cn.png" style="padding: 6px;width: 60px;height: 60px;" @click="onBtnClick('lang')" if="{{downFlag==='' && !numFlag && lang==='cn'}}" />
+          <img src="/components/InputMethod/assets/horizontal/jp.png" style="padding:6px;width:60px;height:60px;" @click="onBtnClick('lang')" if="{{downFlag==='' && !numFlag && lang==='jp'}}" />
           <div if="{{(lang === 'cn' || lang === 'jp') && !numFlag}}" style="margin-left: 6px;flex: 1;height: 60px;background-color:#262626;border-color: #333333; border-width: 3px; border-radius: 100px;flex-direction: row;align-items:center">
             <!-- 候选横滚行：整词在前、单字随后（拼音已在键盘上方独立小字行显示，这里不放 cval） -->
-            <scroll id="cvalWaiting" scroll-x="{{true}}" style="position:absolute;width: 92%;height: 42px;">
+            <scroll id="cvalWaiting" scroll-x="{{true}}" style="position:absolute;width: 85%;height: 42px;">
               <div static style="position: absolute;left: 0px;height: 42px;padding-left:20px;padding-right:20px">
                 <text for="{{resultRow0}}" show="{{resultRow0.length > $idx}}" class="calbtn02" style="padding-right:10px" @click="onRsSelect(resultRow0[$idx])">{{resultRow0[$idx]}}</text>
               </div>
             </scroll>
+            <img if="{{resultRow0.length > 0}}" style="position:absolute;right: 8px; width: 60px;height: 40px;" src="/components/InputMethod/assets/horizontal/down2.png" @click="onBtnClick('down')" />
           </div>
-          <img src="./assets/horizontal/123.png" style="margin-left:6px;padding:6px;width:60px;height:60px;" @click="onBtnClick('switchNum_jp')" if="{{downFlag==='' && !numFlag && lang==='jp'}}" />
+          <img src="/components/InputMethod/assets/horizontal/123.png" style="margin-left:6px;padding:6px;width:60px;height:60px;" @click="onBtnClick('switchNum_jp')" if="{{downFlag==='' && !numFlag && lang==='jp'}}" />
         
-          <img src="./assets/horizontal/en.png" style="padding: 6px;width: 60px;height: 60px;" @click="onBtnClick('lang')" if="{{downFlag==='' && !numFlag && lang==='en'}}" />
-          <img src="./assets/horizontal/bigA.png" style="padding: 6px;margin-left: 6px;width:94px;height:60px;" @click="onBtnClick('switchLow')" if="{{downFlag==='' && upperFlag && lang==='en'&& !numFlag}}" />
-          <img src="./assets/horizontal/a.png" style="padding: 6px;margin-left: 6px;width:94px;height:60px;" @click="onBtnClick('switchUpper')" if="{{downFlag==='' && !upperFlag && lang==='en'&& !numFlag}}" />
-          <img src="./assets/horizontal/123.png" style="margin-left: 6px;padding: 6px;margin-left: 6px;width: 94px;height: 60px;" @click="onBtnClick('switchNum')" if="{{downFlag==='' && !numFlag && lang==='en'}}" />
-          <img src="./assets/horizontal/back2.png" style="margin-left: 6px;padding: 6px;width: 159px;height: 60px;" @click="onBtnClick('switchCn')" if="{{numFlag}}" />
-          <img if="{{!numFlag}}" src="./assets/horizontal/del.png" style="margin-left: 6px;padding: 6px;width: 60px;height: 60px;" @click="onBtnClick('D')" />
-          <img else src="./assets/horizontal/del2.png" style="margin-left: 6px;padding: 6px;" @click="onBtnClick('D')" />
+          <img src="/components/InputMethod/assets/horizontal/en.png" style="padding: 6px;width: 60px;height: 60px;" @click="onBtnClick('lang')" if="{{downFlag==='' && !numFlag && lang==='en'}}" />
+          <img src="/components/InputMethod/assets/horizontal/bigA.png" style="padding: 6px;margin-left: 6px;width:94px;height:60px;" @click="onBtnClick('switchLow')" if="{{downFlag==='' && upperFlag && lang==='en'&& !numFlag}}" />
+          <img src="/components/InputMethod/assets/horizontal/a.png" style="padding: 6px;margin-left: 6px;width:94px;height:60px;" @click="onBtnClick('switchUpper')" if="{{downFlag==='' && !upperFlag && lang==='en'&& !numFlag}}" />
+          <img src="/components/InputMethod/assets/horizontal/123.png" style="margin-left: 6px;padding: 6px;margin-left: 6px;width: 94px;height: 60px;" @click="onBtnClick('switchNum')" if="{{downFlag==='' && !numFlag && lang==='en'}}" />
+          <img src="/components/InputMethod/assets/horizontal/back2.png" style="margin-left: 6px;padding: 6px;width: 159px;height: 60px;" @click="onBtnClick('switchCn')" if="{{numFlag}}" />
+          <img if="{{!numFlag}}" src="/components/InputMethod/assets/horizontal/del.png" style="margin-left: 6px;padding: 6px;width: 60px;height: 60px;" @click="onBtnClick('D')" />
+          <img else src="/components/InputMethod/assets/horizontal/del2.png" style="margin-left: 6px;padding: 6px;" @click="onBtnClick('D')" />
+        </div>
+        <!-- 这里使用show会导致每次输入都会加载全部候选列表，很卡 -->
+        <div style="position: absolute;left: 0px;top: 0px;width: 100%;height: 252px;background-color: black; justify-content:center; flex-direction:column; align-items:center" if="{{downFlag==='down'}}">
+          <div static class="list67">
+            <list static style="width:100%;height:100%;">
+              <list-item type="waitingRows67" class="item67" for="{{itemArray in resultList2}}">
+                <div class="item column center" for="{{item in itemArray}}">
+                  <text class="calbtn-down-text" @click="onRsSelect(item)">{{item}}</text>
+                </div>
+              </list-item>
+            </list>
+          </div>
+          <img static style="margin-top:5px" src="/components/InputMethod/assets/horizontal/up2.png" @click="onBtnClick('down')" />
         </div>
       </div>
       <!-- 胶囊屏66 -->
       <div if="{{screentype==='pill-shaped'}}" style="width: 100%;height: 305px">
         <div static style="position:absolute;left:0px;top:34px;width:100%;height:276px;">
-          <!-- 【崩溃修复·W2】此处原有胶囊屏专属的 <progress type="arc" ... total-angle:-48deg>。
-               全仓仅此一处使用 arc 类型、且 total-angle 取负值（非标准用法），可疑为跑道屏设备上
-               "点进输入法页面即重启手环"的渲染层元凶，故移除，只保留键盘本体。
-               如需恢复该视觉弧线，请先用 A/B 真机验证（原参数：percent 30+percent66 /
-               start-angle:204deg / total-angle:-48deg / 188x188）。详见 docs/跑道屏输入法打不开分析.md -->
+          <progress percent="{{30+percent66}}" type="arc" style="start-angle:204deg;total-angle:-48deg;width:188px;height:188px;top:82px;left:2px;position:absolute;color:#ffffff;stroke-width:6px;layer-color:#262626;margin-left: {{(screenWidth - 192)/2}}px;"></progress>
           <scroll id="keyboard66" scroll-x="{{true}}" onscroll="handelScroll" style="padding-left: {{(screenWidth - 192)/2}}px;padding-right: {{(screenWidth - 192)/2}}px;">
             <div if="{{!numFlag}}" style="left: 3px; flex-direction: column;">
               <div static style="margin-left: 0px;margin-top: 0px;height: 60px;">
@@ -273,11 +303,12 @@
         <div static style="position: absolute;left: {{(screenWidth - 192)/2}}px;top: 0px;width: 192px;height: 110px;">
           <img static style="position: absolute;left: 3px;top: 47px;width: 186px;height: 60px;" src="/components/InputMethod/assets/arc/search.png" />
           <!-- 候选横滚行：整词在前、单字随后（拼音已在键盘上方独立小字行显示，这里不放 cval） -->
-          <scroll id="cvalWaiting" scroll-x="{{true}}" style="position: absolute;left: 15px;top: 56px;width: 160px;height: 42px;">
+          <scroll id="cvalWaiting" scroll-x="{{true}}" style="position: absolute;left: 15px;top: 56px;width: 144px;height: 42px;">
             <div style="position: absolute;left: 0px;top: 0px;height: 42px;padding-right:20px">
               <text for="{{resultRow0}}" show="{{resultRow0.length > $idx}}" class="calbtn02" style="padding-right:10px" @click="onRsSelect(resultRow0[$idx])">{{resultRow0[$idx]}}</text>
             </div>
           </scroll>
+          <img show="{{resultRow0.length > 0}}" style="position: absolute;left: 120px;top: 57px;width: 60px;height: 40px;" src="/components/InputMethod/assets/arc/down2.png" @click="onBtnClick('down')" />
           <!-- 带变量的相对路径在 aiot-tookit 2.0.4 中修复 -->
           <img src="/components/InputMethod/assets/arc/{{lang}}.png" style="position: absolute;top:0px;left:9px;width: 48px;height: 42px;" @click="onBtnClick('lang')" show="{{downFlag==='' && !numFlag && !numFlag_jp}}" />
           <img src="/components/InputMethod/assets/arc/back2.png" style="position: absolute;top:0px;left:9px;width: 48px;height: 42px;" @click="onBtnClick('switchCn')" show="{{numFlag && lang==='cn' ||numFlag_jp && lang==='jp' }}" />
@@ -286,6 +317,19 @@
           <img src="/components/InputMethod/assets/arc/bigA.png" style="position: absolute;top:0px;left:72px;width:48px;height:42px;" @click="onBtnClick('switchLow')" show="{{downFlag==='' && upperFlag && lang==='en' }}" />
           <img src="/components/InputMethod/assets/arc/a.png" style="position: absolute;top:0px;left:72px;width:48px;height:42px;" @click="onBtnClick('switchUpper')" show="{{downFlag==='' && !upperFlag && lang==='en' }}" />
           <img src="/components/InputMethod/assets/arc/del.png" style="position: absolute;left: 135px;top: 0px;width: 48px;height: 42px;" @click="onBtnClick('D')" />
+        </div>
+        <!-- 这里使用show会导致每次输入都会加载全部候选列表，很卡 -->
+        <div style="position: absolute;top: 47px;width: 100%;height: 263px;background-color: black;" if="{{downFlag==='down'}}">
+          <div style="position: absolute;left: {{(screenWidth - 192)/2}}px;width: 192px;height: 263px;"> 
+            <list static class="list66">
+              <list-item type="waitingRows66" class="item66" for="{{itemArray in resultList2}}">
+                <div class="item column center" for="{{item in itemArray}}">
+                  <text class="calbtn-down-text" @click="onRsSelect(item)">{{item}}</text>
+                </div>
+              </list-item>
+            </list>
+            <img static style="position: absolute;top:196px;left:56px;width: 80px;height: 60px;" src="/components/InputMethod/assets/arc/up2.png" @click="onBtnClick('down')" />
+          </div>
         </div>
       </div>
       </div>
@@ -296,7 +340,7 @@
 <script>
 import vibrator from "@system.vibrator";
 import device from '@system.device'
-import { SimpleInputMethod } from "./assets/dicUtil.js";
+import { SimpleInputMethod } from "/components/InputMethod/assets/dicUtil.js";
 function doSearchDic(word, lang, cb) {
   if (!word) {
     cb({ chars: [], multi: null });
@@ -309,7 +353,7 @@ function doSearchDic(word, lang, cb) {
 
 function deleteLast(t) {
   if (t) {
-    return t.slice(0, -1);
+    return t.substr(0, t.length - 1);
   }
   return "";
 }
@@ -330,17 +374,13 @@ export default {
     screentype: {
       default: "circle",
     },
-    // 【诊断用】为 true 时跳过词典初始化。
-    // 仅用于分离"崩溃来自键盘 UI/图片"还是"来自词典加载"，见 docs/跑道屏输入法重启问题二次深入分析.md
-    dictlazy: {
-      default: false,
-    },
   },
   data: {
     cval: "",
     // 拼音分词显示串（如 ni'hao），在 resetResultList 中随 cval 同步更新
     cvalDisplay: "",
     resultList: [],
+    resultList2: [],
     // 多拼：整词候选（最前）及其与单字合并后的首页展示序列与对应整词标记
     resultWordList: [],
     resultRow0: [],
@@ -361,12 +401,10 @@ export default {
     keyboardCreated: false,
     cvalList: [0, 1, 2, 3, 4],
     percent67: 52,
-    // 原胶囊屏 arc 进度条用的 percent66 已随该节点移除（见 W2），不再保留
+    percent66: 0,
     // 针对screenShape为rect的设备，会自动获取screenWidth并绑定到根div
     // 这样便能同时适配n67和o65甚至是后续设备，但实际效果可能受designWidth影响
     screenWidth: 336,
-    // 胶囊屏更多候选面板宽度（由 adjustScreenWidth 动态计算，适配窄屏）
-    l66DownPanelWidth: 192,
     keys: {
       full: [
         ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
@@ -406,15 +444,13 @@ export default {
     },
   },
   onInit() {
-    var ml = parseInt(this.maxlength);
-    if (isNaN(ml) || ml < 1) { ml = 5; }
-    if (ml > 50) { ml = 50; }
-    this.maxlength = ml;
-    const tempCvalList = [];
-    for (let i = 0; i < ml; i++) {
-      tempCvalList.push(i);
+    if (this.maxlength) {
+      const tempCvalList = [];
+      for (let i = 0; i < this.maxlength; i++) {
+        tempCvalList.push(i);
+      }
+      this.cvalList = tempCvalList;
     }
-    this.cvalList = tempCvalList;
     if (this.screentype === "rect" || this.screentype === "pill-shaped") {
       this.adjustScreenWidth();
     }
@@ -431,13 +467,8 @@ export default {
     this.$watch("hide", "watchHidePropsChange");
     this.$watch("maxlength", "watchMaxLengthPropsChange");
     this.$watch("keyboardtype", "watchKeyboardTypePropsChange");
-    this.$watch("screentype", "adjustScreenWidth");
   },
   addAllTxt(txt) {
-    var max = this.maxlength
-    if (max > 0 && txt.length > max) {
-      txt = txt.slice(0, max)
-    }
     this.$emit("complete", { content: txt });
   },
   onRsSelect(txt) {
@@ -474,7 +505,6 @@ export default {
     this.resetResultList();
     this.downFlag = "";
   },
-
   onBtnClick(sign) {
     this.onVibrate();
     switch (sign) {
@@ -512,6 +542,9 @@ export default {
         break;
       case "space":
         this.addAllTxt(" ");
+        break;
+      case "down":
+        this.downFlag = this.downFlag === "down" ? "" : "down";
         break;
       case "select":
         if (this.lastWaitingStr != sign && this.lastWaitingStr) {
@@ -614,8 +647,7 @@ export default {
   },
   setResultListAll() {
     // 首页展示序列：整词在前，单字随后，截断到 maxlength
-    // parseInt 可能得到 NaN（上层传了非数字），此时 maxlength 比较恒 false → 候选行恒空，故兜底 5
-    const cap = parseInt(this.maxlength) || 5;
+    const cap = parseInt(this.maxlength);
     let row0 = [];
     let row0IsWord = [];
     for (let i = 0; i < this.resultWordList.length && row0.length < cap; i++) {
@@ -631,6 +663,27 @@ export default {
     this.resultRow0 = row0;
     this.resultRow0IsWord = row0IsWord;
 
+    // 下展分页（down 展开）：整词优先，再单字，每页 maxlength 个
+    this.resultList2 = [];
+    let array = [];
+    for (let i = 0; i < this.resultWordList.length; i++) {
+      array.push(this.resultWordList[i]);
+      if (array.length === cap) {
+        this.resultList2.push(array);
+        array = [];
+      }
+    }
+    for (let i = 0; i < this.resultList.length; i++) {
+      if (this.resultWordList.indexOf(this.resultList[i]) !== -1) continue;
+      array.push(this.resultList[i]);
+      if (array.length === cap) {
+        this.resultList2.push(array);
+        array = [];
+      }
+    }
+    if (array.length > 0) {
+      this.resultList2.push(array);
+    }
   },
   getResultByWord(val) {
     const that = this;
@@ -695,7 +748,7 @@ export default {
     this.clearWaiting();
     this.resetResultList();
   },
-  watchHidePropsChange(newV) {
+  watchHidePropsChange(newV, oldV) {
     this.$emit("visibilityChange", { visible: newV });
     // 键盘从隐藏切到显示(hide:true→false)：首次弹出才把键盘子树建入 DOM（keyboardCreated 置 true 保活，
     // 之后 hide 切换只走 show 显隐、不再重建）。同时懒初始化字典（幂等）。
@@ -707,12 +760,10 @@ export default {
   // 字典懒初始化入口（幂等，只跑一次）。initDict 内部还有 syllableSet 幂等守卫。
   _ensureDictInit() {
     if (this.__dictInitStarted) return
-    // 【诊断用】dictlazy=true 时跳过词典初始化，用于分离"键盘 UI 崩溃"与"词典加载崩溃"
-    if (this.dictlazy) return
     this.__dictInitStarted = true
     SimpleInputMethod.initDict()
   },
-  watchMaxLengthPropsChange(newV) {
+  watchMaxLengthPropsChange(newV, oldV) {
     if (newV) {
       const tempCvalList = [];
       for (let i = 0; i < newV; i++) {
@@ -721,7 +772,7 @@ export default {
       this.cvalList = tempCvalList;
     }
   },
-  watchKeyboardTypePropsChange(newV) {
+  watchKeyboardTypePropsChange(newV, oldV) {
     if (newV === "T9" && this.lang === "jp") {
       this.lang = "cn";
       this.cval = "";
@@ -731,17 +782,14 @@ export default {
   },
   onVibrate() {
     if (this.vibratemode != "") {
-      try {
-        vibrator.vibrate({ mode: this.vibratemode });
-      } catch (e) {}
+      vibrator.vibrate({ mode: this.vibratemode });
     }
   },
   handelScroll(event) {
-    // 方屏键盘的线性进度条
     let percentTemp67 = (event.scrollX / 636) * 100 + 52.8;
     this.percent67 = parseInt(percentTemp67 <= 100 ? percentTemp67 : 100);
-    // 胶囊屏原本在这里计算 percent66 供 arc 进度条使用，该进度条已因崩溃移除（见 W2），
-    // percent66 已无消费方，故不再计算。
+    let percentTemp66 = (event.scrollX / 633) * 100;
+    this.percent66 = parseInt(percentTemp66 <= 100 ? percentTemp66 : 100);
   },
   pushCval() {
     this.onVibrate();
@@ -752,16 +800,13 @@ export default {
     this.addAllTxt(temp);
   },
   adjustScreenWidth(){
+    // 唯一改动：上游此处用箭头函数写法（success 回调里直接用 this 指向组件）。
+    // 本项目全仓禁用箭头函数（Vela 老内核可能整段脚本不执行），故等价改写为 function + self。
+    // 行为完全一致，不涉及任何逻辑差异。
     var self = this;
     device.getInfo({
       success: function(data) {
         self.screenWidth = data.screenWidth;
-        // 胶囊屏更多候选面板：宽度适配视口，保证左右各留 6px 边距
-        self.l66DownPanelWidth = Math.min(Math.max(data.screenWidth - 12, 120), 192);
-      },
-      fail: function() {
-        self.screenWidth = 336;
-        self.l66DownPanelWidth = 192;
       }
     })
   }
@@ -769,10 +814,6 @@ export default {
 </script>
 
 <style>
-/* 【崩溃修复·改法B】根节点定位按屏型动态设置（见模板内 inline style）：
-     pill-shaped → position:relative（普通流式，避免与父级 <scroll> 组合把键盘推出可视区）
-     其它屏型     → position:absolute（保持原行为，方屏/圆屏零影响）
-   此处保留 absolute 作为非胶囊屏默认值；left/bottom 对 relative 元素无副作用（偏移 0）。 */
 .page {
 	width:100%;
 	position:absolute;
@@ -816,17 +857,6 @@ export default {
 	margin-right:10px;
 	lines:1;
 	text-overflow:ellipsis;
-	flex-shrink:0;
-	max-width:100%;
-	width:auto;
-	min-width:0;
-}
-/* 下展分页容器：每个候选按内容自然宽度排列，防止 flex:1 等分挤压文字 */
-.list3-item {
-	flex:none;
-	width:auto;
-	padding-left:6px;
-	padding-right:6px;
 }
 .calbtnfull {
 	color:#fff;
@@ -885,7 +915,7 @@ export default {
 	top:38px;
 	left:78px;
 	width:324px;
-	height:218px;
+	height:160px;
 	flex-direction:column;
 	background-color:#262626;
 	border-radius:12px
@@ -948,8 +978,7 @@ export default {
 	position:absolute;
 	left:3px;
 	top:0px;
-	max-width:186px;
-	width:100%;
+	width:186px;
 	height:186px;
 	border-radius:30px;
 	background-color:#262626;
@@ -958,15 +987,6 @@ export default {
 }
 .item66 {
 	height:42px;
-}
-/* 胶囊屏下展候选：每行一个占满宽度，覆盖 .item { flex:1 } 均分行为；
-   与圆屏 .list3-item 的 flex:none 同理，只是 .list66 之前漏了这条 */
-.list66 .item {
-	flex:none;
-	width:100%;
-	min-width:0;
-	padding-left:6px;
-	padding-right:6px;
 }
 .waiting-keys {
 	width:36px;
