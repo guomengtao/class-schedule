@@ -21,7 +21,12 @@
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openInputCrashDiag">
         <text class="item-label" style="color: {{ theme.accent }}">输入法崩溃诊断</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">崩溃定位</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">存储/词典</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openInputCrashDiag2">
+        <text class="item-label" style="color: {{ theme.accent }}">输入法诊断2·元素级</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">A→F 定位</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openVibrationLab">
@@ -146,6 +151,10 @@ export default {
 
   openInputCrashDiag() {
     router.push({ uri: "/pages/input-crash-diag" })
+  },
+
+  openInputCrashDiag2() {
+    router.push({ uri: "/pages/input-crash-diag2" })
   },
 
   openVibrationLab() {
