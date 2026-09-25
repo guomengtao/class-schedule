@@ -21,18 +21,81 @@
     </div>
 
     <scroll class="body" scroll-y="true">
+      <!-- ===== 第二轮：键盘 UI 元素级细分（第一轮第 3 步已崩，重点跑这个） ===== -->
+      <div class="sec-title">
+        <text class="sec-title-text" style="color: {{ theme.accent }}">第二轮：键盘元素细分（A→F）</text>
+      </div>
+
       <div class="cell">
-        <div class="btn-item btn-main" onclick="runAll">
-          <text class="btn-label btn-main-label">★ 一键跑全部（先点这个）</text>
+        <div class="btn-item btn-main" onclick="runAll2">
+          <text class="btn-label btn-main-label">★ 一键跑第二轮（建议先点这个）</text>
         </div>
-        <text class="item-hint" style="color: {{ theme.textSecondary }}">按顺序自动跑 1→5，每步留足落盘时间；中途重启也没关系，回来就能看到崩在第几步</text>
+        <text class="item-hint" style="color: {{ theme.textSecondary }}">按顺序自动跑 A→F，逐项隔离：文本 / 圆角描边 / 横滚 / 图片 / 绝对定位 / 完整键盘</text>
+      </div>
+
+      <div class="cell">
+        <div class="btn-item" onclick="runOne(6)" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">A. 纯文本 ×26</text>
+        </div>
+        <text class="item-hint" style="color: {{ theme.textSecondary }}">26 个裸 text，无尺寸/边框/圆角/背景</text>
+        <text class="item-res" if="{{ r.s6 }}" style="color: {{ r.s6.ok ? theme.text : '#e74c3c' }}">{{ r.s6.value }}</text>
+      </div>
+
+      <div class="cell">
+        <div class="btn-item" onclick="runOne(7)" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">B. 圆角描边按键 ×26</text>
+        </div>
+        <text class="item-hint" style="color: {{ theme.textSecondary }}">复刻 .calbtn66：60×60 + border 3px + radius 30px</text>
+        <text class="item-res" if="{{ r.s7 }}" style="color: {{ r.s7.ok ? theme.text : '#e74c3c' }}">{{ r.s7.value }}</text>
+      </div>
+
+      <div class="cell">
+        <div class="btn-item" onclick="runOne(8)" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">C. 横向 scroll 容器</text>
+        </div>
+        <text class="item-hint" style="color: {{ theme.textSecondary }}">1 个 scroll-x 内含 3 排纯文本</text>
+        <text class="item-res" if="{{ r.s8 }}" style="color: {{ r.s8.ok ? theme.text : '#e74c3c' }}">{{ r.s8.value }}</text>
+      </div>
+
+      <div class="cell">
+        <div class="btn-item" onclick="runOne(9)" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">D. PNG 图片 ×8</text>
+        </div>
+        <text class="item-hint" style="color: {{ theme.textSecondary }}">只渲染 arc/ 下的 8 张键盘素材</text>
+        <text class="item-res" if="{{ r.s9 }}" style="color: {{ r.s9.ok ? theme.text : '#e74c3c' }}">{{ r.s9.value }}</text>
+      </div>
+
+      <div class="cell">
+        <div class="btn-item" onclick="runOne(10)" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">E. 绝对定位堆叠</text>
+        </div>
+        <text class="item-hint" style="color: {{ theme.textSecondary }}">3 层 absolute 文本层，无图片无 scroll 无圆角</text>
+        <text class="item-res" if="{{ r.s10 }}" style="color: {{ r.s10.ok ? theme.text : '#e74c3c' }}">{{ r.s10.value }}</text>
+      </div>
+
+      <div class="cell">
+        <div class="btn-item" onclick="runOne(11)" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">F. 完整 pill 键盘（对照）</text>
+        </div>
+        <text class="item-hint" style="color: {{ theme.textSecondary }}">真实组件，不加载词典（= 第一轮第 3 步）</text>
+        <text class="item-res" if="{{ r.s11 }}" style="color: {{ r.s11.ok ? theme.text : '#e74c3c' }}">{{ r.s11.value }}</text>
+      </div>
+
+      <!-- ===== 第一轮：存储 / 词典 / 端到端 ===== -->
+      <div class="sec-title">
+        <text class="sec-title-text" style="color: {{ theme.textSecondary }}">第一轮：存储 / 词典 / 端到端（1→5）</text>
+      </div>
+
+      <div class="cell">
+        <div class="btn-item btn-main2" onclick="runAll">
+          <text class="btn-label" style="color: {{ theme.bg }}">★ 一键跑第一轮（1→5）</text>
+        </div>
       </div>
 
       <div class="cell">
         <div class="btn-item" onclick="runOne(1)" style="background-color: {{ theme.card }}">
           <text class="btn-label" style="color: {{ theme.accent }}">1. 并发写 ×5</text>
         </div>
-        <text class="item-hint" style="color: {{ theme.textSecondary }}">复刻「点击昵称」先发的 5 个 storage.set</text>
         <text class="item-res" if="{{ r.s1 }}" style="color: {{ r.s1.ok ? theme.text : '#e74c3c' }}">{{ r.s1.value }}</text>
       </div>
 
@@ -40,7 +103,6 @@
         <div class="btn-item" onclick="runOne(2)" style="background-color: {{ theme.card }}">
           <text class="btn-label" style="color: {{ theme.accent }}">2. 并发读 ×7</text>
         </div>
-        <text class="item-hint" style="color: {{ theme.textSecondary }}">复刻进输入页的 5 个 get + 主题/主题名共 7 次并发读</text>
         <text class="item-res" if="{{ r.s2 }}" style="color: {{ r.s2.ok ? theme.text : '#e74c3c' }}">{{ r.s2.value }}</text>
       </div>
 
@@ -48,7 +110,6 @@
         <div class="btn-item" onclick="runOne(3)" style="background-color: {{ theme.card }}">
           <text class="btn-label" style="color: {{ theme.accent }}">3. 建键盘（不加载词典）</text>
         </div>
-        <text class="item-hint" style="color: {{ theme.textSecondary }}">只渲染键盘 UI 与图片，跳过词典。崩 → 元凶是 UI/PNG/节点</text>
         <text class="item-res" if="{{ r.s3 }}" style="color: {{ r.s3.ok ? theme.text : '#e74c3c' }}">{{ r.s3.value }}</text>
       </div>
 
@@ -56,7 +117,6 @@
         <div class="btn-item" onclick="runOne(4)" style="background-color: {{ theme.card }}">
           <text class="btn-label" style="color: {{ theme.accent }}">4. 加载词典</text>
         </div>
-        <text class="item-hint" style="color: {{ theme.textSecondary }}">在上一步基础上加载整本词典。崩 → 元凶是词典内存</text>
         <text class="item-res" if="{{ r.s4 }}" style="color: {{ r.s4.ok ? theme.text : '#e74c3c' }}">{{ r.s4.value }}</text>
       </div>
 
@@ -64,11 +124,57 @@
         <div class="btn-item" onclick="runOne(5)" style="background-color: {{ theme.card }}">
           <text class="btn-label" style="color: {{ theme.accent }}">5. 跳转真实输入页</text>
         </div>
-        <text class="item-hint" style="color: {{ theme.textSecondary }}">端到端确认。若崩在这一步，说明前 4 步之外的组合因素</text>
         <text class="item-res" if="{{ r.s5 }}" style="color: {{ r.s5.ok ? theme.text : '#e74c3c' }}">{{ r.s5.value }}</text>
       </div>
 
-      <!-- 键盘宿主区：仅第 3 / 第 4 步挂载，避免进页面就承受负载 -->
+      <!-- ===== 测试宿主区：按当前步骤渲染不同内容 ===== -->
+      <div class="stage" if="{{ stage === 'A' }}">
+        <div class="kbd-row" for="row in keyRows">
+          <text class="k-plain" for="k in row">{{k}}</text>
+        </div>
+      </div>
+
+      <div class="stage" if="{{ stage === 'B' }}">
+        <div class="kbd-row" for="row in keyRows">
+          <text class="k-btn66" for="k in row">{{k}}</text>
+        </div>
+      </div>
+
+      <div class="stage" if="{{ stage === 'C' }}">
+        <scroll class="kbd-scroll" scroll-x="true">
+          <div class="kbd-col">
+            <div class="kbd-row" for="row in keyRows">
+              <text class="k-plain" for="k in row">{{k}}</text>
+            </div>
+          </div>
+        </scroll>
+      </div>
+
+      <div class="stage" if="{{ stage === 'D' }}">
+        <image class="png-item" src="/components/InputMethod/assets/arc/search.png"></image>
+        <image class="png-item" src="/components/InputMethod/assets/arc/cn.png"></image>
+        <image class="png-item" src="/components/InputMethod/assets/arc/123.png"></image>
+        <image class="png-item" src="/components/InputMethod/assets/arc/del.png"></image>
+        <image class="png-item" src="/components/InputMethod/assets/arc/space.png"></image>
+        <image class="png-item" src="/components/InputMethod/assets/arc/back2.png"></image>
+        <image class="png-item" src="/components/InputMethod/assets/arc/a.png"></image>
+        <image class="png-item" src="/components/InputMethod/assets/arc/bigA.png"></image>
+      </div>
+
+      <div class="stage" if="{{ stage === 'E' }}">
+        <div class="abs-box">
+          <div class="abs-row" style="top: 0px;">
+            <text class="k-plain" for="k in keyRows[0]">{{k}}</text>
+          </div>
+          <div class="abs-row" style="top: 60px;">
+            <text class="k-plain" for="k in keyRows[1]">{{k}}</text>
+          </div>
+          <div class="abs-row" style="top: 120px;">
+            <text class="k-plain" for="k in keyRows[2]">{{k}}</text>
+          </div>
+        </div>
+      </div>
+
       <div class="ime-host" if="{{ showIme }}">
         <input-method
           hide="{{ false }}"
@@ -77,6 +183,15 @@
           screentype="{{ imeScreenType }}"
           dictlazy="{{ dictLazy }}"
         ></input-method>
+      </div>
+
+      <!-- ===== 二维码：把诊断结论一次性回传 ===== -->
+      <div class="qr-cell" if="{{ diagUrl }}">
+        <div class="qr-wrap">
+          <qrcode class="qr-code" value="{{ diagUrl }}" style="color: #000000; background-color: #ffffff;"></qrcode>
+        </div>
+        <text class="qr-tip" style="color: {{ theme.textSecondary }}">手机扫码后把地址栏链接发我（含版本/屏型/崩溃步骤）</text>
+        <text class="qr-text" style="color: {{ theme.textMuted }}">{{ diagUrl }}</text>
       </div>
 
       <div class="cell">
@@ -100,12 +215,22 @@ var version = require("../../data/version.js")
 var STEP_KEY = "input_diag_step"
 var PASS_KEY = "input_diag_passed"
 
+// 诊断回传 URL（与激活页同域名，未识别参数会被忽略，开发者从地址栏取 URL 解析即可）
+// 只保留定位问题的最小充分集，控制二维码密度，保证 192px 小屏也能扫出
+var DIAG_BASE = "https://app-auth.gudq.com/activate.html?"
+
 var STEP_NAME = {
   "1": "并发写 ×5",
   "2": "并发读 ×7",
   "3": "建键盘（不加载词典）",
   "4": "加载词典",
-  "5": "跳转真实输入页"
+  "5": "跳转真实输入页",
+  "6": "A 纯文本 ×26",
+  "7": "B 圆角描边按键 ×26",
+  "8": "C 横向 scroll",
+  "9": "D PNG 图片 ×8",
+  "10": "E 绝对定位堆叠",
+  "11": "F 完整 pill 键盘"
 }
 
 export default {
@@ -124,12 +249,25 @@ export default {
     passedText: "（无）",
     crashStep: "",
     crashName: "",
+    screenShape: "",
+    screenW: "",
+    screenH: "",
+    diagUrl: "",
+    keyRows: [
+      ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+      ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+      ["Z", "X", "C", "V", "B", "N", "M"]
+    ],
+    stage: "",
     showIme: false,
     dictLazy: true,
     imeScreenType: "pill-shaped",
     passed: [],
     running: false,
-    r: { s1: null, s2: null, s3: null, s4: null, s5: null }
+    r: {
+      s1: null, s2: null, s3: null, s4: null, s5: null,
+      s6: null, s7: null, s8: null, s9: null, s10: null, s11: null
+    }
   },
 
   onInit() {
@@ -144,7 +282,11 @@ export default {
         var shape = d.screenShape || "?"
         if (shape === "capsule") { shape = "pill-shaped" }
         self.imeScreenType = shape
+        self.screenShape = shape
+        self.screenW = String(d.screenWidth || "")
+        self.screenH = String(d.screenHeight || "")
         self.envText = shape + " " + (d.screenWidth || "?") + "x" + (d.screenHeight || "?")
+        self.updateDiagUrl()
       },
       fail: function() { self.envText = "获取失败" }
     })
@@ -170,6 +312,7 @@ export default {
           self.crashStep = String(data)
           self.crashName = STEP_NAME[String(data)] || ""
         }
+        self.updateDiagUrl()
       },
       fail: function() {}
     })
@@ -179,13 +322,38 @@ export default {
         if (data) {
           self.passed = String(data).split(",")
           self.passedText = String(data)
+          self.updateDiagUrl()
         }
       },
       fail: function() {}
     })
   },
 
-  // ===== 一键跑全部：自动串行 1→5，每步之间留 800ms 给落盘与渲染 =====
+  // ===== 诊断回传 URL：只带最小充分集，控制二维码密度 =====
+  // 字段：r=版本 / s=屏型 / w,h=分辨率 / c=渠道 / kb=键盘分支 / dg=崩溃步骤.已通过
+  updateDiagUrl() {
+    var self = this
+    var q = []
+    q.push('r=' + encodeURIComponent(self.versionText))
+    if (self.screenShape) { q.push('s=' + encodeURIComponent(self.screenShape)) }
+    if (self.screenW) { q.push('w=' + self.screenW) }
+    if (self.screenH) { q.push('h=' + self.screenH) }
+    q.push('c=' + encodeURIComponent(version.channel || ''))
+    q.push('kb=' + (self.screenShape === 'rect' ? 'r' : (self.screenShape === 'circle' ? 'c' : 'p')))
+    var dg = self.crashStep ? self.crashStep : '0'
+    q.push('dg=' + dg + '.' + (self.passed || []).join(''))
+    self.diagUrl = DIAG_BASE + q.join('&')
+  },
+
+  // ===== 第二轮：A→F =====
+  runAll2() {
+    var self = this
+    if (self.running) return
+    self.running = true
+    self.runSeq([6, 7, 8, 9, 10, 11], 0)
+  },
+
+  // ===== 第一轮：1→5 =====
   runAll() {
     var self = this
     if (self.running) return
@@ -201,7 +369,6 @@ export default {
     })
   },
 
-  // ===== 单步：点哪个跑哪个 =====
   runOne(step) {
     var self = this
     if (self.running) return
@@ -224,19 +391,24 @@ export default {
     var self = this
     // 延时确保进度落盘完成后再执行
     setTimeout(function() {
-      self.doStep(step, function(ok, value) {
-        self.setRes("s" + step, ok, value)
-        if (ok) { self.markPass(step) }
-        storage.set({ key: STEP_KEY, value: "" })
-        if (onDone) { onDone(ok) }
-      })
+      // 先把上一轮留下的宿主清干净，保证每步都在干净状态开始
+      self.stage = ''
+      self.showIme = false
+      setTimeout(function() {
+        self.doStep(step, function(ok, value) {
+          self.setRes("s" + step, ok, value)
+          if (ok) { self.markPass(step) }
+          storage.set({ key: STEP_KEY, value: "" })
+          self.updateDiagUrl()
+          if (onDone) { onDone(ok) }
+        })
+      }, 300)
     }, 400)
   },
 
   doStep(step, finish) {
     var self = this
     if (step === 1) {
-      // 复刻「点击昵称」先发的 5 个并发 storage.set
       var n = 0
       var one = function() { n++; if (n >= 5) finish(true, "5 次并发写完成，未崩溃") }
       storage.set({ key: "diag_t_title", value: "编辑昵称", success: one, fail: one })
@@ -247,7 +419,6 @@ export default {
       return
     }
     if (step === 2) {
-      // 复刻进输入页的 7 次并发读（5 个输入参数 + 主题 + 主题名）
       var m = 0
       var two = function() { m++; if (m >= 7) finish(true, "7 次并发读完成，未崩溃") }
       storage.get({ key: "diag_t_title", success: two, fail: two })
@@ -260,28 +431,54 @@ export default {
       return
     }
     if (step === 3) {
-      // 只建键盘 UI，不加载词典（dictlazy=true）
       self.dictLazy = true
       self.showIme = true
-      // 给足渲染与观察时间；若中途崩溃，STEP_KEY 会保留为 3
       setTimeout(function() { finish(true, "键盘已挂载，未崩溃（未加载词典）") }, 2500)
       return
     }
     if (step === 4) {
-      // 先销毁再重建组件，让它走完整的词典初始化
       self.showIme = false
       setTimeout(function() {
         self.dictLazy = false
         self.showIme = true
-        // 词典是分步流水线，留足时间；若崩溃，STEP_KEY 会保留为 4
         setTimeout(function() { finish(true, "词典加载完成，未崩溃") }, 4000)
       }, 600)
       return
     }
     if (step === 5) {
-      // 能发起跳转即算本步通过；若目标页内崩溃，重启后 passed 会含 5 而 crashStep 为空
       finish(true, "已发起跳转，正在进入真实输入页…")
       setTimeout(function() { router.push({ uri: "/pages/chinese-input" }) }, 600)
+      return
+    }
+    if (step === 6) {
+      self.stage = 'A'
+      setTimeout(function() { finish(true, "A 通过：26 个纯文本渲染正常") }, 2000)
+      return
+    }
+    if (step === 7) {
+      self.stage = 'B'
+      setTimeout(function() { finish(true, "B 通过：26 个圆角描边按键渲染正常") }, 2500)
+      return
+    }
+    if (step === 8) {
+      self.stage = 'C'
+      setTimeout(function() { finish(true, "C 通过：横向 scroll 渲染正常") }, 2000)
+      return
+    }
+    if (step === 9) {
+      self.stage = 'D'
+      setTimeout(function() { finish(true, "D 通过：8 张 PNG 渲染正常") }, 2500)
+      return
+    }
+    if (step === 10) {
+      self.stage = 'E'
+      setTimeout(function() { finish(true, "E 通过：绝对定位堆叠渲染正常") }, 2000)
+      return
+    }
+    if (step === 11) {
+      self.dictLazy = true
+      self.showIme = true
+      setTimeout(function() { finish(true, "F 通过：完整 pill 键盘渲染正常") }, 2500)
       return
     }
     finish(false, "未知步骤")
@@ -289,9 +486,9 @@ export default {
 
   setRes(key, ok, value) {
     var o = this.r
-    // 整体重建对象再赋值，确保视图刷新
     this.r = {
-      s1: o.s1, s2: o.s2, s3: o.s3, s4: o.s4, s5: o.s5
+      s1: o.s1, s2: o.s2, s3: o.s3, s4: o.s4, s5: o.s5,
+      s6: o.s6, s7: o.s7, s8: o.s8, s9: o.s9, s10: o.s10, s11: o.s11
     }
     this.r[key] = { ok: ok, value: value }
   },
@@ -311,8 +508,13 @@ export default {
     self.passedText = "（无）"
     self.crashStep = ""
     self.crashName = ""
+    self.stage = ""
     self.showIme = false
-    self.r = { s1: null, s2: null, s3: null, s4: null, s5: null }
+    self.r = {
+      s1: null, s2: null, s3: null, s4: null, s5: null,
+      s6: null, s7: null, s8: null, s9: null, s10: null, s11: null
+    }
+    self.updateDiagUrl()
   },
 
   goBack() {
@@ -372,6 +574,17 @@ export default {
   flex-direction: column;
 }
 
+.sec-title {
+  margin: 2px 0 8px 0;
+  flex-shrink: 0;
+}
+
+.sec-title-text {
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: bold;
+}
+
 .cell {
   flex-direction: column;
   margin-bottom: 10px;
@@ -387,6 +600,10 @@ export default {
 
 .btn-main {
   background-color: #7ec8e3;
+}
+
+.btn-main2 {
+  background-color: #4a8a9a;
 }
 
 .btn-main-label {
@@ -414,11 +631,112 @@ export default {
   word-break: break-all;
 }
 
+/* ===== 测试宿主区 ===== */
+.stage {
+  width: 100%;
+  min-height: 200px;
+  margin-bottom: 10px;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.kbd-row {
+  flex-direction: row;
+  margin-bottom: 6px;
+}
+
+.kbd-col {
+  flex-direction: column;
+}
+
+.kbd-scroll {
+  width: 100%;
+  height: 200px;
+}
+
+.k-plain {
+  font-size: 32px;
+  color: #ffffff;
+  margin-right: 6px;
+}
+
+/* 复刻 .calbtn66：60x60 + border 3px + radius 30px + 背景 */
+.k-btn66 {
+  color: #ffffff;
+  font-size: 32px;
+  font-weight: bold;
+  background-color: #262626;
+  margin-right: 3px;
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
+  text-align: center;
+  border: 3px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.png-item {
+  width: 60px;
+  height: 60px;
+  margin: 2px;
+}
+
+.abs-box {
+  position: relative;
+  width: 100%;
+  height: 200px;
+}
+
+.abs-row {
+  position: absolute;
+  left: 0px;
+  height: 60px;
+  flex-direction: row;
+}
+
 .ime-host {
   width: 100%;
   height: 305px;
   margin-bottom: 10px;
   flex-shrink: 0;
+}
+
+/* ===== 二维码回传区 ===== */
+.qr-cell {
+  flex-direction: column;
+  align-items: center;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+  background-color: #16213e;
+}
+
+.qr-wrap {
+  background-color: #ffffff;
+  padding: 6px;
+  border-radius: 6px;
+}
+
+.qr-code {
+  width: 150px;
+  height: 150px;
+}
+
+.qr-tip {
+  font-size: 20px;
+  line-height: 28px;
+  lines: 0;
+  text-align: center;
+  padding-top: 6px;
+}
+
+.qr-text {
+  font-size: 18px;
+  line-height: 24px;
+  lines: 0;
+  word-break: break-all;
+  padding-top: 4px;
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
