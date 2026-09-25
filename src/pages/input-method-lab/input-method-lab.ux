@@ -1,5 +1,6 @@
-<!-- 【输入法实验台】引用 Lab 副本组件，正式 InputMethod.ux 一行不改，零回归风险 -->
-<import name="input-method" src="../../components/InputMethodLab/InputMethodLab.ux"></import>
+<!-- 【输入法实验台】直接使用上游 Vela_input_method 最新版（NEORUAA/Vela_input_method，main 分支），
+     组件代码逐字节原样、不做任何改动。正式 InputMethod.ux 保持不动，零回归风险。 -->
+<import name="input-method" src="../../components/InputMethodLab/InputMethod.ux"></import>
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
@@ -30,34 +31,15 @@
       <input class="done-btn" type="button" value="完成" onclick="confirmInput" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
-    <!-- 实验台开关：浮层（position:absolute），**不占用键盘的布局空间**。
-         此前用普通 flex 行，把贴底的键盘（组件根 position:absolute;bottom:0）挤住，
-         导致键盘上的删除键被遮挡。改成浮层后贴在键盘上方显示，不压键盘也不挡拼音行。
-         只针对胶囊屏测试，故屏型切换行已移除。 -->
-    <div class="lab-overlay">
-      <div class="lab-btn {{ labMock ? 'lab-btn-on' : '' }}" onclick="toggleMock">
-        <text class="lab-btn-text" style="color: {{ labMock ? theme.bg : theme.text }}">数据</text>
-      </div>
-      <div class="lab-btn {{ labDebug ? 'lab-btn-on' : '' }}" onclick="toggleDebug">
-        <text class="lab-btn-text" style="color: {{ labDebug ? theme.bg : theme.text }}">诊断</text>
-      </div>
-      <div class="lab-btn {{ labNoScroll ? 'lab-btn-on' : '' }}" onclick="toggleNoScroll">
-        <text class="lab-btn-text" style="color: {{ labNoScroll ? theme.bg : theme.text }}">无滚</text>
-      </div>
-    </div>
-
-    <!-- 键盘区：实验台保留外层 scroll 包裹（开关可关闭，用于验证「scroll 套 list」是否为错乱原因） -->
-    <scroll class="keyboard-scroll" scroll-y="{{ !labNoScroll }}">
+    <!-- 键盘区：外层 scroll 包裹保持与正式页 chinese-input.ux 一致，便于对照 -->
+    <scroll class="keyboard-scroll" scroll-y="true">
       <input-method
         hide="{{ false }}"
         keyboardtype="QWERTY"
         maxlength="{{ maxlen }}"
         vibratemode="short"
         screentype="{{ screenType }}"
-        labfix="{{ labFixPanel }}"
-        labnobg="{{ labNoBg }}"
-        labmock="{{ labMock }}"
-        labdebug="{{ labDebug }}"
+        dictionarypath="/components/InputMethodLab/assets/dictionary/"
         oncomplete="onCharacter"
         ondelete="onDeleteChar"
       ></input-method>
@@ -84,12 +66,6 @@ export default {
     beforeChars: [],
     afterChars: [],
     screenType: "pill-shaped",
-    // 【实验台开关】三个嫌疑各一个开关，逐个打开即可定位"候选展开错乱"的原因
-    labFixPanel: false,   // 面板下移，避开候选行（验证黑底遮挡候选行）
-    labNoBg: false,       // 面板去掉黑底（验证黑底本身的视觉遮挡）
-    labNoScroll: false,   // 去掉外层 scroll 包裹（验证"scroll 套 list"）
-    labMock: false,       // 注入 40 条测试候选（保证面板撑满，便于观察布局）
-    labDebug: false,      // 诊断模式：用 <div for> 绕过 <list> 渲染候选，用于判断是"数据空"还是"list 不渲染"
     iconTheme: "dark",
     theme: {
       bg: '#1a1a2e',
@@ -119,21 +95,6 @@ export default {
       }
     })
     this.loadParams()
-  },
-
-  // 实验台开关：注入 40 条测试候选（切换后需再输入一次才会重新生成候选）
-  toggleMock() {
-    this.labMock = !this.labMock
-  },
-
-  // 实验台开关：诊断模式 —— 用 <div for> 绕过 <list> 渲染候选
-  toggleDebug() {
-    this.labDebug = !this.labDebug
-  },
-
-  // 实验台开关：去掉外层 scroll 包裹
-  toggleNoScroll() {
-    this.labNoScroll = !this.labNoScroll
   },
 
   onReady() {
@@ -363,38 +324,6 @@ export default {
   border: none;
 }
 
-/* 实验台浮层：absolute 定位，贴在键盘上方（胶囊键盘 305px + 拼音行 28px = 333px），
-   不参与 flex 布局 → 不挤压、不遮挡键盘上的删除键与拼音行 */
-.lab-overlay {
-  position: absolute;
-  bottom: 333px;
-  left: 0;
-  width: 100%;
-  height: 44px;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(16, 16, 28, 0.92);
-}
 
-/* 胶囊屏宽 192px，3 个按钮 */
-.lab-btn {
-  min-width: 52px;
-  height: 40px;
-  border-radius: 8px;
-  justify-content: center;
-  align-items: center;
-  margin: 0 4px;
-  padding: 0 4px;
-  background-color: #2a2a40;
-}
-
-.lab-btn-on {
-  background-color: #7ec8e3;
-}
-
-.lab-btn-text {
-  font-size: 18px;
-}
 
 </style>

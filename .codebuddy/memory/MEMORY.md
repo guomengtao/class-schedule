@@ -172,6 +172,15 @@
 - **`40d2d80b`（09-18）"修复包内词库读取返回 202"**：上游把词库 `.json`→`.txt`，因「部分 Vela 运行时**读包内 `.json` 返回 `202: invalid file type`**」。本项目用 `.js` 静态 import 故不适用，但**将来改"按需读包内文件"时不要用 `.json`**
 - **⚠️ 教训："latest" 是不可靠的版本记录** —— `f549d31` 只写 "to latest"，实际停在修复前一个提交；**同步上游必须记录具体 upstream SHA**
 
+### ⭐⭐ Lab 已直接用官方最新版（零改动）+ 官方对"候选恒空"的正面回应（2026-09-25）
+- **Lab 现状**：`src/components/InputMethodLab/` = 上游 main 最新版**逐字节原样**（`diff -r` 已验证）；目录名用 `InputMethodLab` 避免与正式 `InputMethod` 冲突；**组件代码 0 改动**
+- **适配全在宿主侧**：①页面 import 指向 `InputMethodLab/InputMethod.ux` ②传 `dictionarypath="/components/InputMethodLab/assets/dictionary/"`（组件内**唯一一处**绝对路径就是这个默认值）③**`manifest.json` 的 `features` 必须补 `system.file`**（词库靠 `@system.file` 运行时读取，否则读不到）
+- **官方对"候选恒空"的正面回应（写在代码注释里）**：`onInit` 中 `Initialize the loader independently of hide watchers (unreliable on some devices). Dictionary data is loaded on input; failed reads can retry on the next query.` → 官方**明确承认"某些设备的 watch 不可靠"**，改为**输入时按需加载 + 失败可重试**
+- **官方最新版架构**：`Object.defineProperty(this, "_dictionary", { value: createDictionaryLoader(this.dictionarypath) })`；词典**外置**为 `assets/dictionary/*.txt`（28 个文件 / 196KB），运行时用 `@system.file` 按需读分片；`dicUtil.js` 瘦身到 17.7KB（不含词典数据）。改造自 09-11 PR#18，早于它的是 `4c9d377b`(08-07) 的 `_ensureDictInitSoon`（**最新版里已不存在**）
+- **README 里没有**任何 troubleshooting / 机型清单 / CHANGELOG（唯一"已知问题"是 `.json`→`.txt`，规避 Vela 读包内 `.json` 返回 `202: invalid file type`）；**修复证据在 commit message（`4c9d377b`）与代码注释里**，不在 README
+- **⭐ 意外收益**：官方最新版页面 bundle **87KB** vs 我们的 **233KB（小 63%）** —— 词典从"每个引用页各复制一份 ~185KB"改为"全包共享一份 196KB 运行时读取"；**若正式输入法升级，包体有望 809KB → 约 660KB**
+- **代价**：需 `system.file` 特性；词库运行时读取（首次输入有一次读取延迟，官方已做分片 + 失败重试）
+
 ## ⭐ 用户协作硬要求：模拟器优先（2026-09-25 用户明确提出）
 - 用户明确：**"这个问题我模拟器上就没解决，一直没解决掉，所以先找到问题，让模拟器上可以使用"** —— 即**模拟器上一直能复现**，但此前全程靠真机盲试，是最大浪费
 - **用户测试机会极少，耐心有限** → 硬规则：**没有在模拟器上通过之前，不出包、不打扰用户**；真机只做最终验收（理想 1 次）

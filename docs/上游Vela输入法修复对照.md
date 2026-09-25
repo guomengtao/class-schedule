@@ -108,6 +108,60 @@
 | `608aa9e1` | 09-11 | Merge PR #18：保留输入驱动词典加载，避免恢复全量预加载 | ⚠️ **与本项目策略相反**（我们是全量一次性加载 + 分片）；若内存吃紧可参考 |
 | `43689243` | 08-06 | circle 屏多拼候选与拼音小字行显示 | ✅ **已包含在 `f549d31` 里** |
 
+## 五、已采用官方最新版（2026-09-25）
+
+按用户要求，Lab 已**直接使用上游 main 最新版，组件代码逐字节不做任何改动**：
+
+| 项 | 内容 |
+|---|---|
+| 来源 | `git clone https://github.com/NEORUAA/Vela_input_method.git`（main 分支，含 `67338b1e`） |
+| 放置 | `src/components/InputMethodLab/`（与上游 `components/InputMethod/` **逐字节一致**，`diff -r` 已验证） |
+| 命名 | 目录名用 `InputMethodLab`，避免与正式 `InputMethod` 冲突 |
+| **适配（全部在宿主侧，未改组件代码）** | ① 页面 import 指向 `InputMethodLab/InputMethod.ux`<br>② 页面传 `dictionarypath="/components/InputMethodLab/assets/dictionary/"`（覆盖组件内**唯一那处**绝对路径默认值）<br>③ `manifest.json` 的 `features` 补 **`system.file`**（词库靠 `@system.file` 运行时读取） |
+| 页面 | `input-method-lab.ux` 已清空全部自定义开关（官方版不支持这些 prop），只做"原版宿主" |
+
+### 官方最新版的架构（与我们的旧版完全不同）
+
+**`onInit` 源码**：
+
+```javascript
+  onInit() {
+    // Initialize the loader independently of hide watchers (unreliable on some devices).
+    // Dictionary data is loaded on input; failed reads can retry on the next query.
+    Object.defineProperty(this, "_dictionary", {
+      value: createDictionaryLoader(this.dictionarypath), configurable: true
+    });
+```
+
+**这两句注释就是官方对"候选恒空"的正面回应**：
+1. **"Initialize the loader independently of hide watchers (unreliable on some devices)"** —— 明确承认"某些设备的 watch 不可靠"，并改为**不依赖它**；
+2. **"Dictionary data is loaded on input; failed reads can retry on the next query"** —— 词典改为**输入时按需加载、失败可重试**，从架构上消除"永不初始化"。
+
+**演进链**：
+```
+08-07 4c9d377b  _ensureDictInitSoon()        ← 补救式（仍是"全量初始化"，只是不依赖 hide）
+09-11 PR#18      createDictionaryLoader()     ← 重构为「输入驱动 + 按需读分片 + 失败可重试」
+09-18 40d2d80b  词库 .json → .txt             ← 规避「Vela 读包内 .json 返回 202」
+```
+
+> `_ensureDictInitSoon` **在最新版里已不存在**（被更彻底的方案取代）。
+
+### ⭐ 意外收益：包体大幅下降
+
+| 页面 bundle | 旧版（我们，词典内联 `.js`） | 官方最新版（词典外置 `.txt`） |
+|---|:---:|:---:|
+| `chinese-input.jsc` | 233,289 | — |
+| `input-crash-diag.jsc` | 250,598 | — |
+| **`input-method-lab.jsc`** | （旧 Lab 235,101） | **87,261** |
+
+**官方最新版的页面 bundle 只有 87KB —— 比我们的 233KB 小 63%。**
+
+**原因**：词典从 `dic*.js`（**静态 import → 每个引用页各复制一份 ≈185KB**）改为 `assets/dictionary/*.txt`（**全包只存一份 196KB，运行时按需读取**）→ **"词典重复打包"这一结构性问题被官方直接消除了**。
+
+**若正式输入法也升级**：两个含词典的页面合计可省约 **310KB（未压缩）**、压缩后约 **-150KB**，包体有望从 809KB 降到约 **660KB**。
+
+**代价**：需新增 `system.file` 特性；词库改为运行时读取（首次输入有一次读取延迟，官方已做分片与失败重试）。
+
 ## 三、当前处置
 
 | 项 | 状态 |
