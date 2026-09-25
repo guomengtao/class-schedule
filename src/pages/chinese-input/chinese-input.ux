@@ -32,7 +32,7 @@
     <!-- 键盘区：下展面板已移除，不再存在「scroll 套 list」的嵌套滚动冲突，恢复原有 scroll 包裹 -->
     <scroll class="keyboard-scroll" scroll-y="true">
       <input-method
-        hide="{{ false }}"
+        hide="{{ keyboardHidden }}"
         keyboardtype="QWERTY"
         maxlength="{{ maxlen }}"
         vibratemode="short"
@@ -61,6 +61,10 @@ export default {
     beforeChars: [],
     afterChars: [],
     screenType: "pill-shaped",
+    // 【崩溃修复·W1】键盘不在首帧展开：让"模板首建（200+ 节点 / 60+ 图片）"与
+    // "词典分片初始化"落在不同帧，避免进页面瞬间的负载峰值在 RTOS 手环上触发看门狗复位。
+    // onReady 里再置 false 展开（见 onReady 注释）。详见 docs/跑道屏输入法打不开分析.md
+    keyboardHidden: true,
     iconTheme: "dark",
     theme: {
       bg: '#1a1a2e',
@@ -92,6 +96,10 @@ export default {
 
   onReady() {
     this.showCursor = true
+    // 【崩溃修复·W1】让出一帧后再展开键盘：把"键盘模板首建"从进页面首帧推到下一帧，
+    // 与随后启动的"词典分片初始化"错峰，避免单帧负载峰值（详见 docs/跑道屏输入法打不开分析.md）
+    var self = this
+    setTimeout(function() { self.keyboardHidden = false }, 0)
   },
 
   loadParams() {

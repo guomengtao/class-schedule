@@ -228,7 +228,11 @@
       <!-- 胶囊屏66 -->
       <div if="{{screentype==='pill-shaped'}}" style="width: 100%;height: 305px">
         <div static style="position:absolute;left:0px;top:34px;width:100%;height:276px;">
-          <progress percent="{{30+percent66}}" type="arc" style="start-angle:204deg;total-angle:-48deg;width:188px;height:188px;top:82px;left:2px;position:absolute;color:#ffffff;stroke-width:6px;layer-color:#262626;margin-left: {{(screenWidth - 192)/2}}px;"></progress>
+          <!-- 【崩溃修复·W2】此处原有胶囊屏专属的 <progress type="arc" ... total-angle:-48deg>。
+               全仓仅此一处使用 arc 类型、且 total-angle 取负值（非标准用法），可疑为跑道屏设备上
+               "点进输入法页面即重启手环"的渲染层元凶，故移除，只保留键盘本体。
+               如需恢复该视觉弧线，请先用 A/B 真机验证（原参数：percent 30+percent66 /
+               start-angle:204deg / total-angle:-48deg / 188x188）。详见 docs/跑道屏输入法打不开分析.md -->
           <scroll id="keyboard66" scroll-x="{{true}}" onscroll="handelScroll" style="padding-left: {{(screenWidth - 192)/2}}px;padding-right: {{(screenWidth - 192)/2}}px;">
             <div if="{{!numFlag}}" style="left: 3px; flex-direction: column;">
               <div static style="margin-left: 0px;margin-top: 0px;height: 60px;">
@@ -352,7 +356,7 @@ export default {
     keyboardCreated: false,
     cvalList: [0, 1, 2, 3, 4],
     percent67: 52,
-    percent66: 0,
+    // 原胶囊屏 arc 进度条用的 percent66 已随该节点移除（见 W2），不再保留
     // 针对screenShape为rect的设备，会自动获取screenWidth并绑定到根div
     // 这样便能同时适配n67和o65甚至是后续设备，但实际效果可能受designWidth影响
     screenWidth: 336,
@@ -726,10 +730,11 @@ export default {
     }
   },
   handelScroll(event) {
+    // 方屏键盘的线性进度条
     let percentTemp67 = (event.scrollX / 636) * 100 + 52.8;
     this.percent67 = parseInt(percentTemp67 <= 100 ? percentTemp67 : 100);
-    let percentTemp66 = (event.scrollX / 633) * 100;
-    this.percent66 = parseInt(percentTemp66 <= 100 ? percentTemp66 : 100);
+    // 胶囊屏原本在这里计算 percent66 供 arc 进度条使用，该进度条已因崩溃移除（见 W2），
+    // percent66 已无消费方，故不再计算。
   },
   pushCval() {
     this.onVibrate();

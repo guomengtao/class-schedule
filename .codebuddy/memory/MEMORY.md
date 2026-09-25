@@ -37,7 +37,10 @@
 - **首因 W1：进页面即同步全量初始化**。`dicUtil.js:490-491` 注释承诺"由 InputMethod.ux 在 onInit 中 setTimeout 延迟调用"，**实现是同步直调**（`InputMethod.ux:417-421` → `_ensureDictInit()` → `initDict()` 无 setTimeout）；而 `chinese-input.ux:35` 传 `hide="{{ false }}"` 使 `if (!this.hide)` 成立 → 进页面瞬间同步构建 `py2hz`(6763) + `romaji2kanji` + `syllableSet`+`py2hz2` + `words`(3000) + `initialsIndex`(815行)，**只有 `_buildForwardIndex` 分片**；叠加同帧模板首建 200+ 节点/60+ PNG → 阻塞（看门狗）或 OOM
 - **次因 W2：`InputMethod.ux:231` 胶囊分支独有的 `progress type="arc"` + 负 `total-angle:-48deg`**（方屏是线性 progress、圆屏无 progress）→ 严格只影响跑道屏
 - 教训：**注释声称的"懒加载/延迟初始化"必须回代码复核**，本仓已出现注释与实现漂移
-- 待验证手段：把 `hide` 临时改 `true` / 屏蔽 arc progress / 给 `_ensureDictInit` 加 `setTimeout` / 抓 logcat
+- **✅ 已落地修复（2026-09-25）**：①`dicUtil.js` 的 `initDict()` 改为分步流水线（`_initBaseTables` → `_buildPy2hz2` 每片 800 键 → `_buildWordTables`，每步 `setTimeout(…,0)`，语义仍是整本词典只是摊到约 10 个 tick）②`chinese-input.ux` 的 `hide` 改绑 `keyboardHidden`（初值 true，`onReady` 里延时展开）让"模板首建"与"词典初始化"分帧 ③移除 `InputMethod.ux` 胶囊分支独有的 `progress type="arc" total-angle:-48deg` 并清掉 `percent66`
+- 副作用：胶囊屏键盘下方弧形进度指示消失（原参数留在模板注释里便于 A/B 恢复）；词典就绪前输入短暂无候选（有守卫安全降级）
+- **待真机回归**：手环 9 / 11 进输入法页不再重启、10 Pro 仍正常；若 9 仍重启则 W1/W2 均非元凶，需抓 `adb logcat`
+- 诊断手段备查：把 `hide` 临时改 `true` / 屏蔽 arc progress / 抓 logcat
 
 ## 胶囊屏（192px 宽）硬约束
 - `week-view` 可视列数须 ∈ [2.5, 3.5]（`160 ÷ cellWidth`）；胶囊屏关闭行号列（`rowNumWidth = 0`），`cellWidth ≤ 60`

@@ -21,31 +21,68 @@ let SimpleInputMethod = {
 }
 
 SimpleInputMethod.initDict = function() {
-  // 幂等：已初始化则跳过（组件可能多次挂载）
-  if (this.dict.syllableSet) return
+  // 幂等：已初始化 / 已在流水线中则跳过（组件可能多次挂载）
+  if (this.dict.syllableSet || this._initStarted) return
+  this._initStarted = true
+  var self = this
+  // 【崩溃修复·W1】原实现在同一个 tick 内同步建齐 6 张大表
+  // （6763 单字表 + 日文表 + 音节 Set + 3000 词表 + 简拼倒排索引 + 前向索引）。
+  // 在 RTOS 手环（实测手环 9）上，进页面瞬间这次长任务会阻塞主线程触发看门狗复位
+  // —— 症状是"点输入法页面直接重启手环"。现改为分步流水线，每步之间让出一帧；
+  // 其中最大的一次遍历（py2hz 建首字母索引）再按 800 键分片。语义不变，只摊平单帧负载。
+  // 详见 docs/跑道屏输入法打不开分析.md 的 W1。
+  this.dict.romaji2kanji = {}
+  setTimeout(function() { self._initBaseTables() }, 0)
+}
+
+// 第 1 步：单字表 + 音节集合（后续步骤都依赖它）
+SimpleInputMethod._initBaseTables = function() {
   // 惰性取字典对象（模块只导出工厂函数，页面加载时不建对象；首次 initDict 时才创建，
   // 把建 3000 词/大表对象的成本从页面入口挪到键盘弹出后的后台——search/chat 秒开的关键之一）
   this.dict.py2hz = getDict()
   this.dict.py2hz2 = {}
   this.dict.py2hz2['i'] = 'i' // 特殊处理
-  this.dict.romaji2kanji = getDictJp()
-
-  // 合法音节集合 + 首字母索引：一次遍历 dic.js
+  // 合法音节集合（可完整合成，无需遍历）
   this.dict.syllableSet = new Set(syllables)
-  for (let key in this.dict.py2hz) {
-    const ch = key[0]
+  this._py2hzKeys = Object.keys(this.dict.py2hz)
+  this._buildPy2hz2(0)
+}
+
+// 第 2 步：首字母索引 py2hz2 + 音节集合补全，每片 800 键
+SimpleInputMethod._buildPy2hz2 = function(start) {
+  var keys = this._py2hzKeys || []
+  var CHUNK = 800
+  var end = Math.min(start + CHUNK, keys.length)
+  for (var i = start; i < end; i++) {
+    var key = keys[i]
+    var ch = key[0]
     if (!this.dict.py2hz2[ch]) this.dict.py2hz2[ch] = this.dict.py2hz[key]
     this.dict.syllableSet.add(key)
   }
+  var self = this
+  if (end < keys.length) {
+    setTimeout(function() { self._buildPy2hz2(end) }, 0)
+  } else {
+    this._py2hzKeys = null
+    setTimeout(function() { self._buildWordTables() }, 0)
+  }
+}
 
+// 第 3 步：词库 → 简拼索引 → 日文表 + 前向索引，逐步让出一帧
+SimpleInputMethod._buildWordTables = function() {
+  var self = this
   // 整词词库（惰性创建）
   this.dict.words = getWords()
-
-  // 简拼索引：预计算倒排索引直接赋值（生成脚本产出，init 不再逐词切分）
-  this.dict.initialsIndex = getInitialsIndex()
-  // forwardIndex 分片构建：每片 200 词，剩余排 setTimeout(0) 继续。
-  // 一次性遍历 3000 词是长任务，会占住主线程可感卡顿；分片后首片立即返回，后续零碎完成。
-  this._buildForwardIndex()
+  setTimeout(function() {
+    // 简拼索引：预计算倒排索引直接赋值（生成脚本产出，init 不再逐词切分）
+    self.dict.initialsIndex = getInitialsIndex()
+    setTimeout(function() {
+      self.dict.romaji2kanji = getDictJp()
+      // forwardIndex 分片构建：每片 200 词，剩余排 setTimeout(0) 继续。
+      // 一次性遍历 3000 词是长任务，会占住主线程可感卡顿；分片后首片立即返回，后续零碎完成。
+      self._buildForwardIndex()
+    }, 0)
+  }, 0)
 }
 
 // 前向索引(首2字母 → 词键列表)分片构建。构建完成前 getMultiHanzi 的 forward 匹配短暂空转，
@@ -80,8 +117,9 @@ SimpleInputMethod.getSingleHanzi = function(pinyin, lang = 'cn') {
     || ''
   }
   else if (lang === 'jp') {
-    return this.dict.romaji2kanji[pinyin]
-    || ''
+    // 日文表在分片流水线的最后一步才填充，此处兜底避免初始化未完成时报错
+    const jp = this.dict.romaji2kanji || {}
+    return jp[pinyin] || ''
   }
   // en 模式不查候选
   return ''
@@ -487,6 +525,7 @@ SimpleInputMethod.getHanzi = function(pinyin, lang = 'cn') {
   return { chars, matched, multi }
 }
 
-// 注意：initDict 不再于模块加载时同步执行。
-// 由 InputMethod.ux 在 onInit 中 setTimeout 延迟到首帧渲染后调用，避免模块加载阻塞首屏。
+// 注意：initDict 不再于模块加载时同步执行，且内部已改为"分步 + 分片"（每步让出一帧）。
+// 由 InputMethod.ux 在 onInit / watchHidePropsChange 中调用，避免模块加载与进页面瞬间阻塞主线程。
+// 拆分原因见 docs/跑道屏输入法打不开分析.md 的 W1（手环 9 点进输入法页即重启）。
 export { SimpleInputMethod }
