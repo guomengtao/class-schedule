@@ -386,6 +386,12 @@ export default {
     labnobg: {
       default: false,
     },
+    // 【实验台开关·页面传入】true = 用 40 条测试候选替换下展内容
+    // 真实词典对多数拼音只给几条候选，撑不满面板看不出布局问题；开启后固定 40 条，
+    // 保证面板被填满，便于观察"内容较多时"的表现。
+    labmock: {
+      default: false,
+    },
   },
   data: {
     cval: "",
@@ -695,6 +701,24 @@ export default {
     }
     if (array.length > 0) {
       this.resultList2.push(array);
+    }
+    // 【实验台·造数据】把下展内容替换为 40 条测试候选（每页 10 条 × 4 页），
+    // 保证面板被撑满。真实词典对多数拼音只返回几条候选，看不出"内容多"时的布局问题。
+    // 注意：本函数在输入/改词时触发，所以开关切换后需再输入一次才会生效。
+    if (this.labmock) {
+      var mockRows = [];
+      var mockArr = [];
+      for (var mi = 1; mi <= 40; mi++) {
+        mockArr.push("测试" + mi);
+        if (mockArr.length === 10) {
+          mockRows.push(mockArr);
+          mockArr = [];
+        }
+      }
+      if (mockArr.length > 0) {
+        mockRows.push(mockArr);
+      }
+      this.resultList2 = mockRows;
     }
   },
   getResultByWord(val) {

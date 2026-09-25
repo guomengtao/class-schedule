@@ -30,32 +30,22 @@
       <input class="done-btn" type="button" value="完成" onclick="confirmInput" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
-    <!-- 实验台：屏型切换。用于在模拟器上对比三种屏型的下展行为；
-         手动选过之后不再被 onInit 的 device.getInfo 回调覆盖。 -->
-    <div class="lab-row">
-      <text class="lab-label" style="color: {{ theme.textSecondary }}">屏型</text>
-      <div class="lab-btn {{ screenType==='pill-shaped' ? 'lab-btn-on' : '' }}" onclick="setShape('pill-shaped')">
-        <text class="lab-btn-text" style="color: {{ screenType==='pill-shaped' ? theme.bg : theme.text }}">胶囊</text>
-      </div>
-      <div class="lab-btn {{ screenType==='rect' ? 'lab-btn-on' : '' }}" onclick="setShape('rect')">
-        <text class="lab-btn-text" style="color: {{ screenType==='rect' ? theme.bg : theme.text }}">方屏</text>
-      </div>
-      <div class="lab-btn {{ screenType==='circle' ? 'lab-btn-on' : '' }}" onclick="setShape('circle')">
-        <text class="lab-btn-text" style="color: {{ screenType==='circle' ? theme.bg : theme.text }}">圆屏</text>
-      </div>
-    </div>
-
-    <!-- 实验台：三个开关对应三个嫌疑，逐个打开即可定位"候选展开错乱"的原因 -->
-    <div class="lab-row">
-      <text class="lab-label" style="color: {{ theme.textSecondary }}">开关</text>
+    <!-- 实验台开关：浮层（position:absolute），**不占用键盘的布局空间**。
+         此前用普通 flex 行，把贴底的键盘（组件根 position:absolute;bottom:0）挤住，
+         导致键盘上的删除键被遮挡。改成浮层后贴在键盘上方显示，不压键盘也不挡拼音行。
+         只针对胶囊屏测试，故屏型切换行已移除。 -->
+    <div class="lab-overlay">
       <div class="lab-btn {{ labFixPanel ? 'lab-btn-on' : '' }}" onclick="toggleFixPanel">
-        <text class="lab-btn-text" style="color: {{ labFixPanel ? theme.bg : theme.text }}">面板下移</text>
+        <text class="lab-btn-text" style="color: {{ labFixPanel ? theme.bg : theme.text }}">下移</text>
       </div>
       <div class="lab-btn {{ labNoBg ? 'lab-btn-on' : '' }}" onclick="toggleNoBg">
-        <text class="lab-btn-text" style="color: {{ labNoBg ? theme.bg : theme.text }}">去黑底</text>
+        <text class="lab-btn-text" style="color: {{ labNoBg ? theme.bg : theme.text }}">无底</text>
       </div>
       <div class="lab-btn {{ labNoScroll ? 'lab-btn-on' : '' }}" onclick="toggleNoScroll">
-        <text class="lab-btn-text" style="color: {{ labNoScroll ? theme.bg : theme.text }}">去scroll</text>
+        <text class="lab-btn-text" style="color: {{ labNoScroll ? theme.bg : theme.text }}">无滚</text>
+      </div>
+      <div class="lab-btn {{ labMock ? 'lab-btn-on' : '' }}" onclick="toggleMock">
+        <text class="lab-btn-text" style="color: {{ labMock ? theme.bg : theme.text }}">数据</text>
       </div>
     </div>
 
@@ -69,6 +59,7 @@
         screentype="{{ screenType }}"
         labfix="{{ labFixPanel }}"
         labnobg="{{ labNoBg }}"
+        labmock="{{ labMock }}"
         oncomplete="onCharacter"
         ondelete="onDeleteChar"
       ></input-method>
@@ -85,7 +76,8 @@ export default {
   private: {
     pageTitle: "输入法实验台",
     placeholder: "在此复现候选展开错乱",
-    labShape: "",
+    // 实验台：只针对胶囊屏测试，锁定 pill-shaped 后 onInit 的 device.getInfo 不再覆盖
+    labShape: "pill-shaped",
     inputText: "",
     maxlen: "10",
     returnKey: "chinese_input_result",
@@ -98,6 +90,7 @@ export default {
     labFixPanel: false,   // 面板下移，避开候选行（验证黑底遮挡候选行）
     labNoBg: false,       // 面板去掉黑底（验证黑底本身的视觉遮挡）
     labNoScroll: false,   // 去掉外层 scroll 包裹（验证"scroll 套 list"）
+    labMock: false,       // 注入 40 条测试候选（保证面板撑满，便于观察布局）
     iconTheme: "dark",
     theme: {
       bg: '#1a1a2e',
@@ -129,12 +122,6 @@ export default {
     this.loadParams()
   },
 
-  // 实验台：手动切换屏型（pill-shaped / rect / circle），便于在模拟器上对比下展行为
-  setShape(s) {
-    this.labShape = s
-    this.screenType = s
-  },
-
   // 实验台开关：面板下移，避开候选行
   toggleFixPanel() {
     this.labFixPanel = !this.labFixPanel
@@ -148,6 +135,11 @@ export default {
   // 实验台开关：去掉外层 scroll 包裹
   toggleNoScroll() {
     this.labNoScroll = !this.labNoScroll
+  },
+
+  // 实验台开关：注入 40 条测试候选（切换后需再输入一次才会重新生成候选）
+  toggleMock() {
+    this.labMock = !this.labMock
   },
 
   onReady() {
@@ -377,28 +369,29 @@ export default {
   border: none;
 }
 
-.lab-row {
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  padding: 0 4px;
-  margin-bottom: 6px;
-  flex-shrink: 0;
-}
-
-.lab-label {
-  font-size: 20px;
-  margin-right: 8px;
-}
-
-.lab-btn {
-  min-width: 76px;
+/* 实验台浮层：absolute 定位，贴在键盘上方（胶囊键盘 305px + 拼音行 28px = 333px），
+   不参与 flex 布局 → 不挤压、不遮挡键盘上的删除键与拼音行 */
+.lab-overlay {
+  position: absolute;
+  bottom: 333px;
+  left: 0;
+  width: 100%;
   height: 44px;
-  border-radius: 10px;
+  flex-direction: row;
   justify-content: center;
   align-items: center;
-  margin: 0 3px;
-  padding: 0 6px;
+  background-color: rgba(16, 16, 28, 0.92);
+}
+
+/* 胶囊屏宽 192px，4 个按钮需紧凑排列 */
+.lab-btn {
+  min-width: 42px;
+  height: 40px;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  margin: 0 2px;
+  padding: 0 2px;
   background-color: #2a2a40;
 }
 
@@ -407,7 +400,7 @@ export default {
 }
 
 .lab-btn-text {
-  font-size: 20px;
+  font-size: 18px;
 }
 
 </style>
