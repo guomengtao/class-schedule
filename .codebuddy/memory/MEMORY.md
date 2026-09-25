@@ -92,7 +92,8 @@
 
 ### 诊断页模式（可复用）
 - 凡"可能崩溃 + 真机机会少"的排查，按"落盘进度 → 延时 → 执行 → 完成清空"套路做一次性诊断页，不要反复改代码出包
-- 已有：`input-crash-diag`（存储/词典）、`input-crash-diag2`（A~F 元素级）、`device-id-diagnosis`（7 个 API 单测）
+- 已有：`input-crash-diag`（存储/词典）、`device-id-diagnosis`（7 个 API 单测）
+- **已于 2026-09-25 清理删除**（测试完成后瘦身，代码仍在 git 历史里可取回）：`input-crash-diag2`（A~H 元素级诊断页）、`InputMethodOfficial.ux`（官方对照组件，内容已并入正式组件）、`InputMethodStaged.ux`（分帧版）；同批清理使包体 **933KB → 809KB（-124KB / -13.3%）**；`input-crash-diag` 作为常备工具保留
 - storage key：执行前写 `*_step`、完成清空 → **重启后打开页面顶部直接显示"上次崩在第 N 步"**；`*_passed` 记已通过步骤
 - **每次复测前先确认真机装机版本号与仓库一致**（激活 URL 的 `r` 参数 = 包内 versionName）
 
