@@ -156,6 +156,14 @@
 - **候选数量由词典决定**：`setResultListAll()` 里 `cap = parseInt(maxlength)`（页面传 `"10"`）→ `resultRow0` ≤10、`resultList2` 每页 10；真实词典对多数拼音只返回几条，**撑不满面板**（263px ÷ 42px ≈ 6 行）→ Lab 加 `labmock` 开关注入 **40 条**测试候选（**切换后需再输入一次**才生效）
 - **Lab 已锁定胶囊屏**：`labShape: "pill-shaped"`（`onInit` 里 `if (self.labShape) return` 跳过 `device.getInfo` 覆盖），屏型切换已移除
 
+### ⭐ "候选展开空白"的真实症状与元凶方向（2026-09-25 用户明确）
+- **真实症状**：点三角形后**弹出一个方框，里面是空的**（**不是**被黑底遮住）；而且**注入 40 条数据后依然空白** → 排除 R4"黑底遮挡"，问题域是**面板内容渲染不出来**
+- **官方性已核实：是官方自带 ✅** —— 当前 `InputMethod.ux` 与归档的官方原版 `InputMethodOfficial.ux` **逐字节完全一致**；`list66` 引入链 `77f3211`(v1.1.0) → `322e10a`(v1.4.85) → **`f549d31` "upgrade Vela input method to latest version"**
+- **⚠️ 头号元凶线索：官方写的是 `<list static class="list66">`** —— `static` 标记静态节点、**不随数据更新重绘**，正好解释"改了数据面板仍空白"；与代码里"下展 list 在 Vela 中缓存不刷新"的注释互相印证。**对照**：圆屏是 `<list class="list3">`（**无 static**）→ 与"圆屏正常、方屏/胶囊空白"方向一致
+- **现成解法参考**：`253a7d9`（方案A）做过"用 `<scroll>`+`<div for>` 替代 `<list>`"——把二维 `resultList2` 转**一维 `downList`** 交给 `InputDownList.ux`；该组件已在 `src/components/InputMethodLab/InputDownList.ux`（暂未引用）
+- **Lab 诊断模式 `labdebug`**：同一份 `resultList2` 由 `<div for>`（不带 static，并显示 `页=N 首行=M 展开=down`）与 `<list static>` 二选一渲染 → **div 有字 = list 的锅；div 也空 = 数据为空**
+- Lab 页面按钮现为 3 个：**数据 / 诊断 / 无滚**
+
 ## ⭐ 用户协作硬要求：模拟器优先（2026-09-25 用户明确提出）
 - 用户明确：**"这个问题我模拟器上就没解决，一直没解决掉，所以先找到问题，让模拟器上可以使用"** —— 即**模拟器上一直能复现**，但此前全程靠真机盲试，是最大浪费
 - **用户测试机会极少，耐心有限** → 硬规则：**没有在模拟器上通过之前，不出包、不打扰用户**；真机只做最终验收（理想 1 次）
