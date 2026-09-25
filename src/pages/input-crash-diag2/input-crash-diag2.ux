@@ -1,0 +1,592 @@
+<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
+<!-- G 项对照用：官方原版组件（f549d31 导出，仅 assets 改绝对路径，其它一字未动） -->
+<import name="input-method-official" src="../../components/InputMethod/InputMethodOfficial.ux"></import>
+<!-- H 项：分帧挂载版（仅胶囊屏分 3 帧创建键盘子树，外观与当前版完全一致） -->
+<import name="input-method-staged" src="../../components/InputMethod/InputMethodStaged.ux"></import>
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">输入法诊断2</text>
+      <div class="header-placeholder"></div>
+    </div>
+
+    <!-- 崩溃回执：只有"崩溃重启过"才会出现（正常跑完不显示） -->
+    <div class="crash-bar" if="{{ crashStep }}">
+      <text class="crash-text">⚠ 上次崩在 {{ crashStep }} · {{ crashName }}</text>
+    </div>
+
+    <div class="env-bar" style="background-color: {{ theme.card }}">
+      <text class="env-text" style="color: {{ theme.accent }}">v{{ versionText }} · {{ envText }}</text>
+      <text class="env-text" if="{{ passedText !== '（无）' }}" style="color: {{ theme.textMuted }}">已通过：{{ passedText }}</text>
+    </div>
+
+    <scroll class="body" scroll-y="true">
+      <!-- ===== H：分帧版（优先点这个）===== -->
+      <div class="cell">
+        <div class="btn-big btn-pri" onclick="runOne(8)">
+          <text class="btn-big-text">H · 分帧版</text>
+          <text class="btn-big-sub">先点这个</text>
+        </div>
+        <text class="res" if="{{ r.s8 }}" style="color: {{ r.s8.ok ? '#5ed46a' : '#ff6b6b' }}">本次：{{ r.s8.value }}</text>
+      </div>
+
+      <!-- ===== G：官方原版 ===== -->
+      <div class="cell">
+        <div class="btn-big" onclick="runOne(7)" style="background-color: {{ theme.card }}">
+          <text class="btn-big-text" style="color: {{ theme.accent }}">G · 官方原版</text>
+        </div>
+        <text class="res" if="{{ r.s7 }}" style="color: {{ r.s7.ok ? '#5ed46a' : '#ff6b6b' }}">本次：{{ r.s7.value }}</text>
+      </div>
+
+      <!-- ===== F：我们的版本（对照）===== -->
+      <div class="cell">
+        <div class="btn-big" onclick="runOne(6)" style="background-color: {{ theme.card }}">
+          <text class="btn-big-text" style="color: {{ theme.textSecondary }}">F · 我们的版本</text>
+        </div>
+        <text class="res" if="{{ r.s6 }}" style="color: {{ r.s6.ok ? '#5ed46a' : '#ff6b6b' }}">本次：{{ r.s6.value }}</text>
+      </div>
+
+      <!-- ===== 旧测试项 A~E（默认收起）===== -->
+      <div class="cell">
+        <div class="btn-item" onclick="toggleAll" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.textMuted }}">{{ showAll ? '收起旧测试项' : '展开旧测试项 A~E' }}</text>
+        </div>
+      </div>
+
+      <div if="{{ showAll }}">
+        <div class="cell">
+          <div class="btn-item" onclick="runOne(1)" style="background-color: {{ theme.card }}">
+            <text class="btn-label" style="color: {{ theme.textSecondary }}">A. 纯文本 ×26</text>
+          </div>
+          <text class="res" if="{{ r.s1 }}" style="color: {{ r.s1.ok ? '#5ed46a' : '#ff6b6b' }}">本次：{{ r.s1.value }}</text>
+        </div>
+        <div class="cell">
+          <div class="btn-item" onclick="runOne(2)" style="background-color: {{ theme.card }}">
+            <text class="btn-label" style="color: {{ theme.textSecondary }}">B. 圆角描边 ×26</text>
+          </div>
+          <text class="res" if="{{ r.s2 }}" style="color: {{ r.s2.ok ? '#5ed46a' : '#ff6b6b' }}">本次：{{ r.s2.value }}</text>
+        </div>
+        <div class="cell">
+          <div class="btn-item" onclick="runOne(3)" style="background-color: {{ theme.card }}">
+            <text class="btn-label" style="color: {{ theme.textSecondary }}">C. 横向 scroll</text>
+          </div>
+          <text class="res" if="{{ r.s3 }}" style="color: {{ r.s3.ok ? '#5ed46a' : '#ff6b6b' }}">本次：{{ r.s3.value }}</text>
+        </div>
+        <div class="cell">
+          <div class="btn-item" onclick="runOne(4)" style="background-color: {{ theme.card }}">
+            <text class="btn-label" style="color: {{ theme.textSecondary }}">D. PNG ×8</text>
+          </div>
+          <text class="res" if="{{ r.s4 }}" style="color: {{ r.s4.ok ? '#5ed46a' : '#ff6b6b' }}">本次：{{ r.s4.value }}</text>
+        </div>
+        <div class="cell">
+          <div class="btn-item" onclick="runOne(5)" style="background-color: {{ theme.card }}">
+            <text class="btn-label" style="color: {{ theme.textSecondary }}">E. 绝对定位堆叠</text>
+          </div>
+          <text class="res" if="{{ r.s5 }}" style="color: {{ r.s5.ok ? '#5ed46a' : '#ff6b6b' }}">本次：{{ r.s5.value }}</text>
+        </div>
+      </div>
+
+      <!-- ===== 测试宿主区 ===== -->
+      <div class="stage" if="{{ stage === 'A' }}">
+        <div class="kbd-row" for="row in keyRows">
+          <text class="k-plain" for="k in row">{{k}}</text>
+        </div>
+      </div>
+
+      <div class="stage" if="{{ stage === 'B' }}">
+        <div class="kbd-row" for="row in keyRows">
+          <text class="k-btn66" for="k in row">{{k}}</text>
+        </div>
+      </div>
+
+      <div class="stage" if="{{ stage === 'C' }}">
+        <scroll class="kbd-scroll" scroll-x="true">
+          <div class="kbd-col">
+            <div class="kbd-row" for="row in keyRows">
+              <text class="k-plain" for="k in row">{{k}}</text>
+            </div>
+          </div>
+        </scroll>
+      </div>
+
+      <div class="stage" if="{{ stage === 'D' }}">
+        <image class="png-item" src="/components/InputMethod/assets/arc/search.png"></image>
+        <image class="png-item" src="/components/InputMethod/assets/arc/cn.png"></image>
+        <image class="png-item" src="/components/InputMethod/assets/arc/123.png"></image>
+        <image class="png-item" src="/components/InputMethod/assets/arc/del.png"></image>
+        <image class="png-item" src="/components/InputMethod/assets/arc/space.png"></image>
+        <image class="png-item" src="/components/InputMethod/assets/arc/back2.png"></image>
+        <image class="png-item" src="/components/InputMethod/assets/arc/a.png"></image>
+        <image class="png-item" src="/components/InputMethod/assets/arc/bigA.png"></image>
+      </div>
+
+      <div class="stage" if="{{ stage === 'E' }}">
+        <div class="abs-box">
+          <div class="abs-row" style="top: 0px;">
+            <text class="k-plain" for="k in keyRows[0]">{{k}}</text>
+          </div>
+          <div class="abs-row" style="top: 60px;">
+            <text class="k-plain" for="k in keyRows[1]">{{k}}</text>
+          </div>
+          <div class="abs-row" style="top: 120px;">
+            <text class="k-plain" for="k in keyRows[2]">{{k}}</text>
+          </div>
+        </div>
+      </div>
+
+      <div class="ime-host" if="{{ showIme }}">
+        <input-method
+          hide="{{ false }}"
+          keyboardtype="QWERTY"
+          maxlength="10"
+          screentype="{{ imeScreenType }}"
+          dictlazy="{{ true }}"
+        ></input-method>
+      </div>
+
+      <div class="ime-host" if="{{ showImeOfficial }}">
+        <input-method-official
+          hide="{{ false }}"
+          keyboardtype="QWERTY"
+          maxlength="10"
+          screentype="{{ imeScreenType }}"
+        ></input-method-official>
+      </div>
+
+      <div class="ime-host" if="{{ showImeStaged }}">
+        <input-method-staged
+          hide="{{ false }}"
+          keyboardtype="QWERTY"
+          maxlength="10"
+          screentype="{{ imeScreenType }}"
+          dictlazy="{{ true }}"
+        ></input-method-staged>
+      </div>
+
+      <div class="cell">
+        <div class="btn-item" onclick="resetAll" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.textMuted }}">清空记录</text>
+        </div>
+      </div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+var device = require("@system.device")
+var storage = require("@system.storage")
+var store = require("../../data/store.js")
+var version = require("../../data/version.js")
+
+// 独立 key：与「输入法崩溃诊断」（第一轮）互不干扰
+var STEP_KEY = "input_diag2_step"
+var PASS_KEY = "input_diag2_passed"
+
+var STEP_NAME = {
+  "1": "A 纯文本",
+  "2": "B 圆角描边",
+  "3": "C 横向 scroll",
+  "4": "D PNG 图片",
+  "5": "E 绝对定位",
+  "6": "F 我们的版本",
+  "7": "G 官方原版",
+  "8": "H 分帧版"
+}
+
+export default {
+  private: {
+    iconTheme: "dark",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566'
+    },
+    versionText: "",
+    envText: "读取中",
+    passedText: "（无）",
+    crashStep: "",
+    crashName: "",
+    showAll: false,
+    keyRows: [
+      ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+      ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+      ["Z", "X", "C", "V", "B", "N", "M"]
+    ],
+    stage: "",
+    showIme: false,
+    showImeOfficial: false,
+    showImeStaged: false,
+    imeScreenType: "pill-shaped",
+    passed: [],
+    running: false,
+    r: { s1: null, s2: null, s3: null, s4: null, s5: null, s6: null, s7: null, s8: null }
+  },
+
+  onInit() {
+    var self = this
+    self.versionText = version.versionName || "(未知)"
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+    device.getInfo({
+      success: function(d) {
+        var shape = d.screenShape || "?"
+        if (shape === "capsule") { shape = "pill-shaped" }
+        self.imeScreenType = shape
+        self.envText = shape + " " + (d.screenWidth || "?") + "x" + (d.screenHeight || "?")
+      },
+      fail: function() { self.envText = "获取失败" }
+    })
+    self.loadState()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+    self.loadState()
+  },
+
+  toggleAll() {
+    this.showAll = !this.showAll
+  },
+
+  loadState() {
+    var self = this
+    storage.get({
+      key: STEP_KEY,
+      success: function(data) {
+        // 有值 = 上次进入该步骤后没能标记完成 = 崩在这一步
+        if (data) {
+          self.crashStep = String(data)
+          self.crashName = STEP_NAME[String(data)] || ""
+        }
+      },
+      fail: function() {}
+    })
+    storage.get({
+      key: PASS_KEY,
+      success: function(data) {
+        if (data) {
+          self.passed = String(data).split(",")
+          self.passedText = String(data)
+        }
+      },
+      fail: function() {}
+    })
+  },
+
+  runOne(step) {
+    var self = this
+    if (self.running) return
+    self.running = true
+    self.runStep(step, function() { self.running = false })
+  },
+
+  runStep(step, onDone) {
+    var self = this
+    storage.set({
+      key: STEP_KEY,
+      value: String(step),
+      success: function() { self.execStep(step, onDone) },
+      fail: function() { self.execStep(step, onDone) }
+    })
+  },
+
+  execStep(step, onDone) {
+    var self = this
+    setTimeout(function() {
+      // 先清干净上一项留下的宿主，保证每项都在干净状态开始
+      self.stage = ''
+      self.showIme = false
+      self.showImeOfficial = false
+      self.showImeStaged = false
+      setTimeout(function() {
+        self.doStep(step, function(ok, value) {
+          self.setRes("s" + step, ok, value)
+          if (ok) { self.markPass(step) }
+          storage.set({ key: STEP_KEY, value: "" })
+          if (onDone) { onDone(ok) }
+        })
+      }, 300)
+    }, 400)
+  },
+
+  doStep(step, finish) {
+    var self = this
+    if (step === 1) {
+      self.stage = 'A'
+      setTimeout(function() { finish(true, "通过") }, 2000)
+      return
+    }
+    if (step === 2) {
+      self.stage = 'B'
+      setTimeout(function() { finish(true, "通过") }, 2500)
+      return
+    }
+    if (step === 3) {
+      self.stage = 'C'
+      setTimeout(function() { finish(true, "通过") }, 2000)
+      return
+    }
+    if (step === 4) {
+      self.stage = 'D'
+      setTimeout(function() { finish(true, "通过") }, 2500)
+      return
+    }
+    if (step === 5) {
+      self.stage = 'E'
+      setTimeout(function() { finish(true, "通过") }, 2000)
+      return
+    }
+    if (step === 6) {
+      self.showIme = true
+      setTimeout(function() { finish(true, "通过") }, 2500)
+      return
+    }
+    if (step === 7) {
+      self.showImeOfficial = true
+      setTimeout(function() { finish(true, "通过") }, 2500)
+      return
+    }
+    if (step === 8) {
+      self.showImeStaged = true
+      setTimeout(function() { finish(true, "通过") }, 3000)
+      return
+    }
+    finish(false, "未知步骤")
+  },
+
+  setRes(key, ok, value) {
+    var o = this.r
+    this.r = {
+      s1: o.s1, s2: o.s2, s3: o.s3, s4: o.s4, s5: o.s5, s6: o.s6, s7: o.s7, s8: o.s8
+    }
+    this.r[key] = { ok: ok, value: value }
+  },
+
+  markPass(step) {
+    var list = this.passed || []
+    if (list.indexOf(String(step)) === -1) { list.push(String(step)) }
+    this.passedText = list.join(",")
+    storage.set({ key: PASS_KEY, value: this.passedText })
+  },
+
+  resetAll() {
+    var self = this
+    storage.set({ key: STEP_KEY, value: "" })
+    storage.set({ key: PASS_KEY, value: "" })
+    self.passed = []
+    self.passedText = "（无）"
+    self.crashStep = ""
+    self.crashName = ""
+    self.stage = ""
+    self.showIme = false
+    self.showImeOfficial = false
+    self.showImeStaged = false
+    self.r = { s1: null, s2: null, s3: null, s4: null, s5: null, s6: null, s7: null, s8: null }
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+@import '../../common/header.css';
+
+.page {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  padding: 6px 8px 6px 8px;
+}
+
+.crash-bar {
+  background-color: #4a1010;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+
+.crash-text {
+  color: #ff6b6b;
+  font-size: 25px;
+  line-height: 32px;
+  lines: 0;
+  font-weight: bold;
+}
+
+.env-bar {
+  flex-direction: column;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.env-text {
+  font-size: 21px;
+  line-height: 28px;
+  lines: 1;
+}
+
+.body {
+  flex: 1;
+  flex-direction: column;
+}
+
+.cell {
+  flex-direction: column;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+/* 主测项：大按钮，方便点 */
+.btn-big {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 10px;
+  padding: 0 14px;
+  height: 76px;
+}
+
+.btn-pri {
+  background-color: #7ec8e3;
+}
+
+.btn-big-text {
+  font-size: 30px;
+  line-height: 40px;
+  font-weight: bold;
+  lines: 1;
+  color: #1a1a2e;
+}
+
+.btn-big-sub {
+  font-size: 20px;
+  line-height: 28px;
+  lines: 1;
+  color: #1a1a2e;
+}
+
+.res {
+  font-size: 22px;
+  line-height: 30px;
+  padding: 4px 6px 0 6px;
+  lines: 0;
+}
+
+/* 旧测试项：小按钮 */
+.btn-item {
+  flex-direction: row;
+  align-items: center;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.btn-label {
+  font-size: 23px;
+  line-height: 32px;
+  lines: 1;
+}
+
+.stage {
+  width: 100%;
+  min-height: 200px;
+  margin-bottom: 8px;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.kbd-row {
+  flex-direction: row;
+  margin-bottom: 6px;
+}
+
+.kbd-col {
+  flex-direction: column;
+}
+
+.kbd-scroll {
+  width: 100%;
+  height: 200px;
+}
+
+.k-plain {
+  font-size: 32px;
+  color: #ffffff;
+  margin-right: 6px;
+}
+
+.k-btn66 {
+  color: #ffffff;
+  font-size: 32px;
+  font-weight: bold;
+  background-color: #262626;
+  margin-right: 3px;
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
+  text-align: center;
+  border: 3px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.png-item {
+  width: 60px;
+  height: 60px;
+  margin: 2px;
+}
+
+.abs-box {
+  position: relative;
+  width: 100%;
+  height: 200px;
+}
+
+.abs-row {
+  position: absolute;
+  left: 0px;
+  height: 60px;
+  flex-direction: row;
+}
+
+.ime-host {
+  width: 100%;
+  min-height: 305px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+@media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 6px 10px 6px 10px;
+  }
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 20px 30px 20px 30px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 6px 10px 10px 10px;
+  }
+}
+</style>
