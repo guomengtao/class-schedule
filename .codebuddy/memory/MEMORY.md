@@ -34,7 +34,17 @@
 - 胶囊屏（192px）硬约束：`week-view` 可视列数 ∈ [2.5, 3.5]（`160 ÷ cellWidth`）；胶囊屏关闭行号列（`rowNumWidth=0`），`cellWidth ≤ 60`；按钮高 ≥48px
 - 屏型由 `device.getInfo` 异步探测，探测后需重新应用依赖屏型的配置
 
-## ⭐ 输入法跑道屏「点页面即重启」—— 实测定案
+## ✅✅ 输入法最终结论：已整体升级为上游最新版（2026-09-25 结案，真机测试通过）
+**问题已解决。** 现行做法：
+- **`src/components/InputMethod/` = 上游 `NEORUAA/Vela_input_method` main 最新版，逐字节原样、零改动**（含 `4c9d377b` 及 PR#18 的"输入驱动"重构、`.txt` 词库）
+- **宿主侧仅 3 处适配**：①页面 `<import src="../../components/InputMethod/InputMethod.ux">`（路径不变）②**目录若移动需传 `dictionarypath`**（默认值即 `/components/InputMethod/assets/dictionary/`）③**`manifest.json` 的 `features` 必须含 `system.file`**（词库靠 `@system.file` 运行时读取，缺了读不到）
+- **新架构**：词典外置为**全包共享**的 `assets/dictionary/*.txt`（28 个 / 196KB），**输入时按需读取、失败可重试** → 页面 bundle **233KB → 87KB（-63%）**，包体 **828KB → 693KB**
+- **根因**：旧版"依赖 hide watch 触发全量字典初始化"，上游 `4c9d377b`（08-07）已修，而 `f549d31`（09-10）引入时停在 `43689243`（其父提交）
+- **⚠️ 以下所有关于旧版组件的内容均为历史记录**（`<list static>`、`arc` 进度条、`screentype` watch、词典内联、`_ensureDictInitSoon` 等）—— 在官方最新版中**均不复存在**，排障时**不要再套用**这些结论
+- **测试代码已清理**：`input-method-lab`（实验台）、`input-crash-diag`（崩溃诊断）已从 manifest 与工具菜单移除；`InputMethodOfficial.ux`/`InputMethodStaged.ux`/`input-crash-diag2` 已删除（源码在 git 历史）
+- **⭐ 教训（本次最贵）**：**第三方组件出问题，第一步先查上游 commit 与 diff** —— 本次根因在引入次日就被上游修好了，自己推演（布局/遮挡/并发/内存）绕了整整一轮
+
+## ⭐ 输入法跑道屏「点页面即重启」—— 实测定案（历史记录，组件已升级为官方最新版）
 
 ### ✅ 最终处置（2026-09-25）：正式组件已整体换成官方原版
 - **先走了方案 A（删 watch，v1.6.120）→ 真机仍然不行** → 组件里还有第二个致崩点，单点回退解决不掉
