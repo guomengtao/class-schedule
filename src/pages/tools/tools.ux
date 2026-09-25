@@ -24,11 +24,7 @@
         <text class="item-hint" style="color: {{ theme.textMuted }}">存储/词典</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="openInputCrashDiag2">
-        <text class="item-label" style="color: {{ theme.accent }}">输入法诊断2·元素级</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">A→F 定位</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+
       <div class="item-row" onclick="openVibrationLab">
         <text class="item-label" style="color: {{ theme.text }}">震动自定义</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">震动方案</text>
@@ -153,9 +149,6 @@ export default {
     router.push({ uri: "/pages/input-crash-diag" })
   },
 
-  openInputCrashDiag2() {
-    router.push({ uri: "/pages/input-crash-diag2" })
-  },
 
   openVibrationLab() {
     router.push({ uri: "/pages/vibration-lab" })
