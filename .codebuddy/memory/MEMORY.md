@@ -96,8 +96,18 @@
 - **已于 2026-09-25 归档**：`input-crash-diag2`（A~H 元素级诊断页）、`InputMethodOfficial.ux`（官方对照组件，与正式组件字节级完全一致）、`InputMethodStaged.ux`（分帧版）。**归档 = 文件保留在源码树 + 从 `manifest.json` 移除注册 + 移除 tools 入口**。实测**未注册即不打包**（恢复文件后包体 828,677 → 828,684，仅差版本号字节）→ 比删除更优：不占包体，需要时加回注册即启用。详见 `docs/未注册资源归档说明.md`；`input-crash-diag`（第一轮）保留注册作常备工具
 - **⭐ 清理/归档类需求的首选做法**：先试"移除 manifest 注册 + 移除入口"而非删除文件（源码树里有 .ux 文件但无人引用 = 零包体成本），实测已验证
 
-### ⚠️ 构建会自动递增版本号（2026-09-25 实测，影响"版本对不对得上"的判读）
-每次 `npx aiot release` 都会**自动把版本号 +1**，并同时改写 `src/data/version.js` 与 `src/manifest.json` 的 `versionName`/`versionCode`（实测 1.6.122/951 → 1.6.123/952，构建后 `git status` 多出两个 `M`）。
+### ⚠️ 版本号递增的真实机制（2026-09-25 修正，影响"版本对不对得上"的判读）
+**修正**：早前记的"`npx aiot release` 会自动 +1"**是错的**。真实机制：版本号由项目脚本 `scripts/bump-version.js` 递增（patch+1、versionCode+1，同时写回 `src/manifest.json` 与 `src/data/version.js`），**只通过 npm lifecycle 钩子触发**：
+
+| 命令 | 是否递增 |
+|---|:---:|
+| `npm run release`（触发 `prerelease`） | ✅ |
+| `npm run build`（触发 `prebuild`） | ✅ |
+| `npm run bump` | ✅ |
+| **`npx aiot release`（绕过钩子）** | ❌ **不会** |
+| `npm run build:dev`（`aiot build`） | ❌ |
+
+→ 用 IDE 或 npm 脚本构建会前进版本号，直接调 CLI 不会；这是**同名仓库出现多个版本号的根源**。
 - 推论一：**"仓库版本号" ≠ "用户设备版本号"**，本地每打一次包就 +1，极易错位
 - 推论二：用户回传 `r=1.6.100` 而仓库已 1.6.103 = 本地打过 3 次包但用户从未装新包
 - **规则：判断"用户测的是不是刚改的包"，必须以用户回传的 `r` 参数为准**（`r` = 包内 `versionName`，见 `activation.ux` 的 `fetchDeviceInfo()`），不能假设仓库版本已上机
@@ -117,6 +127,16 @@
 - ⚠️ **不要用 `_build_test.sh`**：内含 `rm -rf build dist .temp_class`，违反本项目"禁止破坏性命令"的规则（`_do_build.sh` 是干净版本）
 - ⚠️ **从上游导出组件时**：把 `./assets/` 批量替换成绝对路径会**误伤 JS 的 import**（`import ... from "/components/.../dicUtil.js"` → 编译报 `require` 无法解析）→ `.js` 的 import **必须保持相对路径** `./assets/dicUtil.js`，只有**图片资源**可改绝对路径
 - 构建会提示入口体积：同时 import 多个组件会让页面入口膨胀（诊断页 2 = 355KB > 推荐 244KB）→ 诊断组件用完应删除
+
+## 包体构成（2026-09-25 实测，详见 `docs/包体构成分析.md`）
+- **debug 2.4MB vs release 809KB**（同版本号差 3 倍）：debug 是明文 `.js`、解压 15MB；release 是 `.jsc` 字节码、解压 2.1MB。**给用户测试/发布的必须是 release 包**（`npx aiot release --enable-jsc`）
+- release 解压构成：`pages/` **1,710,498（81%）** + app.jsc 55,680 + 键盘 PNG 95,413 + common 图标 ~104KB + logo + 配置
+- **两个"巨无霸"页占整包 25%（未压缩）/ ~58%（压缩后）**：`input-crash-diag.jsc` 250,598（全包最大单文件）+ `chinese-input.jsc` 233,289
+- **原因**：两页都 import `InputMethod.ux` → 键盘把词典**内联**进页面。词典源文件合计 **~185KB**（dic.js 26K + dic_words.js 69K + dic_words_initials.js 41K + dic_jp.js 25K + pinyin_syllables.js 3.5K + dicUtil.js 20K）。**Vela 无共享 chunk → 引用一次复制一份，现被打了两份（~370KB）**
+- 证据：包内 `components/` **只有 61 个 PNG、95KB，不含任何组件 JS**（代码全部内联进引用页）
+- 已核查**无冗余**：无 sourcemap / 无文档 / 无归档残留（`components/` 无 Official/Staged 痕迹）/ 四套键盘皮肤全部在用（arc 11 次、full 30、horizontal 13、t9 7）/ PNG 仅占 6%
+- **瘦身只能靠**：减少键盘组件的引用页数量（根本途径）或裁剪词典；**清理文件换不来空间**
+- 复查：`unzip -q dist/*.rpk && find . -type f | xargs ls -l | awk '{print $5,$9}' | sort -rn | head -30`
 
 ## 用户协作偏好
 - 冲分要求**真实代码改进**并同步文档，不接受只改数字虚报
