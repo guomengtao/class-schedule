@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.6.124",
-  "versionCode": 953,
+  "versionName": "1.6.125",
+  "versionCode": 954,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
@@ -56,7 +56,7 @@
       "课程管理": "course-manager, custom-content-edit, countdown-manage",
       "课表视图": "schedule-manager, week-view, schedule-qrcode, workday-info",
       "设置与系统": "settings, tools, homepage-settings, reset-data, backup-restore, activation, device-info, pinned-pages",
-      "实验室工具": "vibration-lab, vibration-lab-v2, qrcode-generator, black-screen-check, chinese-input, device-id-diagnosis, input-crash-diag",
+      "实验室工具": "vibration-lab, vibration-lab-v2, qrcode-generator, black-screen-check, chinese-input, device-id-diagnosis, input-crash-diag, input-method-lab",
       "其他": "statistics, donate"
     },
     "pages": {
@@ -189,6 +189,11 @@
         "component": "input-crash-diag",
         "group": "实验室工具",
         "name_cn": "输入法崩溃诊断"
+      },
+      "pages/input-method-lab": {
+        "component": "input-method-lab",
+        "group": "实验室工具",
+        "name_cn": "输入法实验台"
       },
       "pages/statistics": {
         "component": "statistics",

@@ -24,6 +24,11 @@
         <text class="item-hint" style="color: {{ theme.textMuted }}">存储/词典</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openInputMethodLab">
+        <text class="item-label" style="color: {{ theme.accent }}">输入法实验台</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">候选展开实验</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
 
       <div class="item-row" onclick="openVibrationLab">
         <text class="item-label" style="color: {{ theme.text }}">震动自定义</text>
@@ -147,6 +152,10 @@ export default {
 
   openInputCrashDiag() {
     router.push({ uri: "/pages/input-crash-diag" })
+  },
+
+  openInputMethodLab() {
+    router.push({ uri: "/pages/input-method-lab" })
   },
 
 

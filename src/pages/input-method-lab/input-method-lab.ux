@@ -1,0 +1,413 @@
+<!-- 【输入法实验台】引用 Lab 副本组件，正式 InputMethod.ux 一行不改，零回归风险 -->
+<import name="input-method" src="../../components/InputMethodLab/InputMethodLab.ux"></import>
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">{{ pageTitle }}</text>
+      <div class="header-placeholder"></div>
+    </div>
+
+    <div class="input-display" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+      <scroll class="input-scroll" scroll-x="true">
+        <div class="input-chars">
+          <text if="{{ !inputText && !beforeChars.length && !afterChars.length }}" class="input-placeholder" style="color: {{ theme.textSecondary }}">{{ placeholder }}</text>
+          <div for="{{beforeChars}}" @click="moveCursor(beforeChars[$idx])" class="input-char-wrap">
+            <text class="input-char" style="color: {{ theme.text }}">{{ $item }}</text>
+          </div>
+          <div class="cursor" style="background-color: {{ theme.text }}"></div>
+          <div for="{{afterChars}}" @click="moveCursorAfter(afterChars[$idx])" class="input-char-wrap">
+            <text class="input-char" style="color: {{ theme.text }}">{{ $item }}</text>
+          </div>
+          <div class="cursor-end-zone" @click="moveCursorEnd"></div>
+        </div>
+      </scroll>
+    </div>
+
+    <div class="done-row">
+      <input class="done-btn" type="button" value="完成" onclick="confirmInput" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+
+    <!-- 实验台：屏型切换。用于在模拟器上对比三种屏型的下展行为；
+         手动选过之后不再被 onInit 的 device.getInfo 回调覆盖。 -->
+    <div class="lab-row">
+      <text class="lab-label" style="color: {{ theme.textSecondary }}">屏型</text>
+      <div class="lab-btn {{ screenType==='pill-shaped' ? 'lab-btn-on' : '' }}" onclick="setShape('pill-shaped')">
+        <text class="lab-btn-text" style="color: {{ screenType==='pill-shaped' ? theme.bg : theme.text }}">胶囊</text>
+      </div>
+      <div class="lab-btn {{ screenType==='rect' ? 'lab-btn-on' : '' }}" onclick="setShape('rect')">
+        <text class="lab-btn-text" style="color: {{ screenType==='rect' ? theme.bg : theme.text }}">方屏</text>
+      </div>
+      <div class="lab-btn {{ screenType==='circle' ? 'lab-btn-on' : '' }}" onclick="setShape('circle')">
+        <text class="lab-btn-text" style="color: {{ screenType==='circle' ? theme.bg : theme.text }}">圆屏</text>
+      </div>
+    </div>
+
+    <!-- 实验台：三个开关对应三个嫌疑，逐个打开即可定位"候选展开错乱"的原因 -->
+    <div class="lab-row">
+      <text class="lab-label" style="color: {{ theme.textSecondary }}">开关</text>
+      <div class="lab-btn {{ labFixPanel ? 'lab-btn-on' : '' }}" onclick="toggleFixPanel">
+        <text class="lab-btn-text" style="color: {{ labFixPanel ? theme.bg : theme.text }}">面板下移</text>
+      </div>
+      <div class="lab-btn {{ labNoBg ? 'lab-btn-on' : '' }}" onclick="toggleNoBg">
+        <text class="lab-btn-text" style="color: {{ labNoBg ? theme.bg : theme.text }}">去黑底</text>
+      </div>
+      <div class="lab-btn {{ labNoScroll ? 'lab-btn-on' : '' }}" onclick="toggleNoScroll">
+        <text class="lab-btn-text" style="color: {{ labNoScroll ? theme.bg : theme.text }}">去scroll</text>
+      </div>
+    </div>
+
+    <!-- 键盘区：实验台保留外层 scroll 包裹（开关可关闭，用于验证「scroll 套 list」是否为错乱原因） -->
+    <scroll class="keyboard-scroll" scroll-y="{{ !labNoScroll }}">
+      <input-method
+        hide="{{ false }}"
+        keyboardtype="QWERTY"
+        maxlength="{{ maxlen }}"
+        vibratemode="short"
+        screentype="{{ screenType }}"
+        labfix="{{ labFixPanel }}"
+        labnobg="{{ labNoBg }}"
+        oncomplete="onCharacter"
+        ondelete="onDeleteChar"
+      ></input-method>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import device from "@system.device"
+const store = require("../../data/store.js")
+
+export default {
+  private: {
+    pageTitle: "输入法实验台",
+    placeholder: "在此复现候选展开错乱",
+    labShape: "",
+    inputText: "",
+    maxlen: "10",
+    returnKey: "chinese_input_result",
+    showCursor: false,
+    cursorPos: 0,
+    beforeChars: [],
+    afterChars: [],
+    screenType: "pill-shaped",
+    // 【实验台开关】三个嫌疑各一个开关，逐个打开即可定位"候选展开错乱"的原因
+    labFixPanel: false,   // 面板下移，避开候选行（验证黑底遮挡候选行）
+    labNoBg: false,       // 面板去掉黑底（验证黑底本身的视觉遮挡）
+    labNoScroll: false,   // 去掉外层 scroll 包裹（验证"scroll 套 list"）
+    iconTheme: "dark",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566'
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t) { self.theme = t })
+    store.getThemeName(function(name) {
+      self.iconTheme = (name === 'light' || name === 'warm') ? 'light' : 'dark'
+    })
+    device.getInfo({
+      success: function(data) {
+        // 实验台：用户手动点过屏型后，不再被设备探测结果覆盖
+        if (self.labShape) return
+        var shape = data.screenShape || "circle"
+        if (shape === "capsule") {
+          shape = "pill-shaped"
+        }
+        self.screenType = shape
+      }
+    })
+    this.loadParams()
+  },
+
+  // 实验台：手动切换屏型（pill-shaped / rect / circle），便于在模拟器上对比下展行为
+  setShape(s) {
+    this.labShape = s
+    this.screenType = s
+  },
+
+  // 实验台开关：面板下移，避开候选行
+  toggleFixPanel() {
+    this.labFixPanel = !this.labFixPanel
+  },
+
+  // 实验台开关：面板去掉黑底
+  toggleNoBg() {
+    this.labNoBg = !this.labNoBg
+  },
+
+  // 实验台开关：去掉外层 scroll 包裹
+  toggleNoScroll() {
+    this.labNoScroll = !this.labNoScroll
+  },
+
+  onReady() {
+    // 注意（2026-09-25）：此处曾用 keyboardHidden 延迟一帧展开键盘（当时怀疑单帧负载致崩）。
+    // 后经真机 A/B 确认崩溃来自组件差异，组件已换回官方原版，该错峰不再需要；
+    // 而且它会让组件 onInit 时 hide=true → 跳过词典初始化 → 表现为"英文能打、中文无候选"。
+    // 现改回 hide=false 直接展开，与官方用法一致（G 项验证时即为该形态）。
+    this.showCursor = true
+  },
+
+  loadParams() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.get({ key: "chinese_input_title", success: function(data) {
+      if (data) self.pageTitle = data
+    }, fail: function() {} })
+    storage.get({ key: "chinese_input_placeholder", success: function(data) {
+      if (data) self.placeholder = data
+    }, fail: function() {} })
+    storage.get({ key: "chinese_input_value", success: function(data) {
+      if (data) self.inputText = data
+      self.cursorPos = self.inputText.length
+      self.updateCharArrays()
+    }, fail: function() {} })
+    storage.get({ key: "chinese_input_maxlen", success: function(data) {
+      if (data) self.maxlen = data
+    }, fail: function() {} })
+    storage.get({ key: "chinese_input_return_key", success: function(data) {
+      if (data) self.returnKey = data
+    }, fail: function() {} })
+  },
+
+  onCharacter(e) {
+    if (e && e.detail && e.detail.content) {
+      var maxLen = parseInt(this.maxlen) || 10
+      if (this.inputText.length < maxLen) {
+        var pos = this.cursorPos
+        this.inputText = this.inputText.slice(0, pos) + e.detail.content + this.inputText.slice(pos)
+        this.cursorPos = pos + 1
+        this.updateCharArrays()
+      }
+    }
+  },
+
+  onDeleteChar() {
+    var pos = this.cursorPos
+    if (pos > 0) {
+      this.inputText = this.inputText.slice(0, pos - 1) + this.inputText.slice(pos)
+      this.cursorPos = pos - 1
+      this.updateCharArrays()
+    }
+  },
+
+  updateCharArrays() {
+    var text = this.inputText
+    var pos = Math.min(this.cursorPos, text.length)
+    this.cursorPos = Math.max(0, pos)
+    this.beforeChars = text.slice(0, this.cursorPos).split('')
+    this.afterChars = text.slice(this.cursorPos).split('')
+  },
+
+  moveCursor(ch) {
+    var idx = this.beforeChars.indexOf(ch)
+    if (idx >= 0) {
+      this.cursorPos = idx
+      this.updateCharArrays()
+    }
+  },
+
+  moveCursorAfter(ch) {
+    var idx = this.afterChars.indexOf(ch)
+    if (idx >= 0) {
+      this.cursorPos = this.cursorPos + 1 + idx
+      this.updateCharArrays()
+    }
+  },
+
+  moveCursorEnd() {
+    this.cursorPos = this.inputText.length
+    this.updateCharArrays()
+  },
+
+  confirmInput() {
+    var storage = require("@system.storage")
+    var text = this.inputText.trim()
+    var key = this.returnKey || "chinese_input_result"
+    storage.set({
+      key: key,
+      value: text,
+      success: function() {
+        router.back()
+      },
+      fail: function() {
+        router.back()
+      }
+    })
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 30px 0 0 0;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  height: 48px;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+
+.back-btn-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.back-btn-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.header-title {
+  flex: 1;
+  font-size: 26px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 34px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.header-placeholder {
+  width: 0;
+  height: 0;
+  margin: 0;
+}
+
+.input-display {
+  flex-direction: row;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border-width: 2px;
+  margin: 0 4px 6px 4px;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+
+.input-scroll {
+  flex: 1;
+  flex-direction: row;
+}
+
+.input-chars {
+  flex-direction: row;
+  align-items: center;
+}
+
+.input-placeholder {
+  font-size: 24px;
+}
+
+.input-char {
+  font-size: 26px;
+}
+
+.input-char-wrap {
+  flex-shrink: 0;
+}
+
+.cursor-end-zone {
+  width: 12px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.keyboard-scroll {
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+}
+
+.cursor {
+  width: 2px;
+  height: 26px;
+  margin: 0 2px;
+  flex-shrink: 0;
+  animation-name: blink;
+  animation-duration: 1200ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.done-row {
+  flex-direction: row;
+  justify-content: center;
+  padding: 0 4px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.done-btn {
+  width: 160px;
+  height: 38px;
+  border-radius: 19px;
+  font-size: 22px;
+  font-weight: bold;
+  line-height: 34px;
+  border: none;
+}
+
+.lab-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+
+.lab-label {
+  font-size: 20px;
+  margin-right: 8px;
+}
+
+.lab-btn {
+  min-width: 76px;
+  height: 44px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+  margin: 0 3px;
+  padding: 0 6px;
+  background-color: #2a2a40;
+}
+
+.lab-btn-on {
+  background-color: #7ec8e3;
+}
+
+.lab-btn-text {
+  font-size: 20px;
+}
+
+</style>
