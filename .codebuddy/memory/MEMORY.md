@@ -44,7 +44,9 @@
 - **F 与 A~E 的本质差异（= 嫌疑点）**：A~E 是页面内静态 DOM；F 是引入组件，独有 ①根节点 `position:absolute; left:0; bottom:0` ②`onInit` 里**第二次 `device.getInfo`**（`adjustScreenWidth`）③4 个 `$watch` ④`cvalrow-wrap` 等独有节点 ⑤放在 `<scroll>` 父级里（`chinese-input` 同样如此）
 - **修订后主因 R1 = 组件根 `position:absolute; bottom:0` 与父级 `<scroll>` 的组合**（与"F 崩而 A~E 全过"最吻合；第一轮分析中已标为"结构性放大项"）
 - 10 Pro 免疫的原因：结构相同但键盘 255px（pill 305px+28 拼音行）、屏高 480 → **临界型问题**，非"某元素必然崩"
-- **推荐修复（改法 B，只影响跑道屏）**：组件根按屏型动态定位 → `position: {{screentype === 'pill-shaped' ? 'relative' : 'absolute'}}`，pill 用普通流式占位，rect/circle 零影响
+- **✅ 已应用修复（改法 B，2026-09-25，只影响跑道屏）**：`InputMethod.ux` 根节点改为 `position: {{screentype === 'pill-shaped' ? 'relative' : 'absolute'}}` —— pill 走普通流式，摆脱"绝对定位根 + 父级 `<scroll>`"组合；rect/circle 保持 absolute，**10 Pro / 圆屏零影响**。两个诊断页的 `.ime-host` 同步 `height:305px → min-height:305px`。**待用户跑第二轮验证 F 项是否通过**
+  - 回滚：`git checkout HEAD~1 -- src/components/InputMethod/InputMethod.ux`（一行定位表达式，成本极低）
+  - 若改法 B 无效 → 走 F1~F5 细分，锁定 R2（组合负载）或 R3（二次 `device.getInfo`）
 - **教训**：连续四轮假设（布局→阻塞→存储并发→词典内存）全错。**先做可隔离的实测二分，不要凭代码推断连续猜方向**
 - **用户偏好（记牢）**：不接受"为修 bug 一次性大改界面影响所有用户"的方案；宁可多花一轮定位也要把改动面缩到最小
 - 文档：`docs/第二轮结果-F项卡住分析.md`（含路线 1 F1~F5 细分、路线 2 改法 A/B）

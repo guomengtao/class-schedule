@@ -161,3 +161,32 @@ pill 分支的键盘比 rect 高 50px，且多一条 28px 拼音行 —— 在 4
 2. 元凶收敛到「**组件机制 / 组合负载**」这一类，其中 **`position:absolute; bottom:0` 根节点 + `<scroll>` 父级** 是与现象最吻合、且改动最小的突破点。
 3. 建议按**改法 B** 做一次最小修复（只影响跑道屏），让用户验证 F 项。
 4. 若改法 B 无效，再走路线 1 的 F1~F5 逐项细分 —— 但那时改法 B 已被排除，可进一步锁定 R2（组合负载）或 R3（二次 `device.getInfo`）。
+
+---
+
+## 七、已应用修复（改法 B，2026-09-25）
+
+按用户确认，已落地**改法 B**，改动只有两处，全部**只影响跑道屏**：
+
+### 7.1 组件根节点按屏型切换定位
+
+`src/components/InputMethod/InputMethod.ux` 模板根节点：
+
+```html
+  <div class="page" style="flex-direction: column; position: {{screentype === 'pill-shaped' ? 'relative' : 'absolute'}}; height: {{hide ? '0px' : 'auto'}}; overflow: {{hide ? 'hidden' : 'visible'}};">
+```
+
+- **pill-shaped → `position: relative`**：走普通流式，彻底摆脱"绝对定位根 + 父级 scroll"的组合问题；
+- **rect / circle → `position: absolute`**：保持原行为，**方屏（10 Pro）与圆屏视觉零变化**；
+- CSS `.page` 里的 `position:absolute; left:0; bottom:0` 保留作非胶囊屏默认值；`left/bottom` 对 `relative` 元素为偏移 0，无副作用（已加注释说明）。
+
+### 7.2 诊断页宿主容器改为自适应高度
+
+两个诊断页的 `.ime-host`：`height: 305px` → **`min-height: 305px`**，让组件走普通流式时按内容撑开，不被固定高度裁剪。
+
+### 7.3 预期效果与验证
+
+- **预期**：pill 键盘在页面流中由内容撑高（约 333px），scroll 容器内容高度不再为 0 → 键盘可见，且可正常上下滚动；
+- **顺带改善**：原先绝对定位贴底时，溢出部分可能被推到可视区**上方**且无法滚动；改为流式后内容高度正常，可滚动查看完整键盘；
+- **验证方式**：用户跑一次第二轮，看 **F 项是否通过**；通过后再打开真实输入页（从设置 → 昵称）确认端到端可用。
+- **回滚**：`git checkout HEAD~1 -- src/components/InputMethod/InputMethod.ux`（一行定位表达式，回滚成本极低）

@@ -1,5 +1,9 @@
 <template>
-  <div class="page" style="flex-direction: column; height: {{hide ? '0px' : 'auto'}}; overflow: {{hide ? 'hidden' : 'visible'}};">
+  <!-- 【崩溃修复·改法B】根节点定位按屏型切换：
+       跑道屏（pill-shaped）用 position:relative 走普通流式 —— 原来的 position:absolute + bottom:0 与
+       父级 <scroll> 组合会把内容推向可视区上方（见 docs/第二轮结果-F项卡住分析.md 的 R1）；
+       方屏 / 圆屏保持原本的 absolute 定位，行为与视觉完全不变（10 Pro 零风险）。 -->
+  <div class="page" style="flex-direction: column; position: {{screentype === 'pill-shaped' ? 'relative' : 'absolute'}}; height: {{hide ? '0px' : 'auto'}}; overflow: {{hide ? 'hidden' : 'visible'}};">
     <!-- 键盘内容懒建：外 if 保证键盘隐藏时整个子树不进 VDOM（chat/search 首进 1s 卡顿根因：
          旧实现 show 只是不可见，200+ 节点/图片在进页瞬间全部创建），首次弹出才创建，
          之后 keyboardCreated 保活、hide 切换只走内层 show 显隐，不重复重建。 -->
@@ -769,6 +773,10 @@ export default {
 </script>
 
 <style>
+/* 【崩溃修复·改法B】根节点定位按屏型动态设置（见模板内 inline style）：
+     pill-shaped → position:relative（普通流式，避免与父级 <scroll> 组合把键盘推出可视区）
+     其它屏型     → position:absolute（保持原行为，方屏/圆屏零影响）
+   此处保留 absolute 作为非胶囊屏默认值；left/bottom 对 relative 元素无副作用（偏移 0）。 */
 .page {
 	width:100%;
 	position:absolute;
