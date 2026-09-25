@@ -41,6 +41,12 @@
 - **最终决定（用户）**：正式组件**直接用官方原版** —— `cp InputMethodOfficial.ux InputMethod.ux`，`diff -q` 确认与 **G 项验证通过的那个文件完全一致**
 - 回归的官方特征：`progress type="arc"` 弧线、下展面板 `<list>`、`addAllTxt` 不截断 maxlength、官方版 maxlength 处理
 - `chinese-input.ux` 不传 `dictlazy` → 线上无未知 prop；诊断页传的 `dictlazy` 被 Vela 忽略，编译通过
+- **官方版真机结果：输入法能出来了（崩溃解决 ✅）**，但出现新问题：**英文能输入、中文无候选**
+  - 定位过程：把词典引擎拷到 `/tmp` 用 node 直接跑 → `initDict()` 后 `getHanzi('nihao')` 正常返回 `你尼呢泥…` + `words: 你好`，`syllableSet 413 / py2hz 404 / words 3016 / initialsIndex 801` → **词典引擎本身完全正常**，问题在**初始化时机**
+  - **真因 = 我自己加的 `keyboardHidden` 错峰**：`hide` 初值 `true` → 组件 `onInit` 里 `if (!this.hide)` 不成立 → **跳过 `_ensureDictInit()`**（词典永不初始化 → 中文无候选；英文走直接上屏不需要词典所以正常）
+  - **已回滚**：`chinese-input.ux` 的 `hide="{{ keyboardHidden }}"` → **`hide="{{ false }}"`**，删除 `keyboardHidden` data 与 `onReady` 里的 `setTimeout` 延迟展开（该错峰是为"单帧负载致崩"加的，崩溃既已由官方组件解决，它就失去意义，且有害）
+  - 产出 `dist/ev-v1.6.122-t-9p-d.rpk`
+- **可复用排查法**：怀疑"输入法/词典类"问题时，直接把 `src/components/InputMethod/assets/` 的 6 个文件拷到 `/tmp/xxx/`，写一个 `.mjs` 调 `SimpleInputMethod.initDict()` + `getHanzi()` 用 node 验证，**几秒就能区分"引擎坏了"还是"调用时机不对"**，不必真机试
 - **若官方版仍不行** → 说明问题不在组件（转页面侧/环境侧）
 - 嫌疑点 1（已删除但仍不够，仅供追溯）：本项目额外添加的 `this.$watch("screentype", "adjustScreenWidth")`（官方无此行）
   - 机制：`onInit` 里已调用过一次 `adjustScreenWidth()`（内部 `device.getInfo`），该 watch 注册时又触发一次 → **首次渲染 pill 键盘期间并发第二次 `device.getInfo`，回调里改 data** → 渲染竞态 → "卡很久 → 看门狗复位"
