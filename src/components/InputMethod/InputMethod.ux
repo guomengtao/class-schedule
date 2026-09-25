@@ -225,68 +225,61 @@
           <img else src="./assets/horizontal/del2.png" style="margin-left: 6px;padding: 6px;" @click="onBtnClick('D')" />
         </div>
       </div>
-      <!-- 胶囊屏66 -->
-      <div if="{{screentype==='pill-shaped'}}" style="width: 100%;height: 305px">
-        <div static style="position:absolute;left:0px;top:34px;width:100%;height:276px;">
-          <!-- 【崩溃修复·W2】此处原有胶囊屏专属的 <progress type="arc" ... total-angle:-48deg>。
-               全仓仅此一处使用 arc 类型、且 total-angle 取负值（非标准用法），可疑为跑道屏设备上
-               "点进输入法页面即重启手环"的渲染层元凶，故移除，只保留键盘本体。
-               如需恢复该视觉弧线，请先用 A/B 真机验证（原参数：percent 30+percent66 /
-               start-angle:204deg / total-angle:-48deg / 188x188）。详见 docs/跑道屏输入法打不开分析.md -->
-          <scroll id="keyboard66" scroll-x="{{true}}" onscroll="handelScroll" style="padding-left: {{(screenWidth - 192)/2}}px;padding-right: {{(screenWidth - 192)/2}}px;">
-            <div if="{{!numFlag}}" style="left: 3px; flex-direction: column;">
-              <div static style="margin-left: 0px;margin-top: 0px;height: 60px;">
-                <text class="calbtn66" for="{{item in keys['full'][0]}}" @click="onSelect(item)">{{item}}</text>
-              </div>
-              <div static style="margin-left: 32px;margin-top: -5px;height: 60px;">
-                <text class="calbtn66" for="{{item in keys['full'][1]}}" @click="onSelect(item)">{{item}}</text>
-              </div>
-              <div static style="margin-left: 64px;margin-top: -5px;height: 60px;">
-                <text class="calbtn66" for="{{item in keys['full'][2]}}" @click="onSelect(item)">{{item}}</text>
-                <img static src="/components/InputMethod/assets/arc/space.png" style="width: 60px;height: 60px;" @click="onBtnClick('space')" />
-              </div>
-            </div>
-            <div if="{{numFlag && !numFlag_jp}}" style="left: 3px; flex-direction: column;">
-              <div static style="margin-left: 0px;margin-top: 0px;height: 60px;">
-                <text class="calbtn66" for="{{item in keys['sign'][0]}}" @click="onSelect(item)">{{item}}</text>
-              </div>
-              <div static style="margin-left: 32px;margin-top: -5px;height: 60px;">
-                <text class="calbtn66" for="{{item in keys['sign'][1]}}" @click="onSelect(item)">{{item}}</text>
-              </div>
-              <div static style="margin-left: 64px;margin-top: -5px;height: 60px;">
-                <text class="calbtn66" for="{{item in keys['sign'][2]}}" @click="onSelect(item)">{{item}}</text>
-              </div>
-            </div>
-            <div if="{{numFlag_jp}}" style="left: 3px; flex-direction: column;">
-              <div static style="margin-left: 0px;margin-top: 0px;height: 60px;">
-                <text class="calbtn66" for="{{item in keys['sign_jp'][0]}}" @click="onSelect(item)">{{item}}</text>
-              </div>
-              <div static style="margin-left: 32px;margin-top: -5px;height: 60px;">
-                <text class="calbtn66" for="{{item in keys['sign_jp'][1]}}" @click="onSelect(item)">{{item}}</text>
-              </div>
-              <div static style="margin-left: 64px;margin-top: -5px;height: 60px;">
-                <text class="calbtn66" for="{{item in keys['sign_jp'][2]}}" @click="onSelect(item)">{{item}}</text>
-              </div>
-            </div>
-          </scroll>
+      <!-- 胶囊屏66（极简重写·崩溃修复）
+           原实现含 7~8 张 PNG、26 个"3px 描边 + 30px 圆角"的 text、2 个 scroll-x、
+           3 层绝对定位 + 固定 305px 高度。实测第 3 步（只建键盘、不加载词典）在手环 9 上直接重启。
+           本版一次性消除 PNG / 描边 / 圆角 / 绝对定位堆叠 / 固定高度，
+           只保留 1 个横向 scroll（QWERTY 三排在 192px 宽屏上必须滚动才能保住可点键宽）。
+           详见 docs/输入法崩溃第三步定位与元素级细分方案.md -->
+      <div if="{{screentype==='pill-shaped'}}" class="kb66">
+        <!-- 候选行：最多 4 个，纯文字横排，不用 scroll -->
+        <div class="kb66-bar" if="{{resultRow0.length > 0}}">
+          <text class="kb66-cand" for="{{item in resultRow0}}" show="{{ $idx < 4 }}" @click="onRsSelect(resultRow0[$idx])">{{item}}</text>
         </div>
-        <div static style="position: absolute;left: {{(screenWidth - 192)/2}}px;top: 0px;width: 192px;height: 110px;">
-          <img static style="position: absolute;left: 3px;top: 47px;width: 186px;height: 60px;" src="/components/InputMethod/assets/arc/search.png" />
-          <!-- 候选横滚行：整词在前、单字随后（拼音已在键盘上方独立小字行显示，这里不放 cval） -->
-          <scroll id="cvalWaiting" scroll-x="{{true}}" style="position: absolute;left: 15px;top: 56px;width: 160px;height: 42px;">
-            <div style="position: absolute;left: 0px;top: 0px;height: 42px;padding-right:20px">
-              <text for="{{resultRow0}}" show="{{resultRow0.length > $idx}}" class="calbtn02" style="padding-right:10px" @click="onRsSelect(resultRow0[$idx])">{{resultRow0[$idx]}}</text>
-            </div>
-          </scroll>
-          <!-- 带变量的相对路径在 aiot-tookit 2.0.4 中修复 -->
-          <img src="/components/InputMethod/assets/arc/{{lang}}.png" style="position: absolute;top:0px;left:9px;width: 48px;height: 42px;" @click="onBtnClick('lang')" show="{{downFlag==='' && !numFlag && !numFlag_jp}}" />
-          <img src="/components/InputMethod/assets/arc/back2.png" style="position: absolute;top:0px;left:9px;width: 48px;height: 42px;" @click="onBtnClick('switchCn')" show="{{numFlag && lang==='cn' ||numFlag_jp && lang==='jp' }}" />
-          <img src="/components/InputMethod/assets/arc/123.png" style="position: absolute;left: 70px;top: 0px;width: 52px;height: 42px;" @click="onBtnClick('switchNum')" show="{{downFlag==='' && !numFlag && lang==='cn'}}" />
-          <img src="/components/InputMethod/assets/arc/123.png" style="position: absolute;left: 70px;top: 0px;width: 52px;height: 42px;" @click="onBtnClick('switchNum_jp')" show="{{downFlag==='' && !numFlag_jp && lang==='jp'}}" />
-          <img src="/components/InputMethod/assets/arc/bigA.png" style="position: absolute;top:0px;left:72px;width:48px;height:42px;" @click="onBtnClick('switchLow')" show="{{downFlag==='' && upperFlag && lang==='en' }}" />
-          <img src="/components/InputMethod/assets/arc/a.png" style="position: absolute;top:0px;left:72px;width:48px;height:42px;" @click="onBtnClick('switchUpper')" show="{{downFlag==='' && !upperFlag && lang==='en' }}" />
-          <img src="/components/InputMethod/assets/arc/del.png" style="position: absolute;left: 135px;top: 0px;width: 48px;height: 42px;" @click="onBtnClick('D')" />
+        <!-- 功能行：语言 / 数字符号 / 空格 / 删除，全部纯文字，无图片 -->
+        <div class="kb66-bar">
+          <text class="kb66-fn" @click="onBtnClick('lang')" show="{{!numFlag}}">{{ lang === 'cn' ? '中' : 'En' }}</text>
+          <text class="kb66-fn" @click="onBtnClick('switchCn')" show="{{numFlag}}">ABC</text>
+          <text class="kb66-fn" @click="onBtnClick('switchNum')" show="{{!numFlag}}">123</text>
+          <text class="kb66-fn" @click="onBtnClick('space')">空格</text>
+          <text class="kb66-fn" @click="onBtnClick('D')">删除</text>
         </div>
+        <!-- 按键区：唯一一个横向 scroll，内部纯 flex 流式，无绝对定位 -->
+        <scroll class="kb66-scroll" scroll-x="{{true}}">
+          <div class="kb66-keys" if="{{!numFlag}}">
+            <div class="kb66-row">
+              <text class="kb66-key" for="{{item in keys['full'][0]}}" @click="onSelect(item)">{{item}}</text>
+            </div>
+            <div class="kb66-row">
+              <text class="kb66-key" for="{{item in keys['full'][1]}}" @click="onSelect(item)">{{item}}</text>
+            </div>
+            <div class="kb66-row">
+              <text class="kb66-key" for="{{item in keys['full'][2]}}" @click="onSelect(item)">{{item}}</text>
+            </div>
+          </div>
+          <div class="kb66-keys" if="{{numFlag && !numFlag_jp}}">
+            <div class="kb66-row">
+              <text class="kb66-key" for="{{item in keys['sign'][0]}}" @click="onSelect(item)">{{item}}</text>
+            </div>
+            <div class="kb66-row">
+              <text class="kb66-key" for="{{item in keys['sign'][1]}}" @click="onSelect(item)">{{item}}</text>
+            </div>
+            <div class="kb66-row">
+              <text class="kb66-key" for="{{item in keys['sign'][2]}}" @click="onSelect(item)">{{item}}</text>
+            </div>
+          </div>
+          <div class="kb66-keys" if="{{numFlag_jp}}">
+            <div class="kb66-row">
+              <text class="kb66-key" for="{{item in keys['sign_jp'][0]}}" @click="onSelect(item)">{{item}}</text>
+            </div>
+            <div class="kb66-row">
+              <text class="kb66-key" for="{{item in keys['sign_jp'][1]}}" @click="onSelect(item)">{{item}}</text>
+            </div>
+            <div class="kb66-row">
+              <text class="kb66-key" for="{{item in keys['sign_jp'][2]}}" @click="onSelect(item)">{{item}}</text>
+            </div>
+          </div>
+        </scroll>
       </div>
       </div>
     </div>
@@ -968,6 +961,71 @@ export default {
 	width:36px;
 	height:40px;
 	text-align: center;
+}
+
+/* ===== 胶囊屏极简键盘（崩溃修复版）=====
+   一次消除：PNG 图片 / border 与 border-radius / 绝对定位堆叠 / 嵌套 scroll / 固定 305px 高度。
+   详见 docs/输入法崩溃第三步定位与元素级细分方案.md */
+.kb66 {
+  width: 100%;
+  flex-direction: column;
+}
+
+.kb66-bar {
+  width: 100%;
+  height: 48px;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.kb66-cand {
+  flex: 1;
+  font-size: 26px;
+  line-height: 32px;
+  color: #ffffff;
+  text-align: center;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.kb66-fn {
+  flex: 1;
+  height: 48px;
+  font-size: 20px;
+  line-height: 48px;
+  color: #ffffff;
+  background-color: #333333;
+  text-align: center;
+  margin-right: 2px;
+}
+
+.kb66-scroll {
+  width: 100%;
+  height: 150px;
+  flex-shrink: 0;
+}
+
+.kb66-keys {
+  flex-direction: column;
+}
+
+.kb66-row {
+  flex-direction: row;
+  margin-bottom: 4px;
+}
+
+.kb66-key {
+  width: 40px;
+  height: 44px;
+  font-size: 26px;
+  line-height: 44px;
+  color: #ffffff;
+  background-color: #262626;
+  text-align: center;
+  margin-right: 3px;
+  flex-shrink: 0;
 }
 
 .keyboard-rows-rect-t9 {
