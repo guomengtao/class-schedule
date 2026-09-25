@@ -340,7 +340,7 @@
 <script>
 import vibrator from "@system.vibrator";
 import device from '@system.device'
-import { SimpleInputMethod } from "/components/InputMethod/assets/dicUtil.js";
+import { SimpleInputMethod } from "./assets/dicUtil.js";
 function doSearchDic(word, lang, cb) {
   if (!word) {
     cb({ chars: [], multi: null });
