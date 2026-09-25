@@ -19,6 +19,11 @@
         <text class="item-hint" style="color: {{ theme.textMuted }}">API测试</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openInputCrashDiag">
+        <text class="item-label" style="color: {{ theme.accent }}">输入法崩溃诊断</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">崩溃定位</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openVibrationLab">
         <text class="item-label" style="color: {{ theme.text }}">震动自定义</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">震动方案</text>
@@ -137,6 +142,10 @@ export default {
 
   openDeviceIdDiagnosis() {
     router.push({ uri: "/pages/device-id-diagnosis" })
+  },
+
+  openInputCrashDiag() {
+    router.push({ uri: "/pages/input-crash-diag" })
   },
 
   openVibrationLab() {

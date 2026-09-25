@@ -1,0 +1,441 @@
+<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">输入法崩溃诊断</text>
+      <div class="header-placeholder"></div>
+    </div>
+
+    <!-- 崩溃回执：重启后重新打开本页，第一眼就能看到上次崩在哪一步 -->
+    <div class="crash-bar" if="{{ crashStep }}">
+      <text class="crash-text">上次崩在第 {{ crashStep }} 步：{{ crashName }}</text>
+    </div>
+
+    <div class="env-bar" style="background-color: {{ theme.card }}">
+      <text class="env-text" style="color: {{ theme.accent }}">版本 {{ versionText }} · {{ envText }}</text>
+      <text class="env-text" style="color: {{ theme.textMuted }}">已通过：{{ passedText }}</text>
+      <text class="env-hint" style="color: {{ theme.textSecondary }}">每步结果即时落盘，重启后回本页即可看到进度</text>
+    </div>
+
+    <scroll class="body" scroll-y="true">
+      <div class="cell">
+        <div class="btn-item btn-main" onclick="runAll">
+          <text class="btn-label btn-main-label">★ 一键跑全部（先点这个）</text>
+        </div>
+        <text class="item-hint" style="color: {{ theme.textSecondary }}">按顺序自动跑 1→5，每步留足落盘时间；中途重启也没关系，回来就能看到崩在第几步</text>
+      </div>
+
+      <div class="cell">
+        <div class="btn-item" onclick="runOne(1)" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">1. 并发写 ×5</text>
+        </div>
+        <text class="item-hint" style="color: {{ theme.textSecondary }}">复刻「点击昵称」先发的 5 个 storage.set</text>
+        <text class="item-res" if="{{ r.s1 }}" style="color: {{ r.s1.ok ? theme.text : '#e74c3c' }}">{{ r.s1.value }}</text>
+      </div>
+
+      <div class="cell">
+        <div class="btn-item" onclick="runOne(2)" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">2. 并发读 ×7</text>
+        </div>
+        <text class="item-hint" style="color: {{ theme.textSecondary }}">复刻进输入页的 5 个 get + 主题/主题名共 7 次并发读</text>
+        <text class="item-res" if="{{ r.s2 }}" style="color: {{ r.s2.ok ? theme.text : '#e74c3c' }}">{{ r.s2.value }}</text>
+      </div>
+
+      <div class="cell">
+        <div class="btn-item" onclick="runOne(3)" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">3. 建键盘（不加载词典）</text>
+        </div>
+        <text class="item-hint" style="color: {{ theme.textSecondary }}">只渲染键盘 UI 与图片，跳过词典。崩 → 元凶是 UI/PNG/节点</text>
+        <text class="item-res" if="{{ r.s3 }}" style="color: {{ r.s3.ok ? theme.text : '#e74c3c' }}">{{ r.s3.value }}</text>
+      </div>
+
+      <div class="cell">
+        <div class="btn-item" onclick="runOne(4)" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">4. 加载词典</text>
+        </div>
+        <text class="item-hint" style="color: {{ theme.textSecondary }}">在上一步基础上加载整本词典。崩 → 元凶是词典内存</text>
+        <text class="item-res" if="{{ r.s4 }}" style="color: {{ r.s4.ok ? theme.text : '#e74c3c' }}">{{ r.s4.value }}</text>
+      </div>
+
+      <div class="cell">
+        <div class="btn-item" onclick="runOne(5)" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.accent }}">5. 跳转真实输入页</text>
+        </div>
+        <text class="item-hint" style="color: {{ theme.textSecondary }}">端到端确认。若崩在这一步，说明前 4 步之外的组合因素</text>
+        <text class="item-res" if="{{ r.s5 }}" style="color: {{ r.s5.ok ? theme.text : '#e74c3c' }}">{{ r.s5.value }}</text>
+      </div>
+
+      <!-- 键盘宿主区：仅第 3 / 第 4 步挂载，避免进页面就承受负载 -->
+      <div class="ime-host" if="{{ showIme }}">
+        <input-method
+          hide="{{ false }}"
+          keyboardtype="QWERTY"
+          maxlength="10"
+          screentype="{{ imeScreenType }}"
+          dictlazy="{{ dictLazy }}"
+        ></input-method>
+      </div>
+
+      <div class="cell">
+        <div class="btn-item" onclick="resetAll" style="background-color: {{ theme.card }}">
+          <text class="btn-label" style="color: {{ theme.textSecondary }}">清空记录</text>
+        </div>
+      </div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+var device = require("@system.device")
+var storage = require("@system.storage")
+var store = require("../../data/store.js")
+var version = require("../../data/version.js")
+
+// 进度落盘：测试前写入步骤号，测试完成清空。
+// 若中途重启，该值会保留 → 重新打开本页即可知道"上次崩在第几步"。
+var STEP_KEY = "input_diag_step"
+var PASS_KEY = "input_diag_passed"
+
+var STEP_NAME = {
+  "1": "并发写 ×5",
+  "2": "并发读 ×7",
+  "3": "建键盘（不加载词典）",
+  "4": "加载词典",
+  "5": "跳转真实输入页"
+}
+
+export default {
+  private: {
+    iconTheme: "dark",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566'
+    },
+    versionText: "",
+    envText: "读取中",
+    passedText: "（无）",
+    crashStep: "",
+    crashName: "",
+    showIme: false,
+    dictLazy: true,
+    imeScreenType: "pill-shaped",
+    passed: [],
+    running: false,
+    r: { s1: null, s2: null, s3: null, s4: null, s5: null }
+  },
+
+  onInit() {
+    var self = this
+    self.versionText = version.versionName || "(未知)"
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+    device.getInfo({
+      success: function(d) {
+        var shape = d.screenShape || "?"
+        if (shape === "capsule") { shape = "pill-shaped" }
+        self.imeScreenType = shape
+        self.envText = shape + " " + (d.screenWidth || "?") + "x" + (d.screenHeight || "?")
+      },
+      fail: function() { self.envText = "获取失败" }
+    })
+    self.loadState()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+    self.loadState()
+  },
+
+  loadState() {
+    var self = this
+    storage.get({
+      key: STEP_KEY,
+      success: function(data) {
+        // 有值 = 上次进入该步骤后没能标记完成 = 崩在这一步
+        if (data) {
+          self.crashStep = String(data)
+          self.crashName = STEP_NAME[String(data)] || ""
+        }
+      },
+      fail: function() {}
+    })
+    storage.get({
+      key: PASS_KEY,
+      success: function(data) {
+        if (data) {
+          self.passed = String(data).split(",")
+          self.passedText = String(data)
+        }
+      },
+      fail: function() {}
+    })
+  },
+
+  // ===== 一键跑全部：自动串行 1→5，每步之间留 800ms 给落盘与渲染 =====
+  runAll() {
+    var self = this
+    if (self.running) return
+    self.running = true
+    self.runSeq([1, 2, 3, 4, 5], 0)
+  },
+
+  runSeq(list, i) {
+    var self = this
+    if (i >= list.length) { self.running = false; return }
+    self.runStep(list[i], function() {
+      setTimeout(function() { self.runSeq(list, i + 1) }, 800)
+    })
+  },
+
+  // ===== 单步：点哪个跑哪个 =====
+  runOne(step) {
+    var self = this
+    if (self.running) return
+    self.running = true
+    self.runStep(step, function() { self.running = false })
+  },
+
+  runStep(step, onDone) {
+    var self = this
+    // 先落盘"正在执行第 N 步"，再执行可能崩溃的操作
+    storage.set({
+      key: STEP_KEY,
+      value: String(step),
+      success: function() { self.execStep(step, onDone) },
+      fail: function() { self.execStep(step, onDone) }
+    })
+  },
+
+  execStep(step, onDone) {
+    var self = this
+    // 延时确保进度落盘完成后再执行
+    setTimeout(function() {
+      self.doStep(step, function(ok, value) {
+        self.setRes("s" + step, ok, value)
+        if (ok) { self.markPass(step) }
+        storage.set({ key: STEP_KEY, value: "" })
+        if (onDone) { onDone(ok) }
+      })
+    }, 400)
+  },
+
+  doStep(step, finish) {
+    var self = this
+    if (step === 1) {
+      // 复刻「点击昵称」先发的 5 个并发 storage.set
+      var n = 0
+      var one = function() { n++; if (n >= 5) finish(true, "5 次并发写完成，未崩溃") }
+      storage.set({ key: "diag_t_title", value: "编辑昵称", success: one, fail: one })
+      storage.set({ key: "diag_t_ph", value: "输入昵称", success: one, fail: one })
+      storage.set({ key: "diag_t_val", value: "abc", success: one, fail: one })
+      storage.set({ key: "diag_t_max", value: "12", success: one, fail: one })
+      storage.set({ key: "diag_t_ret", value: "chinese_input_nickname_result", success: one, fail: one })
+      return
+    }
+    if (step === 2) {
+      // 复刻进输入页的 7 次并发读（5 个输入参数 + 主题 + 主题名）
+      var m = 0
+      var two = function() { m++; if (m >= 7) finish(true, "7 次并发读完成，未崩溃") }
+      storage.get({ key: "diag_t_title", success: two, fail: two })
+      storage.get({ key: "diag_t_ph", success: two, fail: two })
+      storage.get({ key: "diag_t_val", success: two, fail: two })
+      storage.get({ key: "diag_t_max", success: two, fail: two })
+      storage.get({ key: "diag_t_ret", success: two, fail: two })
+      store.getTheme(function() { two() })
+      store.getThemeName(function() { two() })
+      return
+    }
+    if (step === 3) {
+      // 只建键盘 UI，不加载词典（dictlazy=true）
+      self.dictLazy = true
+      self.showIme = true
+      // 给足渲染与观察时间；若中途崩溃，STEP_KEY 会保留为 3
+      setTimeout(function() { finish(true, "键盘已挂载，未崩溃（未加载词典）") }, 2500)
+      return
+    }
+    if (step === 4) {
+      // 先销毁再重建组件，让它走完整的词典初始化
+      self.showIme = false
+      setTimeout(function() {
+        self.dictLazy = false
+        self.showIme = true
+        // 词典是分步流水线，留足时间；若崩溃，STEP_KEY 会保留为 4
+        setTimeout(function() { finish(true, "词典加载完成，未崩溃") }, 4000)
+      }, 600)
+      return
+    }
+    if (step === 5) {
+      // 能发起跳转即算本步通过；若目标页内崩溃，重启后 passed 会含 5 而 crashStep 为空
+      finish(true, "已发起跳转，正在进入真实输入页…")
+      setTimeout(function() { router.push({ uri: "/pages/chinese-input" }) }, 600)
+      return
+    }
+    finish(false, "未知步骤")
+  },
+
+  setRes(key, ok, value) {
+    var o = this.r
+    // 整体重建对象再赋值，确保视图刷新
+    this.r = {
+      s1: o.s1, s2: o.s2, s3: o.s3, s4: o.s4, s5: o.s5
+    }
+    this.r[key] = { ok: ok, value: value }
+  },
+
+  markPass(step) {
+    var list = this.passed || []
+    if (list.indexOf(String(step)) === -1) { list.push(String(step)) }
+    this.passedText = list.join(",")
+    storage.set({ key: PASS_KEY, value: this.passedText })
+  },
+
+  resetAll() {
+    var self = this
+    storage.set({ key: STEP_KEY, value: "" })
+    storage.set({ key: PASS_KEY, value: "" })
+    self.passed = []
+    self.passedText = "（无）"
+    self.crashStep = ""
+    self.crashName = ""
+    self.showIme = false
+    self.r = { s1: null, s2: null, s3: null, s4: null, s5: null }
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+@import '../../common/header.css';
+
+.page {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  padding: 8px 8px 6px 8px;
+}
+
+.crash-bar {
+  background-color: #4a1010;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.crash-text {
+  color: #ff6b6b;
+  font-size: 24px;
+  line-height: 32px;
+  lines: 0;
+  font-weight: bold;
+}
+
+.env-bar {
+  flex-direction: column;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.env-text {
+  font-size: 22px;
+  line-height: 30px;
+  lines: 1;
+}
+
+.env-hint {
+  font-size: 20px;
+  line-height: 28px;
+  lines: 0;
+}
+
+.body {
+  flex: 1;
+  flex-direction: column;
+}
+
+.cell {
+  flex-direction: column;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.btn-item {
+  flex-direction: row;
+  align-items: center;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.btn-main {
+  background-color: #7ec8e3;
+}
+
+.btn-main-label {
+  color: #1a1a2e;
+}
+
+.btn-label {
+  font-size: 24px;
+  line-height: 32px;
+  lines: 1;
+}
+
+.item-hint {
+  font-size: 20px;
+  line-height: 28px;
+  padding: 4px 4px 0 4px;
+  lines: 0;
+}
+
+.item-res {
+  font-size: 22px;
+  line-height: 30px;
+  padding: 4px 4px 0 4px;
+  lines: 0;
+  word-break: break-all;
+}
+
+.ime-host {
+  width: 100%;
+  height: 305px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+@media (shape: capsule), (shape: pill-shaped) {
+  .page {
+    padding: 8px 10px 6px 10px;
+  }
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 24px 36px 24px 36px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 6px 10px 12px 10px;
+  }
+}
+</style>

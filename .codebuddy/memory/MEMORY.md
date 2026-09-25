@@ -46,6 +46,9 @@
 - 每次复测前**先确认真机装机版本号与仓库一致**（`r` 参数即包内 versionName；也可在页面显示 versionName）
 - **待真机回归**：手环 9 / 11 进输入法页不再重启、10 Pro 仍正常；若 9 仍重启则 W1/W2 均非元凶，需抓 `adb logcat`
 - 诊断手段备查：把 `hide` 临时改 `true` / 屏蔽 arc progress / 抓 logcat
+- **一次性诊断页（2026-09-25 新建）**：`src/pages/input-crash-diag/input-crash-diag.ux`（工具 → 输入法崩溃诊断）。设计初衷 = 测试机在用户手上、机会极少，必须"一次装机榨干信息"。机制：storage `input_diag_step` 执行前写入/完成后清空 → **重启后打开页面顶部直接显示"上次崩在第 N 步"**；`input_diag_passed` 记录已通过步骤。有「★ 一键跑全部」自动串行 1→5（间隔 800ms）+ 单步按钮 + 清空记录。5 项：并发写×5 / 并发读×7 / 建键盘不加载词典 / 加载词典 / 跳转真实输入页
+- 配套：`InputMethod.ux` 新增诊断 prop **`dictlazy`**（默认 false，为 true 时 `_ensureDictInit` 直接 return），用于分离"UI/PNG 崩溃"与"词典内存崩溃"
+- 该模式可复用：凡"可能崩溃 + 真机机会少"的排查，都按 `device-id-diagnosis.ux` 的"落盘进度→延时→执行→清空"套路做诊断页，不要靠反复改代码出包
 
 ## 胶囊屏（192px 宽）硬约束
 - `week-view` 可视列数须 ∈ [2.5, 3.5]（`160 ÷ cellWidth`）；胶囊屏关闭行号列（`rowNumWidth = 0`），`cellWidth ≤ 60`

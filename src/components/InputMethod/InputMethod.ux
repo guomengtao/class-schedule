@@ -330,6 +330,11 @@ export default {
     screentype: {
       default: "circle",
     },
+    // 【诊断用】为 true 时跳过词典初始化。
+    // 仅用于分离"崩溃来自键盘 UI/图片"还是"来自词典加载"，见 docs/跑道屏输入法重启问题二次深入分析.md
+    dictlazy: {
+      default: false,
+    },
   },
   data: {
     cval: "",
@@ -702,6 +707,8 @@ export default {
   // 字典懒初始化入口（幂等，只跑一次）。initDict 内部还有 syllableSet 幂等守卫。
   _ensureDictInit() {
     if (this.__dictInitStarted) return
+    // 【诊断用】dictlazy=true 时跳过词典初始化，用于分离"键盘 UI 崩溃"与"词典加载崩溃"
+    if (this.dictlazy) return
     this.__dictInitStarted = true
     SimpleInputMethod.initDict()
   },
