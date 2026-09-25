@@ -32,6 +32,13 @@
 - **手环 11 宽 212px**，是项目首次出现的胶囊宽度。所有胶囊规范（字号阶梯、`week-view` 列宽 `160 ÷ cellWidth`、192px 居中算法）都按 **192** 定标；212 比基准宽 **10.4%**，需要单独评估
 - 手环 11 的 `osVersionCode = 0`（未返回），说明新机型 ROM 字段完整度不同 → 不要假设 `getInfo` 字段一定存在
 
+### ⚠️ 输入法在跑道屏上「点页面即重启」的根因结论（2026-09-25）
+- 症状是**系统级复位**（手环 9 实测：点进输入法页直接重启，不是"看不见键盘"）→ 凡"重启"类问题不要往布局方向查
+- **首因 W1：进页面即同步全量初始化**。`dicUtil.js:490-491` 注释承诺"由 InputMethod.ux 在 onInit 中 setTimeout 延迟调用"，**实现是同步直调**（`InputMethod.ux:417-421` → `_ensureDictInit()` → `initDict()` 无 setTimeout）；而 `chinese-input.ux:35` 传 `hide="{{ false }}"` 使 `if (!this.hide)` 成立 → 进页面瞬间同步构建 `py2hz`(6763) + `romaji2kanji` + `syllableSet`+`py2hz2` + `words`(3000) + `initialsIndex`(815行)，**只有 `_buildForwardIndex` 分片**；叠加同帧模板首建 200+ 节点/60+ PNG → 阻塞（看门狗）或 OOM
+- **次因 W2：`InputMethod.ux:231` 胶囊分支独有的 `progress type="arc"` + 负 `total-angle:-48deg`**（方屏是线性 progress、圆屏无 progress）→ 严格只影响跑道屏
+- 教训：**注释声称的"懒加载/延迟初始化"必须回代码复核**，本仓已出现注释与实现漂移
+- 待验证手段：把 `hide` 临时改 `true` / 屏蔽 arc progress / 给 `_ensureDictInit` 加 `setTimeout` / 抓 logcat
+
 ## 胶囊屏（192px 宽）硬约束
 - `week-view` 可视列数须 ∈ [2.5, 3.5]（`160 ÷ cellWidth`）；胶囊屏关闭行号列（`rowNumWidth = 0`），`cellWidth ≤ 60`
 - 按钮高度 ≥48px。遇到"放不下"先检查元素是否真在同一排（如 `index` 总/今/明 已下移到 `nav-toolbar`），不要直接接受 44px
