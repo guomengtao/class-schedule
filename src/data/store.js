@@ -6,10 +6,40 @@ function dlog() {
 
 var storage = require("@system.storage")
 var authStore = require("./auth-store")
+var appDefaults = require("./app-defaults.js")
+var defaultsEngine = require("./defaults-engine.js")
 
 var _cache = {}
 
-var DEFAULT_NAMES = ["课程表1"]
+// ===== 默认值统一来源 =====
+// 所有「默认开关 / 默认风格」都从 app-defaults.js 取，本文件不再硬编码默认值。
+// 以后改默认值只需要动那一张表（详见 docs/新老用户默认设置集中管理方案.md）。
+function def(id) {
+  return appDefaults.get(id)
+}
+
+// 取对象/数组型默认值。app-defaults.get() 本身已返回副本，
+// 这里只做语义封装，避免调用方误以为拿到的是共享引用。
+function cloneDefault(id) {
+  return appDefaults.get(id)
+}
+
+// 登记「用户亲手改过某个 storage key 下的设置」
+// 规则：store 的所有 setter 一律视为用户行为；迁移引擎不走 setter，故不会被误记。
+function markUserSetForKey(key) {
+  var items = appDefaults.itemsForKey(key)
+  for (var i = 0; i < items.length; i++) {
+    if (!items[i].dynamic) {
+      defaultsEngine.markUserSet(items[i].id)
+    }
+  }
+}
+
+function markUserSet(id) {
+  defaultsEngine.markUserSet(id)
+}
+
+var DEFAULT_NAMES = def("data.scheduleNames")
 
 var DEFAULT_NICKNAMES = [
   "学霸小明", "追光者", "书山行者", "知识猎人", "星海航者",
@@ -262,15 +292,16 @@ module.exports = {
     storage.get({
       key: "appTheme",
       success: function(data) {
-        var name = data || 'blue'
+        var name = data || def("appearance.theme")
         _cache.theme = THEMES[name] || THEMES.blue
         _cache.themeName = name
         callback(_cache.theme, name)
       },
       fail: function() {
-        _cache.theme = THEMES.blue
-        _cache.themeName = 'blue'
-        callback(THEMES.blue, 'blue')
+        var name = def("appearance.theme")
+        _cache.theme = THEMES[name] || THEMES.blue
+        _cache.themeName = name
+        callback(_cache.theme, name)
       }
     })
   },
@@ -283,12 +314,12 @@ module.exports = {
     storage.get({
       key: "appTheme",
       success: function(data) {
-        _cache.themeName = data || 'blue'
+        _cache.themeName = data || def("appearance.theme")
         callback(_cache.themeName)
       },
       fail: function() {
-        _cache.themeName = 'blue'
-        callback('blue')
+        _cache.themeName = def("appearance.theme")
+        callback(_cache.themeName)
       }
     })
   },
@@ -296,9 +327,10 @@ module.exports = {
   setTheme: function(name, callback) {
     delete _cache.theme
     delete _cache.themeName
+    markUserSet("appearance.theme")
     storage.set({
       key: "appTheme",
-      value: name || 'blue',
+      value: name || def("appearance.theme"),
       success: function() { if (callback) callback(true) },
       fail: function() { if (callback) callback(false) }
     })
@@ -342,6 +374,7 @@ module.exports = {
     dlog("[store] setBaseFontSize: " + size)
     _cache.baseFontSize = size
     delete _cache.fontSizes
+    markUserSet("appearance.fontSize")
     storage.set({
       key: "baseFontSize",
       value: String(size),
@@ -350,10 +383,10 @@ module.exports = {
     })
   },
 
-  // 同步取字号，供需要即时计算的场景使用（读不到时给默认 48）
+  // 同步取字号，供需要即时计算的场景使用（读不到时给默认值）
   getBaseFontSizeSync: function() {
     if (_cache.baseFontSize !== undefined) return _cache.baseFontSize
-    return 48
+    return def("appearance.fontSize")
   },
 
   getBaseFontSize: function(callback, forceRefresh) {
@@ -363,10 +396,11 @@ module.exports = {
       return
     }
     dlog("[store] getBaseFontSize: reading from storage" + (forceRefresh ? " (forced)" : ""))
+    var d = def("appearance.fontSize")
     storage.get({
       key: "baseFontSize",
       success: function(data) {
-        var size = parseInt(data) || 48
+        var size = parseInt(data) || d
         if (size < 20) size = 20
         if (size > 76) size = 76
         _cache.baseFontSize = size
@@ -374,9 +408,9 @@ module.exports = {
         callback(size)
       },
       fail: function() {
-        _cache.baseFontSize = 48
-        dlog("[store] getBaseFontSize: storage failed, default 48")
-        callback(48)
+        _cache.baseFontSize = d
+        dlog("[store] getBaseFontSize: storage failed, default " + d)
+        callback(d)
       }
     })
   },
@@ -483,13 +517,13 @@ module.exports = {
       key: "currentScheduleIndex",
       success: function(data) {
         var idx = parseInt(data)
-        if (isNaN(idx) || idx < 0) { idx = 0 }
+        if (isNaN(idx) || idx < 0) { idx = def("data.currentScheduleIndex") }
         _cache.currentScheduleIndex = idx
         callback(idx)
       },
       fail: function() {
-        _cache.currentScheduleIndex = 0
-        callback(0)
+        _cache.currentScheduleIndex = def("data.currentScheduleIndex")
+        callback(_cache.currentScheduleIndex)
       }
     })
   },
@@ -505,6 +539,7 @@ module.exports = {
   },
 
   setRemindSettings: function(settings, callback) {
+    markUserSetForKey("remindSettings")
     storage.set({
       key: "remindSettings",
       value: JSON.stringify(settings),
@@ -514,29 +549,35 @@ module.exports = {
   },
 
   getRemindSettings: function(callback) {
+    function remindDefaults() {
+      return appDefaults.buildObjectDefaults("remindSettings")
+    }
     storage.get({
       key: "remindSettings",
       success: function(data) {
         if (data) {
           try {
             var settings = JSON.parse(data)
-            if (settings.enabled === undefined) settings.enabled = true
-            if (settings.minutes === undefined) settings.minutes = 5
+            var d = remindDefaults()
+            for (var k in d) {
+              if (d.hasOwnProperty(k) && settings[k] === undefined) settings[k] = d[k]
+            }
             callback(settings)
           } catch (e) {
-            callback({ enabled: true, minutes: 5 })
+            callback(remindDefaults())
           }
         } else {
-          callback({ enabled: true, minutes: 5 })
+          callback(remindDefaults())
         }
       },
       fail: function() {
-        callback({ enabled: true, minutes: 5 })
+        callback(remindDefaults())
       }
     })
   },
 
   setNickname: function(name, callback) {
+    markUserSet("profile.nickname")
     storage.set({
       key: "userNickname",
       value: name || "",
@@ -569,9 +610,10 @@ module.exports = {
   },
 
   setVibrationStyle: function(style, callback) {
+    markUserSet("vibration.style")
     storage.set({
       key: "vibrationStyle",
-      value: style || "short",
+      value: style || def("vibration.style"),
       success: function() { if (callback) callback(true) },
       fail: function() { if (callback) callback(false) }
     })
@@ -581,10 +623,10 @@ module.exports = {
     storage.get({
       key: "vibrationStyle",
       success: function(data) {
-        callback(data || "short")
+        callback(data || def("vibration.style"))
       },
       fail: function() {
-        callback("short")
+        callback(def("vibration.style"))
       }
     })
   },
@@ -637,6 +679,7 @@ module.exports = {
   },
 
   setBackgroundRunningConfig: function(config, callback) {
+    markUserSet("backgroundRunning")
     storage.set({
       key: "background_running_config",
       value: JSON.stringify(config),
@@ -653,14 +696,14 @@ module.exports = {
           try {
             callback(JSON.parse(data))
           } catch (e) {
-            callback({ enabled: false })
+            callback(cloneDefault("backgroundRunning"))
           }
         } else {
-          callback({ enabled: false })
+          callback(cloneDefault("backgroundRunning"))
         }
       },
       fail: function() {
-        callback({ enabled: false })
+        callback(cloneDefault("backgroundRunning"))
       }
     })
   },
@@ -699,18 +742,11 @@ module.exports = {
       callback(_cache.homepageSettings)
       return
     }
-    var defaultSettings = {
-      showQuickAdd: true,
-      showCustomContent: false,
-      customContent: randomPick(DEFAULT_QUOTES),
-      showTime: false,
-      showStatusBar: true,
-      showPinnedBar: false,
-      showDayNavZong: true,
-      showDayNavJin: true,
-      showDayNavMing: true,
-      showLabSection: false,
-      timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false }
+    // 默认值全部来自 app-defaults.js；customContent 是动态项，随机生成后由用户改写
+    function homepageDefaults() {
+      var d = appDefaults.buildObjectDefaults("homepage_settings")
+      d.customContent = randomPick(DEFAULT_QUOTES)
+      return d
     }
     storage.get({
       key: "homepage_settings",
@@ -721,23 +757,24 @@ module.exports = {
             _cache.homepageSettings = settings
             callback(settings)
           } catch (e) {
-            _cache.homepageSettings = defaultSettings
-            callback(defaultSettings)
+            _cache.homepageSettings = homepageDefaults()
+            callback(_cache.homepageSettings)
           }
         } else {
-          _cache.homepageSettings = defaultSettings
-          callback(defaultSettings)
+          _cache.homepageSettings = homepageDefaults()
+          callback(_cache.homepageSettings)
         }
       },
       fail: function() {
-        _cache.homepageSettings = defaultSettings
-        callback(defaultSettings)
+        _cache.homepageSettings = homepageDefaults()
+        callback(_cache.homepageSettings)
       }
     })
   },
 
   setHomepageSettings: function(settings, callback) {
     delete _cache.homepageSettings
+    markUserSetForKey("homepage_settings")
     storage.set({
       key: "homepage_settings",
       value: JSON.stringify(settings),
@@ -830,18 +867,24 @@ module.exports = {
   },
 
   getHideWeekend: function(callback) {
+    var d = def("appearance.hideWeekend")
     storage.get({
       key: "hideWeekend",
       success: function(data) {
-        callback(data === "" ? true : data === "true")
+        if (data === undefined || data === null || data === "") {
+          callback(d)
+          return
+        }
+        callback(data === "true" || data === true)
       },
       fail: function() {
-        callback(true)
+        callback(d)
       }
     })
   },
 
   setHideWeekend: function(hide, callback) {
+    markUserSet("appearance.hideWeekend")
     storage.set({
       key: "hideWeekend",
       value: hide ? "true" : "false",
@@ -862,27 +905,28 @@ module.exports = {
           try {
             var settings = JSON.parse(data)
             if (!settings.targetPage || settings.targetPage === "index-full") settings.targetPage = "index"
-            if (settings.autoSeconds === undefined) settings.autoSeconds = 3
+            if (settings.autoSeconds === undefined) settings.autoSeconds = cloneDefault("defaultHomepage").autoSeconds
             _cache.defaultHomepage = settings
             callback(settings)
           } catch (e) {
-            _cache.defaultHomepage = { targetPage: "index", autoSeconds: 3 }
-            callback({ targetPage: "index", autoSeconds: 3 })
+            _cache.defaultHomepage = cloneDefault("defaultHomepage")
+            callback(_cache.defaultHomepage)
           }
         } else {
-          _cache.defaultHomepage = { targetPage: "index", autoSeconds: 3 }
-          callback({ targetPage: "index", autoSeconds: 3 })
+          _cache.defaultHomepage = cloneDefault("defaultHomepage")
+          callback(_cache.defaultHomepage)
         }
       },
       fail: function() {
-        _cache.defaultHomepage = { targetPage: "index", autoSeconds: 3 }
-        callback({ targetPage: "index", autoSeconds: 3 })
+        _cache.defaultHomepage = cloneDefault("defaultHomepage")
+        callback(_cache.defaultHomepage)
       }
     })
   },
 
   setDefaultHomepage: function(settings, callback) {
     delete _cache.defaultHomepage
+    markUserSet("defaultHomepage")
     storage.set({
       key: "defaultHomepage",
       value: JSON.stringify(settings),
@@ -895,15 +939,16 @@ module.exports = {
     storage.get({
       key: "weekview_template",
       success: function(data) {
-        callback(data || "minimal-char")
+        callback(data || def("appearance.weekviewTpl"))
       },
       fail: function() {
-        callback("minimal-char")
+        callback(def("appearance.weekviewTpl"))
       }
     })
   },
 
   setWeekViewTemplate: function(templateId, callback) {
+    markUserSet("appearance.weekviewTpl")
     storage.set({
       key: "weekview_template",
       value: templateId,
@@ -916,15 +961,16 @@ module.exports = {
     storage.get({
       key: "homepage_template",
       success: function(data) {
-        callback(data || "default")
+        callback(data || def("appearance.homepageTpl"))
       },
       fail: function() {
-        callback("default")
+        callback(def("appearance.homepageTpl"))
       }
     })
   },
 
   setHomepageTemplate: function(templateId, callback) {
+    markUserSet("appearance.homepageTpl")
     storage.set({
       key: "homepage_template",
       value: templateId,
@@ -933,19 +979,29 @@ module.exports = {
     })
   },
 
+  // 假期提醒：默认值来自 app-defaults.js（holiday.perSchedule = true）。
+  // 「新建课程表默认开启」即由此保证 —— 新建时 storage 里没有该 key，直接落到默认值。
+  // 注意：success 与 fail 两个分支必须使用同一个默认值来源。原实现
+  // （success 返回 false、fail 返回 true）语义自相矛盾，导致新用户/新建课程表实际是关闭的。
   getHolidayReminderEnabled: function(scheduleIndex, callback) {
+    var d = def("holiday.perSchedule")
     storage.get({
       key: "holidayReminderEnabled_" + scheduleIndex,
       success: function(data) {
-        callback(data === "1")
+        if (data === undefined || data === null || data === "") {
+          callback(d)
+          return
+        }
+        callback(data === "1" || data === true)
       },
       fail: function() {
-        callback(true)
+        callback(d)
       }
     })
   },
 
   setHolidayReminderEnabled: function(scheduleIndex, enabled, callback) {
+    markUserSet("holiday.perSchedule")
     storage.set({
       key: "holidayReminderEnabled_" + scheduleIndex,
       value: enabled ? "1" : "0",

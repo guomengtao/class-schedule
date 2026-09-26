@@ -156,6 +156,12 @@ var tables = [
     type: "object"
   },
   {
+    key: "app_state",
+    desc: "默认值迁移状态（首次安装标记 / 已应用默认值版本 / 用户改动登记 / 强制项审计）",
+    columns: ["installedAt", "isFreshInstall", "defaultsVersion", "lastApplyAt", "forcedKeys", "userSet"],
+    type: "object"
+  },
+  {
     key: "astrobox_sync_backup",
     desc: "导入前自动备份的上一份课表，用于导入出错时回退",
     columns: ["backup"],

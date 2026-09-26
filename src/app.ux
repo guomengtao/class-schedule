@@ -3,6 +3,7 @@ var store = require("./data/store.js")
 var database = require("./data/database.js")
 var authStore = require("./data/auth-store.js")
 var holidayPreset = require("./data/holiday-preset.js")
+var defaultsEngine = require("./data/defaults-engine.js")
 
 // 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
 // DEBUG: 联调时打开，排查同步问题
@@ -627,6 +628,23 @@ function migrateBuiltinHolidays() {
   })
 }
 
+// 默认值迁移：区分新用户 / 老用户，按 app-defaults.js 的 policy 逐条应用。
+// 版本一致时只有 1 次 storage.get 的开销，不影响启动速度。
+// 失败不影响启动 —— 版本号不推进，下次启动自动重试。
+function runDefaults() {
+  try {
+    defaultsEngine.run(function(result) {
+      dlog("[defaults] kind=" + result.kind + " applied=" + result.applied)
+      if (result.applied > 0) {
+        // 迁移写了 storage，必须让 store 的内存缓存失效，否则页面仍显示旧值
+        store.clearCache()
+      }
+    })
+  } catch (e) {
+    dlog("[defaults] run error: " + e)
+  }
+}
+
 export default {
   onCreate() {
     database.init()
@@ -638,6 +656,7 @@ export default {
     })
     migrateFontScale()
     migrateBuiltinHolidays()
+    runDefaults()
     // 自动常驻保活：保证 interconnect 同步消息随时可收，无需用户手工开启「后台运行」
     startResident()
     initSyncReceiver()

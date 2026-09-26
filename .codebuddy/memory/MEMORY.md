@@ -86,12 +86,15 @@
 - **每次复测前先确认真机装机版本号与仓库一致**（激活 URL 的 `r` 参数）
 - 常备工具：`device-id-diagnosis`（7 个 API 单测）
 
-## 默认设置集中管理（方案已定稿，待实现）
-- 方案：`docs/新老用户默认设置集中管理方案.md`。一张表（`app-defaults.js`，字段级 entry + `policy: keep/soft/force` + `since` 版本号）+ 一个标记（`app_state`）+ 一个集合（`userSet`，登记用户亲手动过的字段）+ 幂等（`since` vs `defaultsVersion`）
-- **规则**：迁移引擎直接操作 storage；`store.js` 的所有 setter 一律视为"用户行为"并自动登记 `userSet`
-- **最高优先级红线**：`app_state` 不存在时**绝不能默认当新用户** —— 必须串行探测业务 key，命中任一即按老用户处理，否则会把老版本升级上来的用户设置一次性清空
+## 默认设置集中管理（阶段 1+2 已落地）
+- 方案：`docs/新老用户默认设置集中管理方案.md`。**一张表** `src/data/app-defaults.js`（字段级 entry + `policy: keep/soft/force` + `since` 版本号，当前 26 条全为 `keep`）+ **一个标记** `app_state` + **一个集合** `userSet` + **幂等**（`since` vs `defaultsVersion`）
+- 引擎 `src/data/defaults-engine.js`：`run(cb)` 判定并应用；`markUserSet(id)` / `flush(cb)` 登记用户改动。挂在 `app.ux onCreate()` 的 `migrateBuiltinHolidays()` 之后
+- **规则**：迁移引擎直接操作 storage；`store.js` 的所有 setter 一律视为"用户行为"并自动登记 `userSet`（走 `markUserSetForKey`）
+- **最高优先级红线**：`app_state` 不存在时**绝不能默认当新用户** —— 必须串行探测业务 key，命中任一即按老用户处理（单测已覆盖）
 - 迁移后**必须 `store.clearCache()`**；RTOS 存储不支持高并发 → 全程串行、`userSet` 内存累积合并写
-- 现存病灶（待修）：`homepage_settings` 默认值散落 4 处且矛盾（`store.js:702` vs `index.ux:301` vs `!== false` vs `homepage-settings.ux:172`）；`store.getHomepageSettings` 不做字段补齐 → 老用户拿不到新默认值；`getHolidayReminderEnabled`（`store.js:936`）success/fail 两分支默认值语义矛盾（实际默认关闭）
+- **切 policy 的坑**：把某条从 `keep` 切到 `soft` 时，必须**同时把该项的 `since` 与 `CURRENT_VERSION` 一起 +1**，否则已推进到旧版本号的用户不会再被处理
+- 对象/数组型默认值必须**返回副本**（`app-defaults.get()` 已内置 `cloneValue`）—— 页面会就地改 `this.timeFormat` 之类，返回引用会污染配置表全局生效
+- 已修的历史病灶：`getHolidayReminderEnabled` 的 success/fail 两分支默认值语义矛盾（实际默认关闭）→ 统一为**默认开启**且同源
 - 现成范式：`holiday-preset.js` 的 `VERSION_KEY` + `ensurePreset()`（版本号 + 幂等 + 只补缺失不覆盖用户），本方案是其泛化
 
 ## 数据层约定
