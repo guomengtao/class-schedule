@@ -1,5 +1,24 @@
 {
     "trae.tab.enableRename": false,
     "trae.tab.enableAutoImport": false,
-    "aiot.emulator.hideQtWindow": true
+    "aiot.emulator.hideQtWindow": true,
+    "files.watcherExclude": {
+        "**/node_modules/**": true,
+        "**/dist/**": true,
+        "**/distrelease/**": true,
+        "**/build/**": true,
+        "**/release/**": true,
+        "**/_rpk_check/**": true,
+        "**/.temp_class/**": true,
+        "**/sign/**": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/distrelease": true,
+        "**/build": true,
+        "**/release": true,
+        "**/_rpk_check": true,
+        "**/.temp_class": true
+    }
 }
