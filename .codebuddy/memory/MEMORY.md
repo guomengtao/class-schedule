@@ -127,4 +127,4 @@
 - 不接受"为修 bug 一次性大改界面影响所有用户"的方案；宁可多花一轮定位也要把改动面缩到最小
 - 完成对话后用 mac 弹窗 + 语音：`osascript -e 'display notification "正文" with title "标题"' ; say -v Tingting "正文"`（用 `;` 不用 `&&`）
 - 所有 md 文件用中文书写
-- **项目根目录尽可能保持干净整洁（开发规定）**：散落文档归入 `docs/`、临时/调试脚本归档到 `archive/`、构建产物（`.gitignore` 已忽略的可重建目录 `build/ dist/ release/ sign/`）不留在根目录，移出工作区即可
+- **项目根目录尽可能保持干净整洁（开发规定）**：散落文档归入 `docs/`、临时/调试脚本归档到 `archive/`、构建产物（`build/ dist/ release/` 等 `.gitignore` 已忽略、可重建的目录）不留在根目录；**但 `sign/` 含签名证书(`private.pem`/`certificate.pem`)，禁止移动或清理，必须留在原地**
