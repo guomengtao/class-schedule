@@ -125,6 +125,31 @@ async function consoleTap(grpcPort, lcdX, lcdY) {
   return { lcdX, lcdY, x, y, skin: skin ? skin.avd : '(无皮肤偏移)' }
 }
 
+// 控制台通道拖动（down → 多次 move(down) → up）：用于滚动页面。
+// gRPC 的 swipe/streamInputEvent 在 Vela 上是空实现，只有控制台 event mouse 有效。
+async function consoleDrag(grpcPort, x1, y1, x2, y2, steps) {
+  const token = fs.readFileSync(path.join(os.homedir(), '.emulator_console_auth_token'), 'utf8').trim()
+  const port = grpcPort - 3000
+  const s = net.connect(port, '127.0.0.1')
+  await new Promise((r, j) => { s.on('connect', r); s.on('error', j) })
+  const write = (l) => s.write(l + '\n')
+  await sleep(250)
+  write('auth ' + token)
+  await sleep(300)
+  write(`event mouse ${x1} ${y1} 0 1`)
+  await sleep(90)
+  for (let i = 1; i <= steps; i++) {
+    write(`event mouse ${Math.round(x1 + ((x2 - x1) * i) / steps)} ${Math.round(y1 + ((y2 - y1) * i) / steps)} 0 1`)
+    await sleep(55)
+  }
+  write(`event mouse ${x2} ${y2} 0 0`)
+  await sleep(160)
+  write('quit')
+  await sleep(140)
+  s.end()
+  await sleep(450)
+}
+
 const grpc = require('@grpc/grpc-js')
 const protoLoader = require('@grpc/proto-loader')
 
@@ -260,6 +285,41 @@ async function main() {
       await getScreenshot(client, p)
       console.log('已保存 ' + p)
       if (i < n - 1) await sleep(gap)
+    }
+  } else if (mode === 'scrollshot') {
+    // 多屏页滚动连拍：scrollshot <port> <prefix> <maxScreens> <gapMs> <x> <y1> <y2> [steps]
+    // 到底判定：与上一张字节数相同 → 删除重复帧并停止
+    const prefix = rest[1]
+    const maxN = Number(rest[2]) || 5
+    const gap = Number(rest[3]) || 1200
+    const x = Number(rest[4])
+    const y1 = Number(rest[5])
+    const y2 = Number(rest[6])
+    const steps = rest[7] ? Number(rest[7]) : 12
+    let prevSize = -1
+    for (let i = 0; i < maxN; i++) {
+      const p = `${prefix}${String(i).padStart(2, '0')}.png`
+      await getScreenshot(client, p)
+      const sz = fs.statSync(p).size
+      console.log('已保存 ' + p + ' (' + sz + 'B)')
+      if (sz === prevSize) { fs.unlinkSync(p); console.log('⏹ 已到底，删除重复帧 ' + p); break }
+      prevSize = sz
+      if (i < maxN - 1) await consoleDrag(port, x, y1, x, y2, steps)
+    }
+  } else if (mode === 'flow') {
+    // 流程页脚本重放：flow <port> <steps.json>
+    // JSON: { "prefix": "/tmp/flow/x-", "steps": [ {"tap":[x,y]}, {"wait":1500}, {"scroll":[x,y1,x,y2,steps]}, {"shot":1} ] }
+    const cfg = JSON.parse(fs.readFileSync(rest[1], 'utf8'))
+    const prefix = cfg.prefix || '/tmp/flow/step-'
+    for (const st of cfg.steps) {
+      if (st.tap) { await consoleTap(port, st.tap[0], st.tap[1]); console.log('点击 ' + JSON.stringify(st.tap)) }
+      else if (st.wait) { await sleep(st.wait); console.log('等待 ' + st.wait + 'ms') }
+      else if (st.scroll) { await consoleDrag(port, st.scroll[0], st.scroll[1], st.scroll[2], st.scroll[3], st.scroll[4] || 12); console.log('滚动 ' + JSON.stringify(st.scroll)) }
+      else if (st.shot !== undefined) {
+        const p = `${prefix}${String(st.shot).padStart(2, '0')}.png`
+        await getScreenshot(client, p)
+        console.log('已保存 ' + p + ' (' + fs.statSync(p).size + 'B)')
+      }
     }
   } else if (mode === 'click') {
     await click(client, Number(rest[1]), Number(rest[2]))
