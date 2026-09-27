@@ -737,7 +737,7 @@ export default {
   }
 
   .modal-card {
-    width: 92%;
+    width: 100%;
     border-radius: 12px;
     padding: 14px 10px;
   }
@@ -799,12 +799,11 @@ export default {
    统一策略：卡片占满安全宽度、字号降档、文本允许 2 行/1 行 + 省略号。 */
 @media (shape: capsule), (shape: pill-shaped) {
   .overlay-modal {
-    padding: 40px 8px;
+    padding: 40px 16px;
   }
 
   .modal-card {
     width: 100%;
-    max-width: 176px;
     border-radius: 14px;
     padding: 14px 10px;
   }

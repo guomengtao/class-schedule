@@ -118,6 +118,30 @@ if (mode === 'info') {
   rows.forEach((n, i) => { if (n > 0) last = i })
   console.log(`x∈[${x0},${x1}] 亮像素行范围: y=${first}..${last}  上边距=${first} 下边距=${h - 1 - last} 差=${first - (h - 1 - last)}`)
   console.log('行直方: ' + rows.slice(Math.max(0, first - 2), last + 3).join(','))
+} else if (mode === 'runrow') {
+  // 逐行色带：把一行按"颜色相近"合并成游程，用来判断卡片/遮罩/底页的真实边界
+  const y = +rest[0]
+  const tol = rest[1] ? +rest[1] : 12
+  let start = 0
+  const runs = []
+  const close = (c1, c2) => Math.abs(c1[0] - c2[0]) <= tol && Math.abs(c1[1] - c2[1]) <= tol && Math.abs(c1[2] - c2[2]) <= tol
+  let cur = get(0, y)
+  for (let x = 1; x < w; x++) {
+    const c = get(x, y)
+    if (!close(cur, c)) {
+      runs.push([start, x - 1, cur])
+      start = x
+      cur = c
+    }
+  }
+  runs.push([start, w - 1, cur])
+  console.log(`y=${y} 共 ${runs.length} 段色带（只列宽度≥8 的）：`)
+  runs
+    .filter((r) => r[1] - r[0] + 1 >= 8)
+    .forEach((r) => {
+      const [c1, c2, c3] = r[2]
+      console.log(`  x=${String(r[0]).padStart(3)}..${String(r[1]).padStart(3)} 宽${String(r[1] - r[0] + 1).padStart(3)}  rgb(${c1},${c2},${c3})`)
+    })
 } else if (mode === 'color') {
   const [tr, tg, tb, tolRaw] = rest.map(Number)
   const tol = tolRaw || 12
