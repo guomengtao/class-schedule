@@ -230,6 +230,8 @@ export default {
   },
 
   openSheet(idx) {
+    // 越界守卫：列表未就绪或删除后索引失效时，早期实现会抛异常导致"点了没反应"
+    if (idx < 0 || idx >= this.list.length) return
     this.sheetIndex = idx
     this.sheetName = this.list[idx].name
     this.sheetCount = this.list[idx].courseCount

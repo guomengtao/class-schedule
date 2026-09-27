@@ -31,8 +31,14 @@
 ## 布局与交互红线（Vela 手环）
 - **`<stack>` / `<scroll>` 作为容器或内容层时，子元素必须显式声明 `width`（根内容层写 `width: 100%`）**；stack 不拉伸子元素，宽度退化为内容宽时未覆盖区不绘制即露黑底。`stack` 根容器应同时绑 `background-color` 兜底
   - 实例：`schedule-manager.ux` 是唯一以 `<stack>` 作根，`.page`(scroll) 漏写 width → 手环 9「右侧黑板」（见 `docs/手环9跑道屏课程表管理页右侧黑板分析.md`）
-- **⭐ 同一行/同一层级链上只保留一个 `onclick`**（Vela 多个 onclick 会导致事件被吞、点击无反应）。同类先例：`docs/勾选框点击无效问题分析.md`。列表行的做法 = **onclick 只放整行容器**，行内子元素（indicator / text / 装饰 div）一律不绑 onclick，这是 `index.ux` 的 `class-grid-item` 既有惯例
+- **⭐ 列表行的做法 = `onclick` 只放整行容器，行内子元素（indicator / text / 装饰 div）一律不绑 onclick**，这样热区 = 整行（最稳）。`index.ux` 的 `class-grid-item` 是既有惯例
+  - 理由 1（真因，2026-09-27 验证）：**窄屏上热区太小就是"点了没反应"**。手环 9（192px）上仅文字框可点 ≈ 100px 宽，点到框外（行内空白）没有任何响应；手环 10（212px）框 120px 更容易点中 → 解释了"手环10 能开、手环9 打不开"。热区给整行即彻底消除
+  - 理由 2：`docs/勾选框点击无效问题分析.md` 记录过"一行多个 onclick 事件可能被丢弃"的先例。**但 2026-09-27 用模拟器 A/B 证明：一行两个 onclick 并未吞事件**（11:29 小圆圈版→11:54 大圆圈版→11:55 面板正常弹出；且项目内另有 10 处一行 2~3 个 onclick 功能正常）→ **不要再把"多 onclick 必被吞"当结论外推**
   - 反例教训：2026-09-27 给 `.indicator` 补 `onclick`（"让圆圈也可点"）→ 手环 9 点课程名打不开弹窗，见 `docs/课程表管理页点击标题打不开编辑弹窗分析.md`
+- **Vela 点击/输入类问题的取证法（本项目已验证可用）**：IDE 模拟器截图落在 `/Users/Banner/Downloads/vela_screenshot/`（`~/.vela/sdk/screenshot` 软链到此，文件名含设备与时间）→ **AI 可直接读图判读**，能做前后对比 A/B（这是目前唯一无需手指的"画面"通道）。本机正在跑的 VVD：`xiaomi_band_10`(212×520, adb 5554)、`xiaomi_band_pro`(336×480, adb 5556)，**没有 192×490 的手环9 规格 VVD**
+  - 模拟器 adb：`node_modules/@aiot-toolkit/emulator/node_modules/@miwt/adb/bin/mac/adb`（NuttX NSH，**没有** `wm`/`input`/`screencap` 这些 Android 命令）
+  - `8554`/`8556`（= adb 端口 +3000）**不是标准 RFB**（不回 `RFB 003.008` banner），不能用通用 VNC 客户端注入点击；要自动点击需用 `aiot start --openVNC` 启动带 VNC 的实例
+  - `openSheet` 这类"打开浮层"的处理器必须有越界守卫（`if (idx < 0 || idx >= this.list.length) return`），否则列表未就绪/删除后索引失效时会抛异常 → 表现为"点了没反应"
 - 胶囊屏（192px）硬约束：`week-view` 可视列数 ∈ [2.5, 3.5]（`160 ÷ cellWidth`）；胶囊屏关闭行号列（`rowNumWidth=0`）、`cellWidth ≤ 60`；按钮高 ≥48px（触控底线 44px）
 - 屏型由 `device.getInfo` 异步探测，探测后需重新应用依赖屏型的配置
 
