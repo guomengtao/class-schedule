@@ -35,10 +35,14 @@
   - 理由 1（真因，2026-09-27 验证）：**窄屏上热区太小就是"点了没反应"**。手环 9（192px）上仅文字框可点 ≈ 100px 宽，点到框外（行内空白）没有任何响应；手环 10（212px）框 120px 更容易点中 → 解释了"手环10 能开、手环9 打不开"。热区给整行即彻底消除
   - 理由 2：`docs/勾选框点击无效问题分析.md` 记录过"一行多个 onclick 事件可能被丢弃"的先例。**但 2026-09-27 用模拟器 A/B 证明：一行两个 onclick 并未吞事件**（11:29 小圆圈版→11:54 大圆圈版→11:55 面板正常弹出；且项目内另有 10 处一行 2~3 个 onclick 功能正常）→ **不要再把"多 onclick 必被吞"当结论外推**
   - 反例教训：2026-09-27 给 `.indicator` 补 `onclick`（"让圆圈也可点"）→ 手环 9 点课程名打不开弹窗，见 `docs/课程表管理页点击标题打不开编辑弹窗分析.md`
-- **Vela 点击/输入类问题的取证法（本项目已验证可用）**：IDE 模拟器截图落在 `/Users/Banner/Downloads/vela_screenshot/`（`~/.vela/sdk/screenshot` 软链到此，文件名含设备与时间）→ **AI 可直接读图判读**，能做前后对比 A/B（这是目前唯一无需手指的"画面"通道）。本机正在跑的 VVD：`xiaomi_band_10`(212×520, adb 5554)、`xiaomi_band_pro`(336×480, adb 5556)，**没有 192×490 的手环9 规格 VVD**
-  - 模拟器 adb：`node_modules/@aiot-toolkit/emulator/node_modules/@miwt/adb/bin/mac/adb`（NuttX NSH，**没有** `wm`/`input`/`screencap` 这些 Android 命令）
-  - `8554`/`8556`（= adb 端口 +3000）**不是标准 RFB**（不回 `RFB 003.008` banner），不能用通用 VNC 客户端注入点击；要自动点击需用 `aiot start --openVNC` 启动带 VNC 的实例
-  - `openSheet` 这类"打开浮层"的处理器必须有越界守卫（`if (idx < 0 || idx >= this.list.length) return`），否则列表未就绪/删除后索引失效时会抛异常 → 表现为"点了没反应"
+- **⭐ 铁律：模拟器「通过」≠ 真机通过**（2026-09-27 实证：同一份代码在 212×520 模拟器上点击正常 → 装到手环 9 真机打不开）。模拟器适合**排除法/取证/画面判读**，**不适合当验收**；模拟器 OK 而真机不 OK 时，优先怀疑：**触摸命中与事件分发、屏型/尺寸差异、系统与厂商定制**。别拿不同尺寸的模拟器互相背书
+- **验证手段优先级：单元测试 ＞（画面类问题时）模拟器截图 ＞＞ 真机往返**。单测毫秒级、可回归、能定位到函数（2026-09-27 就是单测抓到 `openSheet` 越界静默失败，模拟器永远测不到）；模拟器只在布局/裁切/溢出/视觉类问题上不可替代；触摸/性能/机型差异只有真机说了算
+- **Vela 模拟器取证法（AI 可直接用，详见 `docs/Vela模拟器使用指南与测试有效性分析.md`）**：
+  - **画面**：IDE 截图落在 `/Users/Banner/Downloads/vela_screenshot/`（`~/.vela/sdk/screenshot` 软链到此，文件名含设备+时间）→ **AI 可直接读图**，按时间排序做前后 A/B；备份在 `~/.vela/sdk/screenshot_bak/`
+  - **规格**：`grep -E 'hw.lcd.(width|height|shape|density)' ~/.vela/vvd/<avd>.vvd/hardware-qemu.ini` → `xiaomi_band`=**192×490 pill-shaped（手环 9 规格，本机已有但常不启动）**、`xiaomi_band_10`=212×520、`xiaomi_band_pro`/`band-9-pro`=336×480 rect；启动参数见同目录 `emu-launch-params.txt`
+  - **adb**：`node_modules/@aiot-toolkit/emulator/node_modules/@miwt/adb/bin/mac/adb`（NuttX NSH：有 `ls/ps/getprop/vapp/vappcli/am`；**没有** `wm/input/screencap`）
+  - **点击注入暂不可用**：实例无 `-vnc`；`8554/8556`（adb+3000）**不是标准 RFB**；要自动点击须 `aiot start --openVNC`（扩展源码里有 `defaultVncPort=5900` 与 `sendMouse/sendKey`，说明官方走 RFB）
+  - **打开浮层的处理器必须有越界守卫**（`if (idx < 0 || idx >= this.list.length) return`），否则列表未就绪/删除后索引失效时抛异常 → 表现为"点了没反应"
 - 胶囊屏（192px）硬约束：`week-view` 可视列数 ∈ [2.5, 3.5]（`160 ÷ cellWidth`）；胶囊屏关闭行号列（`rowNumWidth=0`）、`cellWidth ≤ 60`；按钮高 ≥48px（触控底线 44px）
 - 屏型由 `device.getInfo` 异步探测，探测后需重新应用依赖屏型的配置
 
