@@ -793,4 +793,63 @@ export default {
   
   
 }
+/* ===== 胶囊屏（192px）统一适配：解锁/高级版弹窗 =====
+   背景：同一套弹窗在 6 处各写一份，胶囊适配缺失/不一致 → 192×490 上出现
+   标题截成 3 字、✓ 条目只剩 1 字、内容顶到屏幕右缘被裁（2026-09-27 实测）。
+   统一策略：卡片占满安全宽度、字号降档、文本允许 2 行/1 行 + 省略号。 */
+@media (shape: capsule), (shape: pill-shaped) {
+  .overlay-modal {
+    padding: 40px 8px;
+  }
+
+  .modal-card {
+    width: 100%;
+    max-width: 176px;
+    border-radius: 14px;
+    padding: 14px 10px;
+  }
+
+  .modal-title {
+    font-size: 24px;
+    line-height: 30px;
+    margin-bottom: 8px;
+    lines: 2;
+    text-overflow: ellipsis;
+  }
+
+  .modal-desc {
+    font-size: 18px;
+    line-height: 25px;
+    margin-bottom: 10px;
+  }
+
+  .benefit-list {
+    width: 100%;
+    padding-left: 0;
+    margin-bottom: 10px;
+  }
+
+  .benefit-item {
+    font-size: 18px;
+    line-height: 25px;
+    margin-bottom: 6px;
+    lines: 1;
+    text-overflow: ellipsis;
+  }
+
+  .modal-btn-primary {
+    height: 40px;
+    border-radius: 20px;
+    font-size: 22px;
+    line-height: 28px;
+    margin-bottom: 8px;
+  }
+
+  .modal-btn-secondary {
+    height: 34px;
+    border-radius: 17px;
+    font-size: 20px;
+    line-height: 26px;
+  }
+}
 </style>

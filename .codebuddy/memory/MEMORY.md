@@ -136,6 +136,9 @@
   - 原理：模拟器控制通道是 **gRPC `android.emulation.control.EmulatorController`**（端口 = 控制台端口 +3000，即 `emulator-5554` → **8554**、`emulator-5556` → 8556）。**别再以为 8554 是什么自定义二进制协议**——那只是 HTTP/2 的 SETTINGS 帧
   - proto 与 `@grpc/grpc-js`/`@grpc/proto-loader` 都在 `node_modules/@aiot-toolkit/emulator/`（零额外依赖）；可用 RPC：`getScreenshot`、`streamScreenshot`、`sendMouse`、`sendTouch`、`sendKey`、`getStatus`
   - 拉起 App：`$ADB -s emulator-5554 shell am start app/com.application.watch.classschedule`（或 `vapp app/<包名>`）；空屏/黑屏说明 App 没在跑
+  - **adb 端口 ↔ VVD ↔ gRPC**：`xiaomi_band`=emulator-**5558**（gRPC **8558**，手环9 规格）、`xiaomi_band_10`=5554/8554、`xiaomi_band_pro`=5556/8556
+  - **自己部署 rpk（已摸清，2026-09-27）**：`appDir = /data/quickapp/app`；`adb push <rpk> /data/quickapp/app/<pkg>.rpk` + `adb shell unzip -o <rpk> -d /data/quickapp/app/<pkg>`；**根目录 `/quickapp/*.rpk` 是安装投放目录**（推这里守护进程会正式安装/注册，注册表 `/data/quickapp/apps.json`）；启动 `adb shell vapp app/<pkg>`
+  - ⚠️ **重装会重置该模拟器上应用的数据**（会停在欢迎页，甚至点「进入首页」后退出）→ **动用户正在用的模拟器之前必须先问**
   - ❌ **gRPC 的输入 RPC 在这台 Vela 上是空实现**：`streamInputEvent` 明确报 `12 UNIMPLEMENTED`；`sendMouse`（移动→按下→抬起）/`sendTouch`（touches 非空=按下、空数组=抬起）都返回成功但**画面零变化**（用"切换日期"判据，md5 一致）→ 与坐标、token 都无关（`utouch`/`/dev/input0` 在 toolkit 与 IDE 扩展里也查无引用）
   - ✅ **可用通路 = 模拟器控制台 `event mouse`**：控制台端口 = gRPC 端口 − 3000；先 `auth $(cat ~/.emulator_console_auth_token)`；语法 `event mouse <x> <y> <device> <buttonstate>`（4 个整数）→ 已入库 `node scripts/emulator-eye.js ctap <grpcPort> <lcdX> <lcdY>` / `cseq <grpcPort> <prefix> <x,y>...`（自动读 token、自动按 LCD 尺寸匹配皮肤偏移）
     - **坐标是"皮肤窗口坐标" = LCD + `part2` 偏移**；偏移读 `~/.vela/sdk/skins/builtin/<avd>/layout`（`part2 { name device; x N; y N }`）→ `xiaomi_band_10` = (+30,+22)、`xiaomi_band` = (+44,+154)

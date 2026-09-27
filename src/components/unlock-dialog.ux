@@ -224,4 +224,74 @@ export default {
     font-size: 22px;
   }
 }
+/* ===== 胶囊屏（192px）统一适配：解锁弹窗（本组件被 statistics/settings/schedule-qrcode/vibration-lab 等引用）=====
+   背景：`.dialog-card` 80% + 标题 34px，在 192×490 上文字被挤爆（同 .modal-card 一族，2026-09-27 实测）。 */
+@media (shape: capsule), (shape: pill-shaped) {
+  .dialog-overlay {
+    padding: 40px 8px;
+  }
+
+  .dialog-card {
+    width: 100%;
+    max-width: 176px;
+    border-radius: 14px;
+    padding: 14px 10px;
+  }
+
+  .dialog-title {
+    font-size: 24px;
+    line-height: 30px;
+    margin-bottom: 8px;
+    lines: 2;
+    text-overflow: ellipsis;
+  }
+
+  .dialog-desc {
+    font-size: 18px;
+    line-height: 25px;
+    margin-bottom: 10px;
+  }
+
+  .benefits {
+    width: 100%;
+    padding-left: 0;
+    margin-bottom: 10px;
+  }
+
+  .benefit-row {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .benefit-icon {
+    width: 20px;
+    font-size: 18px;
+    margin-right: 4px;
+  }
+
+  .benefit-text {
+    flex: 1;
+    min-width: 0;
+    font-size: 18px;
+    line-height: 25px;
+    lines: 1;
+    text-overflow: ellipsis;
+  }
+
+  .unlock-btn {
+    height: 40px;
+    border-radius: 20px;
+    font-size: 22px;
+    line-height: 28px;
+  }
+
+  .cancel-btn {
+    height: 34px;
+    border-radius: 17px;
+    font-size: 20px;
+    line-height: 26px;
+  }
+}
 </style>
