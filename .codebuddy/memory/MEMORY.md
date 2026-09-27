@@ -44,6 +44,11 @@
   - **点击注入暂不可用**：实例无 `-vnc`；`8554/8556`（adb+3000）**不是标准 RFB**；要自动点击须 `aiot start --openVNC`（扩展源码里有 `defaultVncPort=5900` 与 `sendMouse/sendKey`，说明官方走 RFB）
   - **打开浮层的处理器必须有越界守卫**（`if (idx < 0 || idx >= this.list.length) return`），否则列表未就绪/删除后索引失效时抛异常 → 表现为"点了没反应"
 - 胶囊屏（192px）硬约束：`week-view` 可视列数 ∈ [2.5, 3.5]（`160 ÷ cellWidth`）；胶囊屏关闭行号列（`rowNumWidth=0`）、`cellWidth ≤ 60`；按钮高 ≥48px（触控底线 44px）
+- **⚠️「解锁高级版」弹窗在 192×490 上严重破碎（2026-09-27 实测）**：同一套弹窗被**复制了 6~7 份**（`components/premium-overlay.ux`、`unlock-dialog.ux`、`pro-card.ux` + `settings` / `schedule-manager` / `backup-restore` / `homepage-settings` / `reset-data` / `schedule-qrcode` 各一份），**胶囊屏适配各不相同**：
+  - `schedule-manager.ux` 的 `.modal-card` **完全没有 capsule 覆盖** → 192px 下卡片仅 128px、正文可用 ~92px → 标题「解锁高级版」(30px/150px) 截成「解锁高」、✓ 条目 24px 只剩 1 个字
+  - `settings.ux` / `backup-restore.ux` 的弹窗**内容顶到屏幕右边缘（右边距 = 0）**被裁
+  - **根治方向：收敛成一份 `premium-overlay.ux` + 统一胶囊覆盖（缩字号 + `lines:2` + `flex:1;min-width:0`）**，别逐个页面改
+- **⭐ 测试前必须固定两个变量：屏尺寸（手环 9 = `xiaomi_band` 192×490）+ 业务状态（激活/未激活）**。2026-09-27 同日连踩三次：①212×520 顶替 192×490 ②已激活实例顶替未激活 ③把 IDE 历史截图当现场 —— 结论全部作废重做
 - 屏型由 `device.getInfo` 异步探测，探测后需重新应用依赖屏型的配置
 
 ## 输入法（2026-09-25 结案，真机通过）
