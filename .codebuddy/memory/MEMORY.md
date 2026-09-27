@@ -126,7 +126,7 @@
 - **禁止** `git clean` / `reset --hard` / `rm -rf` 等破坏性命令；恢复用 `git checkout HEAD~1 -- <路径>`
 - 不接受"为修 bug 一次性大改界面影响所有用户"的方案；宁可多花一轮定位也要把改动面缩到最小
 - 完成对话后的提醒：`scripts/notify.sh "标题" "通知正文" "语音文本"` —— mac 系统通知 + **Edge TTS 晓晓（zh-CN-XiaoxiaoNeural）**语音，失败自动回退 `say -v Tingting`（用户 2026-09-27 要求换掉 Tingting）。edge-tts 在 `/opt/homebrew/bin/edge-tts`，生成 mp3 后 `afplay` 播放（需联网）
-- **⭐ AI 的"眼睛"：模拟器截图可自主获取（2026-09-27 打通）**：`node scripts/emulator-eye.js shot <grpcPort> out.png`
+- **⭐ AI 的"眼睛/手指"：模拟器可自主截图 + 可注入输入（2026-09-27 打通）**：完整经验见 `docs/模拟器眼睛与手指打通复盘.md`（含攻破时间线、死路清单、方法论、命令速查、设备规格表）
   - 原理：模拟器控制通道是 **gRPC `android.emulation.control.EmulatorController`**（端口 = 控制台端口 +3000，即 `emulator-5554` → **8554**、`emulator-5556` → 8556）。**别再以为 8554 是什么自定义二进制协议**——那只是 HTTP/2 的 SETTINGS 帧
   - proto 与 `@grpc/grpc-js`/`@grpc/proto-loader` 都在 `node_modules/@aiot-toolkit/emulator/`（零额外依赖）；可用 RPC：`getScreenshot`、`streamScreenshot`、`sendMouse`、`sendTouch`、`sendKey`、`getStatus`
   - 拉起 App：`$ADB -s emulator-5554 shell am start app/com.application.watch.classschedule`（或 `vapp app/<包名>`）；空屏/黑屏说明 App 没在跑
