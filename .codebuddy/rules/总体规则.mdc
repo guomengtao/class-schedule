@@ -11,3 +11,4 @@ provider:
 所有md文件必须使用中文书写。
 禁止执行 `git clean -fd` / `git clean -fdx` / `git reset --hard` / `rm -rf` 等破坏性命令，也不要"清理/精简" docs、src 目录；确有需要先让用户 `git commit`，恢复一律用 `git checkout HEAD~1 -- <路径>`。
 AI 生成或修改文件后，提醒用户尽快 `git add -A && git commit`（未入库的未跟踪文件会被 `git clean` 直接删除且无法恢复）。
+每次改动结束（编译/语法校验通过后）**自动提交并推送到 GitHub**：先 `git add -A && git commit`（提交信息用 Conventional Commits，type 取 feat/fix/docs/style/refactor/test/chore/revert/merge，须与本仓库 commitlint.config.js 的 type-enum 一致），再 `git push origin main`；未跟踪文件一并纳入。**禁止 force push**（含 `push -f` / `--force-with-lease`）；推送被拒（非快进、有他人提交）时不要强推，先 `git fetch` 核对并报告用户，由用户决定。推送前如有失败或冲突风险（如未验证的破坏性改动），先告知用户再推。

@@ -112,7 +112,7 @@
 ## 用户协作偏好（硬要求）
 - **模拟器优先**：用户模拟器上能复现，**没在模拟器通过之前不出包、不打扰用户**；真机只做最终验收
 - 冲分要求**真实代码改进**并同步文档，不接受只改数字虚报
-- 每次改动**立即** `git add -A && git commit`（未跟踪文件一并纳入）
+- **每次改动结束自动提交并推送 GitHub**（2026-09-27 用户确认，已写入 `.codebuddy/rules/总体规则.mdc`）：编译/校验通过后 `git add -A && git commit`（Conventional Commits，type 须符合 `commitlint.config.js` 的 type-enum）→ `git push origin main`；未跟踪文件一并纳入；**禁止 force push**，推送被拒先 `git fetch` 核对并报告，不强推
 - **禁止** `git clean` / `reset --hard` / `rm -rf` 等破坏性命令；恢复用 `git checkout HEAD~1 -- <路径>`
 - 不接受"为修 bug 一次性大改界面影响所有用户"的方案；宁可多花一轮定位也要把改动面缩到最小
 - 完成对话后用 mac 弹窗 + 语音：`osascript -e 'display notification "正文" with title "标题"' ; say -v Tingting "正文"`（用 `;` 不用 `&&`）
