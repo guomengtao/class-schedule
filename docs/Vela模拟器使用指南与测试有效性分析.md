@@ -35,7 +35,7 @@
 | 读 IDE 的历史截图做前后 A/B | ✅ | IDE 截图落在 `/Users/Banner/Downloads/vela_screenshot/`（`~/.vela/sdk/screenshot` 软链），文件名带 `设备-日期-时间` |
 | 编译出 release 包（不装机） | ✅ | `env -u NODE_OPTIONS npx aiot release --enable-jsc` |
 | 自己启动一个指定规格的虚拟设备 | ⚠️ 未验证但路径明确 | 见 §2.4；本机已有 192×490 的 `xiaomi_band` |
-| **向模拟器注入点击/滑动** | ❌ 暂不可用 | 见 §2.5：需要 `--openVNC` 才有标准 VNC；当前实例没有 |
+| **向模拟器注入点击/滑动** | ✅ **找到通路（待标定）** | 控制台 `event mouse`（§2.5.1）；gRPC 的输入 RPC 在此构建中是**空实现** |
 | 真机触摸命中、性能、系统版本差异 | ❌ 永远不行 | 只能真机 |
 
 ---
@@ -145,12 +145,36 @@ $ADB -s emulator-5554 shell am start app/com.application.watch.classschedule    
 # 等价：$ADB -s emulator-5554 shell vapp app/com.application.watch.classschedule
 ```
 
-**当前状态**：
-- ✅ **截图完全自主**（本轮已成功截到 首页）
-- ⏳ **点击注入未生效**：`sendMouse`（含"移动→按下→抬起"）与 `sendTouch`（`touches` 非空=按下、空数组=抬起）**都返回成功但画面无变化**
-  - 首要怀疑：**Vela 跑在 NuttX（不是 Android）**，AOSP 的 `sendTouch` 走的是 Android input 子系统，NuttX 上的 vapp 可能根本不接
-  - 下一步候选：①`streamInputEvent`（流式输入，AOSP 后加的路径）②token 鉴权（读 RPC 放行、写 RPC 静默丢弃？）③App 窗口焦点
-- 备选"翻页不靠点击"的方案：`--start-page` 是**编译期**注入（`@aiot-toolkit/parser` 的 `startPage` 插件），可构建出直接启动到指定页面的包
+**当前状态（2026-09-27 二次更新）**：
+
+| 能力 | 状态 | 结论 |
+|---|:---:|---|
+| 自主截图 | ✅ **完全可用** | `getScreenshot` 正常（已独立截到首页、编辑昵称页） |
+| gRPC 输入 RPC | ❌ **是空实现** | `streamInputEvent` 明确返回 **`12 UNIMPLEMENTED`**；`sendMouse`/`sendTouch` 返回成功但**画面无任何变化**（用"切换日期"做判据，md5 完全一致）→ **不是坐标问题**（皮肤偏移已试遍），而是**该 Vela 构建没实现** |
+| token 鉴权 | — | 读类 RPC 无需 token；`eConf['grpc.token']` 在 toolkit 中查无来源，**输入失败也不是 token 导致** |
+| **控制台注入输入** | ✅ **找到可用通路** | 见下 |
+
+> 旁证：`grep utouch /dev/input0` 在 toolkit 与 IDE 扩展里**都没有引用** → 说明官方也没走 adb 注入；IDE 的点击走 `sendMouse`（webview 里按缩放换算坐标后 `ee("sendMouse", …)` 发给扩展），在这台模拟器上大概率同样无效（**IDE 面板的点击很可能是"看着能点、其实没送达"**）。
+
+#### ⭐ 2.5.1 可用的输入注入：模拟器控制台 `event mouse`
+
+模拟器**控制台端口 = gRPC 端口 − 3000**（`emulator-5554` → 5554），需先认证：
+
+```bash
+TOKEN=$(cat ~/.emulator_console_auth_token)   # 控制台 auth token（文件权限 600）
+( printf "auth $TOKEN\nhelp\nevent mouse\nquit\n"; sleep 3 ) | nc 127.0.0.1 5554
+```
+
+- 命令集（认证后）：`event`、`power`、`sensor`、`rotate`、`screenrecord`、`grpc`、`automation`、`finger` ……
+- **注入语法**：`event mouse <x> <y> <device> <buttonstate>`（**4 个整数**，`1`=按下 / `0`=抬起）
+- **坐标是皮肤窗口坐标，不是 LCD 坐标**：`窗口 = LCD + part2 偏移`
+  - 偏移从 `~/.vela/sdk/skins/builtin/<avd>/layout` 里的 `part2 { name device; x N; y N }` 读
+  - 例：`xiaomi_band_10` = `x 30 y 22`（LCD 212×520 在 272×563 窗口内）；`xiaomi_band` = `x 44 y 154`
+- **已入库**：`node scripts/emulator-eye.js ctap <grpcPort> <lcdX> <lcdY>`（自动读 token、自动按 LCD 尺寸匹配皮肤偏移）、`cseq <grpcPort> <outPrefix> <x,y> [...]`
+- ✅ 实测有效：连续点击后画面逐步变化（候选词区变成「到 道 导」= 真的在向 App 输入）
+- ⏳ **仍需标定**：实测落点与"LCD+皮肤偏移"的换算**不完全吻合**（疑为该 console 的 `event mouse` 是**相对位移鼠标**，或还有一层缩放）→ 标定方法：在已知页面点若干已知坐标，读回画面反推映射
+
+**备选"翻页不靠点击"**：`--start-page` 是**编译期**注入（`@aiot-toolkit/parser` 的 `startPage` 插件），可构建出直接启动到指定页面的包（每页一次构建 ≈13s）
 
 ### 2.6 其它小坑
 

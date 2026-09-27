@@ -130,6 +130,10 @@
   - 原理：模拟器控制通道是 **gRPC `android.emulation.control.EmulatorController`**（端口 = 控制台端口 +3000，即 `emulator-5554` → **8554**、`emulator-5556` → 8556）。**别再以为 8554 是什么自定义二进制协议**——那只是 HTTP/2 的 SETTINGS 帧
   - proto 与 `@grpc/grpc-js`/`@grpc/proto-loader` 都在 `node_modules/@aiot-toolkit/emulator/`（零额外依赖）；可用 RPC：`getScreenshot`、`streamScreenshot`、`sendMouse`、`sendTouch`、`sendKey`、`getStatus`
   - 拉起 App：`$ADB -s emulator-5554 shell am start app/com.application.watch.classschedule`（或 `vapp app/<包名>`）；空屏/黑屏说明 App 没在跑
-  - ⚠️ **点击注入尚未生效**：`sendMouse`/`sendTouch` 都返回成功但画面无变化（疑似 Vela 跑在 **NuttX** 而非 Android，输入不走 Android input 子系统）→ 待查 `streamInputEvent`、token 鉴权、窗口焦点
+  - ❌ **gRPC 的输入 RPC 在这台 Vela 上是空实现**：`streamInputEvent` 明确报 `12 UNIMPLEMENTED`；`sendMouse`（移动→按下→抬起）/`sendTouch`（touches 非空=按下、空数组=抬起）都返回成功但**画面零变化**（用"切换日期"判据，md5 一致）→ 与坐标、token 都无关（`utouch`/`/dev/input0` 在 toolkit 与 IDE 扩展里也查无引用）
+  - ✅ **可用通路 = 模拟器控制台 `event mouse`**：控制台端口 = gRPC 端口 − 3000；先 `auth $(cat ~/.emulator_console_auth_token)`；语法 `event mouse <x> <y> <device> <buttonstate>`（4 个整数）→ 已入库 `node scripts/emulator-eye.js ctap <grpcPort> <lcdX> <lcdY>` / `cseq <grpcPort> <prefix> <x,y>...`（自动读 token、自动按 LCD 尺寸匹配皮肤偏移）
+    - **坐标是"皮肤窗口坐标" = LCD + `part2` 偏移**；偏移读 `~/.vela/sdk/skins/builtin/<avd>/layout`（`part2 { name device; x N; y N }`）→ `xiaomi_band_10` = (+30,+22)、`xiaomi_band` = (+44,+154)
+    - ⚠️ 实测落点与换算**不完全吻合**（疑为相对位移鼠标或还有一层缩放）→ **使用前必须先标定**
+  - ⚠️ 因此 **IDE 模拟器面板上的点击很可能是"看着能点、其实没送达"**，别把模拟器点击当成真机触摸的替代
 - 所有 md 文件用中文书写
 - **项目根目录保持干净整洁**：散落文档入 `docs/`、临时/调试脚本归 `archive/`、构建产物（`build/ dist/ release/`）不留根目录；**但 `sign/` 含签名证书（`private.pem`/`certificate.pem`），禁止移动或清理，必须留在原地**

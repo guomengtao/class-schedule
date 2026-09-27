@@ -24,8 +24,103 @@
 
 const fs = require('fs')
 const os = require('os')
+const net = require('net')
 const path = require('path')
 const { execSync } = require('child_process')
+
+/* ---------- 真·点击注入：模拟器控制台 event mouse（gRPC 的输入 RPC 在 Vela 上未实现） ----------
+ * 控制台端口 = gRPC 端口 - 3000（即 emulator-5554 的 5554），需要 auth token：
+ *   ~/.emulator_console_auth_token
+ * 语法：event mouse <x> <y> <device> <buttonstate>（4 个整数；1=按下，0=抬起）
+ * ⚠️ 坐标是**皮肤窗口坐标**，不是 LCD 坐标：LCD(x,y) → 窗口(x+part2.x, y+part2.y)
+ *    part2 偏移从 ~/.vela/sdk/skins/builtin/<avd>/layout 读取，按 LCD 尺寸自动匹配 AVD。
+ */
+const SKIN_ROOT = path.join(os.homedir(), '.vela', 'sdk', 'skins', 'builtin')
+
+function parseSkinLayout(avd) {
+  try {
+    const txt = fs.readFileSync(path.join(SKIN_ROOT, avd, 'layout'), 'utf8')
+    const disp = /display\s*\{([^}]*)\}/.exec(txt)
+    const part2 = /part2\s*\{([^}]*)\}/.exec(txt)
+    const num = (s, k) => {
+      const m = new RegExp(k + '\\s+(-?\\d+)').exec(s || '')
+      return m ? Number(m[1]) : 0
+    }
+    return {
+      avd,
+      w: num(disp && disp[1], 'width'),
+      h: num(disp && disp[1], 'height'),
+      x: num(part2 && part2[1], 'x'),
+      y: num(part2 && part2[1], 'y'),
+    }
+  } catch (e) {
+    return null
+  }
+}
+
+/** 按 LCD 尺寸找出对应 AVD 的皮肤偏移（212×520 → xiaomi_band_10，192×490 → xiaomi_band） */
+function skinOffsetForSize(w, h) {
+  if (process.env.EYE_AVD) {
+    const s = parseSkinLayout(process.env.EYE_AVD)
+    if (s) return s
+  }
+  let avds = []
+  try {
+    avds = fs.readdirSync(SKIN_ROOT)
+  } catch (e) {}
+  for (const a of avds) {
+    const s = parseSkinLayout(a)
+    if (s && s.w === w && s.h === h) return s
+  }
+  return null
+}
+
+function pngSize(buf) {
+  // PNG: 8 字节签名 + 4 长度 + 'IHDR' + width(4) + height(4)
+  if (buf.length < 24 || buf.toString('latin1', 12, 16) !== 'IHDR') return null
+  return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) }
+}
+
+function getScreenshotBuffer(port) {
+  const client = makeClient(port)
+  return new Promise((resolve, reject) => {
+    client.getScreenshot(IMAGE_FORMAT_PNG, authMeta(), (err, res) => {
+      client.close()
+      if (err) return reject(err)
+      resolve(res.image)
+    })
+  })
+}
+
+async function consoleTap(grpcPort, lcdX, lcdY) {
+  const size = pngSize(await getScreenshotBuffer(grpcPort))
+  const skin = size ? skinOffsetForSize(size.w, size.h) : null
+  const x = lcdX + (skin ? skin.x : 0)
+  const y = lcdY + (skin ? skin.y : 0)
+  const token = fs
+    .readFileSync(path.join(os.homedir(), '.emulator_console_auth_token'), 'utf8')
+    .trim()
+  const port = grpcPort - 3000
+
+  const s = net.connect(port, '127.0.0.1')
+  await new Promise((r, j) => {
+    s.on('connect', r)
+    s.on('error', j)
+  })
+  const write = (l) => s.write(l + '\n')
+  await sleep(250)
+  write('auth ' + token)
+  await sleep(300)
+  write(`event mouse ${x} ${y} 0 1`)
+  await sleep(130)
+  write(`event mouse ${x} ${y} 0 0`)
+  await sleep(200)
+  write('quit')
+  await sleep(150)
+  s.end()
+  await sleep(450)
+  return { lcdX, lcdY, x, y, skin: skin ? skin.avd : '(无皮肤偏移)' }
+}
 
 const grpc = require('@grpc/grpc-js')
 const protoLoader = require('@grpc/proto-loader')
@@ -157,9 +252,64 @@ async function main() {
   } else if (mode === 'mclick') {
     await mouseClick(client, Number(rest[1]), Number(rest[2]))
     console.log('已鼠标点击 (' + rest[1] + ',' + rest[2] + ')')
+  } else if (mode === 'stouch') {
+    // 流式输入：streamInputEvent(stream InputEvent) —— oneof { touch_event, mouse_event, key_event }
+    const call = client.streamInputEvent(authMeta(), (e) => e && console.error('stream err: ' + e.message))
+    const x = Number(rest[1])
+    const y = Number(rest[2])
+    call.write({
+      touch_event: {
+        touches: [{ x, y, identifier: 0, pressure: 1, touch_major: 5, touch_minor: 5, expiration: 1 }],
+        display: 0,
+      },
+    })
+    await sleep(150)
+    call.write({ touch_event: { touches: [], display: 0 } })
+    await sleep(150)
+    call.end()
+    await sleep(450)
+    console.log('已流式触摸点击 (' + x + ',' + y + ')')
+  } else if (mode === 'sseq') {
+    const prefix = rest[1]
+    const points = rest.slice(2).map((p) => p.split(',').map(Number))
+    let i = 0
+    console.log('已保存 ' + (await getScreenshot(client, `${prefix}-0.png`)))
+    for (const [x, y] of points) {
+      const call = client.streamInputEvent(authMeta(), (e) => e && console.error('stream err: ' + e.message))
+      call.write({
+        touch_event: {
+          touches: [{ x, y, identifier: 0, pressure: 1, touch_major: 5, touch_minor: 5, expiration: 1 }],
+          display: 0,
+        },
+      })
+      await sleep(150)
+      call.write({ touch_event: { touches: [], display: 0 } })
+      await sleep(150)
+      call.end()
+      await sleep(450)
+      i += 1
+      console.log(`流式点击(${x},${y}) → 已保存 ` + (await getScreenshot(client, `${prefix}-${i}.png`)))
+    }
   } else if (mode === 'key') {
     await sendKey(client, rest[1])
     console.log('已发送 keycode ' + rest[1])
+  } else if (mode === 'ctap') {
+    // ✅ 可用路径：控制台 event mouse（坐标自动加皮肤偏移）
+    const r = await consoleTap(port, Number(rest[1]), Number(rest[2]))
+    console.log(`已点击 LCD(${r.lcdX},${r.lcdY}) → 窗口(${r.x},${r.y})  [皮肤 ${r.skin}]`)
+  } else if (mode === 'cseq') {
+    const prefix = rest[1]
+    const points = rest.slice(2).map((p) => p.split(',').map(Number))
+    let i = 0
+    console.log('已保存 ' + (await getScreenshot(client, `${prefix}-0.png`)))
+    for (const [x, y] of points) {
+      const r = await consoleTap(port, x, y)
+      i += 1
+      console.log(
+        `点击 LCD(${x},${y}) → 窗口(${r.x},${r.y}) [皮肤 ${r.skin}] → 已保存 ` +
+          (await getScreenshot(client, `${prefix}-${i}.png`))
+      )
+    }
   } else if (mode === 'seq' || mode === 'pages') {
     const prefix = rest[1]
     const points = rest.slice(2).map((p) => p.split(',').map(Number))
