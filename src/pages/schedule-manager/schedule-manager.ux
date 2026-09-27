@@ -19,15 +19,11 @@
       </div>
     </div>
 
-    <div for="{{ list }}" class="item" style="background-color: {{ theme.card }}">
+    <!-- Vela 红线：同一行只保留一个 onclick，放在整行容器上；行内子元素一律不绑 onclick -->
+    <div for="{{ list }}" class="item" onclick="openSheet($idx)" style="background-color: {{ theme.card }}">
       <div class="indicator"
            style="background-color: {{ $idx === currentIndex ? theme.accent : 'transparent' }}; border-color: {{ $idx === currentIndex ? theme.accent : theme.textMuted }}"></div>
-      <text class="name" onclick="openSheet($idx)" style="color: {{ $idx === currentIndex ? theme.accent : theme.text }}; font-weight: {{ $idx === currentIndex ? 'bold' : 'normal' }}">{{ $item.name }}</text>
-      <div class="more-hit" onclick="openSheet($idx)">
-        <div class="more-dot" style="background-color: {{ theme.textMuted }}"></div>
-        <div class="more-dot" style="background-color: {{ theme.textMuted }}"></div>
-        <div class="more-dot" style="background-color: {{ theme.textMuted }}"></div>
-      </div>
+      <text class="name" style="color: {{ $idx === currentIndex ? theme.accent : theme.text }}; font-weight: {{ $idx === currentIndex ? 'bold' : 'normal' }}">{{ $item.name }}</text>
     </div>
 
     <text if="{{ list.length === 0 }}" class="empty-hint" style="color: {{ theme.textMuted }}; text-align: center; padding: 40px 10px;">暂无课程表，点击下方按钮创建</text>
@@ -746,7 +742,7 @@ export default {
   flex-direction: row;
   align-items: center;
   height: 60px;
-  padding: 0 4px 0 14px;
+  padding: 0 14px 0 14px;
   margin-bottom: 10px;
   border-radius: 14px;
   flex-shrink: 0;
@@ -761,9 +757,9 @@ export default {
 }
 
 .indicator {
-  width: 16px;
-  height: 16px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
   border-width: 2px;
   border-style: solid;
   flex-shrink: 0;
@@ -777,23 +773,6 @@ export default {
   line-height: 32px;
   lines: 1;
   text-overflow: ellipsis;
-}
-
-.more-hit {
-  width: 56px;
-  height: 60px;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.more-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 3px;
-  flex-shrink: 0;
-  margin: 3px 0;
 }
 
 .overlay-sheet {
@@ -1012,20 +991,14 @@ export default {
 
   .item {
     height: 52px;
-    padding: 0 2px 0 12px;
+    padding: 0 12px 0 12px;
     margin-bottom: 8px;
   }
 
-  .more-hit {
-    width: 52px;
-    height: 52px;
-  }
-
-  .more-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 2.5px;
-    margin: 2.5px 0;
+  .indicator {
+    width: 28px;
+    height: 28px;
+    border-radius: 14px;
   }
 
   .rename-display {
@@ -1064,26 +1037,13 @@ export default {
 
   .item {
     height: 64px;
-    padding: 0 2px 0 14px;
+    padding: 0 14px 0 14px;
     margin-bottom: 10px;
   }
 
   .name {
     font-size: 24px;
     line-height: 32px;
-  }
-
-  .more-hit {
-    display: none;
-    width: 60px;
-    height: 64px;
-  }
-
-  .more-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 3px;
-    margin: 3.5px 0;
   }
 
   .sheet-card {
