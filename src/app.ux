@@ -74,7 +74,8 @@ try {
 // ===== 同步协议（插件 ↔ 手环）=====
 // 插件 → 手环：
 //   { "action": "import", "payload": {...} }  导入课表
-//   { "action": "export" }                   请求导出
+//   { "action": "export", "scheduleIndex": N }  请求导出（可选指定第 N 套，缺省=当前激活）
+//   { "action": "list_schedules" }          请求课程表清单（names + current）
 //   直接发课表数据（无 action，按导入处理，兼容已对接格式）
 // 手环 → 插件：
 //   { "ok": true, "count": N }                          导入回包
@@ -400,7 +401,7 @@ function syncCollectVersion() {
 }
 
 // 按域收集数据，只收集策略允许且被请求的域
-function syncCollectScopes(scopes, callback) {
+function syncCollectScopes(scopes, scheduleIndex, callback) {
   var result = {}
   var pending = 0
   var done = 0
@@ -438,10 +439,17 @@ function syncCollectScopes(scopes, callback) {
 
   if (syncWantScope(list, "schedule")) {
     pending++
-    database.getAllCourses(function (courses) {
-      result.schedule = courses || []
-      finish()
-    })
+    if (scheduleIndex != null && scheduleIndex >= 0) {
+      database.getAllCoursesWithIndex(scheduleIndex, function (courses) {
+        result.schedule = courses || []
+        finish()
+      })
+    } else {
+      database.getAllCourses(function (courses) {
+        result.schedule = courses || []
+        finish()
+      })
+    }
   }
   if (syncWantScope(list, "profile")) {
     pending++
@@ -509,9 +517,10 @@ function syncCollectScopes(scopes, callback) {
   } catch (e) {}
 }
 
-// 导出：默认返回默认域集合；插件可用 scopes 指定（pinned 需显式指定）
-function syncHandleExport(connect, scopes) {
-  syncCollectScopes(scopes, function (data) {
+// 导出：默认返回默认域集合；插件可用 scopes 指定（pinned 需显式指定）。
+// scheduleIndex 可选：指定则导该套（getAllCoursesWithIndex），否则导当前激活套。
+function syncHandleExport(connect, scopes, scheduleIndex) {
+  syncCollectScopes(scopes, scheduleIndex, function (data) {
     syncReply(connect, {
       ok: true,
       action: "export",
@@ -519,6 +528,32 @@ function syncHandleExport(connect, scopes) {
       scopes: scopes || SYNC_DEFAULT_SCOPES,
       data: data
     })
+  })
+}
+
+// 课程表清单：返回所有课程表名称 + 当前选中索引（多课程表导出前置）
+function syncHandleListSchedules(connect) {
+  var storage = require("@system.storage")
+  storage.get({
+    key: "scheduleNames",
+    success: function (raw) {
+      var names = []
+      try { names = JSON.parse(raw || "[]") } catch (e) { names = [] }
+      storage.get({
+        key: "currentScheduleIndex",
+        success: function (idxRaw) {
+          var cur = parseInt(idxRaw)
+          if (isNaN(cur) || cur < 0) { cur = 0 }
+          syncReply(connect, { ok: true, action: "list_schedules", names: names, current: cur })
+        },
+        fail: function () {
+          syncReply(connect, { ok: true, action: "list_schedules", names: names, current: 0 })
+        }
+      })
+    },
+    fail: function () {
+      syncReply(connect, { ok: true, action: "list_schedules", names: [], current: 0 })
+    }
   })
 }
 
@@ -633,7 +668,7 @@ function initSyncReceiver() {
       if (!scopes && parsed.scope) {
         scopes = [parsed.scope]
       }
-      syncHandleExport(connect, scopes)
+      syncHandleExport(connect, scopes, parsed.scheduleIndex)
       return
     }
     if (parsed.action === "update_settings") {
@@ -643,6 +678,11 @@ function initSyncReceiver() {
     if (parsed.action === "chat") {
       // 手机 → 手环：聊天消息。存收件箱 + 长震动，并回送达确认
       syncHandleChatIncoming(connect, parsed)
+      return
+    }
+    if (parsed.action === "list_schedules") {
+      // 手机 → 手环：请求课程表清单（多课程表导出前置）
+      syncHandleListSchedules(connect)
       return
     }
     if (parsed.action === "import") {
