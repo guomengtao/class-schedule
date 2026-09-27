@@ -496,6 +496,8 @@ var SYNC_FIELD_DOMAIN = {
   homepage: "homepage",
   homepageTemplate: "appearance",
   baseFontSize: "appearance",
+  weekviewTemplate: "appearance",   // 周视图模板（手机端可远程切换）
+  appTheme: "appearance",           // 主题色（手机端可远程切换）
   pinned: "pinned"
 }
 
@@ -628,6 +630,16 @@ function syncCollectScopes(scopes, scheduleIndex, callback) {
       result.baseFontSize = f || 48
       finish()
     })
+    pending++
+    store.getWeekViewTemplate(function (t) {
+      result.weekviewTemplate = t || "minimal-char"
+      finish()
+    })
+    pending++
+    store.getThemeName(function (n) {
+      result.appTheme = n || "blue"
+      finish()
+    })
   }
   if (syncWantScope(list, "pinned")) {
     pending++
@@ -755,6 +767,14 @@ function syncHandleUpdateSettings(connect, payload) {
       pending++
       store.setBaseFontSize(size, finish)
     }
+  }
+  if (payload.weekviewTemplate !== undefined && syncCanWrite("weekviewTemplate")) {
+    pending++
+    store.setWeekViewTemplate(String(payload.weekviewTemplate), finish)
+  }
+  if (payload.appTheme !== undefined && syncCanWrite("appTheme")) {
+    pending++
+    store.setTheme(String(payload.appTheme), finish)
   }
 
   if (pending === 0) {
