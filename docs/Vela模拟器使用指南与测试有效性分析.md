@@ -31,8 +31,8 @@
 |---|:---:|---|
 | 找到正在运行的虚拟设备、端口映射 | ✅ | `ps aux \| grep qemu-system-armel` + `lsof -nP -iTCP -sTCP:LISTEN \| grep qemu` |
 | 用 adb 连进模拟器执行 NSH 命令 | ✅ | NuttX NSH：`ls/ps/cat/getprop/ifconfig/vapp/vappcli/am/reboot` 等 |
-| **读到模拟器真实画面（截图）** | ✅ **核心突破** | IDE 截图落在 `/Users/Banner/Downloads/vela_screenshot/`，**AI 可直接读图判读** |
-| 用截图做前后 A/B（改动前 vs 改动后） | ✅ | 文件名带 `设备-日期-时间`，按时间排序即可成对比较 |
+| **自主截图（不依赖任何人按键）** | ✅ **2026-09-27 打通** | `node scripts/emulator-eye.js shot <grpcPort> out.png` —— 走模拟器内置 **gRPC** `getScreenshot`，见 §2.5 |
+| 读 IDE 的历史截图做前后 A/B | ✅ | IDE 截图落在 `/Users/Banner/Downloads/vela_screenshot/`（`~/.vela/sdk/screenshot` 软链），文件名带 `设备-日期-时间` |
 | 编译出 release 包（不装机） | ✅ | `env -u NODE_OPTIONS npx aiot release --enable-jsc` |
 | 自己启动一个指定规格的虚拟设备 | ⚠️ 未验证但路径明确 | 见 §2.4；本机已有 192×490 的 `xiaomi_band` |
 | **向模拟器注入点击/滑动** | ❌ 暂不可用 | 见 §2.5：需要 `--openVNC` 才有标准 VNC；当前实例没有 |
@@ -119,15 +119,38 @@ cat ~/.vela/vvd/xiaomi_band.vvd/hardware-qemu.ini | grep -E 'hw.lcd.(width|heigh
 
 ⚠️ 注意：`-qt-hide-window` 意味着没有可见窗口；同时启动可能与 IDE 的设备管理抢端口（5554/5555/5556/5557 已被占用）。**最稳的做法是让用户在 IDE 里启动**，我从 §2.3 读截图判读。
 
-### 2.5 为什么现在还不能自动点击（以及怎么打开这条路）
+### 2.5 ⭐ 模拟器控制通道 = gRPC（截图已打通、点击待打通）
 
-- 模拟器进程参数里**没有 `-vnc`**（只有 `-qt-hide-window`），所以**没有标准 VNC**可连
-- `8554`/`8556`（= adb 端口 + 3000）看着像 VNC，但**返回的不是 `RFB 003.008` banner**（实测返回一坨自定义二进制），通用 VNC 客户端连不上
-- IDE 的模拟器扩展 `~/.aiot-ide/extensions/vela.aiot-emulator-1.7.22/` 源码里存在 `defaultVncPort = 5900` 以及 `sendMouse() / sendKey()` ——**说明官方走的是 RFB，只是当前实例没开**
-- **可操作路径**：用 `aiot start --openVNC` 启动（CLI 选项里确认存在），届时标准 VNC 可用
-  - 我已经写好一个零依赖的 RFB 客户端（截图 PNG + `PointerEvent` 注入点击/长按 + 增量刷新）：`/tmp/sched/vnc.py`
-    - `python3 vnc.py scan` 扫端口找 RFB banner / `shot <port> out.png` / `tap <port> x y` / `seq <port> out.png x y [x y ...]`
-  - 因为放在 `/tmp`，**重启会丢**；若要长期用，应把它提交进仓库（如 `scripts/vnc_driver.py`）——**等 VNC 真正跑通再入库**，否则只是死代码
+**这是 2026-09-27 最大的一次突破，推翻了此前的错误认知。**
+
+- 模拟器内置 **gRPC 服务** `android.emulation.control.EmulatorController`，端口 = **控制台端口 + 3000**（`emulator-5554` → **8554**，`emulator-5556` → 8556）
+- ⚠️ 此前把这端口判成"自定义二进制协议、连不上 VNC"——**那是误判**：服务端先发的那 46 字节其实是 **HTTP/2 的 SETTINGS 帧**（`00 00 18 04 00 ...`）
+- 可用 RPC（proto 就在 `node_modules/@aiot-toolkit/emulator/lib/static/proto/emulator_controller.proto`）：
+  `getScreenshot`、`streamScreenshot`、`sendMouse`、`sendTouch`、`sendKey`、`getStatus`
+- **已入库驱动**：`scripts/emulator-eye.js`（零额外依赖，复用工具链自带的 `@grpc/grpc-js` + proto）
+
+```bash
+node scripts/emulator-eye.js ports                       # 看在跑的模拟器
+node scripts/emulator-eye.js status 8554                 # 状态（含 avd.id/booted）
+node scripts/emulator-eye.js shot   8554 /tmp/x.png      # ✅ 自主截图
+node scripts/emulator-eye.js click  8554 40 90           # 触摸点击（⏳ 目前无效果）
+node scripts/emulator-eye.js mclick 8554 40 90           # 鼠标点击（⏳ 目前无效果）
+```
+
+**配套：把 App 拉起来**（否则截到的是黑屏）
+
+```bash
+ADB=node_modules/@aiot-toolkit/emulator/node_modules/@miwt/adb/bin/mac/adb
+$ADB -s emulator-5554 shell am start app/com.application.watch.classschedule     # am <start|stop> <pkg>
+# 等价：$ADB -s emulator-5554 shell vapp app/com.application.watch.classschedule
+```
+
+**当前状态**：
+- ✅ **截图完全自主**（本轮已成功截到 首页）
+- ⏳ **点击注入未生效**：`sendMouse`（含"移动→按下→抬起"）与 `sendTouch`（`touches` 非空=按下、空数组=抬起）**都返回成功但画面无变化**
+  - 首要怀疑：**Vela 跑在 NuttX（不是 Android）**，AOSP 的 `sendTouch` 走的是 Android input 子系统，NuttX 上的 vapp 可能根本不接
+  - 下一步候选：①`streamInputEvent`（流式输入，AOSP 后加的路径）②token 鉴权（读 RPC 放行、写 RPC 静默丢弃？）③App 窗口焦点
+- 备选"翻页不靠点击"的方案：`--start-page` 是**编译期**注入（`@aiot-toolkit/parser` 的 `startPage` 插件），可构建出直接启动到指定页面的包
 
 ### 2.6 其它小坑
 

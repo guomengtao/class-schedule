@@ -125,6 +125,11 @@
 - **每次改动结束自动提交并推送 GitHub**（2026-09-27 用户确认，已写入 `.codebuddy/rules/总体规则.mdc`）：编译/校验通过后 `git add -A && git commit`（Conventional Commits，type 须符合 `commitlint.config.js` 的 type-enum）→ `git push origin main`；未跟踪文件一并纳入；**禁止 force push**，推送被拒先 `git fetch` 核对并报告，不强推
 - **禁止** `git clean` / `reset --hard` / `rm -rf` 等破坏性命令；恢复用 `git checkout HEAD~1 -- <路径>`
 - 不接受"为修 bug 一次性大改界面影响所有用户"的方案；宁可多花一轮定位也要把改动面缩到最小
-- 完成对话后用 mac 弹窗 + 语音：`osascript -e 'display notification "正文" with title "标题"' ; say -v Tingting "正文"`（用 `;` 不用 `&&`）
+- 完成对话后的提醒：`scripts/notify.sh "标题" "通知正文" "语音文本"` —— mac 系统通知 + **Edge TTS 晓晓（zh-CN-XiaoxiaoNeural）**语音，失败自动回退 `say -v Tingting`（用户 2026-09-27 要求换掉 Tingting）。edge-tts 在 `/opt/homebrew/bin/edge-tts`，生成 mp3 后 `afplay` 播放（需联网）
+- **⭐ AI 的"眼睛"：模拟器截图可自主获取（2026-09-27 打通）**：`node scripts/emulator-eye.js shot <grpcPort> out.png`
+  - 原理：模拟器控制通道是 **gRPC `android.emulation.control.EmulatorController`**（端口 = 控制台端口 +3000，即 `emulator-5554` → **8554**、`emulator-5556` → 8556）。**别再以为 8554 是什么自定义二进制协议**——那只是 HTTP/2 的 SETTINGS 帧
+  - proto 与 `@grpc/grpc-js`/`@grpc/proto-loader` 都在 `node_modules/@aiot-toolkit/emulator/`（零额外依赖）；可用 RPC：`getScreenshot`、`streamScreenshot`、`sendMouse`、`sendTouch`、`sendKey`、`getStatus`
+  - 拉起 App：`$ADB -s emulator-5554 shell am start app/com.application.watch.classschedule`（或 `vapp app/<包名>`）；空屏/黑屏说明 App 没在跑
+  - ⚠️ **点击注入尚未生效**：`sendMouse`/`sendTouch` 都返回成功但画面无变化（疑似 Vela 跑在 **NuttX** 而非 Android，输入不走 Android input 子系统）→ 待查 `streamInputEvent`、token 鉴权、窗口焦点
 - 所有 md 文件用中文书写
 - **项目根目录保持干净整洁**：散落文档入 `docs/`、临时/调试脚本归 `archive/`、构建产物（`build/ dist/ release/`）不留根目录；**但 `sign/` 含签名证书（`private.pem`/`certificate.pem`），禁止移动或清理，必须留在原地**
