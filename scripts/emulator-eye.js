@@ -272,6 +272,31 @@ async function main() {
     call.end()
     await sleep(450)
     console.log('已流式触摸点击 (' + x + ',' + y + ')')
+  } else if (mode === 'swipe') {
+    // 滑动：按下 → 分步移动到终点 → 抬起（用于滚动列表/页面）
+    // 用法：node scripts/emulator-eye.js swipe <grpcPort> <x1> <y1> <x2> <y2> [steps]
+    const [x1, y1, x2, y2] = rest.slice(1, 5).map(Number)
+    const steps = rest[5] ? Number(rest[5]) : 8
+    const call = client.streamInputEvent(authMeta(), (e) => e && console.error('stream err: ' + e.message))
+    const touch = (x, y) =>
+      call.write({
+        touch_event: {
+          touches: [{ x, y, identifier: 0, pressure: 1, touch_major: 5, touch_minor: 5, expiration: 1 }],
+          display: 0,
+        },
+      })
+    touch(x1, y1)
+    await sleep(140)
+    for (let i = 1; i <= steps; i++) {
+      touch(Math.round(x1 + ((x2 - x1) * i) / steps), Math.round(y1 + ((y2 - y1) * i) / steps))
+      await sleep(70)
+    }
+    await sleep(140)
+    call.write({ touch_event: { touches: [], display: 0 } })
+    await sleep(160)
+    call.end()
+    await sleep(600)
+    console.log(`已滑动 (${x1},${y1}) → (${x2},${y2})，${steps} 步`)
   } else if (mode === 'sseq') {
     const prefix = rest[1]
     const points = rest.slice(2).map((p) => p.split(',').map(Number))

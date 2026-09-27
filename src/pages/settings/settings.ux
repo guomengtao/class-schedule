@@ -1,6 +1,8 @@
 <import name="unlock-dialog" src="../../components/unlock-dialog"></import>
 <template>
   <div class="settings-page" style="background-color: {{ theme.bg }}">
+    <!-- 内层承载页面 padding：让抽屉弹（绝对定位）能真正贴到屏幕底部与左右边缘 -->
+    <div class="settings-body">
     <div class="back-header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
@@ -25,20 +27,6 @@
         <text class="group-title" style="color: {{ theme.text }}">主题配色</text>
         <div class="row-right">
           <text class="arrow" style="color: {{ theme.textMuted }}">{{ showTheme ? 'v' : '›' }}</text>
-        </div>
-      </div>
-      <div if="{{ showTheme }}" style="flex-direction: column">
-        <div style="flex-direction: row; justify-content: center">
-          <div for="{{ themesRow1 }}" class="theme-item {{ currentThemeKey === $item.key ? 'active' : '' }}" onclick="selectTheme($item.key)" style="border-color: {{ currentThemeKey === $item.key ? theme.accent : 'transparent' }}">
-            <div class="theme-dot" style="background-color: {{ $item.accent }}"></div>
-            <text class="theme-name" style="color: {{ currentThemeKey === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.name }}</text>
-          </div>
-        </div>
-        <div style="flex-direction: row; justify-content: center">
-          <div for="{{ themesRow2 }}" class="theme-item {{ currentThemeKey === $item.key ? 'active' : '' }}" onclick="selectTheme($item.key)" style="border-color: {{ currentThemeKey === $item.key ? theme.accent : 'transparent' }}">
-            <div class="theme-dot" style="background-color: {{ $item.accent }}"></div>
-            <text class="theme-name" style="color: {{ currentThemeKey === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.name }}</text>
-          </div>
         </div>
       </div>
     </div>
@@ -141,6 +129,7 @@
 
     <text class="version-text" style="color: {{ theme.textMuted }}">v{{ versionText }} · #{{ versionCode }}</text>
     <text class="welcome-link" onclick="goToWelcome" style="color: {{ theme.accent }}">欢迎页</text>
+    </div>
 
     <unlock-dialog id="unlockDialog"></unlock-dialog>
 
@@ -151,6 +140,29 @@
         <input class="modal-btn-primary" type="button" value="立即解锁" onclick="goToPremium"
                style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
         <input class="modal-btn-secondary" type="button" value="取消" onclick="dismissPremiumDialog"
+               style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+      </div>
+    </div>
+
+    <!-- 主题配色：底部抽屉弹。通栏 + 贴底（left/bottom 定位），不依赖居中计算，
+         与屏幕宽高无关；面板自身 padding 提供内缩。 -->
+    <div class="theme-drawer" if="{{ showTheme }}" onclick="closeThemeDrawer">
+      <div class="theme-drawer-panel" style="background-color: {{ theme.card }}" onclick="stopBubble">
+        <div class="drawer-handle" style="background-color: {{ theme.border }}"></div>
+        <text class="drawer-title" style="color: {{ theme.text }}">主题配色</text>
+        <div class="theme-row">
+          <div for="{{ themesRow1 }}" class="theme-item {{ currentThemeKey === $item.key ? 'active' : '' }}" onclick="selectTheme($item.key)" style="border-color: {{ currentThemeKey === $item.key ? theme.accent : 'transparent' }}">
+            <div class="theme-dot" style="background-color: {{ $item.accent }}"></div>
+            <text class="theme-name" style="color: {{ currentThemeKey === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.name }}</text>
+          </div>
+        </div>
+        <div class="theme-row">
+          <div for="{{ themesRow2 }}" class="theme-item {{ currentThemeKey === $item.key ? 'active' : '' }}" onclick="selectTheme($item.key)" style="border-color: {{ currentThemeKey === $item.key ? theme.accent : 'transparent' }}">
+            <div class="theme-dot" style="background-color: {{ $item.accent }}"></div>
+            <text class="theme-name" style="color: {{ currentThemeKey === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.name }}</text>
+          </div>
+        </div>
+        <input class="drawer-done" type="button" value="完成" onclick="closeThemeDrawer"
                style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
       </div>
     </div>
@@ -283,6 +295,8 @@ export default {
   selectTheme(themeKey) {
     var self = this
     store.isPremiumUnlocked(function(unlocked) {
+      // 先收起抽屉：否则未解锁时弹窗会被压在抽屉面板下面
+      self.showTheme = false
       if (unlocked) {
         self.applyTheme(themeKey)
       } else {
@@ -341,7 +355,12 @@ export default {
   },
 
   toggleTheme() {
-    this.showTheme = !this.showTheme
+    // 主题配色改为底部抽屉弹：点一次打开抽屉
+    this.showTheme = true
+  },
+
+  closeThemeDrawer() {
+    this.showTheme = false
   },
 
   toggleSchedule() {
@@ -411,8 +430,14 @@ export default {
   width: 100%;
   height: 100%;
   
-  padding: 44px 10px 12px 10px;
   position: relative;
+}
+
+/* 页面内容的内层容器：承载 padding，让绝对定位的抽屉弹能贴到屏幕四边 */
+.settings-body {
+  flex-direction: column;
+  width: 100%;
+  padding: 44px 10px 12px 10px;
 }
 
 .back-header {
@@ -691,7 +716,7 @@ export default {
 }
 
 @media (shape: circle) {
-  .settings-page {
+  .settings-body {
     padding: 44px 36px 44px 36px;
   }
   .back-header {
@@ -738,7 +763,7 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  .settings-page {
+  .settings-body {
     padding: 30px 16px 30px 16px;
   }
 
@@ -902,7 +927,7 @@ export default {
 }
 
 @media (shape: rect) {
-  .settings-page {
+  .settings-body {
     padding: 6px 6px 6px 6px;
   }
   .back-header {
@@ -987,6 +1012,88 @@ export default {
     border-radius: 17px;
     font-size: 20px;
     line-height: 26px;
+  }
+}
+
+/* ===== 主题配色：底部抽屉弹 =====
+   几何策略：面板用 left/bottom 贴底 + width: 100% 通栏 —— 不做任何居中计算，
+   因此与屏幕宽高、屏型全部无关（192 胶囊 / 336 方屏表现一致）。 */
+.theme-drawer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.45);
+  z-index: 1200;
+}
+.theme-drawer-panel {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  border-radius: 20px 20px 0 0;
+  padding: 10px 14px 18px 14px;
+  flex-direction: column;
+  align-items: center;
+}
+.drawer-handle {
+  width: 44px;
+  height: 6px;
+  border-radius: 3px;
+  margin-bottom: 10px;
+}
+.drawer-title {
+  font-size: 28px;
+  line-height: 36px;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.theme-row {
+  flex-direction: row;
+  width: 100%;
+}
+.drawer-done {
+  width: 100%;
+  height: 46px;
+  border-radius: 23px;
+  font-size: 26px;
+  margin-top: 10px;
+}
+
+@media (shape: capsule), (shape: pill-shaped) {
+  .theme-drawer-panel {
+    padding: 8px 10px 16px 10px;
+    border-radius: 16px 16px 0 0;
+  }
+  .drawer-handle {
+    width: 38px;
+    height: 5px;
+    margin-bottom: 8px;
+  }
+  .drawer-title {
+    font-size: 24px;
+    line-height: 30px;
+    margin-bottom: 4px;
+  }
+  .theme-item {
+    padding: 8px 0;
+  }
+  .theme-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 11px;
+  }
+  .theme-name {
+    font-size: 18px;
+    line-height: 24px;
+    margin-top: 2px;
+  }
+  .drawer-done {
+    height: 40px;
+    border-radius: 20px;
+    font-size: 22px;
+    margin-top: 6px;
   }
 }
 </style>

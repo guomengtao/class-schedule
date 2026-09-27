@@ -49,6 +49,12 @@
   - 反例（"左小右大"的成因）：卡片 `width: 90%/92%` + 遮罩 `padding` —— 左边界由 padding 决定、宽度由百分比基准决定，两套算法不配套 ⇒ 实测左 8 / 右 40
   - **同一文件里不要出现两个 capsule `@media` 块写同一属性**：实测谁生效**不稳定**（settings 用旧 90%、backup-restore 用新 100%）⇒ "后面追加一块去覆盖"不可靠，**必须改原有的那一处，或把所有定义写成同一个值**
 - **模拟器部署验证的两个坑**：①**debug 包不能用裸 `vapp app/<pkg>` 启动**（表现为"点进首页即退出/黑屏"），验证请用 **release 包**；②`adb push <rpk> /data/quickapp/app/<pkg>.rpk` 会**重置该模拟器上应用的数据**（停在欢迎页）
+- **模拟器部署（2026-09-27 实测补充）**：运行时**只认 `/data/quickapp/app/<包名>/` 解包目录**，推 rpk 不会自动解包 → 必须本地解包再推文件，否则"改了不生效"；批量 `adb push` 目录易报 `EOF`，**改单页只推 `pages/<页面>/<页面>.jsc` 最稳**；推送后首次 `vapp` 可能黑屏，**再启动一次即可**
+- **底部抽屉弹（bottom sheet）写法（2026-09-27 实装）**：外层 overlay `position: absolute; left/top: 0; width/height: 100%`（遮罩）+ 内层面板 `position: absolute; left: 0; bottom: 0; width: 100%` + `border-radius: 16px 16px 0 0`；**不做任何居中计算**，天生通栏贴底，与屏幕尺寸无关
+  - ⚠️ **必须把页面 padding 移到内层容器**：Vela 的绝对定位按父级**内容盒**算（非标准 CSS 的 padding 盒），父级有 padding 时 `left/bottom: 0` 会被内缩、贴不到屏幕边缘。做法 = 根容器只留 `position: relative`，页面内容包进 `.xxx-body { padding: … }`，抽屉留在根容器下
+  - 抽屉里点未解锁项前要**先收起抽屉再弹窗**，否则弹窗被压在抽屉下面
+  - 用例：设置页「主题配色」抽屉（`settings.ux`，`.theme-drawer` / `.theme-drawer-panel` / `.drawer-handle` / `.theme-row` / `.drawer-done`）
+- **`scripts/emulator-eye.js` 现有能力**：`shot / ctap / click / mclick / stouch / swipe / seq / sseq / key / ports / status`（`swipe <port> x1 y1 x2 y2 [steps]` 用于滚动；2026-09-27 新增）
 - **⚠️「解锁高级版」弹窗在 192×490 上严重破碎（2026-09-27 实测）**：同一套弹窗被**复制了 6~7 份**（`components/premium-overlay.ux`、`unlock-dialog.ux`、`pro-card.ux` + `settings` / `schedule-manager` / `backup-restore` / `homepage-settings` / `reset-data` / `schedule-qrcode` 各一份），**胶囊屏适配各不相同**：
   - `schedule-manager.ux` 的 `.modal-card` **完全没有 capsule 覆盖** → 192px 下卡片仅 128px、正文可用 ~92px → 标题「解锁高级版」(30px/150px) 截成「解锁高」、✓ 条目 24px 只剩 1 个字
   - `settings.ux` / `backup-restore.ux` 的弹窗**内容顶到屏幕右边缘（右边距 = 0）**被裁
