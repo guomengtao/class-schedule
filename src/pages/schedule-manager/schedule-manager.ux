@@ -20,12 +20,10 @@
     </div>
 
     <div for="{{ list }}" class="item" style="background-color: {{ theme.card }}">
-      <div class="item-main" onclick="toggle($idx)">
-        <div class="indicator"
-             style="background-color: {{ $idx === currentIndex ? theme.accent : 'transparent' }}; border-color: {{ $idx === currentIndex ? theme.accent : theme.textMuted }}"></div>
-        <text class="name" style="color: {{ $idx === currentIndex ? theme.accent : theme.text }}; font-weight: {{ $idx === currentIndex ? 'bold' : 'normal' }}">{{ $item.name }}</text>
-      </div>
-      <div class="more-hit" onclick="toggle($idx)">
+      <div class="indicator"
+           style="background-color: {{ $idx === currentIndex ? theme.accent : 'transparent' }}; border-color: {{ $idx === currentIndex ? theme.accent : theme.textMuted }}"></div>
+      <text class="name" onclick="openSheet($idx)" style="color: {{ $idx === currentIndex ? theme.accent : theme.text }}; font-weight: {{ $idx === currentIndex ? 'bold' : 'normal' }}">{{ $item.name }}</text>
+      <div class="more-hit" onclick="openSheet($idx)">
         <div class="more-dot" style="background-color: {{ theme.textMuted }}"></div>
         <div class="more-dot" style="background-color: {{ theme.textMuted }}"></div>
         <div class="more-dot" style="background-color: {{ theme.textMuted }}"></div>
@@ -47,6 +45,15 @@
     <div class="sheet-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
       <text class="sheet-title" style="color: {{ theme.text }}">{{ sheetName }}</text>
       <text class="sheet-sub" style="color: {{ theme.textMuted }}">{{ sheetCount }} 门课程</text>
+
+      <div class="sheet-switch-btn" if="{{ sheetIndex !== currentIndex }}" onclick="sheetSwitch"
+           style="background-color: {{ theme.accent }}">
+        <text class="sheet-switch-btn-text" style="color: {{ theme.bg }}">切换到该课程表</text>
+      </div>
+      <div class="sheet-switch-btn" if="{{ sheetIndex === currentIndex }}"
+           style="background-color: {{ theme.btnSecondary }}">
+        <text class="sheet-switch-btn-text" style="color: {{ theme.textMuted }}">当前课程表</text>
+      </div>
 
       <div class="sheet-switch-row" onclick="toggleHolidayReminder">
         <text class="sheet-switch-label" style="color: {{ theme.text }}">假期提醒</text>
@@ -76,7 +83,7 @@
         </div>
         <div class="sheet-btn" if="{{ list.length > 1 }}" onclick="sheetDelete"
              style="background-color: {{ deleteConfirmIndex === sheetIndex ? theme.deleteText : theme.deleteBg }}">
-          <text class="sheet-btn-text" style="color: {{ deleteConfirmIndex === sheetIndex ? theme.text : theme.deleteText }}">{{ deleteConfirmIndex === sheetIndex ? '确认删除' : '删除' }}</text>
+          <text class="sheet-btn-text" style="color: {{ deleteConfirmIndex === sheetIndex ? theme.text : theme.deleteText }}">删除</text>
         </div>
       </div>
 
@@ -288,6 +295,13 @@ export default {
 
   sheetDelete() {
     this.deleteSchedule(this.sheetIndex)
+  },
+
+  sheetSwitch() {
+    var idx = this.sheetIndex
+    if (idx === this.currentIndex) return
+    this.toggle(idx)
+    this.closeSheet()
   },
 
   toggle(idx) {
@@ -602,21 +616,19 @@ export default {
     var newIndex = names.length - 1
     var self = this
     store.setScheduleNames(names, function() {
-      database.setScheduleIndex(newIndex, function() {
-        var storage = require("@system.storage")
-        var STORAGE_KEY = "allCourses"
-        storage.set({
-          key: STORAGE_KEY + "_" + newIndex,
-          value: "[]",
-          success: function() {
-            prompt.showToast({ message: "已添加 " + newName })
-            self.loadData()
-          },
-          fail: function() {
-            prompt.showToast({ message: "已添加 " + newName })
-            self.loadData()
-          }
-        })
+      var storage = require("@system.storage")
+      var STORAGE_KEY = "allCourses"
+      storage.set({
+        key: STORAGE_KEY + "_" + newIndex,
+        value: "[]",
+        success: function() {
+          prompt.showToast({ message: "已添加 " + newName })
+          self.loadData()
+        },
+        fail: function() {
+          prompt.showToast({ message: "已添加 " + newName })
+          self.loadData()
+        }
       })
     })
   },
@@ -821,6 +833,22 @@ export default {
   line-height: 28px;
   text-align: center;
   margin-bottom: 10px;
+}
+
+.sheet-switch-btn {
+  width: 100%;
+  height: 52px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.sheet-switch-btn-text {
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: bold;
 }
 
 .sheet-switch-row {
