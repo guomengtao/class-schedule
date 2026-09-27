@@ -167,9 +167,7 @@ TOKEN=$(cat ~/.emulator_console_auth_token)   # 控制台 auth token（文件权
 
 - 命令集（认证后）：`event`、`power`、`sensor`、`rotate`、`screenrecord`、`grpc`、`automation`、`finger` ……
 - **注入语法**：`event mouse <x> <y> <device> <buttonstate>`（**4 个整数**，`1`=按下 / `0`=抬起）
-- **坐标是皮肤窗口坐标，不是 LCD 坐标**：`窗口 = LCD + part2 偏移`
-  - 偏移从 `~/.vela/sdk/skins/builtin/<avd>/layout` 里的 `part2 { name device; x N; y N }` 读
-  - 例：`xiaomi_band_10` = `x 30 y 22`（LCD 212×520 在 272×563 窗口内）；`xiaomi_band` = `x 44 y 154`
+- **坐标 = LCD 坐标（不需要偏移）**：2026-09-27 标定确认；曾误按皮肤 `part2` 加偏移（+30/+22）导致点击整体偏右下、返回键点不中。需要偏移的机种用 `EYE_SKIN_OFFSET=1`
 - **已入库**：`node scripts/emulator-eye.js ctap <grpcPort> <lcdX> <lcdY>`（自动读 token、自动按 LCD 尺寸匹配皮肤偏移）、`cseq <grpcPort> <outPrefix> <x,y> [...]`
 - ✅ 实测有效：连续点击后画面逐步变化（候选词区变成「到 道 导」= 真的在向 App 输入）
 - ⏳ **仍需标定**：实测落点与"LCD+皮肤偏移"的换算**不完全吻合**（疑为该 console 的 `event mouse` 是**相对位移鼠标**，或还有一层缩放）→ 标定方法：在已知页面点若干已知坐标，读回画面反推映射

@@ -93,8 +93,11 @@ function getScreenshotBuffer(port) {
 }
 
 async function consoleTap(grpcPort, lcdX, lcdY) {
+  // 2026-09-27 标定结论：控制台 event mouse 直接吃 **LCD 坐标**，不需要皮肤偏移！
+  // （曾经按 part2 加偏移，结果点击落点整体偏右下、返回键点不中；改用原始 LCD 坐标后一切正常）
+  // 需要偏移的机种可用 EYE_SKIN_OFFSET=1 打开。
   const size = pngSize(await getScreenshotBuffer(grpcPort))
-  const skin = size ? skinOffsetForSize(size.w, size.h) : null
+  const skin = process.env.EYE_SKIN_OFFSET && size ? skinOffsetForSize(size.w, size.h) : null
   const x = lcdX + (skin ? skin.x : 0)
   const y = lcdY + (skin ? skin.y : 0)
   const token = fs
