@@ -102,6 +102,16 @@ var DAY_NAME_MAP = {
   "Thursday": "Thursday", "Friday": "Friday", "Saturday": "Saturday", "Sunday": "Sunday"
 }
 
+// English → Chinese：detail 只认"星期X"（DAY_NAMES），而 week-view 内部用英文键（Monday）。
+// 缺这层转换会导致 周视图→编辑页 100% 显示"这门课已经被删除"（detail 兜底到星期日找不到课）。
+var EN_TO_CN_DAY = {
+  "Monday": "星期一", "Tuesday": "星期二", "Wednesday": "星期三",
+  "Thursday": "星期四", "Friday": "星期五", "Saturday": "星期六", "Sunday": "星期日"
+}
+function toCnDay(day) {
+  return EN_TO_CN_DAY[day] || day
+}
+
 // Week-view compute cache: avoids rebuilding timeSlots when data/template unchanged
 var _renderCache = null
 
@@ -827,7 +837,7 @@ export default {
       success: function() {
         storage.set({
           key: "detail_day",
-          value: day,
+          value: toCnDay(day),
           success: function() {
             router.push({ uri: "/pages/detail" })
           },
