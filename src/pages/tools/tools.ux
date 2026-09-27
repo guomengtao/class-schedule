@@ -57,14 +57,21 @@
         <text class="item-label" style="color: {{ theme.accent }}">课程表管理 V2</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">极简+面板</text>
       </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="sendChatTest">
+        <text class="item-label" style="color: {{ theme.accent }}">发消息到手机</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">聊天 PoC</text>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
+import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 var pinHelper = require("../../data/pin-helper.js")
+var chatBridge = require("../../data/chat-bridge.js")
 
 export default {
   private: {
@@ -166,6 +173,15 @@ export default {
 
   openScheduleManagerV2() {
     router.push({ uri: "/pages/schedule-manager" })
+  },
+
+  // 聊天 PoC：手环【主动】给手机发一条消息。
+  // 这是验证"手环 → 手机"方向能否成立的关键按钮（此前从未被证实过）。
+  sendChatTest() {
+    var ok = chatBridge.send("来自手环 " + new Date().toLocaleTimeString())
+    prompt.showToast({
+      message: ok ? "已发送，看手机端有没有收到" : "connect 未就绪（先让手机发一条，或重启 EV）"
+    })
   },
 
   goBack() {

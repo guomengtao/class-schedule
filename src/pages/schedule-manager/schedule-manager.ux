@@ -25,7 +25,7 @@
              style="background-color: {{ $idx === currentIndex ? theme.accent : 'transparent' }}; border-color: {{ $idx === currentIndex ? theme.accent : theme.textMuted }}"></div>
         <text class="name" style="color: {{ $idx === currentIndex ? theme.accent : theme.text }}; font-weight: {{ $idx === currentIndex ? 'bold' : 'normal' }}">{{ $item.name }}</text>
       </div>
-      <div class="more-hit" onclick="openSheet($idx)">
+      <div class="more-hit" onclick="toggle($idx)">
         <div class="more-dot" style="background-color: {{ theme.textMuted }}"></div>
         <div class="more-dot" style="background-color: {{ theme.textMuted }}"></div>
         <div class="more-dot" style="background-color: {{ theme.textMuted }}"></div>
@@ -570,7 +570,10 @@ export default {
     router.push({ uri: "/pages/activation" })
   },
 
-  stopBubble() {
+  stopBubble(e) {
+    if (e && e.stopPropagation) {
+      e.stopPropagation()
+    }
   },
 
   doAddSchedule() {
@@ -1043,6 +1046,7 @@ export default {
   }
 
   .more-hit {
+    display: none;
     width: 60px;
     height: 64px;
   }

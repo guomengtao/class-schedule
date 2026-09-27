@@ -1,6 +1,7 @@
 <script>
 var store = require("./data/store.js")
 var database = require("./data/database.js")
+var chatBridge = require("./data/chat-bridge.js")
 var authStore = require("./data/auth-store.js")
 var holidayPreset = require("./data/holiday-preset.js")
 var defaultsEngine = require("./data/defaults-engine.js")
@@ -58,6 +59,11 @@ function stopResident() {
 }
 
 var interconnect = null
+
+// 暴露给全局的 connect 实例：手环要【主动】给手机发消息（聊天功能）就靠它。
+// 之前 connect 只是 initSyncReceiver() 里的局部变量，EV 只能在收到手机消息时"回包"，
+// 没法自己开口 —— 这是"手环 → 手机"方向做不出来的根本原因。
+var _syncConnect = null
 
 try {
   interconnect = require("@system.interconnect")
@@ -175,6 +181,70 @@ function syncReply(connect, payload) {
   } catch (e) {
     console.log("[SYNC-TX] reply failed: " + e)
   }
+}
+
+// ===== 聊天：收（手机 → 手环）=====
+// 消息存进 ev_chat_inbox（聊天页读取），同时长震动提醒，并回送达确认。
+function syncHandleChatIncoming(connect, msg) {
+  var text = String(msg.text === undefined || msg.text === null ? "" : msg.text)
+  var item = { from: "phone", text: text, ts: msg.ts || Date.now() }
+  var storage = require("@system.storage")
+  storage.get({
+    key: "ev_chat_inbox",
+    success: function (oldVal) {
+      var list = []
+      try {
+        list = JSON.parse(oldVal || "[]")
+      } catch (e) {
+        list = []
+      }
+      list.push(item)
+      if (list.length > 50) { list = list.slice(list.length - 50) }
+      storage.set({
+        key: "ev_chat_inbox",
+        value: JSON.stringify(list),
+        success: function () { vibrateLong() },
+        fail: function () { vibrateLong() }
+      })
+    },
+    fail: function () {
+      vibrateLong()
+    }
+  })
+  syncReply(connect, { ok: true, action: "chat_ack", id: msg.id || "", ts: Date.now() })
+}
+
+/** 长震动：优先 vibrator.start（自定义时长/次数），失败回落 vibrate({mode:"long"}) */
+function vibrateLong() {
+  try {
+    var vibrator = require("@system.vibrator")
+    vibrator.start({
+      duration: 800,
+      interval: 300,
+      count: 2,
+      success: function () {
+        dlog("[CHAT] vibrate long ok")
+      },
+      fail: function (data, code) {
+        dlog("[CHAT] vibrate.start fail code=" + code + ", fallback")
+        try {
+          vibrator.vibrate({ mode: "long" })
+        } catch (e2) {
+          dlog("[CHAT] vibrate fallback fail: " + e2)
+        }
+      }
+    })
+  } catch (e) {
+    dlog("[CHAT] vibrator not available: " + e)
+  }
+}
+
+// ===== 聊天：发（手环 → 手机）=====
+// 页面调用：syncSendToPhone("文字") —— 这是 EV 第一次具备【主动发送】能力。
+// ⚠️ 手机端能否收到，尚未被证实过（插件时代的 S1′ 实验结果是 0 条）。本函数就是用来做这个 PoC 的。
+function syncSendToPhone(text) {
+  // 实际能力在 chat-bridge.js（共享模块），这里只做一层薄封装
+  return chatBridge.send(text)
 }
 
 // 导入：转格式 A 后单次原子写盘；写前先备份旧课表，便于回退
@@ -570,6 +640,11 @@ function initSyncReceiver() {
       syncHandleUpdateSettings(connect, parsed.payload || parsed)
       return
     }
+    if (parsed.action === "chat") {
+      // 手机 → 手环：聊天消息。存收件箱 + 长震动，并回送达确认
+      syncHandleChatIncoming(connect, parsed)
+      return
+    }
     if (parsed.action === "import") {
       syncHandleImport(connect, parsed.payload || parsed)
       return
@@ -587,6 +662,9 @@ function initSyncReceiver() {
   connect.onclose = function (data) {
     console.log("[SYNC-EVT] onclose code=" + (data && data.code))
   }
+  // ↓↓↓ 注册到共享模块：手环侧这才具备【主动发送】能力（聊天功能前提）
+  _syncConnect = connect
+  chatBridge.register(connect)
   // 主动探测连接状态，便于真机定位"通道是否建立"
   try {
     connect.getReadyState({

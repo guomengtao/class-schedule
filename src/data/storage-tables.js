@@ -166,6 +166,12 @@ var tables = [
     desc: "导入前自动备份的上一份课表，用于导入出错时回退",
     columns: ["backup"],
     type: "object"
+  },
+  {
+    key: "ev_chat_inbox",
+    desc: "聊天收件箱：手机发来的聊天消息（收到时同时触发长震动），最多保留 50 条",
+    columns: ["from", "text", "ts"],
+    type: "array"
   }
 ]
 
