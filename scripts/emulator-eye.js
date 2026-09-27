@@ -249,6 +249,18 @@ async function main() {
     console.log(JSON.stringify(s, null, 2).slice(0, 2000))
   } else if (mode === 'shot') {
     console.log('已保存 ' + (await getScreenshot(client, rest[1])))
+  } else if (mode === 'bulkshot') {
+    // 连拍（自动巡航取证用）：bulkshot <grpcPort> <prefix> <n> <intervalMs>
+    // 例：node scripts/emulator-eye.js bulkshot 8554 /tmp/shots/tour- 27 3000
+    const prefix = rest[1]
+    const n = Number(rest[2]) || 1
+    const gap = Number(rest[3]) || 3000
+    for (let i = 0; i < n; i++) {
+      const p = `${prefix}${String(i).padStart(2, '0')}.png`
+      await getScreenshot(client, p)
+      console.log('已保存 ' + p)
+      if (i < n - 1) await sleep(gap)
+    }
   } else if (mode === 'click') {
     await click(client, Number(rest[1]), Number(rest[2]))
     console.log('已触摸点击 (' + rest[1] + ',' + rest[2] + ')')
