@@ -192,7 +192,12 @@ function syncReply(connect, payload) {
 // 消息存进 ev_chat_inbox（聊天页读取），同时长震动提醒，并回送达确认。
 function syncHandleChatIncoming(connect, msg) {
   var text = String(msg.text === undefined || msg.text === null ? "" : msg.text)
-  var item = { from: "phone", text: text, ts: msg.ts || Date.now() }
+  // id 必须**每条唯一**：手机端/后续拉取都靠它去重，避免同一条留言被重复提醒
+  var msgId = String(msg.id || "")
+  if (!msgId) {
+    msgId = String(Date.now()) + "-" + Math.random().toString(36).slice(2, 6)
+  }
+  var item = { id: msgId, from: "phone", text: text, ts: msg.ts || Date.now() }
   var storage = require("@system.storage")
   storage.get({
     key: "ev_chat_inbox",

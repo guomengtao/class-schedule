@@ -43,7 +43,9 @@ module.exports = {
     }
     var msg = {
       action: "chat",
-      id: String(Date.now()),
+      // ⚠️ id 必须**每条唯一**：手机端据此去重（防止同一条被提醒两次）。
+      //    只用 Date.now() 时，同一毫秒内连发两条会撞 id → 手机端会把第二条误判为重复而漏提醒。
+      id: String(Date.now()) + "-" + Math.random().toString(36).slice(2, 6),
       text: String(text === undefined || text === null ? "" : text),
       ts: Date.now()
     }
