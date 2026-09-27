@@ -45,6 +45,8 @@
   - **打开浮层的处理器必须有越界守卫**（`if (idx < 0 || idx >= this.list.length) return`），否则列表未就绪/删除后索引失效时抛异常 → 表现为"点了没反应"
 - 胶囊屏（192px）硬约束：`week-view` 可视列数 ∈ [2.5, 3.5]（`160 ÷ cellWidth`）；胶囊屏关闭行号列（`rowNumWidth=0`）、`cellWidth ≤ 60`；按钮高 ≥48px（触控底线 44px）
 - **⭐ 胶囊屏弹窗/浮层几何铁律（2026-09-27 实测两轮后确立）**：**遮罩给对称 padding（`40px 16px`）+ 卡片 `width: 100%`，且禁用百分比宽度与 `max-width`**
+  - **⚠️ 还必须把页面根容器的 padding 移到内层容器**：Vela 绝对定位按父级**内容框**计算 ⇒ 根容器带 padding（如胶囊 `.page { padding: 30px 8px }`）会把弹窗整体推移 → 实测同一份弹窗 CSS 在设置页 16/16 对称、在首页设置 8/24 不对称。已处理：`settings.ux`、`homepage-settings.ux`（做法：根容器只留 flex/宽高，内容包进 `.xxx-body { padding: … }`，弹窗/抽屉作根容器直接子元素；4 个屏型块同步改）。**待处理：`backup-restore.ux`（数据备份页同样有 padding）、`reset-data.ux`、`premium-overlay.ux`**（`schedule-manager.ux` 实测 8/8 已对称）
+  - **胶囊屏文本预算**（避免截断）：卡片内宽 = 176 − 2×卡片padding；`✓ 数据备份与恢复` 需 ≈136px ⇒ **`.benefit-item` 17px + 卡片左右 padding 8px**；`.modal-desc` 必须 **`lines: 4`**（写 `lines: 2` 会把「…全部高级功能」的末二字吃掉）。修法脚本：`scripts/fix-capsule-modal-text.py`
   - 原理：卡片 `width:100%` 填满"对称 padding 之后的内容区" ⇒ 左右边距 = padding、与屏宽无关，**天然等距**；**不要去"算居中"**（`align-items: center` 在本引擎上并不可靠，实测过被忽略）
   - 反例（"左小右大"的成因）：卡片 `width: 90%/92%` + 遮罩 `padding` —— 左边界由 padding 决定、宽度由百分比基准决定，两套算法不配套 ⇒ 实测左 8 / 右 40
   - **同一文件里不要出现两个 capsule `@media` 块写同一属性**：实测谁生效**不稳定**（settings 用旧 90%、backup-restore 用新 100%）⇒ "后面追加一块去覆盖"不可靠，**必须改原有的那一处，或把所有定义写成同一个值**

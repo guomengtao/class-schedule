@@ -854,6 +854,7 @@ export default {
     font-size: 20px;
     margin-bottom: 14px;
     line-height: 28px;
+    lines: 4;
   }
 
   .modal-btn-primary {
@@ -968,7 +969,7 @@ export default {
   .modal-card {
     width: 100%;
     border-radius: 14px;
-    padding: 14px 10px;
+    padding: 14px 8px;
   }
 
   .modal-title {
@@ -983,6 +984,7 @@ export default {
     font-size: 18px;
     line-height: 25px;
     margin-bottom: 10px;
+    lines: 4;
   }
 
   .benefit-list {
@@ -992,8 +994,8 @@ export default {
   }
 
   .benefit-item {
-    font-size: 18px;
-    line-height: 25px;
+    font-size: 17px;
+    line-height: 24px;
     margin-bottom: 6px;
     lines: 1;
     text-overflow: ellipsis;
