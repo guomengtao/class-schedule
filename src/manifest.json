@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.6.148",
-  "versionCode": 977,
+  "versionName": "1.6.151",
+  "versionCode": 980,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
@@ -59,7 +59,7 @@
       "课程管理": "course-manager, custom-content-edit, countdown-manage",
       "课表视图": "schedule-manager, week-view, schedule-qrcode, workday-info",
       "设置与系统": "settings, tools, homepage-settings, reset-data, backup-restore, activation, device-info, pinned-pages",
-      "实验室工具": "vibration-lab, vibration-lab-v2, qrcode-generator, black-screen-check, chinese-input, device-id-diagnosis",
+      "实验室工具": "vibration-lab, qrcode-generator, chinese-input",
       "其他": "statistics, donate"
     },
     "pages": {
@@ -148,11 +148,6 @@
         "group": "设置与系统",
         "name_cn": "设备信息"
       },
-      "pages/device-id-diagnosis": {
-        "component": "device-id-diagnosis",
-        "group": "实验室工具",
-        "name_cn": "设备ID诊断"
-      },
       "pages/pinned-pages": {
         "component": "pinned-pages",
         "group": "设置与系统",
@@ -168,20 +163,10 @@
         "group": "实验室工具",
         "name_cn": "震动实验室"
       },
-      "pages/vibration-lab-v2": {
-        "component": "vibration-lab-v2",
-        "group": "实验室工具",
-        "name_cn": "震动实验室V2"
-      },
       "pages/qrcode-generator": {
         "component": "qrcode-generator",
         "group": "实验室工具",
         "name_cn": "二维码生成"
-      },
-      "pages/black-screen-check": {
-        "component": "black-screen-check",
-        "group": "实验室工具",
-        "name_cn": "黑屏检测"
       },
       "pages/chinese-input": {
         "component": "chinese-input",

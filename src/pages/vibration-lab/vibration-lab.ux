@@ -9,15 +9,26 @@
       <div class="header-placeholder"></div>
     </div>
 
+    <scroll class="page-scroll" scroll-y="{{true}}">
     <div class="notice-banner" style="background-color: {{ theme.cardLight }}; border-color: {{ theme.accent }}">
       <text class="notice-icon">ℹ</text>
       <text class="notice-text" style="color: {{ theme.textSecondary }}">温馨提示：震动提醒功能仅在屏幕亮屏时有效，息屏后系统无法触发震动。</text>
     </div>
 
-    <div class="section" style="background-color: {{ theme.card }}">
-      <text class="section-title" style="color: {{ theme.text }}">震动提醒设置</text>
+    <div class="hero" style="background-color: {{ theme.cardLight }}">
+      <text class="hero-icon">〰</text>
+      <text class="hero-name" style="color: {{ theme.text }}">{{ currentName }}</text>
+      <text class="hero-desc" style="color: {{ theme.textSecondary }}">强度 {{ duration }}ms · 间隔 {{ interval }}ms · {{ count }}次</text>
+      <div class="hero-btns">
+        <input class="play-btn" type="button" value="▶ 试听" onclick="preview" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        <input class="stop-btn" if="{{ isPlaying }}" type="button" value="■ 停止" onclick="stopVibration" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}" />
+      </div>
+    </div>
+
+    <div class="section">
+      <text class="section-title" style="color: {{ theme.text }}">上课提醒</text>
       <div class="remind-toggle-row">
-        <text class="remind-label" style="color: {{ theme.text }}">上课提醒</text>
+        <text class="remind-label" style="color: {{ theme.text }}">开启提醒</text>
         <input class="toggle-btn" type="button" value="{{ remindEnabled ? 'ON' : 'OFF' }}" onclick="toggleRemind" style="background-color: {{ remindEnabled ? theme.accent : theme.border }}; color: {{ remindEnabled ? theme.bg : theme.textSecondary }}" />
       </div>
       <div class="remind-toggle-row" if="{{ remindEnabled }}">
@@ -39,21 +50,11 @@
             <text class="vibe-desc" style="color: {{ vibrationStyle === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.desc }}</text>
           </div>
         </div>
-        <text class="vibe-hint" style="color: {{ theme.textMuted }}">点击试听震动效果</text>
+        <text class="vibe-hint" style="color: {{ theme.textMuted }}">点击样式即试听</text>
       </div>
     </div>
 
-    <div class="hero" style="background-color: {{ theme.card }}">
-      <text class="hero-icon">〰</text>
-      <text class="hero-name" style="color: {{ theme.text }}">{{ currentName }}</text>
-      <text class="hero-desc" style="color: {{ theme.textSecondary }}">强度 {{ duration }}ms · 间隔 {{ interval }}ms · {{ count }}次</text>
-      <div class="hero-btns">
-        <input class="play-btn" type="button" value="▶ 试听" onclick="preview" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        <input class="stop-btn" if="{{ isPlaying }}" type="button" value="■ 停止" onclick="stopVibration" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}" />
-      </div>
-    </div>
-
-    <div class="section" style="background-color: {{ theme.card }}">
+    <div class="section">
       <text class="section-title" style="color: {{ theme.text }}">震动强度</text>
       <div class="stepper-row">
         <input class="step-btn" type="button" value="−" onclick="decreaseDuration" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
@@ -69,7 +70,7 @@
       </div>
     </div>
 
-    <div class="section" style="background-color: {{ theme.card }}">
+    <div class="section">
       <text class="section-title" style="color: {{ theme.text }}">间隔时间</text>
       <div class="stepper-row">
         <input class="step-btn" type="button" value="−" onclick="decreaseInterval" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
@@ -85,7 +86,7 @@
       </div>
     </div>
 
-    <div class="section" style="background-color: {{ theme.card }}">
+    <div class="section">
       <text class="section-title" style="color: {{ theme.text }}">震动次数</text>
       <div class="stepper-row">
         <input class="step-btn" type="button" value="−" onclick="decreaseCount" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
@@ -101,7 +102,7 @@
       </div>
     </div>
 
-    <div class="section" style="background-color: {{ theme.card }}">
+    <div class="section">
       <text class="section-title" style="color: {{ theme.text }}">快捷预设</text>
       <div class="preset-grid">
         <div class="preset-item" for="{{ presets }}" onclick="applyPreset($item.key)" style="background-color: {{ theme.border }}">
@@ -111,7 +112,7 @@
       </div>
     </div>
 
-    <div class="section" style="background-color: {{ theme.card }}">
+    <div class="section">
       <text class="section-title" style="color: {{ theme.text }}">我的方案</text>
       <div class="empty-hint" if="{{ savedPresets.length === 0 }}">
         <text class="empty-text" style="color: {{ theme.textMuted }}">暂无保存的方案，点击下方按钮保存</text>
@@ -127,11 +128,12 @@
       <input class="save-btn" type="button" value="保存当前为方案" onclick="savePreset" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
-    <unlock-dialog id="unlockDialog"></unlock-dialog>
-
     <div class="footer-actions">
       <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}; font-size: 20px; line-height: 28px;">固定到首页</text>
     </div>
+    </scroll>
+
+    <unlock-dialog id="unlockDialog"></unlock-dialog>
   </div>
 </template>
 
@@ -551,8 +553,13 @@ export default {
   padding: 44px 8px 8px 8px;
   width: 100%;
   height: 100%;
-  
-  }
+}
+
+.page-scroll {
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+}
 
 .lab-nav {
   flex-direction: column;
@@ -593,11 +600,12 @@ export default {
 }
 
 .hero {
+  width: 100%;
   flex-direction: column;
   align-items: center;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 8px;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
 }
 
 .hero-icon {
@@ -618,7 +626,7 @@ export default {
   font-size: 20px; line-height: 28px;
   margin-top: 4px;
   text-align: center;
-  lines: 1;
+  lines: 2;
   text-overflow: ellipsis;
 }
 
@@ -628,35 +636,36 @@ export default {
 }
 
 .play-btn {
-  width: 100px;
-  height: 40px;
-  border-radius: 8px;
-  font-size: 22px; line-height: 32px;
+  flex: 1;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 22px; line-height: 34px;
   font-weight: bold;
   text-align: center;
   margin-right: 8px;
 }
 
 .stop-btn {
-  width: 80px;
-  height: 40px;
-  border-radius: 8px;
-  font-size: 22px; line-height: 32px;
+  width: 88px;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 22px; line-height: 34px;
   font-weight: bold;
   text-align: center;
 }
 
 .section {
+  width: 100%;
   flex-direction: column;
-  border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 8px;
+  padding: 12px 0;
+  margin-bottom: 6px;
+  border-top: 1px solid rgba(255,255,255,0.06);
 }
 
 .section-title {
-  font-size: 20px; line-height: 28px;
+  font-size: 24px; line-height: 32px;
   font-weight: bold;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   lines: 1;
   text-overflow: ellipsis;
 }
@@ -669,13 +678,13 @@ export default {
 }
 
 .step-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  font-size: 22px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 24px;
   font-weight: bold;
   text-align: center;
-  line-height: 32px;
+  line-height: 36px;
 }
 
 .step-value {
@@ -691,16 +700,16 @@ export default {
 .quick-row {
   flex-direction: row;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: space-between;
 }
 
 .quick-btn {
-  width: 52px;
-  height: 40px;
-  border-radius: 6px;
-  font-size: 22px; line-height: 32px;
+  width: 31%;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 22px; line-height: 34px;
   text-align: center;
-  margin: 2px;
+  margin: 4px 1%;
 }
 
 .quick-btn.active {
@@ -774,10 +783,10 @@ export default {
 }
 
 .delete-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 6px;
-  font-size: 22px; line-height: 32px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 22px; line-height: 34px;
   text-align: center;
 }
 
@@ -790,8 +799,8 @@ export default {
 
 .save-btn {
   width: 100%;
-  height: 44px;
-  border-radius: 10px;
+  height: 48px;
+  border-radius: 14px;
   font-size: 22px; line-height: 34px;
   font-weight: bold;
   text-align: center;
@@ -817,7 +826,7 @@ export default {
   font-size: 20px;
   line-height: 28px;
   flex: 1;
-  lines: 1;
+  lines: 2;
   text-overflow: ellipsis;
 }
 
@@ -836,10 +845,10 @@ export default {
 }
 
 .toggle-btn {
-  width: 52px;
-  height: 40px;
-  border-radius: 8px;
-  font-size: 22px; line-height: 32px;
+  width: 64px;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 22px; line-height: 34px;
   font-weight: bold;
   text-align: center;
 }
@@ -850,10 +859,10 @@ export default {
 }
 
 .minute-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 6px;
-  font-size: 22px; line-height: 32px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 24px; line-height: 36px;
   font-weight: bold;
   text-align: center;
 }
@@ -1027,33 +1036,33 @@ export default {
     line-height: 28px;
   }
   .play-btn {
-    width: 90px;
-    height: 40px;
+    flex: 1;
+    height: 48px;
     font-size: 22px;
-    line-height: 32px;
+    line-height: 34px;
   }
   .stop-btn {
-    width: 70px;
-    height: 40px;
+    width: 88px;
+    height: 48px;
     font-size: 22px;
-    line-height: 32px;
+    line-height: 34px;
   }
   .section {
-    padding: 10px;
+    padding: 10px 0;
     margin-bottom: 6px;
   }
   .section-title {
-    font-size: 20px;
-    line-height: 28px;
+    font-size: 22px;
+    line-height: 30px;
   }
   .stepper-row {
     margin-bottom: 6px;
   }
   .step-btn {
-    width: 40px;
-    height: 40px;
-    font-size: 22px;
-    line-height: 32px;
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
+    line-height: 36px;
   }
   .step-value {
     font-size: 22px;
@@ -1061,16 +1070,16 @@ export default {
     width: 80px;
   }
   .quick-btn {
-    width: 48px;
-    height: 40px;
+    width: 31%;
+    height: 48px;
     font-size: 22px;
-    line-height: 32px;
+    line-height: 34px;
   }
   .preset-grid {
     justify-content: flex-start;
   }
   .preset-item {
-    width: 30%;
+    width: 31%;
     padding: 8px 4px;
   }
   .preset-name {
@@ -1093,27 +1102,27 @@ export default {
     line-height: 28px;
   }
   .delete-btn {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     font-size: 22px;
-    line-height: 32px;
+    line-height: 34px;
   }
   .save-btn {
-    height: 44px;
+    height: 48px;
     font-size: 22px;
     line-height: 34px;
   }
   .toggle-btn {
-    width: 52px;
-    height: 40px;
+    width: 64px;
+    height: 48px;
     font-size: 22px;
-    line-height: 32px;
+    line-height: 34px;
   }
   .minute-btn {
-    width: 36px;
-    height: 40px;
-    font-size: 22px;
-    line-height: 32px;
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
+    line-height: 36px;
   }
   .minute-value {
     font-size: 22px;
