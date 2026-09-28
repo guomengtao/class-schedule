@@ -1,6 +1,8 @@
 <import name="unlock-dialog" src="../../components/unlock-dialog"></import>
 <template>
   <div class="settings-page" style="background-color: {{ theme.bg }}">
+    <!-- 可滚动内容区：修复小屏下方行点不到的问题（档案 P0） -->
+    <scroll class="settings-scroll" scroll-y="{{true}}">
     <!-- 内层承载页面 padding：让抽屉弹（绝对定位）能真正贴到屏幕底部与左右边缘 -->
     <div class="settings-body">
     <div class="back-header">
@@ -130,6 +132,7 @@
     <text class="version-text" style="color: {{ theme.textMuted }}">v{{ versionText }} · #{{ versionCode }}</text>
     <text class="welcome-link" onclick="goToWelcome" style="color: {{ theme.accent }}">欢迎页</text>
     </div>
+    </scroll>
 
     <unlock-dialog id="unlockDialog"></unlock-dialog>
 
@@ -213,8 +216,7 @@ export default {
     showPremiumDialog: false,
     showFontSize: false,
     showTheme: false,
-    showSchedule: false,
-    
+    showSchedule: false
   },
 
   onInit() {
@@ -438,6 +440,13 @@ export default {
   flex-direction: column;
   width: 100%;
   padding: 44px 10px 12px 10px;
+}
+
+/* 可滚动内容区：header 固定在顶部，其余内容上下滚动 */
+.settings-scroll {
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
 }
 
 .back-header {

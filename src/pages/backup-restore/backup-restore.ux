@@ -1,5 +1,6 @@
-rinuo@qq.com<template>
+<template>
   <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="page-body">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
@@ -45,6 +46,8 @@ rinuo@qq.com<template>
     <div class="info-section" style="background-color: {{ theme.card }}">
       <text class="info-title" style="color: {{ theme.text }}">备份内容</text>
       <text class="info-text" style="color: {{ theme.textSecondary }}">课程·课表·设置·主题·提醒·状态</text>
+    </div>
+
     </div>
 
     <div class="overlay-modal" show="{{ showDialog }}" onclick="dismissDialog">
@@ -436,10 +439,15 @@ export default {
 .page {
   flex: 1;
   flex-direction: column;
-  padding: 44px 10px 16px 10px;
+  padding: 0;
   width: 100%;
   height: 100%;
-  
+
+}
+
+/* padding 承载在内层：弹窗 absolute 按父级内容盒计算，根容器带 padding 会让弹窗内缩不对称 */
+.page-body {
+  padding: 44px 10px 16px 10px;
 }
 
 .create-section {
@@ -649,7 +657,7 @@ export default {
 }
 
 @media (shape: circle) {
-  .page {
+  .page-body {
     padding: 44px 36px 44px 36px;
   }
   
@@ -715,7 +723,7 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
-  .page {
+  .page-body {
     padding: 30px 8px 30px 8px;
   }
 
@@ -832,59 +840,13 @@ export default {
     line-height: 26px;
   }
 
-  .modal-card {
-    width: 100%;
-    border-radius: 12px;
-    padding: 14px 8px;
-  }
-
-  .modal-title {
-    font-size: 28px;
-    margin-bottom: 10px;
-    line-height: 36px;
-  }
-
-  .modal-desc {
-    font-size: 24px;
-    margin-bottom: 14px;
-    line-height: 32px;
-    lines: 4;
-    text-align: center;
-  }
-
-  .benefit-list {
-    margin-bottom: 14px;
-    padding-left: 8px;
-  }
-
-  .benefit-item {
-    font-size: 17px;
-    line-height: 24px;
-  }
-
-  .benefit-scroll {
-    width: 100%;
-    height: 32px;
-    margin-bottom: 6px;
-  }
-
-  .modal-btn-primary {
-    height: 42px;
-    border-radius: 21px;
-    font-size: 24px;
-    margin-bottom: 8px;
-  }
-
-  .modal-btn-secondary {
-    height: 36px;
-    border-radius: 18px;
-    font-size: 24px;
-  }
+  /* 弹窗相关规则已统一收敛到文件尾部 capsule 适配块，
+     此处不再重复定义（双块覆盖会导致弹窗样式不稳定/不对称） */
 
 }
 
 @media (shape: rect) {
-  .page {
+  .page-body {
     padding: 6px 8px 10px 8px;
   }
   
