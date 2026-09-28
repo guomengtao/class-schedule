@@ -258,6 +258,7 @@ export default {
     viewIndex: 0,
     todayIndex: 0,
     isCapsule: false,
+    screenWidth: 0,
     currentCourseDay: "",
     currentCourseTime: "",
     initDone: false,
@@ -324,6 +325,8 @@ export default {
       success: function(data) {
         var shape = data.screenShape || ""
         var capsule = (shape === "capsule" || shape === "pill-shaped")
+        // 保存真实屏宽：胶囊屏列宽自适应需要（手环9=192，手环10/11=212）
+        self.screenWidth = data.screenWidth || 0
         if (self.isCapsule !== capsule) {
           self.isCapsule = capsule
           // 模板可能已按默认（非胶囊）应用过，屏型回填后需重新应用
@@ -476,10 +479,12 @@ export default {
     this.cellMargin = cfg.cellMargin !== undefined ? cfg.cellMargin : 1
     this.templateDayLabels = cfg.dayLabels || ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"]
     this.applyWeekendFilter()
-    if ((id === "minimal-clean" || id === "minimal-char" || id === "compact-grid") && this.isCapsule !== true) {
+    if (id === "minimal-clean" || id === "minimal-char" || id === "compact-grid") {
       var cellExtra = 2 * this.cellMargin + (this.cellBordered ? 2 : 0)
-      var availCells = 316 - this.rowNumWidth
-      this.cellWidth = Math.floor(availCells / this.weekDays.length) - cellExtra
+      // 胶囊屏按真实屏宽自适应（.wv-page 左右 padding 为 0）。
+      // 此前胶囊屏被排除、固定 42px：5×42=210 > 192，周五整列被屏幕右缘裁掉半个字（2026-09-28 用户反馈）。
+      var availCells = (this.isCapsule === true ? (this.screenWidth || 192) : 316) - this.rowNumWidth
+      this.cellWidth = Math.max(30, Math.floor(availCells / this.weekDays.length) - cellExtra)
     }
     this.gridContentWidth = this.rowNumWidth + this.weekDays.length * (this.cellWidth + 2 * this.cellMargin + (this.cellBordered ? 2 : 0))
   },
