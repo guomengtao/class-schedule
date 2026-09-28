@@ -24,6 +24,7 @@
 - **⭐ 列表行 = `onclick` 只放整行容器，行内子元素一律不绑 onclick** → 热区=整行（窄屏上热区太小=点了没反应）。`index.ux` 的 `class-grid-item` 是惯例
 - **⭐ 铁律：模拟器「通过」≠ 真机通过**（同份代码 212×520 模拟器正常 → 手环 9 真机打不开）。模拟器只适合排除法/取证/画面判读，**不适合验收**；模拟器 OK 而真机不 OK 优先怀疑触摸命中/事件分发/屏型尺寸/厂商定制
 - **⭐「模拟器正常真机崩」第一怀疑对象 = 隐式宽度中间层 + 隐式 flex 默认值**（REDMI Watch 6 实锤：同页同 432×514 rect 模拟器键盘满宽正常、真机塌缩 ~150px 且 .item-row/.style-block 的 flex-direction 失效；真机 Vela 严格执行"无显式 width → 退化"红线，模拟器运行时宽容撑满）。此类问题模拟器**不可复现也不可验收**；修复=补显式 `width:100%`/`flex-direction`（模拟器上是 no-op，无回归风险），验收只能真机往返
+- **⭐ 禁止为"复现真机运行时崩坏"搭新模拟器镜像实例**（Watch 6 实验 15 轮止损）：SDK 镜像与真机厂商定制 Vela 不保证同源 → 复现失败无法证伪；pre-4.0 工具链与 5.0 运行时代差巨大（storage 回调不执行、--start-page 失效、pm install 才是唯一安装通道、am stop 后只能 reboot）。正确路径 = 修复包直接真机往返 + input-crash-diag 诊断页 + pages.html 审核闭环（详见 `docs/模拟器复现真机Watch6问题-可行性分析.md` 附录，含 5.0 实例搭建方法备查）
 - **验证优先级：单元测试 ＞（画面类）模拟器截图 ＞＞ 真机往返**。单测毫秒级可回归定位函数；模拟器只在布局/裁切/溢出/视觉问题不可替代；触摸/性能/机型差异只有真机说了算
 - **⭐ 胶囊屏弹窗/浮层几何铁律**：遮罩对称 padding（`40px 16px`）+ 卡片 `width:100%`，**禁用百分比宽度与 `max-width`**；卡片 `width:100%` 填满对称 padding 后的内容区 ⇒ 左右边距天然等距，**不要算居中**（`align-items:center` 不可靠）。胶囊文本预算：卡片内宽=176−2×padding；`.modal-desc` 必须 `lines:4`。**同一文件不要出现两个 capsule `@media` 块写同一属性**（覆盖不稳定，必须改原有那一处）
   - **⚠️ 必须把页面根容器 padding 移到内层容器**：Vela 绝对定位按父级**内容盒**算，根容器带 padding 会把弹窗/抽屉整体内缩 → 已处理 `settings.ux`/`homepage-settings.ux`/`schedule-manager.ux`；待处理 `backup-restore.ux`/`reset-data.ux`/`premium-overlay.ux`
