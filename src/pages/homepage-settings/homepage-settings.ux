@@ -68,40 +68,6 @@
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
-      <div class="item-row">
-        <text class="item-label" style="color: {{ theme.text }}">时钟</text>
-        <div class="switch-track" style="background-color: {{ showTime ? theme.accent : theme.border }}" onclick="toggleTime">
-          <div class="switch-thumb" style="left: {{ showTime ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
-        </div>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}" if="{{ showTime }}"></div>
-      <div class="time-format-row" if="{{ showTime }}">
-        <div class="unit-chip" style="border-color: {{ timeFormat.year ? theme.accent : theme.border }}; background-color: {{ timeFormat.year ? theme.cardLight : theme.border }}" onclick="toggleYear">
-          <text class="unit-text" style="color: {{ timeFormat.year ? theme.accent : theme.textSecondary }}">年</text>
-        </div>
-        <div class="unit-chip" style="border-color: {{ timeFormat.month ? theme.accent : theme.border }}; background-color: {{ timeFormat.month ? theme.cardLight : theme.border }}" onclick="toggleMonth">
-          <text class="unit-text" style="color: {{ timeFormat.month ? theme.accent : theme.textSecondary }}">月</text>
-        </div>
-        <div class="unit-chip" style="border-color: {{ timeFormat.day ? theme.accent : theme.border }}; background-color: {{ timeFormat.day ? theme.cardLight : theme.border }}" onclick="toggleDay">
-          <text class="unit-text" style="color: {{ timeFormat.day ? theme.accent : theme.textSecondary }}">日</text>
-        </div>
-        <text class="colon-sep" style="color: {{ theme.textMuted }}"></text>
-        <div class="unit-chip" style="border-color: {{ timeFormat.hour ? theme.accent : theme.border }}; background-color: {{ timeFormat.hour ? theme.cardLight : theme.border }}" onclick="toggleHour">
-          <text class="unit-text" style="color: {{ timeFormat.hour ? theme.accent : theme.textSecondary }}">时</text>
-        </div>
-        <text class="colon-sep" style="color: {{ theme.textMuted }}">:</text>
-        <div class="unit-chip" style="border-color: {{ timeFormat.minute ? theme.accent : theme.border }}; background-color: {{ timeFormat.minute ? theme.cardLight : theme.border }}" onclick="toggleMinute">
-          <text class="unit-text" style="color: {{ timeFormat.minute ? theme.accent : theme.textSecondary }}">分</text>
-        </div>
-        <text class="colon-sep" style="color: {{ theme.textMuted }}">:</text>
-        <div class="unit-chip" style="border-color: {{ timeFormat.second ? theme.accent : theme.border }}; background-color: {{ timeFormat.second ? theme.cardLight : theme.border }}" onclick="toggleSecond">
-          <text class="unit-text" style="color: {{ timeFormat.second ? theme.accent : theme.textSecondary }}">秒</text>
-        </div>
-      </div>
-      <text class="time-preview" if="{{ showTime }}" style="color: {{ theme.accent }}">{{ timePreview }}</text>
-    </div>
-
-    <div class="section" style="background-color: {{ theme.card }}">
       <div class="item-row" onclick="toggleFontSize">
         <text class="item-label" style="color: {{ theme.text }}">课程字号</text>
         <div class="row-right">
@@ -176,15 +142,12 @@ export default {
     showCustomContent: false,
     customContent: "",
     showStatusBar: true,
-    showTime: true,
     showPinnedBar: true,
     showDayNavZong: true,
     showDayNavJin: true,
     showDayNavMing: true,
     displaySize: 48,
     showFontSize: false,
-    timeFormat: { year: false, month: false, day: false, hour: true, minute: true, second: false },
-    timePreview: "",
     showDialog: false
   },
   onInit() {
@@ -213,14 +176,11 @@ export default {
       self.showCustomContent = settings.showCustomContent || false
       self.customContent = settings.customContent || ""
       self.showStatusBar = settings.showStatusBar !== false
-      self.showTime = settings.showTime !== false
       self.showPinnedBar = settings.showPinnedBar !== false
       self.showDayNavZong = settings.showDayNavZong !== false
       self.showDayNavJin = settings.showDayNavJin !== false
       self.showDayNavMing = settings.showDayNavMing !== false
       self.displaySize = settings.displaySize || 48
-      self.timeFormat = settings.timeFormat || { year: false, month: false, day: false, hour: true, minute: true, second: true }
-      self.updateTimePreview()
     })
   },
   saveSettings() {
@@ -229,12 +189,10 @@ export default {
       showCustomContent: this.showCustomContent,
       customContent: this.customContent,
       showStatusBar: this.showStatusBar,
-      showTime: this.showTime,
       showPinnedBar: this.showPinnedBar,
       showDayNavZong: this.showDayNavZong,
       showDayNavJin: this.showDayNavJin,
-      showDayNavMing: this.showDayNavMing,
-      timeFormat: this.timeFormat
+      showDayNavMing: this.showDayNavMing
     })
   },
   checkAndShowOverlay() {
@@ -260,12 +218,10 @@ export default {
       showCustomContent: this.showCustomContent,
       customContent: this.customContent,
       showStatusBar: this.showStatusBar,
-      showTime: this.showTime,
       showPinnedBar: this.showPinnedBar,
       showDayNavZong: this.showDayNavZong,
       showDayNavJin: this.showDayNavJin,
-      showDayNavMing: this.showDayNavMing,
-      timeFormat: this.timeFormat
+      showDayNavMing: this.showDayNavMing
     }, function() { router.back() })
   },
 
@@ -286,10 +242,6 @@ export default {
   },
   toggleStatusBar() {
     this.showStatusBar = !this.showStatusBar
-    this.saveSettings()
-  },
-  toggleTime() {
-    this.showTime = !this.showTime
     this.saveSettings()
   },
   togglePinnedBar() {
@@ -317,36 +269,6 @@ export default {
 
   openPinnedPages() {
     router.push({ uri: "/pages/pinned-pages" })
-  },
-
-  toggleTimeUnit(unit) {
-    this.timeFormat[unit] = !this.timeFormat[unit]
-    this.updateTimePreview()
-    this.saveSettings()
-  },
-  toggleYear() { this.toggleTimeUnit("year") },
-  toggleMonth() { this.toggleTimeUnit("month") },
-  toggleDay() { this.toggleTimeUnit("day") },
-  toggleHour() { this.toggleTimeUnit("hour") },
-  toggleMinute() { this.toggleTimeUnit("minute") },
-  toggleSecond() { this.toggleTimeUnit("second") },
-  updateTimePreview() {
-    var now = new Date()
-    var dateParts = []
-    var timeParts = []
-    if (this.timeFormat.year) dateParts.push(now.getFullYear() + "年")
-    if (this.timeFormat.month) dateParts.push((now.getMonth() + 1) + "月")
-    if (this.timeFormat.day) dateParts.push(now.getDate() + "日")
-    if (this.timeFormat.hour) timeParts.push((now.getHours() < 10 ? "0" : "") + now.getHours())
-    if (this.timeFormat.minute) timeParts.push((now.getMinutes() < 10 ? "0" : "") + now.getMinutes())
-    if (this.timeFormat.second) timeParts.push((now.getSeconds() < 10 ? "0" : "") + now.getSeconds())
-    var dateStr = dateParts.join(" ")
-    var timeStr = timeParts.join(":")
-    if (dateStr && timeStr) {
-      this.timePreview = dateStr + " " + timeStr
-    } else {
-      this.timePreview = dateStr || timeStr || "00:00:00"
-    }
   }
 }
 </script>
@@ -518,38 +440,6 @@ export default {
   font-weight: bold;
 }
 
-.time-format-row {
-  flex-direction: row;
-  align-items: center;
-  flex-wrap: wrap;
-  padding-top: 16px;
-}
-
-.unit-chip {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border-width: 1px;
-  border-style: solid;
-  margin: 4px;
-}
-
-.unit-text {
-  font-size: 26px;
-}
-
-.colon-sep {
-  font-size: 26px;
-  margin: 0 3px;
-}
-
-.time-preview {
-  font-size: 34px;
-  font-weight: bold;
-  margin-top: 16px;
-  margin-bottom: 16px;
-  text-align: center;
-}
-
 .overlay-modal {
   position: absolute;
   left: 0;
@@ -671,28 +561,6 @@ export default {
 
   .preview-font {
     font-size: 24px;
-  }
-
-  .unit-chip {
-    padding: 6px 8px;
-    border-radius: 8px;
-    margin: 3px;
-  }
-
-  .unit-text {
-    font-size: 24px;
-    line-height: 30px;
-  }
-
-  .colon-sep {
-    font-size: 22px;
-    margin: 0 2px;
-  }
-
-  .time-preview {
-    font-size: 28px;
-    margin-top: 10px;
-    margin-bottom: 10px;
   }
 
   .switch-track {

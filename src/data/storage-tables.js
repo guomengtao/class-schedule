@@ -80,7 +80,7 @@ var tables = [
   {
     key: "homepage_settings",
     desc: "首页设置",
-    columns: ["showQuickAdd", "showCustomContent", "customContent", "showTime", "showStatusBar", "showPinnedBar", "showDayNavZong", "showDayNavJin", "showDayNavMing", "showLabSection", "timeFormat"],
+    columns: ["showQuickAdd", "showCustomContent", "customContent", "showStatusBar", "showPinnedBar", "showDayNavZong", "showDayNavJin", "showDayNavMing", "showLabSection"],
     type: "object"
   },
   {

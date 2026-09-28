@@ -25,9 +25,9 @@
 //    不改变任何用户可见行为。确认状态记录正常后，再逐条按需切到 soft / force。
 //
 // ⚠️ 已知矛盾（阶段 1 如实记录现状，未擅自修改）：
-//    homepage.showTime / showPinnedBar 在 store.js 的兜底对象里是 false，
+//    homepage.showPinnedBar 在 store.js 的兜底对象里是 false，
 //    而 index.ux、homepage-settings.ux 的页面初值写的是 true，
-//    且 index.ux 用 `settings.showTime !== false` 判断（undefined 视为 true）。
+//    且 index.ux 用 `settings.showPinnedBar !== false` 判断（undefined 视为 true）。
 //    即同一个开关有 3 种语义。此处记录的是 store.js 的兜底值（新用户实际可见的
 //    初始体验），统一决策留待阶段 2。
 
@@ -37,7 +37,6 @@ var CURRENT_VERSION = 1
 var ITEMS = [
   // ---------- 首页设置（homepage_settings 对象，字段级） ----------
   { id: "homepage.showQuickAdd",      key: "homepage_settings", field: "showQuickAdd",      value: true,  policy: "keep", since: 1, desc: "首页-快速添加栏是否显示" },
-  { id: "homepage.showTime",          key: "homepage_settings", field: "showTime",          value: false, policy: "keep", since: 1, desc: "首页-时钟是否显示" },
   { id: "homepage.showPinnedBar",     key: "homepage_settings", field: "showPinnedBar",     value: false, policy: "keep", since: 1, desc: "首页-钉首页栏是否显示" },
   { id: "homepage.showCustomContent", key: "homepage_settings", field: "showCustomContent", value: false, policy: "keep", since: 1, desc: "首页-自定义内容栏是否显示" },
   { id: "homepage.showStatusBar",     key: "homepage_settings", field: "showStatusBar",     value: true,  policy: "keep", since: 1, desc: "首页-课程提醒条是否显示" },
@@ -45,7 +44,6 @@ var ITEMS = [
   { id: "homepage.showDayNavJin",     key: "homepage_settings", field: "showDayNavJin",     value: true,  policy: "keep", since: 1, desc: "首页-今日导航" },
   { id: "homepage.showDayNavMing",    key: "homepage_settings", field: "showDayNavMing",    value: true,  policy: "keep", since: 1, desc: "首页-明日导航" },
   { id: "homepage.showLabSection",    key: "homepage_settings", field: "showLabSection",    value: false, policy: "keep", since: 1, desc: "首页-实验室区块是否显示" },
-  { id: "homepage.timeFormat",        key: "homepage_settings", field: "timeFormat",        value: { year: false, month: false, day: false, hour: true, minute: true, second: false }, policy: "keep", since: 1, desc: "首页-时钟显示单位" },
 
   // ---------- 主题与外观（用户主观选择，禁止重置） ----------
   { id: "appearance.theme",           key: "appTheme",          value: "blue",         policy: "keep", since: 1, desc: "主题风格（禁止重置）" },

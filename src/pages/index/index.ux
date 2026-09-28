@@ -1,9 +1,5 @@
 <template>
   <div id="schedule-page" class="schedule-page" style="background-color: {{ theme.bg }}">
-    <div class="clock-row" if="{{ showTime }}">
-      <text class="clock-text" style="color: {{ theme.textSecondary }}">{{ currentTime }}</text>
-    </div>
-
     <div class="date-row" if="{{ !isLoading }}">
       <text class="date-text" style="color: {{ theme.textSecondary }}">{{ currentDateStr }}</text>
     </div>
@@ -250,7 +246,6 @@ device.getInfo({
 var modules = {}
 // 关键模块先初始化保证首屏出内容，defer 的模块延后到首帧之后
 var moduleNames = [
-  { key: "clock" },
   { key: "dayNav" },
   { key: "holiday" },
   { key: "classList" },
@@ -269,7 +264,6 @@ function loadModule(key, mod) {
   }
 }
 
-loadModule("clock", require("./modules/clock.js"))
 loadModule("quickAdd", require("./modules/quick-add.js"))
 loadModule("dayNav", require("./modules/day-nav.js"))
 loadModule("statusBar", require("./modules/status-bar.js"))
@@ -289,7 +283,6 @@ export default {
     isLoading: true,
     loadError: false,
     skeletonCards: [1, 2, 3],
-    currentTime: "",
     currentDay: "",
     currentDayIndex: -1,
     dayDisplayText: "",
@@ -298,7 +291,6 @@ export default {
     statusTimeText: "",
     showCustomContent: false,
     customContent: "",
-    showTime: true,
     showQuickAdd: true,
     showStatusBar: true,
     statusBarSetting: true,
@@ -306,7 +298,6 @@ export default {
     showDayNavZong: true,
     showDayNavJin: true,
     showDayNavMing: true,
-    timeFormat: { hour: true, minute: true, second: false },
     pinnedPages: [],
     hasPinned: false,
     currentClasses: [],
@@ -517,7 +508,6 @@ export default {
   onDestroy() {
     if (this.loadTimeout) clearTimeout(this.loadTimeout)
     if (this.deferTimer) clearTimeout(this.deferTimer)
-    if (this.stopClockTimer && typeof this.stopClockTimer === 'function') this.stopClockTimer()
     if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
     if (this.stopProgressTimer && typeof this.stopProgressTimer === 'function') this.stopProgressTimer()
     if (modules.customContent && modules.customContent.destroy) {
@@ -575,7 +565,6 @@ export default {
   loadHomepageSettings() {
     var self = this
     store.getHomepageSettings(function(settings) {
-      self.showTime = settings.showTime !== false
       self.showQuickAdd = settings.showQuickAdd !== false
       self.statusBarSetting = settings.showStatusBar !== false
       self.showPinnedBar = settings.showPinnedBar !== false
@@ -584,13 +573,6 @@ export default {
       self.showDayNavMing = settings.showDayNavMing !== false
       self.showCustomContent = settings.showCustomContent || false
       self.customContent = settings.customContent || ""
-      self.timeFormat = settings.timeFormat || { hour: true, minute: true, second: false }
-      if (isCapsuleScreen) {
-        self.timeFormat.second = false
-      }
-      if (typeof self.updateClock === 'function') {
-        self.updateClock()
-      }
     }, true)
   },
 
@@ -785,18 +767,6 @@ export default {
   padding: 8px 4px;
   margin-bottom: 4px;
   flex-shrink: 0;
-}
-
-.clock-row {
-  padding: 2px 0;
-  margin-bottom: 2px;
-  flex-shrink: 0;
-}
-
-.clock-text {
-  font-size: 20px;
-  text-align: center;
-  width: 100%;
 }
 
 .date-row {
@@ -1299,14 +1269,6 @@ export default {
   .schedule-page {
     padding: 30px 16px 30px 16px;
   }
-  .clock-row {
-    padding: 4px 0;
-    margin-bottom: 4px;
-  }
-  .clock-text {
-    font-size: 20px;
-    line-height: 28px;
-  }
   .header {
     padding: 2px 0;
     margin-bottom: 4px;
@@ -1488,14 +1450,6 @@ export default {
 @media (shape: rect) {
   .schedule-page {
     padding: 6px 6px 6px 6px;
-  }
-  .clock-row {
-    padding: 3px 0;
-    margin-bottom: 3px;
-  }
-  .clock-text {
-    font-size: 20px;
-    line-height: 28px;
   }
   .header {
     padding: 3px 0;
