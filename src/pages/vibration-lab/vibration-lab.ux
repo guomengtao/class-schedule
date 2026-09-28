@@ -11,14 +11,12 @@
 
     <scroll class="page-scroll" scroll-y="{{true}}">
     <div class="notice-banner" style="background-color: {{ theme.cardLight }}; border-color: {{ theme.accent }}">
-      <text class="notice-icon">ℹ</text>
       <text class="notice-text" style="color: {{ theme.textSecondary }}">温馨提示：震动提醒功能仅在屏幕亮屏时有效，息屏后系统无法触发震动。</text>
     </div>
 
     <div class="hero" style="background-color: {{ theme.cardLight }}">
-      <text class="hero-icon">〰</text>
       <text class="hero-name" style="color: {{ theme.text }}">{{ currentName }}</text>
-      <text class="hero-desc" style="color: {{ theme.textSecondary }}">强度 {{ duration }}ms · 间隔 {{ interval }}ms · {{ count }}次</text>
+      <text class="hero-desc" style="color: {{ theme.textSecondary }}">{{ duration }}ms · {{ interval }}ms · {{ count }} 次</text>
       <div class="hero-btns">
         <input class="play-btn" type="button" value="▶ 试听" onclick="preview" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
         <input class="stop-btn" if="{{ isPlaying }}" type="button" value="■ 停止" onclick="stopVibration" style="background-color: {{ theme.deleteBg }}; color: {{ theme.deleteText }}" />
@@ -31,7 +29,7 @@
         <text class="remind-label" style="color: {{ theme.text }}">开启提醒</text>
         <input class="toggle-btn" type="button" value="{{ remindEnabled ? 'ON' : 'OFF' }}" onclick="toggleRemind" style="background-color: {{ remindEnabled ? theme.accent : theme.border }}; color: {{ remindEnabled ? theme.bg : theme.textSecondary }}" />
       </div>
-      <div class="remind-toggle-row" if="{{ remindEnabled }}">
+      <div class="minute-block" if="{{ remindEnabled }}">
         <text class="remind-label" style="color: {{ theme.text }}">提前提醒</text>
         <div class="minute-row">
           <input class="minute-btn" type="button" value="−" onclick="decreaseMinutes" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
@@ -39,7 +37,7 @@
           <input class="minute-btn" type="button" value="+" onclick="increaseMinutes" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
         </div>
       </div>
-      <div if="{{ remindEnabled }}">
+      <div class="style-block" if="{{ remindEnabled }}">
         <text class="remind-label" style="color: {{ theme.text }}; margin-bottom: 6px;">震动样式</text>
         <div class="vibe-grid">
           <div for="{{ vibrationStyles }}" class="vibe-item {{ vibrationStyle === $item.key ? 'active' : '' }}" onclick="selectVibrationStyle($item.key)" style="background-color: {{ vibrationStyle === $item.key ? theme.cardLight : theme.border }}; border-color: {{ vibrationStyle === $item.key ? theme.accent : 'transparent' }}">
@@ -107,7 +105,7 @@
       <div class="preset-grid">
         <div class="preset-item" for="{{ presets }}" onclick="applyPreset($item.key)" style="background-color: {{ theme.border }}">
           <text class="preset-name" style="color: {{ theme.text }}">{{ $item.label }}</text>
-          <text class="preset-info" style="color: {{ theme.textSecondary }}">{{ $item.duration }}ms × {{ $item.count }}</text>
+          <text class="preset-info" style="color: {{ theme.textSecondary }}">{{ $item.duration }}×{{ $item.count }}</text>
         </div>
       </div>
     </div>
@@ -115,7 +113,7 @@
     <div class="section">
       <text class="section-title" style="color: {{ theme.text }}">我的方案</text>
       <div class="empty-hint" if="{{ savedPresets.length === 0 }}">
-        <text class="empty-text" style="color: {{ theme.textMuted }}">暂无保存的方案，点击下方按钮保存</text>
+        <text class="empty-text" style="color: {{ theme.textMuted }}">暂无保存的方案</text>
       </div>
       <div class="saved-item" for="{{ savedPresets }}" onclick="loadPreset($idx)" style="background-color: {{ theme.border }}">
         <text class="saved-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
@@ -623,7 +621,7 @@ export default {
 }
 
 .hero-desc {
-  font-size: 20px; line-height: 28px;
+  font-size: 18px; line-height: 26px;
   margin-top: 4px;
   text-align: center;
   lines: 2;
@@ -690,7 +688,7 @@ export default {
 .step-value {
   font-size: 22px;
   font-weight: bold;
-  width: 90px;
+  width: 104px;
   text-align: center;
   line-height: 32px;
   lines: 1;
@@ -700,7 +698,7 @@ export default {
 .quick-row {
   flex-direction: row;
   flex-wrap: wrap;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 .quick-btn {
@@ -724,7 +722,7 @@ export default {
 
 .preset-item {
   flex-direction: column;
-  width: 31%;
+  width: 47%;
   padding: 10px 6px;
   margin-bottom: 6px;
   border-radius: 8px;
@@ -732,14 +730,14 @@ export default {
 }
 
 .preset-name {
-  font-size: 20px; line-height: 28px;
+  font-size: 22px; line-height: 30px;
   font-weight: bold;
   lines: 1;
   text-overflow: ellipsis;
 }
 
 .preset-info {
-  font-size: 20px; line-height: 28px;
+  font-size: 18px; line-height: 26px;
   margin-top: 2px;
   lines: 1;
   text-overflow: ellipsis;
@@ -753,7 +751,7 @@ export default {
 .empty-text {
   font-size: 20px; line-height: 28px;
   text-align: center;
-  lines: 1;
+  lines: 2;
   text-overflow: ellipsis;
 }
 
@@ -835,6 +833,20 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 4px 0;
+}
+
+/* 提前提醒：label 与步进器上下两行（同行 240px 超出 160px 内容区会重叠） */
+.minute-block {
+  flex-direction: column;
+  width: 100%;
+  padding: 4px 0;
+}
+
+/* 震动样式列表：父容器显式纵向（Vela div 默认 row，会与 label 横排挤压） */
+.style-block {
+  flex-direction: column;
+  width: 100%;
+  margin-top: 6px;
 }
 
 .remind-label {
@@ -1067,7 +1079,7 @@ export default {
   .step-value {
     font-size: 22px;
     line-height: 32px;
-    width: 80px;
+    width: 104px;
   }
   .quick-btn {
     width: 31%;
@@ -1079,7 +1091,7 @@ export default {
     justify-content: flex-start;
   }
   .preset-item {
-    width: 31%;
+    width: 47%;
     padding: 8px 4px;
   }
   .preset-name {
