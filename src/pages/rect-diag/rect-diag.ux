@@ -1,0 +1,355 @@
+<template>
+  <div class="page-root" style="background-color: {{ theme.bg }}">
+    <div class="page-body">
+      <div class="back-header">
+        <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+          <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+        </div>
+        <text class="header-title" style="color: {{ theme.text }}">布局诊断</text>
+        <div class="header-placeholder"></div>
+      </div>
+
+      <div class="env-card" style="background-color: {{ theme.card }}">
+        <text class="env-line" style="color: {{ theme.accent }}">屏型 {{ envShape }} / {{ envW }}x{{ envH }}</text>
+        <text class="env-line" style="color: {{ theme.textSecondary }}">版本 {{ envVersion }}</text>
+      </div>
+
+      <text class="guide" style="color: {{ theme.textMuted }}">从上到下逐格看：蓝格=容器应满宽，黄块=被测元素。哪一格黄块没铺满蓝格，问题就在那一格标注的结构。</text>
+
+      <!-- 步骤1：基准（显式 width:100% 单层） -->
+      <div class="case" style="background-color: {{ theme.card }}">
+        <text class="case-title" style="color: {{ theme.accent }}">1 基准：单层 width:100%</text>
+        <div class="stage" style="background-color: #173252;">
+          <div style="width: 100%; background-color: #173252;">
+            <text class="probe-text" style="background-color: #d9a441; color: #1a1a2e;">S1 满宽基准</text>
+          </div>
+        </div>
+      </div>
+
+      <!-- 步骤2：无 width 中间层嵌套 div -->
+      <div class="case" style="background-color: {{ theme.card }}">
+        <text class="case-title" style="color: {{ theme.accent }}">2 无width中间层 x2</text>
+        <div class="stage" style="background-color: #173252;">
+          <div style="width: 100%; background-color: #173252;">
+            <div style="background-color: #173252;">
+              <div style="background-color: #173252;">
+                <text class="probe-text" style="background-color: #d9a441; color: #1a1a2e;">S2 隐式宽度</text>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 步骤3：无width中间层 + scroll-x（IME rect 分支同构） -->
+      <div class="case" style="background-color: {{ theme.card }}">
+        <text class="case-title" style="color: {{ theme.accent }}">3 无width层+scroll-x</text>
+        <div class="stage" style="background-color: #173252;">
+          <div style="width: 100%; background-color: #173252;">
+            <div style="background-color: #173252;">
+              <scroll scroll-x="{{true}}" style="height: 60px;">
+                <div style="flex-direction: row;">
+                  <text class="probe-key">Q</text>
+                  <text class="probe-key">W</text>
+                  <text class="probe-key">E</text>
+                  <text class="probe-key">R</text>
+                  <text class="probe-key">T</text>
+                </div>
+              </scroll>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 步骤4：row + space-between 行（首页设置同构） -->
+      <div class="case" style="background-color: {{ theme.card }}">
+        <text class="case-title" style="color: {{ theme.accent }}">4 row+space-between</text>
+        <div class="stage" style="background-color: #173252;">
+          <div style="width: 100%; background-color: #173252;">
+            <div class="probe-row" style="background-color: #173252;">
+              <text class="probe-label" style="color: #ffffff;">标签文字</text>
+              <div class="probe-switch" style="background-color: #d9a441;"></div>
+            </div>
+            <div class="probe-row" style="background-color: #173252;">
+              <text class="probe-label" style="color: #ffffff;">第二行</text>
+              <div class="probe-switch" style="background-color: #d9a441;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 步骤5：column 父 + 48% 网格（震动实验室同构） -->
+      <div class="case" style="background-color: {{ theme.card }}">
+        <text class="case-title" style="color: {{ theme.accent }}">5 column+48%网格</text>
+        <div class="stage" style="background-color: #173252;">
+          <div style="width: 100%; flex-direction: column; background-color: #173252;">
+            <text class="probe-label" style="color: #ffffff;">标题label</text>
+            <div class="probe-grid" style="background-color: #173252;">
+              <div class="probe-cell" style="background-color: #d9a441;"><text class="probe-celltext" style="color: #1a1a2e;">短震</text></div>
+              <div class="probe-cell" style="background-color: #d9a441;"><text class="probe-celltext" style="color: #1a1a2e;">长震</text></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 步骤6：min-height:100% 结构（历史 9Pro 根因） -->
+      <div class="case" style="background-color: {{ theme.card }}">
+        <text class="case-title" style="color: {{ theme.accent }}">6 min-height:100%</text>
+        <div class="stage stage-tall" style="background-color: #173252;">
+          <div class="probe-minh" style="background-color: #d9a441;">
+            <text class="probe-celltext" style="color: #1a1a2e;">min-height容器</text>
+          </div>
+        </div>
+      </div>
+
+      <!-- 步骤7：if 条件渲染 + forceUpdate 对照 -->
+      <div class="case" style="background-color: {{ theme.card }}">
+        <text class="case-title" style="color: {{ theme.accent }}">7 if渲染(点我重绘)</text>
+        <div class="stage" style="background-color: #173252;">
+          <div style="width: 100%; background-color: #173252;">
+            <div class="probe-row" style="background-color: #173252;" onclick="toggleIf">
+              <text class="probe-label" style="color: #ffffff;">点我切换 {{ ifOn ? '开' : '关' }}</text>
+              <div class="probe-switch" style="background-color: {{ ifOn ? '#4caf7d' : '#666666' }};"></div>
+            </div>
+            <div if="{{ ifOn }}" style="width: 100%; background-color: #173252;">
+              <text class="probe-text" style="background-color: #4caf7d; color: #1a1a2e;">条件渲染块</text>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <text class="tail" style="color: {{ theme.textMuted }}">截图时请整页拍全（可分两张），并附设备型号。</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import device from "@system.device"
+const store = require("../../data/store.js")
+
+export default {
+  private: {
+    iconTheme: "dark",
+    envShape: "?",
+    envW: "?",
+    envH: "?",
+    envVersion: "?",
+    ifOn: true,
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#333333'
+    }
+  },
+
+  onInit() {
+    var self = this
+    try {
+      var app = require("@system.app")
+      self.envVersion = (app.getInfo && app.getInfo().versionName) || "?"
+    } catch (e) {}
+    device.getInfo({
+      success: function(d) {
+        self.envShape = d.screenShape || "?"
+        self.envW = d.screenWidth || "?"
+        self.envH = d.screenHeight || "?"
+      }
+    })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t) {
+      self.theme = t
+    }, true)
+  },
+
+  toggleIf() {
+    this.ifOn = !this.ifOn
+    this.$forceUpdate()
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page-root {
+  width: 100%;
+  height: 100%;
+}
+
+.page-body {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  padding: 6px 10px 10px 10px;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  height: 56px;
+  margin-bottom: 6px;
+}
+
+.back-btn-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  justify-content: center;
+  align-items: center;
+}
+
+.back-btn-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.header-title {
+  font-size: 28px;
+  font-weight: bold;
+  text-align: center;
+  flex: 1;
+}
+
+.header-placeholder {
+  width: 48px;
+}
+
+.env-card {
+  width: 100%;
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  flex-direction: column;
+}
+
+.env-line {
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.guide {
+  width: 100%;
+  font-size: 18px;
+  line-height: 26px;
+  margin-bottom: 8px;
+}
+
+.case {
+  width: 100%;
+  border-radius: 10px;
+  padding: 6px 10px 10px 10px;
+  margin-bottom: 8px;
+  flex-direction: column;
+}
+
+.case-title {
+  width: 100%;
+  font-size: 20px;
+  line-height: 30px;
+  margin-bottom: 4px;
+}
+
+.stage {
+  width: 100%;
+  border-radius: 6px;
+  padding: 6px;
+  flex-direction: column;
+}
+
+.stage-tall {
+  height: 120px;
+}
+
+.probe-text {
+  width: 100%;
+  font-size: 22px;
+  line-height: 44px;
+  text-align: center;
+  border-radius: 6px;
+}
+
+.probe-key {
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
+  background-color: #d9a441;
+  color: #1a1a2e;
+  font-size: 26px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 60px;
+  margin-right: 4px;
+}
+
+.probe-row {
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+}
+
+.probe-label {
+  font-size: 24px;
+  line-height: 34px;
+}
+
+.probe-switch {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.probe-grid {
+  width: 100%;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.probe-cell {
+  width: 48%;
+  height: 48px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  justify-content: center;
+  align-items: center;
+}
+
+.probe-celltext {
+  font-size: 20px;
+}
+
+.probe-minh {
+  width: 60%;
+  min-height: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.tail {
+  width: 100%;
+  font-size: 18px;
+  line-height: 26px;
+  margin-top: 4px;
+  margin-bottom: 10px;
+}
+
+@media (shape: capsule), (shape: pill-shaped) {
+  .page-body {
+    padding: 40px 8px 10px 8px;
+  }
+}
+</style>

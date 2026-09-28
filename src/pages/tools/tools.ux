@@ -19,6 +19,11 @@
         <text class="item-hint" style="color: {{ theme.textMuted }}">震动方案</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openRectDiag">
+        <text class="item-label" style="color: {{ theme.text }}">布局诊断</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">真机取证</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openCountdownManage">
         <text class="item-label" style="color: {{ theme.text }}">倒数日</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">事件倒计时</text>
@@ -136,6 +141,10 @@ export default {
 
   openVibrationLab() {
     router.push({ uri: "/pages/vibration-lab" })
+  },
+
+  openRectDiag() {
+    router.push({ uri: "/pages/rect-diag" })
   },
 
   openCountdownManage() {

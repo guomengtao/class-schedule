@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.6.154",
-  "versionCode": 983,
+  "versionName": "1.6.155",
+  "versionCode": 984,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
@@ -162,6 +162,11 @@
         "component": "vibration-lab",
         "group": "实验室工具",
         "name_cn": "震动实验室"
+      },
+      "pages/rect-diag": {
+        "component": "rect-diag",
+        "group": "实验室工具",
+        "name_cn": "布局诊断"
       },
       "pages/qrcode-generator": {
         "component": "qrcode-generator",
