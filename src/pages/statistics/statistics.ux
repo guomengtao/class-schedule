@@ -1,4 +1,4 @@
-<import name="pro-card" src="../../components/pro-card"></import>
+<import name="unlock-dialog" src="../../components/unlock-dialog"></import>
 <template>
   <div class="stats-page" style="background-color: {{ theme.bg }}">
     <div class="header">
@@ -62,9 +62,8 @@
       </div>
     </scroll>
 
-    <div class="pro-overlay" if="{{ !isPro }}">
-      <pro-card id="proCard"></pro-card>
-    </div>
+    <!-- 未解锁时由 checkProStatus 触发 unlock-dialog 弹窗（替代原内嵌 pro-card，修复按钮浮出错位） -->
+    <unlock-dialog id="unlockDialog"></unlock-dialog>
   </div>
 </template>
 
@@ -133,12 +132,22 @@ export default {
     authStore.checkStatus(function(status) {
       self.isPro = status.isActivated
       if (!self.isPro) {
-        self.$child("proCard").configure({
+        // unlock-dialog 组件注册可能晚于本回调，失败则短重试
+        var opts = {
           title: "解锁课程统计",
           description: "一次性解锁，永久使用全部高级功能",
           benefits: ["课程分布图表", "各科数量排行", "每周趋势分析", "每日课程分布"],
           cancelText: "继续使用标准版"
-        })
+        }
+        var tries = 5
+        var tryShow = function() {
+          if (self.isPro) return
+          if (!store.showUnlockDialog(opts) && tries > 0) {
+            tries--
+            setTimeout(tryShow, 400)
+          }
+        }
+        tryShow()
       }
     })
   },
@@ -558,21 +567,9 @@ export default {
     font-size: 28px;
   }
 }
-.pro-overlay {
-  position: absolute;
-  top: 80px;
-  left: 8px;
-  right: 8px;
-  bottom: 8px;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-}
+
 
 @media (shape: circle) {
-  .pro-overlay {
-    left: 36px;
-    right: 36px;
-  }
+  
 }
 </style>

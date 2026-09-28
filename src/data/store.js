@@ -855,9 +855,12 @@ module.exports = {
   _unlockDialogRef: null,
 
   showUnlockDialog: function(options) {
+    // 组件可能尚未完成 onInit 注册（页面 onInit 先于子组件回调），返回是否成功，调用方可重试
     if (this._unlockDialogRef) {
       this._unlockDialogRef.show(options)
+      return true
     }
+    return false
   },
 
   hideUnlockDialog: function() {

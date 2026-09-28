@@ -5,7 +5,12 @@
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">倒数日</text>
-      <input class="add-btn" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="add-btn" if="{{ !isCapsule }}" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+
+    <!-- 胶囊屏：添加按钮移到内容区顶部（header 内放不下会溢出屏幕） -->
+    <div class="add-toolbar" if="{{ isCapsule }}">
+      <input class="add-btn-tb" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
     <div class="toolbar" if="{{ countdownList.length > 0 }}">
@@ -83,11 +88,23 @@ export default {
     clearAllConfirm: false,
     deleteConfirmIndex: -1,
     deleteTimer: null,
-    clearTimer: null
+    clearTimer: null,
+    isCapsule: false
   },
 
   onInit() {
+    var self = this
     this.loadList()
+    try {
+      var device = require("@system.device")
+      device.getInfo({
+        success: function(data) {
+          var shape = data.screenShape || ""
+          if (shape === "capsule" || shape === "pill-shaped") self.isCapsule = true
+        },
+        fail: function() {}
+      })
+    } catch (e) {}
   },
 
   loadList() {
@@ -515,10 +532,23 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
-    padding: 30px 8px 30px 8px;
+    padding: 30px 16px 30px 16px;
   }
 
-        .add-btn {
+  .add-toolbar {
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+  }
+  .add-btn-tb {
+    width: 88px;
+    height: 48px;
+    border-radius: 14px;
+    font-size: 22px;
+    font-weight: bold;
+  }
+
+  .add-btn {
     width: 48px;
     height: 30px;
     border-radius: 15px;
