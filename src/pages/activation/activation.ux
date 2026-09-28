@@ -8,7 +8,7 @@
         <text class="header-title" style="color: {{ theme.text }}">高级版</text>
       <div class="header-placeholder"></div>
       </div>
-      <div class="status-card" style="background-color: {{ theme.card }}">
+      <div class="status-card">
         <text class="status-main" style="color: {{ statusColor }}">{{ statusText }}</text>
         <text class="status-expiry" show="{{ expireTimeText }}" style="color: {{ theme.textSecondary }}">有效期 {{ expireTimeText }}</text>
         <text class="status-version" style="color: {{ theme.textSecondary }}">版本 v{{ versionText }}</text>
@@ -19,7 +19,7 @@
 
       <text class="section-title" style="color: {{ theme.text }}">激活软件</text>
 
-      <div class="step-card" style="background-color: {{ theme.card }}">
+      <div class="step-card">
         <div class="step-header">
           <div class="step-badge" style="background-color: {{ theme.accent }}">
             <text class="step-badge-text" style="color: {{ theme.bg }}">1</text>
@@ -36,7 +36,7 @@
 
       <div class="step-arrow" style="color: {{ theme.textMuted }}"><text>▼</text></div>
 
-      <div class="step-card" style="background-color: {{ theme.card }}">
+      <div class="step-card">
         <div class="step-header">
           <div class="step-badge" style="background-color: {{ theme.accent }}">
             <text class="step-badge-text" style="color: {{ theme.bg }}">2</text>
@@ -61,8 +61,7 @@
 
       <div class="step-arrow" style="color: {{ theme.textMuted }}"><text>▼</text></div>
 
-      <div class="step-card" style="background-color: {{ theme.card }}">
-        <div class="step-header">
+      <div class="step-header">
           <div class="step-badge" style="background-color: {{ theme.accent }}">
             <text class="step-badge-text" style="color: {{ theme.bg }}">3</text>
           </div>
@@ -70,7 +69,7 @@
         </div>
         <text class="step-desc" style="color: {{ theme.textSecondary }}">输入激活码</text>
 
-        <div class="cells-grid" style="background-color: {{ theme.card }}">
+        <div class="cells-grid">
           <div class="cells-row">
             <div class="cell {{ cursor === 0 ? 'cell-active' : '' }}" onclick="onCellClick(0)" style="background-color: {{ cursor === 0 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
               <text class="cell-text" style="color: {{ cursor === 0 ? theme.bg : theme.text }}">{{ cell0 !== null ? cell0 : '-' }}</text>
@@ -133,7 +132,7 @@
           </div>
         </div>
 
-        <div class="keypad" style="background-color: {{ theme.card }}">
+        <div class="keypad">
           <div class="keypad-row">
             <div class="keypad-btn" onclick="onKeyPress(1)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
               <text class="keypad-text" style="color: {{ theme.text }}">1</text>
@@ -189,10 +188,9 @@
           <text class="result-code" style="color: {{ verifySuccess ? theme.accent : '#e74c3c' }}">{{ verifyResult }}</text>
           <text class="result-detail" show="{{ verifyDetail }}" style="color: {{ theme.textSecondary }}">{{ verifyDetail }}</text>
         </div>
-      </div>
 
       <text class="section-title" style="color: {{ theme.text }}">历史</text>
-      <div class="history-list" style="background-color: {{ theme.card }}">
+      <div class="history-list">
         <div for="{{ historyList }}" class="history-item">
           <div class="history-row">
             <div class="history-left">
@@ -214,7 +212,7 @@
       </div>
 
       <text class="section-title" style="color: {{ theme.text }}">信息</text>
-      <div class="device-card" style="background-color: {{ theme.card }}">
+      <div class="device-card">
         <div class="device-info-row">
           <text class="device-info-label" style="color: {{ theme.textSecondary }}">设备ID</text>
           <text class="device-info-value" style="color: {{ theme.accent }}">{{ deviceIdDisplay }}</text>
@@ -670,9 +668,9 @@ export default {
 }
 
 .status-card {
+  width: 100%;
   flex-direction: column;
-  border-radius: 12px;
-  padding: 22px 14px;
+  padding: 22px 0;
   margin-bottom: 14px;
   align-items: center;
 }
@@ -725,9 +723,9 @@ export default {
 }
 
 .history-list {
+  width: 100%;
   flex-direction: column;
-  border-radius: 12px;
-  padding: 14px 14px;
+  padding: 14px 0;
   margin-bottom: 14px;
 }
 
@@ -788,9 +786,9 @@ export default {
 }
 
 .device-card {
+  width: 100%;
   flex-direction: column;
-  border-radius: 12px;
-  padding: 18px 14px;
+  padding: 18px 0;
   margin-bottom: 14px;
 }
 
@@ -810,9 +808,9 @@ export default {
 }
 
 .step-card {
+  width: 100%;
   flex-direction: column;
-  border-radius: 12px;
-  padding: 18px 14px;
+  padding: 18px 0;
   margin-bottom: 8px;
 }
 
@@ -896,8 +894,8 @@ export default {
 }
 
 .cells-grid {
+  width: 100%;
   flex-direction: column;
-  border-radius: 12px;
   padding: 0px;
   margin-bottom: 12px;
 }
@@ -929,9 +927,9 @@ export default {
 }
 
 .keypad {
+  width: 100%;
   flex-direction: column;
-  border-radius: 12px;
-  padding: 8px;
+  padding: 0;
   margin-bottom: 12px;
 }
 
@@ -1010,8 +1008,7 @@ export default {
   .page {
     padding: 30px 16px 30px 16px;
   }
-  
-  
+
   .header-title {
     font-size: 28px;
     line-height: 36px;
@@ -1039,18 +1036,24 @@ export default {
   .cell-text {
     font-size: 38px;
   }
+  .keypad {
+    padding: 0;
+  }
+  .keypad-row {
+    margin-bottom: 0;
+  }
   .keypad-btn {
-    width: 64px;
-    height: 50px;
-    border-radius: 10px;
-    margin-left: 4px;
-    margin-right: 4px;
+    flex: 1;
+    height: 56px;
+    border-radius: 8px;
+    margin-left: 0;
+    margin-right: 0;
   }
   .keypad-text {
     font-size: 32px;
   }
   .verify-btn {
-    width: 92%;
+    width: 100%;
     height: 56px;
     justify-content: center;
     align-items: center;
