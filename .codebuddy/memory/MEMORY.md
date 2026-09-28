@@ -47,7 +47,8 @@
 - 工具：`scripts/emulator-eye.js`（shot/ctap/status…）、`scripts/png-measure.js`、`scripts/audit-capsule-width.py`、`scripts/capture-pages.js`（app-auth 仓库，采手环端逐页截图）
 
 ## 输入法（结案，真机通过）
-- `src/components/InputMethod/`=上游 `NEORUAA/Vela_input_method` main 最新版，逐字节零改动；宿主 3 处适配：import + 传 dictionarypath + `manifest.features` 含 `system.file`
+- `src/components/InputMethod/`=上游 `NEORUAA/Vela_input_method` main 最新版，宿主 3 处适配：import + 传 dictionarypath + `manifest.features` 含 `system.file`
+  - **⚠️ 已本地化 4 处纯加法补丁（非上游逻辑改动，同步上游时必须保留）**：①`.page` 加 `flex-direction:column`；②新增 `.ime-lazy-wrap`/`.ime-body` 两 class（挂到键盘子树的两层裸 `<div if>`/`<div show>` 上，显式 `width:100%`）；③rect 分支 `keyboard67` 加 `style="width:100%"`；④pill 分支 `keyboard66` style 加 `width:100%`。原因=432 宽真机隐式宽度塌缩（键盘缩到左下 ~150px），commit d64b1f0
 - 词典外置 `assets/dictionary/*.txt`（28 个/196KB）；**`hide=true` 不可用**（跳过词典→中文无候选），必须 `hide=false`
 - 第三方组件出问题第一步查上游 diff/SHA；定论靠 A/B 对照
 
