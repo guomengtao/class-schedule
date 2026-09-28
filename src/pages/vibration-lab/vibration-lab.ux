@@ -162,6 +162,8 @@ var presetKeys = Object.keys(presetMap)
 
 var currentTaskId = 0
 var fallbackTimer = null
+// 单次试听只允许触发一次兜底，避免 fail 回调与看门狗重复震
+var fallbackDone = false
 
 export default {
   private: {
@@ -330,23 +332,56 @@ export default {
     this.stopVibration()
     var self = this
     self.isPlaying = true
+    fallbackDone = false
+    var handled = false
 
-    vibrator.start({
-      duration: self.duration,
-      interval: self.interval,
-      count: self.count,
-      success: function(data) {
-        currentTaskId = data.id
-      },
-      fail: function(data, code) {
-        dlog("[VIBRATION] start fail, code=" + code + ", fallback to vibrate")
+    // 部分运行时（如新版 Vela）既不回调 success 也不回调 fail，导致"点了没反应"；
+    // 因此加 typeof 守卫 + 同步异常兜底 + 400ms 看门狗，保证至少震一次
+    try {
+      if (typeof vibrator.start !== "function") {
+        dlog("[VIBRATION] no vibrator.start, fallback")
+        self.fallbackVibrate()
+        return
+      }
+      vibrator.start({
+        duration: self.duration,
+        interval: self.interval,
+        count: self.count,
+        success: function(data) {
+          handled = true
+          if (data && data.id) currentTaskId = data.id
+        },
+        fail: function(data, code) {
+          handled = true
+          dlog("[VIBRATION] start fail, code=" + code + ", fallback to vibrate")
+          self.fallbackVibrate()
+        }
+      })
+    } catch (e) {
+      dlog("[VIBRATION] start throw, fallback")
+      self.fallbackVibrate()
+      return
+    }
+
+    setTimeout(function() {
+      if (!handled && !fallbackDone) {
+        dlog("[VIBRATION] start has no callback, watchdog fallback")
         self.fallbackVibrate()
       }
-    })
+    }, 400)
   },
 
   fallbackVibrate() {
     var self = this
+    if (fallbackDone) return
+    fallbackDone = true
+    if (typeof vibrator.vibrate !== "function") {
+      self.isPlaying = false
+      try {
+        prompt.showToast({ message: "当前设备不支持震动" })
+      } catch (e) {}
+      return
+    }
     var i = 0
     function loop() {
       if (i >= self.count || !self.isPlaying) {
@@ -377,17 +412,38 @@ export default {
     this.isPlaying = false
   },
 
-  savePreset() {
-    var self = this
-    if (!self.isPro) {
-      store.showUnlockDialog({
-        title: "解锁震动自定义",
-        description: "一次性解锁，永久使用全部高级功能",
-        benefits: ["保存震动方案", "多套震动方案", "数据备份与恢复", "首页自定义"],
-        cancelText: "暂不需要"
-      })
-      return
+  showUnlockOrToast() {
+    var options = {
+      title: "解锁震动自定义",
+      description: "一次性解锁，永久使用全部高级功能",
+      benefits: ["保存震动方案", "多套震动方案", "数据备份与恢复", "首页自定义"],
+      cancelText: "暂不需要"
     }
+    var shown = false
+    try {
+      shown = store.showUnlockDialog(options)
+    } catch (e) {
+      shown = false
+    }
+    if (shown) return
+    // 组件可能尚未注册（页面 onInit 早于子组件回调）→ 重试一次，仍失败则提示
+    setTimeout(function() {
+      var ok = false
+      try {
+        ok = store.showUnlockDialog(options)
+      } catch (e2) {
+        ok = false
+      }
+      if (!ok) {
+        try {
+          prompt.showToast({ message: "需先解锁高级版" })
+        } catch (e3) {}
+      }
+    }, 300)
+  },
+
+  doSavePreset() {
+    var self = this
     var name = "方案" + (this.savedPresets.length + 1)
     var preset = {
       name: name,
@@ -396,9 +452,25 @@ export default {
       count: this.count
     }
     this.savedPresets.push(preset)
-    store.setVibrationPresets(this.savedPresets)
+    store.setVibrationPresets(this.savedPresets, function() {})
     this.currentName = name
-    prompt.showToast({ message: "方案已保存" })
+    try {
+      prompt.showToast({ message: "方案已保存" })
+    } catch (e) {}
+  },
+
+  savePreset() {
+    var self = this
+    // 不信任 onInit 时的异步授权结果：保存前重新查一次，避免回调未达导致误判未解锁
+    authStore.checkStatus(function(status) {
+      var pro = !!(status && status.isActivated)
+      self.isPro = pro
+      if (!pro) {
+        self.showUnlockOrToast()
+        return
+      }
+      self.doSavePreset()
+    })
   },
 
   loadPreset(idx) {
@@ -493,19 +565,39 @@ export default {
       return
     }
     var self = this
-    vibrator.start({
-      duration: pattern.duration,
-      interval: pattern.interval,
-      count: pattern.count,
-      success: function() {},
-      fail: function(data, code) {
-        dlog("[VIBRATION-LAB] vibrator.start fail, code=" + code + ", fallback")
+    var handled = false
+    // 同 preview：防止运行时既不回调 success 也不回调 fail 导致点了没反应
+    try {
+      if (typeof vibrator.start !== "function") {
+        self.fallbackVibratePattern(pattern)
+        return
+      }
+      vibrator.start({
+        duration: pattern.duration,
+        interval: pattern.interval,
+        count: pattern.count,
+        success: function() {
+          handled = true
+        },
+        fail: function(data, code) {
+          handled = true
+          dlog("[VIBRATION-LAB] vibrator.start fail, code=" + code + ", fallback")
+          self.fallbackVibratePattern(pattern)
+        }
+      })
+    } catch (e) {
+      self.fallbackVibratePattern(pattern)
+      return
+    }
+    setTimeout(function() {
+      if (!handled) {
         self.fallbackVibratePattern(pattern)
       }
-    })
+    }, 400)
   },
 
   fallbackVibrateOnce(mode) {
+    if (typeof vibrator.vibrate !== "function") return
     var vibrateMode = (mode === "long" || mode === 400) ? "long" : "short"
     vibrator.vibrate({ mode: vibrateMode })
   },
