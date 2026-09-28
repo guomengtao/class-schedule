@@ -581,7 +581,7 @@ export default {
   .add-btn-cap {
     width: 72px;
     height: 48px;
-    border-radius: 24px;
+    border-radius: 14px;
     font-size: 22px;
     line-height: 48px;
     flex-shrink: 0;
@@ -597,7 +597,7 @@ export default {
   .clear-btn {
     width: 60px;
     height: 48px;
-    border-radius: 24px;
+    border-radius: 14px;
     font-size: 22px;
     line-height: 48px;
   }
@@ -642,14 +642,14 @@ export default {
   .edit-btn {
     width: 56px;
     height: 48px;
-    border-radius: 24px;
+    border-radius: 14px;
     font-size: 22px;
     line-height: 48px;
   }
   .delete-btn {
     width: 56px;
     height: 48px;
-    border-radius: 24px;
+    border-radius: 14px;
     font-size: 22px;
     line-height: 48px;
     margin-left: 10px;
