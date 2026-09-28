@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.6.155",
-  "versionCode": 984,
+  "versionName": "1.6.158",
+  "versionCode": 987,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
@@ -59,7 +59,7 @@
       "课程管理": "course-manager, custom-content-edit, countdown-manage",
       "课表视图": "schedule-manager, week-view, schedule-qrcode, workday-info",
       "设置与系统": "settings, tools, homepage-settings, reset-data, backup-restore, activation, device-info, pinned-pages",
-      "实验室工具": "vibration-lab, qrcode-generator, chinese-input",
+      "实验室工具": "vibration-lab, qrcode-generator, chinese-input, rect-diag, rect-c1, rect-c2, rect-c3, rect-c4, rect-c5, rect-c6, rect-c7",
       "其他": "statistics, donate"
     },
     "pages": {
@@ -167,6 +167,41 @@
         "component": "rect-diag",
         "group": "实验室工具",
         "name_cn": "布局诊断"
+      },
+      "pages/rect-c1": {
+        "component": "rect-c1",
+        "group": "实验室工具",
+        "name_cn": "布局诊断1基准"
+      },
+      "pages/rect-c2": {
+        "component": "rect-c2",
+        "group": "实验室工具",
+        "name_cn": "布局诊断2隐式宽度"
+      },
+      "pages/rect-c3": {
+        "component": "rect-c3",
+        "group": "实验室工具",
+        "name_cn": "布局诊断3横滚"
+      },
+      "pages/rect-c4": {
+        "component": "rect-c4",
+        "group": "实验室工具",
+        "name_cn": "布局诊断4行布局"
+      },
+      "pages/rect-c5": {
+        "component": "rect-c5",
+        "group": "实验室工具",
+        "name_cn": "布局诊断5网格"
+      },
+      "pages/rect-c6": {
+        "component": "rect-c6",
+        "group": "实验室工具",
+        "name_cn": "布局诊断6minheight"
+      },
+      "pages/rect-c7": {
+        "component": "rect-c7",
+        "group": "实验室工具",
+        "name_cn": "布局诊断7条件渲染"
       },
       "pages/qrcode-generator": {
         "component": "qrcode-generator",

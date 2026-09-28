@@ -1,0 +1,94 @@
+<template>
+  <div class="page-root" style="background-color: #1a1a2e">
+    <div class="header">
+      <div class="back-btn" onclick="goBack" style="background-color: #16213e">
+        <image class="back-icon" src="/common/icons/dark/icon_back.png"></image>
+      </div>
+      <text class="title" style="color: #ffffff">步骤4 行布局</text>
+      <div class="ph"></div>
+    </div>
+
+    <div class="stage" style="background-color: #173252">
+      <div style="width: 100%; background-color: #173252">
+        <div class="line" style="background-color: #173252">
+          <text class="label" style="color: #ffffff">第一行标签</text>
+          <div class="sw" style="background-color: #d9a441"></div>
+        </div>
+        <div class="line" style="background-color: #173252">
+          <text class="label" style="color: #ffffff">第二行标签</text>
+          <div class="sw" style="background-color: #d9a441"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+export default {
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page-root {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  padding: 6px 10px 10px 10px;
+}
+.header {
+  width: 100%;
+  height: 56px;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.back-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  justify-content: center;
+  align-items: center;
+}
+.back-icon {
+  width: 24px;
+  height: 24px;
+}
+.title {
+  font-size: 26px;
+  font-weight: bold;
+  text-align: center;
+  flex: 1;
+}
+.ph {
+  width: 48px;
+}
+.stage {
+  width: 100%;
+  border-radius: 8px;
+  padding: 8px;
+  flex-direction: column;
+}
+.line {
+  width: 100%;
+  height: 60px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.label {
+  font-size: 24px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+.sw {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+</style>
