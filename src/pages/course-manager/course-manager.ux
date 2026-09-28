@@ -9,11 +9,16 @@
       <div class="header-placeholder {{ isCapsule ? 'placeholder-cap' : '' }}" if="{{ isCapsule }}"></div>
     </div>
 
-    <div class="add-toolbar" if="{{ isCapsule }}">
-      <input class="add-btn-toolbar" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    <!-- 胶囊屏：清除与添加合并为一行工具栏（方案A，省一整行竖向空间） -->
+    <div class="toolbar-cap" if="{{ isCapsule }}">
+      <div class="clear-group" if="{{ courseList.length > 0 }}">
+        <text class="clear-hint" style="color: {{ theme.deleteText }}">{{ clearAllConfirm ? '再次点击确认' : '清除全部' }}</text>
+        <input class="clear-btn" type="button" value="{{ clearAllConfirm ? '确认' : '清除' }}" onclick="clearAllCourses" style="background-color: {{ clearAllConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ clearAllConfirm ? theme.text : theme.deleteText }}" />
+      </div>
+      <input class="add-btn-cap" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
-    <div class="clear-bar" if="{{ courseList.length > 0 }}">
+    <div class="clear-bar" if="{{ courseList.length > 0 && !isCapsule }}">
       <text class="clear-hint" style="color: {{ theme.deleteText }}">{{ clearAllConfirm ? '再次点击确认' : '清除全部' }}</text>
       <input class="clear-btn" type="button" value="{{ clearAllConfirm ? '确认' : '清除' }}" onclick="clearAllCourses" style="background-color: {{ clearAllConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ clearAllConfirm ? theme.text : theme.deleteText }}" />
     </div>
@@ -33,7 +38,7 @@
           <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}" onclick="deleteCourse($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === $idx ? theme.text : theme.deleteText }}" />
         </div>
       </div>
-      <text if="{{ courseList.length === 0 }}" class="empty-hint" style="color: {{ theme.textMuted }}; text-align: center; padding: 40px 10px;">暂无课程，点击右上角 + 添加</text>
+      <text if="{{ courseList.length === 0 }}" class="empty-hint" style="color: {{ theme.textMuted }}; text-align: center; padding: 40px 10px;">{{ isCapsule ? '暂无课程，点击上方 + 添加' : '暂无课程，点击右上角 + 添加' }}</text>
     </scroll>
 
     <div class="undo-bar" if="{{ undoVisible }}" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
@@ -551,15 +556,6 @@ export default {
   width: 40px;
 }
 
-.course-name {
-  flex: 1;
-  font-size: 28px;
-  font-weight: bold;
-  line-height: 36px;
-  lines: 1;
-  text-overflow: ellipsis;
-}
-
 @media (shape: capsule), (shape: pill-shaped) {
   .page {
     padding: 30px 16px 56px 16px;
@@ -569,18 +565,26 @@ export default {
     width: 44px;
   }
 
-  .add-toolbar {
-    justify-content: flex-end;
+  .toolbar-cap {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
     height: 48px;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
   }
 
-  .add-btn-toolbar {
+  .clear-group {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .add-btn-cap {
     width: 72px;
     height: 48px;
     border-radius: 24px;
     font-size: 22px;
     line-height: 48px;
+    flex-shrink: 0;
   }
   .clear-bar {
     padding: 4px 0;
@@ -600,7 +604,7 @@ export default {
   .course-item {
     flex-direction: column;
     align-items: stretch;
-    padding: 10px 12px;
+    padding: 8px 12px;
     margin-bottom: 8px;
     border-radius: 14px;
   }
@@ -628,7 +632,7 @@ export default {
     width: 100%;
     justify-content: flex-end;
     margin-left: 0;
-    margin-top: 8px;
+    margin-top: 6px;
   }
   .item-del-hint {
     font-size: 22px;
