@@ -36,6 +36,36 @@ module.exports = {
    * 手环 → 手机：发一条聊天消息
    * @return true = 已调用 send（注意：链路无 ACK，true 不代表对方已收到）
    */
+  /**
+   * 手环 → 手机：发一条工具箱遥控指令（不包装成 chat，避免进手机留言流）。
+   * 手机端 CommandRouter 白名单分发：find_phone / phone_status / mute / countdown。
+   * @return true = 已调用 send（链路无 ACK）
+   */
+  sendCmd: function (type, params) {
+    if (!connect) {
+      console.log("[CMD-TX] connect not registered yet（先让手机发一条，或重启 EV）")
+      return false
+    }
+    var msg = {
+      action: "cmd",
+      type: String(type || ""),
+      ts: Date.now()
+    }
+    if (params) {
+      for (var k in params) {
+        msg[k] = params[k]
+      }
+    }
+    try {
+      connect.send({ data: msg })
+      console.log("[CMD-TX] send done: " + JSON.stringify(msg))
+      return true
+    } catch (e) {
+      console.log("[CMD-TX] failed: " + e)
+      return false
+    }
+  },
+
   send: function (text) {
     if (!connect) {
       console.log("[CHAT-TX] connect not registered yet（先让手机发一条，或重启 EV）")

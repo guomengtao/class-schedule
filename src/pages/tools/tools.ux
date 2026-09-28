@@ -51,6 +51,27 @@
         <text class="item-hint" style="color: {{ theme.textMuted }}">极简+面板</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="cmdFindPhone">
+        <text class="item-label" style="color: {{ theme.text }}">找手机</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">手机响铃 30 秒</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="cmdPhoneStatus">
+        <text class="item-label" style="color: {{ theme.text }}">手机状态</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">电量 / 静音 / 连接</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="cmdMute">
+        <text class="item-label" style="color: {{ theme.text }}">静音 / 振动</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">切换手机响铃模式</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="cmdCountdown">
+        <text class="item-label" style="color: {{ theme.text }}">倒计时 5 分钟</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">手机端到点提醒</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="sendChatTest">
         <text class="item-label" style="color: {{ theme.accent }}">发消息到手机</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">聊天 PoC</text>
@@ -170,6 +191,31 @@ export default {
     prompt.showToast({
       message: ok ? "已发送，看手机端有没有收到" : "connect 未就绪（先让手机发一条，或重启 EV）"
     })
+  },
+
+  // ====== 手机遥控（工具箱第一批：找手机/状态/静音/倒计时）======
+  // 手机端 CommandRouter 白名单分发；执行结果以手机通知/手环 cmd_result 回传
+  cmdSend(type, params, okMsg) {
+    var ok = chatBridge.sendCmd(type, params)
+    prompt.showToast({
+      message: ok ? okMsg : "connect 未就绪（先在手机端打开 EV 同步）"
+    })
+  },
+
+  cmdFindPhone() {
+    this.cmdSend("find_phone", null, "已触发：手机正在响铃 30 秒")
+  },
+
+  cmdPhoneStatus() {
+    this.cmdSend("phone_status", null, "已请求手机状态（回执稍后显示）")
+  },
+
+  cmdMute() {
+    this.cmdSend("mute", null, "已切换手机响铃模式")
+  },
+
+  cmdCountdown() {
+    this.cmdSend("countdown", { minutes: 5 }, "已设置手机 5 分钟倒计时")
   },
 
   goBack() {
