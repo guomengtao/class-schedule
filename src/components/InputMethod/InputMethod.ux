@@ -3,10 +3,8 @@
     <!-- 键盘内容懒建：外 if 保证键盘隐藏时整个子树不进 VDOM（chat/search 首进 1s 卡顿根因：
          旧实现 show 只是不可见，200+ 节点/图片在进页瞬间全部创建），首次弹出才创建，
          之后 keyboardCreated 保活、hide 切换只走内层 show 显隐，不重复重建。 -->
-    <!-- 本地适配（非上游逻辑改动）：这两层包裹 div 必须显式宽度，
-         否则部分真机 Vela（如 432 宽 rect）会退化到内容宽，键盘塌缩到左下角 -->
-    <div if="{{!hide || keyboardCreated}}" class="ime-lazy-wrap">
-      <div show="{{!hide}}" class="ime-body" style="background-color:black;flex-direction: column;" >
+    <div if="{{!hide || keyboardCreated}}">
+      <div show="{{!hide}}" style="background-color:black;flex-direction: column;" >
       <!-- 拼音小字行：键盘框外上方单独一行，黑底覆盖，仅中/日模式且有 cval 时显示，只展示不可点。
            circle 屏彻底不建此节点（键盘固定 480x321，外置 28px 行会挤压键盘且顶部多一条黑条），
            circle 的拼音改在键盘内部绝对定位显示；if 而非 show：show 隐藏时节点仍在 VDOM，
@@ -184,7 +182,7 @@
         </div>
         <div else style="position:absolute;top:-11px;width:100%;height:276px;justify-content: center">
           <progress percent="{{percent67}}" style="position:absolute;bottom: 12px;width:80px;color:#ffffff;stroke-width:6px;layer-color:#262626;"></progress>
-          <scroll id="keyboard67" scroll-x="{{true}}" onscroll="handelScroll" style="width: 100%;">
+          <scroll id="keyboard67" scroll-x="{{true}}" onscroll="handelScroll">
             <div if="{{!numFlag}}" style="left: 6px; flex-direction: column;">
               <div static style="margin-left: 0px;margin-top: 0px;height: 60px;">
                 <text class="calbtn67" for="{{item in keys['full'][0]}}" @click="onSelect(item)">{{item}}</text>
@@ -259,7 +257,7 @@
       <div if="{{screentype==='pill-shaped'}}" style="width: 100%;height: 305px">
         <div static style="position:absolute;left:0px;top:34px;width:100%;height:276px;">
           <progress percent="{{30+percent66}}" type="arc" style="start-angle:204deg;total-angle:-48deg;width:188px;height:188px;top:82px;left:2px;position:absolute;color:#ffffff;stroke-width:6px;layer-color:#262626;margin-left: {{(screenWidth - 192)/2}}px;"></progress>
-          <scroll id="keyboard66" scroll-x="{{true}}" onscroll="handelScroll" style="width: 100%;padding-left: {{(screenWidth - 192)/2}}px;padding-right: {{(screenWidth - 192)/2}}px;">
+          <scroll id="keyboard66" scroll-x="{{true}}" onscroll="handelScroll" style="padding-left: {{(screenWidth - 192)/2}}px;padding-right: {{(screenWidth - 192)/2}}px;">
             <div if="{{!numFlag}}" style="left: 3px; flex-direction: column;">
               <div static style="margin-left: 0px;margin-top: 0px;height: 60px;">
                 <text class="calbtn66" for="{{item in keys['full'][0]}}" @click="onSelect(item)">{{item}}</text>
@@ -790,20 +788,7 @@ export default {
 	width:100%;
 	position:absolute;
 	left:0;
-	bottom:0;
-	/* 本地适配：显式纵向，避免隐式方向导致子元素排布异常 */
-	flex-direction:column;
-}
-
-/* 本地适配：键盘子树的两层包裹层显式满宽（真机防塌缩） */
-.ime-lazy-wrap {
-	width:100%;
-	flex-direction:column;
-}
-
-.ime-body {
-	width:100%;
-	flex-direction:column;
+	bottom:0
 }
 .item {
 	height:52px;

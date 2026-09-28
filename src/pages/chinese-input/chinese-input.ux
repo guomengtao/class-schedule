@@ -29,8 +29,10 @@
       <input class="done-btn" type="button" value="完成" onclick="confirmInput" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
-    <!-- 键盘区：下展面板已移除，不再存在「scroll 套 list」的嵌套滚动冲突，恢复原有 scroll 包裹 -->
-    <scroll class="keyboard-scroll" scroll-y="true">
+    <!-- 键盘区：下展面板已移除，不再需要 scroll 包裹。
+         宿主用普通 div（而非 scroll）：scroll 不拉伸子元素，部分真机 Vela 上会让
+         组件内部的 position:absolute;bottom:0;width:100% 退化到内容宽，键盘塌缩到左下角 -->
+    <div class="ime-host">
       <input-method
         hide="{{ false }}"
         keyboardtype="QWERTY"
@@ -40,7 +42,7 @@
         oncomplete="onCharacter"
         ondelete="onDeleteChar"
       ></input-method>
-    </scroll>
+    </div>
   </div>
 </template>
 
@@ -277,7 +279,8 @@ export default {
   flex-shrink: 0;
 }
 
-.keyboard-scroll {
+/* 输入法宿主容器：普通 div + 显式满宽（不用 scroll，避免宽度退化） */
+.ime-host {
   flex: 1;
   flex-direction: column;
   width: 100%;
