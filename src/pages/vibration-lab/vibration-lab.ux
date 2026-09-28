@@ -652,6 +652,7 @@ export default {
 }
 
 .lab-nav {
+  width: 100%;
   flex-direction: column;
   border-radius: 10px;
   padding: 6px;
@@ -659,6 +660,7 @@ export default {
 }
 
 .lab-nav-item {
+  width: 100%;
   flex-direction: row;
   align-items: center;
   padding: 12px 14px;
@@ -680,6 +682,7 @@ export default {
 }
 
 .footer-actions {
+  width: 100%;
   flex-direction: row;
   justify-content: center;
   padding: 16px 0 8px 0;
@@ -721,6 +724,7 @@ export default {
 }
 
 .hero-btns {
+  width: 100%;
   flex-direction: row;
   margin-top: 10px;
 }
@@ -761,6 +765,7 @@ export default {
 }
 
 .stepper-row {
+  width: 100%;
   flex-direction: row;
   align-items: center;
   justify-content: center;
@@ -788,6 +793,7 @@ export default {
 }
 
 .quick-row {
+  width: 100%;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: flex-start;
@@ -807,6 +813,7 @@ export default {
 }
 
 .preset-grid {
+  width: 100%;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -836,6 +843,7 @@ export default {
 }
 
 .empty-hint {
+  width: 100%;
   padding: 12px;
   align-items: center;
 }
@@ -848,6 +856,7 @@ export default {
 }
 
 .saved-item {
+  width: 100%;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
@@ -958,6 +967,7 @@ export default {
 }
 
 .minute-row {
+  width: 100%;
   flex-direction: row;
   align-items: center;
 }
@@ -981,6 +991,7 @@ export default {
 }
 
 .vibe-grid {
+  width: 100%;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: space-between;
