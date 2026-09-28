@@ -1,5 +1,6 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
+    <scroll class="hp-scroll" scroll-y="{{true}}">
     <div class="page-body">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
@@ -55,7 +56,7 @@
           <div class="switch-thumb" style="left: {{ showCustomContent ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
         </div>
       </div>
-      <div if="{{ showCustomContent }}">
+      <div if="{{ showCustomContent }}" class="sub-block">
         <div class="row-divider" style="background-color: {{ theme.border }}"></div>
         <div class="input-row" onclick="openCustomContentEdit">
           <text class="input-text" style="color: {{ customContent ? theme.text : theme.textMuted }}">{{ customContent || '输入...' }}</text>
@@ -96,7 +97,7 @@
           <div class="switch-thumb" style="left: {{ showPinnedBar ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
         </div>
       </div>
-      <div if="{{ showPinnedBar }}">
+      <div if="{{ showPinnedBar }}" class="sub-block">
         <div class="row-divider" style="background-color: {{ theme.border }}"></div>
         <div class="item-row item-row-last" onclick="openPinnedPages">
           <text class="item-label" style="color: {{ theme.text }}">管理钉首页</text>
@@ -106,6 +107,7 @@
     </div>
 
     </div>
+    </scroll>
 
     <div class="overlay-modal" show="{{ showDialog }}" onclick="dismissDialog">
       <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
@@ -289,6 +291,14 @@ export default {
   
 }
 
+/* 滚动容器：内容超过一屏时不再被裁切（参照 settings.ux 已验证写法）。
+   弹窗留在根容器下，避免被 scroll 裁掉 */
+.hp-scroll {
+  flex: 1;
+  width: 100%;
+  flex-direction: column;
+}
+
 /* 内容内层容器：承载页面 padding —— Vela 绝对定位按父级内容框计算，
    根容器留 padding 会把弹窗一起内缩，导致左右不对称、贴不到屏幕边 */
 .page-body {
@@ -297,7 +307,10 @@ export default {
   padding: 44px 10px 12px 10px;
 }
 
+/* 显式宽度与方向：部分真机 Vela（如 432 宽 rect）对"隐式宽度的中间层"会退化到内容宽，
+   导致行内 space-between 失效、开关叠压文字 —— 这里全部显式声明，窄屏上是 no-op */
 .section {
+  width: 100%;
   flex-direction: column;
   border-radius: 14px;
   padding: 0 16px;
@@ -309,7 +322,14 @@ export default {
   margin-top: 2px;
 }
 
+/* 条件渲染的包裹层同样必须显式宽度（无 class 的裸 div 是典型隐式宽度中间层） */
+.sub-block {
+  width: 100%;
+  flex-direction: column;
+}
+
 .item-row {
+  width: 100%;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
@@ -317,11 +337,14 @@ export default {
 }
 
 .row-divider {
+  width: 100%;
   height: 1px;
 }
 
 .item-label {
   font-size: 32px;
+  flex: 1;
+  min-width: 0;
   lines: 1;
   text-overflow: ellipsis;
 }
@@ -344,11 +367,13 @@ export default {
 }
 
 .font-size-body {
+  width: 100%;
   flex-direction: column;
   padding-bottom: 16px;
 }
 
 .scale-row {
+  width: 100%;
   flex-direction: row;
   align-items: center;
   justify-content: center;
@@ -375,6 +400,7 @@ export default {
 }
 
 .preview-box {
+  width: 100%;
   padding: 14px;
   align-items: center;
   justify-content: center;
@@ -410,6 +436,7 @@ export default {
 }
 
 .input-row {
+  width: 100%;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
@@ -429,6 +456,7 @@ export default {
 }
 
 .preview-row {
+  width: 100%;
   flex-direction: row;
   align-items: center;
   justify-content: center;
