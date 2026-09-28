@@ -14,7 +14,7 @@
 
 ## 设备实测参数
 - 激活 URL 字段含义见 `src/pages/activation/activation.ux` 的 `fetchDeviceInfo()`
-- 小米手环 9 = pill-shaped **192×490**（band，本机 VVD `xiaomi_band`）；手环 11 = 212×520；手环 10 Pro = 336×480 rect
+- 小米手环 9 = pill-shaped **192×490**（band，本机 VVD `xiaomi_band`）；手环 11 = 212×520；手环 10 Pro = 336×480 rect；**REDMI Watch 6 = 432×514 rect**（模拟器皮肤 VVD `REDMI-Watch-6`，gRPC 8556）
 - 跑道屏 `screenShape` 返回 `pill-shaped`，真机也出现 `capsule` → **屏型归一化两种都要认**（`device-info.ux` 的 `screenShapeMap` 不认 capsule，取证会误判）
 - 手环 11 宽 212px（胶囊规范按 192 定标）；`osVersionCode=0` → 不要假设 `getInfo` 字段一定存在
 - `manifest` 的 `config.designWidth="device-width"` → px 与屏幕 1:1，**不做基准缩放**
@@ -23,6 +23,7 @@
 - **`<stack>`/`<scroll>` 作容器/内容层时，子元素必须显式声明 `width`（根内容层写 `width:100%`）**；stack 不拉伸子元素，宽度退化露黑底，根容器绑 `background-color` 兜底
 - **⭐ 列表行 = `onclick` 只放整行容器，行内子元素一律不绑 onclick** → 热区=整行（窄屏上热区太小=点了没反应）。`index.ux` 的 `class-grid-item` 是惯例
 - **⭐ 铁律：模拟器「通过」≠ 真机通过**（同份代码 212×520 模拟器正常 → 手环 9 真机打不开）。模拟器只适合排除法/取证/画面判读，**不适合验收**；模拟器 OK 而真机不 OK 优先怀疑触摸命中/事件分发/屏型尺寸/厂商定制
+- **⭐「模拟器正常真机崩」第一怀疑对象 = 隐式宽度中间层 + 隐式 flex 默认值**（REDMI Watch 6 实锤：同页同 432×514 rect 模拟器键盘满宽正常、真机塌缩 ~150px 且 .item-row/.style-block 的 flex-direction 失效；真机 Vela 严格执行"无显式 width → 退化"红线，模拟器运行时宽容撑满）。此类问题模拟器**不可复现也不可验收**；修复=补显式 `width:100%`/`flex-direction`（模拟器上是 no-op，无回归风险），验收只能真机往返
 - **验证优先级：单元测试 ＞（画面类）模拟器截图 ＞＞ 真机往返**。单测毫秒级可回归定位函数；模拟器只在布局/裁切/溢出/视觉问题不可替代；触摸/性能/机型差异只有真机说了算
 - **⭐ 胶囊屏弹窗/浮层几何铁律**：遮罩对称 padding（`40px 16px`）+ 卡片 `width:100%`，**禁用百分比宽度与 `max-width`**；卡片 `width:100%` 填满对称 padding 后的内容区 ⇒ 左右边距天然等距，**不要算居中**（`align-items:center` 不可靠）。胶囊文本预算：卡片内宽=176−2×padding；`.modal-desc` 必须 `lines:4`。**同一文件不要出现两个 capsule `@media` 块写同一属性**（覆盖不稳定，必须改原有那一处）
   - **⚠️ 必须把页面根容器 padding 移到内层容器**：Vela 绝对定位按父级**内容盒**算，根容器带 padding 会把弹窗/抽屉整体内缩 → 已处理 `settings.ux`/`homepage-settings.ux`/`schedule-manager.ux`；待处理 `backup-restore.ux`/`reset-data.ux`/`premium-overlay.ux`
