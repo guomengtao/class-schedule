@@ -9,7 +9,6 @@
     </div>
 
     <div class="empty-state" if="pinnedList.length === 0">
-      <text class="empty-icon">📌</text>
       <text class="empty-title" style="color: {{ theme.textSecondary }}">暂无已钉页面</text>
       <text class="empty-desc" style="color: {{ theme.textMuted }}">打开任意页面，将其钉到首页可快速访问。</text>
     </div>

@@ -789,11 +789,11 @@ export default {
      故取 44px（原 30px 只有规范要求的 62%） */
       /* 提到规范的 48px：胶囊屏下该按钮独占一行右侧，不与标题抢宽度 */
       .mgmt-btn {
-    width: 64px;
-    height: 48px;
-    border-radius: 24px;
-    font-size: 22px;
-    line-height: 48px;
+    width: 52px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 20px;
+    line-height: 40px;
   }
   .section {
     margin-bottom: 10px;
@@ -805,13 +805,17 @@ export default {
     margin-bottom: 6px;
   }
   .section-title {
-    font-size: 24px;
-    line-height: 32px;
+    font-size: 20px;
+    line-height: 28px;
     flex-shrink: 1;
     margin-right: 6px;
   }
   .course-scroll {
     height: 60px;
+  }
+  /* 底部呼吸空间：避免最后内容紧贴 bottom-bar 视觉上像被压住 */
+  .content-scroll {
+    padding-bottom: 12px;
   }
   .course-item {
     /* 胶囊屏课程条由 88px 加宽到 120px：课名可用宽度 76px → 108px，
