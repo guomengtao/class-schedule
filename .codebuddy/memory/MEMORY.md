@@ -47,8 +47,8 @@
 - 工具：`scripts/emulator-eye.js`（shot/ctap/status…）、`scripts/png-measure.js`、`scripts/audit-capsule-width.py`、`scripts/capture-pages.js`（app-auth 仓库，采手环端逐页截图）
 
 ## 输入法（结案，真机通过）
-- `src/components/InputMethod/`=上游 `NEORUAA/Vela_input_method` main 最新版，宿主 3 处适配：import + 传 dictionarypath + `manifest.features` 含 `system.file`
-  - **⚠️ 已本地化 4 处纯加法补丁（非上游逻辑改动，同步上游时必须保留）**：①`.page` 加 `flex-direction:column`；②新增 `.ime-lazy-wrap`/`.ime-body` 两 class（挂到键盘子树的两层裸 `<div if>`/`<div show>` 上，显式 `width:100%`）；③rect 分支 `keyboard67` 加 `style="width:100%"`；④pill 分支 `keyboard66` style 加 `width:100%`。原因=432 宽真机隐式宽度塌缩（键盘缩到左下 ~150px），commit d64b1f0
+- `src/components/InputMethod/`=上游 `NEORUAA/Vela_input_method` main 最新版，**保持逐字节零改动**（`cmp` 与上游 raw 文件核对，2026-09-29 复核：上游 main 停在 2026-09-18，我们 09-25 导入即最新）；宿主 3 处适配：import + 传 dictionarypath + `manifest.features` 含 `system.file`
+  - **⭐ 铁律：官方组件不自己改**（避免影响其它正常机型）——组件内部问题一律在**宿主侧**解决。已落地案例：432 宽真机输入法键盘塌缩到左下 → 未改组件，而是把 `chinese-input.ux` 的宿主容器由 `<scroll class="keyboard-scroll">` 改为普通 `<div class="ime-host">`（scroll 不拉伸子元素，会让组件内部 `position:absolute;bottom:0;width:100%` 退化）；`input-crash-diag.ux` 早就是用 `<div class="ime-host">` 的。commit e0bb780。排查前先 `gh api repos/NEORUAA/Vela_input_method/commits` + raw 文件 diff 确认上游是否已修
 - 词典外置 `assets/dictionary/*.txt`（28 个/196KB）；**`hide=true` 不可用**（跳过词典→中文无候选），必须 `hide=false`
 - 第三方组件出问题第一步查上游 diff/SHA；定论靠 A/B 对照
 
