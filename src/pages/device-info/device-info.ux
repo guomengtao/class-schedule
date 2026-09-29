@@ -1,5 +1,7 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
+    <scroll class="di-scroll" scroll-y="{{true}}">
+    <div class="page-body">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
@@ -29,6 +31,8 @@
     <div class="pin-row">
       <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">钉首页</text>
     </div>
+    </div>
+    </scroll>
   </div>
 </template>
 
@@ -177,12 +181,27 @@ export default {
 
 .page {
   flex-direction: column;
-  padding: 38px 8px 10px 8px;
   width: 100%;
   height: 100%;
 }
 
+/* 滚动容器：21 条信息约 1302px 高，超过一屏必须可滚（QA P0-18，
+   参照 settings.ux / homepage-settings.ux 已验证写法） */
+.di-scroll {
+  flex: 1;
+  width: 100%;
+  flex-direction: column;
+}
+
+/* 内层容器承载 padding：Vela 绝对定位按父级内容盒计算，根容器不放 padding */
+.page-body {
+  flex-direction: column;
+  width: 100%;
+  padding: 38px 8px 10px 8px;
+}
+
 .info-section {
+  width: 100%;
   flex-direction: column;
 }
 
@@ -286,7 +305,7 @@ export default {
  *   Solution: stacked vertical layout, label on top, value wraps below.
  */
 @media (shape: capsule), (shape: pill-shaped) {
-  .page {
+  .page-body {
     padding: 30px 16px 30px 16px;
   }
   .menu-item {
@@ -319,7 +338,7 @@ export default {
 }
 
 @media (shape: circle) {
-  .page {
+  .page-body {
     padding: 38px 36px 44px 36px;
   }
   .menu-item {
@@ -354,7 +373,7 @@ export default {
 }
 
 @media (shape: rect) {
-  .page {
+  .page-body {
     padding: 6px 10px 12px 10px;
   }
   .menu-item {

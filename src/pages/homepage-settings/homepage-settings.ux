@@ -132,6 +132,8 @@
 import router from "@system.router"
 const store = require("../../data/store.js")
 
+const sizeLevels = [20, 28, 36, 48, 62, 76]
+
 var DEBUG = false
 function dlog() {
   if (DEBUG) console.log.apply(console, arguments)
@@ -182,8 +184,11 @@ export default {
       self.showDayNavZong = settings.showDayNavZong !== false
       self.showDayNavJin = settings.showDayNavJin !== false
       self.showDayNavMing = settings.showDayNavMing !== false
-      self.displaySize = settings.displaySize || 48
     })
+    // 课程字号真实数据源是 baseFontSize（settings.ux 同源），不是 homepage_settings.displaySize
+    store.getBaseFontSize(function(size) {
+      self.displaySize = size
+    }, true)
   },
   saveSettings() {
     store.setHomepageSettings({
@@ -264,6 +269,26 @@ export default {
   },
   toggleFontSize() {
     this.showFontSize = !this.showFontSize
+  },
+  setSize(size) {
+    this.displaySize = size
+    store.setBaseFontSize(size)
+  },
+  decreaseFont() {
+    for (var i = sizeLevels.length - 1; i >= 0; i--) {
+      if (sizeLevels[i] < this.displaySize) {
+        this.setSize(sizeLevels[i])
+        return
+      }
+    }
+  },
+  increaseFont() {
+    for (var i = 0; i < sizeLevels.length; i++) {
+      if (sizeLevels[i] > this.displaySize) {
+        this.setSize(sizeLevels[i])
+        return
+      }
+    }
   },
   openCustomContentEdit() {
     router.push({ uri: "/pages/custom-content-edit" })
