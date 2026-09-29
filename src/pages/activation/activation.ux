@@ -41,25 +41,19 @@
           <div class="step-badge" style="background-color: {{ theme.accent }}">
             <text class="step-badge-text" style="color: {{ theme.bg }}">2</text>
           </div>
-          <text class="step-title" style="color: {{ theme.text }}">快速激活（安卓手机）</text>
+          <text class="step-title" style="color: {{ theme.text }}">快速激活</text>
         </div>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">安卓手机</text>
         <text class="step-desc" style="color: {{ theme.textSecondary }}">扫码下载 Ev课程表同步器</text>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">App 内填入 4 位兑换码，即可自动激活手环</text>
       </div>
 
       <div class="qr-section qr-section-full" if="{{ apkQrText }}">
         <qrcode class="qr-code" value="{{ apkQrText }}" style="color: #000000; background-color: #ffffff;"></qrcode>
-        <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码下载同步器（带激活追踪）</text>
+        <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码下载同步器</text>
       </div>
 
       <div class="qr-section" if="{{ !apkQrText }}">
         <text class="qr-loading" style="color: {{ theme.textMuted }}">正在生成二维码...</text>
-      </div>
-
-      <div class="step-card">
-        <text class="step-desc" style="color: {{ theme.accent }}">装了 App 还同步获得：</text>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">课表导入导出 · 呼叫手环</text>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">上课提醒 · 桌面小组件</text>
       </div>
 
       <div class="step-card">
