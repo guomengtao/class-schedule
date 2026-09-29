@@ -1,83 +1,78 @@
 # 长期记忆
 
-> 维护规则：本文件只放**长期有效**的执行规则；过程性记录留在 `YYYY-MM-DD.md`。已被推翻的旧结论在删除时于当日日志留一行说明。细节长文一律落在 `docs/`，本文件只留"可执行规则"。
+> 只放**长期有效**的执行规则；过程记录留 `YYYY-MM-DD.md`；被推翻的旧结论删除时当日日志留一行；细节长文落 `docs/`。
+> 跨项目总入口：`/Users/Banner/Documents/guomengtao/PROJECT-MAP.md`（含愿景、多项目协作状态）。
 
-## 项目
-- Ev课程表（小米手环快应用 / Vela），包名 `com.application.watch.classschedule`，仓库 `git@github.com:guomengtao/class-schedule.git`
-- 评分体系 `docs/标准版完善度综合评分.md`；守护手册 `docs/标准版100分评分标准.md`
-- `manifest.json` 的 `deviceTypeList` 只能是 `["watch"]`（`band` 非法，aiot-toolkit 不校验）
-- `manifest.json` 的 `router._groups` / `pages[*].group` / `name_cn` 是自定义元数据，须与 `router.pages` 同步
-- 当前：标准版综合评分 **100/100**（第十一轮），重点防回退；最新开发版 **v1.6.142（versionCode 971）**，v1.6.130 已发布
+## 项目与版本
+- Ev课程表（Vela 手环快应用）包名 `com.application.watch.classschedule`，仓库 `guomengtao/class-schedule`；**本地唯一副本 `tom/class/class`**（含 `sign/` 密钥）
+- 评分体系 `docs/标准版完善度综合评分.md`；守护手册 `docs/标准版100分评分标准.md`；当前 **100/100**，重点防回退
+- `manifest.json`：`deviceTypeList` 只能 `["watch"]`；`router._groups` / `pages[*].group` / `name_cn` 须与 `router.pages` 同步
+- 版本号：`scripts/bump-version.js`（patch+1、code+1，写 manifest + `data/version.js`），只经 `npm run release|build|bump` 触发（禁 `npx aiot release`/`build:dev`）；判断用户测的是否新包看回传 `r` 参数
+- 构建：`npx aiot release --enable-jsc` → `node scripts/rename-rpk.js` → `dist/ev-v{版本}-{渠道}.rpk`（须绕开 safe-delete 垫片）；禁 `npm run release`（会 bump）与 `_build_test.sh`；清目录用 `mv /tmp/trash/`
 
-## 关键设计约定（用户确认）
-- **字号设置只作用于「首页课程卡片」**（有意设计，其他页固定字号；设置项 UI 须声明范围）。**不做全局字号联动**
+## 设备参数
+- 手环9 pill **192×490**（VVD `xiaomi_band`）；环11 212×520；10 Pro 336×480 rect；REDMI Watch6 432×514 rect（VVD `REDMI-Watch-6`）
+- 屏型：跑道屏返回 `pill-shaped`，真机也出现 `capsule` → **两种都要认**；`osVersionCode` 可能为 0，别假设 `getInfo` 字段存在
+- `designWidth=device-width` → px 与屏幕 1:1，**不做基准缩放**
 
-## 设备实测参数
-- 激活 URL 字段含义见 `src/pages/activation/activation.ux` 的 `fetchDeviceInfo()`
-- 小米手环 9 = pill-shaped **192×490**（band，本机 VVD `xiaomi_band`）；手环 11 = 212×520；手环 10 Pro = 336×480 rect；**REDMI Watch 6 = 432×514 rect**（模拟器皮肤 VVD `REDMI-Watch-6`，gRPC 8556）
-- 跑道屏 `screenShape` 返回 `pill-shaped`，真机也出现 `capsule` → **屏型归一化两种都要认**（`device-info.ux` 的 `screenShapeMap` 不认 capsule，取证会误判）
-- 手环 11 宽 212px（胶囊规范按 192 定标）；`osVersionCode=0` → 不要假设 `getInfo` 字段一定存在
-- `manifest` 的 `config.designWidth="device-width"` → px 与屏幕 1:1，**不做基准缩放**
+## 布局与交互红线（Vela）
+- **`<stack>`/`<scroll>` 作容器时子元素必须显式 `width`**（根内容层 `width:100%`）；根容器绑 `background-color` 兜底
+- **列表行 onclick 只放整行容器**，行内子元素一律不绑 → 热区=整行
+- **模拟器「通过」≠ 真机通过**：模拟器只适合排除法/取证/画面判读，验收靠真机
+- **「模拟器正常真机崩」第一怀疑：隐式宽度中间层 + 隐式 flex 默认值** → 修复=补显式 `width:100%`/`flex-direction`（模拟器上 no-op，无回归风险），只能真机往返验收
+- **「点了没反应」第一怀疑系统 API 回调不来**（`vibrator.start`/`storage.get` 可能既不 success 也不 fail）→ `typeof` 守卫 + try/catch + **~400ms 看门狗**兜底；`store.showUnlockDialog` **返回值必须处理**（未注册时静默丢弃），失败重试一次再 toast
+- **禁为此类问题搭新模拟器镜像**（已 15 轮止损）：镜像与真机厂商 Vela 不同源，不可证伪；正确路径=显式化加法 + 修复包真机往返 + 诊断页
+- 验证优先级：**单元测试 ＞（画面类）模拟器截图 ＞＞ 真机往返**
+- **胶囊屏弹窗几何**：遮罩对称 padding `40px 16px` + 卡片 `width:100%`；**禁百分比宽与 `max-width`**；不要算居中（`align-items:center` 不可靠）；`.modal-desc` `lines:4`；**同文件不要出现两个 capsule `@media` 块写同一属性**
+- **页面根容器 padding 必须移到内层容器**（Vela absolute 按父级**内容盒**算，否则弹窗/抽屉被整体内缩）：已处理 settings / homepage-settings / schedule-manager / backup-restore / reset-data / premium-overlay
+- 底部抽屉：overlay `absolute;left/top:0;width/height:100%` 遮罩 + 面板 `absolute;left/bottom:0;width:100%;border-radius:16px 16px 0 0`；内容包 `.xxx-body`，抽屉留根容器下
+- 打开浮层处理器必须有越界守卫 `if(idx<0||idx>=list.length)return`
+- 胶囊屏硬约束：`week-view` 可视列数 2.5~3.5、关行号列、`cellWidth≤60`、按钮高≥48px、header 标题约 5 字（title 18px）
+- 改布局前**先查该页媒体块内是否有同选择器的重复定义**（多组会互相覆盖）
+- 「解锁高级版」弹窗统一收敛到 `premium-overlay.ux`，别逐页复制（历史曾复制 6~7 份导致 192×490 破碎）
+- 测试前必须固定两个变量：**屏尺寸（手环9=192×490）+ 业务状态（激活/未激活）**
 
-## 布局与交互红线（Vela 手环）
-- **`<stack>`/`<scroll>` 作容器/内容层时，子元素必须显式声明 `width`（根内容层写 `width:100%`）**；stack 不拉伸子元素，宽度退化露黑底，根容器绑 `background-color` 兜底
-- **⭐ 列表行 = `onclick` 只放整行容器，行内子元素一律不绑 onclick** → 热区=整行（窄屏上热区太小=点了没反应）。`index.ux` 的 `class-grid-item` 是惯例
-- **⭐ 铁律：模拟器「通过」≠ 真机通过**（同份代码 212×520 模拟器正常 → 手环 9 真机打不开）。模拟器只适合排除法/取证/画面判读，**不适合验收**；模拟器 OK 而真机不 OK 优先怀疑触摸命中/事件分发/屏型尺寸/厂商定制
-- **⭐「模拟器正常真机崩」第一怀疑对象 = 隐式宽度中间层 + 隐式 flex 默认值**（REDMI Watch 6 实锤：同页同 432×514 rect 模拟器键盘满宽正常、真机塌缩 ~150px 且 .item-row/.style-block 的 flex-direction 失效；真机 Vela 严格执行"无显式 width → 退化"红线，模拟器运行时宽容撑满）。此类问题模拟器**不可复现也不可验收**；修复=补显式 `width:100%`/`flex-direction`（模拟器上是 no-op，无回归风险），验收只能真机往返
-- **⭐「点了没反应」第一怀疑系统 API 回调不来**（`@system.vibrator.start`／`storage.get` 等在部分真机 Vela 上可能既不 success 也不 fail）→ 统一加固：`typeof` 守卫 + try/catch 兜底 + **短时看门狗（~400ms）无回调即走兜底**；`store.showUnlockDialog` **返回值必须处理**（未注册时静默丢弃），失败重试一次再兜底 toast（vibration-lab 试听不震/保存失效即此二因，commit ed716cc）
-- **⭐ 禁止为"复现真机运行时崩坏"搭新模拟器镜像实例**（Watch 6 实验 15 轮止损）：SDK 镜像与真机厂商定制 Vela 不保证同源 → 复现失败无法证伪；pre-4.0 工具链与 5.0 运行时代差巨大（storage 回调不执行、--start-page 失效、pm install 才是唯一安装通道、am stop 后只能 reboot）。正确路径 = 修复包直接真机往返 + input-crash-diag 诊断页 + pages.html 审核闭环（详见 `docs/模拟器复现真机Watch6问题-可行性分析.md` 附录，含 5.0 实例搭建方法备查）
-- **验证优先级：单元测试 ＞（画面类）模拟器截图 ＞＞ 真机往返**。单测毫秒级可回归定位函数；模拟器只在布局/裁切/溢出/视觉问题不可替代；触摸/性能/机型差异只有真机说了算
-- **⭐ 胶囊屏弹窗/浮层几何铁律**：遮罩对称 padding（`40px 16px`）+ 卡片 `width:100%`，**禁用百分比宽度与 `max-width`**；卡片 `width:100%` 填满对称 padding 后的内容区 ⇒ 左右边距天然等距，**不要算居中**（`align-items:center` 不可靠）。胶囊文本预算：卡片内宽=176−2×padding；`.modal-desc` 必须 `lines:4`。**同一文件不要出现两个 capsule `@media` 块写同一属性**（覆盖不稳定，必须改原有那一处）
-  - **⚠️ 必须把页面根容器 padding 移到内层容器**：Vela 绝对定位按父级**内容盒**算，根容器带 padding 会把弹窗/抽屉整体内缩 → 已处理 `settings.ux`/`homepage-settings.ux`/`schedule-manager.ux`；待处理 `backup-restore.ux`/`reset-data.ux`/`premium-overlay.ux`
-- **底部抽屉写法**：外层 overlay `position:absolute;left/top:0;width/height:100%`（遮罩）+ 内层面板 `position:absolute;left:0;bottom:0;width:100%`+`border-radius:16px 16px 0 0`；根容器只 `position:relative`，内容包进 `.xxx-body`，抽屉留根容器下；点未解锁项先收抽屉再弹窗
-- 打开浮层处理器必须有越界守卫（`if(idx<0||idx>=list.length)return`）
-- 胶囊屏硬约束：`week-view` 可视列数∈[2.5,3.5]；关行号列、`cellWidth≤60`；按钮高≥48px
-- **⚠️「解锁高级版」弹窗在 192×490 严重破碎**（被复制 6~7 份、适配各异）→ 根治=收敛成一份 `premium-overlay.ux`+统一胶囊覆盖，别逐页改
-- **⭐ 测试前必须固定两个变量：屏尺寸（手环 9=`xiaomi_band` 192×490）+ 业务状态（激活/未激活）**
+## Vela 模拟器取证
+- 截图落 `~/Downloads/vela_screenshot/`（软链 `~/.vela/sdk/screenshot`）；`adb` 在 `node_modules/@aiot-toolkit/emulator/node_modules/@miwt/adb/bin/mac/adb`（NuttX NSH，无 wm/input/screencap）；gRPC 控制台端口=adb 端口+3000（端口每次**先探测**）
+- **点击注入不可靠**（gRPC 输入空实现；`event mouse` 坐标=皮肤窗口坐标需标定；首帧极易失准）→ 可靠做法=带重试探针（点→截图→按 PNG 字节数判页：首页>18KB、欢迎页≈13KB、纯黑=1373B）
+- **运行时优先 `.jsc`**：`.js` 与 `.jsc` 同存时只用 `.jsc`，推 `.js` 被静默忽略（需 `aiot release --enable-jsc` 产出）
+- 部署：运行时只认解包目录 `/data/quickapp/app/<pkg>/`；改单页只推 `pages/<页>/<页>.jsc`；5.0 上 `pm install /data/<包名>.rpk` 才是安装通道
+- **禁跑 `vapp help`**（挂住 stdin→全黑，需 reboot）；反复 `vapp app/<pkg> &` 会累积进程
+- **最快逐页取证**：把巡航定时器放 `app.ux`（跨 `router.replace` 存活）+ 一次构建一次启动连拍（27 页 ≈ 2–3 分钟）；采完必须还原源码与 jsc
+- 工具集：`scripts/emulator-eye.js`（`shot <端口> <out.png>` 位置参数）、`scripts/png-measure.js`、`scripts/audit-capsule-width.py`
 
-## Vela 模拟器取证（AI 可直接用）
-- 画面：IDE 截图 `/Users/Banner/Downloads/vela_screenshot/`（软链 `~/.vela/sdk/screenshot`，含设备+时间）；`adb`=`node_modules/@aiot-toolkit/emulator/node_modules/@miwt/adb/bin/mac/adb`（NuttX NSH，无 wm/input/screencap）；gRPC 控制台端口+3000（5558/8558=手环9、5554/8554=手环10、5556/8556=pro）
-- **点击注入不可用**（gRPC 输入 RPC 空实现）；可用通路=模拟器控制台 `event mouse`（先 `auth` token）。坐标是皮肤窗口坐标=LCD+part2 偏移（须标定）；**⚠️ 但 gRPC `ctap` 在「新启动首帧」极易失准**（同一坐标时而欢迎页/时而首页/时而纯黑），不可作为可靠导航手段 → 可靠做法=带重试探针（点→截图→按 PNG 字节数判断是否到位：首页>18KB、欢迎页≈13KB、纯黑=1373B）；**IDE 面板点击可能"看着能点其实没送达"**
-- 部署坑：debug 包不能裸 `vapp` 启动（黑屏）；运行时只认 `/data/quickapp/app/<pkg>/` 解包目录，推 rpk 不会自动解包→本地解包再推；`adb push <rpk> /data/quickapp/app/<pkg>.rpk` 会重置应用数据；改单页只推 `pages/<页>/<页>.jsc` 最稳；首启可能黑屏，再启一次
-- ⚠️ **运行时优先 `.jsc`**：目录里 `.js` 与 `.jsc` 同时存在时**只用 `.jsc`** → 推 `.js` 会被**静默忽略**（"改了没反应"的隐形坑）；`.jsc` 需 `aiot release --enable-jsc` 产出
-- ⚠️ **禁跑 `vapp help`**：会挂住 stdin/服务，之后 App 全黑（截图 1373B），需 `adb reboot`；且反复 `vapp app/<pkg> &` 会累积进程致黑屏/卡残影，`adb reboot` 清场但**会重置应用数据**
-- **自动到任意页取证（无点击）**：临时改 `welcome.ux` 的 `onShow` 注入"读 storage 计数 → `router.replace` 到目标数组下一页"，只推 `pages/welcome/welcome.jsc` → 每启动一次自动落下一页，逐页截图；采完**必须还原源码并推回原版 jsc**
-- ✅ **已验证：app 级 `router` 可用** ⇒ `aiot release --enable-jsc --start-page 'pages/X'` + **只推 `app.jsc`** → 启动后直达该页（~10s 构建 + ~25s 启动/页）。
-  **最快方案 = 把巡航定时器放 `app.ux`（跨 `router.replace` 存活）：一次构建 + 一次启动，按固定节奏连拍全部页 ≈ 2–3 分钟**（27 页 × 3s）。详见 `docs/逐页截图-快速采集方案（索引页自动巡航）.md`
-- 工具：`scripts/emulator-eye.js`（shot/ctap/status…）、`scripts/png-measure.js`、`scripts/audit-capsule-width.py`、`scripts/capture-pages.js`（app-auth 仓库，采手环端逐页截图）
+## 数据层 / 单元测试 / 默认设置
+- 跨星期更新必须原子写盘（`updateCourseAcrossDays`），禁「先删后插」；`JSON.parse` 必须 try/catch；删除二次确认 + 5s 撤销
+- 弹窗/面板内点击必须 `stopBubble(e)` 且真正 `e.stopPropagation()`
+- 单测：正则提取 `<script>` + `/tmp` 跑 node；依赖 storage 时劫持 `Module.prototype.require` 注入 fake；页面方法用 `new Function`
+- 默认设置集中 `src/data/app-defaults.js`（字段 entry+policy+since）+ 引擎 `defaults-engine.js`；红线：`app_state` 不存在**绝不能当新用户**；迁移后 `store.clearCache()`；对象/数组返回副本
 
-## 输入法（结案，真机通过）
-- `src/components/InputMethod/`=上游 `NEORUAA/Vela_input_method` main 最新版，**保持逐字节零改动**（`cmp` 与上游 raw 文件核对，2026-09-29 复核：上游 main 停在 2026-09-18，我们 09-25 导入即最新）；宿主 3 处适配：import + 传 dictionarypath + `manifest.features` 含 `system.file`
-  - **⭐ 铁律：官方组件不自己改**（避免影响其它正常机型）——组件内部问题一律在**宿主侧**解决。已落地案例：432 宽真机输入法键盘塌缩到左下 → 未改组件，而是把 `chinese-input.ux` 的宿主容器由 `<scroll class="keyboard-scroll">` 改为普通 `<div class="ime-host">`（scroll 不拉伸子元素，会让组件内部 `position:absolute;bottom:0;width:100%` 退化）；`input-crash-diag.ux` 早就是用 `<div class="ime-host">` 的。commit e0bb780。排查前先 `gh api repos/NEORUAA/Vela_input_method/commits` + raw 文件 diff 确认上游是否已修
-- 词典外置 `assets/dictionary/*.txt`（28 个/196KB）；**`hide=true` 不可用**（跳过词典→中文无候选），必须 `hide=false`
-- 第三方组件出问题第一步查上游 diff/SHA；定论靠 A/B 对照
-
-## 版本号递增
-- `scripts/bump-version.js`（patch+1、versionCode+1，写回 `src/manifest.json` 与 `src/data/version.js`），只经 npm 钩子触发：`npm run release`/`build`/`bump` ✅；`npx aiot release`/`build:dev` ❌
-- 判断"用户测的是否刚改的包"以回传 `r` 参数（=包内 versionName）为准
-
-## 构建与打包
-- `npx aiot release --enable-jsc` → `node scripts/rename-rpk.js` → `dist/ev-v{版本}-{channel}.rpk`；**必须绕开 safe-delete 垫片**（env 去 NODE_OPTIONS 或 `CODEBUDDY_SAFE_DELETE_ENABLED=0`）
-- **禁** `npm run release`（会 bump）/ `_build_test.sh`（含 `rm -rf`）；用 `_do_build.sh`。清目录用 `mv` 到 `/tmp/trash/`，**禁 `rm -rf`**
-- 14 渠道：sed 改 `channel`→构建→复制为 `release/ev-v{版本}-{channel}.rpk`→还原。Vela 无共享 chunk→瘦身只能减大组件引用页数或外置资源
-
-## 数据层 / 单元 / 诊断 / 默认设置
-- 跨星期更新须原子写盘（`updateCourseAcrossDays`），禁"先删后插"；`JSON.parse` 必须 try/catch；删除二次确认+5s 撤销
-- 弹窗/面板内点击必须 `stopBubble(e)` 且真正 `e.stopPropagation()`；空函数会误关面板
-- 单测：纯函数正则提取 `<script>`+`/tmp` 跑 node；依赖 storage 劫持 `Module.prototype.require` 注入 fake；页面方法 `new Function`
-- 默认设置集中管理：`src/data/app-defaults.js`（字段级 entry+policy+since）+引擎 `defaults-engine.js`；最高红线：`app_state` 不存在**绝不能当新用户**；迁移后 `store.clearCache()`；对象/数组须返回副本
+## 输入法（已结案）
+- `src/components/InputMethod/` = 上游 `NEORUAA/Vela_input_method`，**保持逐字节零改动**（官方组件不自己改，出问题先在宿主侧解决）；动手前 `gh api` 查上游 commits + raw diff
+- 宿主适配 3 处：import + 传 dictionarypath + `manifest.features` 含 `system.file`；宿主容器用 `<div>` 而非 `<scroll>`（scroll 不拉伸子元素会让组件内 absolute 层退化）
+- 词典外置 `assets/dictionary/*.txt`；`hide=false`（true 会跳过词典导致中文无候选）
 
 ## 表盘与手机侧同步
-- 表盘 `.bin`≠快应用 `.rpk`：表盘无数据源/存储/输入/通信→"能输入编辑的课程应用"本质就是快应用
-- 手机侧唯一可行路径=AstroBox 插件（Rust→WASM，`interconnect.send_qaic_message`）；本项目 `EV Schedule Sync`（`.abp`），仓库 `guomengtao/app-auth`
-- **守门人模型**：数据开放边界 100% 由手环侧控制（SYNC_ACCESS 权限表 read/write 双维：always+write=任意读可写；always+无write=只读；explicit=默认不给、插件显式 scopes 才给且只读；never=禁止读写）；当前 schedule/profile/homepage/appearance 默认读+可写，pinned 需显式+只读，auth 禁止读写
+- 手机侧唯一可行路径 = AstroBox 插件（app-auth `tools/ev-schedule-sync`）
+- **守门人模型（app.ux `SYNC_ACCESS`）**：数据开放边界 100% 由手环侧控制；四种策略 = read(always/explicit/never) × write(true/false)；改一处即可切换
+
+## macOS 侧 EvNotifier（app-auth `tools/ev-notifier`）
+- **操作手册：`tools/ev-notifier/EvNotifier桌面App与日常迭代手册.md`（改之前先读）**
+- LaunchAgent `com.evnotifier.agent`（plist 由脚本生成，别手工拷）；`KeepAlive=True` 保崩溃自愈；**`launchctl kickstart -k` 是重启手段**（所以别改 `KeepAlive={"SuccessfulExit": False}`）
+- **菜单「退出」先 `launchctl bootout` 再退出**（`stop_launchd_job()`），plist 保留 → 退出不复活、下次登录仍自启；手工复活 `launchctl bootstrap "gui/$(id -u)" ~/Library/LaunchAgents/com.evnotifier.agent.plist`
+- **正规桌面 App**：`./build_app.sh` / `--install` 到 `/Applications/EvNotifier.app` = bundle + 自带 venv（~66MB，禁 rm -rf，用 mv /tmp/trash；venv 缓存 /tmp/evnotifier-venv-cache）。bundle 里是**拷贝**，改完代码要重新 build+install
+- **启动路径自动移交** `handover_to_launchd()`：双击 App/手动跑脚本时改写 plist 指向自身 → 延迟 2s bootstrap → 自己退场，保证最终只有一个受托管实例
+  - 🔴 `os.getppid()==1` **不是**"被 launchd 拉起"的判据（Finder/LS 双击也是 1）→ 用 `launchctl list <label>` 取 job PID 比对 `os.getpid()`
+  - 🔴 进程还活着时**绝不能 bootstrap**：launchd 会立刻再拉一个实例，抢不到 PID 锁就退，KeepAlive 补位 → 秒退秒起死循环（`ensure_auto_start()` 已只写 plist）
+- 客户端版本在 `tools/ev-notifier/version.json`，改客户端要 bump 并 `launchctl kickstart -k` 重启
+- **日常迭代**：改代码 → `./build_app.sh --sync`（~2s：拷源码 + kickstart -k）；`--link` 可把 bundle 脚本软链到仓库（更快但依赖仓库存在）；只有依赖/图标/版本变才 `--install`
+- **可分发**：`--dmg` 出 `dist/EvNotifier-v{版本}-macos-arm64.dmg`（自持 python-build-standalone 3.12，~92MB）。⛔ 不能用 Homebrew Python 做可移植运行时（_ssl 等依赖外部 dylib）；运行时放 `Contents/Resources/python/`（放 Frameworks/ 会被 codesign 当嵌套代码签名报错）；uv 运行时删 `EXTERNALLY-MANAGED` 才能装依赖；`/Volumes/` 上跑不写 plist
+- 🔴 **`launchctl list <label>` 打印 plist 字典没有 PID**；要 PID 必须用**无参数** `launchctl list`（`PID\tStatus\tLabel`），shell 里用默认 FS 的 awk 匹配第 3 列
 
 ## 用户协作偏好（硬要求）
-- **模拟器优先**：能复现才出包/打扰用户；真机只做最终验收
-- 冲分要求**真实代码改进**并同步文档，不接受只改数字虚报
-- **每次改动自动提交并推送 GitHub**：编译/校验后 `git add -A && git commit`（Conventional Commits，type 符合 `commitlint.config.js`）→ `git push origin main`；未跟踪一并纳入；**禁 force push**，被拒先 `git fetch` 核对报告
-- **禁** `git clean`/`reset --hard`/`rm -rf`；恢复用 `git checkout HEAD~1 -- <路径>`
-- 不接受"为修 bug 一次性大改界面影响所有用户"，宁多一轮定位把改动面缩到最小
-- 对话结束提醒：`scripts/notify.sh "标题" "正文" "语音文本"`（mac 通知 + **Edge TTS 晓晓 zh-CN-XiaoxiaoNeural**，失败回退 `say -v Tingting`）；edge-tts 在 `/opt/homebrew/bin/edge-tts`，生成 mp3 后 `afplay`
-- **AI 眼睛/手指工具集**：`emulator-eye.js`、`png-measure.js`、`audit-capsule-width.py`；点击坐标标定见上
-- 所有 md 用中文；**项目根目录保持干净**：散落文档入 `docs/`、临时脚本归 `archive/`、构建产物不留根；`sign/` 含证书**禁移动清理**
+- **每次改动编译/校验通过后自动 `git add -A && git commit`（Conventional Commits，type 符合 `commitlint.config.js`）→ `git push origin main`**；**禁 force push**，被拒先 `git fetch` 核对并报告
+- 禁 `git clean -fd/-fdx`、`git reset --hard`、`rm -rf`；恢复用 `git checkout HEAD~1 -- <路径>`
+- 不接受为修 bug 一次性大改界面影响所有用户；宁多一轮定位把改动面缩到最小
+- 对话结束提醒：`scripts/notify.sh "标题" "正文" "语音文本"`（mac 通知 + **Edge TTS 晓晓 zh-CN-XiaoxiaoNeural**，失败回退 `say -v Tingting`；edge-tts 在 `/opt/homebrew/bin/edge-tts`）
+- 所有 md 用中文；项目根目录保持干净（散落文档入 `docs/`、临时脚本归 `archive/`、`sign/` 含证书禁移动）
+- app-auth 有用户并行未提交改动时：**只 add 自己改的文件**；推送被拒 → `git pull --rebase --autostash` → push（已用成功，用户脏工作区保留）

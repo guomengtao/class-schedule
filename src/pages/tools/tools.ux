@@ -76,6 +76,11 @@
         <text class="item-label" style="color: {{ theme.accent }}">发消息到手机</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">聊天 PoC</text>
       </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openMessageInbox">
+        <text class="item-label" style="color: {{ theme.text }}">留言板</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">查看手机留言</text>
+      </div>
     </div>
   </div>
 </template>
@@ -186,6 +191,10 @@ export default {
 
   // 聊天 PoC：手环【主动】给手机发一条消息。
   // 这是验证"手环 → 手机"方向能否成立的关键按钮（此前从未被证实过）。
+  openMessageInbox() {
+    router.push({ uri: "/pages/message-inbox" })
+  },
+
   sendChatTest() {
     var ok = chatBridge.send("来自手环 " + new Date().toLocaleTimeString())
     prompt.showToast({

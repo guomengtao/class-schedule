@@ -170,7 +170,7 @@ var tables = [
   {
     key: "ev_chat_inbox",
     desc: "聊天收件箱：手机发来的聊天消息（收到时同时触发长震动），最多保留 50 条",
-    columns: ["from", "text", "ts"],
+    columns: ["id", "from", "text", "ts", "read"],
     type: "array"
   }
 ]

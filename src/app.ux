@@ -197,7 +197,7 @@ function syncHandleChatIncoming(connect, msg) {
   if (!msgId) {
     msgId = String(Date.now()) + "-" + Math.random().toString(36).slice(2, 6)
   }
-  var item = { id: msgId, from: "phone", text: text, ts: msg.ts || Date.now() }
+  var item = { id: msgId, from: "phone", text: text, ts: msg.ts || Date.now(), read: false }
   var storage = require("@system.storage")
   storage.get({
     key: "ev_chat_inbox",
