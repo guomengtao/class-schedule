@@ -12,15 +12,18 @@
     <div class="input-display" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
       <scroll class="input-scroll" scroll-x="true">
         <div class="input-chars">
-          <text if="{{ !inputText && !beforeChars.length && !afterChars.length }}" class="input-placeholder" style="color: {{ theme.textSecondary }}">{{ placeholder }}</text>
+          <!-- 空内容：光标在最前，占位提示词跟在光标后（提示词不是真实输入内容，光标不该在它后面） -->
+          <div class="cursor" if="{{ !inputText.length }}" style="background-color: {{ theme.text }}"></div>
+          <text if="{{ !inputText.length }}" class="input-placeholder" style="color: {{ theme.textSecondary }}">{{ placeholder }}</text>
+          <!-- 有内容：光标夹在 before / after 字符之间 -->
           <div for="{{beforeChars}}" @click="moveCursor(beforeChars[$idx])" class="input-char-wrap">
             <text class="input-char" style="color: {{ theme.text }}">{{ $item }}</text>
           </div>
-          <div class="cursor" style="background-color: {{ theme.text }}"></div>
+          <div class="cursor" if="{{ inputText.length }}" style="background-color: {{ theme.text }}"></div>
           <div for="{{afterChars}}" @click="moveCursorAfter(afterChars[$idx])" class="input-char-wrap">
             <text class="input-char" style="color: {{ theme.text }}">{{ $item }}</text>
           </div>
-          <div class="cursor-end-zone" @click="moveCursorEnd"></div>
+          <div class="cursor-end-zone" if="{{ inputText.length }}" @click="moveCursorEnd"></div>
         </div>
       </scroll>
     </div>
