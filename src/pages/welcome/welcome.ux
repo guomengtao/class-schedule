@@ -16,26 +16,9 @@
 
 <script>
 const store = require("../../data/store.js")
-const database = require("../../data/database.js")
 
-// 首屏预热：把首页要用的存储读取提前到欢迎页完成。
-// 用户点击"进入首页"时，这些数据已在内存缓存中，避免进入时串行读盘造成卡顿。
-var _warmedUp = false
-function warmUp() {
-  if (_warmedUp) return
-  _warmedUp = true
-  try {
-    database.init(function() {
-      database.getAllCourses(function() {})
-    })
-  } catch (e) {}
-  try {
-    store.getBaseFontSize(function() {})
-    store.getHomepageSettings(function() {})
-    store.getCurrentScheduleIndex(function() {})
-    store.getScheduleNames(function() {})
-  } catch (e) {}
-}
+// 极简快速启动：欢迎页只做静态展示 + 一次主题/默认首页读取，
+// 不再预热首页数据（课程库、字号、课表名等由首页按需加载，store 自带缓存）。
 
 export default {
   private: {
@@ -58,15 +41,7 @@ export default {
     })
     store.getDefaultHomepage(function(settings) {
       self.targetPage = settings.targetPage || "index"
-      warmUp()
     })
-  },
-
-  onShow() {
-    var self = this
-    store.getTheme(function(t) {
-      self.theme = t
-    }, true)
   },
 
   enterSchedule() {
