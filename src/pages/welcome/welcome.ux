@@ -3,6 +3,7 @@
     <div class="logo-area">
       <text class="app-name" style="color: {{ theme.accent }}">Ev课程表</text>
       <text class="app-subtitle" style="color: {{ theme.textSecondary }}">你的随身课程助手</text>
+      <text class="app-version" style="color: {{ theme.textMuted }}">v{{ versionName }}</text>
     </div>
 
     <div class="action-area">
@@ -16,12 +17,14 @@
 
 <script>
 const store = require("../../data/store.js")
+const version = require("../../data/version.js")
 
 // 极简快速启动：欢迎页只做静态展示 + 一次主题/默认首页读取，
 // 不再预热首页数据（课程库、字号、课表名等由首页按需加载，store 自带缓存）。
 
 export default {
   private: {
+    versionName: version.versionName,
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -103,6 +106,12 @@ export default {
 .app-subtitle {
   font-size: 20px;
   line-height: 28px;
+}
+
+.app-version {
+  font-size: 16px;
+  line-height: 22px;
+  margin-top: 4px;
 }
 
 .action-area {
