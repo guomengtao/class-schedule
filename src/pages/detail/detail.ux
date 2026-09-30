@@ -1379,7 +1379,7 @@ export default {
 
 @media (shape: capsule), (shape: pill-shaped) {
   .edit-course-page {
-    padding: 38px 16px 50px 16px;
+    padding: 38px 12px 50px 12px;
   }
   /* 顶部删除按钮移除后 header 只剩「返回 + 标题」，不再需要换行：
      48 + 标题(flex:1) 在 160px 内容区内放得下，恢复单行。 */
@@ -1430,33 +1430,35 @@ export default {
     lines: 1;
     text-overflow: ellipsis;
   }
-  /* 三个元素强制一行：箭头宽度压到 36px（高度仍 48px 达标），
-     卡片 flex:1 吃掉剩余约 80px，课名 22px + ellipsis 兜底。
-     192px 物理宽度下这是唯一能同时满足「一行」与「触控高度 48px」的分配。 */
+  /* 三个元素强制一行。⚠️ 课程卡禁用 flex:1 —— Vela 窄屏下 flex 压缩会
+     退化到内容宽（真机实测：课名被挤成省略号/白点）。改为固定宽 +
+     flex-shrink:0，箭头压到 26px 给课名让位。
+     宽度核算：26(箭头)+4(margin)+100(卡)+4+26 = 160px + 边框 4px = 164px，
+     内容区 192-24(padding)=168px，余 4px。 */
   .swiper-wrapper {
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
   }
   .swipe-arrow-icon {
-    width: 36px;
+    width: 26px;
     height: 48px;
-    border-radius: 18px;
+    border-radius: 13px;
     flex-shrink: 0;
   }
   .course-card {
-    flex: 1;
-    min-width: 0;
-    width: auto;
+    width: 100px;
+    min-width: 100px;
+    flex-shrink: 0;
     height: 80px;
     padding: 6px;
     margin: 0 4px;
   }
   .card-course-name {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: bold;
-    line-height: 30px;
+    line-height: 28px;
     lines: 1;
     text-align: center;
     text-overflow: ellipsis;
