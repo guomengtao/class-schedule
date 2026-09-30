@@ -6,7 +6,7 @@
 ## 项目与版本
 - Ev课程表（Vela 手环快应用）包名 `com.application.watch.classschedule`，仓库 `guomengtao/class-schedule`；**本地唯一副本 `tom/class/class`**（含 `sign/` 密钥）
 - 评分体系 `docs/标准版完善度综合评分.md`；守护手册 `docs/标准版100分评分标准.md`；当前 **100/100**，重点防回退
-- `manifest.json`：`deviceTypeList` 只能 `["watch"]`；`router._groups` / `pages[*].group` / `name_cn` 须与 `router.pages` 同步
+- `manifest.json`：`deviceTypeList` 只能 `["watch"]`；**router 极简**：`_groups` / `pages[*].group` / `name_cn` 已全部移除（2026-09-30，避免加载问题），`pages[*]` 只留 `component`，键名必须与 component 对应
 - 版本号：`scripts/bump-version.js`（patch+1、code+1，写 manifest + `data/version.js`），只经 `npm run release|build|bump` 触发（禁 `npx aiot release`/`build:dev`）；判断用户测的是否新包看回传 `r` 参数
 - 构建：`npx aiot release --enable-jsc` → `node scripts/rename-rpk.js` → `dist/ev-v{版本}-{渠道}.rpk`（须绕开 safe-delete 垫片）；禁 `npm run release`（会 bump）与 `_build_test.sh`；清目录用 `mv /tmp/trash/`
 

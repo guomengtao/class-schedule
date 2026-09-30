@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.7.0",
-  "versionCode": 1002,
+  "versionName": "1.7.1",
+  "versionCode": 1003,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
@@ -54,175 +54,39 @@
   },
   "router": {
     "entry": "pages/welcome",
-    "_groups": {
-      "核心主流程": "welcome, index, detail, add-course",
-      "课程管理": "course-manager, custom-content-edit, countdown-manage",
-      "课表视图": "schedule-manager, week-view, schedule-qrcode, workday-info",
-      "设置与系统": "settings, tools, homepage-settings, reset-data, backup-restore, activation, device-info, pinned-pages",
-      "实验室工具": "vibration-lab, qrcode-generator, chinese-input, rect-diag, rect-c1, rect-c2, rect-c3, rect-c4, rect-c5, rect-c6, rect-c7",
-      "其他": "statistics, donate"
-    },
     "pages": {
-      "pages/welcome": {
-        "component": "welcome",
-        "group": "核心主流程",
-        "name_cn": "欢迎页"
-      },
-      "pages/index": {
-        "component": "index",
-        "group": "核心主流程",
-        "name_cn": "首页"
-      },
-      "pages/detail": {
-        "component": "detail",
-        "group": "核心主流程",
-        "name_cn": "课程详情"
-      },
-      "pages/add-course": {
-        "component": "add-course",
-        "group": "核心主流程",
-        "name_cn": "添加课程"
-      },
-      "pages/course-manager": {
-        "component": "course-manager",
-        "group": "课程管理",
-        "name_cn": "课程管理"
-      },
-      "pages/custom-content-edit": {
-        "component": "custom-content-edit",
-        "group": "课程管理",
-        "name_cn": "自定义内容编辑"
-      },
-      "pages/countdown-manage": {
-        "component": "countdown-manage",
-        "group": "课程管理",
-        "name_cn": "倒数日管理"
-      },
-      "pages/schedule-manager": {
-        "component": "schedule-manager",
-        "group": "课表视图",
-        "name_cn": "课表管理"
-      },
-      "pages/week-view": {
-        "component": "week-view",
-        "group": "课表视图",
-        "name_cn": "周视图"
-      },
-      "pages/schedule-qrcode": {
-        "component": "schedule-qrcode",
-        "group": "课表视图",
-        "name_cn": "课表二维码"
-      },
-      "pages/settings": {
-        "component": "settings",
-        "group": "设置与系统",
-        "name_cn": "设置"
-      },
-      "pages/tools": {
-        "component": "tools",
-        "group": "设置与系统",
-        "name_cn": "工具"
-      },
-      "pages/homepage-settings": {
-        "component": "homepage-settings",
-        "group": "设置与系统",
-        "name_cn": "首页设置"
-      },
-      "pages/reset-data": {
-        "component": "reset-data",
-        "group": "设置与系统",
-        "name_cn": "重置数据"
-      },
-      "pages/backup-restore": {
-        "component": "backup-restore",
-        "group": "设置与系统",
-        "name_cn": "备份恢复"
-      },
-      "pages/activation": {
-        "component": "activation",
-        "group": "设置与系统",
-        "name_cn": "激活"
-      },
-      "pages/device-info": {
-        "component": "device-info",
-        "group": "设置与系统",
-        "name_cn": "设备信息"
-      },
-      "pages/pinned-pages": {
-        "component": "pinned-pages",
-        "group": "设置与系统",
-        "name_cn": "已钉页面"
-      },
-      "pages/donate": {
-        "component": "donate",
-        "group": "其他",
-        "name_cn": "打赏支持"
-      },
-      "pages/vibration-lab": {
-        "component": "vibration-lab",
-        "group": "实验室工具",
-        "name_cn": "震动实验室"
-      },
-      "pages/rect-diag": {
-        "component": "rect-diag",
-        "group": "实验室工具",
-        "name_cn": "布局诊断"
-      },
-      "pages/rect-c1": {
-        "component": "rect-c1",
-        "group": "实验室工具",
-        "name_cn": "布局诊断1基准"
-      },
-      "pages/rect-c2": {
-        "component": "rect-c2",
-        "group": "实验室工具",
-        "name_cn": "布局诊断2隐式宽度"
-      },
-      "pages/rect-c3": {
-        "component": "rect-c3",
-        "group": "实验室工具",
-        "name_cn": "布局诊断3横滚"
-      },
-      "pages/rect-c4": {
-        "component": "rect-c4",
-        "group": "实验室工具",
-        "name_cn": "布局诊断4行布局"
-      },
-      "pages/rect-c5": {
-        "component": "rect-c5",
-        "group": "实验室工具",
-        "name_cn": "布局诊断5网格"
-      },
-      "pages/rect-c6": {
-        "component": "rect-c6",
-        "group": "实验室工具",
-        "name_cn": "布局诊断6minheight"
-      },
-      "pages/rect-c7": {
-        "component": "rect-c7",
-        "group": "实验室工具",
-        "name_cn": "布局诊断7条件渲染"
-      },
-      "pages/qrcode-generator": {
-        "component": "qrcode-generator",
-        "group": "实验室工具",
-        "name_cn": "二维码生成"
-      },
-      "pages/chinese-input": {
-        "component": "chinese-input",
-        "group": "实验室工具",
-        "name_cn": "中文输入"
-      },
-      "pages/statistics": {
-        "component": "statistics",
-        "group": "其他",
-        "name_cn": "统计"
-      },
-      "pages/workday-info": {
-        "component": "workday-info",
-        "group": "课表视图",
-        "name_cn": "调课说明"
-      }
+      "pages/welcome": { "component": "welcome" },
+      "pages/index": { "component": "index" },
+      "pages/detail": { "component": "detail" },
+      "pages/add-course": { "component": "add-course" },
+      "pages/course-manager": { "component": "course-manager" },
+      "pages/custom-content-edit": { "component": "custom-content-edit" },
+      "pages/countdown-manage": { "component": "countdown-manage" },
+      "pages/schedule-manager": { "component": "schedule-manager" },
+      "pages/week-view": { "component": "week-view" },
+      "pages/schedule-qrcode": { "component": "schedule-qrcode" },
+      "pages/settings": { "component": "settings" },
+      "pages/tools": { "component": "tools" },
+      "pages/homepage-settings": { "component": "homepage-settings" },
+      "pages/reset-data": { "component": "reset-data" },
+      "pages/backup-restore": { "component": "backup-restore" },
+      "pages/activation": { "component": "activation" },
+      "pages/device-info": { "component": "device-info" },
+      "pages/pinned-pages": { "component": "pinned-pages" },
+      "pages/donate": { "component": "donate" },
+      "pages/vibration-lab": { "component": "vibration-lab" },
+      "pages/rect-diag": { "component": "rect-diag" },
+      "pages/rect-c1": { "component": "rect-c1" },
+      "pages/rect-c2": { "component": "rect-c2" },
+      "pages/rect-c3": { "component": "rect-c3" },
+      "pages/rect-c4": { "component": "rect-c4" },
+      "pages/rect-c5": { "component": "rect-c5" },
+      "pages/rect-c6": { "component": "rect-c6" },
+      "pages/rect-c7": { "component": "rect-c7" },
+      "pages/qrcode-generator": { "component": "qrcode-generator" },
+      "pages/chinese-input": { "component": "chinese-input" },
+      "pages/statistics": { "component": "statistics" },
+      "pages/workday-info": { "component": "workday-info" }
     }
   }
 }
