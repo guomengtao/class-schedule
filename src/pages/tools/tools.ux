@@ -26,6 +26,11 @@
         <text class="item-hint" style="color: {{ theme.textMuted }}">真机取证</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openLoadingLab">
+        <text class="item-label" style="color: {{ theme.text }}">加载动画</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">12 种演示</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openCountdownManage">
         <text class="item-label" style="color: {{ theme.text }}">倒数日</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">事件倒计时</text>
@@ -52,7 +57,6 @@
         <text class="item-label" style="color: {{ theme.accent }}">课程表管理 V2</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">极简+面板</text>
       </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="cmdFindPhone">
         <text class="item-label" style="color: {{ theme.text }}">找手机</text>
@@ -183,6 +187,10 @@ export default {
 
   openQRCodeGenerator() {
     router.push({ uri: "/pages/qrcode-generator" })
+  },
+
+  openLoadingLab() {
+    router.push({ uri: "/pages/loading-lab" })
   },
 
   openStatistics() {

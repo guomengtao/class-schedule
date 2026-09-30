@@ -145,6 +145,9 @@
       "pages/chinese-input": {
         "component": "chinese-input"
       },
+      "pages/loading-lab": {
+        "component": "loading-lab"
+      },
       "pages/statistics": {
         "component": "statistics"
       },
