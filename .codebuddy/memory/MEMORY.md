@@ -35,7 +35,7 @@
 ## Vela 模拟器取证
 - 截图落 `~/Downloads/vela_screenshot/`（软链 `~/.vela/sdk/screenshot`）；`adb` 在 `node_modules/@aiot-toolkit/emulator/node_modules/@miwt/adb/bin/mac/adb`（NuttX NSH，无 wm/input/screencap）；gRPC 控制台端口=adb 端口+3000（端口每次**先探测**）
 - **重启单个模拟器实例**：必须走启动器 `~/.vela/sdk/emulator/darwin-aarch64/emulator -vela -avd <名> …`（裸跑 qemu-system-armel 会 dyld 缺 libandroid-emu-tracing）；判活两步 = `emu avd name`（宿主侧）+ `shell echo alive`（guest），后者不通=guest adb 僵死只能重启实例；「起不来」先查卡死的 `adb shell unzip` 部署进程
-- **点击注入不可靠**（gRPC 输入空实现；`event mouse` 坐标=皮肤窗口坐标需标定；首帧极易失准）→ 可靠做法=带重试探针（点→截图→按 PNG 字节数判页：首页>18KB、欢迎页≈13KB、纯黑=1373B）
+- **点击注入不可靠**（gRPC 输入空实现；`event mouse` 坐标=LCD 坐标 1:1，09-27 标定，勿按预览图缩放）→ **快点（<150ms）在 input 按钮上可能无反应，用长按式注入：down→600ms→再 down→up 稳定生效**；可靠做法=带重试探针（点→截图→按 PNG 字节数判页：首页≈20KB、欢迎页≈13.3KB、纯黑=1373B）
 - **运行时优先 `.jsc`**：`.js` 与 `.jsc` 同存时只用 `.jsc`，推 `.js` 被静默忽略（需 `aiot release --enable-jsc` 产出）
 - 部署：运行时只认解包目录 `/data/quickapp/app/<pkg>/`；改单页只推 `pages/<页>/<页>.jsc`；**`pm install`/`pm uninstall` 在 NuttX 模拟器上对已存在目录静默无效（曾一直跑旧包）**，可靠通道 = `adb push <包>.rpk /data/xx.rpk` + 设备端 `unzip -o /data/xx.rpk -d /data/quickapp/app/<pkg>/` + 重启实例 + `vapp app/<pkg> &`（unzip -o 只覆盖不删除，旧页面目录会残留）
 - **禁跑 `vapp help`**（挂住 stdin→全黑，需 reboot）；反复 `vapp app/<pkg> &` 会累积进程
