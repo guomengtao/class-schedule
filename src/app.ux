@@ -166,7 +166,8 @@ function syncToFormatA(list) {
       result.push({ day: day, classes: [] })
     }
     result[indexMap[day]].classes.push({
-      id: String(idSeq++),
+      // ★ 透传客户端 id（字段级三方合并的稳定身份）；没传才按顺序生成，兼容旧插件
+      id: String(c.id || ("c" + Date.now() + "-" + (idSeq++))),
       name: name,
       time: time,
       teacher: String(c.teacher || ""),
@@ -869,6 +870,12 @@ function initSyncReceiver() {
     }
     if (parsed.action === "import") {
       syncHandleImport(connect, parsed.payload || parsed)
+      return
+    }
+    if (parsed.action === "call") {
+      // 手机 → 手环：呼叫手环（找表）。震动 + 回确认，手机端据 ok 判定端到端送达。
+      vibrateLong()
+      syncReply(connect, { ok: true, action: "call", ts: Date.now() })
       return
     }
     // 无 action：兼容已对接格式，按导入处理
