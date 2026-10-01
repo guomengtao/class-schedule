@@ -31,6 +31,11 @@
         <text class="item-hint" style="color: {{ theme.textMuted }}">12 种演示</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openAnimTest">
+        <text class="item-label" style="color: {{ theme.text }}">Anim Test</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">single spinner</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openCountdownManage">
         <text class="item-label" style="color: {{ theme.text }}">倒数日</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">事件倒计时</text>
@@ -191,6 +196,10 @@ export default {
 
   openLoadingLab() {
     router.push({ uri: "/pages/loading-lab" })
+  },
+
+  openAnimTest() {
+    router.push({ uri: "/pages/anim-test" })
   },
 
   openStatistics() {

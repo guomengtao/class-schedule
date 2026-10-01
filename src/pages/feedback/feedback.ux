@@ -1,0 +1,265 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <scroll class="fb-scroll" scroll-y="{{true}}">
+    <div class="page-body">
+    <div class="back-header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">帮助与反馈</text>
+      <div class="header-placeholder"></div>
+    </div>
+
+    <!-- 版本信息 -->
+    <div class="section" style="background-color: {{ theme.card }}">
+      <div class="item-row">
+        <text class="item-label" style="color: {{ theme.text }}">当前版本</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">v{{ versionName }} · {{ channel }}</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row">
+        <text class="item-label" style="color: {{ theme.text }}">设备</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">{{ deviceModel }}</text>
+      </div>
+    </div>
+
+    <!-- 扫码反馈 -->
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="sec-title" style="color: {{ theme.text }}">扫码提交反馈</text>
+      <text class="sec-desc" style="color: {{ theme.textMuted }}">手机扫码打开反馈页，可提交截图与联系方式；信息自动带上版本/机型/渠道</text>
+      <div class="qr-wrapper" style="background-color: #ffffff">
+        <qrcode value="{{ feedbackUrl }}" style="color: #000000; background-color: #ffffff; width: 180px; height: 180px;"></qrcode>
+      </div>
+      <text class="qr-url" style="color: {{ theme.textMuted }}">{{ feedbackUrlShort }}</text>
+    </div>
+
+    <!-- QQ 群 -->
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="sec-title" style="color: {{ theme.text }}">QQ 群交流</text>
+      <text class="sec-desc" style="color: {{ theme.textMuted }}">讨论与第一时间获取更新，加群请备注「课程表用户」</text>
+      <div class="qq-row">
+        <text class="qq-num" style="color: {{ theme.text }}">936886288</text>
+        <div class="copy-btn" onclick="copyGroup" style="background-color: {{ theme.accent }}">
+          <text class="copy-text" style="color: #ffffff">复制群号</text>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-block">
+      <text class="tip-text" style="color: {{ theme.textMuted }}">建议先到官网「帮助与反馈」页查看常见问题，多数问题自助即可解决</text>
+    </div>
+    </div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+var store = require("../../data/store.js")
+var version = require("../../data/version.js")
+var device = require("@system.device")
+var clipboard = require("@system.clipboard")
+var prompt = require("@system.prompt")
+
+module.exports = {
+  data: {
+    theme: {},
+    iconTheme: "dark",
+    versionName: version.versionName,
+    channel: version.channel,
+    deviceModel: "",
+    feedbackUrl: "",
+    feedbackUrlShort: ""
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function (t, themeName) {
+      self.theme = t
+      self.iconTheme = themeName === "dark" ? "dark" : "light"
+    })
+    device.getInfo({
+      success: function (ret) {
+        self.deviceModel = ret.model || ret.brand || "unknown"
+        self.buildUrl()
+      },
+      fail: function () {
+        self.deviceModel = "unknown"
+        self.buildUrl()
+      }
+    })
+  },
+
+  buildUrl() {
+    var base = "https://app-auth.gudq.com/feedback.html"
+    var url = base
+      + "?src=watch"
+      + "&v=" + encodeURIComponent(version.versionName)
+      + "&m=" + encodeURIComponent(this.deviceModel)
+      + "&ch=" + encodeURIComponent(version.channel)
+    this.feedbackUrl = url
+    // 二维码下的小字提示（完整 URL 太长，只展示到参数起点）
+    this.feedbackUrlShort = "app-auth.gudq.com/feedback.html?..."
+  },
+
+  copyGroup() {
+    clipboard.set({
+      text: "936886288",
+      success: function () {
+        prompt.showToast({ message: "群号已复制" })
+      },
+      fail: function () {
+        // 部分环境不支持剪贴板：群号已在页面显示，提示手抄
+        prompt.showToast({ message: "请手动记下群号 936886288" })
+      }
+    })
+  },
+
+  goBack() {
+    this.$page && this.$page.finish()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.fb-scroll {
+  flex: 1;
+  width: 100%;
+  flex-direction: column;
+}
+
+.page-body {
+  flex-direction: column;
+  width: 100%;
+  padding: 44px 10px 12px 10px;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 0 4px;
+}
+
+.back-btn-wrapper {
+  width: 48px;
+  height: 40px;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.back-btn-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.header-title {
+  flex: 1;
+  font-size: 30px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 40px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.header-placeholder {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.section {
+  width: 100%;
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 18px 14px;
+  margin-bottom: 14px;
+}
+
+.item-row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.item-label {
+  font-size: 26px;
+}
+
+.item-hint {
+  font-size: 24px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.row-divider {
+  width: 100%;
+  height: 1px;
+}
+
+.sec-title {
+  font-size: 27px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.sec-desc {
+  font-size: 22px;
+  line-height: 32px;
+  margin-bottom: 12px;
+}
+
+.qr-wrapper {
+  width: 196px;
+  height: 196px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.qr-url {
+  font-size: 20px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.qq-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.qq-num {
+  font-size: 30px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.copy-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+.copy-text {
+  font-size: 24px;
+}
+
+.tip-block {
+  padding: 0 4px 10px 4px;
+}
+
+.tip-text {
+  font-size: 21px;
+  line-height: 30px;
+}
+</style>

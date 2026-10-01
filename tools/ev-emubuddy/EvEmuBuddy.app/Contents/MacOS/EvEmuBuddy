@@ -1,0 +1,7 @@
+#!/bin/sh
+# EvEmuBuddy 启动器：fork 到后台后立即退出（切勿改成 exec，原因见 build_app.sh 注释）
+unset __CFBundleIdentifier
+DIR="$(cd "$(dirname "$0")/.." && pwd)"
+RES="$DIR/Resources"
+nohup "$RES/venv/bin/python" -u "$RES/emu_buddy.py" >> "$HOME/.ev_emubuddy_launcher.log" 2>&1 &
+exit 0

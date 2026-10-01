@@ -11,18 +11,13 @@
     <scroll class="lab-scroll" scroll-y="{{true}}">
       <div class="lab-body" style="background-color: {{ theme.bg }}">
 
-        <div class="ctrl-row" onclick="togglePlay" style="background-color: {{ theme.card }}">
-          <text class="ctrl-label" style="color: {{ theme.text }}">循环演示 · 12 种</text>
-          <text class="ctrl-btn" style="color: {{ theme.accent }}">{{ paused ? '继续' : '暂停' }}</text>
-        </div>
-
         <!-- 1 旋转圆环 -->
         <div class="demo" style="background-color: {{ theme.card }}">
           <text class="demo-name" style="color: {{ theme.text }}">旋转圆环</text>
           <div class="stage">
-            <div class="box52">
+            <div class="ring-spin">
               <div class="ring40" style="border-color: {{ theme.borderLight }}"></div>
-              <div class="dot8" style="left: 22px; top: 22px; background-color: {{ theme.accent }}; transform: translateX({{ ringX }}px) translateY({{ ringY }}px)"></div>
+              <div class="ring-dot" style="background-color: {{ theme.accent }}"></div>
             </div>
           </div>
           <text class="demo-desc" style="color: {{ theme.textMuted }}">轨道圆点绕环匀速公转</text>
@@ -33,7 +28,9 @@
           <text class="demo-name" style="color: {{ theme.text }}">脉冲圆点</text>
           <div class="stage">
             <div class="row-center">
-              <div for="{{ dots }}" class="dot12" style="background-color: {{ theme.accent }}; opacity: {{ $item.o }}"></div>
+              <div class="pulse-dot" style="background-color: {{ theme.accent }}"></div>
+              <div class="pulse-dot pulse-d2" style="background-color: {{ theme.accent }}"></div>
+              <div class="pulse-dot pulse-d3" style="background-color: {{ theme.accent }}"></div>
             </div>
           </div>
           <text class="demo-desc" style="color: {{ theme.textMuted }}">三点呼吸明暗，简约节奏感</text>
@@ -44,7 +41,11 @@
           <text class="demo-name" style="color: {{ theme.text }}">弹跳柱条</text>
           <div class="stage">
             <div class="row-bars">
-              <div for="{{ bars }}" class="bar" style="background-color: {{ theme.accent }}; height: {{ $item.h }}px"></div>
+              <div class="bar" style="background-color: {{ theme.accent }}"></div>
+              <div class="bar bar-d2" style="background-color: {{ theme.accent }}"></div>
+              <div class="bar bar-d3" style="background-color: {{ theme.accent }}"></div>
+              <div class="bar bar-d4" style="background-color: {{ theme.accent }}"></div>
+              <div class="bar bar-d5" style="background-color: {{ theme.accent }}"></div>
             </div>
           </div>
           <text class="demo-desc" style="color: {{ theme.textMuted }}">五柱交错伸缩，音频可视化</text>
@@ -54,8 +55,9 @@
         <div class="demo" style="background-color: {{ theme.card }}">
           <text class="demo-name" style="color: {{ theme.text }}">波纹圆圈</text>
           <div class="stage">
-            <div class="box48">
-              <div for="{{ ripples }}" class="rip" style="width: {{ $item.d }}px; height: {{ $item.d }}px; left: {{ $item.l }}px; top: {{ $item.t }}px; opacity: {{ $item.o }}; border-color: {{ theme.accent }}"></div>
+            <div class="rip-wrap">
+              <div class="ripring" style="border-color: {{ theme.accent }}"></div>
+              <div class="ripring ripring-d2" style="border-color: {{ theme.accent }}"></div>
             </div>
           </div>
           <text class="demo-desc" style="color: {{ theme.textMuted }}">涟漪扩散，雷达探测感</text>
@@ -65,11 +67,18 @@
         <div class="demo" style="background-color: {{ theme.card }}">
           <text class="demo-name" style="color: {{ theme.text }}">点阵旋转器</text>
           <div class="stage">
-            <div class="box56">
-              <div for="{{ ticks }}" class="dot6" style="left: 25px; top: 25px; background-color: {{ theme.accent }}; transform: translateX({{ $item.x }}px) translateY({{ $item.y }}px); opacity: {{ $item.o }}"></div>
+            <div class="tick-wrap">
+              <div class="dot6 tick0" style="left: 28px; top: 8px; background-color: {{ theme.accent }}"></div>
+              <div class="dot6 tick1" style="left: 42px; top: 14px; background-color: {{ theme.accent }}"></div>
+              <div class="dot6 tick2" style="left: 48px; top: 28px; background-color: {{ theme.accent }}"></div>
+              <div class="dot6 tick3" style="left: 42px; top: 42px; background-color: {{ theme.accent }}"></div>
+              <div class="dot6 tick4" style="left: 28px; top: 48px; background-color: {{ theme.accent }}"></div>
+              <div class="dot6 tick5" style="left: 14px; top: 42px; background-color: {{ theme.accent }}"></div>
+              <div class="dot6 tick6" style="left: 8px; top: 28px; background-color: {{ theme.accent }}"></div>
+              <div class="dot6 tick7" style="left: 14px; top: 14px; background-color: {{ theme.accent }}"></div>
             </div>
           </div>
-          <text class="demo-desc" style="color: {{ theme.textMuted }}">八点渐隐旋转（锥形渐变降级版）</text>
+          <text class="demo-desc" style="color: {{ theme.textMuted }}">八点渐隐回旋，经典加载环</text>
         </div>
 
         <!-- 6 打字指示器 -->
@@ -77,7 +86,9 @@
           <text class="demo-name" style="color: {{ theme.text }}">打字指示器</text>
           <div class="stage">
             <div class="bubble" style="background-color: {{ theme.cardLight }}">
-              <div for="{{ typing }}" class="dot7" style="background-color: {{ theme.text }}; transform: translateY({{ $item.y }}px)"></div>
+              <div class="typing-dot" style="background-color: {{ theme.text }}"></div>
+              <div class="typing-dot typing-d2" style="background-color: {{ theme.text }}"></div>
+              <div class="typing-dot typing-d3" style="background-color: {{ theme.text }}"></div>
             </div>
           </div>
           <text class="demo-desc" style="color: {{ theme.textMuted }}">聊天气泡跳动，对话 UI 必备</text>
@@ -91,7 +102,7 @@
               <div class="skel-line" style="background-color: {{ theme.borderLight }}"></div>
               <div class="skel-line" style="background-color: {{ theme.borderLight }}"></div>
               <div class="skel-line skel-line-short" style="background-color: {{ theme.borderLight }}"></div>
-              <div class="skel-hl" style="background-color: {{ theme.text }}; transform: translateX({{ skelX }}px)"></div>
+              <div class="skel-hl" style="background-color: {{ theme.text }}"></div>
             </div>
           </div>
           <text class="demo-desc" style="color: {{ theme.textMuted }}">占位内容扫光，加载过渡自然</text>
@@ -102,8 +113,14 @@
           <text class="demo-name" style="color: {{ theme.text }}">DNA 双螺旋</text>
           <div class="stage">
             <div class="dna">
-              <div for="{{ dnaF }}" class="ddot" style="left: {{ $item.l }}px; background-color: {{ theme.accent }}; transform: translateX({{ $item.x }}px); opacity: {{ $item.o }}"></div>
-              <div for="{{ dnaB }}" class="ddot" style="left: {{ $item.l }}px; background-color: {{ theme.accent }}; transform: translateX({{ $item.x }}px); opacity: {{ $item.o }}"></div>
+              <div class="ddot dna0" style="left: 1px; background-color: {{ theme.accent }}"></div>
+              <div class="ddot dna1" style="left: 9px; background-color: {{ theme.accent }}"></div>
+              <div class="ddot dna2" style="left: 17px; background-color: {{ theme.accent }}"></div>
+              <div class="ddot dna3" style="left: 25px; background-color: {{ theme.accent }}"></div>
+              <div class="ddot dna4" style="left: 33px; background-color: {{ theme.accent }}"></div>
+              <div class="ddot dna5" style="left: 41px; background-color: {{ theme.accent }}"></div>
+              <div class="ddot dna6" style="left: 49px; background-color: {{ theme.accent }}"></div>
+              <div class="ddot dna7" style="left: 57px; background-color: {{ theme.accent }}"></div>
             </div>
           </div>
           <text class="demo-desc" style="color: {{ theme.textMuted }}">双链正弦交织，科技生物感</text>
@@ -113,9 +130,9 @@
         <div class="demo" style="background-color: {{ theme.card }}">
           <text class="demo-name" style="color: {{ theme.text }}">轨道双球</text>
           <div class="stage">
-            <div class="box60">
-              <div class="oball" style="background-color: {{ theme.accent }}; transform: translateX({{ orbit.ax }}px) translateY({{ orbit.ay }}px)"></div>
-              <div class="oball" style="background-color: {{ theme.accent }}; opacity: 0.45; transform: translateX({{ orbit.bx }}px) translateY({{ orbit.by }}px)"></div>
+            <div class="orbit-spin">
+              <div class="oball oball-a" style="background-color: {{ theme.accent }}"></div>
+              <div class="oball oball-b" style="background-color: {{ theme.accent }}"></div>
             </div>
           </div>
           <text class="demo-desc" style="color: {{ theme.textMuted }}">双球对转追逐，行星轨道感</text>
@@ -125,9 +142,11 @@
         <div class="demo" style="background-color: {{ theme.card }}">
           <text class="demo-name" style="color: {{ theme.text }}">时钟扫描</text>
           <div class="stage">
-            <div class="box56">
+            <div class="clock-spin">
               <div class="ring44" style="border-color: {{ theme.borderLight }}"></div>
-              <div for="{{ clock }}" class="dot8" style="left: 24px; top: 24px; background-color: {{ theme.accent }}; transform: translateX({{ $item.x }}px) translateY({{ $item.y }}px); opacity: {{ $item.o }}"></div>
+              <div class="clock-dot clock-d0" style="background-color: {{ theme.accent }}"></div>
+              <div class="clock-dot clock-d1" style="background-color: {{ theme.accent }}"></div>
+              <div class="clock-dot clock-d2" style="background-color: {{ theme.accent }}"></div>
             </div>
           </div>
           <text class="demo-desc" style="color: {{ theme.textMuted }}">指针扫描 + 渐隐拖尾</text>
@@ -137,8 +156,11 @@
         <div class="demo" style="background-color: {{ theme.card }}">
           <text class="demo-name" style="color: {{ theme.text }}">方块拼图</text>
           <div class="stage">
-            <div class="box48">
-              <div for="{{ grid }}" class="gsq" style="left: {{ $item.x }}px; top: {{ $item.y }}px; background-color: {{ theme.accent }}; opacity: {{ $item.o }}"></div>
+            <div class="grid-box">
+              <div class="gsq gsq-d1" style="left: 3px; top: 3px; background-color: {{ theme.accent }}"></div>
+              <div class="gsq gsq-d2" style="left: 25px; top: 3px; background-color: {{ theme.accent }}"></div>
+              <div class="gsq gsq-d3" style="left: 3px; top: 25px; background-color: {{ theme.accent }}"></div>
+              <div class="gsq gsq-d4" style="left: 25px; top: 25px; background-color: {{ theme.accent }}"></div>
             </div>
           </div>
           <text class="demo-desc" style="color: {{ theme.textMuted }}">四格轮询明暗，极简开销</text>
@@ -149,13 +171,13 @@
           <text class="demo-name" style="color: {{ theme.text }}">进度条扫光</text>
           <div class="stage">
             <div class="ptrack" style="background-color: {{ theme.borderLight }}">
-              <div class="phl" style="background-color: {{ theme.accent }}; transform: translateX({{ progX }}px); opacity: {{ progO }}"></div>
+              <div class="phl" style="background-color: {{ theme.accent }}"></div>
             </div>
           </div>
           <text class="demo-desc" style="color: {{ theme.textMuted }}">不定进度往返滑动</text>
         </div>
 
-        <text class="foot-note" style="color: {{ theme.textMuted }}">快应用无 CSS keyframes，本页由定时器驱动 transform/opacity 模拟；卡顿时点上方「暂停」</text>
+        <text class="foot-note" style="color: {{ theme.textMuted }}">动画均由 CSS @keyframes 驱动，原生渲染，无 JS 逐帧开销</text>
       </div>
     </scroll>
   </div>
@@ -174,27 +196,9 @@ export default {
       cardLight: '#0f3460',
       accent: '#7ec8e3',
       text: '#ffffff',
-      textSecondary: '#888899',
       textMuted: '#555566',
-      border: '#0f3460',
       borderLight: '#2a2a5a'
-    },
-    paused: false,
-    ringX: 0,
-    ringY: -20,
-    dots: [],
-    bars: [],
-    ripples: [],
-    ticks: [],
-    typing: [],
-    skelX: -26,
-    dnaF: [],
-    dnaB: [],
-    orbit: { ax: 0, ay: -22, bx: 0, by: 22 },
-    clock: [],
-    grid: [],
-    progX: 0,
-    progO: 1
+    }
   },
 
   onInit() {
@@ -203,7 +207,6 @@ export default {
       self.theme = t
       self.updateIconSrc(themeName)
     })
-    this.buildStatics()
   },
 
   onShow() {
@@ -212,169 +215,10 @@ export default {
       self.theme = t
       self.updateIconSrc(themeName)
     })
-    this.start()
-  },
-
-  onHide() {
-    this.stop()
-  },
-
-  onDestroy() {
-    this.stop()
   },
 
   updateIconSrc: function(themeName) {
     this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
-  },
-
-  // 静态几何：点阵位置 / DNA 列位置 / 拼图格子位置
-  buildStatics() {
-    var tk = [], i, a
-    for (i = 0; i < 8; i++) {
-      a = i * Math.PI / 4
-      tk.push({ x: Math.round(20 * Math.sin(a)), y: Math.round(-20 * Math.cos(a)), o: 1 })
-    }
-    this._tkBase = tk
-    this.ticks = tk.slice()
-
-    var df = [], db = [], c
-    for (c = 0; c < 8; c++) {
-      df.push({ l: c * 8 + 1, x: 0, o: 1 })
-      db.push({ l: c * 8 + 1, x: 0, o: 1 })
-    }
-    this._dnaBase = { f: df, b: db }
-    this.dnaF = df.slice()
-    this.dnaB = db.slice()
-
-    var gx = [3, 25, 3, 25], gy = [3, 3, 25, 25], g = []
-    for (i = 0; i < 4; i++) g.push({ x: gx[i], y: gy[i], o: 1 })
-    this._gridBase = g
-    this.grid = g.slice()
-
-    this.clock = [
-      { x: 0, y: -20, o: 1 },
-      { x: -10, y: -17, o: 0.4 },
-      { x: -17, y: -10, o: 0.18 }
-    ]
-  },
-
-  start() {
-    if (this._timer || this.paused) return
-    var self = this
-    this._timer = setInterval(function() {
-      self.tick()
-    }, 40)
-  },
-
-  stop() {
-    if (this._timer) {
-      clearInterval(this._timer)
-      this._timer = null
-    }
-  },
-
-  togglePlay() {
-    this.paused = !this.paused
-    if (this.paused) {
-      this.stop()
-    } else {
-      this.start()
-    }
-  },
-
-  tick() {
-    var t = Date.now() / 1000
-    var R = Math.round, PI = Math.PI, sin = Math.sin, cos = Math.cos
-    var r2 = function(x) { return R(x * 100) / 100 }
-    var i, c, p, d, sn, fd
-
-    // 1 旋转圆环：轨道点 r=20
-    this.ringX = R(20 * sin(t * 3.6))
-    this.ringY = R(-20 * cos(t * 3.6))
-
-    // 2 脉冲圆点：透明度呼吸
-    var dots = []
-    for (i = 0; i < 3; i++) {
-      p = (sin(t * 2.6 - i * 0.6) + 1) / 2
-      dots.push({ o: r2(0.3 + 0.7 * p) })
-    }
-    this.dots = dots
-
-    // 3 弹跳柱条：高度 12~38
-    var bars = []
-    for (i = 0; i < 5; i++) {
-      bars.push({ h: R(12 + 26 * Math.abs(sin(t * 3 - i * 0.5))) })
-    }
-    this.bars = bars
-
-    // 4 波纹圆圈：直径 10→44，透明度 1→0
-    var ripples = []
-    for (i = 0; i < 2; i++) {
-      var cyc = (t / 1.7 + i * 0.5) % 1
-      d = R(10 + 34 * cyc)
-      ripples.push({ d: d, l: R((48 - d) / 2), t: R((48 - d) / 2), o: r2(1 - cyc) })
-    }
-    this.ripples = ripples
-
-    // 5 点阵旋转器：八点相位渐隐
-    var ticks = []
-    for (i = 0; i < 8; i++) {
-      p = (sin(t * 4.5 - i * PI / 4) + 1) / 2
-      ticks.push({ x: this._tkBase[i].x, y: this._tkBase[i].y, o: r2(0.15 + 0.85 * p) })
-    }
-    this.ticks = ticks
-
-    // 6 打字指示器：向上弹跳
-    var typing = []
-    for (i = 0; i < 3; i++) {
-      typing.push({ y: R(-6 * Math.max(0, sin(t * 3.4 - i * 0.7))) })
-    }
-    this.typing = typing
-
-    // 7 骨架屏扫光：-26 → 88
-    var sc = (t / 1.8) % 1
-    this.skelX = R(-26 + 114 * sc)
-
-    // 8 DNA 双螺旋：正弦交织，前链亮后链暗
-    var df = [], db = []
-    for (c = 0; c < 8; c++) {
-      var ph = t * 2.4 - c * 0.42
-      sn = sin(ph)
-      fd = (sn + 1) / 2
-      df.push({ l: this._dnaBase.f[c].l, x: R(16 * sn), o: r2(0.25 + 0.75 * fd) })
-      db.push({ l: this._dnaBase.b[c].l, x: R(-16 * sn), o: r2(0.25 + 0.75 * (1 - fd)) })
-    }
-    this.dnaF = df
-    this.dnaB = db
-
-    // 9 轨道双球：r=22 对转
-    var a9 = t * 2.8
-    var ax = R(22 * sin(a9)), ay = R(-22 * cos(a9))
-    this.orbit = { ax: ax, ay: ay, bx: -ax, by: -ay }
-
-    // 10 时钟扫描：主点 + 两级拖尾
-    var clock = []
-    for (i = 0; i < 3; i++) {
-      var a10 = t * 2.4 - i * 0.5
-      clock.push({ x: R(20 * sin(a10)), y: R(-20 * cos(a10)), o: [1, 0.4, 0.18][i] })
-    }
-    this.clock = clock
-
-    // 11 方块拼图：四格轮询
-    var grid = []
-    for (i = 0; i < 4; i++) {
-      p = (sin(t * 3 - i * PI / 2) + 1) / 2
-      grid.push({ x: this._gridBase[i].x, y: this._gridBase[i].y, o: r2(0.15 + 0.85 * p) })
-    }
-    this.grid = grid
-
-    // 12 进度条扫光：0→74，两端淡入淡出
-    var pc = (t / 1.6) % 1
-    this.progX = R(74 * pc)
-    var e = 0.15, po = 1
-    if (pc < e) po = pc / e
-    else if (pc > 1 - e) po = (1 - pc) / e
-    this.progO = r2(Math.max(0, po))
   },
 
   goBack() {
@@ -419,7 +263,6 @@ export default {
   text-align: center;
   line-height: 44px;
   lines: 1;
-  text-overflow: ellipsis;
 }
 
 .header-placeholder {
@@ -437,27 +280,6 @@ export default {
 .lab-body {
   width: 100%;
   flex-direction: column;
-}
-
-.ctrl-row {
-  width: 100%;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
-}
-
-.ctrl-label {
-  font-size: 32px;
-  line-height: 40px;
-}
-
-.ctrl-btn {
-  font-size: 32px;
-  line-height: 40px;
-  font-weight: bold;
 }
 
 .demo {
@@ -494,7 +316,6 @@ export default {
   margin: 2px 4px 8px 4px;
 }
 
-/* ---- 舞台内的固定几何（尺寸固定 + 绝对定位，仅绑定 transform/opacity/高度） ---- */
 .row-center {
   flex-direction: row;
   justify-content: center;
@@ -504,29 +325,8 @@ export default {
 .row-bars {
   flex-direction: row;
   justify-content: center;
-  align-items: center;
+  align-items: flex-end;
   height: 44px;
-}
-
-.dot12 {
-  width: 12px;
-  height: 12px;
-  border-radius: 6px;
-  margin: 0 4px;
-}
-
-.dot8 {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-}
-
-.dot7 {
-  width: 7px;
-  height: 7px;
-  border-radius: 4px;
-  margin: 0 3px;
 }
 
 .dot6 {
@@ -534,18 +334,51 @@ export default {
   width: 6px;
   height: 6px;
   border-radius: 3px;
+  animation-name: kf-spin-dot;
+  animation-duration: 1.2s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
 }
 
 .bar {
   width: 5px;
+  height: 36px;
   border-radius: 3px;
   margin: 0 2px;
+  /* transform-origin / animation-direction 均为快应用无先例的实验特性：
+     往返效果改由 keyframes 内部往返实现（0.5s×2 周期） */
+  animation-name: kf-bars;
+  animation-duration: 1s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
 }
+.bar-d2 { animation-delay: 0.1s; }
+.bar-d3 { animation-delay: 0.2s; }
+.bar-d4 { animation-delay: 0.3s; }
+.bar-d5 { animation-delay: 0.4s; }
 
-.box48 { width: 48px; height: 48px; position: relative; }
-.box52 { width: 52px; height: 52px; position: relative; }
-.box56 { width: 56px; height: 56px; position: relative; }
-.box60 { width: 60px; height: 60px; position: relative; }
+.pulse-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 6px;
+  margin: 0 4px;
+  animation-name: kf-pulse;
+  animation-duration: 1.3s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+.pulse-d2 { animation-delay: 0.16s; }
+.pulse-d3 { animation-delay: 0.32s; }
+
+.ring-spin {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  animation-name: kf-rot;
+  animation-duration: 1.4s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
 
 .ring40 {
   position: absolute;
@@ -558,23 +391,54 @@ export default {
   border-style: solid;
 }
 
-.ring44 {
+.ring-dot {
   position: absolute;
-  left: 4px;
-  top: 4px;
-  width: 44px;
-  height: 44px;
-  border-radius: 22px;
-  border-width: 3px;
-  border-style: solid;
+  left: 22px;
+  top: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
 }
 
-.rip {
+.rip-wrap {
+  position: relative;
+  width: 48px;
+  height: 48px;
+}
+
+.ripring {
   position: absolute;
-  border-radius: 50%;
+  left: 0;
+  top: 0;
+  width: 48px;
+  height: 48px;
   border-width: 3px;
   border-style: solid;
+  /* border-radius: 50% 是快应用样式解析器的实验特性（全项目无先例）→ 用定值 */
+  border-radius: 24px;
+  animation-name: kf-ripple;
+  animation-duration: 1.8s;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
 }
+.ripring-d2 { animation-delay: 0.9s; }
+
+.tick-wrap {
+  position: relative;
+  width: 56px;
+  height: 56px;
+}
+
+.tick0 { animation-delay: 0s; }
+/* 负 animation-delay 是快应用样式解析器的实验特性（全项目无先例），
+   会触发页面级渲染失败（黑屏）→ 全部换算为等效正延迟 */
+.tick1 { animation-delay: 1.05s; }
+.tick2 { animation-delay: 0.9s; }
+.tick3 { animation-delay: 0.75s; }
+.tick4 { animation-delay: 0.6s; }
+.tick5 { animation-delay: 0.45s; }
+.tick6 { animation-delay: 0.3s; }
+.tick7 { animation-delay: 0.15s; }
 
 .bubble {
   flex-direction: row;
@@ -583,6 +447,19 @@ export default {
   padding: 14px 16px;
   border-radius: 16px;
 }
+
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  margin: 0 4px;
+  animation-name: kf-typing;
+  animation-duration: 1.1s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+.typing-d2 { animation-delay: 0.15s; }
+.typing-d3 { animation-delay: 0.3s; }
 
 .skel {
   width: 88px;
@@ -607,6 +484,10 @@ export default {
   width: 26px;
   height: 41px;
   opacity: 0.12;
+  animation-name: kf-shine;
+  animation-duration: 1.6s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
 }
 
 .dna {
@@ -621,15 +502,74 @@ export default {
   width: 6px;
   height: 6px;
   border-radius: 3px;
+  animation-name: kf-dna;
+  animation-duration: 2s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+.dna0 { animation-delay: 0s; }
+.dna1 { animation-delay: 1.84s; }
+.dna2 { animation-delay: 1.68s; }
+.dna3 { animation-delay: 1.52s; }
+.dna4 { animation-delay: 1.36s; }
+.dna5 { animation-delay: 1.2s; }
+.dna6 { animation-delay: 1.04s; }
+.dna7 { animation-delay: 0.88s; }
+
+.orbit-spin {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  animation-name: kf-rot;
+  animation-duration: 1.6s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
 }
 
 .oball {
   position: absolute;
-  left: 25px;
-  top: 25px;
   width: 10px;
   height: 10px;
   border-radius: 5px;
+}
+.oball-a { left: 0; top: 25px; }
+.oball-b { left: 50px; top: 25px; opacity: 0.45; }
+
+.clock-spin {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  animation-name: kf-rot;
+  animation-duration: 1.5s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.ring44 {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  border-width: 3px;
+  border-style: solid;
+}
+
+.clock-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+}
+.clock-d0 { left: 24px; top: 0; }
+.clock-d1 { left: 19px; top: 6px; opacity: 0.4; }
+.clock-d2 { left: 14px; top: 13px; opacity: 0.18; }
+
+.grid-box {
+  position: relative;
+  width: 48px;
+  height: 48px;
 }
 
 .gsq {
@@ -637,13 +577,22 @@ export default {
   width: 20px;
   height: 20px;
   border-radius: 4px;
+  animation-name: kf-grid;
+  animation-duration: 1.4s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
 }
+.gsq-d1 { animation-delay: 0s; }
+.gsq-d2 { animation-delay: 0.175s; }
+.gsq-d3 { animation-delay: 0.35s; }
+.gsq-d4 { animation-delay: 0.525s; }
 
 .ptrack {
   width: 100px;
   height: 10px;
   border-radius: 5px;
   position: relative;
+  overflow: hidden;
 }
 
 .phl {
@@ -653,6 +602,68 @@ export default {
   width: 26px;
   height: 10px;
   border-radius: 5px;
+  animation-name: kf-prog;
+  animation-duration: 1.6s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* ---- animation keyframes ---- */
+@keyframes kf-rot {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes kf-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+@keyframes kf-bars {
+  /* 右先左后：先 scaleY 再 translateY(全量 13.5px)，模拟底部锚点缩放 */
+  0% { transform: translateY(13.5px) scaleY(0.25); }
+  50% { transform: translateY(0) scaleY(1); }
+  100% { transform: translateY(13.5px) scaleY(0.25); }
+}
+
+@keyframes kf-ripple {
+  from { transform: scale(0.2); opacity: 1; }
+  to { transform: scale(1); opacity: 0; }
+}
+
+@keyframes kf-spin-dot {
+  0%, 20% { opacity: 0.12; }
+  40% { opacity: 0.95; }
+  60%, 100% { opacity: 0.12; }
+}
+
+@keyframes kf-typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+@keyframes kf-shine {
+  from { transform: translateX(-26px); }
+  to { transform: translateX(88px); }
+}
+
+@keyframes kf-dna {
+  0%, 100% { opacity: 0.15; transform: translateX(-6px); }
+  25% { opacity: 0.95; transform: translateX(10px); }
+  50% { opacity: 0.15; transform: translateX(6px); }
+  75% { opacity: 0.95; transform: translateX(-10px); }
+}
+
+@keyframes kf-grid {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 1; }
+}
+
+@keyframes kf-prog {
+  0% { transform: translateX(-26px); opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { transform: translateX(100px); opacity: 0; }
 }
 
 @media (shape: capsule), (shape: pill-shaped) {

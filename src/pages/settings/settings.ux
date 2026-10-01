@@ -84,6 +84,9 @@
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
+      <div class="row" onclick="openFeedback">
+        <text class="row-label" style="color: {{ theme.text }}">帮助与反馈</text>
+      </div>
       <div class="row" onclick="openTools">
         <text class="row-label" style="color: {{ theme.text }}">工具</text>
         <div class="row-right">
@@ -378,6 +381,10 @@ export default {
     storage.set({ key: "chinese_input_return_key", value: "chinese_input_nickname_result", success: function() {
       router.push({ uri: "/pages/chinese-input" })
     }})
+  },
+
+  openFeedback() {
+    router.push({ uri: "/pages/feedback" })
   },
 
   openTools() {
