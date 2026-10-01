@@ -11,3 +11,6 @@ _rpk_check/
 /dist/
 /distrelease/
 release/
+# EvEmuBuddy 构建产物（45M）
+tools/ev-emubuddy/EvEmuBuddy.app/
+**/__pycache__/
