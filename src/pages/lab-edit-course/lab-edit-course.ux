@@ -374,6 +374,7 @@ export default {
 
 .header {
   flex-direction: row;
+  width: 100%;
   align-items: center;
   margin-bottom: 6px;
   flex-shrink: 0;
@@ -418,6 +419,7 @@ export default {
 
 .step-dots {
   flex-direction: row;
+  width: 100%;
   align-items: center;
   justify-content: center;
   margin-bottom: 10px;
@@ -438,6 +440,7 @@ export default {
 
 .form-body {
   flex-direction: column;
+  width: 100%;
   flex: 1;
 }
 
@@ -462,6 +465,7 @@ export default {
 
 .swiper-row {
   flex-direction: row;
+  width: 100%;
   align-items: center;
   justify-content: center;
   margin-bottom: 8px;
@@ -503,6 +507,7 @@ export default {
 
 .nav-row {
   flex-direction: row;
+  width: 100%;
   justify-content: space-between;
   margin-top: 12px;
 }
@@ -558,6 +563,7 @@ export default {
 .time-scroll {
   flex: 1;
   flex-direction: column;
+  width: 100%;
 }
 
 .time-label {
@@ -571,6 +577,7 @@ export default {
 
 .time-card {
   flex-direction: column;
+  width: 100%;
   align-items: center;
   border-radius: 12px;
   padding: 8px;
@@ -579,6 +586,7 @@ export default {
 
 .stepper-row {
   flex-direction: row;
+  width: 100%;
   align-items: center;
   justify-content: center;
   margin-bottom: 6px;
@@ -638,10 +646,12 @@ export default {
 .confirm-scroll {
   flex: 1;
   flex-direction: column;
+  width: 100%;
 }
 
 .confirm-card {
   flex-direction: column;
+  width: 100%;
   border-radius: 12px;
   padding: 10px;
 }
@@ -677,7 +687,7 @@ export default {
   border: none;
 }
 
-@media (shape: circle) {
+@media screen and (shape: circle) {
   .page-root {
     padding: 44px 36px 44px 36px;
   }
@@ -743,7 +753,7 @@ export default {
   }
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .page-root {
     padding: 30px 16px 30px 16px;
   }
@@ -771,13 +781,13 @@ export default {
     line-height: 42px;
   }
   .course-card {
-    width: 150px;
+    width: 100px;
     height: 90px;
     padding: 16px;
     border-radius: 12px;
   }
   .arrow-btn-icon {
-    width: 44px;
+    width: 26px;
     height: 44px;
     border-radius: 22px;
   }
@@ -799,19 +809,20 @@ export default {
   .next-btn,
   .prev-btn,
   .save-btn {
-    width: 88px;
+    width: 76px;
     height: 42px;
     font-size: 24px;
     line-height: 40px;
   }
   .stepper-btn {
-    width: 44px;
+    width: 40px;
     height: 44px;
     border-radius: 22px;
     font-size: 24px;
     line-height: 40px;
   }
   .stepper-num {
+    width: 38px;
     font-size: 32px;
     line-height: 42px;
   }
@@ -832,7 +843,7 @@ export default {
   }
 }
 
-@media (shape: rect) {
+@media screen and (shape: rect) {
   .page-root {
     padding: 6px 10px 12px 10px;
   }

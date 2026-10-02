@@ -732,7 +732,7 @@ export default {
   text-overflow: ellipsis;
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .page-root {
     padding: 30px 16px 30px 16px;
   }

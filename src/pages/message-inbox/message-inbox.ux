@@ -252,7 +252,7 @@ export default {
   line-height: 38px;
 }
 
-@media (shape: circle) {
+@media screen and (shape: circle) {
   .page {
     padding: 44px 36px 44px 36px;
   }
@@ -275,7 +275,7 @@ export default {
   }
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .page {
     padding: 30px 16px 30px 16px;
   }

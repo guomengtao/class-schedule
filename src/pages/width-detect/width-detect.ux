@@ -1,0 +1,431 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <scroll class="wd-scroll" scroll-y="{{true}}">
+      <div class="page-body">
+        <div class="header">
+          <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+            <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+          </div>
+          <text class="header-title" style="color: {{ theme.text }}">宽度检测</text>
+          <div class="header-placeholder"></div>
+        </div>
+
+        <!-- 当前屏幕 -->
+        <div class="section" style="background-color: {{ theme.card }}">
+          <text class="sec-title" style="color: {{ theme.accent }}">当前屏幕</text>
+          <div class="kv" for="{{ infoList }}">
+            <text class="kv-k" style="color: {{ theme.textMuted }}">{{ $item.k }}</text>
+            <text class="kv-v" style="color: {{ theme.text }}">{{ $item.v }}</text>
+          </div>
+        </div>
+
+        <!-- 本屏单行字数 -->
+        <div class="section" style="background-color: {{ theme.card }}">
+          <text class="sec-title" style="color: {{ theme.accent }}">本屏单行字数（中文）</text>
+          <text class="sec-sub" style="color: {{ theme.textMuted }}">内容宽 {{ contentW }}px ÷ 字号，向下取整</text>
+          <div class="fs-row" for="{{ tiers }}"
+               style="background-color: {{ $item.isBase ? theme.cardLight : 'transparent' }}">
+            <div class="fs-left">
+              <text class="fs-size" style="color: {{ $item.isBase ? theme.accent : theme.text }}">{{ $item.label }}</text>
+              <text class="fs-name" style="color: {{ theme.textSecondary }}">{{ $item.name }}</text>
+            </div>
+            <text class="fs-max" style="color: {{ $item.isBase ? theme.accent : theme.text }}">最多 {{ $item.max }} 字</text>
+          </div>
+          <text class="note" style="color: {{ theme.textMuted }}">高亮 = 推荐正文档；数字 / 英文按 0.55 折算。留 1 字余量更保险。</text>
+        </div>
+
+        <!-- 9 / 10 胶囊屏对照 -->
+        <div class="section" style="background-color: {{ theme.card }}">
+          <text class="sec-title" style="color: {{ theme.accent }}">9 / 10 胶囊屏对照</text>
+
+          <div class="ref-card">
+            <div class="ref-head" style="background-color: {{ theme.cardLight }}">
+              <text class="ref-name" style="color: {{ theme.text }}">小米手环 9</text>
+              <text class="ref-res" style="color: {{ theme.textMuted }}">192 × 490 · 内容 160px</text>
+            </div>
+            <div class="ref-row" for="{{ ref9 }}">
+              <text class="ref-size" style="color: {{ theme.textSecondary }}">{{ $item.label }}</text>
+              <text class="ref-cnt" style="color: {{ theme.text }}">{{ $item.max }} 字</text>
+            </div>
+          </div>
+
+          <div class="ref-card">
+            <div class="ref-head" style="background-color: {{ theme.cardLight }}">
+              <text class="ref-name" style="color: {{ theme.text }}">小米手环 10</text>
+              <text class="ref-res" style="color: {{ theme.textMuted }}">212 × 520 · 内容 180px</text>
+            </div>
+            <div class="ref-row" for="{{ ref10 }}">
+              <text class="ref-size" style="color: {{ theme.textSecondary }}">{{ $item.label }}</text>
+              <text class="ref-cnt" style="color: {{ theme.text }}">{{ $item.max }} 字</text>
+            </div>
+          </div>
+        </div>
+
+        <div class="foot">
+          <text class="foot-t" style="color: {{ theme.textMuted }}">算法：内容区宽度 ÷ 字号，向下取整（1 汉字 ≈ 1×字号）。内容区 = 屏宽 − 左右各 16px。</text>
+        </div>
+      </div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import device from "@system.device"
+const store = require("../../data/store.js")
+
+var FONT_TIERS = [
+  { size: 40, name: "特大数字" },
+  { size: 36, name: "标题" },
+  { size: 34, name: "正文舒适" },
+  { size: 32, name: "正文基准" },
+  { size: 28, name: "辅助 / 按钮" },
+  { size: 24, name: "次要辅助" },
+  { size: 20, name: "底线（尽量不用）" }
+]
+
+var REF_TIERS = [36, 32, 28, 24]
+
+var KNOWN_DEVICES = [
+  { w: 192, h: 490, name: "小米手环 9（胶囊）" },
+  { w: 212, h: 520, name: "小米手环 10（胶囊）" },
+  { w: 336, h: 480, name: "小米手环 8 Pro / 9 Pro（方形）" },
+  { w: 432, h: 514, name: "REDMI Watch 5（方形）" },
+  { w: 466, h: 466, name: "Xiaomi Watch S3 / S4（圆形）" }
+]
+
+var SHAPE_MAP = { "rect": "方形屏", "circle": "圆形屏", "capsule": "胶囊屏", "pill-shaped": "胶囊屏" }
+
+var SIDE_PADDING = 16
+
+function buildTiers(contentW) {
+  var out = []
+  for (var i = 0; i < FONT_TIERS.length; i++) {
+    var t = FONT_TIERS[i]
+    out.push({
+      label: t.size + "px",
+      name: t.name,
+      max: Math.max(1, Math.floor(contentW / t.size)),
+      isBase: t.size === 32
+    })
+  }
+  return out
+}
+
+function buildRef(contentW) {
+  var out = []
+  for (var i = 0; i < REF_TIERS.length; i++) {
+    var s = REF_TIERS[i]
+    out.push({ label: s + "px", max: Math.max(1, Math.floor(contentW / s)) })
+  }
+  return out
+}
+
+function matchDevice(w, h) {
+  for (var i = 0; i < KNOWN_DEVICES.length; i++) {
+    if (KNOWN_DEVICES[i].w === w && KNOWN_DEVICES[i].h === h) return KNOWN_DEVICES[i].name
+  }
+  return "未收录机型"
+}
+
+export default {
+  private: {
+    iconTheme: "dark",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460'
+    },
+    contentW: 0,
+    infoList: [],
+    tiers: [],
+    ref9: buildRef(192 - SIDE_PADDING * 2),
+    ref10: buildRef(212 - SIDE_PADDING * 2)
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+    this.detect()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+  },
+
+  detect() {
+    var self = this
+    device.getInfo({
+      success: function(d) {
+        var w = d.screenWidth || 0
+        var h = d.screenHeight || 0
+        var contentW = w > SIDE_PADDING * 2 ? (w - SIDE_PADDING * 2) : 0
+        self.contentW = contentW
+        self.tiers = buildTiers(contentW)
+        self.infoList = [
+          { k: "设备型号", v: d.model || "未知" },
+          { k: "屏幕分辨率", v: w + " × " + h + " px" },
+          { k: "屏幕形状", v: SHAPE_MAP[d.screenShape] || d.screenShape || "未知" },
+          { k: "像素密度", v: d.screenDensity ? d.screenDensity + " ppi" : "未知" },
+          { k: "内容区宽度", v: contentW + "px（屏宽 − 左右各 16px）" },
+          { k: "推荐正文", v: "32px · 单行 " + Math.max(1, Math.floor(contentW / 32)) + " 字" },
+          { k: "机型识别", v: matchDevice(w, h) }
+        ]
+      },
+      fail: function() {
+        self.infoList = [{ k: "读取失败", v: "无法获取屏幕信息" }]
+      }
+    })
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+@import '../../common/header.css';
+
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.wd-scroll {
+  flex: 1;
+  width: 100%;
+  flex-direction: column;
+}
+
+.page-body {
+  flex-direction: column;
+  width: 100%;
+  padding: 38px 10px 14px 10px;
+}
+
+.section {
+  width: 100%;
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 12px 12px;
+  margin-bottom: 12px;
+}
+
+.sec-title {
+  width: 100%;
+  font-size: 26px;
+  line-height: 34px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.sec-sub {
+  width: 100%;
+  font-size: 20px;
+  line-height: 26px;
+  margin-bottom: 8px;
+}
+
+/* 键值行：标签在上、值在下（统一纵向，避免窄屏挤压/塌缩） */
+.kv {
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 5px 0;
+}
+
+.kv-k {
+  font-size: 20px;
+  line-height: 28px;
+  lines: 1;
+}
+
+.kv-v {
+  font-size: 24px;
+  line-height: 32px;
+}
+
+/* 字号档：标题行 + 字数行 */
+.fs-row {
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.fs-left {
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+}
+
+.fs-size {
+  font-size: 26px;
+  line-height: 34px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.fs-name {
+  flex: 1;
+  font-size: 22px;
+  line-height: 30px;
+  margin-left: 8px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.fs-max {
+  font-size: 24px;
+  line-height: 32px;
+  margin-top: 2px;
+}
+
+.note {
+  width: 100%;
+  font-size: 20px;
+  line-height: 26px;
+  margin-top: 6px;
+}
+
+.ref-card {
+  width: 100%;
+  flex-direction: column;
+  margin-top: 8px;
+}
+
+.ref-head {
+  width: 100%;
+  flex-direction: column;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+}
+
+.ref-name {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: bold;
+}
+
+.ref-res {
+  font-size: 20px;
+  line-height: 26px;
+  margin-top: 2px;
+}
+
+.ref-row {
+  width: 100%;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+}
+
+.ref-size {
+  font-size: 22px;
+  line-height: 30px;
+  flex-shrink: 0;
+}
+
+.ref-cnt {
+  font-size: 22px;
+  line-height: 30px;
+  flex-shrink: 0;
+}
+
+.foot {
+  width: 100%;
+  flex-direction: column;
+  padding: 2px 2px 12px 2px;
+}
+
+.foot-t {
+  font-size: 20px;
+  line-height: 28px;
+  text-align: center;
+}
+
+@media screen and (shape: rect) {
+  .page-body {
+    padding: 6px 10px 12px 10px;
+  }
+}
+
+@media screen and (shape: circle) {
+  .page-body {
+    padding: 38px 30px 44px 30px;
+  }
+}
+
+@media screen and (shape: pill-shaped) {
+  .page-body {
+    padding: 30px 16px 30px 16px;
+  }
+  .section {
+    padding: 8px 8px;
+    margin-bottom: 10px;
+  }
+  .sec-title {
+    font-size: 22px;
+    line-height: 30px;
+    margin-bottom: 6px;
+  }
+  .sec-sub {
+    font-size: 20px;
+    line-height: 26px;
+  }
+  .kv-k {
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .kv-v {
+    font-size: 22px;
+    line-height: 30px;
+  }
+  .fs-row {
+    padding: 6px 8px;
+  }
+  .fs-size {
+    font-size: 22px;
+    line-height: 30px;
+  }
+  .fs-name {
+    font-size: 18px;
+    line-height: 26px;
+    margin-left: 6px;
+  }
+  .fs-max {
+    font-size: 22px;
+    line-height: 30px;
+  }
+  .ref-name {
+    font-size: 22px;
+    line-height: 30px;
+  }
+  .ref-size {
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .ref-cnt {
+    font-size: 22px;
+    line-height: 30px;
+  }
+}
+</style>

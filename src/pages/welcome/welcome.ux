@@ -153,7 +153,7 @@ export default {
   margin-top: 12px;
 }
 
-@media (shape: circle) {
+@media screen and (shape: circle) {
   .home-page {
     padding: 44px 36px;
   }
@@ -187,7 +187,7 @@ export default {
   }
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .home-page {
     padding: 60px 12px 30px 12px;
   }
@@ -221,7 +221,7 @@ export default {
   }
 }
 
-@media (shape: rect) {
+@media screen and (shape: rect) {
   .home-page {
     padding: 6px 8px 20px 8px;
   }

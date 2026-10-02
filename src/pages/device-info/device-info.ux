@@ -304,7 +304,7 @@ export default {
  *
  *   Solution: stacked vertical layout, label on top, value wraps below.
  */
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .page-body {
     padding: 30px 16px 30px 16px;
   }
@@ -337,7 +337,7 @@ export default {
   }
 }
 
-@media (shape: circle) {
+@media screen and (shape: circle) {
   .page-body {
     padding: 38px 36px 44px 36px;
   }
@@ -372,7 +372,7 @@ export default {
   }
 }
 
-@media (shape: rect) {
+@media screen and (shape: rect) {
   .page-body {
     padding: 6px 10px 12px 10px;
   }

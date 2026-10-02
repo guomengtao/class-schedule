@@ -16,6 +16,11 @@
         <text class="item-hint" style="color: {{ theme.textMuted }}">调试</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openWidthDetect">
+        <text class="item-label" style="color: {{ theme.text }}">宽度检测</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">单行字数</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openVibrationLab">
         <text class="item-label" style="color: {{ theme.text }}">震动自定义</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">震动方案</text>
@@ -174,6 +179,10 @@ export default {
 
   openDeviceInfo() {
     router.push({ uri: "/pages/device-info" })
+  },
+
+  openWidthDetect() {
+    router.push({ uri: "/pages/width-detect" })
   },
 
 
@@ -360,7 +369,7 @@ export default {
   top: 2px;
 }
 
-@media (shape: circle) {
+@media screen and (shape: circle) {
   .page-body {
     padding: 44px 36px 44px 36px;
   }
@@ -383,7 +392,7 @@ export default {
   }
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .page-body {
     padding: 30px 16px 30px 16px;
   }

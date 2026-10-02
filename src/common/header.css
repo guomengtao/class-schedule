@@ -3,6 +3,7 @@
 
 .header {
   flex-direction: row;
+  width: 100%;
   align-items: center;
   height: 44px;
   margin-bottom: 10px;
@@ -113,7 +114,7 @@
 /* ====== Capsule Screen (192px width, ~160px content) ====== */
 /* Title area: content_width(160) - 36px(back) - 34px(placeholder) = 90px */
 /* 5 Chinese chars at 18px = 90px, fits (震动自定义等5字标题完整) */
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .header-title {
     font-size: 18px;
     line-height: 26px;

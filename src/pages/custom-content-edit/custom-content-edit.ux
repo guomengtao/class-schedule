@@ -359,6 +359,7 @@ export default {
 
 .section {
   flex-direction: column;
+  width: 100%;
   border-radius: 12px;
   padding: 14px;
   margin-bottom: 10px;
@@ -372,6 +373,7 @@ export default {
 
 .preview-card {
   flex-direction: row;
+  width: 100%;
   align-items: center;
   padding: 14px 14px;
   border-radius: 10px;
@@ -396,6 +398,7 @@ export default {
 
 .preview-info {
   flex-direction: row;
+  width: 100%;
   justify-content: center;
   margin-top: 6px;
 }
@@ -407,6 +410,7 @@ export default {
 
 .preview-actions {
   flex-direction: row;
+  width: 100%;
   margin-top: 10px;
 }
 
@@ -434,6 +438,7 @@ export default {
 
 .preset-grid {
   flex-direction: row;
+  width: 100%;
   flex-wrap: wrap;
 }
 
@@ -454,6 +459,7 @@ export default {
 
 .interval-row {
   flex-direction: row;
+  width: 100%;
 }
 
 .interval-item {
@@ -470,7 +476,7 @@ export default {
   line-height: 36px;
 }
 
-@media (shape: circle) {
+@media screen and (shape: circle) {
   .page {
     padding: 44px 36px 44px 36px;
   }
@@ -515,7 +521,7 @@ export default {
   }
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   /* 编辑/清空按钮：基样式 clear 90px 会把 edit 挤到 34px 文字截断 */
   .edit-btn {
     height: 48px;
@@ -530,7 +536,7 @@ export default {
   }
 }
 
-@media (shape: rect) {
+@media screen and (shape: rect) {
   .page {
     padding: 6px 10px 12px 10px;
   }

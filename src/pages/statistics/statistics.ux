@@ -417,7 +417,7 @@ export default {
   padding: 24px 0;
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .stats-page {
     padding: 30px 8px 30px 8px;
   }
@@ -477,7 +477,7 @@ export default {
 
 }
 
-@media (shape: rect) {
+@media screen and (shape: rect) {
   .stats-page {
     padding: 6px 6px 6px 6px;
   }
@@ -533,7 +533,7 @@ export default {
   }
 }
 
-@media (shape: circle) {
+@media screen and (shape: circle) {
   .stats-page {
     padding: 44px 36px 44px 36px;
   }
@@ -569,7 +569,7 @@ export default {
 }
 
 
-@media (shape: circle) {
+@media screen and (shape: circle) {
   
 }
 </style>

@@ -556,7 +556,7 @@ export default {
   width: 40px;
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .page {
     padding: 30px 16px 56px 16px;
   }
@@ -681,7 +681,7 @@ export default {
   }
 }
 
-@media (shape: circle) {
+@media screen and (shape: circle) {
   .page {
     padding: 38px 36px 44px 36px;
   }
@@ -738,7 +738,7 @@ export default {
   }
 }
 
-@media (shape: rect) {
+@media screen and (shape: rect) {
   .page {
     padding: 6px 12px 16px 12px;
   }

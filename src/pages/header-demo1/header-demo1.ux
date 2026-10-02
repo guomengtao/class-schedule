@@ -162,7 +162,7 @@ export default {
   margin-top: 10px;
 }
 
-@media (shape: rect) {
+@media screen and (shape: rect) {
   .page-root {
     padding: 44px 12px 16px 12px;
   }
@@ -204,7 +204,7 @@ export default {
   }
 }
 
-@media (shape: circle) {
+@media screen and (shape: circle) {
   .page-root {
     padding: 44px 36px 44px 36px;
   }

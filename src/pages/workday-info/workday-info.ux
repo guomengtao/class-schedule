@@ -170,7 +170,7 @@ export default {
 }
 
 /* ── 方屏/大屏 ── */
-@media (shape: rect) {
+@media screen and (shape: rect) {
   .header {
     padding: 10px 12px 8px 12px;
   }
@@ -222,7 +222,7 @@ export default {
 }
 
 /* ── 圆形屏 ── */
-@media (shape: circle) {
+@media screen and (shape: circle) {
   .header {
     padding: 14px 16px 8px 16px;
   }

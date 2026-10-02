@@ -1226,7 +1226,7 @@ export default {
   line-height: 30px;
 }
 
-@media (shape: circle) {
+@media screen and (shape: circle) {
   .schedule-page {
     padding: 44px 36px 44px 36px;
   }
@@ -1265,7 +1265,7 @@ export default {
   }
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .schedule-page {
     padding: 30px 16px 30px 16px;
   }
@@ -1447,7 +1447,7 @@ export default {
   }
 }
 
-@media (shape: rect) {
+@media screen and (shape: rect) {
   .schedule-page {
     padding: 6px 6px 6px 6px;
   }

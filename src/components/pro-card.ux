@@ -148,7 +148,7 @@ export default {
   font-size: 22px;
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .pro-card-inline {
     border-radius: 10px;
     padding: 16px 14px 14px 14px;

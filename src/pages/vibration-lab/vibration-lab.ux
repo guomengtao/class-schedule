@@ -891,6 +891,7 @@ export default {
 
 .save-section {
   flex-direction: row;
+  width: 100%;
   justify-content: center;
   margin-top: 8px;
   padding-bottom: 16px;
@@ -907,6 +908,7 @@ export default {
 
 .notice-banner {
   flex-direction: row;
+  width: 100%;
   align-items: center;
   border-radius: 10px;
   border: 1px solid;
@@ -931,6 +933,7 @@ export default {
 
 .remind-toggle-row {
   flex-direction: row;
+  width: 100%;
   justify-content: space-between;
   align-items: center;
   padding: 4px 0;
@@ -1008,6 +1011,7 @@ export default {
 
 .vibe-top {
   flex-direction: row;
+  width: 100%;
   justify-content: space-between;
   align-items: center;
 }
@@ -1038,7 +1042,7 @@ export default {
   text-overflow: ellipsis;
 }
 
-@media (shape: circle) {
+@media screen and (shape: circle) {
   .page {
     padding: 44px 36px 44px 36px;
   }
@@ -1118,9 +1122,9 @@ export default {
   }
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .page {
-    padding: 30px 16px 30px 16px;
+    padding: 30px 12px 30px 12px;
   }
   
   
@@ -1174,15 +1178,15 @@ export default {
     margin-bottom: 6px;
   }
   .step-btn {
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 44px;
     font-size: 24px;
     line-height: 36px;
   }
   .step-value {
     font-size: 22px;
     line-height: 32px;
-    width: 104px;
+    width: 56px;
   }
   .quick-btn {
     width: 31%;
@@ -1270,7 +1274,7 @@ export default {
   }
 }
 
-@media (shape: rect) {
+@media screen and (shape: rect) {
   .page {
     padding: 44px 6px 6px 6px;
   }

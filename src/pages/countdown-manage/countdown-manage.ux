@@ -543,7 +543,7 @@ export default {
   margin-top: 60px;
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .page {
     padding: 30px 16px 30px 16px;
   }
@@ -663,7 +663,7 @@ export default {
   }
 }
 
-@media (shape: rect), (shape: rectangle) {
+@media screen and (shape: rect) {
   .page {
     padding: 24px 24px 20px 24px;
   }

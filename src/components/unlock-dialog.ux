@@ -173,7 +173,7 @@ export default {
   font-size: 26px;
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .dialog-card {
     width: 100%;
     border-radius: 12px;
@@ -226,7 +226,7 @@ export default {
 }
 /* ===== 胶囊屏（192px）统一适配：解锁弹窗（本组件被 statistics/settings/schedule-qrcode/vibration-lab 等引用）=====
    背景：`.dialog-card` 80% + 标题 34px，在 192×490 上文字被挤爆（同 .modal-card 一族，2026-09-27 实测）。 */
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .dialog-overlay {
     padding: 40px 16px;
   }
