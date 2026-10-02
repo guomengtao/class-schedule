@@ -17,3 +17,7 @@ tools/ev-emubuddy/EvEmuBuddy.app/
 # 手环截图归档（200K / 21 张）。模拟器和真机截图，纯产物不入库；
 # 未 ignore 时会把整批待提交代码一起"卡住"（禁 git add -A 时最省事的停摆点）。
 shots/
+# AI 工作记忆 / IDE 会话数据（本地保留，不入库）
+# 注意：只挡 memory/ 与 plans/；rules/ 是团队共享的项目规则，三仓统一入库。
+.codebuddy/memory/
+.codebuddy/plans/
