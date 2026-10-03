@@ -1,13 +1,6 @@
 var store = require("../../../data/store.js")
 var holidayPreset = require("../../../data/holiday-preset.js")
 
-// 首屏读取路径日志开关：默认关闭。原来无条件打印 holiday_data 的原始内容
-// （整份 JSON）+ JSON.stringify(dateEntry)，真机上属"首屏阻塞型"日志。
-var DEBUG = false
-function dlog() {
-  if (DEBUG) console.log.apply(console, arguments)
-}
-
 // 每次 App 启动只需检查一次内置数据是否补齐
 var presetChecked = false
 
@@ -62,12 +55,12 @@ function readHolidayState(self, dateStr, callback) {
   storage.get({
     key: "holiday_data",
     success: function(data) {
-      dlog("[holiday] storage.get holiday_data raw:", data, "looking for dateStr:", dateStr)
+      console.log("[holiday] storage.get holiday_data raw:", data, "looking for dateStr:", dateStr)
       if (data) {
         try {
           var holidayData = JSON.parse(data)
           var dateEntry = holidayData[dateStr]
-          dlog("[holiday] parsed holidayData keys:", Object.keys(holidayData), "dateEntry:", JSON.stringify(dateEntry))
+          console.log("[holiday] parsed holidayData keys:", Object.keys(holidayData), "dateEntry:", JSON.stringify(dateEntry))
           if (dateEntry) {
             applyEntry(self, dateEntry, callback)
             return

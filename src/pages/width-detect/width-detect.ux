@@ -362,19 +362,19 @@ export default {
   text-align: center;
 }
 
-@media screen and (shape: rect) {
+@media (shape: rect) {
   .page-body {
     padding: 6px 10px 12px 10px;
   }
 }
 
-@media screen and (shape: circle) {
+@media (shape: circle) {
   .page-body {
     padding: 38px 30px 44px 30px;
   }
 }
 
-@media screen and (shape: pill-shaped) {
+@media (shape: capsule), (shape: pill-shaped) {
   .page-body {
     padding: 30px 16px 30px 16px;
   }

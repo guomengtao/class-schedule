@@ -528,7 +528,7 @@ export default {
   text-align: center;
 }
 
-@media screen and (shape: pill-shaped) {
+@media (shape: capsule), (shape: pill-shaped) {
   .page-root {
     padding: 8px;
   }
@@ -583,7 +583,7 @@ export default {
   }
 }
 
-@media screen and (shape: rect) {
+@media (shape: rect) {
   .page-root {
     padding: 12px;
   }
@@ -638,7 +638,7 @@ export default {
   }
 }
 
-@media screen and (shape: circle) {
+@media (shape: circle) {
   .page-root {
     padding: 8px;
   }

@@ -789,7 +789,7 @@ export default {
   border: none;
 }
 
-@media screen and (shape: pill-shaped) {
+@media (shape: capsule), (shape: pill-shaped) {
   .page-root {
     padding: 24px 16px 24px 16px;
   }

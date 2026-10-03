@@ -798,7 +798,7 @@ export default {
   line-height: 36px;
 }
 
-@media screen and (shape: circle) {
+@media (shape: circle) {
   .settings-body {
     padding: 44px 36px 44px 36px;
   }
@@ -855,7 +855,7 @@ export default {
   }
 }
 
-@media screen and (shape: pill-shaped) {
+@media (shape: capsule), (shape: pill-shaped) {
   .settings-body {
     padding: 30px 16px 30px 16px;
   }
@@ -1017,7 +1017,7 @@ export default {
   }
 }
 
-@media screen and (shape: rect) {
+@media (shape: rect) {
   .settings-body {
     padding: 6px 6px 6px 6px;
   }
@@ -1051,7 +1051,7 @@ export default {
    背景：同一套弹窗在 6 处各写一份，胶囊适配缺失/不一致 → 192×490 上出现
    标题截成 3 字、✓ 条目只剩 1 字、内容顶到屏幕右缘被裁（2026-09-27 实测）。
    统一策略：卡片占满安全宽度、字号降档、文本允许 2 行/1 行 + 省略号。 */
-@media screen and (shape: pill-shaped) {
+@media (shape: capsule), (shape: pill-shaped) {
   .overlay-modal {
     padding: 40px 16px;
   }
@@ -1153,7 +1153,7 @@ export default {
   margin-top: 10px;
 }
 
-@media screen and (shape: pill-shaped) {
+@media (shape: capsule), (shape: pill-shaped) {
   .theme-drawer-panel {
     padding: 8px 10px 16px 10px;
     border-radius: 16px 16px 0 0;

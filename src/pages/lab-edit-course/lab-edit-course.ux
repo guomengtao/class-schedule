@@ -687,7 +687,7 @@ export default {
   border: none;
 }
 
-@media screen and (shape: circle) {
+@media (shape: circle) {
   .page-root {
     padding: 44px 36px 44px 36px;
   }
@@ -753,7 +753,7 @@ export default {
   }
 }
 
-@media screen and (shape: pill-shaped) {
+@media (shape: capsule), (shape: pill-shaped) {
   .page-root {
     padding: 30px 16px 30px 16px;
   }
@@ -843,7 +843,7 @@ export default {
   }
 }
 
-@media screen and (shape: rect) {
+@media (shape: rect) {
   .page-root {
     padding: 6px 10px 12px 10px;
   }

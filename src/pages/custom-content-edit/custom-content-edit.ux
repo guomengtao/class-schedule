@@ -476,7 +476,7 @@ export default {
   line-height: 36px;
 }
 
-@media screen and (shape: circle) {
+@media (shape: circle) {
   .page {
     padding: 44px 36px 44px 36px;
   }
@@ -521,7 +521,7 @@ export default {
   }
 }
 
-@media screen and (shape: pill-shaped) {
+@media (shape: capsule), (shape: pill-shaped) {
   /* 编辑/清空按钮：基样式 clear 90px 会把 edit 挤到 34px 文字截断 */
   .edit-btn {
     height: 48px;
@@ -536,7 +536,7 @@ export default {
   }
 }
 
-@media screen and (shape: rect) {
+@media (shape: rect) {
   .page {
     padding: 6px 10px 12px 10px;
   }

@@ -209,7 +209,7 @@ export default {
 }
 
 /* Capsule primary */
-@media screen and (shape: pill-shaped) {
+@media (shape: capsule), (shape: pill-shaped) {
   .pinned-pages-page {
     padding: 38px 8px 10px 8px;
   }
@@ -254,7 +254,7 @@ export default {
   }
 }
 
-@media screen and (shape: circle) {
+@media (shape: circle) {
   .pinned-pages-page {
     padding: 44px 36px 44px 36px;
   }
@@ -268,7 +268,7 @@ export default {
   }
 }
 
-@media screen and (shape: rect) {
+@media (shape: rect) {
   .pinned-pages-page {
     padding: 6px 12px 16px 12px;
   }

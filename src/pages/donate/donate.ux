@@ -204,7 +204,7 @@ export default {
   lines: 1;
 }
 
-@media screen and (shape: pill-shaped) {
+@media (shape: capsule), (shape: pill-shaped) {
   .header-title {
     font-size: 24px;
     font-weight: bold;
@@ -256,7 +256,7 @@ export default {
   }
 }
 
-@media screen and (shape: rect) {
+@media (shape: rect) {
   .header-title {
     font-size: 32px;
     font-weight: bold;
@@ -299,7 +299,7 @@ export default {
   }
 }
 
-@media screen and (shape: circle) {
+@media (shape: circle) {
   .header-title {
     font-size: 34px;
     font-weight: bold;

@@ -666,7 +666,7 @@ export default {
   100% { transform: translateX(100px); opacity: 0; }
 }
 
-@media screen and (shape: pill-shaped) {
+@media (shape: capsule), (shape: pill-shaped) {
   .page {
     padding: 30px 14px 30px 14px;
   }

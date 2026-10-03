@@ -254,7 +254,7 @@ export default {
   margin-top: 10px;
 }
 
-@media screen and (shape: circle) {
+@media (shape: circle) {
   .page-root {
     padding: 44px 36px 44px 36px;
   }
@@ -316,14 +316,14 @@ export default {
   }
 }
 
-@media screen and (shape: pill-shaped) {
+@media (shape: capsule), (shape: pill-shaped) {
   
   
   
 
 }
 
-@media screen and (shape: rect) {
+@media (shape: rect) {
   .page-root {
     padding: 44px 6px 6px 6px;
   }
@@ -365,7 +365,7 @@ export default {
   flex-shrink: 0;
 }
 
-@media screen and (shape: circle) {
+@media (shape: circle) {
   .nav-bar {
     padding: 12px 14px;
   }

@@ -1096,7 +1096,7 @@ export default {
 }
 
 /* ── circle shape ── */
-@media screen and (shape: circle) {
+@media (shape: circle) {
   .wv-page {
     padding: 44px 36px 44px 36px;
   }
@@ -1154,7 +1154,7 @@ export default {
   }
 }
 
-@media screen and (shape: pill-shaped) {
+@media (shape: capsule), (shape: pill-shaped) {
   .wv-page {
     padding: 44px 0 8px 0;
   }
@@ -1179,7 +1179,7 @@ export default {
   }
 }
 
-@media screen and (shape: rect) {
+@media (shape: rect) {
   .wv-page {
     padding: 6px 10px 12px 10px;
   }

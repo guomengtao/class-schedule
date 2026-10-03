@@ -695,19 +695,19 @@ export default {
 }
 
 /* ===== 二维码回传区 ===== */
-@media screen and (shape: pill-shaped) {
+@media (shape: capsule), (shape: pill-shaped) {
   .page {
     padding: 8px 10px 6px 10px;
   }
 }
 
-@media screen and (shape: circle) {
+@media (shape: circle) {
   .page {
     padding: 24px 36px 24px 36px;
   }
 }
 
-@media screen and (shape: rect) {
+@media (shape: rect) {
   .page {
     padding: 6px 10px 12px 10px;
   }

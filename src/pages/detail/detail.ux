@@ -1270,7 +1270,7 @@ export default {
   line-height: 44px;
 }
 
-@media screen and (shape: circle) {
+@media (shape: circle) {
   .edit-course-page {
     padding: 44px 36px 50px 36px;
   }
@@ -1342,7 +1342,7 @@ export default {
   }
 }
 
-@media screen and (shape: pill-shaped) {
+@media (shape: capsule), (shape: pill-shaped) {
   .edit-course-page {
     padding: 38px 12px 50px 12px;
   }
@@ -1589,7 +1589,7 @@ export default {
   }
 }
 
-@media screen and (shape: rect) {
+@media (shape: rect) {
   .edit-course-page {
     padding: 6px 10px 50px 10px;
   }
