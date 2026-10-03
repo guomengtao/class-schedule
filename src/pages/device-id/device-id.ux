@@ -1,0 +1,483 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <scroll class="di-scroll" scroll-y="{{true}}">
+    <div class="page-body">
+    <div class="header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">设备ID诊断</text>
+      <div class="header-placeholder"></div>
+    </div>
+
+    <div class="section-title-row">
+      <text class="section-title" style="color: {{ theme.textSecondary }}">环境概览</text>
+    </div>
+    <div class="env-card" style="background-color: {{ theme.card }}">
+      <div class="env-row">
+        <text class="env-label" style="color: {{ theme.textSecondary }}">型号</text>
+        <text class="env-value" style="color: {{ theme.text }}">{{ envModel || '获取中...' }}</text>
+      </div>
+      <div class="env-row">
+        <text class="env-label" style="color: {{ theme.textSecondary }}">代号</text>
+        <text class="env-value" style="color: {{ theme.text }}">{{ envProduct || '-' }}</text>
+      </div>
+      <div class="env-row">
+        <text class="env-label" style="color: {{ theme.textSecondary }}">类型</text>
+        <text class="env-value" style="color: {{ theme.text }}">{{ envDeviceType || '-' }}</text>
+      </div>
+      <div class="env-row">
+        <text class="env-label" style="color: {{ theme.textSecondary }}">屏幕</text>
+        <text class="env-value" style="color: {{ theme.text }}">{{ envScreen || '-' }}</text>
+      </div>
+      <div class="env-row">
+        <text class="env-label" style="color: {{ theme.textSecondary }}">固件</text>
+        <text class="env-value" style="color: {{ theme.text }}">{{ envOsVersion || '-' }}</text>
+      </div>
+      <div class="env-row">
+        <text class="env-label" style="color: {{ theme.textSecondary }}">API</text>
+        <text class="env-value" style="color: {{ theme.text }}">Level {{ envApiLevel || '-' }}</text>
+      </div>
+    </div>
+
+    <div class="section-title-row">
+      <text class="section-title" style="color: {{ theme.textSecondary }}">硬件标识检测</text>
+    </div>
+
+    <div class="test-card" for="{{ testResults }}" style="background-color: {{ theme.card }}">
+      <div class="test-header">
+        <text class="test-num" style="color: {{ theme.textMuted }}">#{{ $item.idx }}</text>
+        <text class="test-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+        <text class="test-status {{ $item.ok ? 'test-ok' : 'test-fail' }}" style="color: {{ $item.ok ? '#27ae60' : '#e74c3c' }}">{{ $item.ok ? 'OK' : 'FAIL' }}</text>
+      </div>
+      <text class="test-value" style="color: {{ $item.ok ? theme.accent : theme.textMuted }}">{{ $item.value }}</text>
+      <text class="test-note" if="{{ $item.note }}" style="color: {{ theme.textMuted }}">{{ $item.note }}</text>
+    </div>
+
+    <div class="section-title-row">
+      <text class="section-title" style="color: {{ theme.textSecondary }}">软件标识（激活可用）</text>
+    </div>
+
+    <div class="test-card" style="background-color: {{ theme.card }}">
+      <div class="test-header">
+        <text class="test-num" style="color: {{ theme.textMuted }}">#A</text>
+        <text class="test-name" style="color: {{ theme.text }}">本地UUID</text>
+        <text class="test-status test-ok" style="color: #27ae60">OK</text>
+      </div>
+      <text class="test-value" style="color: {{ theme.accent }}">{{ localUuid || '获取中...' }}</text>
+      <text class="test-note" style="color: {{ theme.textMuted }}">持久化于storage，重装会变</text>
+    </div>
+
+    <div class="test-card" style="background-color: {{ theme.card }}">
+      <div class="test-header">
+        <text class="test-num" style="color: {{ theme.textMuted }}">#B</text>
+        <text class="test-name" style="color: {{ theme.text }}">弱指纹</text>
+        <text class="test-status test-ok" style="color: #27ae60">OK</text>
+      </div>
+      <text class="test-value" style="color: {{ theme.accent }}">{{ weakFingerprint || '计算中...' }}</text>
+      <text class="test-note" style="color: {{ theme.textMuted }}">同型号同固件相同，仅辅助</text>
+    </div>
+
+    <div class="conclusion-card" style="background-color: {{ theme.card }}">
+      <text class="conclusion-title" style="color: {{ theme.text }}">诊断结论</text>
+      <text class="conclusion-line" style="color: {{ theme.textSecondary }}">硬件ID可用: {{ hardwareOkCount }}/{{ testResults.length }}</text>
+      <text class="conclusion-line" style="color: {{ theme.textSecondary }}">激活建议: 使用「本地UUID」作为设备标识</text>
+      <text class="conclusion-line" style="color: {{ theme.textMuted }}">注意: 重装应用后UUID会变，需重新激活</text>
+    </div>
+
+    <div class="bottom-spacer"></div>
+    </div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+var deviceTypeMap = {
+  "watch": "手表",
+  "band": "手环",
+  "smartspeaker": "音箱"
+}
+
+var screenShapeMap = {
+  "rect": "方形",
+  "circle": "圆形",
+  "pill-shaped": "胶囊"
+}
+
+function formatStorage(bytes) {
+  if (bytes == null) return "-"
+  if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(2) + " GB"
+  if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + " MB"
+  if (bytes >= 1024) return (bytes / 1024).toFixed(2) + " KB"
+  return bytes + " B"
+}
+
+function isInvalidId(val) {
+  if (val == null) return true
+  if (val === '') return true
+  if (val === 'NA') return true
+  if (val === 'unknown') return true
+  if (val === 'null') return true
+  return false
+}
+
+export default {
+  private: {
+    iconTheme: "dark",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566'
+    },
+    envModel: '',
+    envProduct: '',
+    envDeviceType: '',
+    envScreen: '',
+    envOsVersion: '',
+    envApiLevel: '',
+    testResults: [],
+    localUuid: '',
+    weakFingerprint: '',
+    hardwareOkCount: 0
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+    this.runAllTests()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+  },
+
+  runAllTests() {
+    var self = this
+    var results = []
+    var idx = 1
+    var envInfo = null
+    var storageTotal = null
+    var storageAvail = null
+    var doneCount = 0
+    var totalAsync = 6
+
+    function addResult(name, ok, value, note) {
+      results.push({ idx: idx, name: name, ok: ok, value: value, note: note || '' })
+      idx++
+    }
+
+    function checkDone() {
+      doneCount++
+      if (doneCount >= totalAsync) {
+        self.finalize(results, envInfo, storageTotal, storageAvail)
+      }
+    }
+
+    function tryApi(apiName, fn) {
+      try {
+        fn()
+      } catch (e) {
+        addResult(apiName, false, '异常: ' + String(e), 'API不可用')
+        checkDone()
+      }
+    }
+
+    tryApi('getDeviceId', function() {
+      var device = require('@system.device')
+      device.getDeviceId({
+        success: function(data) {
+          var raw = data.deviceId || ''
+          if (isInvalidId(raw)) {
+            addResult('getDeviceId', false, raw || '(空)', '硬件ID无效，返回"' + raw + '"')
+          } else {
+            addResult('getDeviceId', true, raw, '硬件ID有效')
+          }
+          checkDone()
+        },
+        fail: function(data, code) {
+          addResult('getDeviceId', false, '失败(' + code + ')', 'API调用失败')
+          checkDone()
+        }
+      })
+    })
+
+    tryApi('getSerial', function() {
+      var device = require('@system.device')
+      device.getSerial({
+        success: function(data) {
+          var raw = data.serial || ''
+          if (isInvalidId(raw)) {
+            addResult('getSerial', false, raw || '(空)', '序列号无效')
+          } else {
+            addResult('getSerial', true, raw, '序列号有效')
+          }
+          checkDone()
+        },
+        fail: function(data, code) {
+          addResult('getSerial', false, '失败(' + code + ')', 'API调用失败')
+          checkDone()
+        }
+      })
+    })
+
+    tryApi('getInfo', function() {
+      var device = require('@system.device')
+      device.getInfo({
+        success: function(ret) {
+          envInfo = ret
+          var hasIdField = false
+          if (ret.deviceId && !isInvalidId(ret.deviceId)) hasIdField = true
+          if (ret.serialNumber && !isInvalidId(ret.serialNumber)) hasIdField = true
+          if (ret.udid && !isInvalidId(ret.udid)) hasIdField = true
+
+          self.envModel = ret.model || '-'
+          self.envProduct = ret.product || '-'
+          self.envDeviceType = deviceTypeMap[ret.deviceType] || ret.deviceType || '-'
+          self.envScreen = (ret.screenWidth || '?') + 'x' + (ret.screenHeight || '?') + ' ' + (screenShapeMap[ret.screenShape] || ret.screenShape || '')
+          self.envOsVersion = (ret.osVersionName || '') + ' (' + (ret.osVersionCode || '') + ')'
+          self.envApiLevel = ret.APILevel || '-'
+
+          if (hasIdField) {
+            var idVal = ret.deviceId || ret.serialNumber || ret.udid || ''
+            addResult('getInfo', true, '含标识字段: ' + idVal, 'info内嵌硬件ID')
+          } else {
+            var summary = '型号/屏幕/固件正常，无标识字段'
+            addResult('getInfo', false, summary, 'getInfo不含硬件ID字段')
+          }
+          checkDone()
+        },
+        fail: function(data, code) {
+          addResult('getInfo', false, '失败(' + code + ')', 'API调用失败')
+          checkDone()
+        }
+      })
+    })
+
+    tryApi('getTotalStorage', function() {
+      var device = require('@system.device')
+      device.getTotalStorage({
+        success: function(data) {
+          storageTotal = data.totalStorage
+          addResult('getTotalStorage', true, formatStorage(data.totalStorage), '总存储空间')
+          checkDone()
+        },
+        fail: function(data, code) {
+          addResult('getTotalStorage', false, '失败(' + code + ')', 'API不支持')
+          checkDone()
+        }
+      })
+    })
+
+    tryApi('getAvailableStorage', function() {
+      var device = require('@system.device')
+      device.getAvailableStorage({
+        success: function(data) {
+          storageAvail = data.availableStorage
+          addResult('getAvailableStorage', true, formatStorage(data.availableStorage), '可用存储空间')
+          checkDone()
+        },
+        fail: function(data, code) {
+          addResult('getAvailableStorage', false, '失败(' + code + ')', 'API不支持')
+          checkDone()
+        }
+      })
+    })
+
+    tryApi('localUUID', function() {
+      var deviceUuid = require('../../utils/device-uuid.js')
+      deviceUuid.getLocalDeviceId(function(id) {
+        self.localUuid = id
+        checkDone()
+      })
+    })
+  },
+
+  finalize(results, envInfo, storageTotal, storageAvail) {
+    var self = this
+    self.testResults = results
+
+    var okCount = 0
+    for (var i = 0; i < results.length; i++) {
+      if (results[i].ok) okCount++
+    }
+    self.hardwareOkCount = okCount
+
+    if (envInfo) {
+      var fpParts = []
+      if (envInfo.product) fpParts.push(envInfo.product)
+      if (envInfo.osVersionCode != null) fpParts.push(String(envInfo.osVersionCode))
+      if (envInfo.platformVersionCode != null) fpParts.push(String(envInfo.platformVersionCode))
+      if (envInfo.screenWidth != null && envInfo.screenHeight != null) {
+        fpParts.push(envInfo.screenWidth + 'x' + envInfo.screenHeight)
+      }
+      if (envInfo.APILevel != null) fpParts.push('api' + envInfo.APILevel)
+      if (storageTotal != null) {
+        fpParts.push('st' + formatStorage(storageTotal))
+      }
+      if (storageAvail != null) {
+        fpParts.push('sa' + formatStorage(storageAvail))
+      }
+      self.weakFingerprint = fpParts.join('|')
+    }
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+@import '../../common/header.css';
+
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.di-scroll {
+  flex: 1;
+  width: 100%;
+  flex-direction: column;
+}
+
+.page-body {
+  flex-direction: column;
+  width: 100%;
+  padding: 38px 8px 10px 8px;
+}
+
+.section-title-row {
+  flex-direction: row;
+  align-items: center;
+  padding: 8px 4px 4px 4px;
+}
+
+.section-title {
+  font-size: 22px;
+  line-height: 28px;
+  lines: 1;
+}
+
+.env-card {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+}
+
+.env-row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+}
+
+.env-label {
+  font-size: 22px;
+  line-height: 28px;
+  lines: 1;
+  flex-shrink: 0;
+}
+
+.env-value {
+  font-size: 22px;
+  line-height: 28px;
+  lines: 1;
+  text-align: right;
+  margin-left: 8px;
+}
+
+.test-card {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+}
+
+.test-header {
+  flex-direction: row;
+  align-items: center;
+}
+
+.test-num {
+  font-size: 20px;
+  line-height: 26px;
+  lines: 1;
+  width: 30px;
+  flex-shrink: 0;
+}
+
+.test-name {
+  font-size: 24px;
+  line-height: 30px;
+  lines: 1;
+  flex: 1;
+}
+
+.test-status {
+  font-size: 22px;
+  font-weight: bold;
+  line-height: 28px;
+  lines: 1;
+  flex-shrink: 0;
+}
+
+.test-value {
+  font-size: 22px;
+  line-height: 28px;
+  margin-top: 2px;
+  margin-left: 30px;
+  lines: 2;
+  text-overflow: ellipsis;
+}
+
+.test-note {
+  font-size: 20px;
+  line-height: 26px;
+  margin-top: 1px;
+  margin-left: 30px;
+  lines: 1;
+}
+
+.conclusion-card {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 10px 10px;
+  margin-top: 10px;
+  margin-bottom: 6px;
+}
+
+.conclusion-title {
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 32px;
+  lines: 1;
+  margin-bottom: 6px;
+}
+
+.conclusion-line {
+  font-size: 22px;
+  line-height: 28px;
+  lines: 1;
+  padding: 2px 0;
+}
+
+.bottom-spacer {
+  height: 20px;
+}
+</style>
