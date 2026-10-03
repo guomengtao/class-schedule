@@ -226,26 +226,36 @@ var indexInstance = null
 
 // 屏型是异步返回的。这里拿到真实形状后回填给实例并重算字号，
 // 否则首帧会用默认值（非胶囊）导致适配不生效。
-device.getInfo({
-  success: function(data) {
-    var shape = data.screenShape || ""
-    var capsule = (shape === "capsule" || shape === "pill-shaped")
-    isCapsuleScreen = capsule
-    if (indexInstance && indexInstance.isCapsule !== capsule) {
-      indexInstance.isCapsule = capsule
-      indexInstance.applyFontSizes()
-      // 星期标题是否缩写取决于屏型，回填后需重新计算
-      if (typeof indexInstance.updateDayDisplay === 'function') {
-        try { indexInstance.updateDayDisplay() } catch (e) {}
-      }
-      if (indexInstance.initialized && typeof indexInstance.loadDayClasses === 'function') {
-        try { indexInstance.loadDayClasses() } catch (e) {}
-      }
-      try { indexInstance.$forceUpdate() } catch (e) {}
-    }
-  },
-  fail: function() {}
-})
+// ⚠️ 这是「模块级副作用」（全项目唯一一处）：真机上若这里同步抛错，整个页面模块求值
+// 失败 → 整页不渲染（观感黑屏）。故整体包一层 try/catch 隔离
+// （见 docs/首页黑屏并重启-深度分析.md §6-R5）。
+function initScreenShape() {
+  try {
+    device.getInfo({
+      success: function(data) {
+        var shape = data.screenShape || ""
+        var capsule = (shape === "capsule" || shape === "pill-shaped")
+        isCapsuleScreen = capsule
+        if (indexInstance && indexInstance.isCapsule !== capsule) {
+          indexInstance.isCapsule = capsule
+          try { indexInstance.applyFontSizes() } catch (e) {}
+          // 星期标题是否缩写取决于屏型，回填后需重新计算
+          if (typeof indexInstance.updateDayDisplay === 'function') {
+            try { indexInstance.updateDayDisplay() } catch (e) {}
+          }
+          if (indexInstance.initialized && typeof indexInstance.loadDayClasses === 'function') {
+            try { indexInstance.loadDayClasses() } catch (e) {}
+          }
+          indexInstance.scheduleRender()
+        }
+      },
+      fail: function() {}
+    })
+  } catch (e) {
+    console.error("[index] device.getInfo: " + (e.message || e))
+  }
+}
+initScreenShape()
 
 var modules = {}
 // 关键模块先初始化保证首屏出内容，defer 的模块延后到首帧之后
@@ -342,6 +352,20 @@ export default {
     }
   },
 
+  // 渲染合并器：同一次事件循环里的多次状态变更，只触发一次整树重渲染。
+  // 首页进页路径上原本有 5~7 次互不相关的 $forceUpdate（主题 / 模板 / 首页设置 /
+  // 课程数据 / 节假日状态各一次），每次都重建整棵树 —— 真机上这是看门狗复位的
+  // 头号负载来源（见 docs/首页黑屏并重启-深度分析.md §3 与 §6-R1）。
+  // 语义与 $forceUpdate 一致（延到下一个 tick 执行），渲染结果不变。
+  scheduleRender() {
+    var self = this
+    if (self._renderTimer) return
+    self._renderTimer = setTimeout(function() {
+      self._renderTimer = null
+      try { self.$forceUpdate() } catch (e) {}
+    }, 0)
+  },
+
   onInit() {
     var self = this
     indexInstance = self
@@ -362,7 +386,7 @@ export default {
       if (self.isLoading) {
         self.loadError = true
         self.isLoading = false
-        try { self.$forceUpdate() } catch (e) {}
+        self.scheduleRender()
       }
     }, 8000)
 
@@ -382,13 +406,16 @@ export default {
       database.getAllCourses(function(schedule) {
         if (self.loadTimeout) clearTimeout(self.loadTimeout)
         self.schedule = schedule
-        self.applyFontSizes()
+        // applyFontSizes 内部会读 store.getBaseFontSizeSync()：一旦这里抛错，
+        // 后面的 initialized / isLoading 就永远不置位 → 页面永久停在骨架态（观感黑屏），
+        // 所以单独兜一层（见 docs/首页黑屏并重启-深度分析.md §6-R5）。
+        try { self.applyFontSizes() } catch (e) { console.error("[index] applyFontSizes: " + (e.message || e)) }
         self.initAllModules()
         self.initialized = true
         self.skipNextShow = false
         self.isLoading = false
         self.loadError = false
-        try { self.$forceUpdate() } catch (e) {}
+        self.scheduleRender()
       })
     })
   },
@@ -429,7 +456,7 @@ export default {
       }
     })
 
-    try { this.$forceUpdate() } catch (e) {}
+    this.scheduleRender()
   },
 
   // dirtyVal: 存储中的写盘版本号，null 表示取不到（按未变更处理）
@@ -447,7 +474,7 @@ export default {
     if (self.skipNextShow && !dataChanged) {
       dlog("[resumeRefresh] ⚠ EARLY RETURN — skipping data reload")
       self.skipNextShow = false
-      try { self.$forceUpdate() } catch (e) {}
+      self.scheduleRender()
       return
     }
     self.skipNextShow = false
@@ -485,7 +512,7 @@ export default {
         self.currentScheduleName = '课程表' + (idx + 1)
       }
       dlog("[loadScheduleData] currentScheduleName=", self.currentScheduleName)
-      try { self.$forceUpdate() } catch (e) {}
+      self.scheduleRender()
     })
     self.applyFontSizes()
     database.getAllCoursesWithIndex(idx, function(schedule) {
@@ -496,7 +523,7 @@ export default {
           if (self.refreshClasses && typeof self.refreshClasses === 'function') {
             self.refreshClasses()
           }
-          try { self.$forceUpdate() } catch (e) {}
+          self.scheduleRender()
         })
         return
       }
@@ -505,13 +532,16 @@ export default {
         dlog("[loadScheduleData] calling refreshClasses")
         self.refreshClasses()
       }
-      try { self.$forceUpdate() } catch (e) {}
+      self.scheduleRender()
     }, forceRefresh)
   },
 
   onDestroy() {
     if (this.loadTimeout) clearTimeout(this.loadTimeout)
+    if (this._renderTimer) { clearTimeout(this._renderTimer); this._renderTimer = null }
     if (this.deferTimer) clearTimeout(this.deferTimer)
+    if (this.deferTimer2) clearTimeout(this.deferTimer2)
+    if (this.deferTimer3) clearTimeout(this.deferTimer3)
     if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
     if (this.stopProgressTimer && typeof this.stopProgressTimer === 'function') this.stopProgressTimer()
     if (modules.customContent && modules.customContent.destroy) {
@@ -562,7 +592,7 @@ export default {
       if (self.refreshClasses && typeof self.refreshClasses === 'function') {
         self.refreshClasses()
       }
-      try { self.$forceUpdate() } catch (e) {}
+      self.scheduleRender()
     }, true)
   },
 
@@ -587,7 +617,7 @@ export default {
       var tpl = HOMEPAGE_TEMPLATES[tplId] || HOMEPAGE_TEMPLATES["default"]
       var colorKey = tpl.dayTitleColor || "text"
       self.dayTitleColor = self.theme[colorKey] || self.theme.text
-      try { self.$forceUpdate() } catch (e) {}
+      self.scheduleRender()
     })
   },
 
@@ -621,26 +651,40 @@ export default {
           if (self.updateHideWeekend && typeof self.updateHideWeekend === 'function') {
             try { self.updateHideWeekend() } catch (e) {}
           }
-          try { self.$forceUpdate() } catch (e) {}
+          self.scheduleRender()
         })
       } else {
         try { self.loadDayClasses() } catch (e) { console.error("[index] loadDayClasses: " + (e.message || e)) }
       }
     }
 
-    // 次要模块延后到首帧之后初始化，先把课程列表渲染出来
+    // 次要模块延后到首帧之后初始化，先把课程列表渲染出来。
+    // 分 3 帧挂载（约 50ms / 120ms / 240ms，对齐 docs/第三轮反馈-卡顿重启与分帧方案.md 的"分帧"手法）：
+    // 原来 4 个 defer 模块挤在同一个 50ms 定时器里一次性 init，会叠加到首页首屏
+    // 那几次全树重渲染上；拆帧后每帧新增的状态变更都少一截。
     if (deferred.length > 0) {
       self.deferTimer = setTimeout(function() {
         self.deferTimer = null
-        for (var j = 0; j < deferred.length; j++) {
-          self.initOneModule(deferred[j])
-        }
-        if (self.updateStatus && typeof self.updateStatus === 'function') {
-          try { self.updateStatus() } catch (e) {}
-        }
-        if (self.startStatusTimer && typeof self.startStatusTimer === 'function') {
-          try { self.startStatusTimer() } catch (e) {}
-        }
+        // 帧 1：最轻的模块（快速添加）
+        if (deferred[0]) self.initOneModule(deferred[0])
+        // 帧 2：状态栏
+        self.deferTimer2 = setTimeout(function() {
+          self.deferTimer2 = null
+          if (deferred[1]) self.initOneModule(deferred[1])
+          // 帧 3：其余模块 + 状态刷新 + 常驻定时器
+          self.deferTimer3 = setTimeout(function() {
+            self.deferTimer3 = null
+            for (var j = 2; j < deferred.length; j++) {
+              self.initOneModule(deferred[j])
+            }
+            if (self.updateStatus && typeof self.updateStatus === 'function') {
+              try { self.updateStatus() } catch (e) {}
+            }
+            if (self.startStatusTimer && typeof self.startStatusTimer === 'function') {
+              try { self.startStatusTimer() } catch (e) {}
+            }
+          }, 120)
+        }, 70)
       }, 50)
     }
   },
@@ -671,13 +715,13 @@ export default {
     var self = this
     self.isLoading = true
     self.loadError = false
-    try { self.$forceUpdate() } catch (e) {}
+    self.scheduleRender()
 
     self.loadTimeout = setTimeout(function() {
       if (self.isLoading) {
         self.loadError = true
         self.isLoading = false
-        try { self.$forceUpdate() } catch (e) {}
+        self.scheduleRender()
       }
     }, 8000)
 
@@ -685,7 +729,10 @@ export default {
       database.getAllCourses(function(schedule) {
         if (self.loadTimeout) clearTimeout(self.loadTimeout)
         self.schedule = schedule
-        self.applyFontSizes()
+        // applyFontSizes 内部会读 store.getBaseFontSizeSync()：一旦这里抛错，
+        // 后面的 initialized / isLoading 就永远不置位 → 页面永久停在骨架态（观感黑屏），
+        // 所以单独兜一层（见 docs/首页黑屏并重启-深度分析.md §6-R5）。
+        try { self.applyFontSizes() } catch (e) { console.error("[index] applyFontSizes: " + (e.message || e)) }
         self.initAllModules()
         self.initialized = true
         self.skipNextShow = false
@@ -741,12 +788,12 @@ export default {
           self.loadDayClasses(overrideWeekDay)
         }
         if (self.updateStatus && typeof self.updateStatus === 'function') self.updateStatus()
-        try { self.$forceUpdate() } catch (e) {}
+        self.scheduleRender()
       })
     } else if (self.loadDayClasses && typeof self.loadDayClasses === 'function') {
       self.loadDayClasses()
       if (self.updateStatus && typeof self.updateStatus === 'function') self.updateStatus()
-      try { self.$forceUpdate() } catch (e) {}
+      self.scheduleRender()
     }
   },
 

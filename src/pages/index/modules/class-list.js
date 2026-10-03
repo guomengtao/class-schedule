@@ -113,7 +113,10 @@ function init(instance) {
         if (self.updateStatus && typeof self.updateStatus === 'function') {
           self.updateStatus()
         }
-        try { self.$forceUpdate && self.$forceUpdate() } catch (e) {}
+        // 走首页的渲染合并器（宿主未提供时退回直接重渲染）
+        // 见 docs/首页黑屏并重启-深度分析.md §6-R1
+        if (typeof self.scheduleRender === 'function') self.scheduleRender()
+        else { try { self.$forceUpdate && self.$forceUpdate() } catch (e) {} }
       })
     } else {
       dlog("[refreshClasses] ⚠ FALLBACK: reloadHolidayState not available, using loadDayClasses directly")
