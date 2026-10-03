@@ -27,20 +27,21 @@
 
     <div class="form-section" if="{{ !courseMissing && step === 1 }}">
       <text class="step-title" style="color: {{ theme.text }}">选择课程</text>
-      <text class="step-hint" style="color: {{ theme.textSecondary }}">共 {{ displayCourseCount }} 门 · 可左右滑动</text>
+      <text class="step-hint" style="color: {{ theme.textSecondary }}">共 {{ displayCourseCount }} 门 · 左右滑动查看</text>
 
-      <div class="swiper-wrapper">
-        <image class="swipe-arrow-icon" src="/common/icons/{{ iconTheme }}/icon_back.png" onclick="swipePrev" style="background-color: {{ theme.cardLight }}" />
-        <div class="course-card" if="{{ courseIndex < presetCourses.length }}" onclick="swipeNext" onswipe="onCardSwipe" ontouchstart="onCardTouchStart" ontouchend="onCardTouchEnd" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
-          <text class="card-course-name" style="color: {{ theme.text }}">{{ presetCourses[courseIndex].name }}</text>
+      <!-- 课程选择与「添加课程页」（add-course.ux）同一套交互：横向滚动课程条，
+           左右滑动浏览、点一下即选中；末尾「+」进课程管理。 -->
+      <scroll class="course-scroll" scroll-x="true">
+        <div class="course-item" for="{{ (idx, c) in presetCourses }}"
+             onclick="selectCourseByIdx(idx)"
+             style="background-color: {{ theme.card }}; border-color: {{ courseIndex === idx ? theme.accent : 'transparent' }}">
+          <text class="course-name" style="color: {{ theme.text }}">{{ c.name }}</text>
         </div>
-        <div class="course-card add-card" if="{{ courseIndex === presetCourses.length }}" onclick="openCourseManager" onswipe="onCardSwipe" ontouchstart="onCardTouchStart" ontouchend="onCardTouchEnd" style="background-color: {{ theme.cardLight }}; border-color: {{ theme.border }}">
-          <text class="add-card-icon" style="color: {{ theme.accent }}">+</text>
+        <div class="course-item course-add-item" onclick="openCourseManager"
+             style="background-color: {{ theme.cardLight }}">
+          <text class="course-add-icon" style="color: {{ theme.accent }}">+</text>
         </div>
-        <image class="swipe-arrow-icon" src="/common/icons/{{ iconTheme }}/icon_chevron_right.png" onclick="swipeNext" style="background-color: {{ theme.cardLight }}" />
-      </div>
-
-      <text class="course-index-hint" style="color: {{ theme.textSecondary }}">{{ courseIndex < presetCourses.length ? courseIndex + 1 : '+' }} / {{ displayCourseCount }}</text>
+      </scroll>
 
       <div class="step-nav">
         <input class="step-delete-btn" type="button" value="删除" onclick="deleteCourse" style="height: 48px; background-color: {{ deleteConfirm ? theme.deleteText : 'transparent' }}; border-color: {{ theme.deleteText }}; color: {{ deleteConfirm ? theme.text : theme.deleteText }}" />
@@ -222,9 +223,6 @@ export default {
     courseIndex: 0,
     deleteConfirm: false,
     iconTheme: "dark",
-    touchStartX: 0,
-    touchStartY: 0,
-    lastSwipeAt: 0,
     weekdayScrollLeft: 0,
     dayConfirmed: false,
     courseMissing: false,
@@ -490,60 +488,11 @@ export default {
     }
   },
 
-  swipePrev() {
-    if (this.courseIndex > 0) {
-      this.selectCourse(this.courseIndex - 1, true)
-    }
-  },
-
-  swipeNext() {
-    if (this.courseIndex < this.presetCourses.length) {
-      if (this.courseIndex < this.presetCourses.length - 1) {
-        this.selectCourse(this.courseIndex + 1, true)
-      } else {
-        this.courseIndex = this.presetCourses.length
-      }
-    }
-  },
-
-  // 课程名卡片左右滑动切换：优先用 swipe 手势；若框架未触发该事件，
-  // 由 ontouchstart / ontouchend 的位移兜底。两者用时间戳去重，避免一次滑动切换两门。
-  onCardSwipe(e) {
-    this.lastSwipeAt = Date.now()
-    var d = e.direction
-    if (d === 'left') {
-      this.swipeNext()
-    } else if (d === 'right') {
-      this.swipePrev()
-    }
-  },
-
-  onCardTouchStart(e) {
-    var t = e.touches && e.touches[0]
-    if (t) {
-      this.touchStartX = t.clientX
-      this.touchStartY = t.clientY
-    }
-  },
-
-  onCardTouchEnd(e) {
-    var t = e.changedTouches && e.changedTouches[0]
-    if (!t) {
-      return
-    }
-    if (Date.now() - this.lastSwipeAt < 400) {
-      return
-    }
-    var dx = t.clientX - this.touchStartX
-    var dy = t.clientY - this.touchStartY
-    // 横向位移 > 30px 且明显大于纵向，避免与页面纵向滚动冲突
-    if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy)) {
-      if (dx < 0) {
-        this.swipeNext()
-      } else {
-        this.swipePrev()
-      }
-    }
+  // 点选课程条（与添加课程页 add-course.ux 的 selectCourseByIdx 同名同职责）。
+  // 编辑页多一层语义：换课要带出该课程自己的时间/老师/地点，故 keepExistingTime 不传
+  // （走 selectCourse 默认分支 = 用新课程数据覆盖当前表单）。
+  selectCourseByIdx(idx) {
+    this.selectCourse(idx)
   },
 
   updateTimeString() {
@@ -982,57 +931,46 @@ export default {
   lines: 1;
 }
 
-/* 左箭头 / 课程卡 / 右箭头 必须同一行：箭头 flex-shrink:0 保证不被挤压，
-   卡片 flex:1 + min-width:0 吃掉剩余宽度，长课名用 ellipsis 截断而不是撑破一行 */
-.swiper-wrapper {
+/* 课程条（与添加课程页 add-course.ux 同一套数值）：横向 scroll + 固定宽卡片，
+   左右滑动浏览、点一下即选中。选中态边框由内联绑定主题色，这里只定形状，不写死颜色。 */
+.course-scroll {
   flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: center;
-  justify-content: center;
+  width: 100%;
+  flex-shrink: 0;
+  height: 72px;
   margin-bottom: 12px;
 }
 
-.swipe-arrow-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
+.course-item {
+  width: 100px;
+  height: 64px;
+  border-radius: 14px;
+  margin-right: 10px;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid transparent;
   flex-shrink: 0;
 }
 
-/* 边框颜色由内联绑定主题色，这里只定形状，避免写死 #7ec8e3 */
-.course-card {
-  flex: 1;
-  min-width: 0;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-radius: 16px;
-  padding: 14px 12px;
-  margin: 0 8px;
-  border-width: 2px;
-  border-style: solid;
-  min-height: 88px;
-}
-
-.card-course-name {
-  font-size: 36px;
+.course-name {
+  font-size: 26px;
+  line-height: 34px;
   font-weight: bold;
   text-align: center;
   lines: 1;
-  line-height: 44px;
   text-overflow: ellipsis;
 }
 
-.add-card {
+.course-add-item {
   justify-content: center;
   align-items: center;
 }
 
-.add-card-icon {
-  font-size: 56px;
+.course-add-icon {
+  font-size: 40px;
+  line-height: 48px;
   font-weight: bold;
   text-align: center;
-  line-height: 68px;
 }
 
 .stepper-time {
@@ -1234,12 +1172,6 @@ export default {
   lines: 1;
 }
 
-.course-index-hint {
-  font-size: 24px;
-  margin-bottom: 12px;
-  text-align: center;
-}
-
 /* 删除按钮为次要操作：透明底 + 危险色描边，与实心的「下一步」形成主次分层 */
 .step-delete-btn {
   width: 100px;
@@ -1325,16 +1257,16 @@ export default {
   .step-hint {
     font-size: 24px;
   }
-  .course-card {
-    /* 不设固定宽：恢复基样式 flex:1 自适应（固定 200px 会与两侧箭头 96px 相加
-       超出 160px 内容区，flex 压缩后课程名一个字都显示不出，真机实测） */
-    min-height: 104px;
-    padding: 12px;
+  /* 圆屏（466px）横向宽裕：课程条略放大，便于点选 */
+  .course-item {
+    width: 120px;
+    height: 72px;
   }
-  .card-course-name {
-    font-size: 26px;
+  .course-name {
+    font-size: 28px;
+    line-height: 36px;
   }
-  .add-card-icon {
+  .course-add-icon {
     font-size: 48px;
     line-height: 58px;
   }
@@ -1430,35 +1362,23 @@ export default {
     lines: 1;
     text-overflow: ellipsis;
   }
-  /* 三个元素强制一行。⚠️ 课程卡禁用 flex:1 —— Vela 窄屏下 flex 压缩会
-     退化到内容宽（真机实测：课名被挤成省略号/白点）。改为固定宽 +
-     flex-shrink:0，箭头压到 26px 给课名让位。
-     宽度核算：26(箭头)+4(margin)+100(卡)+4+26 = 160px + 边框 4px = 164px，
-     内容区 192-24(padding)=168px，余 4px。 */
-  .swiper-wrapper {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: center;
-    justify-content: center;
+  /* 与添加课程页同一套横滑课程条（胶囊屏 192px、内容区 160px）：
+     卡片由 88px 加宽到 120px —— 课名可用宽度 76px → 108px，24px 字号下
+     由 3 字提升到 4.5 字，「大学英语 / 大学物理 / 大学化学」能区分开。 */
+  .course-scroll {
+    height: 60px;
   }
-  .swipe-arrow-icon {
-    width: 26px;
-    height: 48px;
-    border-radius: 13px;
-    flex-shrink: 0;
+  .course-item {
+    width: 120px;
+    min-width: 120px;
+    height: 56px;
+    border-radius: 10px;
+    margin-right: 6px;
   }
-  .course-card {
-    width: 100px;
-    min-width: 100px;
-    flex-shrink: 0;
-    height: 80px;
-    padding: 6px;
-    margin: 0 4px;
-  }
-  .card-course-name {
-    font-size: 20px;
+  .course-name {
+    font-size: 24px;
     font-weight: bold;
-    line-height: 28px;
+    line-height: 32px;
     lines: 1;
     text-align: center;
     text-overflow: ellipsis;
@@ -1516,14 +1436,9 @@ export default {
     line-height: 48px;
     margin-left: 0;
   }
-  .add-card-icon {
-    font-size: 44px;
-    line-height: 53px;
-  }
-  .course-index-hint {
-    font-size: 20px;
-    line-height: 28px;
-    margin-bottom: 8px;
+  .course-add-icon {
+    font-size: 34px;
+    line-height: 44px;
   }
   /* 与模板内联的 height: 48px 对齐，消除"内联压制媒体查询"的不可预测性 */
   .step-delete-btn {
@@ -1668,13 +1583,13 @@ export default {
   .step-hint {
     font-size: 24px;
   }
-  .course-card {
-    min-height: 84px;
-    padding: 12px;
+  .course-item {
+    width: 110px;
+    height: 60px;
   }
-  .card-course-name {
-    font-size: 28px;
-    line-height: 36px;
+  .course-name {
+    font-size: 26px;
+    line-height: 34px;
   }
   .picker-label {
     font-size: 28px;
