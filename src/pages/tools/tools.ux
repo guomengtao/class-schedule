@@ -97,6 +97,11 @@
         <text class="item-label" style="color: {{ theme.text }}">留言板</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">查看手机留言</text>
       </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openTimePickerDemo">
+        <text class="item-label" style="color: {{ theme.accent }}">时间选择器 Demo</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">全屏上下滑动</text>
+      </div>
     </div>
     </div>
     </scroll>
@@ -223,6 +228,10 @@ export default {
   // 这是验证"手环 → 手机"方向能否成立的关键按钮（此前从未被证实过）。
   openMessageInbox() {
     router.push({ uri: "/pages/message-inbox" })
+  },
+
+  openTimePickerDemo() {
+    router.push({ uri: "/pages/time-picker-demo" })
   },
 
   sendChatTest() {

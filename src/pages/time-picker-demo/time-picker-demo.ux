@@ -1,0 +1,240 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <scroll class="page-scroll" scroll-y="{{true}}">
+    <div class="page-body">
+      <div class="back-header">
+        <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+          <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+        </div>
+        <text class="header-title" style="color: {{ theme.text }}">时间选择器 Demo</text>
+        <div class="header-placeholder"></div>
+      </div>
+
+      <text class="demo-tip" style="color: {{ theme.textMuted }}">点击时间，弹出全屏上下滑动选择</text>
+
+      <div class="time-card" style="background-color: {{ theme.card }}" onclick="openPicker">
+        <text class="time-value" style="color: {{ theme.accent }}">{{ pad(selectedHour) }}:{{ pad(selectedMinute) }}</text>
+        <text class="time-sub" style="color: {{ theme.textMuted }}">点击选择</text>
+      </div>
+
+      <input class="pick-btn" type="button" value="选择时间" onclick="openPicker"
+             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+    </scroll>
+
+    <!-- 全屏滑动选择器覆盖层 -->
+    <div class="picker-mask" if="{{ showPicker }}" onclick="cancel">
+      <div class="picker-panel" style="background-color: {{ theme.card }}" onclick="stopBubble">
+        <text class="picker-title" style="color: {{ theme.text }}">选择时间</text>
+        <text class="picker-preview" style="color: {{ theme.accent }}">{{ pad(pickHour) }}:{{ pad(pickMinute) }}</text>
+
+        <div class="wheel-area">
+          <!-- 小时列 -->
+          <div class="wheel-col">
+            <scroll class="wheel-scroll" scroll-y="{{true}}" scrolltop="{{ hourInitY }}"
+                    onscroll="onHourScroll">
+              <div class="wheel-spacer" style="height: {{ spacer }}px"></div>
+              <div for="{{ hours }}" class="wheel-item {{ pickHour === $item ? 'sel' : '' }}"
+                   style="height: {{ itemH }}px; color: {{ pickHour === $item ? theme.accent : theme.textMuted }}"
+                   onclick="tapHour($item)">{{ pad($item) }}</div>
+              <div class="wheel-spacer" style="height: {{ spacer }}px"></div>
+            </scroll>
+          </div>
+          <text class="wheel-colon" style="color: {{ theme.textSecondary }}">:</text>
+          <!-- 分钟列 -->
+          <div class="wheel-col">
+            <scroll class="wheel-scroll" scroll-y="{{true}}" scrolltop="{{ minInitY }}"
+                    onscroll="onMinuteScroll">
+              <div class="wheel-spacer" style="height: {{ spacer }}px"></div>
+              <div for="{{ minutes }}" class="wheel-item {{ pickMinute === $item ? 'sel' : '' }}"
+                   style="height: {{ itemH }}px; color: {{ pickMinute === $item ? theme.accent : theme.textMuted }}"
+                   onclick="tapMinute($item)">{{ pad($item) }}</div>
+              <div class="wheel-spacer" style="height: {{ spacer }}px"></div>
+            </scroll>
+          </div>
+          <!-- 中央高亮带 -->
+          <div class="wheel-band" style="background-color: rgba(126,200,227,0.18); top: {{ bandTop }}px"></div>
+        </div>
+
+        <div class="picker-actions">
+          <input class="pa-btn pa-cancel" type="button" value="取消" onclick="cancel"
+                 style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+          <input class="pa-btn pa-ok" type="button" value="确认" onclick="confirm"
+                 style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+const ITEM_H = 56        // 每项高度
+const VIEW_H = 280       // 滚轮视口 = 5 项
+const SPACER = (VIEW_H - ITEM_H) / 2   // 上下留白，使首末项可居中
+const BAND_TOP = (VIEW_H - ITEM_H) / 2
+
+export default {
+  private: {
+    iconTheme: "dark",
+    itemH: ITEM_H,
+    spacer: SPACER,
+    bandTop: BAND_TOP,
+    hours: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23],
+    minutes: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,
+              24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,
+              46,47,48,49,50,51,52,53,54,55,56,57,58,59],
+    selectedHour: 8,
+    selectedMinute: 0,
+    pickHour: 8,
+    pickMinute: 0,
+    hourInitY: SPACER + 8 * ITEM_H,
+    minInitY: SPACER + 0 * ITEM_H,
+    showPicker: false,
+    theme: {
+      bg: '#1a1a2e', card: '#16213e', cardLight: '#0f3460', accent: '#7ec8e3',
+      text: '#ffffff', textSecondary: '#888899', textMuted: '#555566',
+      textMuted2: '#555566', border: '#0f3460', btnSecondary: '#333355',
+      btnSecondaryText: '#a0a0b0'
+    }
+  },
+
+  onInit() {
+    var self = this
+    var now = new Date()
+    this.selectedHour = now.getHours()
+    this.selectedMinute = now.getMinutes()
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+  },
+
+  pad: function(n) { return n < 10 ? '0' + n : '' + n; },
+
+  openPicker() {
+    this.pickHour = this.selectedHour
+    this.pickMinute = this.selectedMinute
+    this.hourInitY = SPACER + this.pickHour * ITEM_H
+    this.minInitY = SPACER + this.pickMinute * ITEM_H
+    this.showPicker = true
+  },
+
+  clamp: function(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); },
+
+  onHourScroll: function(e) {
+    var idx = Math.round((e.scrollY - SPACER) / ITEM_H)
+    this.pickHour = this.clamp(idx, 0, 23)
+  },
+
+  onMinuteScroll: function(e) {
+    var idx = Math.round((e.scrollY - SPACER) / ITEM_H)
+    this.pickMinute = this.clamp(idx, 0, 59)
+  },
+
+  tapHour: function(v) {
+    this.pickHour = v
+    this.hourInitY = SPACER + v * ITEM_H
+  },
+
+  tapMinute: function(v) {
+    this.pickMinute = v
+    this.minInitY = SPACER + v * ITEM_H
+  },
+
+  confirm() {
+    this.selectedHour = this.pickHour
+    this.selectedMinute = this.pickMinute
+    this.showPicker = false
+  },
+
+  cancel() { this.showPicker = false; },
+
+  stopBubble() {},
+
+  goBack() { router.back(); }
+}
+</script>
+
+<style>
+.page { flex-direction: column; width: 100%; height: 100%; position: relative; }
+.page-scroll { flex: 1; width: 100%; flex-direction: column; }
+.page-body { flex-direction: column; width: 100%; padding: 44px 10px 12px 10px; }
+
+.back-header { flex-direction: row; align-items: center; margin-bottom: 14px; padding: 0 4px; }
+.back-btn-wrapper { width: 48px; height: 40px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0; }
+.back-btn-icon { width: 24px; height: 24px; }
+.header-title { flex: 1; font-size: 30px; font-weight: bold; text-align: center; line-height: 40px; }
+.header-placeholder { width: 48px; height: 48px; flex-shrink: 0; }
+
+.demo-tip { font-size: 24px; line-height: 32px; text-align: center; margin: 20px 0; }
+
+.time-card {
+  flex-direction: column; align-items: center; justify-content: center;
+  border-radius: 16px; padding: 30px; margin: 10px 14px;
+}
+.time-value { font-size: 72px; font-weight: bold; line-height: 88px; }
+.time-sub { font-size: 24px; margin-top: 6px; }
+
+.pick-btn { width: 80%; height: 48px; border-radius: 24px; font-size: 28px; font-weight: bold; margin: 18px 10% 0; }
+
+/* ===== 全屏选择器覆盖层 ===== */
+.picker-mask {
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.5); z-index: 1300;
+  flex-direction: column; justify-content: flex-end;
+}
+.picker-panel {
+  width: 100%; border-radius: 20px 20px 0 0; padding: 14px 14px 20px 14px;
+  flex-direction: column; align-items: center;
+}
+.picker-title { font-size: 28px; line-height: 38px; margin-bottom: 4px; }
+.picker-preview { font-size: 44px; font-weight: bold; line-height: 56px; margin-bottom: 10px; }
+
+.wheel-area {
+  position: relative; width: 100%; flex-direction: row; justify-content: center;
+  align-items: center; padding: 0 30px;
+}
+.wheel-col { flex-direction: column; align-items: center; }
+.wheel-scroll {
+  height: 280px; width: 110px; flex-direction: column;
+}
+.wheel-item {
+  width: 110px; text-align: center; font-size: 30px; font-weight: bold;
+  line-height: 56px;
+}
+.wheel-item.sel { font-size: 34px; }
+.wheel-colon { font-size: 40px; font-weight: bold; margin: 0 10px; color: #888899; }
+.wheel-band {
+  position: absolute; left: 30px; right: 30px; height: 56px;
+  border-radius: 10px; pointer-events: none;
+}
+
+.picker-actions { flex-direction: row; width: 100%; margin-top: 16px; }
+.pa-btn { flex: 1; height: 46px; border-radius: 23px; font-size: 28px; font-weight: bold; }
+.pa-cancel { margin-right: 10px; }
+.pa-ok { margin-left: 10px; }
+
+@media screen and (shape: pill-shaped) {
+  .page-body { padding: 30px 16px 30px 16px; }
+  .header-title { font-size: 22px; line-height: 30px; }
+  .time-value { font-size: 60px; line-height: 74px; }
+  .wheel-scroll { height: 224px; width: 96px; }
+  .wheel-item { width: 96px; font-size: 26px; line-height: 48px; }
+  .itemH { height: 48px; }
+  .wheel-band { height: 48px; }
+}
+@media screen and (shape: circle) {
+  .page-body { padding: 44px 36px; }
+  .wheel-area { padding: 0 10px; }
+}
+</style>

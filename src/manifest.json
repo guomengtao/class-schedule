@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.7.9",
-  "versionCode": 1011,
+  "versionName": "1.7.10",
+  "versionCode": 1012,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
@@ -162,6 +162,9 @@
       },
       "pages/workday-info": {
         "component": "workday-info"
+      },
+      "pages/time-picker-demo": {
+        "component": "time-picker-demo"
       }
     }
   }
