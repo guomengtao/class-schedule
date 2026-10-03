@@ -31,10 +31,14 @@
     <!-- 首页启动探针（临时诊断）：读 index.ux 写入的 index_boot_stage，
          用于在手环「黑屏→重启」后判断首页死在哪个启动阶段。
          定位完成后连同 index.ux 的 bootStageStamp 一起删除。 -->
-    <div class="info-section" if="{{ bootStage }}" style="background-color: {{ theme.card }}">
+    <div class="info-section" if="{{ bootStage || bootControl }}" style="background-color: {{ theme.card }}">
       <div class="menu-item">
         <text class="menu-label" style="color: {{ theme.accent }}">上次首页启动阶段</text>
-        <text class="menu-value" style="color: {{ theme.text }}">{{ bootStage }}</text>
+        <text class="menu-value" style="color: {{ theme.text }}">{{ bootStage || '(无记录)' }}</text>
+      </div>
+      <div class="menu-item">
+        <text class="menu-label" style="color: {{ theme.accent }}">对照组（欢迎页写入）</text>
+        <text class="menu-value" style="color: {{ theme.text }}">{{ bootControl || '(无记录)' }}</text>
       </div>
     </div>
 
@@ -86,7 +90,8 @@ export default {
     loading: true,
     errorMsg: "",
     infoList: [],
-    bootStage: ""
+    bootStage: "",
+    bootControl: ""
   },
 
   onInit() {
@@ -108,10 +113,21 @@ export default {
     storage.get({
       key: "index_boot_stage",
       success: function(v) {
-        self.bootStage = v || "(无记录：首页连阶段 1 都没走到)"
+        self.bootStage = v || ""
       },
       fail: function() {
-        self.bootStage = "(读取失败)"
+        self.bootStage = ""
+      }
+    })
+    // 对照组：欢迎页写入的标记。它存在 = storage 写入在真机能落盘，
+    // 那么 index_boot_stage 为空就只可能是「首页脚本没开始执行」。
+    storage.get({
+      key: "boot_probe_welcome",
+      success: function(v) {
+        self.bootControl = v || ""
+      },
+      fail: function() {
+        self.bootControl = ""
       }
     })
   },

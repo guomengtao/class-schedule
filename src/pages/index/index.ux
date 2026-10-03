@@ -165,6 +165,47 @@
 
 <script>
 import router from "@system.router"
+
+// ── 首页启动探针（临时诊断，定位完整体删除）───────────────────────────────
+// 背景：手环不走 adb、IDE 日志也拿不到 → 复位后无法取证。但 storage 是持久的，
+// 把首页启动进度写进去，复位重启后去「设置 → 工具 → 设备信息」读回来即可知道
+// 上一次死在哪个阶段（与输入法诊断的 input_diag2_step 是同一思路）。
+// 零 UI 改动、失败静默、每个阶段只写 1 个 key。
+// ⚠️ 本块**故意放在整个模块最前面**（早于 store/database 的 require）：只有这样才能
+//    区分「页面脚本压根没开始执行」与「依赖加载/求值阶段就挂了」——首轮探针把 marker
+//    写在 require 之后，真机读出「无记录」，但无法判断是哪一种。
+// 见 docs/首页黑屏并重启-深度分析.md 第 8 / 12 章。
+var BOOT_STAGE_KEY = "index_boot_stage"
+var BOOT_STAGE_TEXT = {
+  0: "页面脚本开始执行（早于 require）",
+  1: "依赖加载完成 + device.getInfo 已发出",
+  2: "onInit 同步结束（异步请求已发出）",
+  3: "database.init 回调到达",
+  4: "课程数据回调到达（首帧渲染前）",
+  5: "initAllModules 完成",
+  6: "defer 三帧全部挂完（约 260ms）",
+  7: "首帧后 1.5s 仍存活",
+  8: "首帧后 5s 仍存活",
+  9: "首帧后 15s 仍存活",
+  10: "自定义内容轮播已发生（≥1 次）"
+}
+function bootStageStamp(n) {
+  try {
+    var txt = (typeof BOOT_STAGE_TEXT !== "undefined" && BOOT_STAGE_TEXT) ? (BOOT_STAGE_TEXT[n] || "") : ""
+    var t = new Date()
+    function p(v) { return v < 10 ? "0" + v : "" + v }
+    var at = p(t.getMonth() + 1) + "-" + p(t.getDate()) + " " + p(t.getHours()) + ":" + p(t.getMinutes()) + ":" + p(t.getSeconds())
+    var storage = require("@system.storage")
+    storage.set({
+      key: BOOT_STAGE_KEY,
+      value: n + " · " + txt + " · " + at,
+      success: function() {},
+      fail: function() {}
+    })
+  } catch (e) {}
+}
+bootStageStamp(0)   // ← 页面模块里最早的一句可执行代码
+
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 const device = require("@system.device")
@@ -264,32 +305,7 @@ initScreenShape()
 // 零 UI 改动、失败静默、每个阶段只写 1 个 key。
 // 见 docs/首页黑屏并重启-深度分析.md 第 8 章。
 var BOOT_STAGE_KEY = "index_boot_stage"
-var BOOT_STAGE_TEXT = {
-  1: "模块求值完成（页面 js 已加载）",
-  2: "onInit 同步结束（异步请求已发出）",
-  3: "database.init 回调到达",
-  4: "课程数据回调到达（首帧渲染前）",
-  5: "initAllModules 完成",
-  6: "defer 三帧全部挂完（约 260ms）",
-  7: "首帧后 1.5s 仍存活",
-  8: "首帧后 5s 仍存活",
-  9: "首帧后 15s 仍存活",
-  10: "自定义内容轮播已发生（≥1 次）"
-}
-function bootStageStamp(n) {
-  try {
-    var t = new Date()
-    function p(v) { return v < 10 ? "0" + v : "" + v }
-    var at = p(t.getMonth() + 1) + "-" + p(t.getDate()) + " " + p(t.getHours()) + ":" + p(t.getMinutes()) + ":" + p(t.getSeconds())
-    var storage = require("@system.storage")
-    storage.set({
-      key: BOOT_STAGE_KEY,
-      value: n + " · " + (BOOT_STAGE_TEXT[n] || "") + " · " + at,
-      success: function() {},
-      fail: function() {}
-    })
-  } catch (e) {}
-}
+// （BOOT_STAGE_TEXT 与 bootStageStamp 的定义已上移到模块最前面，见本文件顶部）
 bootStageStamp(1)
 
 var modules = {}

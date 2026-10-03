@@ -19,6 +19,29 @@
 const store = require("../../data/store.js")
 const version = require("../../data/version.js")
 
+// ── 探针对照组（临时诊断，定位完整体删除）────────────────────────────────
+// 欢迎页是「能正常显示」的页面。在这里写一个对照标记，用来证明
+// **storage 写入在真机上确实能落盘**：
+//   · 有对照标记、但 index_boot_stage 无记录 → 首页模块真的没开始执行（加载期挂）
+//   · 连对照标记都没有 → 写入本身没落盘，探针方案不成立，得换取证通道
+// 见 docs/首页黑屏并重启-深度分析.md 第 12 章。
+var BOOT_CONTROL_KEY = "boot_probe_welcome"
+function bootControlStamp(tag) {
+  try {
+    var t = new Date()
+    function p(v) { return v < 10 ? "0" + v : "" + v }
+    var at = p(t.getMonth() + 1) + "-" + p(t.getDate()) + " " + p(t.getHours()) + ":" + p(t.getMinutes()) + ":" + p(t.getSeconds())
+    var storage = require("@system.storage")
+    storage.set({
+      key: BOOT_CONTROL_KEY,
+      value: tag + " · " + at,
+      success: function() {},
+      fail: function() {}
+    })
+  } catch (e) {}
+}
+bootControlStamp("欢迎页模块求值")
+
 // 极简快速启动：欢迎页只做静态展示 + 一次主题/默认首页读取，
 // 不再预热首页数据（课程库、字号、课表名等由首页按需加载，store 自带缓存）。
 
@@ -39,6 +62,8 @@ export default {
 
   onInit() {
     var self = this
+    // 对照组二次打点：页面已经显示出来了再写一次，确保落盘（见文件顶部说明）
+    bootControlStamp("欢迎页 onInit")
     store.getTheme(function(t) {
       self.theme = t
     })
