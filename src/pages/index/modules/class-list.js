@@ -1,6 +1,13 @@
 var store = require("../../../data/store.js")
 var prompt = require("@system.prompt")
 
+// 首屏读取路径日志开关：默认关闭（真机上日志要过 IPC，量大即主线程阻塞）。
+// 这几行原来是无条件 console.log，且 refreshClasses 会整条链走多次 —— 排查时再打开。
+var DEBUG = false
+function dlog() {
+  if (DEBUG) console.log.apply(console, arguments)
+}
+
 var fullDayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
 // 屏型由 index.ux 统一探测后通过 instance.isCapsule 传入，这里不再重复调用
@@ -87,29 +94,29 @@ function init(instance) {
 
   instance.refreshClasses = function() {
     var self = instance
-    console.log("[refreshClasses] entering, has reloadHolidayState=" + (!!self.reloadHolidayState) + " holidayReminderOn=" + self.holidayReminderOn + " isHoliday=" + self.isHoliday)
+    dlog("[refreshClasses] entering, has reloadHolidayState=" + (!!self.reloadHolidayState) + " holidayReminderOn=" + self.holidayReminderOn + " isHoliday=" + self.isHoliday)
     if (self.reloadHolidayState && typeof self.reloadHolidayState === 'function') {
       var d = self.currentDate
-      console.log("[refreshClasses] currentDate=" + (d ? d.toDateString() : "null"))
+      dlog("[refreshClasses] currentDate=" + (d ? d.toDateString() : "null"))
       var m = (d.getMonth() + 1)
       var day = d.getDate()
       var dateStr = d.getFullYear() + "-" + (m < 10 ? "0" + m : m) + "-" + (day < 10 ? "0" + day : day)
-      console.log("[refreshClasses] dateStr=" + dateStr + ", calling reloadHolidayState")
+      dlog("[refreshClasses] dateStr=" + dateStr + ", calling reloadHolidayState")
       self.reloadHolidayState(dateStr, function(overrideWeekDay) {
-        console.log("[refreshClasses] reloadHolidayState callback, overrideWeekDay=" + overrideWeekDay)
+        dlog("[refreshClasses] reloadHolidayState callback, overrideWeekDay=" + overrideWeekDay)
         if (overrideWeekDay === -2) {
           self.currentClasses = []
         } else {
           self.loadDayClasses(overrideWeekDay >= 0 ? overrideWeekDay : -1)
         }
-        console.log("[refreshClasses] after callback, isHoliday=" + self.isHoliday + " isWorkday=" + self.isWorkday + " holidayReminderOn=" + self.holidayReminderOn)
+        dlog("[refreshClasses] after callback, isHoliday=" + self.isHoliday + " isWorkday=" + self.isWorkday + " holidayReminderOn=" + self.holidayReminderOn)
         if (self.updateStatus && typeof self.updateStatus === 'function') {
           self.updateStatus()
         }
         try { self.$forceUpdate && self.$forceUpdate() } catch (e) {}
       })
     } else {
-      console.log("[refreshClasses] ⚠ FALLBACK: reloadHolidayState not available, using loadDayClasses directly")
+      dlog("[refreshClasses] ⚠ FALLBACK: reloadHolidayState not available, using loadDayClasses directly")
       self.loadDayClasses()
       if (self.updateStatus && typeof self.updateStatus === 'function') {
         self.updateStatus()

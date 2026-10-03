@@ -170,7 +170,11 @@ const database = require("../../data/database.js")
 const device = require("@system.device")
 
 // 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
-var DEBUG = true
+// ⚠️ 这里必须是 false：首页是首屏读取路径上唯一的日志密集页（本文件 14 处 dlog、
+// 模块里另有 8 处未加开关的 console.log）。真机上日志要走 IPC，日志量大 = 主线程阻塞
+// = 看门狗复位（进度见 docs/第三轮反馈-卡顿重启与分帧方案.md）。
+// 排查时临时改 true，提交前务必回 false（database.js 的 DEBUG 同规则）。
+var DEBUG = false
 function dlog() {
   if (DEBUG) console.log.apply(console, arguments)
 }
