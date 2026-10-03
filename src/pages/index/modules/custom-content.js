@@ -103,6 +103,8 @@ function startRotation(instance) {
         }
         instance._customContentIndex = (instance._customContentIndex + 1) % list.length
         instance.customContent = list[instance._customContentIndex]
+        // 探针（临时）：轮播真的发生过，说明页面至少存活过一个轮播周期
+        if (typeof instance.markBootStage === 'function') instance.markBootStage(10)
       }, interval * 1000)
     },
     fail: function() {

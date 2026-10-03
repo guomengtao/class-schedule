@@ -28,6 +28,16 @@
       </div>
     </div>
 
+    <!-- 首页启动探针（临时诊断）：读 index.ux 写入的 index_boot_stage，
+         用于在手环「黑屏→重启」后判断首页死在哪个启动阶段。
+         定位完成后连同 index.ux 的 bootStageStamp 一起删除。 -->
+    <div class="info-section" if="{{ bootStage }}" style="background-color: {{ theme.card }}">
+      <div class="menu-item">
+        <text class="menu-label" style="color: {{ theme.accent }}">上次首页启动阶段</text>
+        <text class="menu-value" style="color: {{ theme.text }}">{{ bootStage }}</text>
+      </div>
+    </div>
+
     <div class="pin-row">
       <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">钉首页</text>
     </div>
@@ -75,7 +85,8 @@ export default {
     },
     loading: true,
     errorMsg: "",
-    infoList: []
+    infoList: [],
+    bootStage: ""
   },
 
   onInit() {
@@ -85,6 +96,24 @@ export default {
       self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
     })
     this.fetchDeviceInfo()
+    this.loadBootStage()
+  },
+
+  // 首页启动探针回读（临时诊断）：index.ux 在每个启动阶段把进度写进 index_boot_stage。
+  // 手环「黑屏→重启」后该值仍在（storage 持久），据此判断上次死在哪个阶段。
+  // 见 docs/首页黑屏并重启-深度分析.md 第 8 章；定位完成后删除。
+  loadBootStage() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.get({
+      key: "index_boot_stage",
+      success: function(v) {
+        self.bootStage = v || "(无记录：首页连阶段 1 都没走到)"
+      },
+      fail: function() {
+        self.bootStage = "(读取失败)"
+      }
+    })
   },
 
   onShow() {
