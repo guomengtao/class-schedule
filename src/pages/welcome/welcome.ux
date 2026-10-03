@@ -3,7 +3,7 @@
     <div class="logo-area">
       <text class="app-name" style="color: {{ theme.accent }}">Ev课程表</text>
       <text class="app-subtitle" style="color: {{ theme.textSecondary }}">你的随身课程助手</text>
-      <text class="app-version" style="color: {{ theme.textMuted }}">v{{ versionName }}</text>
+      <text class="app-version" style="color: {{ theme.textSecondary }}">v{{ versionName }}</text>
     </div>
 
     <div class="action-area">
@@ -133,10 +133,12 @@ export default {
   line-height: 28px;
 }
 
+/* 版本号：原 16px + textMuted（对比度 ~2.5:1）在手环上肉眼几乎读不出，
+   用户反馈"太小看不见"→ 字号提到次要信息档（24px）、颜色提到 textSecondary（~5.5:1） */
 .app-version {
-  font-size: 16px;
-  line-height: 22px;
-  margin-top: 4px;
+  font-size: 24px;
+  line-height: 32px;
+  margin-top: 6px;
 }
 
 .action-area {
@@ -189,6 +191,11 @@ export default {
   .app-subtitle {
     font-size: 20px;
   }
+  /* 圆屏 192 宽：版本号降一档但仍大于原 16px（可读性优先） */
+  .app-version {
+    font-size: 22px;
+    line-height: 30px;
+  }
   .enter-btn {
     width: 180px;
     height: 48px;
@@ -218,6 +225,11 @@ export default {
   }
   .app-name {
     font-size: 30px;
+  }
+  /* 胶囊屏（192×490）：同圆屏策略，版本号 24px 与正文档一致 */
+  .app-version {
+    font-size: 24px;
+    line-height: 32px;
   }
   .enter-btn {
     width: 160px;
