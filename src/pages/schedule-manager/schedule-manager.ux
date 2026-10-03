@@ -150,10 +150,6 @@ export default {
     this.loadData()
   },
 
-  onReady() {
-    this.checkAndShowOverlay()
-  },
-
   checkProAccess() {
     return true
   },
@@ -165,7 +161,6 @@ export default {
       self.updateIconSrc(themeName)
     })
     this.loadData()
-    this.checkAndShowOverlay()
     this.checkInputResult()
     this.logPageWidth()
   },
@@ -187,15 +182,6 @@ export default {
         })
       } catch (e) {}
     }, 500)
-  },
-
-  checkAndShowOverlay() {
-    var self = this
-    store.isPremiumUnlocked(function(unlocked) {
-      if (!unlocked) {
-        self.showDialog = true
-      }
-    })
   },
 
   loadData() {

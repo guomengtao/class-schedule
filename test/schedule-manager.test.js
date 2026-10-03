@@ -181,16 +181,12 @@ console.log(bold("1. 付费门禁（checkProAccess / addSchedule / 进页弹窗�
   ok("已解锁时点「新增课程表」→ 不弹窗", vm.showDialog === false)
   eq("已解锁时确实新增了一条", vm.list.length, 2)
 
-  // 进页就弹窗（onReady / onShow 都调 checkAndShowOverlay）
+  // 进页不再自动弹窗（2026-10-03 移除 onReady/onShow 里的 checkAndShowOverlay）：
+  // 弹窗只允许由「点新增」触发（addSchedule），浏览列表不被弹窗糊脸。
   var vm2 = newInstance(env.__req, { list: [], currentIndex: 0 })
   env.premium = false
-  vm2.checkAndShowOverlay()
-  ok("未解锁用户进页面即弹解锁弹窗（checkAndShowOverlay）", vm2.showDialog === true)
-
-  var vm3 = newInstance(env.__req, { list: [], currentIndex: 0 })
-  env.premium = true
-  vm3.checkAndShowOverlay()
-  ok("已解锁用户进页面不弹窗", vm3.showDialog === false)
+  ok("checkAndShowOverlay 已删除（不再存在进页弹窗入口）", vm2.checkAndShowOverlay === undefined)
+  ok("未解锁用户新建实例后不弹窗（onShow 只刷主题/数据）", vm2.showDialog === false)
 })()
 
 // ================================================================ 2. 新增课表
