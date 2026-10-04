@@ -412,6 +412,9 @@ export default {
       self.quickAdd.loadPreset()
     }
 
+    // 从设置页返回时强制重读字号存储并重建课程卡片，确保设置的字号即时生效
+    self.loadFontScale()
+
     // 关键：先比对写盘版本号（由 database 在每次写盘成功后累加），
     // 只要别的页面改动过课程（增删改），就必须重新读盘，即使 skipNextShow 还没消耗。
     var storage = require("@system.storage")

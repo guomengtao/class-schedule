@@ -161,8 +161,7 @@ export default {
     this.loadSettings()
   },
   onReady() {
-    dlog("[HOMEPAGE-SETTINGS] onReady: checking premium...")
-    this.checkAndShowOverlay()
+    dlog("[HOMEPAGE-SETTINGS] onReady: page ready")
   },
   onShow() {
     dlog("[HOMEPAGE-SETTINGS] onShow: page shown")
@@ -172,6 +171,16 @@ export default {
   },
   updateIconSrc: function(themeName) {
     this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
+  },
+  requirePremium(next) {
+    var self = this
+    store.isPremiumUnlocked(function(unlocked) {
+      if (unlocked) {
+        if (next) next()
+      } else {
+        self.showDialog = true
+      }
+    })
   },
   loadSettings() {
     var self = this
@@ -203,14 +212,6 @@ export default {
     })
   },
   checkAndShowOverlay() {
-    dlog("[HOMEPAGE-SETTINGS] checkAndShowOverlay: checking premium...")
-    var self = this
-    store.isPremiumUnlocked(function(unlocked) {
-      if (!unlocked) {
-        dlog("[HOMEPAGE-SETTINGS] checkAndShowOverlay: not premium, showing dialog")
-        self.showDialog = true
-      }
-    })
   },
 
   goToPremium() {
@@ -240,39 +241,67 @@ export default {
   },
 
   toggleQuickAdd() {
-    this.showQuickAdd = !this.showQuickAdd
-    this.saveSettings()
+    var self = this
+    this.requirePremium(function() {
+      self.showQuickAdd = !self.showQuickAdd
+      self.saveSettings()
+    })
   },
   toggleCustomContent() {
-    this.showCustomContent = !this.showCustomContent
-    this.saveSettings()
+    var self = this
+    this.requirePremium(function() {
+      self.showCustomContent = !self.showCustomContent
+      self.saveSettings()
+    })
   },
   toggleStatusBar() {
-    this.showStatusBar = !this.showStatusBar
-    this.saveSettings()
+    var self = this
+    this.requirePremium(function() {
+      self.showStatusBar = !self.showStatusBar
+      self.saveSettings()
+    })
   },
   togglePinnedBar() {
-    this.showPinnedBar = !this.showPinnedBar
-    this.saveSettings()
+    var self = this
+    this.requirePremium(function() {
+      self.showPinnedBar = !self.showPinnedBar
+      self.saveSettings()
+    })
   },
   toggleDayNavZong() {
-    this.showDayNavZong = !this.showDayNavZong
-    this.saveSettings()
+    var self = this
+    this.requirePremium(function() {
+      self.showDayNavZong = !self.showDayNavZong
+      self.saveSettings()
+    })
   },
   toggleDayNavJin() {
-    this.showDayNavJin = !this.showDayNavJin
-    this.saveSettings()
+    var self = this
+    this.requirePremium(function() {
+      self.showDayNavJin = !self.showDayNavJin
+      self.saveSettings()
+    })
   },
   toggleDayNavMing() {
-    this.showDayNavMing = !this.showDayNavMing
-    this.saveSettings()
+    var self = this
+    this.requirePremium(function() {
+      self.showDayNavMing = !self.showDayNavMing
+      self.saveSettings()
+    })
   },
   toggleFontSize() {
-    this.showFontSize = !this.showFontSize
+    var self = this
+    this.requirePremium(function() {
+      self.showFontSize = !self.showFontSize
+    })
   },
   setSize(size) {
-    this.displaySize = size
-    store.setBaseFontSize(size)
+    var self = this
+    var target = size
+    this.requirePremium(function() {
+      self.displaySize = target
+      store.setBaseFontSize(target)
+    })
   },
   decreaseFont() {
     for (var i = sizeLevels.length - 1; i >= 0; i--) {
@@ -291,11 +320,15 @@ export default {
     }
   },
   openCustomContentEdit() {
-    router.push({ uri: "/pages/custom-content-edit" })
+    this.requirePremium(function() {
+      router.push({ uri: "/pages/custom-content-edit" })
+    })
   },
 
   openPinnedPages() {
-    router.push({ uri: "/pages/pinned-pages" })
+    this.requirePremium(function() {
+      router.push({ uri: "/pages/pinned-pages" })
+    })
   }
 }
 </script>

@@ -139,15 +139,17 @@
       </div>
     </div>
 
-    <text class="version-text" style="color: {{ theme.textMuted }}">v{{ versionText }} · #{{ versionCode }}</text>
-    <text class="welcome-link" onclick="goToWelcome" style="color: {{ theme.accent }}">欢迎页</text>
-    <!-- 兜底退出：欢迎页之外唯一可见的显式出口。返回键在部分运行时会被吃掉/不生效时，
-         这里保证从任何能走到设置的地方都能主动终止应用。二次点击确认 + 3 秒自动复位防误触。 -->
-    <input class="exit-app-btn" type="button"
-           value="{{ exitConfirm ? '再点一次退出' : '退出应用' }}"
-           onclick="handleExitApp"
-           style="background-color: {{ theme.cardLight }}; color: {{ exitConfirm ? theme.deleteText : theme.textSecondary }}" />
-    <text class="exit-app-hint" if="{{ exitConfirm }}" style="color: {{ theme.textMuted }}">3 秒内再点一次即退出</text>
+    <div class="settings-footer">
+      <text class="version-text" style="color: {{ theme.text }}">v{{ versionText }}</text>
+      <text class="welcome-link" onclick="goToWelcome" style="color: {{ theme.accent }}">欢迎页</text>
+      <!-- 兜底退出：欢迎页之外唯一可见的显式出口。返回键在部分运行时会被吃掉/不生效时，
+           这里保证从任何能走到设置的地方都能主动终止应用。二次点击确认 + 3 秒自动复位防误触。 -->
+      <input class="exit-app-btn" type="button"
+             value="{{ exitConfirm ? '再点一次退出' : '退出应用' }}"
+             onclick="handleExitApp"
+             style="background-color: {{ theme.cardLight }}; color: {{ exitConfirm ? theme.deleteText : theme.textSecondary }}" />
+      <text class="exit-app-hint" if="{{ exitConfirm }}" style="color: {{ theme.textMuted }}">3 秒内再点一次即退出</text>
+    </div>
     </div>
     </scroll>
 
@@ -625,13 +627,17 @@ export default {
   line-height: 38px;
 }
 
+/* 小屏（base = 手环 9）默认隐藏每行辅助描述，只显示链接名称，避免内容过窄溢出 */
 .row-hint {
+  display: none;
   font-size: 28px;
   margin-right: 6px;
   line-height: 38px;
 }
 
+/* 小屏（base = 手环 9）默认隐藏字号数值，只显示"课程字号"四个字，避免内容过窄溢出 */
 .size-indicator {
+  display: none;
   font-size: 24px;
   margin-right: 6px;
   line-height: 32px;
@@ -743,11 +749,20 @@ export default {
 }
 
 .version-text {
-  font-size: 24px;
+  font-size: 28px;
   text-align: center;
+  font-weight: bold;
+  width: 100%;
   padding-top: 14px;
   padding-bottom: 8px;
-  line-height: 32px;
+  line-height: 36px;
+}
+
+/* 底部信息区：链接/版本居中对齐，小屏版本号可自然折成 2 行 */
+.settings-footer {
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 .welcome-link {
@@ -937,8 +952,12 @@ export default {
     line-height: 38px;
   }
   .row-hint {
+    display: flex;
     font-size: 24px;
     line-height: 32px;
+  }
+  .size-indicator {
+    display: flex;
   }
   .toggle-btn {
     width: 56px;

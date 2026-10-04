@@ -50,7 +50,8 @@
 
     </div>
 
-    <div class="overlay-modal" show="{{ showDialog }}" onclick="dismissDialog">
+    <div class="overlay-modal" show="{{ showDialog }}" onclick="dismissDialog"
+         style="position: absolute; left: 0; top: 0; width: 100%; height: 100%">
       <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
         <text class="modal-title" style="color: {{ theme.accent }}">解锁高级版</text>
         <text class="modal-desc" style="color: {{ theme.textSecondary }}">云备份恢复需要高级版，一次性解锁永久使用</text>
@@ -162,8 +163,7 @@ export default {
   },
 
   onReady() {
-    dlog("[BACKUP] onReady: all components ready, checking premium...")
-    this.checkAndShowOverlay()
+    dlog("[BACKUP] onReady: all components ready")
   },
 
   onShow() {
@@ -419,16 +419,22 @@ export default {
 
   handleDeleteBackup(index) {
     var self = this
-    if (self.deleteConfirmIndex === index) {
-      var list = self.backupList.slice()
-      list.splice(index, 1)
-      self.saveBackupList(list)
-      self.deleteConfirmIndex = -1
-      self.resultMessage = "备份已删除"
-      self.resultSuccess = true
-    } else {
-      self.deleteConfirmIndex = index
-    }
+    store.isPremiumUnlocked(function(unlocked) {
+      if (!unlocked) {
+        self.showDialog = true
+        return
+      }
+      if (self.deleteConfirmIndex === index) {
+        var list = self.backupList.slice()
+        list.splice(index, 1)
+        self.saveBackupList(list)
+        self.deleteConfirmIndex = -1
+        self.resultMessage = "备份已删除"
+        self.resultSuccess = true
+      } else {
+        self.deleteConfirmIndex = index
+      }
+    })
   }
 }
 </script>
@@ -436,54 +442,60 @@ export default {
 <style>
 @import '../../common/header.css';
 
+/* ================================================================
+   BASE CSS = 手环 9 基准（160px 内容区）
+   手环 9 默认命中，无需任何 media query。弹性 flex + % 撑满。
+   屏幕增大时，下方宽度断点「增量」调整。
+   手环 9 黑屏根因：独立 @media (shape: pill-shaped) 大块命中即崩，
+   故 base 以 9 为基准，彻底移除独立 pill-shaped 分支。
+   ================================================================ */
 .page {
   flex: 1;
   flex-direction: column;
   padding: 0;
   width: 100%;
   height: 100%;
-
 }
 
 /* padding 承载在内层：弹窗 absolute 按父级内容盒计算，根容器带 padding 会让弹窗内缩不对称 */
 .page-body {
-  padding: 44px 10px 16px 10px;
+  padding: 30px 8px 30px 8px;
 }
 
 .create-section {
   flex-direction: row;
   justify-content: center;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .bottom-create-btn {
   width: 100%;
-  height: 48px;
-  border-radius: 12px;
-  font-size: 30px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 24px;
   font-weight: bold;
   text-align: center;
 }
 
 .result-text {
-  font-size: 28px;
+  font-size: 20px;
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   font-weight: bold;
-  line-height: 38px;
+  line-height: 28px;
 }
 
 .progress-bar {
   flex-direction: column;
   border-radius: 12px;
-  padding: 16px 16px;
-  margin-bottom: 14px;
+  padding: 12px 10px;
+  margin-bottom: 10px;
 }
 
 .progress-text {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   text-align: center;
 }
 
@@ -499,68 +511,69 @@ export default {
 }
 
 .empty-msg {
-  font-size: 28px;
+  font-size: 24px;
   text-align: center;
-  padding: 32px 0;
+  padding: 20px 0;
 }
 
 .backup-row {
   flex-direction: column;
   border-radius: 12px;
-  padding: 14px 14px;
-  margin-bottom: 10px;
+  padding: 10px 8px;
+  margin-bottom: 8px;
 }
 
 .backup-row-name {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: bold;
-  line-height: 42px;
+  line-height: 32px;
 }
 
 .name-scroll {
   width: 100%;
-  height: 42px;
-  margin-bottom: 8px;
+  height: 32px;
+  margin-bottom: 4px;
 }
 
 .backup-row-footer {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
+  margin-top: 4px;
 }
 
 .backup-row-meta {
-  font-size: 28px;
-  line-height: 36px;
+  font-size: 20px;
+  line-height: 26px;
 }
 
 .meta-scroll {
-  flex: 1;
-  height: 36px;
-  margin-right: 8px;
+  width: 100%;
+  height: 26px;
+  margin-bottom: 4px;
 }
 
 .backup-row-actions {
   flex-direction: row;
   align-items: center;
   flex-shrink: 0;
+  margin-left: 0;
 }
 
 .row-restore-btn {
-  width: 60px;
-  height: 36px;
-  border-radius: 8px;
-  font-size: 24px;
+  width: 56px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 22px;
   font-weight: bold;
   text-align: center;
-  margin-right: 8px;
+  margin-right: 6px;
 }
 
 .row-delete-btn {
-  width: 60px;
-  height: 36px;
-  border-radius: 8px;
-  font-size: 24px;
+  width: 56px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 22px;
   font-weight: bold;
   text-align: center;
   border-width: 1px;
@@ -568,121 +581,235 @@ export default {
 
 .info-section {
   border-radius: 12px;
-  padding: 20px 18px;
-  margin-top: 14px;
+  padding: 14px 10px;
+  margin-top: 10px;
 }
 
 .info-title {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: bold;
-  margin-bottom: 10px;
-  line-height: 42px;
+  line-height: 32px;
+  margin-bottom: 8px;
 }
 
 .info-text {
-  font-size: 28px;
-  line-height: 38px;
+  font-size: 20px;
+  line-height: 26px;
 }
 
+/* ---- 高级版弹窗（base = 手环 9）---- */
 .overlay-modal {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
   background-color: rgba(0, 0, 0, 0.35);
   flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 40px 16px;
 }
 
 .modal-card {
-  width: 80%;
-  border-radius: 16px;
-  padding: 28px 24px;
+  width: 100%;
+  border-radius: 14px;
+  padding: 14px 8px;
   flex-direction: column;
   align-items: center;
 }
 
 .modal-title {
-  font-size: 36px;
+  font-size: 24px;
   font-weight: bold;
-  margin-bottom: 12px;
+  line-height: 30px;
+  margin-bottom: 8px;
   text-align: center;
-  line-height: 46px;
 }
 
 .modal-desc {
-  font-size: 28px;
+  font-size: 18px;
   text-align: center;
-  margin-bottom: 20px;
-  line-height: 38px;
+  line-height: 25px;
+  margin-bottom: 10px;
 }
 
 .benefit-list {
   width: 100%;
   flex-direction: column;
-  padding-left: 12px;
-  margin-bottom: 24px;
+  padding-left: 0;
+  margin-bottom: 10px;
 }
 
 .benefit-item {
-  font-size: 32px;
-  line-height: 42px;
+  font-size: 17px;
+  line-height: 24px;
+  margin-bottom: 6px;
 }
 
 .benefit-scroll {
   width: 100%;
-  height: 42px;
-  margin-bottom: 10px;
+  height: 24px;
+  margin-bottom: 6px;
 }
 
 .modal-btn-primary {
   width: 100%;
-  height: 48px;
-  border-radius: 24px;
-  font-size: 28px;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 22px;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 14px;
+  line-height: 28px;
+  margin-bottom: 8px;
 }
 
 .modal-btn-secondary {
   width: 100%;
-  height: 42px;
-  border-radius: 21px;
-  font-size: 28px;
+  height: 34px;
+  border-radius: 17px;
+  font-size: 20px;
   text-align: center;
+  line-height: 26px;
 }
 
+/* ================================================================
+   宽度断点：手环 10 / 胶囊屏大号（width >= 200px，内容区 ~180px）
+   在 base 基础上「增量」：字号/间距略增。
+   ================================================================ */
+@media (width >= 200px) {
+  .page-body {
+    padding: 34px 10px 34px 10px;
+  }
+  .bottom-create-btn {
+    height: 42px;
+    font-size: 26px;
+  }
+  .result-text {
+    font-size: 22px;
+    line-height: 30px;
+  }
+  .backup-row-name {
+    font-size: 26px;
+    line-height: 34px;
+  }
+  .name-scroll {
+    height: 34px;
+    margin-bottom: 4px;
+  }
+  .backup-row-meta {
+    font-size: 22px;
+    line-height: 28px;
+  }
+  .meta-scroll {
+    height: 28px;
+  }
+  .info-title {
+    font-size: 26px;
+    line-height: 34px;
+  }
+  .info-text {
+    font-size: 22px;
+    line-height: 28px;
+  }
+}
+
+/* ================================================================
+   宽度断点：Watch 6 / 方屏（width >= 400px，内容区 ~400px）
+   在 base 基础上「增量」：布局紧凑、字号提升、行内按钮排布。
+   ================================================================ */
+@media (width >= 400px) {
+  .page-body {
+    padding: 6px 8px 10px 8px;
+  }
+  .bottom-create-btn {
+    height: 38px;
+    font-size: 24px;
+  }
+  .backup-row-name {
+    font-size: 26px;
+    line-height: 36px;
+  }
+  .name-scroll {
+    height: 36px;
+    margin-bottom: 4px;
+  }
+  .backup-row-footer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0;
+  }
+  .backup-row-meta {
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .meta-scroll {
+    flex: 1;
+    height: 32px;
+    margin-right: 6px;
+  }
+  .info-section {
+    padding: 14px 12px;
+  }
+  .info-title {
+    font-size: 26px;
+    line-height: 36px;
+  }
+  .info-text {
+    font-size: 24px;
+    line-height: 34px;
+  }
+  .modal-card {
+    width: 80%;
+    padding: 20px 16px;
+  }
+  .modal-title {
+    font-size: 30px;
+    line-height: 40px;
+  }
+  .modal-desc {
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .benefit-item {
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .modal-btn-primary {
+    height: 44px;
+    border-radius: 22px;
+    font-size: 26px;
+    line-height: 32px;
+  }
+  .modal-btn-secondary {
+    height: 38px;
+    border-radius: 19px;
+    font-size: 24px;
+    line-height: 30px;
+  }
+}
+
+/* ================================================================
+   圆形表盘（唯一保留的 shape 查询——圆方不同构，非宽度可替代）
+   手环 9 不会命中此分支，天然安全。
+   ================================================================ */
 @media (shape: circle) {
   .page-body {
     padding: 44px 36px 44px 36px;
   }
-  
-  
-  
   .bottom-create-btn {
     width: 100%;
     height: 44px;
     font-size: 28px;
   }
   .backup-row {
-    flex-direction: column;
     padding: 14px 12px;
-    margin-bottom: 10px;
   }
   .backup-row-name {
     font-size: 30px;
     line-height: 40px;
   }
-
   .name-scroll {
     height: 40px;
     margin-bottom: 6px;
   }
-
   .backup-row-footer {
     flex-direction: row;
     align-items: center;
@@ -692,14 +819,10 @@ export default {
     font-size: 26px;
     line-height: 34px;
   }
-
   .meta-scroll {
     flex: 1;
     height: 34px;
     margin-right: 6px;
-  }
-  .backup-row-actions {
-    margin-left: 0;
   }
   .info-section {
     padding: 18px 16px;
@@ -719,246 +842,6 @@ export default {
   .modal-card {
     width: 72%;
     padding: 24px 20px;
-  }
-}
-
-@media (shape: pill-shaped) {
-  .page-body {
-    padding: 30px 8px 30px 8px;
-  }
-
-  
-  
-  
-
-  .create-section {
-    margin-bottom: 10px;
-  }
-
-  .bottom-create-btn {
-    height: 40px;
-    border-radius: 10px;
-    font-size: 24px;
-  }
-
-  .result-text {
-    font-size: 20px;
-    line-height: 28px;
-  }
-
-  .progress-bar {
-    padding: 12px 10px;
-    margin-bottom: 10px;
-  }
-
-  .progress-text {
-    font-size: 22px;
-    margin-bottom: 8px;
-  }
-
-  .empty-msg {
-    font-size: 24px;
-    padding: 20px 0;
-  }
-
-  .backup-row {
-    flex-direction: column;
-    border-radius: 12px;
-    padding: 10px 8px;
-    margin-bottom: 8px;
-  }
-
-  .backup-row-name {
-    font-size: 24px;
-    font-weight: bold;
-    line-height: 32px;
-  }
-
-  .name-scroll {
-    width: 100%;
-    height: 32px;
-    margin-bottom: 4px;
-  }
-
-  .backup-row-footer {
-    flex-direction: column;
-    align-items: stretch;
-    margin-top: 4px;
-  }
-
-  .backup-row-meta {
-    font-size: 20px;
-    line-height: 26px;
-  }
-
-  .meta-scroll {
-    width: 100%;
-    height: 26px;
-    margin-bottom: 4px;
-  }
-
-  .backup-row-actions {
-    flex-direction: row;
-    align-items: center;
-    flex-shrink: 0;
-    margin-left: 0;
-  }
-
-  .row-restore-btn {
-    width: 56px;
-    height: 32px;
-    border-radius: 6px;
-    font-size: 22px;
-    font-weight: bold;
-    text-align: center;
-    margin-right: 6px;
-  }
-
-  .row-delete-btn {
-    width: 56px;
-    height: 32px;
-    border-radius: 6px;
-    font-size: 22px;
-    font-weight: bold;
-    text-align: center;
-    border-width: 1px;
-  }
-
-  .info-section {
-    padding: 14px 10px;
-    margin-top: 10px;
-  }
-
-  .info-title {
-    font-size: 24px;
-    line-height: 32px;
-    margin-bottom: 8px;
-  }
-
-  .info-text {
-    font-size: 20px;
-    line-height: 26px;
-  }
-
-  /* 弹窗相关规则已统一收敛到文件尾部 capsule 适配块，
-     此处不再重复定义（双块覆盖会导致弹窗样式不稳定/不对称） */
-
-}
-
-@media (shape: rect) {
-  .page-body {
-    padding: 6px 8px 10px 8px;
-  }
-  
-  
-  
-  .bottom-create-btn {
-    width: 100%;
-    height: 38px;
-    font-size: 24px;
-  }
-  .backup-row {
-    flex-direction: column;
-    padding: 14px 12px;
-    margin-bottom: 8px;
-  }
-  .backup-row-name {
-    font-size: 26px;
-    line-height: 36px;
-  }
-
-  .name-scroll {
-    height: 36px;
-    margin-bottom: 4px;
-  }
-
-  .backup-row-footer {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .backup-row-meta {
-    font-size: 24px;
-    line-height: 32px;
-  }
-
-  .meta-scroll {
-    flex: 1;
-    height: 32px;
-    margin-right: 6px;
-  }
-  .backup-row-actions {
-    margin-left: 0;
-  }
-  .info-section {
-    padding: 14px 12px;
-  }
-  .info-title {
-    font-size: 26px;
-    line-height: 36px;
-  }
-  .info-text {
-    font-size: 24px;
-    line-height: 34px;
-  }
-}
-/* ===== 胶囊屏（192px）统一适配：解锁/高级版弹窗 =====
-   背景：同一套弹窗在 6 处各写一份，胶囊适配缺失/不一致 → 192×490 上出现
-   标题截成 3 字、✓ 条目只剩 1 字、内容顶到屏幕右缘被裁（2026-09-27 实测）。
-   统一策略：卡片占满安全宽度、字号降档、文本允许 2 行/1 行 + 省略号。 */
-@media (shape: pill-shaped) {
-  .overlay-modal {
-    padding: 40px 16px;
-  }
-
-  .modal-card {
-    width: 100%;
-    border-radius: 14px;
-    padding: 14px 8px;
-  }
-
-  .modal-title {
-    font-size: 24px;
-    line-height: 30px;
-    margin-bottom: 8px;
-    lines: 2;
-    text-overflow: ellipsis;
-  }
-
-  .modal-desc {
-    font-size: 18px;
-    line-height: 25px;
-    margin-bottom: 10px;
-    lines: 4;
-  }
-
-  .benefit-list {
-    width: 100%;
-    padding-left: 0;
-    margin-bottom: 10px;
-  }
-
-  .benefit-item {
-    font-size: 17px;
-    line-height: 24px;
-    margin-bottom: 6px;
-    lines: 1;
-    text-overflow: ellipsis;
-  }
-
-  .modal-btn-primary {
-    height: 40px;
-    border-radius: 20px;
-    font-size: 22px;
-    line-height: 28px;
-    margin-bottom: 8px;
-  }
-
-  .modal-btn-secondary {
-    height: 34px;
-    border-radius: 17px;
-    font-size: 20px;
-    line-height: 26px;
   }
 }
 </style>
