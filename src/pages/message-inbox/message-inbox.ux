@@ -8,17 +8,16 @@
       <div class="header-placeholder"></div>
     </div>
 
+    <!-- 消息区：可滚动查看全部留言 -->
     <scroll class="list-area">
       <div class="section" style="background-color: {{ theme.card }}" if="{{ messages.length > 0 }}">
         <div class="item-row" for="{{ messages }}" onclick="toggleRead($item.id)">
-          <div class="msg-left">
+          <div class="msg-line">
             <div class="unread-dot" style="background-color: {{ $item.read ? 'transparent' : theme.accent }}"></div>
             <text class="msg-from" if="{{ $item.from === 'watch' }}" style="color: {{ theme.accent }}">我：</text>
             <text class="msg-text" style="color: {{ $item.read ? theme.textMuted : theme.text }}">{{ $item.text }}</text>
           </div>
-          <div class="msg-right">
-            <text class="msg-time" style="color: {{ theme.textMuted }}">{{ $item.timeStr }}</text>
-          </div>
+          <text class="msg-time" style="color: {{ theme.textMuted }}">{{ $item.timeStr }}</text>
         </div>
       </div>
 
@@ -29,20 +28,25 @@
       </div>
     </scroll>
 
-    <div class="action-row" if="{{ messages.length > 0 }}">
-      <text class="action-text" style="color: {{ theme.textMuted }}">共 {{ messages.length }} 条，{{ unread }} 条未读</text>
+    <!-- 统计行 -->
+    <div class="meta-row" if="{{ messages.length > 0 }}">
+      <text class="meta-text" style="color: {{ theme.textMuted }}">共 {{ messages.length }} 条 · 未读 {{ unread }}</text>
       <div class="clear-btn" onclick="clearAll" style="background-color: {{ theme.deleteBg }}">
         <text class="clear-btn-text" style="color: {{ theme.deleteText }}">清空</text>
       </div>
     </div>
 
-    <!-- 回复区：快捷短语（一键发回手机）+「自己写」调中文输入页 -->
+    <!-- 回复区：手机在线状态 + 快捷短语（横滑选择，点按发送）+ 自己写 -->
     <div class="reply-bar" style="background-color: {{ theme.card }}">
-      <text class="reply-title" style="color: {{ theme.textSecondary }}">回复手机</text>
-      <div class="phrase-wrap">
-        <div class="phrase-btn" for="{{ phrases }}" onclick="sendPhrase($item)" style="background-color: {{ theme.cardLight }}">
-          <text class="phrase-text" style="color: {{ theme.accent }}">{{ $item }}</text>
-        </div>
+      <text class="phone-status" onclick="statusTap" style="color: {{ phoneStatusColor }}">{{ phoneStatus }}</text>
+      <div class="phrase-row" style="background-color: {{ theme.cardLight }}">
+        <text class="phrase-arrow" style="color: {{ theme.textMuted }}">‹</text>
+        <swiper class="phrase-swiper" index="{{ phraseIdx }}" loop="false" onchange="onPhraseSwipe">
+          <div class="phrase-slide" for="{{ phrases }}" onclick="sendCurrent">
+            <text class="phrase-text" style="color: {{ theme.accent }}">{{ $item }}</text>
+          </div>
+        </swiper>
+        <text class="phrase-arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="write-btn" onclick="writeReply" style="background-color: {{ theme.accent }}">
         <text class="write-text" style="color: {{ theme.bg }}">自己写…</text>
@@ -82,7 +86,10 @@ export default {
     },
     messages: [],
     unread: 0,
-    phrases: []
+    phrases: [],
+    phraseIdx: 0,
+    phoneStatus: "手机状态未知",
+    phoneStatusColor: "#888899"
   },
 
   onInit() {
@@ -94,6 +101,7 @@ export default {
     // 短语表来自数据模块（有单测覆盖），页面只负责渲染与发送
     self.phrases = replyPhrases.getPhrases()
     self.loadMessages()
+    self.refreshPhoneStatus()
   },
 
   onShow() {
@@ -103,6 +111,7 @@ export default {
       self.updateIconSrc(themeName)
     })
     self.loadMessages()
+    self.refreshPhoneStatus()
     // 从「自己写」输入页返回时，把草稿发出去
     self.checkPendingReply()
   },
@@ -142,7 +151,20 @@ export default {
 
   // ======================= 回复 =======================
 
-  /** 点快捷短语：直接发回手机 */
+  /** 横滑选择：swiper 的 onchange 带回当前页索引 */
+  onPhraseSwipe(e) {
+    if (e && typeof e.index === "number") {
+      this.phraseIdx = e.index
+    }
+  },
+
+  /** 点按当前短语：直接发回手机 */
+  sendCurrent() {
+    var p = this.phrases[this.phraseIdx]
+    this.sendPhrase(p)
+  },
+
+  /** 点快捷短语：直接发回手机（保留方法名：单测依赖） */
   sendPhrase(phrase) {
     this.doSend(phrase)
   },
@@ -150,10 +172,11 @@ export default {
   /**
    * 把一条回复发回手机。
    * 走 chatBridge.send（interconnect 点对点，手机端 MessageActivity 按 id 去重后入库并提醒）。
-   * ⚠️ 该链路**没有 ACK**：send 返回 true 只代表「已调用发送」，不代表对方已收到。
-   *    所以文案说「已回复」而不是「已送达」。
+   * 手机收到后会回 rx_ack 应用层回执（app.ux 记「手机最后在线时间」），
+   * 所以发送成功 1.5 秒后刷新一次手机在线状态。
    */
   doSend(text) {
+    var self = this
     var t = replyPhrases.buildReply(text)
     if (!t) {
       prompt.showToast({ message: "没有可回复的内容" })
@@ -161,11 +184,54 @@ export default {
     }
     var ok = chatBridge.send(t)
     if (!ok) {
+      this.refreshPhoneStatus()
       prompt.showToast({ message: "设备未连接，先在手机端打开 EV 同步" })
       return
     }
     this.appendLocal(t)
     prompt.showToast({ message: "已回复：" + t })
+    // 等手机端 rx_ack 回来（通常 1 秒内）再刷新状态
+    if (typeof setTimeout === "function") {
+      setTimeout(function () { self.refreshPhoneStatus() }, 1500)
+    }
+  },
+
+  // ======================= 手机在线状态 =======================
+
+  /**
+   * 读全局「手机最后在线时间」（app.ux 收到 rx_ack 时写 globalThis）。
+   * globalThis 是 app.ux 与页面 JS 之间唯一可靠的跨模块通道
+   * （aiot 多入口打包会把共享模块打成多份副本，全局对象不受影响）。
+   */
+  refreshPhoneStatus() {
+    var ts = 0
+    try {
+      ts = Number(globalThis.__evSyncPhoneSeenTs || 0)
+    } catch (e) { ts = 0 }
+    if (!ts) {
+      this.phoneStatus = "手机未连接"
+      this.phoneStatusColor = "#888899"
+      return
+    }
+    var d = Date.now() - ts
+    if (d < 60000) {
+      this.phoneStatus = "手机在线 · 刚刚确认"
+      this.phoneStatusColor = "#8fd6a0"
+    } else if (d < 3600000) {
+      this.phoneStatus = "手机在线 · " + Math.floor(d / 60000) + "分钟前"
+      this.phoneStatusColor = "#8fd6a0"
+    } else {
+      var t = new Date(ts)
+      var hh = ("0" + t.getHours()).slice(-2)
+      var mm = ("0" + t.getMinutes()).slice(-2)
+      this.phoneStatus = "手机在线 · " + hh + ":" + mm
+      this.phoneStatusColor = "#8fd6a0"
+    }
+  },
+
+  /** 点状态文字手动刷新 */
+  statusTap() {
+    this.refreshPhoneStatus()
   },
 
   /** 发出的回复也在本页留一条（标 from=watch），便于回看自己回过什么 */
@@ -281,7 +347,7 @@ export default {
 .back-header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   padding: 0 4px;
 }
 
@@ -304,7 +370,7 @@ export default {
   font-size: 30px;
   font-weight: bold;
   text-align: center;
-  line-height: 40px;
+  line-height: 42px;
   lines: 1;
   text-overflow: ellipsis;
 }
@@ -323,20 +389,21 @@ export default {
 .section {
   flex-direction: column;
   border-radius: 12px;
-  padding: 12px 14px;
-  margin-bottom: 14px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
 }
 
+/* 行高加大：胶囊屏小字易挤，正文 1.6 倍行距 */
 .item-row {
   flex-direction: column;
-  padding: 14px 0;
+  padding: 18px 0;
   border-bottom-width: 1px;
   border-bottom-color: #0f3460;
 }
 
-.msg-left {
+.msg-line {
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .unread-dot {
@@ -344,30 +411,28 @@ export default {
   height: 10px;
   border-radius: 5px;
   margin-right: 10px;
+  margin-top: 20px;
   flex-shrink: 0;
 }
 
 .msg-from {
   font-size: 28px;
-  line-height: 38px;
+  line-height: 50px;
   margin-right: 4px;
   flex-shrink: 0;
 }
 
 .msg-text {
   font-size: 32px;
-  line-height: 44px;
+  line-height: 50px;
   flex: 1;
-}
-
-.msg-right {
-  margin-top: 6px;
-  padding-left: 20px;
 }
 
 .msg-time {
   font-size: 24px;
-  line-height: 32px;
+  line-height: 34px;
+  margin-top: 6px;
+  padding-left: 20px;
 }
 
 .empty-state {
@@ -385,82 +450,96 @@ export default {
 
 .empty-text {
   font-size: 32px;
-  line-height: 44px;
+  line-height: 48px;
   margin-bottom: 8px;
 }
 
 .empty-hint {
   font-size: 24px;
-  line-height: 34px;
+  line-height: 38px;
   text-align: center;
 }
 
-.action-row {
+.meta-row {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 4px;
+  padding: 6px 4px;
 }
 
-.action-text {
+.meta-text {
   font-size: 24px;
   line-height: 34px;
 }
 
 .clear-btn {
-  padding: 8px 20px;
+  padding: 6px 18px;
   border-radius: 8px;
 }
 
 .clear-btn-text {
-  font-size: 28px;
-  line-height: 38px;
+  font-size: 26px;
+  line-height: 36px;
 }
 
 .reply-bar {
   flex-direction: column;
   border-radius: 12px;
   padding: 12px 12px 14px 12px;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
-.reply-title {
+.phone-status {
   font-size: 22px;
-  line-height: 30px;
-  margin-bottom: 8px;
+  line-height: 32px;
+  margin-bottom: 10px;
 }
 
-.phrase-wrap {
+/* 横滑短语：一行，左右滑切换，点按发送 */
+.phrase-row {
   flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  align-items: center;
+  border-radius: 10px;
+  height: 72px;
 }
 
-.phrase-btn {
-  width: 48%;
-  height: 56px;
-  border-radius: 10px;
+.phrase-arrow {
+  font-size: 36px;
+  width: 34px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.phrase-swiper {
+  flex: 1;
+  height: 72px;
+}
+
+.phrase-slide {
+  width: 100%;
+  height: 72px;
   justify-content: center;
   align-items: center;
-  margin-bottom: 8px;
 }
 
 .phrase-text {
-  font-size: 28px;
-  line-height: 36px;
+  font-size: 30px;
+  line-height: 44px;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .write-btn {
-  height: 56px;
+  height: 60px;
   border-radius: 10px;
   justify-content: center;
   align-items: center;
-  margin-top: 2px;
+  margin-top: 10px;
 }
 
 .write-text {
   font-size: 28px;
-  line-height: 36px;
+  line-height: 40px;
 }
 
 @media (shape: circle) {
@@ -482,15 +561,22 @@ export default {
   }
   .msg-text {
     font-size: 28px;
-    line-height: 38px;
+    line-height: 44px;
   }
-  .phrase-btn {
-    height: 52px;
+  .msg-from {
+    line-height: 44px;
+  }
+  .phrase-row {
+    height: 66px;
+  }
+  .phrase-swiper,
+  .phrase-slide {
+    height: 66px;
   }
   .phrase-text,
   .write-text {
     font-size: 26px;
-    line-height: 34px;
+    line-height: 38px;
   }
 }
 
@@ -513,22 +599,26 @@ export default {
     line-height: 28px;
   }
   .section {
-    padding: 12px 10px;
+    padding: 10px 10px;
   }
   .item-row {
-    padding: 14px 0;
+    padding: 16px 0;
   }
   .msg-text {
     font-size: 32px;
-    line-height: 44px;
+    line-height: 48px;
     lines: 2;
     text-overflow: ellipsis;
   }
+  .msg-from {
+    font-size: 28px;
+    line-height: 48px;
+  }
   .msg-time {
     font-size: 22px;
-    line-height: 30px;
+    line-height: 32px;
   }
-  .action-text {
+  .meta-text {
     font-size: 22px;
     line-height: 30px;
   }
@@ -536,31 +626,29 @@ export default {
     font-size: 26px;
     line-height: 36px;
   }
-  .empty-icon {
-    font-size: 40px;
-  }
-  .empty-text {
-    font-size: 28px;
-    line-height: 38px;
-  }
-  .empty-hint {
-    font-size: 22px;
-    line-height: 30px;
-  }
-  .reply-title {
+  .phone-status {
     font-size: 20px;
     line-height: 28px;
+    margin-bottom: 8px;
   }
-  .phrase-btn {
-    height: 50px;
+  .phrase-row {
+    height: 64px;
   }
-  .phrase-text,
+  .phrase-swiper,
+  .phrase-slide {
+    height: 64px;
+  }
+  .phrase-text {
+    font-size: 28px;
+    line-height: 42px;
+  }
   .write-text {
     font-size: 26px;
-    line-height: 34px;
+    line-height: 38px;
   }
   .write-btn {
-    height: 50px;
+    height: 56px;
+    margin-top: 8px;
   }
 }
 </style>

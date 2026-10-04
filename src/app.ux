@@ -943,6 +943,17 @@ function initSyncReceiver() {
       syncHandleNotify(connect, parsed)
       return
     }
+    if (parsed.action === "rx_ack") {
+      // 手机 → 手环：应用层回执（我们发的 chat/cmd 手机已收到）。
+      // 记「手机最后在线时间」到全局 —— 模块被打成多份副本，globalThis 是唯一跨副本通道。
+      // 留言板页据此显示「手机在线」，手环发消息不再盲发。
+      try {
+        globalThis.__evSyncPhoneSeenTs = Date.now()
+        globalThis.__evSyncPhoneSeenRef = parsed.refAction || ""
+      } catch (e) {}
+      console.log("[SYNC-RX] rx_ack, refAction=" + (parsed.refAction || "") + " phone is online")
+      return
+    }
     // 无 action：兼容已对接格式，按导入处理
     syncHandleImport(connect, parsed)
   }
