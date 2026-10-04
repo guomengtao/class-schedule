@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.7.39",
-  "versionCode": 1041,
+  "versionName": "1.7.41",
+  "versionCode": 1043,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
@@ -109,9 +109,6 @@
       "pages/device-info": {
         "component": "device-info"
       },
-      "pages/device-id": {
-        "component": "device-id"
-      },
       "pages/width-detect": {
         "component": "width-detect"
       },
@@ -168,6 +165,9 @@
       },
       "pages/time-picker-demo": {
         "component": "time-picker-demo"
+      },
+      "pages/message-inbox": {
+        "component": "message-inbox"
       }
     }
   }

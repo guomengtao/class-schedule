@@ -8,23 +8,26 @@
       <div class="header-placeholder"></div>
     </div>
 
-    <div class="section" style="background-color: {{ theme.card }}" if="{{ messages.length > 0 }}">
-      <div class="item-row" for="{{ messages }}" onclick="toggleRead($item.id)">
-        <div class="msg-left">
-          <div class="unread-dot" style="background-color: {{ $item.read ? 'transparent' : theme.accent }}"></div>
-          <text class="msg-text" style="color: {{ $item.read ? theme.textMuted : theme.text }}">{{ $item.text }}</text>
-        </div>
-        <div class="msg-right">
-          <text class="msg-time" style="color: {{ theme.textMuted }}">{{ $item.timeStr }}</text>
+    <scroll class="list-area">
+      <div class="section" style="background-color: {{ theme.card }}" if="{{ messages.length > 0 }}">
+        <div class="item-row" for="{{ messages }}" onclick="toggleRead($item.id)">
+          <div class="msg-left">
+            <div class="unread-dot" style="background-color: {{ $item.read ? 'transparent' : theme.accent }}"></div>
+            <text class="msg-from" if="{{ $item.from === 'watch' }}" style="color: {{ theme.accent }}">我：</text>
+            <text class="msg-text" style="color: {{ $item.read ? theme.textMuted : theme.text }}">{{ $item.text }}</text>
+          </div>
+          <div class="msg-right">
+            <text class="msg-time" style="color: {{ theme.textMuted }}">{{ $item.timeStr }}</text>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="empty-state" if="{{ messages.length === 0 }}">
-      <text class="empty-icon">📭</text>
-      <text class="empty-text" style="color: {{ theme.textMuted }}">暂无留言</text>
-      <text class="empty-hint" style="color: {{ theme.textMuted }}">手机端发送的留言会显示在这里</text>
-    </div>
+      <div class="empty-state" if="{{ messages.length === 0 }}">
+        <text class="empty-icon">📭</text>
+        <text class="empty-text" style="color: {{ theme.textMuted }}">暂无留言</text>
+        <text class="empty-hint" style="color: {{ theme.textMuted }}">手机端发送的留言会显示在这里</text>
+      </div>
+    </scroll>
 
     <div class="action-row" if="{{ messages.length > 0 }}">
       <text class="action-text" style="color: {{ theme.textMuted }}">共 {{ messages.length }} 条，{{ unread }} 条未读</text>
@@ -32,13 +35,34 @@
         <text class="clear-btn-text" style="color: {{ theme.deleteText }}">清空</text>
       </div>
     </div>
+
+    <!-- 回复区：快捷短语（一键发回手机）+「自己写」调中文输入页 -->
+    <div class="reply-bar" style="background-color: {{ theme.card }}">
+      <text class="reply-title" style="color: {{ theme.textSecondary }}">回复手机</text>
+      <div class="phrase-wrap">
+        <div class="phrase-btn" for="{{ phrases }}" onclick="sendPhrase($item)" style="background-color: {{ theme.cardLight }}">
+          <text class="phrase-text" style="color: {{ theme.accent }}">{{ $item }}</text>
+        </div>
+      </div>
+      <div class="write-btn" onclick="writeReply" style="background-color: {{ theme.accent }}">
+        <text class="write-text" style="color: {{ theme.bg }}">自己写…</text>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
+import prompt from "@system.prompt"
 var store = require("../../data/store.js")
 var msgStore = require("../../data/message-store.js")
+var chatBridge = require("../../data/chat-bridge.js")
+var replyPhrases = require("../../data/reply-phrases.js")
+
+/** 自己写回复时，中文输入页把结果写进这个 key（返回本页时读走） */
+var DRAFT_KEY = "ev_reply_draft"
+/** 「等待输入页返回」标记：onShow 靠它区分「首次进入」与「从输入页回来」 */
+var AWAITING_KEY = "ev_reply_awaiting"
 
 export default {
   private: {
@@ -57,7 +81,8 @@ export default {
       deleteText: "#e08080"
     },
     messages: [],
-    unread: 0
+    unread: 0,
+    phrases: []
   },
 
   onInit() {
@@ -66,6 +91,8 @@ export default {
       self.theme = t
       self.updateIconSrc(themeName)
     })
+    // 短语表来自数据模块（有单测覆盖），页面只负责渲染与发送
+    self.phrases = replyPhrases.getPhrases()
     self.loadMessages()
   },
 
@@ -76,6 +103,8 @@ export default {
       self.updateIconSrc(themeName)
     })
     self.loadMessages()
+    // 从「自己写」输入页返回时，把草稿发出去
+    self.checkPendingReply()
   },
 
   updateIconSrc: function (themeName) {
@@ -109,6 +138,130 @@ export default {
     msgStore.clearAll(function () {
       self.loadMessages()
     })
+  },
+
+  // ======================= 回复 =======================
+
+  /** 点快捷短语：直接发回手机 */
+  sendPhrase(phrase) {
+    this.doSend(phrase)
+  },
+
+  /**
+   * 把一条回复发回手机。
+   * 走 chatBridge.send（interconnect 点对点，手机端 MessageActivity 按 id 去重后入库并提醒）。
+   * ⚠️ 该链路**没有 ACK**：send 返回 true 只代表「已调用发送」，不代表对方已收到。
+   *    所以文案说「已回复」而不是「已送达」。
+   */
+  doSend(text) {
+    var t = replyPhrases.buildReply(text)
+    if (!t) {
+      prompt.showToast({ message: "没有可回复的内容" })
+      return
+    }
+    var ok = chatBridge.send(t)
+    if (!ok) {
+      prompt.showToast({ message: "设备未连接，先在手机端打开 EV 同步" })
+      return
+    }
+    this.appendLocal(t)
+    prompt.showToast({ message: "已回复：" + t })
+  },
+
+  /** 发出的回复也在本页留一条（标 from=watch），便于回看自己回过什么 */
+  appendLocal(text) {
+    var self = this
+    var storage = require("@system.storage")
+    // ⚠️ key 不存在时 storage.get 走 fail —— fail 里必须同样落盘，
+    //    否则「第一次回复」永远不生成收件箱，用户看不到自己发过什么。
+    function write(oldVal) {
+      var list = []
+      try { list = JSON.parse(oldVal || "[]") } catch (e) { list = [] }
+      list.push({
+        id: String(Date.now()) + "-r" + Math.random().toString(36).slice(2, 6),
+        from: "watch",
+        text: text,
+        ts: Date.now(),
+        read: true
+      })
+      if (list.length > 50) { list = list.slice(list.length - 50) }
+      storage.set({
+        key: "ev_chat_inbox",
+        value: JSON.stringify(list),
+        success: function () { self.loadMessages() },
+        fail: function () {}
+      })
+    }
+    storage.get({
+      key: "ev_chat_inbox",
+      success: function (val) { write(val) },
+      fail: function () { write(null) }
+    })
+  },
+
+  /** 「自己写…」：配置好中文输入页的参数后跳过去，回来时在 onShow 里取草稿 */
+  writeReply() {
+    this.setSeq([
+      ["chinese_input_title", "回复留言"],
+      ["chinese_input_placeholder", "输入回复内容"],
+      ["chinese_input_value", ""],
+      ["chinese_input_maxlen", "20"],
+      ["chinese_input_return_key", DRAFT_KEY],
+      [DRAFT_KEY, ""],
+      [AWAITING_KEY, "1"]
+    ], function () {
+      router.push({ uri: "/pages/chinese-input" })
+    })
+  },
+
+  /**
+   * 检查是否有「自己写」的草稿待发。
+   * onShow 在首次进入时也会触发，所以必须先看标记，避免把上一次的旧草稿重复发出去。
+   */
+  checkPendingReply() {
+    var self = this
+    var storage = require("@system.storage")
+    storage.get({
+      key: AWAITING_KEY,
+      success: function (v) {
+        if (String(v === undefined || v === null ? "" : v) !== "1") {
+          return
+        }
+        storage.set({ key: AWAITING_KEY, value: "", fail: function () {} })
+        storage.get({
+          key: DRAFT_KEY,
+          success: function (draft) {
+            storage.set({ key: DRAFT_KEY, value: "", fail: function () {} })
+            var t = replyPhrases.buildReply(draft)
+            if (t) {
+              self.doSend(t)
+            }
+          },
+          fail: function () {}
+        })
+      },
+      fail: function () {}
+    })
+  },
+
+  /**
+   * 串行写 storage。
+   * 快应用的 storage.set 是异步的（带 success/fail 回调），并发调用时完成顺序无法保证 ——
+   * 「自己写」要写 7 个 key，若并发写就可能出现输入页读到旧标题/旧结果的竞态。
+   */
+  setSeq(items, done) {
+    var storage = require("@system.storage")
+    var i = 0
+    function next() {
+      if (i >= items.length) {
+        if (typeof done === "function") { done() }
+        return
+      }
+      var pair = items[i]
+      i++
+      storage.set({ key: pair[0], value: pair[1], success: next, fail: next })
+    }
+    next()
   },
 
   goBack() {
@@ -162,12 +315,16 @@ export default {
   flex-shrink: 0;
 }
 
+.list-area {
+  flex: 1;
+  flex-direction: column;
+}
+
 .section {
   flex-direction: column;
   border-radius: 12px;
   padding: 12px 14px;
   margin-bottom: 14px;
-  flex: 1;
 }
 
 .item-row {
@@ -190,6 +347,13 @@ export default {
   flex-shrink: 0;
 }
 
+.msg-from {
+  font-size: 28px;
+  line-height: 38px;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
 .msg-text {
   font-size: 32px;
   line-height: 44px;
@@ -207,10 +371,11 @@ export default {
 }
 
 .empty-state {
-  flex: 1;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  padding-top: 56px;
+  padding-bottom: 40px;
 }
 
 .empty-icon {
@@ -252,6 +417,52 @@ export default {
   line-height: 38px;
 }
 
+.reply-bar {
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 12px 12px 14px 12px;
+  margin-top: 6px;
+}
+
+.reply-title {
+  font-size: 22px;
+  line-height: 30px;
+  margin-bottom: 8px;
+}
+
+.phrase-wrap {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.phrase-btn {
+  width: 48%;
+  height: 56px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.phrase-text {
+  font-size: 28px;
+  line-height: 36px;
+}
+
+.write-btn {
+  height: 56px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.write-text {
+  font-size: 28px;
+  line-height: 36px;
+}
+
 @media (shape: circle) {
   .page {
     padding: 44px 36px 44px 36px;
@@ -273,9 +484,17 @@ export default {
     font-size: 28px;
     line-height: 38px;
   }
+  .phrase-btn {
+    height: 52px;
+  }
+  .phrase-text,
+  .write-text {
+    font-size: 26px;
+    line-height: 34px;
+  }
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media (shape: pill-shaped) {
   .page {
     padding: 30px 16px 30px 16px;
   }
@@ -327,6 +546,21 @@ export default {
   .empty-hint {
     font-size: 22px;
     line-height: 30px;
+  }
+  .reply-title {
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .phrase-btn {
+    height: 50px;
+  }
+  .phrase-text,
+  .write-text {
+    font-size: 26px;
+    line-height: 34px;
+  }
+  .write-btn {
+    height: 50px;
   }
 }
 </style>
