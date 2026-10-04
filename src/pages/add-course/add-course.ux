@@ -537,26 +537,49 @@ export default {
 
 <style>
 @import '../../common/header.css';
+/* ================================================================
+   BASE CSS = 手环 9 基准（160px 内容区）
+   手环 9 默认命中，无需任何 media query。
+   弹性 flex + % 撑满。屏幕增大时，下方宽度断点「增量」调整。
+   原则：base 属性一旦设定，大屏断点只改物理必须区分的值，不覆盖。
+   手环 9 黑屏根因：独立 @media (shape: pill-shaped) 大块命中即崩，
+   故 base 以 9 为基准，彻底移除独立 pill-shaped 分支。
+   ================================================================ */
 
 .page-root {
   width: 100%;
   height: 100%;
   flex-direction: column;
-  padding: 30px 16px 12px 16px;
+  padding: 24px 16px 12px 16px;
 }
 
 .content-scroll {
   flex: 1;
   flex-direction: column;
   width: 100%;
+  padding-bottom: 12px;
+}
+
+/* 胶囊屏 header 适配：占位归零，标题居中，给「添加课程」4字充足空间 */
+.header-placeholder {
+  width: 0;
+  height: 0;
+  margin: 0;
+}
+.header-title {
+  font-size: 24px;
+  line-height: 32px;
+  flex: 1;
+  min-width: 0;
+  text-align: center;
 }
 
 .mgmt-btn {
-  width: 60px;
-  height: 48px;
-  border-radius: 24px;
-  font-size: 22px;
-  line-height: 48px;
+  width: 52px;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 20px;
+  line-height: 40px;
   text-align: center;
   background-color: transparent;
   border: none;
@@ -566,7 +589,7 @@ export default {
 .section {
   flex-direction: column;
   width: 100%;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   flex-shrink: 0;
 }
 
@@ -575,15 +598,13 @@ export default {
   width: 100%;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .section-title {
-  font-size: 26px;
-  line-height: 36px;
+  font-size: 20px;
+  line-height: 28px;
   font-weight: bold;
-  max-lines: 1;
-  text-overflow: ellipsis;
   flex-shrink: 1;
   margin-right: 8px;
 }
@@ -592,14 +613,14 @@ export default {
   flex-direction: row;
   width: 100%;
   flex-shrink: 0;
-  height: 72px;
+  height: 60px;
 }
 
 .course-item {
-  width: 100px;
-  height: 64px;
-  border-radius: 14px;
-  margin-right: 10px;
+  width: 120px;
+  height: 56px;
+  border-radius: 10px;
+  margin-right: 6px;
   justify-content: center;
   align-items: center;
   border: 2px solid transparent;
@@ -611,12 +632,10 @@ export default {
 }
 
 .course-name {
-  font-size: 26px;
-  line-height: 34px;
+  font-size: 24px;
+  line-height: 32px;
   font-weight: bold;
   text-align: center;
-  max-lines: 1;
-  text-overflow: ellipsis;
 }
 
 .course-add-item {
@@ -625,19 +644,19 @@ export default {
 }
 
 .course-add-icon {
-  font-size: 40px;
-  line-height: 48px;
+  font-size: 34px;
+  line-height: 44px;
   font-weight: bold;
   text-align: center;
 }
 
 /* 时间步进区：与编辑页（detail.ux）保持同一套结构与数值 */
 .picker-label {
-  font-size: 30px;
+  font-size: 24px;
   font-weight: bold;
-  line-height: 40px;
-  margin-top: 8px;
-  margin-bottom: 8px;
+  line-height: 32px;
+  margin-top: 6px;
+  margin-bottom: 6px;
   text-align: center;
 }
 
@@ -646,8 +665,8 @@ export default {
   width: 100%;
   align-items: center;
   border-radius: 14px;
-  padding: 12px;
-  margin-bottom: 10px;
+  padding: 6px;
+  margin-bottom: 6px;
 }
 
 .stepper-row {
@@ -655,21 +674,22 @@ export default {
   width: 100%;
   align-items: center;
   justify-content: center;
-  margin-bottom: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
 }
 
 .stepper-label {
-  font-size: 28px;
-  line-height: 40px;
-  width: 60px;
+  font-size: 20px;
+  line-height: 28px;
+  width: 100%;
   text-align: center;
 }
 
 .stepper-btn {
-  width: 48px;
+  width: 44px;
   height: 48px;
-  border-radius: 10px;
-  font-size: 28px;
+  border-radius: 22px;
+  font-size: 24px;
   line-height: 48px;
   font-weight: bold;
   text-align: center;
@@ -678,34 +698,32 @@ export default {
 }
 
 .stepper-val {
-  font-size: 40px;
+  font-size: 28px;
   line-height: 48px;
   font-weight: bold;
-  width: 60px;
+  width: 56px;
   text-align: center;
 }
 
 .input-box {
   width: 100%;
   height: 48px;
-  border-radius: 12px;
+  border-radius: 10px;
   border-width: 2px;
   justify-content: center;
   align-items: center;
-  padding: 0 14px;
+  padding: 0 10px;
 }
 
 .input-text {
-  font-size: 26px;
-  line-height: 36px;
-  max-lines: 1;
-  text-overflow: ellipsis;
+  font-size: 24px;
+  line-height: 32px;
 }
 
 .input-placeholder {
   opacity: 0.5;
-  font-size: 26px;
-  line-height: 36px;
+  font-size: 24px;
+  line-height: 32px;
 }
 
 /* 星期独立区块：与可滚动内容区及底部确认栏分隔，避免挤成一行 */
@@ -713,15 +731,16 @@ export default {
   flex-direction: column;
   width: 100%;
   flex-shrink: 0;
-  margin-top: 14px;
+  margin-top: 10px;
   border-top-width: 1px;
   border-top-color: rgba(255, 255, 255, 0.08);
 }
 
 .weekday-scroll {
   width: 100%;
-  height: 48px;
+  height: 52px;
   margin-top: 8px;
+  padding-top: 4px;
 }
 
 .weekday-row {
@@ -738,6 +757,7 @@ export default {
   align-items: center;
   background-color: transparent;
   border: none;
+  margin: 0 1px;
 }
 
 .weekday-btn-active {
@@ -745,8 +765,8 @@ export default {
 }
 
 .weekday-text {
-  font-size: 24px;
-  line-height: 44px;
+  font-size: 20px;
+  line-height: 28px;
   font-weight: bold;
   text-align: center;
 }
@@ -757,7 +777,7 @@ export default {
   width: 100%;
   justify-content: space-between;
   margin-top: 8px;
-  padding-top: 8px;
+  padding-top: 6px;
   flex-shrink: 0;
 }
 
@@ -765,11 +785,11 @@ export default {
 .cancel-btn {
   flex: 1;
   width: auto;
-  height: 48px;
+  height: 44px;
   border-radius: 14px;
-  font-size: 26px;
-  line-height: 48px;
-  margin-right: 12px;
+  font-size: 22px;
+  line-height: 44px;
+  margin-right: 6px;
   font-weight: bold;
   text-align: center;
   background-color: transparent;
@@ -779,168 +799,170 @@ export default {
 .save-btn {
   flex: 2;
   width: auto;
-  height: 48px;
+  height: 44px;
   border-radius: 14px;
-  font-size: 26px;
-  line-height: 48px;
+  font-size: 22px;
+  line-height: 44px;
   font-weight: bold;
   text-align: center;
   background-color: transparent;
   border: none;
 }
 
-@media (shape: pill-shaped) {
-  .page-root {
-    padding: 24px 16px 24px 16px;
-  }
-    /* header 只有 ◀ + 标题，宽度够，但 48px 会挤压"添加课程"4 字，
-     故取 44px（原 30px 只有规范要求的 62%） */
-      /* 提到规范的 48px：胶囊屏下该按钮独占一行右侧，不与标题抢宽度 */
-      .mgmt-btn {
-    width: 52px;
-    height: 40px;
-    border-radius: 20px;
-    font-size: 20px;
-    line-height: 40px;
-  }
-  .section {
-    margin-bottom: 10px;
-  }
-  .section-title-row {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 6px;
+/* ================================================================
+   宽度断点：手环 10 / 胶囊屏大号（width >= 200px，内容区 ~180px）
+   在 base 基础上「增量」调整。
+   ================================================================ */
+@media (width >= 200px) {
+  .mgmt-btn {
+    width: 56px;
+    height: 44px;
+    font-size: 22px;
+    line-height: 44px;
   }
   .section-title {
-    font-size: 20px;
-    line-height: 28px;
-    flex-shrink: 1;
-    margin-right: 6px;
+    font-size: 22px;
+    line-height: 30px;
   }
   .course-scroll {
-    height: 60px;
-  }
-  /* 底部呼吸空间：避免最后内容紧贴 bottom-bar 视觉上像被压住 */
-  .content-scroll {
-    padding-bottom: 12px;
-  }
-  .course-item {
-    /* 胶囊屏课程条由 88px 加宽到 120px：课名可用宽度 76px → 108px，
-       24px 字号下由 3 字提升到 4.5 字，「大学英语 / 大学物理 / 大学化学」可区分 */
-    width: 120px;
-    height: 56px;
-    border-radius: 10px;
-    margin-right: 6px;
+    height: 64px;
   }
   .course-name {
-    font-size: 24px;
-    line-height: 32px;
+    font-size: 26px;
+    line-height: 34px;
   }
-  .course-add-icon {
-    font-size: 34px;
-    line-height: 44px;
-  }
-  /* 标题显示完整：胶囊屏内容区只有 160px，公共 header.css 的
-     返回按钮(48) + 右侧占位(48) 就把标题压到 64px，「添加课程」4 字(26px)
-     放不下会被截断。这里让占位归零，把 48px 还给标题（112px 可用）。 */
-  .header-placeholder {
-    width: 0;
-    height: 0;
-    margin: 0;
-  }
-  .header-title {
-    font-size: 24px;
-    line-height: 32px;
-    flex: 1;
-    min-width: 0;
-    lines: 1;
-    text-align: center;
-    text-overflow: ellipsis;
-  }
-  /* 时间步进：胶囊屏一行放不下「小时 − 08 +」4 个元素，改为标签独占一行 */
   .picker-label {
-    font-size: 24px;
-    line-height: 32px;
-    margin-top: 6px;
-    margin-bottom: 6px;
-  }
-  .stepper-time {
-    padding: 6px;
-    margin-bottom: 6px;
-  }
-  .stepper-row {
-    flex-wrap: wrap;
-    margin-bottom: 6px;
+    font-size: 26px;
+    line-height: 34px;
   }
   .stepper-label {
-    font-size: 20px;
-    line-height: 28px;
-    width: 100%;
-  }
-  .stepper-btn {
-    width: 44px;
-    height: 48px;
-    border-radius: 22px;
-    font-size: 24px;
-    line-height: 48px;
+    font-size: 22px;
+    line-height: 30px;
   }
   .stepper-val {
-    font-size: 28px;
-    line-height: 48px;
-    width: 56px;
-  }
-  .input-box {
-    height: 48px;
-    border-radius: 10px;
-    padding: 0 10px;
+    font-size: 30px;
   }
   .input-text {
-    font-size: 24px;
-    line-height: 32px;
+    font-size: 26px;
+    line-height: 34px;
   }
   .input-placeholder {
-    font-size: 24px;
-    line-height: 32px;
-  }
-  /* 星期按钮放大到 48px，保证手指点得准（原先 30px 极易点错星期） */
-  .weekday-section {
-    margin-top: 10px;
-  }
-  .weekday-scroll {
-    width: 100%;
-    height: 52px;
-    padding-top: 4px;
-  }
-  .weekday-btn {
-    width: 48px;
-    height: 48px;
-    border-radius: 24px;
-    margin: 0 1px;
+    font-size: 26px;
+    line-height: 34px;
   }
   .weekday-text {
-    font-size: 20px;
-    line-height: 28px;
+    font-size: 22px;
+    line-height: 30px;
   }
-  .bottom-bar {
-    flex-direction: row;
+}
+
+/* ================================================================
+   宽度断点：Watch 6 / 方屏（width >= 400px，内容区 ~400px）
+   rect 屏上下空间充裕，恢复更大字号与间距。
+   ================================================================ */
+@media (width >= 400px) {
+  .page-root {
+    padding: 30px 16px 12px 16px;
+  }
+  .mgmt-btn {
+    width: 60px;
+    height: 48px;
+    border-radius: 24px;
+    font-size: 22px;
+    line-height: 48px;
+  }
+  .section {
+    margin-bottom: 16px;
+  }
+  .section-title-row {
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-size: 26px;
+    line-height: 36px;
+  }
+  .course-scroll {
+    height: 72px;
+  }
+  .course-item {
+    width: 100px;
+    height: 64px;
+    border-radius: 14px;
+    margin-right: 10px;
+  }
+  .course-name {
+    font-size: 26px;
+    line-height: 34px;
+  }
+  .course-add-icon {
+    font-size: 40px;
+    line-height: 48px;
+  }
+  .header-title {
+    font-size: 26px;
+    line-height: 36px;
+  }
+  .picker-label {
+    font-size: 30px;
+    line-height: 40px;
     margin-top: 8px;
-    padding-top: 6px;
+    margin-bottom: 8px;
+  }
+  .stepper-time {
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .stepper-row {
+    flex-wrap: nowrap;
+    margin-bottom: 8px;
+  }
+  .stepper-label {
+    font-size: 28px;
+    line-height: 40px;
+    width: 60px;
+  }
+  .stepper-btn {
+    width: 48px;
+    border-radius: 10px;
+    font-size: 28px;
+  }
+  .stepper-val {
+    font-size: 40px;
+    width: 60px;
+  }
+  .input-box {
+    border-radius: 12px;
+    padding: 0 14px;
+  }
+  .input-text {
+    font-size: 26px;
+    line-height: 36px;
+  }
+  .input-placeholder {
+    font-size: 26px;
+    line-height: 36px;
+  }
+  .weekday-section {
+    margin-top: 14px;
+  }
+  .weekday-scroll {
+    height: 48px;
+    padding-top: 0;
+  }
+  .weekday-text {
+    font-size: 24px;
+    line-height: 44px;
   }
   .cancel-btn {
-    flex: 1;
-    width: auto;
-    height: 44px;
-    line-height: 44px;
-    font-size: 22px;
-    margin: 0 6px 0 0;
+    height: 48px;
+    line-height: 48px;
+    font-size: 26px;
+    margin-right: 12px;
   }
   .save-btn {
-    flex: 2;
-    width: auto;
-    height: 44px;
-    line-height: 44px;
-    font-size: 22px;
+    height: 48px;
+    line-height: 48px;
+    font-size: 26px;
   }
 }
 </style>

@@ -539,8 +539,14 @@ export default {
   },
 
   addSchedule() {
-    if (!this.checkProAccess()) return
-    this.doAddSchedule()
+    var self = this
+    store.isPremiumUnlocked(function(unlocked) {
+      if (!unlocked) {
+        self.showDialog = true
+        return
+      }
+      self.doAddSchedule()
+    })
   },
 
   goToPremium() {
