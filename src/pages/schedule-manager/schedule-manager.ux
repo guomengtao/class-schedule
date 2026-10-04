@@ -162,26 +162,6 @@ export default {
     })
     this.loadData()
     this.checkInputResult()
-    this.logPageWidth()
-  },
-
-  /**
-   * 取证用：打印内容层实际渲染宽度，验证 stack 子元素是否撑满屏幕。
-   * 手环 9(192px) 期望 width=192；若明显小于屏宽则说明宽度塌缩未修好。
-   * 验证通过后本方法可安全删除。
-   */
-  logPageWidth() {
-    var self = this
-    setTimeout(function () {
-      try {
-        self.$element('pageScroll').getScrollRect({
-          success: function (rect) {
-            console.log('[schedule-manager] scroll width=' + rect.width + ' height=' + rect.height)
-          },
-          fail: function () {}
-        })
-      } catch (e) {}
-    }, 500)
   },
 
   loadData() {
@@ -1018,7 +998,7 @@ export default {
   }
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media (shape: pill-shaped) {
   .page {
     padding: 44px 10px 20px 10px;
   }
@@ -1127,7 +1107,7 @@ export default {
    背景：同一套弹窗在 6 处各写一份，胶囊适配缺失/不一致 → 192×490 上出现
    标题截成 3 字、✓ 条目只剩 1 字、内容顶到屏幕右缘被裁（2026-09-27 实测）。
    统一策略：卡片占满安全宽度、字号降档、文本允许 2 行/1 行 + 省略号。 */
-@media (shape: capsule), (shape: pill-shaped) {
+@media (shape: pill-shaped) {
   .overlay-modal {
     padding: 40px 16px;
   }
