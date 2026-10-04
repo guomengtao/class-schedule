@@ -577,6 +577,7 @@ function syncHandleActivate(connect, payload) {
 // homepage   首页设置
 // appearance 首页模板 + 字号
 // pinned     钉首页列表（**默认不开放**，需插件显式传 scopes 才会返回）
+// auth       授权状态（**默认不开放**，需插件显式传 scopes 才返回；且永远只读）
 // ===== 数据开放策略（守门人模型）=====
 // 想调整"哪些可读 / 只读 / 禁止读 / 可写"，只改这张表即可。
 //
@@ -588,8 +589,8 @@ function syncHandleActivate(connect, payload) {
 // 组合出的策略：
 //   任意读+可写   → read:"always"   write:true   （如 nickname / 课表）
 //   只读          → read:"always"   write:false  （如 version 版本号）
-//   显式才给只读 → read:"explicit" write:false   （如 pinned 钉首页）
-//   禁止读写     → read:"never"    write:false   （如 auth 授权）
+//   显式才给只读 → read:"explicit" write:false   （如 pinned 钉首页 / auth 授权）
+//   禁止读写     → read:"never"    write:false
 var SYNC_ACCESS = {
   schedule:   { read: "always",   write: true  },  // 课表：可读可写（import 覆盖）
   profile:    { read: "always",   write: true  },  // 昵称等：可读可写
@@ -597,7 +598,9 @@ var SYNC_ACCESS = {
   appearance: { read: "always",   write: true  },  // 模板 + 字号：可读可写
   version:    { read: "always",   write: false },  // 版本号：只读
   pinned:     { read: "explicit", write: false },  // 钉首页：只读（须显式请求）
-  auth:       { read: "never",    write: false }   // 授权：禁止读、禁止写
+  // 授权：只读，须显式请求（2026-10-05 由 never 放开，供安卓端识别标准/高级版）。
+  //   只暴露"状态"，不暴露任何可写路径 —— 授权仍只能由手环本机激活流程改写。
+  auth:       { read: "explicit", write: false }
 }
 
 // update_settings 的字段 → 所属域（写权限判断用）
@@ -761,6 +764,32 @@ function syncCollectScopes(scopes, scheduleIndex, callback) {
       })
     } catch (e) {
       result.pinned = []
+      finish()
+    }
+  }
+  // 授权状态（只读）：供手机端识别「标准版 / 高级版」并做功能门禁。
+  // 只回状态字段，**不含任何可写数据** —— 授权仍只能由手环本机的激活流程改写。
+  if (syncWantScope(list, "auth")) {
+    pending++
+    try {
+      authStore.checkStatus(function (st) {
+        st = st || {}
+        result.auth = {
+          status: st.status || "basic",
+          displayStatus: st.displayStatus || "标准版",
+          isActivated: !!st.isActivated,
+          isPermanent: !!st.isPermanent,
+          isExpired: !!st.isExpired,
+          isTrial: !!st.isTrial,
+          remainingDays: (typeof st.remainingDays === "number") ? st.remainingDays : 0,
+          expireAt: st.expireAt || 0,
+          expireText: st.expireText || "",
+          text: st.text || ""
+        }
+        finish()
+      })
+    } catch (e) {
+      result.auth = null
       finish()
     }
   }
