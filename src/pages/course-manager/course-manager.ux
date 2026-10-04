@@ -379,13 +379,27 @@ export default {
 
 <style>
 @import '../../common/header.css';
+/* ================================================================
+   BASE CSS = 手环 9 基准（160px 内容区）
+   手环 9 默认命中，无需任何 media query。
+   弹性 flex + % 撑满。屏幕增大时，下方宽度断点「增量」调整。
+   原则：base 属性一旦设定，大屏断点只改物理必须区分的值，不覆盖。
+   手环 9 黑屏根因：独立 @media (shape: pill-shaped) 大块命中即崩，
+   故 base 以 9 为基准，彻底移除独立 pill-shaped 分支。
+   ================================================================ */
 
 .page {
   flex-direction: column;
-  padding: 38px 6px 10px 6px;
+  padding: 30px 16px 56px 16px;
   height: 100%;
 }
 
+.header-placeholder {
+  width: 44px;
+  flex-shrink: 0;
+}
+
+/* ---- 方屏（Watch6 / rect）用右上角 "+ 添加" ---- */
 .add-btn {
   width: 80px;
   height: 48px;
@@ -397,28 +411,26 @@ export default {
   flex-shrink: 0;
 }
 
-.header-placeholder {
-  width: 48px;
-  flex-shrink: 0;
-}
-
-.add-toolbar {
+/* ---- 胶囊屏（手环9 / 10 Pro）工具栏：清除 + 添加 ---- */
+.toolbar-cap {
   flex-direction: row;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   height: 48px;
-  margin-bottom: 0;
-  flex-shrink: 0;
+  margin-bottom: 6px;
 }
 
-.add-btn-toolbar {
-  width: 64px;
-  height: 44px;
-  border-radius: 22px;
+.clear-group {
+  flex-direction: row;
+  align-items: center;
+}
+
+.add-btn-cap {
+  width: 72px;
+  height: 48px;
+  border-radius: 14px;
   font-size: 22px;
-  font-weight: bold;
-  text-align: center;
-  line-height: 44px;
+  line-height: 48px;
   flex-shrink: 0;
 }
 
@@ -434,7 +446,6 @@ export default {
   font-size: 20px;
   flex: 1;
   line-height: 28px;
-  lines: 1;
 }
 
 .clear-btn {
@@ -455,26 +466,31 @@ export default {
   flex-direction: column;
 }
 
+/* ---- 手环9 课程条：卡片式上下两行（课名在上，操作在下） ---- */
 .course-item {
-  flex-direction: row;
-  align-items: center;
-  border-radius: 10px;
-  padding: 10px;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 8px 12px;
   margin-bottom: 8px;
+  border-radius: 14px;
 }
 
 .item-main {
-  flex: 1;
+  flex: none;
+  width: 100%;
   flex-direction: row;
   align-items: center;
   min-width: 0;
 }
 
 .item-actions {
+  width: 100%;
   flex-direction: row;
+  justify-content: flex-end;
   align-items: center;
   flex-shrink: 0;
-  margin-left: 6px;
+  margin-left: 0;
+  margin-top: 6px;
 }
 
 .item-del-hint {
@@ -483,7 +499,7 @@ export default {
   line-height: 30px;
   text-align: center;
   flex-shrink: 0;
-  margin-right: 8px;
+  margin-right: 10px;
 }
 
 .item-index {
@@ -506,36 +522,35 @@ export default {
 
 .course-name {
   flex: 1;
-  font-size: 28px;
+  font-size: 22px;
   font-weight: bold;
-  line-height: 36px;
-  lines: 1;
-  text-overflow: ellipsis;
+  line-height: 30px;
 }
 
 .edit-btn {
   width: 56px;
-  height: 40px;
-  border-radius: 20px;
+  height: 48px;
+  border-radius: 14px;
   font-size: 22px;
   font-weight: bold;
   text-align: center;
-  line-height: 36px;
+  line-height: 48px;
   flex-shrink: 0;
 }
 
 .delete-btn {
   width: 56px;
-  height: 40px;
-  border-radius: 20px;
+  height: 48px;
+  border-radius: 14px;
   font-size: 22px;
-  line-height: 36px;
+  line-height: 48px;
   font-weight: bold;
   text-align: center;
   flex-shrink: 0;
-  margin-left: 8px;
+  margin-left: 10px;
 }
 
+/* ---- 手环9 返回按钮 + 标题（胶囊 header） ---- */
 .back-btn-cap {
   width: 40px;
   height: 40px;
@@ -556,134 +571,115 @@ export default {
   width: 40px;
 }
 
-@media (shape: pill-shaped) {
-  .page {
-    padding: 30px 16px 56px 16px;
-  }
-
-  .header-placeholder {
-    width: 44px;
-  }
-
-  .toolbar-cap {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    height: 48px;
-    margin-bottom: 6px;
-  }
-
-  .clear-group {
-    flex-direction: row;
-    align-items: center;
-  }
-
-  .add-btn-cap {
-    width: 72px;
-    height: 48px;
-    border-radius: 14px;
+/* ================================================================
+   宽度断点：手环 10 / 胶囊屏大号（width >= 200px，内容区 ~180px）
+   在 base 基础上「增量」调整。
+   ================================================================ */
+@media (width >= 200px) {
+  .header-title-cap {
     font-size: 22px;
-    line-height: 48px;
-    flex-shrink: 0;
+    line-height: 30px;
   }
-  .clear-bar {
-    padding: 4px 0;
-    margin-bottom: 6px;
+  .course-name {
+    font-size: 24px;
+    line-height: 32px;
   }
   .clear-hint {
     font-size: 22px;
     line-height: 30px;
   }
   .clear-btn {
-    width: 60px;
-    height: 48px;
-    border-radius: 14px;
+    width: 64px;
+    height: 44px;
+    border-radius: 22px;
     font-size: 22px;
-    line-height: 48px;
+    line-height: 44px;
+  }
+}
+
+/* ================================================================
+   宽度断点：Watch 6 / 方屏（width >= 400px，内容区 ~400px）
+   方屏矩形改为单行上下两栏，字号与按钮放大。
+   ================================================================ */
+@media (width >= 400px) {
+  .page {
+    padding: 6px 12px 16px 12px;
+  }
+  .header-placeholder {
+    width: 48px;
+  }
+  .add-btn {
+    width: 80px;
+    height: 44px;
+    border-radius: 22px;
+    font-size: 24px;
+    line-height: 40px;
+  }
+  .clear-hint {
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .clear-btn {
+    width: 64px;
+    height: 44px;
+    border-radius: 22px;
+    font-size: 24px;
+    line-height: 40px;
   }
   .course-item {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    border-radius: 14px;
+    padding: 10px;
+    margin-bottom: 6px;
   }
   .item-main {
+    flex: 1;
+  }
+  .item-actions {
+    width: auto;
     flex: none;
-    width: 100%;
+    margin-left: 6px;
+    margin-top: 0;
   }
   .item-index {
     width: 30px;
     height: 30px;
     border-radius: 15px;
-    margin-right: 8px;
+    margin-right: 6px;
   }
   .index-text {
-    font-size: 20px;
-    line-height: 26px;
+    font-size: 22px;
+    line-height: 28px;
   }
   .course-name {
-    font-size: 22px;
-    line-height: 30px;
-    lines: 2;
-    text-overflow: ellipsis;
-  }
-  .item-actions {
-    width: 100%;
-    justify-content: flex-end;
-    margin-left: 0;
-    margin-top: 6px;
-  }
-  .item-del-hint {
-    font-size: 22px;
-    line-height: 30px;
-    margin-right: 10px;
+    font-size: 28px;
+    line-height: 36px;
   }
   .edit-btn {
     width: 56px;
-    height: 48px;
-    border-radius: 14px;
-    font-size: 22px;
-    line-height: 48px;
+    height: 44px;
+    border-radius: 22px;
+    font-size: 20px;
+    line-height: 40px;
   }
   .delete-btn {
     width: 56px;
-    height: 48px;
-    border-radius: 14px;
-    font-size: 22px;
-    line-height: 48px;
-    margin-left: 10px;
-  }
-  .undo-msg {
-    flex: none;
-    width: 100%;
+    height: 44px;
+    border-radius: 22px;
     font-size: 20px;
-    line-height: 28px;
-    text-align: center;
-    margin-bottom: 8px;
-  }
-  .undo-bar {
-    left: 8px;
-    right: 8px;
-    bottom: 56px;
-    height: auto;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 12px;
-  }
-  .undo-btn {
-    width: 100%;
-    height: 48px;
-    font-size: 20px;
-    line-height: 48px;
-    margin-left: 0;
+    line-height: 40px;
+    margin-left: 6px;
   }
 }
 
+/* ================================================================
+   圆形表盘（唯一保留的 shape 查询——圆方不同构，非宽度可替代）
+   手环 9 不会命中此分支，天然安全。
+   ================================================================ */
 @media (shape: circle) {
   .page {
     padding: 38px 36px 44px 36px;
+  }
+  .toolbar-cap {
+    display: none;
   }
         .add-btn {
     width: 72px;
@@ -692,9 +688,24 @@ export default {
     font-size: 22px;
     line-height: 36px;
   }
+  .clear-bar {
+    display: flex;
+  }
   .course-item {
+    flex-direction: row;
+    align-items: center;
     padding: 10px;
     margin-bottom: 6px;
+    border-radius: 10px;
+  }
+  .item-main {
+    flex: 1;
+  }
+  .item-actions {
+    width: auto;
+    flex: none;
+    margin-left: 6px;
+    margin-top: 0;
   }
   .item-index {
     width: 28px;
@@ -738,63 +749,6 @@ export default {
   }
 }
 
-@media (shape: rect) {
-  .page {
-    padding: 6px 12px 16px 12px;
-  }
-        .add-btn {
-    width: 80px;
-    height: 44px;
-    border-radius: 22px;
-    font-size: 24px;
-    line-height: 40px;
-  }
-  .clear-hint {
-    font-size: 24px;
-    line-height: 32px;
-  }
-  .clear-btn {
-    width: 64px;
-    height: 44px;
-    border-radius: 22px;
-    font-size: 24px;
-    line-height: 40px;
-  }
-  .course-item {
-    padding: 10px;
-    margin-bottom: 6px;
-  }
-  .item-index {
-    width: 30px;
-    height: 30px;
-    border-radius: 15px;
-    margin-right: 6px;
-  }
-  .index-text {
-    font-size: 22px;
-    line-height: 28px;
-  }
-  .course-name {
-    font-size: 28px;
-    line-height: 36px;
-  }
-  .edit-btn {
-    width: 56px;
-    height: 44px;
-    border-radius: 22px;
-    font-size: 20px;
-    line-height: 40px;
-  }
-  .delete-btn {
-    width: 56px;
-    height: 44px;
-    border-radius: 22px;
-    font-size: 20px;
-    line-height: 40px;
-    margin-left: 6px;
-  }
-}
-
 .undo-bar {
   position: fixed;
   left: 12px;
@@ -812,8 +766,7 @@ export default {
 .undo-msg {
   font-size: 24px;
   flex: 1;
-  lines: 1;
-  text-overflow: ellipsis;
+  line-height: 32px;
 }
 .undo-btn {
   width: 72px;
