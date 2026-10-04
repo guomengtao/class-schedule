@@ -88,6 +88,31 @@
         <text class="item-hint" style="color: {{ theme.textMuted }}">手机端到点提醒</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="cmdFlashlight">
+        <text class="item-label" style="color: {{ theme.text }}">手电筒</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">切换手机手电</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="cmdWeather">
+        <text class="item-label" style="color: {{ theme.text }}">查天气</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">手机定位取天气</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="cmdNavHome">
+        <text class="item-label" style="color: {{ theme.text }}">导航回家</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">手机打开地图</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="cmdNavWork">
+        <text class="item-label" style="color: {{ theme.text }}">导航去公司</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">手机打开地图</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="cmdWord">
+        <text class="item-label" style="color: {{ theme.text }}">问单词</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">手机上输入查词</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="sendChatTest">
         <text class="item-label" style="color: {{ theme.accent }}">发消息到手机</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">聊天 PoC</text>
@@ -273,6 +298,27 @@ export default {
 
   cmdCountdown() {
     this.cmdSend("countdown", { minutes: 5 }, "已设置手机 5 分钟倒计时")
+  },
+
+  // ====== 手机遥控（A 类扩展：手电筒 / 天气 / 导航 / 单词）======
+  cmdFlashlight() {
+    this.cmdSend("flashlight", null, "已切换手机手电筒（看手机闪光灯）")
+  },
+
+  cmdWeather() {
+    this.cmdSend("weather", null, "正在查天气，结果稍后提示")
+  },
+
+  cmdNavHome() {
+    this.cmdSend("nav", { dest: "home" }, "手机已打开地图：回家")
+  },
+
+  cmdNavWork() {
+    this.cmdSend("nav", { dest: "work" }, "手机已打开地图：去公司")
+  },
+
+  cmdWord() {
+    this.cmdSend("word", null, "请在手机上输入要查的单词")
   },
 
   goBack() {
