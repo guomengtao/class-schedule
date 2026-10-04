@@ -3,11 +3,18 @@
  *
  * 用途：让 EV 课程表具备【主动】给手机发消息的能力。
  *
- * 背景：interconnect 的 connect 实例原本只是 app.ux 里 initSyncReceiver() 的局部变量，
- *       导致 EV 只能在"收到手机消息时回包"，没法自己开口 —— 这是"手环 → 手机"做不出来的根因。
+ * ⚠️ 2026-10-04 重要修复（真机实测暴露）：
+ *   aiot 打包会把本模块**分别**打进 app.js 和各页面文件 —— 是**两份互不相干的副本**。
+ *   证据：build/app.js 与 build/pages/message-inbox/message-inbox.js 里
+ *        各有一份 "./src/data/chat-bridge.js" 定义，各自带 "var connect = null"。
+ *   后果：app.ux 里的 chatBridge.register(connect) 只写进了 app.js 那份副本；
+ *        留言板页 require 拿到的是**另一份**，connect 永远是 null
+ *        → 点快捷短语永远提示「设备未连接」（真机 100% 复现，与手机端/通道状态无关）。
  *
- * 做法：**不依赖全局变量**（快应用的 app.ux 顶层函数对页面不一定可见），
- *       改用一个共享模块：app.ux 拿到 connect 后 register 进来，页面 require 同一个模块调用 send。
+ *   现改为三级取用（取到即缓存）：
+ *     ① 本文件内 register() 注入的（app.ux 与本文件在同一份副本时才有效）
+ *     ② 全局桥 globalThis/global 上的 __evSyncConnect（app.ux 注册时会顺手挂一份）
+ *     ③ 自己 require @system.interconnect 取实例（兜底）
  *
  * 用法：
  *   // app.ux / initSyncReceiver() 里
@@ -18,32 +25,74 @@
  *   chatBridge.send("要发的文字")
  */
 var connect = null
+var GLOBAL_KEY = "__evSyncConnect"
+
+/** ② 全局桥：app.ux 注册时会把 connect 挂到全局对象上，跨文件副本可见 */
+function fromGlobal() {
+  try {
+    if (typeof globalThis !== "undefined" && globalThis[GLOBAL_KEY]) {
+      return globalThis[GLOBAL_KEY]
+    }
+  } catch (e) {}
+  try {
+    if (typeof global !== "undefined" && global[GLOBAL_KEY]) {
+      return global[GLOBAL_KEY]
+    }
+  } catch (e) {}
+  return null
+}
+
+/** ③ 兜底：本文件自己取一个 interconnect 实例 */
+function selfAcquire() {
+  try {
+    var ic = require("@system.interconnect")
+    if (ic && typeof ic.instance === "function") {
+      return ic.instance()
+    }
+  } catch (e) {
+    console.log("[CHAT] self-acquire failed: " + e)
+  }
+  return null
+}
+
+/** 取当前可用 connect：注入 → 全局桥 → 自取；取到即缓存 */
+function current() {
+  if (connect) {
+    return connect
+  }
+  connect = fromGlobal() || selfAcquire()
+  console.log("[CHAT] connect resolved = " + !!connect)
+  return connect
+}
 
 module.exports = {
 
-  /** 由 app.ux 的 initSyncReceiver() 调用，把 connect 注册进来 */
+  /** 由 app.ux 的 initSyncReceiver() 调用，把 connect 注册进来（并顺手挂到全局桥） */
   register: function (c) {
     connect = c
+    try {
+      if (typeof globalThis !== "undefined") { globalThis[GLOBAL_KEY] = c }
+    } catch (e) {}
+    try {
+      if (typeof global !== "undefined") { global[GLOBAL_KEY] = c }
+    } catch (e) {}
     console.log("[CHAT] bridge registered, ready=" + !!c)
   },
 
   /** connect 是否已就绪（未就绪时发送会失败） */
   ready: function () {
-    return !!connect
+    return !!current()
   },
 
   /**
-   * 手环 → 手机：发一条聊天消息
-   * @return true = 已调用 send（注意：链路无 ACK，true 不代表对方已收到）
-   */
-  /**
    * 手环 → 手机：发一条工具箱遥控指令（不包装成 chat，避免进手机留言流）。
    * 手机端 CommandRouter 白名单分发：find_phone / phone_status / mute / countdown。
-   * @return true = 已调用 send（链路无 ACK）
+   * @return true = 已调用 send（注意：链路无 ACK，true 不代表对方已收到）
    */
   sendCmd: function (type, params) {
-    if (!connect) {
-      console.log("[CMD-TX] connect not registered yet（先让手机发一条，或重启 EV）")
+    var c = current()
+    if (!c) {
+      console.log("[CMD-TX] no connect（app.ux 未注册且自取失败）")
       return false
     }
     var msg = {
@@ -57,18 +106,24 @@ module.exports = {
       }
     }
     try {
-      connect.send({ data: msg })
+      c.send({ data: msg })
       console.log("[CMD-TX] send done: " + JSON.stringify(msg))
       return true
     } catch (e) {
       console.log("[CMD-TX] failed: " + e)
+      connect = null
       return false
     }
   },
 
+  /**
+   * 手环 → 手机：发一条聊天消息
+   * @return true = 已调用 send（注意：链路无 ACK，true 不代表对方已收到）
+   */
   send: function (text) {
-    if (!connect) {
-      console.log("[CHAT-TX] connect not registered yet（先让手机发一条，或重启 EV）")
+    var c = current()
+    if (!c) {
+      console.log("[CHAT-TX] no connect（app.ux 未注册且自取失败）")
       return false
     }
     var msg = {
@@ -81,11 +136,12 @@ module.exports = {
     }
     try {
       // 官方文档：connect.send 的 data 是 Object，发字符串会双重转义
-      connect.send({ data: msg })
+      c.send({ data: msg })
       console.log("[CHAT-TX] send done: " + JSON.stringify(msg))
       return true
     } catch (e) {
       console.log("[CHAT-TX] failed: " + e)
+      connect = null
       return false
     }
   }
