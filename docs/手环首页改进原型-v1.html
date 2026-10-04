@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>手环首页改进原型 v1 · 现状 vs 改进（小米手环 9 标准版 192×490）</title>
+<style>
+  :root{
+    --page:#1b1b1f; --pgtext:#eaeaf0; --pgsub:#9a9aa8;
+    --bg:#f5f0e8; --card:#ffffff; --card2:#f0ece4;
+    --accent:#c4a882; --accent-d:#8a6f4a;
+    --text:#332211; --tsec:#887766; --tmut:#998877;
+    --line:#e8e0d4; --warn:#b06a2c; --ok:#3f7d52;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:32px 20px 56px;background:var(--page);color:var(--pgtext);
+       font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif}
+  h1{font-size:20px;margin:0 0 6px;letter-spacing:.3px}
+  .sub{font-size:13px;color:var(--pgsub);margin:0 0 4px;line-height:1.7}
+  .sub code{background:#2a2a31;padding:1px 5px;border-radius:4px;font-size:12px}
+  h2{font-size:15px;margin:34px 0 14px;color:#cfcfda;font-weight:600}
+  h2 span{font-weight:400;color:var(--pgsub);font-size:12.5px;margin-left:8px}
+  .row{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .cap{font-size:12.5px;color:var(--pgsub);text-align:center;line-height:1.6;max-width:212px}
+  .cap b{color:#dcdce6;display:block;margin-bottom:2px;font-size:13px}
+
+  /* ── 表盘：192×490，1dp = 1px ── */
+  .w{width:192px;height:490px;background:var(--bg);border-radius:26px;
+     border:1px solid #3a3a44;position:relative;overflow:hidden;
+     display:flex;flex-direction:column;color:var(--text);flex-shrink:0}
+  .w.pad{padding:30px 16px}
+
+  /* 现状专用 */
+  .d-date{height:30px;display:flex;align-items:center;justify-content:center;
+          font-size:22px;color:var(--tsec)}
+  .h-row{height:48px;display:flex;align-items:center;justify-content:space-between}
+  .circ{width:48px;height:48px;border-radius:24px;background:var(--card2);
+        display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--text)}
+  .day{flex:1;text-align:center;font-size:26px;font-weight:700}
+  .cbar{height:24px;background:var(--card2);border-radius:8px;margin:5px 0;
+        display:flex;align-items:center;padding:0 8px;gap:8px}
+  .cbar i{width:4px;height:24px;border-radius:2px;background:var(--accent);flex-shrink:0}
+  .cbar span{font-size:20px;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .wd{background:var(--card2);border-radius:8px;padding:10px 14px;margin:5px 0;
+      display:flex;gap:6px;align-items:flex-start}
+  .wd .t{font-size:18px;line-height:26px;color:var(--accent);flex:1}
+  .wd .q{width:28px;height:28px;border-radius:14px;background:var(--card);
+         color:var(--tsec);font-size:16px;font-weight:700;display:flex;
+         align-items:center;justify-content:center;flex-shrink:0}
+  .st{background:var(--card2);border-radius:8px;padding:8px;margin:5px 0;display:flex;align-items:center;gap:8px}
+  .st i{width:3px;height:42px;border-radius:2px;background:var(--accent);flex-shrink:0}
+  .st .col{flex:1;display:flex;flex-direction:column}
+  .st .l1{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+  .tag{font-size:18px;line-height:24px;padding:1px 8px;border-radius:4px;
+       background:var(--accent);color:var(--bg)}
+  .st .tm{font-size:18px;color:var(--accent)}
+  .st .nm{font-size:22px;font-weight:700}
+  .list{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .cc{background:var(--card);border-radius:12px;margin-bottom:10px;min-height:60px;
+      display:flex;overflow:hidden;flex-shrink:0}
+  .cc i{width:5px;background:var(--accent);border-radius:3px 0 0 3px;flex-shrink:0}
+  .cc .b{padding:6px 10px;display:flex;flex-direction:column;flex:1;min-width:0}
+  .cc .n{font-size:28px;font-weight:700;line-height:34px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .cc .m{font-size:20px;line-height:26px;color:var(--tmut);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .cc .tm{font-size:20px;line-height:26px;color:var(--accent)}
+  .qa{background:var(--card);border-radius:10px;height:43px;margin:4px 0;
+      display:flex;align-items:center;justify-content:space-between;padding:0 12px;flex-shrink:0}
+  .qa .t{font-size:20px;font-weight:700;color:var(--accent)}
+  .qa .a{font-size:18px;color:var(--tsec)}
+  .bb{height:48px;display:flex;gap:4px;margin-bottom:4px;flex-shrink:0}
+  .bb .p{width:48px;height:48px;border-radius:24px;border:2px solid var(--accent);
+         display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--accent);flex-shrink:0}
+  .bb .s{flex:1;height:48px;border-radius:24px;background:var(--card2);
+         display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700}
+  .wi{height:42px;display:flex;align-items:center;justify-content:center;gap:4px;
+      font-size:20px;color:var(--accent);flex-shrink:0}
+  .hol{background:var(--card);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:2px}
+  .hol .n{font-size:20px;font-weight:700;color:var(--accent);line-height:28px}
+  .hol .g{font-size:22px;line-height:30px}
+  .emp{display:flex;align-items:center;justify-content:center;height:19px;font-size:20px;color:var(--tmut)}
+
+  /* 改进专用 */
+  .n-bar{height:40px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .n-arrow{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--tsec)}
+  .n-date{flex:1;text-align:center;font-size:22px;font-weight:700;color:var(--tsec)}
+  .n-date.today{color:var(--accent-d)}
+  .n-date em{font-style:normal;font-size:15px;font-weight:400;opacity:.75;margin-left:5px}
+  .n-st{margin:8px 0;border-radius:10px;padding:9px 10px;display:flex;align-items:center;gap:8px;
+        background:var(--card);flex-shrink:0}
+  .n-st.warn{background:#fbf3e6}
+  .n-st i{width:4px;height:34px;border-radius:2px;background:var(--accent);flex-shrink:0}
+  .n-st.warn i{background:var(--warn)}
+  .n-st .t{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0}
+  .n-st .k{font-size:13px;line-height:17px;color:var(--tsec)}
+  .n-st.warn .k{color:var(--warn)}
+  .n-st .v{font-size:21px;line-height:26px;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .n-st .r{font-size:15px;color:var(--accent-d);flex-shrink:0}
+  .n-list{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .n-cc{background:var(--card);border-radius:12px;margin-bottom:8px;display:flex;overflow:hidden;flex-shrink:0;min-height:60px}
+  .n-cc i{width:5px;background:var(--accent);flex-shrink:0}
+  .n-cc .b{padding:7px 10px;flex:1;display:flex;flex-direction:column;gap:1px;min-width:0}
+  .n-cc .n{font-size:26px;font-weight:700;line-height:31px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .n-cc .m{font-size:16px;line-height:21px;color:var(--tsec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .n-cc .tm{font-size:16px;line-height:21px;color:var(--accent-d)}
+  .n-cc.now{outline:2px solid var(--accent);outline-offset:-2px}
+  .n-add{display:flex;align-items:center;justify-content:center;gap:5px;height:36px;
+         border:1px dashed var(--line);border-radius:10px;color:var(--tsec);
+         font-size:16px;flex-shrink:0;margin-top:2px}
+  .n-dock{height:44px;display:flex;align-items:stretch;background:var(--card);
+          border-radius:22px;margin-top:8px;flex-shrink:0;overflow:hidden}
+  .n-dock div{flex:1;display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--accent-d)}
+  .n-dock div+div{border-left:1px solid var(--line)}
+  .n-hol{flex:1;background:var(--card);border-radius:12px;display:flex;flex-direction:column;
+         align-items:center;justify-content:center;gap:6px;padding:16px;text-align:center}
+  .n-hol .n{font-size:20px;font-weight:700;color:var(--accent-d)}
+  .n-hol .g{font-size:17px;line-height:24px;color:var(--text)}
+  .n-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center}
+  .n-empty .big{font-size:24px;font-weight:700;color:var(--tsec)}
+  .n-empty .nx{font-size:16px;line-height:23px;color:var(--tsec)}
+  .n-empty .cx{font-size:14px;line-height:20px;color:var(--tmut)}
+  .badge{position:absolute;top:14px;left:50%;transform:translateX(-50%);
+         font-size:10px;letter-spacing:.5px;color:#fff;background:#c0392b;
+         padding:2px 8px;border-radius:8px;opacity:.9}
+  .badge.g{background:#2e7d4f}
+  table{border-collapse:collapse;font-size:12.5px;margin-top:8px}
+  th,td{border:1px solid #3a3a44;padding:5px 9px;text-align:left}
+  th{background:#26262e;color:#cfcfda}
+  td b{color:#ffd27a}
+</style>
+</head>
+<body>
+
+<h1>手环首页改进原型 v1 · 现状 vs 改进</h1>
+<p class="sub">设备：<code>小米手环 9 标准版 192×490</code>　主题：<code>暖阳米</code>　1dp = 1px（与实拍图同尺度，可直接叠图比对）</p>
+<p class="sub">核心结论：<b style="color:#ffd27a">课程列表从 47px（放不下 1 张卡）→ ≈262px（放得下 3–4 张卡）</b>，靠的是把 8 个区块压成 3 个。同时修掉「假期日仍报即将上课」这个正确性 bug。</p>
+
+<h2>A · 现状 <span>= screenshots/手环首页-9标准版-*.png</span></h2>
+<div class="row">
+
+  <!-- A1 今天·假期态 -->
+  <div class="cell">
+    <div class="w pad">
+      <div class="d-date">10-05</div>
+      <div class="h-row">
+        <div class="circ">←</div>
+        <div class="day">周一</div>
+        <div class="circ">→</div>
+      </div>
+      <div class="cbar"><i></i><span>未来可期，…</span></div>
+      <div class="st">
+        <i></i>
+        <div class="col">
+          <div class="l1"><span class="tag">即将上课</span><span class="tm">147m</span></div>
+          <div class="nm">语文</div>
+        </div>
+      </div>
+      <div class="list">
+        <div class="hol">
+          <div class="n">国庆假期</div>
+          <div class="g">国庆快乐，祝</div>
+        </div>
+      </div>
+      <div class="qa"><span class="t">快速添加</span><span class="a">⌄</span></div>
+      <div class="bb"><div class="p">＋</div><div class="s">设置</div></div>
+      <div class="wi">⇄ 课程表1</div>
+    </div>
+    <div class="cap"><b>① 今天 · 国庆假期</b>状态条说「即将上课 语文」，正下方是「国庆假期」卡 —— 同一屏两句话互相打脸；假期祝福语还被切掉（「国庆快乐，祝」）</div>
+  </div>
+
+  <!-- A2 有课·调休态 -->
+  <div class="cell">
+    <div class="w pad">
+      <div class="d-date">10-10</div>
+      <div class="h-row">
+        <div class="circ">←</div>
+        <div class="day">周六</div>
+        <div class="circ">→</div>
+      </div>
+      <div class="cbar"><i></i><span>未来可期，…</span></div>
+      <div class="wd"><div class="t">今天调休，<br>按星期三课<br>表</div><div class="q">?</div></div>
+      <div class="list">
+        <div class="cc"><i></i><div class="b"><div class="n">化学</div></div></div>
+      </div>
+      <div class="qa"><span class="t">快速添加</span><span class="a">⌄</span></div>
+      <div class="bb"><div class="p">＋</div><div class="s">设置</div></div>
+      <div class="wi">⇄ 课程表1</div>
+    </div>
+    <div class="cap"><b>② 有课 · 调休日</b>调休条折 3 行、把「课表」劈成两半；课程列表只剩 47px，「化学」的时间与教室被切掉；而且「今天」是硬编码 —— 真今天并不是 10-10</div>
+  </div>
+
+  <!-- A3 无课态 -->
+  <div class="cell">
+    <div class="w pad">
+      <div class="d-date">10-08</div>
+      <div class="h-row">
+        <div class="circ">←</div>
+        <div class="day">周四</div>
+        <div class="circ">→</div>
+      </div>
+      <div class="cbar"><i></i><span>天道酬勤</span></div>
+      <div class="list">
+        <div class="emp">今天没有课</div>
+      </div>
+      <div class="qa"><span class="t">快速添加</span><span class="a">⌄</span></div>
+      <div class="bb"><div class="p">＋</div><div class="s">设置</div></div>
+      <div class="wi">⇄ 课程表cDi</div>
+    </div>
+    <div class="cap"><b>③ 无课 · 普通日</b>「今天没有课」只有 19px 文字，下方 ≈100px 纯空白；日期行不区分今天/非今天</div>
+  </div>
+</div>
+
+<h2>B · 改进（方向 A：一屏一课表） <span>= 固定栏 81% → 32%</span></h2>
+<div class="row">
+
+  <!-- B1 今天·假期态 -->
+  <div class="cell">
+    <div class="w pad">
+      <div class="badge g">今天</div>
+      <div class="n-bar" style="margin-top:6px">
+        <div class="n-arrow">←</div>
+        <div class="n-date today">10-05<em>周一</em></div>
+        <div class="n-arrow">→</div>
+      </div>
+      <div class="n-st warn">
+        <i></i>
+        <div class="t"><div class="k">国庆假期</div><div class="v">今天无课</div></div>
+        <div class="r">明天 3 节</div>
+      </div>
+      <div class="n-hol">
+        <div class="n">国庆假期</div>
+        <div class="g">国庆快乐<br>祝祖国繁荣昌盛</div>
+      </div>
+      <div class="n-dock"><div>＋</div><div>⚙</div><div>⇄</div></div>
+    </div>
+    <div class="cap"><b>① 今天 · 国庆假期</b>状态条改说<b>假期</b>（WARN 色，不再说「即将上课」），并预告「明天 3 节」；日期行合并成一行、今天高亮；祝福语完整显示</div>
+  </div>
+
+  <!-- B2 有课·调休态 -->
+  <div class="cell">
+    <div class="w pad">
+      <div class="n-bar" style="margin-top:6px">
+        <div class="n-arrow">←</div>
+        <div class="n-date">10-10<em>周六</em></div>
+        <div class="n-arrow">→</div>
+      </div>
+      <div class="n-st">
+        <i></i>
+        <div class="t"><div class="k">调休 · 上周三课表</div><div class="v">语文 08:00</div></div>
+        <div class="r">147m后</div>
+      </div>
+      <div class="n-list">
+        <div class="n-cc"><i></i><div class="b"><div class="n">语文</div><div class="m">Room 301</div><div class="tm">08:00 – 08:45</div></div></div>
+        <div class="n-cc"><i></i><div class="b"><div class="n">数学</div><div class="m">Room 302</div><div class="tm">08:55 – 09:40</div></div></div>
+        <div class="n-cc"><i></i><div class="b"><div class="n">美术</div><div class="m">画室</div><div class="tm">10:00 – 10:45</div></div></div>
+        <div class="n-add">＋ 快速添加</div>
+      </div>
+      <div class="n-dock"><div>＋</div><div>⚙</div><div>⇄</div></div>
+    </div>
+    <div class="cap"><b>② 有课 · 调休日</b>调休并入状态条（<b>一行不折</b>，`调休 · 上周三课表`=9 字）；课程列表拿到 ≈262px，<b>完整显示 3 张卡</b>（课名+教室+时间全在）；快速添加降级为列表末尾一行</div>
+  </div>
+
+  <!-- B3 无课态 -->
+  <div class="cell">
+    <div class="w pad">
+      <div class="n-bar" style="margin-top:6px">
+        <div class="n-arrow">←</div>
+        <div class="n-date">10-08<em>周四</em></div>
+        <div class="n-arrow">→</div>
+      </div>
+      <div class="n-st">
+        <i></i>
+        <div class="t"><div class="k">今天</div><div class="v">没有课</div></div>
+      </div>
+      <div class="n-empty">
+        <div class="big">今天没有课</div>
+        <div class="nx">明天 3 节<br>第一节 08:00 语文</div>
+        <div class="cx">天道酬勤</div>
+      </div>
+      <div class="n-dock"><div>＋</div><div>⚙</div><div>⇄</div></div>
+    </div>
+    <div class="cap"><b>③ 无课 · 普通日</b>空白区用来回答「那我下次上课是什么时候」；用户自定文案降级为底部 11px 弱色小字，不再单独占 39px</div>
+  </div>
+</div>
+
+<h2>C · 垂直预算对照</h2>
+<table>
+  <tr><th>区块</th><th>现状 (px)</th><th>改进 (px)</th><th>去向</th></tr>
+  <tr><td>日期行</td><td>30</td><td><b>0</b></td><td>并入导航行</td></tr>
+  <tr><td>导航行</td><td>48</td><td><b>40</b></td><td>一行放下 `10-05 周一`</td></tr>
+  <tr><td>自定义内容条</td><td>39</td><td><b>0</b></td><td>→ 空态副文案 / 底部 11px 弱色</td></tr>
+  <tr><td>调休条</td><td><b>84</b>（3 行）</td><td><b>0</b></td><td>并入状态条（1 行）</td></tr>
+  <tr><td>状态条</td><td>50</td><td><b>52</b></td><td>成为唯一「现在」出口，感知假期</td></tr>
+  <tr><td>假期卡</td><td>74（被裁）</td><td><b>0</b></td><td>祝福语进主区，状态由状态条说</td></tr>
+  <tr><td><b>课程列表</b></td><td><b>47</b></td><td><b>≈262</b></td><td>flex:1 拿满剩余</td></tr>
+  <tr><td>快速添加</td><td>50</td><td><b>0</b></td><td>列表末尾一行 / 长按卡片</td></tr>
+  <tr><td>底部按钮</td><td>52</td><td><b>0</b></td><td>并入底栏</td></tr>
+  <tr><td>课表切换</td><td>45</td><td><b>0</b></td><td>并入底栏</td></tr>
+  <tr><td>底栏（三图标）</td><td>—</td><td><b>44</b></td><td>＋ / ⚙ / ⇄ 各 1 枚</td></tr>
+  <tr><td><b>固定栏合计</b></td><td><b>348（81%）</b></td><td><b>≈136（32%）</b></td><td><b>−212px</b></td></tr>
+</table>
+
+<h2>D · 对比度修复（暖阳米 / 数值见评审 §5）</h2>
+<table>
+  <tr><th>用途</th><th>现状</th><th>深空蓝</th><th>翡翠绿</th><th>晨光白</th><th>暖阳米</th><th>修法</th></tr>
+  <tr><td>状态胶囊</td><td><code>bg</code> on <code>accent</code></td><td>9.14 ✓</td><td>7.35 ✓</td><td><b>2.93 ✗</b></td><td><b>2.00 ✗</b></td><td>THEMES 增 <code>onAccent</code></td></tr>
+  <tr><td>教室名</td><td><code>textMuted</code> on <code>card</code></td><td><b>2.18 ✗</b></td><td><b>2.05 ✗</b></td><td><b>2.32 ✗</b></td><td><b>3.42 ✗</b></td><td>改用 <code>textSecondary</code></td></tr>
+  <tr><td>日期行</td><td><code>textSecondary</code> on <code>bg</code></td><td>4.90 ✓</td><td>4.80 ✓</td><td><b>3.11 ✗</b></td><td><b>3.80 ✗</b></td><td>浅色两族加深</td></tr>
+</table>
+<p class="sub" style="margin-top:10px">门槛：正文 4.5:1、大字粗体 3.0:1。<b style="color:#ffd27a">教室名四个主题全部不合格</b> —— 这是唯一「全主题翻车」的项，最该先修。</p>
+
+</body>
+</html>
