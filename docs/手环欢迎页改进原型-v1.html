@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>手环欢迎页 · 现状 vs 改进 对比原型 v1</title>
+<style>
+  :root{
+    --ink:#1b1d22; --ink2:#5a6069; --ink3:#8b929c; --line:#e3e6ea;
+    --paper:#f4f5f7; --card:#fff; --hi:#2f6fd0; --bad:#d2453b; --good:#1f8a54;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:40px 32px 72px;background:var(--paper);color:var(--ink);
+    font:14px/1.65 -apple-system,"PingFang SC","Helvetica Neue",Arial,sans-serif}
+  h1{font-size:22px;margin:0 0 6px;letter-spacing:.2px}
+  .meta{color:var(--ink3);font-size:12.5px;margin-bottom:28px}
+  .meta code{background:#e9ecf0;padding:1px 5px;border-radius:4px;font-size:12px}
+  h2{font-size:15px;margin:36px 0 12px;padding-left:9px;border-left:3px solid var(--hi)}
+  .row{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
+  .col{width:192px}
+  .caption{font-size:12px;color:var(--ink2);margin:9px 0 0;line-height:1.5}
+  .caption b{color:var(--ink)}
+  /* ── 手环屏：1px = 1dp，192×490（模拟器 LCD 为矩形，故画直角） ── */
+  .scr{position:relative;width:192px;height:490px;overflow:hidden;
+    outline:1px solid #c9ced6;border-radius:3px}
+  .scr *{position:absolute;box-sizing:border-box;display:flex;align-items:center;
+    justify-content:center;white-space:nowrap}
+  /* 翡翠绿 */
+  .g{background:#1a2e1a}
+  /* 晨光白 */
+  .l{background:#f0f0f0}
+  /* 改进：主按钮 168 宽 */
+  table{border-collapse:collapse;width:100%;font-size:12.5px;background:var(--card);
+    border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{background:#f0f2f5;font-weight:600;color:var(--ink2);font-size:12px}
+  tr:last-child td{border-bottom:0}
+  td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .fail{color:var(--bad);font-weight:600}
+  .pass{color:var(--good)}
+  ul{margin:0;padding-left:20px}
+  li{margin:5px 0}
+  .note{background:#fff;border:1px solid var(--line);border-left:3px solid var(--hi);
+    border-radius:6px;padding:12px 14px;font-size:12.5px;color:var(--ink2);margin:14px 0}
+  .legend{font-size:12px;color:var(--ink3);margin-top:6px}
+  .tag{display:inline-block;font-size:10.5px;padding:1px 6px;border-radius:20px;
+    background:#e9ecf0;color:var(--ink2);margin-right:6px;vertical-align:1px}
+</style>
+</head>
+<body>
+
+<h1>手环欢迎页 · 现状 vs 改进 对比原型 v1</h1>
+<div class="meta">
+  小米手环 9 标准版（<code>192×490</code>）｜<code>src/pages/welcome/welcome.ux</code>｜
+  1px = 1dp，与实拍图同尺寸｜左二为<b>实拍对应</b>，右二为改进方案
+</div>
+
+<h2>一、四个画面对照</h2>
+<div class="row">
+
+  <!-- ① 现状 · 翡翠绿 -->
+  <div class="col">
+    <div class="scr g">
+      <div style="left:0;top:111px;width:192px;height:38px;font-size:30px;font-weight:700;color:#7ec8a0">Ev课程表</div>
+      <div style="left:0;top:153px;width:192px;height:24px;font-size:18px;color:#889988">你的随身课程助手</div>
+      <div style="left:16px;top:193px;width:160px;height:48px;border-radius:24px;background:#7ec8a0;color:#1a2e1a;font-size:22px;font-weight:700">进入首页</div>
+      <div style="left:26px;top:253px;width:140px;height:48px;border-radius:24px;background:#0f4a20;color:#ffffff;font-size:20px">设置</div>
+      <div style="left:26px;top:313px;width:140px;height:48px;border-radius:24px;background:#0f4a20;color:#889988;font-size:20px">退出</div>
+      <div style="left:47px;top:377px;width:98px;height:32px;border-radius:14px;background:#7ec8a0;color:#1a2e1a;font-size:22px;font-weight:700">v1.7.98</div>
+    </div>
+    <p class="caption"><span class="tag">现状</span><b>翡翠绿 · 实拍对应</b><br>
+      标题 116–144 ／ 主按钮 y194（屏高 40%）／ 设置·退出 同款 140×48 ／ 徽章用强调色</p>
+  </div>
+
+  <!-- ② 现状 · 晨光白（按 THEMES 源码复现） -->
+  <div class="col">
+    <div class="scr l">
+      <div style="left:0;top:111px;width:192px;height:38px;font-size:30px;font-weight:700;color:#4a90d9">Ev课程表</div>
+      <div style="left:0;top:153px;width:192px;height:24px;font-size:18px;color:#888888">你的随身课程助手</div>
+      <div style="left:16px;top:193px;width:160px;height:48px;border-radius:24px;background:#4a90d9;color:#f0f0f0;font-size:22px;font-weight:700">进入首页</div>
+      <div style="left:26px;top:253px;width:140px;height:48px;border-radius:24px;background:#e8e8e8;color:#222222;font-size:20px">设置</div>
+      <div style="left:26px;top:313px;width:140px;height:48px;border-radius:24px;background:#e8e8e8;color:#888888;font-size:20px">退出</div>
+      <div style="left:47px;top:377px;width:98px;height:32px;border-radius:14px;background:#4a90d9;color:#f0f0f0;font-size:22px;font-weight:700">v1.7.98</div>
+    </div>
+    <p class="caption"><span class="tag">现状</span><b>晨光白 · 按配色源复现</b><br>
+      主按钮文字 <span class="fail">2.9:1</span> ／ 徽章 <span class="fail">2.9:1</span> ／
+      退出 <span class="fail">3.2:1</span> ／ 次级按钮底与页面底只差 (8,8,8)</p>
+  </div>
+
+  <!-- ③ 改进 · 翡翠绿 -->
+  <div class="col">
+    <div class="scr g">
+      <div style="left:0;top:44px;width:192px;height:36px;font-size:28px;font-weight:700;color:#7ec8a0">Ev课程表</div>
+      <div style="left:0;top:86px;width:192px;height:20px;font-size:13px;color:#889988">今天 6 节 · 下一节 09:00 高等数学</div>
+      <div style="left:12px;top:324px;width:168px;height:52px;border-radius:26px;background:#7ec8a0;color:#1a2e1a;font-size:22px;font-weight:700">进入首页</div>
+      <div style="left:12px;top:386px;width:80px;height:40px;border-radius:20px;background:#0f4a20;color:#ffffff;font-size:16px">设置</div>
+      <div style="left:100px;top:386px;width:80px;height:40px;border-radius:20px;color:#889988;font-size:16px">退出</div>
+      <div style="left:0;top:442px;width:192px;height:16px;font-size:11px;color:#556655">v1.7.98</div>
+    </div>
+    <p class="caption"><span class="tag">改进 A</span><b>翡翠绿</b><br>
+      摘要替标语 ／ 主按钮满宽 168×52 下沉到屏高 71% ／ 设置·退出 并排 80×40 ／
+      退出改文字链 ／ 版本降到 11px 弱色</p>
+  </div>
+
+  <!-- ④ 改进 · 晨光白 -->
+  <div class="col">
+    <div class="scr l">
+      <div style="left:0;top:44px;width:192px;height:36px;font-size:28px;font-weight:700;color:#4a90d9">Ev课程表</div>
+      <div style="left:0;top:86px;width:192px;height:20px;font-size:13px;color:#888888">今天 6 节 · 下一节 09:00 高等数学</div>
+      <div style="left:12px;top:324px;width:168px;height:52px;border-radius:26px;background:#4a90d9;color:#1a1a1a;font-size:22px;font-weight:700">进入首页</div>
+      <div style="left:12px;top:386px;width:80px;height:40px;border-radius:20px;background:#e8e8e8;border:1px solid #d0d0d0;color:#222222;font-size:16px">设置</div>
+      <div style="left:100px;top:386px;width:80px;height:40px;border-radius:20px;border:1px solid #d0d0d0;color:#888888;font-size:16px">退出</div>
+      <div style="left:0;top:442px;width:192px;height:16px;font-size:11px;color:#aaaaaa">v1.7.98</div>
+    </div>
+    <p class="caption"><span class="tag">改进 A</span><b>晨光白（D6 修完后）</b><br>
+      主按钮 <span class="pass">5.2:1</span> ／ 次级按钮补 1px 描边后边界恢复 ／
+      退出文字链不再"低对比度冒充次要"</p>
+  </div>
+
+</div>
+<div class="legend">※ 手环屏取模拟器 LCD（192×490 矩形）；物理玻璃为胶囊形圆角，截图不含该圆角，故此处照实画直角。</div>
+
+<h2>二、现状垂直节奏（像素实测）</h2>
+<table>
+  <tr><th>元素</th><th>y 范围</th><th>高</th><th>宽</th><th>实测主色</th></tr>
+  <tr><td>标题 Ev课程表</td><td class="n">116–144</td><td class="n">29</td><td class="n">123</td><td><code>#7ec8a0</code> accent</td></tr>
+  <tr><td>副标题 你的随身课程助手</td><td class="n">156–172</td><td class="n">17</td><td class="n">135</td><td><code>#889988</code> textSecondary</td></tr>
+  <tr><td>按钮 进入首页</td><td class="n">194–241</td><td class="n">48</td><td class="n"><b>160</b></td><td>accent 填充</td></tr>
+  <tr><td>按钮 设置</td><td class="n">254–301</td><td class="n">48</td><td class="n"><b>140</b></td><td><code>#0f4a20</code> cardLight</td></tr>
+  <tr><td>按钮 退出</td><td class="n">314–361</td><td class="n">48</td><td class="n"><b>140</b></td><td><code>#0f4a20</code> cardLight</td></tr>
+  <tr><td>版本徽章 v1.7.97</td><td class="n">377–407</td><td class="n">31</td><td class="n">97</td><td>accent 填充</td></tr>
+</table>
+<ul>
+  <li><b>第一个可点元素出现在 y=194 = 屏高 39.6%</b>；其上方 194px 全是标题与标语。</li>
+  <li>设置 与 退出 <b>完全同款</b>（同 140×48、同底、同圆角）；主按钮与它们只差 20px 宽。</li>
+  <li>CSS <code>padding:60px 12px 30px 12px</code> 上下不对称 → 内容块在 400px 内容盒里居中，整体比屏幕中心低 15px。</li>
+</ul>
+
+<h2>三、对比度（按 <code>data/store.js</code> 的 THEMES 逐主题计算）</h2>
+<table>
+  <tr><th>主题</th><th>主按钮 字 on 底</th><th>对比度</th><th>版本徽章 字 on 底</th><th>对比度</th><th>退出 字 on 底</th><th>对比度</th></tr>
+  <tr><td>深空蓝</td><td class="n">#1a1a2e on #7ec8e3</td><td class="n pass">9.1</td><td class="n">#1a1a2e on #7ec8e3</td><td class="n pass">9.1</td><td class="n">#888899 on #0f3460</td><td class="n">3.6 ⚠</td></tr>
+  <tr><td>翡翠绿</td><td class="n">#1a2e1a on #7ec8a0</td><td class="n pass">7.4</td><td class="n">#1a2e1a on #7ec8a0</td><td class="n pass">7.4</td><td class="n">#889988 on #0f4a20</td><td class="n">3.4 ⚠</td></tr>
+  <tr><td>珊瑚红</td><td class="n">#2e1a1a on #e37e7e</td><td class="n">6.0</td><td class="n">#2e1a1a on #e37e7e</td><td class="n">6.0</td><td class="n">#998888 on #4a2020</td><td class="n">4.2 ⚠</td></tr>
+  <tr><td>晨光白</td><td class="n">#f0f0f0 on #4a90d9</td><td class="n fail">2.9 ✗</td><td class="n">#f0f0f0 on #4a90d9</td><td class="n fail">2.9 ✗</td><td class="n">#888888 on #e8e8e8</td><td class="n fail">3.2 ✗</td></tr>
+  <tr><td>暖阳米</td><td class="n">#f5f0e8 on #c4a882</td><td class="n fail">2.0 ✗</td><td class="n">#f5f0e8 on #c4a882</td><td class="n fail">2.0 ✗</td><td class="n">#887766 on #f0ece4</td><td class="n fail">3.0 ✗</td></tr>
+</table>
+<div class="note">
+  <b>根因一条：把 <code>theme.bg</code> 当作"反白色"用。</b>
+  深色主题下 <code>bg</code> 是深色 → 反白成立；浅色主题下 <code>bg</code> 变成了亮灰 → 反白变成"浅字压浅底"，
+  主按钮与版本徽章同时塌掉。<b>全页最重要的控件，在最亮的两个主题下最看不清。</b>
+  <br>修法（D6）：给 <code>THEMES</code> 每项加 <code>onAccent</code>，浅色两族改为深字
+  （晨光白 <code>#1a1a1a</code> → 5.2:1，暖阳米 <code>#2b2018</code> → 7.0:1），<b>深色三族取值不变、渲染零差异</b>。
+</div>
+
+<h2>四、改进后的垂直预算</h2>
+<table>
+  <tr><th>区段</th><th>y</th><th>高</th><th>说明</th></tr>
+  <tr><td>上留白</td><td class="n">0–44</td><td class="n">44</td><td>统一 padding（原 60/30 不对称 → 44/32）</td></tr>
+  <tr><td>标题 Ev课程表</td><td class="n">44–80</td><td class="n">36</td><td>28px bold，accent</td></tr>
+  <tr><td>动态摘要</td><td class="n">86–106</td><td class="n">20</td><td>13px textSecondary，替代静态标语</td></tr>
+  <tr><td><b>弹性留白</b></td><td class="n">106–322</td><td class="n">216</td><td><code>flex:1</code>，把主按钮推进拇指区</td></tr>
+  <tr><td><b>主按钮 进入首页</b></td><td class="n">322–374</td><td class="n">52</td><td>满宽 168（= 屏宽 − 24），中心 y=348 = 屏高 71%</td></tr>
+  <tr><td>设置 ｜ 退出</td><td class="n">384–424</td><td class="n">40</td><td>各 80 宽 + 8 间距 = 168 满宽</td></tr>
+  <tr><td>版本文字</td><td class="n">440–456</td><td class="n">16</td><td>11px textMuted，无填充</td></tr>
+  <tr><td>下留白</td><td class="n">456–490</td><td class="n">34</td><td></td></tr>
+</table>
+<ul>
+  <li>主按钮中心从 <b>屏高 44% → 71%</b>，落进握持时拇指的自然活动区。</li>
+  <li>可点元素从"上 40% 才出现"，变成"下 34% 一条带"，且<b>最常点的那个最大</b>。</li>
+  <li>三个等权整行按钮 → 一个主角 + 两个次级：<b>视觉重量排序与使用频率排序对齐</b>。</li>
+</ul>
+
+<h2>五、备选方向</h2>
+<table>
+  <tr><th>方向</th><th>做法</th><th>治</th><th>代价</th></tr>
+  <tr><td><b>B 整屏可点</b></td><td>整屏任意位置点击 = 进入首页（热区 192×490）</td><td>H1 H10 一次解决</td><td>「设置」需让位（移到首页或长按）</td></tr>
+  <tr><td><b>C 自动进入</b></td><td>进页 800ms 后自动 <code>router.replace</code>，欢迎页退化为过渡</td><td>H1 H10 最彻底</td><td>与"看一眼摘要"冲突；<code>store</code> 异步未返回时会闪</td></tr>
+</table>
+
+<div class="note">
+  <b>落地前须知：</b><code>welcome.ux</code> 现有 <code>@media (width&gt;=200px)</code> 与 <code>(width&gt;=400px)</code> 两档，
+  方法学是「base 只写手环 9 必须的值，大屏断点只做增量」。本方案的 <b>168px 是 base 值</b>（屏宽 − 24），
+  大屏断点沿用现有写法覆盖即可，<b>不要新造一套</b>。
+</div>
+
+</body>
+</html>
