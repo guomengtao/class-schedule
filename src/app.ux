@@ -450,6 +450,55 @@ function syncHandleGetDeviceId(connect) {
   }
 }
 
+// 系统信息：存储空间（总/可用）+ 型号。这些字段 APK 侧拿不到，只能手环端读后回传。
+//   ⚠️ 老/新机型支持度不一（部分 device 方法可能不存在）→ 逐项独立 try，任一项失败不影响其余；
+//   另设 1.5s 兜底回包，避免个别回调不触发时手机端 6s 超时才失败。
+function syncHandleSysinfo(connect) {
+  var out = { ok: true, action: "sysinfo", totalStorage: 0, availableStorage: 0, model: "" }
+  var sent = false
+  function finish() {
+    if (sent) return
+    sent = true
+    syncReply(connect, out)
+  }
+
+  var device = null
+  try { device = require("@system.device") } catch (e) { device = null }
+  if (!device) { finish(); return }
+
+  var left = 3
+  function done() { left--; if (left <= 0) finish() }
+
+  try {
+    if (device.getTotalStorage) {
+      device.getTotalStorage({
+        success: function (d) { out.totalStorage = (d && d.totalStorage) || 0; done() },
+        fail: function () { done() }
+      })
+    } else { done() }
+  } catch (e) { done() }
+
+  try {
+    if (device.getAvailableStorage) {
+      device.getAvailableStorage({
+        success: function (d) { out.availableStorage = (d && d.availableStorage) || 0; done() },
+        fail: function () { done() }
+      })
+    } else { done() }
+  } catch (e) { done() }
+
+  try {
+    if (device.getInfo) {
+      device.getInfo({
+        success: function (d) { out.model = (d && d.model) || ""; done() },
+        fail: function () { done() }
+      })
+    } else { done() }
+  } catch (e) { done() }
+
+  try { setTimeout(finish, 1500) } catch (e) { finish() }
+}
+
 // 一键激活：APK 已从后端拿到 18 位激活码，这里做本地解码校验 + 落库
 function syncHandleActivate(connect, payload) {
   var cleaned = String((payload && payload.code) || "").replace(/\s/g, "")
@@ -921,6 +970,12 @@ function initSyncReceiver() {
     if (parsed.action === "get_device_id") {
       // 手机 → 手环：索取设备ID（APK 侧拿不到，激活/绑定用）
       syncHandleGetDeviceId(connect)
+      return
+    }
+    if (parsed.action === "sysinfo") {
+      // 手机 → 手环：索取系统信息（存储空间 + 型号）。手机侧拿不到这些，只能由手环端读后回传，
+      // 供手机「手环页 / 腕聊页」显示存储。只读，无副作用。
+      syncHandleSysinfo(connect)
       return
     }
     if (parsed.action === "activate") {
