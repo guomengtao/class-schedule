@@ -123,16 +123,41 @@ export default {
   loadMessages() {
     var self = this
     msgStore.getInbox(function (list) {
+      var phoneIds = []
       for (var i = 0; i < list.length; i++) {
         list[i].timeStr = msgStore.formatTime(list[i].ts)
         if (list[i].read === undefined) {
           list[i].read = false
         }
+        // 收集「来自手机」的留言 id，供已读回执上报（P2）
+        if (list[i].from === "phone" && list[i].id) {
+          phoneIds.push(list[i].id)
+        }
       }
       list.reverse()
       self.messages = list
       self.unread = msgStore.unreadCount(list)
+      self.reportRead(phoneIds)
     })
+  },
+
+  /**
+   * 已读回执（P2）：把「本页刚渲染的、来自手机的留言」id 上报给手机端。
+   *
+   * 纪律（方案的验收核心）：**只有真正进到本页并渲染后才上报**。
+   *   手环没开机 / 没进页面时绝不上报 → 手机端就只能停在「已送达」，这才是真实状态，
+   *   绝不允许手机端自己推断「已读」。
+   * 幂等：可重复上报，手机端只做「未读 → 已读」单向升级。
+   * 上报上限 30 条，避免报文过大。
+   */
+  reportRead(ids) {
+    if (!ids || !ids.length) {
+      return
+    }
+    var slice = ids.length > 30 ? ids.slice(ids.length - 30) : ids
+    try {
+      chatBridge.sendRead(slice)
+    } catch (e) {}
   },
 
   toggleRead(id) {

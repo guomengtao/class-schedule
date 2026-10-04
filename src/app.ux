@@ -954,8 +954,17 @@ function initSyncReceiver() {
       console.log("[SYNC-RX] rx_ack, refAction=" + (parsed.refAction || "") + " phone is online")
       return
     }
-    // 无 action：兼容已对接格式，按导入处理
-    syncHandleImport(connect, parsed)
+    // ⚠️ 老端兼容兜底（P2 起）：**白名单外的未知 action 一律安全忽略、不回包**。
+    //    历史上这里对「无 action」的报文按 import 处理；但早期实现把「任何未识别报文」
+    //    都当 import，结果新版手机端发来新 action（typing / phrases 等）会触发一次
+    //    无意义的 import → 回 {reason:"no courses"}，反而污染留言流。
+    //    现在拆开：完全无 action 才走老的 import 兼容；有 action 但不在上面白名单 → 丢弃。
+    if (!parsed.action) {
+      // 无 action：兼容已对接格式，按导入处理
+      syncHandleImport(connect, parsed)
+      return
+    }
+    console.log("[SYNC-RX] unknown action ignored: " + parsed.action)
   }
 
   connect.onopen = function (data) {

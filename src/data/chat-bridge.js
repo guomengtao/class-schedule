@@ -144,5 +144,40 @@ module.exports = {
       connect = null
       return false
     }
+  },
+
+  /**
+   * 手环 → 手机：已读回执（P2）。
+   * 语义 = 手环「看见了」这些手机留言（与手机端 rx_ack「收到了」不同，别合并）。
+   * 手机端收到后把对应 out 消息从「已送达」升为「已读」。
+   *
+   * @param ids 手机留言的 id 数组（= 手机端 out 消息的 id）
+   * @return true = 已调用 send（链路无 ACK，true 不代表对方已收到）
+   */
+  sendRead: function (ids) {
+    var c = current()
+    if (!c) {
+      console.log("[READ-TX] no connect（app.ux 未注册且自取失败）")
+      return false
+    }
+    var arr = []
+    if (ids && ids.length) {
+      for (var i = 0; i < ids.length; i++) {
+        if (ids[i]) { arr.push(String(ids[i])) }
+      }
+    }
+    if (!arr.length) {
+      return false
+    }
+    var msg = { action: "chat_read", ids: arr, ts: Date.now() }
+    try {
+      c.send({ data: msg })
+      console.log("[READ-TX] send done, count=" + arr.length)
+      return true
+    } catch (e) {
+      console.log("[READ-TX] failed: " + e)
+      connect = null
+      return false
+    }
   }
 }
