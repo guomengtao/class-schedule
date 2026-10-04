@@ -250,6 +250,66 @@ function vibrateLong() {
   }
 }
 
+// ===== 课堂提醒：收（手机 → 手环）=====
+// 手机点首页「上课了 / 下课了」时下发 {action:"notify", type:"class_start|class_end", text}。
+// 手环弹提示条 + 专用震动，并回确认 —— 手机端据回包 ok 判定端到端送达。
+// 说明：旧版手环不认 notify（会落到下面 syncHandleImport 兜底回 "no courses"），
+//       手机端据此自动回落 action=call（单次长震），保证老用户点了不空。
+function syncHandleNotify(connect, msg) {
+  var type = String((msg && msg.type) || "")
+  var text = String((msg && msg.text) || "")
+  if (!text) {
+    text = (type === "class_end") ? "下课了！" : "上课了！"
+  }
+  // ① 提示条：让「上课了 / 下课了」在手环上有可见文案（不再只是与「呼叫手环」同一条黑箱震动）
+  try {
+    var prompt = require("@system.prompt")
+    prompt.showToast({ message: text })
+  } catch (e) {
+    dlog("[SYNC] notify toast fail: " + e)
+  }
+  // ② 震动：上课 = 3 次急促（醒目）/ 下课 = 1 次舒缓，与「呼叫手环」的单次长震区分开
+  vibrateNotify(type)
+  // ③ 留档最近一条提醒，便于手环端排查 / 后续展示
+  try {
+    var storage = require("@system.storage")
+    storage.set({
+      key: "ev_last_notify",
+      value: JSON.stringify({ type: type, text: text, ts: Date.now() }),
+      fail: function () {}
+    })
+  } catch (e2) {
+    dlog("[SYNC] notify persist fail: " + e2)
+  }
+  syncReply(connect, { ok: true, action: "notify", type: type, ts: Date.now() })
+}
+
+/** 课堂提醒震动：上课 3 次急促 / 下课 1 次舒缓；失败回落 vibrate({mode}) */
+function vibrateNotify(type) {
+  var end = (type === "class_end")
+  try {
+    var vibrator = require("@system.vibrator")
+    vibrator.start({
+      duration: end ? 700 : 380,
+      interval: end ? 260 : 200,
+      count: end ? 1 : 3,
+      success: function () {
+        dlog("[CHAT] vibrate notify ok")
+      },
+      fail: function (data, code) {
+        dlog("[CHAT] vibrate.start fail code=" + code + ", fallback")
+        try {
+          vibrator.vibrate({ mode: end ? "long" : "short" })
+        } catch (e2) {
+          dlog("[CHAT] vibrate fallback fail: " + e2)
+        }
+      }
+    })
+  } catch (e) {
+    dlog("[CHAT] vibrator not available: " + e)
+  }
+}
+
 // ===== 聊天：发（手环 → 手机）=====
 // 页面调用：syncSendToPhone("文字") —— 这是 EV 第一次具备【主动发送】能力。
 // ⚠️ 手机端能否收到，尚未被证实过（插件时代的 S1′ 实验结果是 0 条）。本函数就是用来做这个 PoC 的。
@@ -876,6 +936,11 @@ function initSyncReceiver() {
       // 手机 → 手环：呼叫手环（找表）。震动 + 回确认，手机端据 ok 判定端到端送达。
       vibrateLong()
       syncReply(connect, { ok: true, action: "call", ts: Date.now() })
+      return
+    }
+    if (parsed.action === "notify") {
+      // 手机 → 手环：课堂提醒（上课了 / 下课了）。弹提示条 + 专用震动 + 回确认。
+      syncHandleNotify(connect, parsed)
       return
     }
     // 无 action：兼容已对接格式，按导入处理
