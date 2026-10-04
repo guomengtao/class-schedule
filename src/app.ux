@@ -954,6 +954,18 @@ function initSyncReceiver() {
       console.log("[SYNC-RX] rx_ack, refAction=" + (parsed.refAction || "") + " phone is online")
       return
     }
+    if (parsed.action === "typing") {
+      // 手机 → 手环：输入态（P3）。只把状态写到全局（globalThis 是跨模块副本唯一通道），
+      // 留言板页轮询展示「对方正在输入…」+ 草稿；⚠️ 高频报文，不回包。
+      try {
+        globalThis.__evPeerTyping = {
+          state: parsed.state || "upd",
+          text: String(parsed.text || "").slice(0, 40),
+          ts: parsed.ts || Date.now()
+        }
+      } catch (e) {}
+      return
+    }
     // ⚠️ 老端兼容兜底（P2 起）：**白名单外的未知 action 一律安全忽略、不回包**。
     //    历史上这里对「无 action」的报文按 import 处理；但早期实现把「任何未识别报文」
     //    都当 import，结果新版手机端发来新 action（typing / phrases 等）会触发一次

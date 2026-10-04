@@ -36,6 +36,11 @@
       </div>
     </div>
 
+    <!-- P3 输入态：手机正在输入时显示草稿（实时可见，未发送前） -->
+    <div class="peer-typing" if="{{ peerTypingActive }}">
+      <text class="peer-typing-text" style="color: {{ theme.accent }}">{{ peerTyping }}</text>
+    </div>
+
     <!-- 回复区：手机在线状态 + 快捷短语（横滑选择，点按发送）+ 自己写 -->
     <div class="reply-bar" style="background-color: {{ theme.card }}">
       <text class="phone-status" onclick="statusTap" style="color: {{ phoneStatusColor }}">{{ phoneStatus }}</text>
@@ -89,7 +94,11 @@ export default {
     phrases: [],
     phraseIdx: 0,
     phoneStatus: "手机状态未知",
-    phoneStatusColor: "#888899"
+    phoneStatusColor: "#888899",
+    // P3 输入态：手机正在输入时显示草稿
+    peerTyping: "",
+    peerTypingActive: false,
+    typingTimer: null
   },
 
   onInit() {
@@ -112,8 +121,57 @@ export default {
     })
     self.loadMessages()
     self.refreshPhoneStatus()
+    // P3：开始轮询「手机是否正在输入」（app.ux 收到 typing 后写 globalThis.__evPeerTyping）
+    self.startTypingPoll()
     // 从「自己写」输入页返回时，把草稿发出去
     self.checkPendingReply()
+  },
+
+  onHide() {
+    this.stopTypingPoll()
+  },
+
+  onDestroy() {
+    this.stopTypingPoll()
+  },
+
+  /**
+   * P3 输入态轮询：手机端的 typing 是瞬时状态，且 app.ux 与页面 JS 是不同模块副本，
+   * globalThis 是唯一跨副本通道 —— 页面按 1s 轮询全局状态并渲染。
+   */
+  startTypingPoll() {
+    var self = this
+    this.stopTypingPoll()
+    this.typingTimer = setInterval(function () { self.pollPeerTyping() }, 1000)
+    self.pollPeerTyping()
+  },
+
+  stopTypingPoll() {
+    if (this.typingTimer) {
+      clearInterval(this.typingTimer)
+      this.typingTimer = null
+    }
+    this.peerTypingActive = false
+    this.peerTyping = ""
+  },
+
+  pollPeerTyping() {
+    var d = null
+    try { d = globalThis.__evPeerTyping || null } catch (e) { d = null }
+    if (!d) {
+      this.peerTypingActive = false
+      return
+    }
+    var now = Date.now()
+    var ts = Number(d.ts || 0)
+    // stop 态 / 超过 5s 无新包 / 非法 → 不显示（防「卡住一直显示正在输入」）
+    if (d.state === "stop" || (ts > 0 && now - ts > 5000)) {
+      this.peerTypingActive = false
+      return
+    }
+    var txt = String(d.text || "")
+    this.peerTyping = txt.length > 0 ? ("对方正在输入：" + txt) : "对方正在输入…"
+    this.peerTypingActive = true
   },
 
   updateIconSrc: function (themeName) {
@@ -429,6 +487,21 @@ export default {
 .msg-line {
   flex-direction: row;
   align-items: flex-start;
+}
+
+.peer-typing {
+  width: 100%;
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  flex-direction: row;
+  align-items: center;
+}
+
+.peer-typing-text {
+  font-size: 12px;
+  opacity: 0.9;
 }
 
 .unread-dot {

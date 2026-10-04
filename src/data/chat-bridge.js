@@ -179,5 +179,30 @@ module.exports = {
       connect = null
       return false
     }
+  },
+
+  /**
+   * 手环 → 手机：输入态（P3）。
+   * state = "start" | "upd" | "stop"；text = 已输入的草稿（可空；stop 时可不带）。
+   * 手机端按 ≥800ms 节流 + >3s 过期丢弃 + 5s 无包清除输入态。
+   * ⚠️ 高频报文，手机端不回 rx_ack（避免回包风暴）。
+   * @return true = 已调用 send（链路无 ACK，true 不代表对方已收到）
+   */
+  sendTyping: function (state, text) {
+    var c = current()
+    if (!c) {
+      return false
+    }
+    var msg = { action: "typing", state: String(state || "upd"), ts: Date.now() }
+    if (text !== undefined && text !== null) {
+      msg.text = String(text).slice(0, 40)
+    }
+    try {
+      c.send({ data: msg })
+      return true
+    } catch (e) {
+      connect = null
+      return false
+    }
   }
 }
