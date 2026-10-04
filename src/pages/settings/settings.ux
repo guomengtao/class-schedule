@@ -87,13 +87,6 @@
       <div class="row" onclick="openFeedback">
         <text class="row-label" style="color: {{ theme.text }}">帮助与反馈</text>
       </div>
-      <div class="row" onclick="openDeviceIdDiag">
-        <text class="row-label" style="color: {{ theme.text }}">设备ID诊断</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">手环9识别</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
       <div class="row" onclick="openTools">
         <text class="row-label" style="color: {{ theme.text }}">工具</text>
         <div class="row-right">
@@ -392,10 +385,6 @@ export default {
 
   openFeedback() {
     router.push({ uri: "/pages/feedback" })
-  },
-
-  openDeviceIdDiag() {
-    router.push({ uri: "/pages/device-id" })
   },
 
   openTools() {
@@ -742,7 +731,7 @@ export default {
   line-height: 36px;
 }
 
-@media (shape: circle) {
+@media screen and (shape: circle) {
   .settings-body {
     padding: 44px 36px 44px 36px;
   }
@@ -789,9 +778,9 @@ export default {
   }
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .settings-body {
-    padding: 44px 10px 12px 10px;
+    padding: 30px 16px 30px 16px;
   }
 
   /* 自建 back-header 胶囊覆盖：修复标题「设.」截断 */
@@ -813,7 +802,7 @@ export default {
 
 
   .row {
-    padding: 12px 0;
+    padding: 14px 0;
   }
 
   .nickname-row {
@@ -849,13 +838,17 @@ export default {
   }
 
   .row-label {
-    font-size: 30px;
-    line-height: 40px;
+    font-size: 32px;
+    line-height: 44px;
+  }
+
+  .row-hint {
+    display: none;
   }
 
   .arrow {
-    font-size: 28px;
-    line-height: 38px;
+    font-size: 32px;
+    line-height: 39px;
   }
 
   .modal-card {
@@ -947,7 +940,7 @@ export default {
   }
 }
 
-@media (shape: rect) {
+@media screen and (shape: rect) {
   .settings-body {
     padding: 6px 6px 6px 6px;
   }
@@ -981,7 +974,7 @@ export default {
    背景：同一套弹窗在 6 处各写一份，胶囊适配缺失/不一致 → 192×490 上出现
    标题截成 3 字、✓ 条目只剩 1 字、内容顶到屏幕右缘被裁（2026-09-27 实测）。
    统一策略：卡片占满安全宽度、字号降档、文本允许 2 行/1 行 + 省略号。 */
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .overlay-modal {
     padding: 40px 16px;
   }
@@ -1083,7 +1076,7 @@ export default {
   margin-top: 10px;
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media screen and (shape: pill-shaped) {
   .theme-drawer-panel {
     padding: 8px 10px 16px 10px;
     border-radius: 16px 16px 0 0;

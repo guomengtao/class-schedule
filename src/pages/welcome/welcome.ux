@@ -1,9 +1,10 @@
 <template>
   <div class="home-page" style="background-color: {{ theme.bg }}">
+    <!-- main-area 弹性撑满并内部居中：logo+按钮组视觉位置不变，版本号移出钉在页面最底部 -->
+    <div class="main-area">
     <div class="logo-area">
       <text class="app-name" style="color: {{ theme.accent }}">Ev课程表</text>
       <text class="app-subtitle" style="color: {{ theme.textSecondary }}">你的随身课程助手</text>
-      <text class="app-version" style="color: {{ theme.textMuted }}">v{{ versionName }}</text>
     </div>
 
     <div class="action-area">
@@ -12,6 +13,9 @@
       <!-- 显式退出入口：作为返回键在某些运行时不生效时的最后兜底 -->
       <input class="exit-btn" type="button" value="退出" onclick="exitApp" style="background-color: {{ theme.cardLight }}; color: {{ theme.textSecondary }}" />
     </div>
+    </div>
+
+    <text class="app-version" style="color: {{ theme.textMuted }}">v{{ versionName }}</text>
   </div>
 </template>
 
@@ -83,11 +87,19 @@ export default {
 <style>
 .home-page {
   flex-direction: column;
-  justify-content: center;
   align-items: center;
   width: 100%;
   height: 100%;
   padding: 20px;
+}
+
+/* 弹性撑满剩余空间、内部居中：logo+按钮组的视觉位置与原先居中布局一致 */
+.main-area {
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
 .logo-area {
@@ -111,7 +123,7 @@ export default {
 .app-version {
   font-size: 16px;
   line-height: 22px;
-  margin-top: 4px;
+  text-align: center;
 }
 
 .action-area {
