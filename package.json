@@ -6,7 +6,7 @@
     "node": ">=8.10"
   },
   "scripts": {
-    "clean": "rm -rf build dist ../.temp_class",
+    "clean": "rm -rf build dist ../.temp_class-schedule ../.temp_class",
     "start": "npm run clean && aiot start --watch",
     "bump": "node scripts/bump-version.js",
     "prebuild": "npm run clean && node scripts/bump-version.js",
