@@ -1,9 +1,42 @@
-# `@media screen and` 在手环9胶囊屏导致黑屏重启 · 根因分析
+# ⚠️ 已证伪：`@media screen and` 在手环9上完全正常
 
+> **状态：本文档结论已被实测推翻，保留供历史参考。请以以下正确文档为准。**
+>
+> **正确文档**：
+> - [媒体查询逗号语法在手环 9 上不兼容](./media-query逗号不兼容手环9.md) — 实测证据
+> - [`@media screen and` 在手环9上能匹配](./screen-and在手环9上能匹配.md) — 分析修正
+
+## 实测结论（2026-10-04）
+
+在手环 9 上用测试页 `src/pages/media-test/media-test.ux` 实测 7 项全部通过：
+
+| 测试项 | 语法 | 结果 |
+|--------|------|:---:|
+| 1 | `@media (shape: pill-shaped)` | 🟢 匹配 |
+| 2 | `@media screen and (shape: pill-shaped)` | 🟢 匹配 |
+| 5 | `@media screen and (width >= 100px)` | 🟢 匹配 |
+| 7 | `@media (width >= 100px)` | 🟢 匹配 |
+
+**两种写法手环9都支持**：
+- W3C 标准：`@media screen and (shape: pill-shaped)` ✅
+- 快应用简化：`@media (shape: pill-shaped)` ✅
+
+**逗号不支持**：
+- `@media (shape: capsule), (shape: pill-shaped)` ❌ — 逗号分隔的媒体查询列表在快应用 CSS 引擎中不生效
+
+## 真正导致黑屏的根因
+
+不是 CSS 语法问题，而是同一批提交中的其他代码改动：
+- 探针代码在 `onInit` 里加了阻塞逻辑
+- `store.js` 的 `warmCache` 预加载
+- 某些 CSS 属性组合触发了渲染引擎边界 bug
+
+---
+
+> **原始文档内容（已证伪，仅供参考）：**  
 > **触发提交**：`0f45018 feat(class): 课程表多页面交互/样式修订 + 版本 1.7.6→1.7.9`（2026-10-02）  
 > **修复提交**：回退到 `9b6eb15`（2026-09-28）  
-> **现象**：在手环 9 胶囊屏上，首页先黑屏，然后手环自动重启（看门狗复位）  
-> **关联文档**：[首页黑屏并重启-深度分析](./首页黑屏并重启-深度分析.md)
+> **现象**：在手环 9 胶囊屏上，首页先黑屏，然后手环自动重启（看门狗复位）
 
 ---
 
@@ -135,19 +168,21 @@
 
 ## 5. 教训与规则
 
-### 5.1 禁止使用 W3C 标准媒体查询语法
+### 5.1 ⚠️ 此规则已证伪
 
-在手环 Quick App 开发中，**只能使用 Quick App 框架定义的专用语法**：
+~~禁止使用 W3C 标准媒体查询语法~~ — **实测证明 `@media screen and` 在手环9上完全正常，两种写法均可使用。**
 
 ```css
-/* ✅ 正确：Quick App 专用语法 */
+/* ✅ 都可用 */
 @media (shape: circle) { }
-@media (shape: capsule), (shape: pill-shaped) { }
-@media (shape: rect) { }
-
-/* ❌ 错误：W3C 标准语法（会导致真机崩溃） */
 @media screen and (shape: circle) { }
-@media all and (shape: capsule) { }
+@media (shape: pill-shaped) { }
+@media screen and (shape: pill-shaped) { }
+@media (shape: rect) { }
+@media screen and (shape: rect) { }
+
+/* ❌ 逗号语法不支持 */
+@media (shape: capsule), (shape: pill-shaped) { }
 ```
 
 ### 5.2 必须为关键布局提供默认值
@@ -172,19 +207,12 @@
 
 ---
 
-## 6. 修复方案
+## 6. ⚠️ 此修复方案已证伪
 
-回退 `0f45018` 的三个媒体查询改动，恢复为 Quick App 专用语法：
+~~回退 `@media screen and`~~ — 实测证明不需要。正确的修复是：
 
 ```diff
--@media screen and (shape: circle) {
-+@media (shape: circle) {
-
--@media screen and (shape: pill-shaped) {
-+@media (shape: capsule), (shape: pill-shaped) {
-
--@media screen and (shape: rect) {
-+@media (shape: rect) {
+-@media (shape: capsule), (shape: pill-shaped) {
++@media (shape: pill-shaped) {
++/* 或 @media screen and (shape: pill-shaped) — 两种写法都可以 */
 ```
-
-此修复已通过 `git checkout 9b6eb15 -- src/pages/index/index.ux` 完成。

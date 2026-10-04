@@ -16,5 +16,11 @@ if (files.length === 0) {
 var src = path.join(distDir, files[files.length - 1])
 var dst = path.join(distDir, "ev-v" + version.versionName + "-" + version.channel + ".rpk")
 
-fs.copyFileSync(src, dst)
+// Rename original file (remove "debug" naming from aiot output)
+var cleanName = "com.application.watch.classschedule.release." + version.versionName + ".rpk"
+var cleanPath = path.join(distDir, cleanName)
+fs.renameSync(src, cleanPath)
+console.log("Renamed: " + files[files.length - 1] + " -> " + cleanName)
+
+fs.copyFileSync(cleanPath, dst)
 console.log("Channel package: ev-v" + version.versionName + "-" + version.channel + ".rpk")

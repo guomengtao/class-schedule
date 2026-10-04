@@ -209,7 +209,7 @@ export default {
 }
 
 /* Capsule primary */
-@media (shape: capsule), (shape: pill-shaped) {
+@media (shape: pill-shaped) {
   .pinned-pages-page {
     padding: 38px 8px 10px 8px;
   }

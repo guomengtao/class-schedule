@@ -224,7 +224,7 @@ export default {
 .pa-cancel { margin-right: 10px; }
 .pa-ok { margin-left: 10px; }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media (shape: pill-shaped) {
   .page-body { padding: 30px 16px 30px 16px; }
   .header-title { font-size: 22px; line-height: 30px; }
   .time-value { font-size: 60px; line-height: 74px; }

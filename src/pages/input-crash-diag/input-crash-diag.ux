@@ -695,7 +695,7 @@ export default {
 }
 
 /* ===== 二维码回传区 ===== */
-@media (shape: capsule), (shape: pill-shaped) {
+@media (shape: pill-shaped) {
   .page {
     padding: 8px 10px 6px 10px;
   }

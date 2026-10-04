@@ -814,22 +814,31 @@ export default {
 </script>
 
 <style>
+/* ================================================================
+   BASE CSS = 手环 9 基准（160px 内容区）
+   手环 9 默认命中，无需任何 media query。
+   弹性 flex + % 撑满。屏幕增大时，下方宽度断点「增量」调整。
+   原则：base 属性一旦设定，大屏断点只改物理必须区分的值，不覆盖。
+   手环 9 黑屏根因：独立 @media (shape: pill-shaped) 大块命中即崩，
+   故 base 以 9 为基准，彻底移除独立 pill-shaped 分支。
+   详见 docs/手环9黑屏根因定位*.md、docs/一套css自适应方案分析.md
+   ================================================================ */
+
 .edit-course-page {
   width: 100%;
   flex-direction: column;
-  padding: 44px 10px 50px 10px;
+  padding: 38px 12px 50px 12px;
 }
 
 .header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 14px;
+  height: auto;
+  margin-bottom: 8px;
 }
 
 .back-btn-wrapper {
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
+  border-radius: 24px;
   justify-content: center;
   align-items: center;
 }
@@ -840,30 +849,31 @@ export default {
 }
 
 .title {
-  font-size: 36px;
+  font-size: 24px;
   font-weight: bold;
   flex: 1;
+  min-width: 0;
   text-align: center;
-  line-height: 44px;
+  line-height: 34px;
 }
 
 .step-indicator {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .step-dot {
-  width: 20px;
-  height: 20px;
-  border-radius: 10px;
+  width: 14px;
+  height: 14px;
+  border-radius: 7px;
 }
 
 .step-line {
-  width: 40px;
-  height: 4px;
-  margin: 0 4px;
+  width: 24px;
+  height: 3px;
+  margin: 0 3px;
 }
 
 .form-section {
@@ -871,8 +881,6 @@ export default {
   flex-direction: column;
 }
 
-/* 课程已删除/失效时的友好状态：取代原来的「toast + 自动返回」，
-   避免停留在空白页造成白屏观感 */
 .missing-state {
   width: 100%;
   flex-direction: column;
@@ -885,32 +893,29 @@ export default {
 }
 
 .missing-title {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: bold;
-  line-height: 42px;
+  line-height: 32px;
   text-align: center;
-  lines: 1;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .missing-desc {
-  font-size: 24px;
-  line-height: 34px;
+  font-size: 18px;
+  line-height: 26px;
   text-align: center;
-  lines: 2;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .missing-btn {
   width: 100%;
   height: 48px;
   border-radius: 24px;
-  font-size: 26px;
+  font-size: 20px;
   font-weight: bold;
   text-align: center;
   line-height: 48px;
-  lines: 1;
-  margin-top: 16px;
+  margin-top: 10px;
 }
 
 .missing-btn-ghost {
@@ -919,46 +924,40 @@ export default {
   border-radius: 24px;
   border-width: 2px;
   border-style: solid;
-  font-size: 26px;
+  font-size: 20px;
   font-weight: bold;
   text-align: center;
   line-height: 48px;
-  lines: 1;
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 .step-title {
-  font-size: 34px;
+  font-size: 26px;
   font-weight: bold;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   text-align: center;
-  line-height: 42px;
-  lines: 1;
+  line-height: 34px;
 }
 
 .step-hint {
-  font-size: 28px;
-  margin-bottom: 14px;
+  font-size: 20px;
+  margin-bottom: 10px;
   text-align: center;
-  line-height: 36px;
-  lines: 1;
+  line-height: 28px;
 }
 
-/* 课程条（与添加课程页 add-course.ux 同一套数值）：横向 scroll + 固定宽卡片，
-   左右滑动浏览、点一下即选中。选中态边框由内联绑定主题色，这里只定形状，不写死颜色。 */
 .course-scroll {
   flex-direction: row;
   width: 100%;
   flex-shrink: 0;
-  height: 72px;
   margin-bottom: 12px;
 }
 
 .course-item {
-  width: 100px;
-  height: 64px;
-  border-radius: 14px;
-  margin-right: 10px;
+  width: 120px;
+  height: 56px;
+  border-radius: 10px;
+  margin-right: 6px;
   justify-content: center;
   align-items: center;
   border: 2px solid transparent;
@@ -966,12 +965,10 @@ export default {
 }
 
 .course-name {
-  font-size: 26px;
-  line-height: 34px;
+  font-size: 24px;
+  line-height: 32px;
   font-weight: bold;
   text-align: center;
-  lines: 1;
-  text-overflow: ellipsis;
 }
 
 .course-add-item {
@@ -980,8 +977,8 @@ export default {
 }
 
 .course-add-icon {
-  font-size: 40px;
-  line-height: 48px;
+  font-size: 34px;
+  line-height: 44px;
   font-weight: bold;
   text-align: center;
 }
@@ -990,16 +987,17 @@ export default {
   flex-direction: column;
   align-items: center;
   border-radius: 14px;
-  padding: 12px;
-  margin-bottom: 10px;
+  padding: 6px;
+  margin-bottom: 6px;
 }
 
 .picker-label {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: bold;
-  margin-top: 10px;
-  margin-bottom: 8px;
+  margin-top: 6px;
+  margin-bottom: 6px;
   text-align: center;
+  line-height: 32px;
 }
 
 .stepper-row {
@@ -1007,27 +1005,31 @@ export default {
   align-items: center;
   justify-content: center;
   margin-bottom: 8px;
+  flex-wrap: wrap;
 }
 
 .stepper-label {
-  font-size: 28px;
-  width: 60px;
+  font-size: 20px;
+  width: 100%;
+  line-height: 28px;
 }
 
 .stepper-btn {
-  width: 48px;
+  width: 44px;
   height: 48px;
-  border-radius: 10px;
-  font-size: 28px;
+  border-radius: 22px;
+  font-size: 24px;
   font-weight: bold;
   text-align: center;
+  line-height: 48px;
 }
 
 .stepper-val {
-  font-size: 40px;
+  font-size: 28px;
   font-weight: bold;
-  width: 60px;
+  width: 56px;
   text-align: center;
+  line-height: 48px;
 }
 
 .optional-hint {
@@ -1036,17 +1038,17 @@ export default {
   text-align: center;
 }
 
-/* 上课日选择（编辑页新增，允许把课程改到别的星期） */
 .weekday-label {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
+  line-height: 30px;
 }
 
 .weekday-scroll {
   width: 100%;
-  height: 52px;
+  height: 48px;
 }
 
 .weekday-row {
@@ -1054,7 +1056,6 @@ export default {
   justify-content: center;
 }
 
-/* 固定 border-width，只让内联绑定切换 border-color，避免选中态引起尺寸跳动 */
 .weekday-btn {
   width: 48px;
   height: 48px;
@@ -1063,168 +1064,161 @@ export default {
   border-style: solid;
   justify-content: center;
   align-items: center;
-  margin: 0 2px;
+  margin: 0 1px;
 }
 
 .weekday-btn-active {
   background-color: #7ec8e3;
 }
 
-/* 待确认态：自动滚动定位到当前日期后，用描边高亮提示用户点按确认 */
 .weekday-btn-pending {
   background-color: transparent;
 }
 
 .day-confirm-hint {
-  font-size: 22px;
-  line-height: 30px;
+  font-size: 18px;
+  line-height: 26px;
   text-align: center;
-  lines: 1;
   margin-top: 4px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
-/* 撤销条：悬浮卡片样式（圆角 + 描边 + 左右留白），撤销做成独立按钮而不是裸文字。
-   背景/描边由内联绑定主题色，避免写死颜色导致另一套主题下发灰。 */
 .undo-bar {
   position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
-  height: 64px;
-  flex-direction: row;
+  left: 8px;
+  right: 8px;
+  bottom: 56px;
+  height: auto;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   border-radius: 16px;
   border-width: 1px;
   border-style: solid;
-  padding: 0 10px 0 16px;
+  padding: 10px 12px;
 }
 
 .undo-msg {
-  font-size: 24px;
-  flex: 1;
-  lines: 1;
-  text-overflow: ellipsis;
+  flex: none;
+  width: 100%;
+  font-size: 20px;
+  line-height: 28px;
+  text-align: center;
+  margin-bottom: 8px;
 }
 
 .undo-btn {
-  width: 72px;
-  height: 44px;
+  width: 100%;
+  height: 48px;
   border-radius: 12px;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: bold;
   text-align: center;
-  line-height: 44px;
-  lines: 1;
+  line-height: 48px;
   flex-shrink: 0;
-  margin-left: 8px;
+  margin-left: 0;
 }
 
 .weekday-text {
-  font-size: 24px;
-  line-height: 44px;
+  font-size: 20px;
+  line-height: 40px;
   font-weight: bold;
   text-align: center;
 }
 
 .location-display {
   width: 100%;
-  height: 56px;
+  height: 48px;
   border-radius: 12px;
   border-width: 2px;
   justify-content: center;
   align-items: center;
   flex-direction: row;
-  padding: 0 14px;
+  padding: 0 10px;
   margin-bottom: 8px;
 }
 
 .location-text {
-  font-size: 32px;
+  font-size: 24px;
+  line-height: 32px;
 }
 
 .location-cursor {
-  font-size: 32px;
+  font-size: 24px;
   margin-left: 2px;
 }
 
 .step-nav {
   flex-direction: row;
   justify-content: space-between;
-  margin-top: 16px;
+  margin-top: 10px;
 }
 
 .prev-btn {
   flex: 1;
-  border-radius: 12px;
-  font-size: 28px;
+  height: 48px;
+  border-radius: 24px;
+  font-size: 20px;
   font-weight: bold;
   text-align: center;
-  line-height: 44px;
-  lines: 1;
+  line-height: 48px;
 }
 
 .next-btn {
   flex: 1;
-  border-radius: 12px;
-  font-size: 28px;
+  height: 48px;
+  border-radius: 24px;
+  font-size: 20px;
   font-weight: bold;
   text-align: center;
-  line-height: 44px;
-  lines: 1;
+  line-height: 48px;
 }
 
 .save-btn {
   flex: 1;
-  border-radius: 12px;
-  font-size: 28px;
-  font-weight: bold;
-  text-align: center;
-  line-height: 44px;
-  lines: 1;
-}
-
-/* 删除按钮为次要操作：透明底 + 危险色描边，与实心的「下一步」形成主次分层 */
-.step-delete-btn {
-  width: 100px;
   height: 48px;
-  border-radius: 12px;
-  border-width: 2px;
-  border-style: solid;
-  font-size: 28px;
+  border-radius: 24px;
+  font-size: 20px;
   font-weight: bold;
   text-align: center;
   line-height: 48px;
-  lines: 1;
+}
+
+.step-delete-btn {
+  width: 64px;
+  height: 48px;
+  border-radius: 24px;
+  border-width: 2px;
+  border-style: solid;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 48px;
 }
 
 .confirm-card {
   flex-direction: column;
   border-radius: 12px;
-  padding: 18px;
-  margin-bottom: 12px;
+  padding: 12px;
+  margin-bottom: 16px;
 }
 
 .confirm-label {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: bold;
-  margin-top: 12px;
-  margin-bottom: 4px;
-  line-height: 40px;
-  lines: 1;
+  margin-top: 8px;
+  margin-bottom: 2px;
+  line-height: 32px;
 }
 
 .confirm-value {
-  font-size: 34px;
-  line-height: 42px;
-  lines: 1;
-  text-overflow: ellipsis;
+  font-size: 20px;
+  line-height: 28px;
 }
 
 .delete-hint {
-  font-size: 24px;
-  line-height: 32px;
+  font-size: 22px;
+  line-height: 30px;
   text-align: center;
   margin-top: 8px;
 }
@@ -1250,345 +1244,202 @@ export default {
   line-height: 44px;
 }
 
-@media (shape: circle) {
+
+/* ================================================================
+   宽度断点：手环 10 / 胶囊屏大号（width >= 200px，内容区 ~180px）
+   在 base 基础上「增量」：字号略大、间距略松、按钮略宽。
+   ================================================================ */
+@media (width >= 200px) {
   .edit-course-page {
-    padding: 44px 36px 50px 36px;
+    padding: 44px 10px 50px 10px;
   }
   .header {
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
   .back-btn-wrapper {
     width: 48px;
     height: 48px;
+    border-radius: 10px;
   }
   .title {
-    font-size: 36px;
+    font-size: 28px;
+    line-height: 40px;
   }
   .step-indicator {
-    margin-bottom: 12px;
+    margin-bottom: 16px;
+  }
+  .step-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 10px;
+  }
+  .step-line {
+    width: 40px;
+    height: 4px;
+    margin: 0 4px;
+  }
+  .missing-title {
+    font-size: 28px;
+    line-height: 38px;
+    margin-bottom: 10px;
+  }
+  .missing-desc {
+    font-size: 22px;
+    line-height: 30px;
+    margin-bottom: 6px;
+  }
+  .missing-btn {
+    font-size: 24px;
+    margin-top: 16px;
+  }
+  .missing-btn-ghost {
+    font-size: 24px;
+    margin-top: 10px;
+  }
+  .step-title {
+    font-size: 30px;
+    line-height: 38px;
+    margin-bottom: 8px;
   }
   .step-hint {
     font-size: 24px;
+    line-height: 32px;
+    margin-bottom: 14px;
   }
-  /* 圆屏（466px）横向宽裕：课程条略放大，便于点选 */
-  .course-item {
-    width: 120px;
+  .course-scroll {
     height: 72px;
   }
+  .course-item {
+    width: 120px;
+    height: 64px;
+    border-radius: 14px;
+    margin-right: 10px;
+  }
   .course-name {
-    font-size: 28px;
-    line-height: 36px;
+    font-size: 26px;
+    line-height: 34px;
   }
   .course-add-icon {
-    font-size: 48px;
-    line-height: 58px;
+    font-size: 40px;
+    line-height: 48px;
+  }
+  .stepper-time {
+    padding: 12px;
+    margin-bottom: 10px;
   }
   .picker-label {
     font-size: 28px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    line-height: 36px;
+  }
+  .stepper-row {
+    flex-wrap: nowrap;
+  }
+  .stepper-label {
+    font-size: 24px;
+    width: 60px;
+    line-height: 32px;
   }
   .stepper-btn {
     width: 48px;
     height: 48px;
-    font-size: 24px;
+    border-radius: 10px;
   }
   .stepper-val {
-    font-size: 36px;
-    width: 52px;
+    font-size: 32px;
+    width: 60px;
   }
-  .stepper-label {
-    font-size: 24px;
+  .location-display {
+    height: 56px;
+    padding: 0 14px;
   }
   .location-text {
     font-size: 28px;
+    line-height: 36px;
   }
   .location-cursor {
     font-size: 28px;
   }
-  .confirm-label {
-    font-size: 28px;
-  }
-  .confirm-value {
-    font-size: 28px;
+  .step-nav {
+    margin-top: 16px;
   }
   .prev-btn,
   .next-btn,
   .save-btn {
-    width: 100px;
     font-size: 24px;
   }
   .step-delete-btn {
     width: 80px;
     font-size: 24px;
   }
-}
-
-@media (shape: pill-shaped) {
-  .edit-course-page {
-    padding: 38px 12px 50px 12px;
-  }
-  /* 顶部删除按钮移除后 header 只剩「返回 + 标题」，不再需要换行：
-     48 + 标题(flex:1) 在 160px 内容区内放得下，恢复单行。 */
-  .header {
-    height: auto;
-    margin-bottom: 8px;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: center;
-  }
-  .back-btn-wrapper {
-    width: 48px;
-    height: 48px;
-    border-radius: 24px;
-    flex-shrink: 0;
-  }
-  .title {
-    font-size: 24px;
-    line-height: 34px;
-    text-align: center;
-    flex: 1;
-    min-width: 0;
-    lines: 1;
-    text-overflow: ellipsis;
-  }
-  .step-indicator {
-    margin-bottom: 10px;
-  }
-  .step-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 7px;
-  }
-  .step-line {
-    width: 24px;
-    height: 3px;
-    margin: 0 3px;
-  }
-  .step-title {
-    font-size: 26px;
-    line-height: 34px;
-    margin-bottom: 6px;
-  }
-  .step-hint {
-    font-size: 20px;
-    line-height: 28px;
-    margin-bottom: 10px;
-    lines: 1;
-    text-overflow: ellipsis;
-  }
-  /* 与添加课程页同一套横滑课程条（胶囊屏 192px、内容区 160px）：
-     卡片由 88px 加宽到 120px —— 课名可用宽度 76px → 108px，24px 字号下
-     由 3 字提升到 4.5 字，「大学英语 / 大学物理 / 大学化学」能区分开。 */
-  .course-scroll {
-    height: 60px;
-  }
-  .course-item {
-    width: 120px;
-    min-width: 120px;
-    height: 56px;
-    border-radius: 10px;
-    margin-right: 6px;
-  }
-  .course-name {
-    font-size: 24px;
-    font-weight: bold;
-    line-height: 32px;
-    lines: 1;
-    text-align: center;
-    text-overflow: ellipsis;
-  }
-  .day-confirm-hint {
-    font-size: 18px;
-    line-height: 26px;
-    margin-top: 4px;
-    margin-bottom: 6px;
-  }
-  .missing-title {
-    font-size: 24px;
-    line-height: 32px;
-    margin-bottom: 8px;
-  }
-  .missing-desc {
-    font-size: 18px;
-    line-height: 26px;
-    margin-bottom: 4px;
-  }
-  .missing-btn,
-  .missing-btn-ghost {
-    font-size: 20px;
-    line-height: 48px;
-    margin-top: 10px;
-  }
-  .missing-btn-ghost {
-    margin-top: 8px;
-  }
-  /* 胶囊屏 192px：内容区只有 160px，单行放「文案 + 64px 按钮」会把文案压到几十 px，
-     改为两行：第一行整宽文案居中，第二行整宽撤销按钮（高度提到 48px 合规）。
-     bottom 56px 用于避开底部系统 UI。 */
-  .undo-bar {
-    left: 8px;
-    right: 8px;
-    bottom: 56px;
-    height: auto;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 12px;
-  }
-  .undo-msg {
-    flex: none;
-    width: 100%;
-    font-size: 20px;
-    line-height: 28px;
-    text-align: center;
-    margin-bottom: 8px;
-  }
-  .undo-btn {
-    width: 100%;
-    height: 48px;
-    font-size: 20px;
-    line-height: 48px;
-    margin-left: 0;
-  }
-  .course-add-icon {
-    font-size: 34px;
-    line-height: 44px;
-  }
-  /* 与模板内联的 height: 48px 对齐，消除"内联压制媒体查询"的不可预测性 */
-  .step-delete-btn {
-    width: 64px;
-    height: 48px;
-    font-size: 20px;
-    line-height: 48px;
-    border-radius: 24px;
-    lines: 1;
-  }
-  .next-btn {
-    height: 48px;
-    font-size: 20px;
-    line-height: 48px;
-    border-radius: 24px;
-    lines: 1;
-  }
-  .prev-btn {
-    height: 48px;
-    font-size: 20px;
-    line-height: 48px;
-    border-radius: 24px;
-    lines: 1;
-  }
-  .save-btn {
-    height: 48px;
-    font-size: 20px;
-    line-height: 48px;
-    border-radius: 24px;
-    lines: 1;
-  }
-  .step-nav {
-    margin-top: 10px;
-  }
-  /* 胶囊屏一行放不下「小时 − 08 +」4 个元素（需 172px > 160px），
-     改为标签独占一行、控件一行 */
-  .stepper-row {
-    flex-wrap: wrap;
-  }
-  .stepper-btn {
-    width: 44px;
-    height: 48px;
-    font-size: 24px;
-    line-height: 48px;
-    border-radius: 22px;
-  }
-  .stepper-val {
-    font-size: 28px;
-    line-height: 48px;
-    width: 56px;
-  }
-  .stepper-label {
-    font-size: 20px;
-    line-height: 28px;
-    width: 100%;
-  }
-  .picker-label {
-    font-size: 24px;
-    line-height: 32px;
-    margin-top: 6px;
-    margin-bottom: 6px;
-  }
-  .stepper-time {
-    padding: 6px;
-    margin-bottom: 6px;
-  }
-  /* 地点框点击唤起键盘，属触控目标，提到规范的 48px */
-  .location-display {
-    height: 48px;
-    padding: 0 10px;
-  }
-  .location-text {
-    font-size: 24px;
-    line-height: 32px;
+  .confirm-card {
+    padding: 18px;
+    margin-bottom: 12px;
   }
   .confirm-label {
-    font-size: 24px;
-    line-height: 32px;
-    margin-top: 8px;
-    margin-bottom: 2px;
+    font-size: 28px;
+    margin-top: 12px;
+    margin-bottom: 4px;
+    line-height: 36px;
   }
   .confirm-value {
-    font-size: 20px;
-    line-height: 28px;
-    lines: 2;
-    text-overflow: ellipsis;
+    font-size: 24px;
+    line-height: 30px;
   }
-  .confirm-card {
-    padding: 12px;
-    margin-bottom: 16px;
-  }
-  .delete-hint {
+  .day-confirm-hint {
     font-size: 22px;
     line-height: 30px;
-    margin-top: 8px;
+    margin-bottom: 8px;
   }
-  /* 上课日选择：按钮放大到 44px，保证手指点得准 */
+  .undo-bar {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    height: 64px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px 0 16px;
+  }
+  .undo-msg {
+    flex: 1;
+    font-size: 24px;
+  }
+  .undo-btn {
+    width: 72px;
+    height: 44px;
+    font-size: 24px;
+    margin-left: 8px;
+  }
   .weekday-label {
-    font-size: 22px;
-    line-height: 30px;
-    margin-bottom: 4px;
-  }
-  .weekday-scroll {
-    height: 48px;
+    font-size: 24px;
+    line-height: 34px;
+    margin-bottom: 6px;
   }
   .weekday-btn {
-    width: 48px;
-    height: 48px;
-    border-radius: 24px;
-    margin: 0 1px;
+    margin: 0 2px;
   }
   .weekday-text {
-    font-size: 20px;
-    line-height: 40px;
+    font-size: 24px;
+    line-height: 44px;
   }
 }
 
-@media (shape: rect) {
+
+/* ================================================================
+   宽度断点：Watch 6 / 方屏（width >= 400px，内容区 ~400px）
+   字体再大一级、留白更多。
+   ================================================================ */
+@media (width >= 400px) {
   .edit-course-page {
     padding: 6px 10px 50px 10px;
   }
   .header {
     margin-bottom: 10px;
   }
-  .back-btn-wrapper {
-    width: 48px;
-    height: 48px;
-  }
   .title {
     font-size: 34px;
-  }
-  .step-dot {
-    width: 14px;
-    height: 14px;
-  }
-  .step-line {
-    width: 24px;
   }
   .step-title {
     font-size: 28px;
@@ -1640,7 +1491,6 @@ export default {
     font-size: 24px;
     line-height: 48px;
     border-radius: 24px;
-    lines: 1;
   }
   .step-delete-btn {
     width: 80px;
@@ -1648,7 +1498,82 @@ export default {
     font-size: 24px;
     line-height: 48px;
     border-radius: 24px;
-    lines: 1;
+  }
+}
+
+
+/* ================================================================
+   圆形表盘（唯一保留的 shape 查询——圆方不同构，非宽度可替代）
+   手环 9 不会命中此分支，天然安全。
+   ================================================================ */
+@media (shape: circle) {
+  .edit-course-page {
+    padding: 44px 36px 50px 36px;
+  }
+  .header {
+    margin-bottom: 12px;
+  }
+  .back-btn-wrapper {
+    width: 48px;
+    height: 48px;
+  }
+  .title {
+    font-size: 36px;
+  }
+  .step-indicator {
+    margin-bottom: 12px;
+  }
+  .step-hint {
+    font-size: 24px;
+  }
+  .course-item {
+    width: 120px;
+    height: 72px;
+  }
+  .course-name {
+    font-size: 28px;
+    line-height: 36px;
+  }
+  .course-add-icon {
+    font-size: 48px;
+    line-height: 58px;
+  }
+  .picker-label {
+    font-size: 28px;
+  }
+  .stepper-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
+  }
+  .stepper-val {
+    font-size: 36px;
+    width: 52px;
+  }
+  .stepper-label {
+    font-size: 24px;
+  }
+  .location-text {
+    font-size: 28px;
+  }
+  .location-cursor {
+    font-size: 28px;
+  }
+  .confirm-label {
+    font-size: 28px;
+  }
+  .confirm-value {
+    font-size: 28px;
+  }
+  .prev-btn,
+  .next-btn,
+  .save-btn {
+    width: 100px;
+    font-size: 24px;
+  }
+  .step-delete-btn {
+    width: 80px;
+    font-size: 24px;
   }
 }
 

@@ -521,7 +521,7 @@ export default {
   }
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media (shape: pill-shaped) {
   /* 编辑/清空按钮：基样式 clear 90px 会把 edit 挤到 34px 文字截断 */
   .edit-btn {
     height: 48px;

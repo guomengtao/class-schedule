@@ -98,6 +98,11 @@
         <text class="item-hint" style="color: {{ theme.textMuted }}">查看手机留言</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openMediaTest">
+        <text class="item-label" style="color: {{ theme.accent }}">@media 语法测试</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">screen and 支持?</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openTimePickerDemo">
         <text class="item-label" style="color: {{ theme.accent }}">时间选择器 Demo</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">全屏上下滑动</text>
@@ -232,6 +237,10 @@ export default {
 
   openTimePickerDemo() {
     router.push({ uri: "/pages/time-picker-demo" })
+  },
+
+  openMediaTest() {
+    router.push({ uri: "/pages/media-test" })
   },
 
   sendChatTest() {
@@ -401,7 +410,7 @@ export default {
   }
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media (shape: pill-shaped) {
   .page-body {
     padding: 30px 16px 30px 16px;
   }

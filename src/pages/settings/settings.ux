@@ -537,12 +537,10 @@ export default {
 
 .header-title {
   flex: 1;
-  font-size: 30px;
+  font-size: 28px;
   font-weight: bold;
   text-align: center;
-  line-height: 40px;
-  lines: 1;
-  text-overflow: ellipsis;
+  line-height: 38px;
 }
 
 .header-placeholder {
@@ -583,6 +581,31 @@ export default {
   padding: 12px 0;
 }
 
+/* ================================================================
+   BASE 内额外：胶囊/手环9 基准（160px 内容区）
+   昵称行窄屏用纵向布局，避免与右侧箭头挤压。
+   ================================================================ */
+.nickname-row {
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 14px 0;
+}
+.nickname-label {
+  line-height: 36px;
+  margin-bottom: 2px;
+}
+.nickname-value-wrap {
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+}
+.nickname-value {
+  line-height: 38px;
+}
+.nickname-arrow {
+  margin-left: 4px;
+}
+
 .row-label {
   font-size: 30px;
   flex-shrink: 0;
@@ -605,14 +628,12 @@ export default {
 .row-hint {
   font-size: 28px;
   margin-right: 6px;
-  max-lines: 1;
   line-height: 38px;
 }
 
 .size-indicator {
   font-size: 24px;
   margin-right: 6px;
-  max-lines: 1;
   line-height: 32px;
   flex-shrink: 0;
 }
@@ -866,171 +887,39 @@ export default {
   }
 }
 
-@media screen and (shape: pill-shaped) {
-  .settings-body {
-    padding: 30px 16px 30px 16px;
+/* ================================================================
+   宽度断点：手环 10 / 胶囊屏大号（width >= 200px，内容区 ~180px）
+   在 base 基础上「增量」：字号略大、抽屉/弹窗内缩适当放宽。
+   ================================================================ */
+@media (width >= 200px) {
+  .theme-drawer-panel {
+    padding: 8px 12px 16px 12px;
   }
-
-  /* 自建 back-header 胶囊覆盖：修复标题「设.」截断 */
-  .back-header {
-    padding: 0 4px;
-  }
-  .back-btn-wrapper {
-    width: 36px;
-    height: 36px;
-  }
-  .header-placeholder {
-    width: 34px;
-  }
-  .header-title {
-    font-size: 20px;
-    line-height: 28px;
-  }
-
-
-
-  .row {
-    padding: 14px 0;
-  }
-
-  .nickname-row {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 14px 0;
-  }
-
-  .nickname-label {
-    font-size: 28px;
-    line-height: 36px;
-    margin-bottom: 2px;
-  }
-
-  .nickname-value-wrap {
-    flex-direction: row;
-    align-items: center;
-    width: 100%;
-  }
-
-  .nickname-value {
-    font-size: 28px;
-    line-height: 38px;
-    flex: 1;
-    lines: 1;
-    text-overflow: ellipsis;
-  }
-
-  .nickname-arrow {
-    font-size: 28px;
-    flex-shrink: 0;
-    margin-left: 4px;
-  }
-
-  .row-label {
-    font-size: 32px;
-    line-height: 44px;
-  }
-
-  .row-hint {
-    display: none;
-  }
-
-  .arrow {
-    font-size: 32px;
-    line-height: 39px;
-  }
-
-  .modal-card {
-    width: 100%;
-    border-radius: 12px;
-    padding: 18px 16px;
-  }
-
-  .modal-title {
+  .drawer-title {
     font-size: 24px;
-    margin-bottom: 10px;
-    line-height: 32px;
+    line-height: 30px;
   }
-
-  .modal-desc {
-    font-size: 20px;
-    margin-bottom: 14px;
-    line-height: 28px;
-    lines: 4;
+  .theme-dot {
+    width: 24px;
+    height: 24px;
   }
-
-  .modal-btn-primary {
-    height: 48px;
-    border-radius: 24px;
-    font-size: 24px;
-    margin-bottom: 8px;
-    line-height: 48px;
-  }
-
-  .modal-btn-secondary {
-    height: 44px;
-    border-radius: 22px;
-    font-size: 22px;
-    line-height: 44px;
-  }
-
   .theme-name {
-    display: none;
+    font-size: 22px;
+    line-height: 30px;
   }
-
-  .toggle-btn {
-    width: 80px;
-    height: 46px;
-    border-radius: 12px;
-    font-size: 30px;
-    line-height: 46px;
-  }
-
-  .group-title-row {
-    margin-bottom: 10px;
-  }
-
-  .group-title {
-    font-size: 28px;
-    line-height: 36px;
-  }
-
-  .font-size-body {
-    margin-top: 0;
-  }
-
-  .scale-row {
-    margin-bottom: 12px;
-  }
-
-  .scale-btn {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    font-size: 26px;
-    line-height: 48px;
-  }
-
-  .scale-value {
-    font-size: 28px;
-    width: 80px;
-    line-height: 38px;
-  }
-
-  .preview-box {
-    border-radius: 10px;
-    padding: 14px;
-  }
-
-  .scope-hint {
-    font-size: 18px;
-    line-height: 22px;
-    margin-top: 6px;
+  .drawer-done {
+    height: 42px;
+    font-size: 24px;
   }
 }
 
-@media screen and (shape: rect) {
+/* ================================================================
+   宽度断点：Watch 6 / 方屏（width >= 400px，内容区 ~400px）
+   rect 屏上下空间充裕，padding 可大幅压缩。
+   ================================================================ */
+@media (width >= 400px) {
   .settings-body {
-    padding: 6px 6px 6px 6px;
+    padding: 6px 8px 6px 8px;
   }
   .back-header {
     margin-bottom: 6px;
@@ -1052,69 +941,10 @@ export default {
     line-height: 32px;
   }
   .toggle-btn {
-    width: 52px;
-    height: 48px;
-    font-size: 24px;
-    line-height: 48px;
-  }
-}
-/* ===== 胶囊屏（192px）统一适配：解锁/高级版弹窗 =====
-   背景：同一套弹窗在 6 处各写一份，胶囊适配缺失/不一致 → 192×490 上出现
-   标题截成 3 字、✓ 条目只剩 1 字、内容顶到屏幕右缘被裁（2026-09-27 实测）。
-   统一策略：卡片占满安全宽度、字号降档、文本允许 2 行/1 行 + 省略号。 */
-@media screen and (shape: pill-shaped) {
-  .overlay-modal {
-    padding: 40px 16px;
-  }
-
-  .modal-card {
-    width: 100%;
-    border-radius: 14px;
-    padding: 14px 8px;
-  }
-
-  .modal-title {
-    font-size: 24px;
-    line-height: 30px;
-    margin-bottom: 8px;
-    lines: 2;
-    text-overflow: ellipsis;
-  }
-
-  .modal-desc {
-    font-size: 18px;
-    line-height: 25px;
-    margin-bottom: 10px;
-    lines: 4;
-  }
-
-  .benefit-list {
-    width: 100%;
-    padding-left: 0;
-    margin-bottom: 10px;
-  }
-
-  .benefit-item {
-    font-size: 17px;
-    line-height: 24px;
-    margin-bottom: 6px;
-    lines: 1;
-    text-overflow: ellipsis;
-  }
-
-  .modal-btn-primary {
-    height: 40px;
-    border-radius: 20px;
-    font-size: 22px;
-    line-height: 28px;
-    margin-bottom: 8px;
-  }
-
-  .modal-btn-secondary {
-    height: 34px;
-    border-radius: 17px;
-    font-size: 20px;
-    line-height: 26px;
+    width: 56px;
+    height: 44px;
+    font-size: 26px;
+    line-height: 44px;
   }
 }
 
@@ -1162,41 +992,5 @@ export default {
   border-radius: 23px;
   font-size: 26px;
   margin-top: 10px;
-}
-
-@media screen and (shape: pill-shaped) {
-  .theme-drawer-panel {
-    padding: 8px 10px 16px 10px;
-    border-radius: 16px 16px 0 0;
-  }
-  .drawer-handle {
-    width: 38px;
-    height: 5px;
-    margin-bottom: 8px;
-  }
-  .drawer-title {
-    font-size: 24px;
-    line-height: 30px;
-    margin-bottom: 4px;
-  }
-  .theme-item {
-    padding: 8px 0;
-  }
-  .theme-dot {
-    width: 22px;
-    height: 22px;
-    border-radius: 11px;
-  }
-  .theme-name {
-    font-size: 18px;
-    line-height: 24px;
-    margin-top: 2px;
-  }
-  .drawer-done {
-    height: 40px;
-    border-radius: 20px;
-    font-size: 22px;
-    margin-top: 6px;
-  }
 }
 </style>

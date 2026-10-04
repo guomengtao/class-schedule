@@ -533,7 +533,7 @@ export default {
   margin-right: 8px;
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media (shape: pill-shaped) {
   /* 胶囊屏内容区 160px：滚轮两列 76×2 + 冒号 8 = 160 */
   .page {
     padding: 12px 16px;

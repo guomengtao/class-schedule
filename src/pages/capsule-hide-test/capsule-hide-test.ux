@@ -117,7 +117,7 @@ export default {
 .row-name { font-size: 32px; }
 .row-cn { font-size: 28px; }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media (shape: pill-shaped) {
   .capsule-hide {
     display: none;
   }

@@ -1,0 +1,228 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">@media 语法测试</text>
+      <div class="header-placeholder"></div>
+    </div>
+
+    <scroll class="scroll-body" scroll-y="{{true}}">
+      <div class="test-section">
+        <text class="section-title" style="color: {{ theme.textSecondary }}">本页面在手环真机上运行。</text>
+        <text class="section-title" style="color: {{ theme.textSecondary }}">绿色 = 媒体查询匹配生效 / 红色 = 未匹配</text>
+
+        <!-- 测试 1: @media (shape: pill-shaped) -->
+        <div class="test-group-1">
+          <text class="test-label" style="color: {{ theme.text }}">1. @media (shape: pill-shaped)</text>
+          <div class="test-box">
+            <text class="test-text">Red=不匹配 | Green=匹配</text>
+          </div>
+        </div>
+
+        <!-- 测试 2: @media screen and (shape: pill-shaped) 【关键】 -->
+        <div class="test-group-2">
+          <text class="test-label" style="color: {{ theme.text }}">2. @media screen and (shape: pill-shaped)</text>
+          <div class="test-box">
+            <text class="test-text">Red=不匹配 | Green=匹配</text>
+          </div>
+        </div>
+
+        <!-- 测试 3: @media (shape: capsule) -->
+        <div class="test-group-3">
+          <text class="test-label" style="color: {{ theme.text }}">3. @media (shape: capsule)</text>
+          <div class="test-box">
+            <text class="test-text">Red=不匹配 | Green=匹配</text>
+          </div>
+        </div>
+
+        <!-- 测试 4: @media screen and (shape: capsule) 【关键】 -->
+        <div class="test-group-4">
+          <text class="test-label" style="color: {{ theme.text }}">4. @media screen and (shape: capsule)</text>
+          <div class="test-box">
+            <text class="test-text">Red=不匹配 | Green=匹配</text>
+          </div>
+        </div>
+
+        <!-- 测试 5: 无媒体查询（对照组，永远绿色） -->
+        <div class="test-group-5">
+          <text class="test-label" style="color: {{ theme.text }}">5. 对照组（无 @media，永远生效）</text>
+          <div class="test-box">
+            <text class="test-text">Red=不匹配 | Green=匹配</text>
+          </div>
+        </div>
+
+        <!-- 测试 6: @media screen and (width >= 100px) -->
+        <div class="test-group-6">
+          <text class="test-label" style="color: {{ theme.text }}">6. @media screen and (width >= 100px)</text>
+          <div class="test-box">
+            <text class="test-text">Red=不匹配 | Green=匹配</text>
+          </div>
+        </div>
+
+        <!-- 测试 7: @media (width >= 100px) -->
+        <div class="test-group-7">
+          <text class="test-label" style="color: {{ theme.text }}">7. @media (width >= 100px)</text>
+          <div class="test-box">
+            <text class="test-text">Red=不匹配 | Green=匹配</text>
+          </div>
+        </div>
+      </div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+
+export default {
+  private: {
+    iconTheme: "dark",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      accent: '#7ec8e3'
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+}
+
+.back-btn-wrapper {
+  width: 40px;
+  height: 36px;
+  border-radius: 8px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-btn-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.header-title {
+  font-size: 24px;
+  line-height: 34px;
+  flex: 1;
+  text-align: center;
+}
+
+.header-placeholder {
+  width: 40px;
+}
+
+.scroll-body {
+  flex: 1;
+  flex-direction: column;
+  padding: 8px 8px 20px 8px;
+}
+
+.test-section {
+  flex-direction: column;
+}
+
+.section-title {
+  font-size: 20px;
+  line-height: 28px;
+  margin-bottom: 8px;
+}
+
+.test-label {
+  font-size: 22px;
+  line-height: 32px;
+  margin-bottom: 2px;
+  margin-top: 8px;
+}
+
+.test-box {
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 4px;
+  background-color: #cc3333;
+}
+
+.test-text {
+  font-size: 20px;
+  color: #ffffff;
+  line-height: 28px;
+}
+
+/* ===== 测试 1: @media (shape: pill-shaped) ===== */
+@media (shape: pill-shaped) {
+  .test-group-1 .test-box {
+    background-color: #33aa33;
+  }
+}
+
+/* ===== 测试 2: @media screen and (shape: pill-shaped) ===== */
+@media screen and (shape: pill-shaped) {
+  .test-group-2 .test-box {
+    background-color: #33aa33;
+  }
+}
+
+/* ===== 测试 3: @media (shape: capsule) ===== */
+@media (shape: capsule) {
+  .test-group-3 .test-box {
+    background-color: #33aa33;
+  }
+}
+
+/* ===== 测试 4: @media screen and (shape: capsule) ===== */
+@media screen and (shape: capsule) {
+  .test-group-4 .test-box {
+    background-color: #33aa33;
+  }
+}
+
+/* ===== 测试 5: 对照组，永远绿色（写在 @media 外面） ===== */
+.test-group-5 .test-box {
+  background-color: #33aa33;
+}
+
+/* ===== 测试 6: @media screen and (width >= 100px) ===== */
+@media screen and (width >= 100px) {
+  .test-group-6 .test-box {
+    background-color: #33aa33;
+  }
+}
+
+/* ===== 测试 7: @media (width >= 100px) ===== */
+@media (width >= 100px) {
+  .test-group-7 .test-box {
+    background-color: #33aa33;
+  }
+}
+</style>

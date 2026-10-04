@@ -556,7 +556,7 @@ export default {
   width: 40px;
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media (shape: pill-shaped) {
   .page {
     padding: 30px 16px 56px 16px;
   }

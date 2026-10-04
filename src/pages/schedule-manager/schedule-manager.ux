@@ -37,58 +37,64 @@
     </div>
   </scroll>
 
-  <div class="overlay-sheet" if="{{ sheetIndex >= 0 }}" onclick="closeSheet">
+  <div class="overlay-sheet" show="{{ sheetIndex >= 0 }}"
+       style="position: absolute; left: 0; top: 0; width: 100%; height: 100%"
+       onclick="closeSheet">
     <div class="sheet-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
-      <text class="sheet-title" style="color: {{ theme.text }}">{{ sheetName }}</text>
-      <text class="sheet-sub" style="color: {{ theme.textMuted }}">{{ sheetCount }} 门课程</text>
+      <scroll class="sheet-scroll" scroll-y="{{true}}">
+        <text class="sheet-title" style="color: {{ theme.text }}">{{ sheetName }}</text>
+        <text class="sheet-sub" style="color: {{ theme.textMuted }}">{{ sheetCount }} 门课程</text>
 
-      <div class="sheet-switch-btn" if="{{ sheetIndex !== currentIndex }}" onclick="sheetSwitch"
-           style="background-color: {{ theme.accent }}">
-        <text class="sheet-switch-btn-text" style="color: {{ theme.bg }}">切换到该课程表</text>
-      </div>
-      <div class="sheet-switch-btn" if="{{ sheetIndex === currentIndex }}"
-           style="background-color: {{ theme.btnSecondary }}">
-        <text class="sheet-switch-btn-text" style="color: {{ theme.textMuted }}">当前课程表</text>
-      </div>
+        <div class="sheet-switch-btn" if="{{ sheetIndex !== currentIndex }}" onclick="sheetSwitch"
+             style="background-color: {{ theme.accent }}">
+          <text class="sheet-switch-btn-text" style="color: {{ theme.bg }}">切换到该课程表</text>
+        </div>
+        <div class="sheet-switch-btn" if="{{ sheetIndex === currentIndex }}"
+             style="background-color: {{ theme.btnSecondary }}">
+          <text class="sheet-switch-btn-text" style="color: {{ theme.textMuted }}">当前课程表</text>
+        </div>
 
-      <div class="sheet-switch-row" onclick="toggleHolidayReminder">
-        <text class="sheet-switch-label" style="color: {{ theme.text }}">假期提醒</text>
-        <div class="switch-track"
-             style="background-color: {{ holidayReminderOn ? theme.accent : theme.btnSecondary }}">
-          <div class="switch-thumb"
-               style="background-color: {{ theme.card }}; {{ holidayReminderOn ? 'margin-left: 24px;' : 'margin-left: 2px;' }}">
+        <div class="sheet-switch-row" onclick="toggleHolidayReminder">
+          <text class="sheet-switch-label" style="color: {{ theme.text }}">假期提醒</text>
+          <div class="switch-track"
+               style="background-color: {{ holidayReminderOn ? theme.accent : theme.btnSecondary }}">
+            <div class="switch-thumb"
+                 style="background-color: {{ theme.card }}; {{ holidayReminderOn ? 'margin-left: 24px;' : 'margin-left: 2px;' }}">
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="sheet-grid">
-        <div class="sheet-btn" onclick="sheetRename" style="background-color: {{ theme.cardLight }}">
-          <text class="sheet-btn-text" style="color: {{ theme.text }}">重命名</text>
+        <div class="sheet-grid">
+          <div class="sheet-btn" onclick="sheetRename" style="background-color: {{ theme.cardLight }}">
+            <text class="sheet-btn-text" style="color: {{ theme.text }}">重命名</text>
+          </div>
+          <div class="sheet-btn" onclick="sheetCopy" style="background-color: {{ theme.cardLight }}">
+            <text class="sheet-btn-text" style="color: {{ theme.text }}">复制</text>
+          </div>
+          <div class="sheet-btn" onclick="sheetExport" style="background-color: {{ theme.cardLight }}">
+            <text class="sheet-btn-text" style="color: {{ theme.text }}">导出</text>
+          </div>
+          <div class="sheet-btn" onclick="sheetWeekView" style="background-color: {{ theme.cardLight }}">
+            <text class="sheet-btn-text" style="color: {{ theme.text }}">总览</text>
+          </div>
+          <div class="sheet-btn" onclick="sheetStats" style="background-color: {{ theme.cardLight }}">
+            <text class="sheet-btn-text" style="color: {{ theme.text }}">统计</text>
+          </div>
+          <div class="sheet-btn" if="{{ list.length > 1 }}" onclick="sheetDelete"
+               style="background-color: {{ deleteConfirmIndex === sheetIndex ? theme.deleteText : theme.deleteBg }}">
+            <text class="sheet-btn-text" style="color: {{ deleteConfirmIndex === sheetIndex ? theme.text : theme.deleteText }}">删除</text>
+          </div>
         </div>
-        <div class="sheet-btn" onclick="sheetCopy" style="background-color: {{ theme.cardLight }}">
-          <text class="sheet-btn-text" style="color: {{ theme.text }}">复制</text>
-        </div>
-        <div class="sheet-btn" onclick="sheetExport" style="background-color: {{ theme.cardLight }}">
-          <text class="sheet-btn-text" style="color: {{ theme.text }}">导出</text>
-        </div>
-        <div class="sheet-btn" onclick="sheetWeekView" style="background-color: {{ theme.cardLight }}">
-          <text class="sheet-btn-text" style="color: {{ theme.text }}">总览</text>
-        </div>
-        <div class="sheet-btn" onclick="sheetStats" style="background-color: {{ theme.cardLight }}">
-          <text class="sheet-btn-text" style="color: {{ theme.text }}">统计</text>
-        </div>
-        <div class="sheet-btn" if="{{ list.length > 1 }}" onclick="sheetDelete"
-             style="background-color: {{ deleteConfirmIndex === sheetIndex ? theme.deleteText : theme.deleteBg }}">
-          <text class="sheet-btn-text" style="color: {{ deleteConfirmIndex === sheetIndex ? theme.text : theme.deleteText }}">删除</text>
-        </div>
-      </div>
+      </scroll>
 
       <input class="sheet-close" type="button" value="取消" onclick="closeSheet"
              style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
     </div>
   </div>
 
-  <div class="overlay-modal" if="{{ showDialog }}" onclick="dismissDialog">
+  <div class="overlay-modal" show="{{ showDialog }}"
+       style="position: absolute; left: 0; top: 0; width: 100%; height: 100%"
+       onclick="dismissDialog">
     <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
       <text class="modal-title" style="color: {{ theme.accent }}">解锁高级版</text>
       <text class="modal-desc" style="color: {{ theme.textSecondary }}">新增课表需要高级版，一次性解锁永久使用</text>
@@ -533,14 +539,8 @@ export default {
   },
 
   addSchedule() {
-    var self = this
-    store.isPremiumUnlocked(function(unlocked) {
-      if (unlocked) {
-        self.doAddSchedule()
-      } else {
-        self.showDialog = true
-      }
-    })
+    if (!this.checkProAccess()) return
+    this.doAddSchedule()
   },
 
   goToPremium() {
@@ -629,40 +629,51 @@ export default {
 <style>
 @import '../../common/header.css';
 
+/* ================================================================
+   BASE CSS = 手环 9 基准（160px 内容区）
+   手环 9 默认命中，无需任何 media query。
+   弹性 flex + % 撑满。屏幕增大时，下方宽度断点「增量」调整。
+   原则：base 属性一旦设定，大屏断点只改物理必须区分的值，不覆盖。
+   手环 9 黑屏根因：独立 @media (shape: pill-shaped) 大块命中即崩，
+   故 base 以 9 为基准，彻底移除独立 pill-shaped 分支。
+   详见 docs/手环9黑屏根因定位*.md、docs/一套css自适应方案分析.md
+   ================================================================ */
+
 .page {
-  /* stack 的子组件不会被父容器拉伸，scroll 也没有"默认撑满"语义；
-     漏写 width 会让宽度退化为内容宽，未覆盖区域不绘制即露黑底 */
   width: 100%;
   flex-direction: column;
-  padding: 44px 12px 12px 12px;
+  padding: 44px 10px 20px 10px;
   height: 100%;
 }
 
 .footer-actions {
   flex-direction: row;
   justify-content: center;
-  padding: 16px 0 8px 0;
+  padding: 8px 0 4px 0;
   flex-shrink: 0;
 }
 
 .pin-link {
   text-align: center;
-  lines: 1;
-  text-overflow: ellipsis;
+  font-size: 20px;
+  line-height: 28px;
+  padding: 10px 24px;
+  min-height: 44px;
 }
 
 .rename-bar {
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 12px;
-  padding: 8px 12px;
+  margin-bottom: 8px;
+  padding: 10px;
   border-radius: 10px;
   flex-shrink: 0;
 }
 
 .rename-display {
-  flex: 1;
-  height: 40px;
+  width: 100%;
+  flex: none;
+  height: 44px;
   border-radius: 8px;
   border-width: 2px;
   font-size: 20px;
@@ -670,10 +681,13 @@ export default {
   padding: 0 12px;
   flex-direction: row;
   align-items: center;
+  margin-bottom: 8px;
 }
 
 .rename-btn-row {
+  width: 100%;
   flex-direction: row;
+  justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
 }
@@ -681,36 +695,34 @@ export default {
 .rename-text {
   font-size: 20px;
   line-height: 28px;
-  lines: 1;
-  text-overflow: ellipsis;
 }
 
 .rename-ok-btn {
-  width: 56px;
-  height: 36px;
+  width: 48%;
+  height: 44px;
   border-radius: 8px;
   font-size: 20px;
   line-height: 28px;
   font-weight: bold;
   text-align: center;
-  margin-left: 8px;
+  margin-left: 0;
 }
 
 .rename-cancel-btn {
-  width: 56px;
-  height: 36px;
+  width: 48%;
+  height: 44px;
   border-radius: 8px;
   font-size: 20px;
   line-height: 28px;
   text-align: center;
-  margin-left: 6px;
+  margin-left: 0;
 }
 
 .item {
   flex-direction: row;
   align-items: center;
-  height: 60px;
-  padding: 0 14px 0 14px;
+  height: 64px;
+  padding: 0 14px;
   margin-bottom: 10px;
   border-radius: 14px;
   flex-shrink: 0;
@@ -739,16 +751,9 @@ export default {
   min-width: 0;
   font-size: 24px;
   line-height: 32px;
-  lines: 1;
-  text-overflow: ellipsis;
 }
 
 .overlay-sheet {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
   background-color: rgba(0, 0, 0, 0.55);
   flex-direction: column;
   justify-content: flex-end;
@@ -760,36 +765,41 @@ export default {
   width: 100%;
   align-self: center;
   border-radius: 20px 20px 0 0;
-  padding: 20px 14px 16px 14px;
+  padding: 20px 12px 16px 12px;
   flex-direction: column;
   align-items: center;
 }
 
+.sheet-scroll {
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  max-height: 420px;
+}
+
 .sheet-title {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: bold;
-  line-height: 34px;
+  line-height: 30px;
   text-align: center;
   margin-bottom: 4px;
-  lines: 1;
-  text-overflow: ellipsis;
 }
 
 .sheet-sub {
   font-size: 20px;
   line-height: 28px;
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .sheet-switch-btn {
   width: 100%;
-  height: 52px;
+  height: 48px;
   flex-direction: row;
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .sheet-switch-btn-text {
@@ -803,9 +813,9 @@ export default {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  height: 52px;
+  height: 48px;
   padding: 0 4px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .sheet-switch-label {
@@ -831,14 +841,14 @@ export default {
   width: 100%;
   flex-direction: row;
   flex-wrap: wrap;
-  margin: 0 -4px 10px -4px;
+  justify-content: space-between;
+  margin-bottom: 6px;
 }
 
 .sheet-btn {
-  flex: 1 1 45%;
-  min-width: 45%;
-  height: 52px;
-  margin: 0 4px 8px 4px;
+  width: 48%;
+  height: 48px;
+  margin-bottom: 6px;
   border-radius: 12px;
   align-items: center;
   justify-content: center;
@@ -848,8 +858,6 @@ export default {
   font-size: 22px;
   line-height: 30px;
   font-weight: bold;
-  lines: 1;
-  text-overflow: ellipsis;
 }
 
 .sheet-close {
@@ -862,15 +870,15 @@ export default {
 }
 
 .add-section {
-  margin-top: 10px;
+  margin-top: 8px;
   padding-bottom: 4px;
   flex-shrink: 0;
 }
 
 .add-btn {
   width: 100%;
-  height: 42px;
-  border-radius: 10px;
+  height: 44px;
+  border-radius: 12px;
   font-size: 20px;
   line-height: 28px;
   font-weight: bold;
@@ -885,90 +893,223 @@ export default {
 }
 
 .overlay-modal {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
   flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 40px 16px;
 }
 
 .modal-card {
-  width: 80%;
+  width: 100%;
   align-self: center;
-  border-radius: 16px;
-  padding: 20px 18px;
+  border-radius: 14px;
+  padding: 14px 8px;
   flex-direction: column;
   align-items: center;
 }
 
 .modal-title {
-  font-size: 30px;
+  font-size: 24px;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   text-align: center;
-  line-height: 40px;
+  line-height: 30px;
 }
 
 .modal-desc {
-  font-size: 24px;
+  font-size: 18px;
   text-align: center;
-  margin-bottom: 16px;
-  line-height: 32px;
+  margin-bottom: 10px;
+  line-height: 25px;
 }
 
 .benefit-list {
   width: 100%;
   flex-direction: column;
-  padding-left: 12px;
-  margin-bottom: 16px;
+  padding-left: 0;
+  margin-bottom: 10px;
 }
 
 .benefit-item {
-  font-size: 24px;
+  font-size: 17px;
   margin-bottom: 6px;
-  line-height: 32px;
+  line-height: 24px;
 }
 
 .modal-btn-primary {
   width: 100%;
-  height: 42px;
-  border-radius: 21px;
-  font-size: 28px;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 22px;
   font-weight: bold;
   margin-bottom: 8px;
-  line-height: 38px;
+  line-height: 28px;
 }
 
 .modal-btn-secondary {
   width: 100%;
-  height: 36px;
-  border-radius: 18px;
-  font-size: 24px;
-  line-height: 32px;
+  height: 34px;
+  border-radius: 17px;
+  font-size: 20px;
+  line-height: 26px;
 }
 
+.keyboard-area {
+  flex-direction: column;
+  margin-top: 10px;
+}
+
+.keyboard-close-row {
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.keyboard-done-btn {
+  width: 56px;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+}
+
+
+/* ================================================================
+   宽度断点：手环 10 / 胶囊屏大号（width >= 200px，内容区 ~180px）
+   在 base 基础上「增量」：字号略大、间距略松、按钮略宽。
+   rename-bar 从 column 恢复为 row（宽屏放得下一行）。
+   ================================================================ */
+@media (width >= 200px) {
+  .page {
+    padding: 44px 12px 12px 12px;
+  }
+  .footer-actions {
+    padding: 16px 0 8px 0;
+  }
+  .pin-link {
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .rename-bar {
+    flex-direction: row;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+  }
+  .rename-display {
+    flex: 1;
+    height: 40px;
+    margin-bottom: 0;
+  }
+  .rename-btn-row {
+    width: auto;
+    flex-shrink: 0;
+  }
+  .rename-ok-btn {
+    width: 56px;
+    height: 36px;
+    margin-left: 8px;
+  }
+  .rename-cancel-btn {
+    width: 56px;
+    height: 36px;
+    margin-left: 6px;
+  }
+  .item {
+    height: 60px;
+  }
+  .sheet-card {
+    padding: 20px 14px 16px 14px;
+  }
+  .sheet-scroll {
+    flex-direction: column;
+    align-items: center;
+    max-height: 460px;
+  }
+  .sheet-title {
+    font-size: 26px;
+    line-height: 34px;
+  }
+  .add-section {
+    margin-top: 10px;
+  }
+  .add-btn {
+    height: 42px;
+    border-radius: 10px;
+  }
+  .overlay-modal {
+    padding: 44px 36px;
+  }
+  .modal-card {
+    width: 80%;
+    border-radius: 16px;
+    padding: 20px 18px;
+  }
+  .modal-title {
+    font-size: 30px;
+    line-height: 40px;
+    margin-bottom: 10px;
+  }
+  .modal-desc {
+    font-size: 24px;
+    line-height: 32px;
+    margin-bottom: 16px;
+  }
+  .benefit-list {
+    padding-left: 12px;
+    margin-bottom: 16px;
+  }
+  .benefit-item {
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .modal-btn-primary {
+    height: 42px;
+    border-radius: 21px;
+    font-size: 28px;
+    line-height: 38px;
+  }
+  .modal-btn-secondary {
+    height: 36px;
+    border-radius: 18px;
+    font-size: 24px;
+    line-height: 32px;
+  }
+}
+
+
+/* ================================================================
+   宽度断点：Watch 6 / 方屏（width >= 400px，内容区 ~400px）
+   rect 屏上下空间充裕，padding 可大幅压缩。
+   ================================================================ */
+@media (width >= 400px) {
+  .page {
+    padding: 6px 8px 8px 8px;
+  }
+}
+
+
+/* ================================================================
+   圆形表盘（唯一保留的 shape 查询——圆方不同构，非宽度可替代）
+   手环 9 不会命中此分支，天然安全。
+   ================================================================ */
 @media (shape: circle) {
   .page {
     padding: 44px 36px 44px 36px;
   }
-
   .item {
     height: 52px;
-    padding: 0 12px 0 12px;
+    padding: 0 12px;
     margin-bottom: 8px;
   }
-
   .indicator {
     width: 28px;
     height: 28px;
     border-radius: 14px;
   }
-
   .rename-display {
     font-size: 20px;
     line-height: 28px;
@@ -994,172 +1135,7 @@ export default {
     padding: 12px 0 6px 0;
   }
   .overlay-modal {
-    padding: 44px 36px 44px 36px;
-  }
-}
-
-@media (shape: pill-shaped) {
-  .page {
-    padding: 44px 10px 20px 10px;
-  }
-
-  .item {
-    height: 64px;
-    padding: 0 14px 0 14px;
-    margin-bottom: 10px;
-  }
-
-  .name {
-    font-size: 24px;
-    line-height: 32px;
-  }
-
-  .sheet-card {
-    border-radius: 20px 20px 0 0;
-    padding: 20px 12px 16px 12px;
-  }
-
-  .rename-bar {
-    flex-direction: column;
-    padding: 10px;
-    margin-bottom: 8px;
-  }
-
-  .rename-display {
-    width: 100%;
-    flex: none;
-    height: 44px;
-    margin-bottom: 8px;
-    font-size: 20px;
-  }
-
-  .rename-text {
-    font-size: 20px;
-    line-height: 28px;
-  }
-
-  .rename-btn-row {
-    width: 100%;
-    flex-direction: row;
-    justify-content: space-between;
-  }
-
-  .rename-ok-btn,
-  .rename-cancel-btn {
-    width: 48%;
-    height: 44px;
-    font-size: 20px;
-    line-height: 28px;
-    margin-left: 0;
-  }
-
-  .add-section {
-    margin-top: 8px;
-  }
-  .add-btn {
-    height: 44px;
-    font-size: 20px;
-    line-height: 28px;
-    border-radius: 12px;
-  }
-
-  .footer-actions {
-    padding: 8px 0 4px 0;
-  }
-  .pin-link {
-    font-size: 20px;
-    line-height: 28px;
-    padding: 10px 24px;
-    min-height: 44px;
-  }
-
-  .overlay-modal {
-    padding: 40px 16px;
-  }
-}
-
-@media (shape: rect) {
-  .page {
-    padding: 6px 8px 8px 8px;
-  }
-}
-
-.keyboard-area {
-  flex-direction: column;
-  margin-top: 10px;
-}
-
-.keyboard-close-row {
-  flex-direction: row;
-  justify-content: flex-end;
-  margin-bottom: 4px;
-}
-
-.keyboard-done-btn {
-  width: 56px;
-  height: 34px;
-  border-radius: 8px;
-  font-size: 24px;
-  font-weight: bold;
-  text-align: center;
-}
-/* ===== 胶囊屏（192px）统一适配：解锁/高级版弹窗 =====
-   背景：同一套弹窗在 6 处各写一份，胶囊适配缺失/不一致 → 192×490 上出现
-   标题截成 3 字、✓ 条目只剩 1 字、内容顶到屏幕右缘被裁（2026-09-27 实测）。
-   统一策略：卡片占满安全宽度、字号降档、文本允许 2 行/1 行 + 省略号。 */
-@media (shape: pill-shaped) {
-  .overlay-modal {
-    padding: 40px 16px;
-  }
-
-  .modal-card {
-    width: 100%;
-    border-radius: 14px;
-    padding: 14px 8px;
-  }
-
-  .modal-title {
-    font-size: 24px;
-    line-height: 30px;
-    margin-bottom: 8px;
-    lines: 2;
-    text-overflow: ellipsis;
-  }
-
-  .modal-desc {
-    font-size: 18px;
-    line-height: 25px;
-    margin-bottom: 10px;
-    lines: 4;
-  }
-
-  .benefit-list {
-    width: 100%;
-    padding-left: 0;
-    margin-bottom: 10px;
-  }
-
-  .benefit-item {
-    font-size: 17px;
-    line-height: 24px;
-    margin-bottom: 6px;
-    lines: 1;
-    text-overflow: ellipsis;
-  }
-
-  .modal-btn-primary {
-    height: 40px;
-    border-radius: 20px;
-    font-size: 22px;
-    line-height: 28px;
-    margin-bottom: 8px;
-  }
-
-  .modal-btn-secondary {
-    height: 34px;
-    border-radius: 17px;
-    font-size: 20px;
-    line-height: 26px;
+    padding: 44px 36px;
   }
 }
 </style>

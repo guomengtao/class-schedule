@@ -1154,7 +1154,7 @@ export default {
   }
 }
 
-@media (shape: capsule), (shape: pill-shaped) {
+@media (shape: pill-shaped) {
   .wv-page {
     padding: 44px 0 8px 0;
   }
