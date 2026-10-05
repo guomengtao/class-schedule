@@ -10,10 +10,10 @@
     "start": "npm run clean && aiot start --watch",
     "bump": "node scripts/bump-version.js",
     "prebuild": "npm run clean && node scripts/bump-version.js",
-    "build": "node scripts/build.js",
+    "build": "node scripts/build.js && node scripts/relaunch.js",
     "build:dev": "npm run clean && aiot build",
     "prerelease": "node scripts/bump-version.js",
-    "release": "aiot release --enable-jsc && node scripts/rename-rpk.js",
+    "release": "find ../.temp_class-schedule -type f -delete 2>/dev/null || true; aiot release --enable-jsc && node scripts/rename-rpk.js",
     "relaunch": "node scripts/relaunch.js",
     "lint": "eslint --format codeframe --fix --ext .ux,.js src/",
     "postinstall": "patch-package"
