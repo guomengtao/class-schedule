@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Ev课程表 · 设备信息页全新设计 v1（设计稿 · 胶囊屏 192×490 + 精简外壳线）</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"PingFang SC","Noto Sans SC",sans-serif;}
+  body{background:#F5F6F7;padding:36px;display:flex;gap:56px;justify-content:center;flex-wrap:wrap;}
+  .tag{width:100%;text-align:center;font-size:12px;color:#999;margin-bottom:20px;}
+  .tag b{color:#A32D2D;}
+  /* ===== 精简外壳线 ===== */
+  .dev-wrap{transform:scale(1.35);transform-origin:top center;margin:0 36px 130px;}
+  .shell{width:192px;height:490px;border-radius:96px;position:relative;
+    background:#0B3B2C;outline:3px solid #5F5E5A;outline-offset:4px;}
+  .shell::after{content:"";position:absolute;inset:5px;border-radius:91px;
+    border:1px solid rgba(255,255,255,.28);pointer-events:none;}
+  .screen{position:absolute;inset:0;border-radius:96px;overflow:hidden;
+    display:flex;flex-direction:column;padding:46px 12px 44px;gap:7px;}
+  .cap{position:absolute;width:100%;text-align:center;font-size:12px;color:#777;}
+  /* ===== 页面内容 ===== */
+  .topbar{flex:none;display:flex;align-items:center;gap:7px;height:24px;}
+  .back{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.14);
+    display:flex;align-items:center;justify-content:center;}
+  .back svg{width:11px;height:11px;}
+  .topbar span{font-size:15px;font-weight:700;color:#fff;}
+  .hero{flex:none;border-radius:16px;background:#fff;padding:10px 14px;text-align:center;}
+  .hero .model{font-size:18px;font-weight:700;color:#123528;line-height:1.3;}
+  .hero .sub{font-size:10px;color:#4A6B5C;margin-top:2px;}
+  .hero .pill{display:inline-block;margin-top:6px;font-size:9px;font-weight:600;color:#007A4D;
+    background:#E4F7EE;border-radius:8px;padding:2px 10px;}
+  .grp-label{flex:none;font-size:9px;font-weight:600;color:rgba(255,255,255,.5);letter-spacing:2px;margin-top:2px;}
+  .grp{flex:none;border-radius:12px;background:rgba(255,255,255,.08);padding:2px 10px;}
+  .item{padding:5px 0;border-bottom:1px solid rgba(255,255,255,.07);}
+  .item:last-child{border-bottom:none;}
+  .item .k{font-size:12px;color:rgba(255,255,255,.62);display:block;margin-bottom:1px;}
+  .item .v{font-size:14px;font-weight:600;color:#fff;display:block;line-height:1.4;
+    word-break:break-all;}
+  .copy{flex:none;display:flex;align-items:center;justify-content:center;gap:5px;
+    height:24px;border-radius:12px;background:rgba(74,222,128,.16);border:1px solid rgba(74,222,128,.45);}
+  .copy span{font-size:10px;font-weight:600;color:#4ADE80;}
+  .notes{max-width:430px;font-size:13px;color:#444;line-height:1.9;}
+  .notes h2{font-size:16px;color:#111;margin-bottom:10px;}
+  .notes li{margin-bottom:7px;}
+  .t{display:inline-block;font-size:11px;background:#E8F5EE;color:#007A4D;border-radius:4px;padding:1px 6px;margin-right:6px;font-weight:600;}
+  .warn{background:#FFF8E6;border-left:3px solid #FFD166;padding:10px 14px;border-radius:6px;margin:12px 0;font-size:12.5px;color:#6b5a1e;line-height:1.8;}
+</style>
+</head>
+<body>
+<div class="tag">⚠️ 本图为<b>设计稿/原型</b>，非真实效果——定稿落地后必须以模拟器实拍（带外壳窗口截图）验收</div>
+
+<div class="dev-wrap">
+  <div class="shell">
+    <div class="screen">
+      <div class="topbar">
+        <div class="back"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+        <span>设备信息</span>
+      </div>
+      <div class="hero">
+        <div class="model">Xiaomi Smart Band 9</div>
+        <div class="sub">小米 · 手环 · 胶囊形屏</div>
+        <div class="pill">Vela OS 1.0.3</div>
+      </div>
+      <div class="grp-label">SCREEN · 屏幕</div>
+      <div class="grp">
+        <div class="item"><span class="k">分辨率</span><span class="v">192 × 490 px</span></div>
+        <div class="item"><span class="k">密度</span><span class="v">220 dpi</span></div>
+      </div>
+      <div class="grp-label">SYSTEM · 系统</div>
+      <div class="grp">
+        <div class="item"><span class="k">平台</span><span class="v">Vela 1.0.3 (API 3)</span></div>
+        <div class="item"><span class="k">存储</span><span class="v">3.81 GB</span></div>
+        <div class="item"><span class="k">语言</span><span class="v">zh-CN</span></div>
+      </div>
+      <div class="grp-label">IDENTITY · 标识</div>
+      <div class="copy"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2.5" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg><span>设备 ID · 点击复制</span></div>
+    </div>
+  </div>
+  <div class="cap">主视图（进入即所见）· 192×490 @1.35x</div>
+</div>
+
+<div class="dev-wrap">
+  <div class="shell">
+    <div class="screen">
+      <div class="topbar">
+        <div class="back"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+        <span>设备信息</span>
+      </div>
+      <div class="grp-label">IDENTITY · 标识（续）</div>
+      <div class="grp">
+        <div class="row"><span class="k">序列号</span><span class="v">WSDF4821<br/>9XQZ</span></div>
+        <div class="item"><span class="k">设备代号</span><span class="v">xiaomi_band</span></div>
+      </div>
+      <div class="grp-label">DEBUG · 调试</div>
+      <div class="grp">
+        <div class="item"><span class="k">固件版本号</span><span class="v">1.0.3 (960)</span></div>
+        <div class="item"><span class="k">平台版本号</span><span class="v">2.1</span></div>
+        <div class="item"><span class="k">制造商</span><span class="v">Xiaomi</span></div>
+      </div>
+      <div class="grp-label">APP · 应用</div>
+      <div class="grp">
+        <div class="item"><span class="k">Ev课程表</span><span class="v">1.7.103 (code 107103)</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="cap">滚动第二屏 · 序列号长值整行换行不省略</div>
+</div>
+
+<div class="notes">
+  <h2>全新设计要点（对照四条铁律 + 外壳规范）</h2>
+  <div class="warn">现状问题：17 个原始字段一列平铺 = 调试转储；用户最关心的「这是什么设备、什么系统、ID 是多少」被淹没；底部孤零零一个「钉首页」没有视觉归属。</div>
+  <ul>
+    <li><span class="t">信息架构</span><b>转储 → 分组</b>：身份卡（型号+品牌+系统）置顶回答「这是什么」；下分 屏幕 / 系统 / 标识 / 调试 / 应用 五组，按用户关心度排序；设备 ID 从列表中段提升为独立「点击复制」按钮。</li>
+    <li><span class="t">铁律①</span><b>宽度加总</b>：行内 k 值 ≤5 字（55px）+ v 值 ≤104px + 内边距 20px = 179px ≤ 192−24 安全区；「分辨率 192 × 490 px」实测 118px 收进。</li>
+    <li><span class="t">铁律②</span><b>弧形区</b>：内容层 top:46 / bottom:44；两屏首末行（返回条 / 复制条、分组行）全在弧线外。</li>
+    <li><span class="t">铁律③</span><b>字号</b>：型号 16（白底深字对比 12.6:1）、正文 11（白字压深绿 ≥9:1）、分组标签 9 配半透明白。全主题 WCAG 达标（深色底方案四主题通用，浅色族不再塌）。</li>
+    <li><span class="t">铁律④</span><b>禁省略</b>：序列号、设备代号等长值整行换行（v 值 line-height 1.35），列表自适应伸高；「未知」兜底保留。</li>
+    <li><span class="t">新增</span><b>应用自报版本</b>：补「Ev课程表 版本号+code」行——排查问题最高频信息，原页面反而没有。</li>
+    <li><span class="t">保留</span>「钉首页」功能不变（下一屏尾部，与原逻辑一致）；错误态/加载态沿用现有重试卡样式。</li>
+  </ul>
+</div>
+</body>
+</html>

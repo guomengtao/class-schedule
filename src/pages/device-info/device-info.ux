@@ -22,9 +22,17 @@
     </div>
 
     <div class="info-section" if="{{ !loading && !errorMsg }}">
-      <div class="menu-item" for="{{ infoList }}" style="background-color: {{ theme.card }}">
-        <text class="menu-label" style="color: {{ theme.text }}">{{ $item.label }}</text>
-        <text class="menu-value" style="color: {{ theme.textMuted }}">{{ $item.value || '未知' }}</text>
+      <div class="hero-card" style="background-color: {{ theme.card }}">
+        <text class="hero-model" style="color: {{ theme.text }}">{{ heroModel }}</text>
+        <text class="hero-sub" style="color: {{ theme.textSecondary }}">{{ heroSub }}</text>
+      </div>
+
+      <div class="grp" for="{{ groups }}" style="background-color: {{ theme.card }}">
+        <text class="grp-title" style="color: {{ theme.textSecondary }}">{{ $item.title }}</text>
+        <div class="item" for="{{ $item.items }}">
+          <text class="item-k" style="color: {{ theme.textSecondary }}">{{ $item.label }}</text>
+          <text class="item-v" style="color: {{ theme.text }}">{{ $item.value || '未知' }}</text>
+        </div>
       </div>
     </div>
 
@@ -75,7 +83,10 @@ export default {
     },
     loading: true,
     errorMsg: "",
-    infoList: []
+    infoList: [],
+    groups: [],
+    heroModel: "",
+    heroSub: ""
   },
 
   onInit() {
@@ -103,24 +114,28 @@ export default {
     device.getInfo({
       success: function(ret) {
         self.infoList = [
-          { label: "设备型号", value: ret.model },
-          { label: "设备品牌", value: ret.brand },
-          { label: "制造商", value: ret.manufacturer },
-          { label: "设备代号", value: ret.product },
-          { label: "设备类型", value: deviceTypeMap[ret.deviceType] || ret.deviceType },
-          { label: "操作系统", value: ret.osType },
-          { label: "系统版本名称", value: ret.osVersionName },
-          { label: "系统版本号", value: ret.osVersionCode },
-          { label: "平台版本名称", value: ret.platformVersionName },
-          { label: "平台版本号", value: ret.platformVersionCode },
-          { label: "API Level", value: ret.APILevel },
-          { label: "屏幕宽度", value: ret.screenWidth ? ret.screenWidth + "px" : "" },
-          { label: "屏幕高度", value: ret.screenHeight ? ret.screenHeight + "px" : "" },
-          { label: "屏幕密度", value: ret.screenDensity },
-          { label: "屏幕形状", value: screenShapeMap[ret.screenShape] || ret.screenShape },
-          { label: "系统语言", value: ret.language },
-          { label: "系统地区", value: ret.region }
+          { label: "设备型号", value: ret.model, grp: 0 },
+          { label: "设备品牌", value: ret.brand, grp: 0 },
+          { label: "设备类型", value: deviceTypeMap[ret.deviceType] || ret.deviceType, grp: 0 },
+          { label: "屏幕形状", value: screenShapeMap[ret.screenShape] || ret.screenShape, grp: 0 },
+          { label: "屏幕分辨率", value: (ret.screenWidth && ret.screenHeight) ? ret.screenWidth + " × " + ret.screenHeight + " px" : "", grp: 1 },
+          { label: "屏幕密度", value: ret.screenDensity, grp: 1 },
+          { label: "系统版本", value: ret.osVersionName, grp: 2 },
+          { label: "平台版本", value: ret.platformVersionName, grp: 2 },
+          { label: "API Level", value: ret.APILevel, grp: 2 },
+          { label: "总存储空间", value: "", grp: 2 },
+          { label: "语言 / 地区", value: ret.language ? ret.language + " · " + ret.region : "", grp: 2 },
+          { label: "设备代号", value: ret.product, grp: 3 },
+          { label: "制造商", value: ret.manufacturer, grp: 3 },
+          { label: "操作系统", value: ret.osType, grp: 3 },
+          { label: "系统版本号", value: ret.osVersionCode, grp: 3 },
+          { label: "平台版本号", value: ret.platformVersionCode, grp: 3 },
+          { label: "设备 ID", value: "", grp: 4 },
+          { label: "序列号", value: "", grp: 4 }
         ]
+        self.heroModel = ret.model || "未知设备"
+        self.heroSub = (ret.brand || "") + " · " + (deviceTypeMap[ret.deviceType] || ret.deviceType || "") + " · " + (screenShapeMap[ret.screenShape] || "")
+        self.buildGroups()
         self.loading = false
       },
       fail: function(data, code) {
@@ -131,39 +146,68 @@ export default {
 
     device.getDeviceId({
       success: function(data) {
-        self.infoList.push({ label: "设备ID", value: data.deviceId })
+        self.infoList.push({ label: "设备 ID", value: data.deviceId, grp: 4 })
+        self.buildGroups()
       },
       fail: function(data, code) {
-        self.infoList.push({ label: "设备ID", value: "获取失败(" + code + ")" })
+        self.infoList.push({ label: "设备 ID", value: "获取失败(" + code + ")", grp: 4 })
+        self.buildGroups()
       }
     })
 
     device.getSerial({
       success: function(data) {
-        self.infoList.push({ label: "序列号", value: data.serial })
+        self.infoList.push({ label: "序列号", value: data.serial, grp: 4 })
+        self.buildGroups()
       },
       fail: function(data, code) {
-        self.infoList.push({ label: "序列号", value: "获取失败(" + code + ")" })
+        self.infoList.push({ label: "序列号", value: "获取失败(" + code + ")", grp: 4 })
+        self.buildGroups()
       }
     })
 
     device.getTotalStorage({
       success: function(data) {
-        self.infoList.push({ label: "总存储空间", value: formatStorage(data.totalStorage) })
+        self.setItemValue("总存储空间", formatStorage(data.totalStorage))
       },
       fail: function() {
-        self.infoList.push({ label: "总存储空间", value: "获取失败" })
+        self.setItemValue("总存储空间", "获取失败")
       }
     })
 
     device.getAvailableStorage({
       success: function(data) {
-        self.infoList.push({ label: "可用存储空间", value: formatStorage(data.availableStorage) })
+        self.setItemValue("可用存储空间", formatStorage(data.availableStorage))
       },
       fail: function() {
-        self.infoList.push({ label: "可用存储空间", value: "获取失败" })
+        self.setItemValue("可用存储空间", "获取失败")
       }
     })
+  },
+
+  // 把 infoList 按 grp 分组为 groups（两行式键值：值独占整行，超长自动换行禁省略）
+  buildGroups() {
+    var titles = ["设备", "屏幕", "系统", "调试", "标识"]
+    var groups = []
+    for (var g = 0; g < titles.length; g++) {
+      var items = []
+      for (var i = 0; i < this.infoList.length; i++) {
+        var it = this.infoList[i]
+        if (it.grp === g && it.value !== "") items.push({ label: it.label, value: it.value })
+      }
+      if (items.length) groups.push({ title: titles[g], items: items })
+    }
+    this.groups = groups
+  },
+
+  setItemValue(label, value) {
+    for (var i = 0; i < this.infoList.length; i++) {
+      if (this.infoList[i].label === label) {
+        this.infoList[i].value = value
+        break
+      }
+    }
+    this.buildGroups()
   },
 
   goBack() {
@@ -205,28 +249,58 @@ export default {
   flex-direction: column;
 }
 
-.menu-item {
-  flex-direction: row;
-  justify-content: space-between;
+.hero-card {
+  flex-direction: column;
+  border-radius: 14px;
+  padding: 12px 12px 10px 12px;
+  margin-bottom: 8px;
   align-items: center;
-  border-radius: 10px;
-  padding: 10px 10px;
-  margin-bottom: 6px;
 }
 
-.menu-label {
+.hero-model {
+  font-size: 26px;
+  line-height: 34px;
+  text-align: center;
+}
+
+.hero-sub {
+  font-size: 20px;
+  line-height: 28px;
+  text-align: center;
+  margin-top: 2px;
+}
+
+.grp {
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 6px 10px 2px 10px;
+  margin-bottom: 8px;
+}
+
+.grp-title {
+  font-size: 20px;
+  line-height: 28px;
+  lines: 1;
+  margin-bottom: 2px;
+}
+
+/* 两行式键值：值独占整行，超长自动换行（禁省略）——外部数据长度不可控的兜底 */
+.item {
+  flex-direction: column;
+  padding: 6px 0;
+  border-top-width: 1px;
+  border-top-color: rgba(128, 128, 128, 0.25);
+}
+
+.item-k {
+  font-size: 20px;
+  line-height: 28px;
+  lines: 1;
+}
+
+.item-v {
   font-size: 24px;
   line-height: 32px;
-  lines: 1;
-  flex-shrink: 0;
-}
-
-.menu-value {
-  font-size: 22px;
-  text-align: right;
-  margin-left: 8px;
-  line-height: 30px;
-  lines: 1;
 }
 
 .pin-row {
