@@ -6,6 +6,13 @@ updatedAt: 2026-09-20T02:56:32.528Z
 provider: 
 ---
 
+---
+
+> ## ⚠️ 正式要求单一权威 = 总纲
+> 「怎么干活」的正式要求一律以**总纲**为准（路径：`/Users/Banner/Documents/guomengtao/多人多AI统一协调开发总纲.md`）；任务单号 = `task-register` 领 `evtask-`（总纲 §3.11 / §4.4）。本文件仅保留本项目本地细节，冲突以总纲为准。
+
+---
+
 开发优先适配 胶囊屏幕 ，确保窄屏幕显示合理。
 每次对话完成，用mac的先弹出系统通知，再语音播报（中文），提醒用户：执行 `scripts/notify.sh "标题" "通知正文" "语音文本"`。**语音优先 Edge TTS 晓晓（zh-CN-XiaoxiaoNeural）**，不可用时该脚本自动回退 `say -v Tingting`。
 所有md文件必须使用中文书写。
