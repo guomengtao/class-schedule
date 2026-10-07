@@ -1,0 +1,272 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <scroll class="scroll-area" scroll-y="{{true}}">
+      <div class="body">
+        <div class="back-header">
+          <div class="back-btn" onclick="goBack" style="background-color: {{ theme.card }}">
+            <image class="back-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+          </div>
+          <text class="title" style="color: {{ theme.text }}">容量实测</text>
+          <div class="ph"></div>
+        </div>
+
+        <!-- A. 内容宽度标尺：164px = 胶囊屏 y≥46 处弦宽（几何定标） -->
+        <text class="sec-title" style="color: {{ theme.accent }}">内容宽度 164px（标尺）</text>
+        <div class="ruler" style="border-color: {{ theme.accent }}">
+          <text class="ruler-text" style="color: {{ theme.textMuted }}">← 164px →</text>
+        </div>
+
+        <!-- B. 每行字数：字号 ↑ 每行能放的汉字数 = floor(164 ÷ 字号) -->
+        <text class="sec-title" style="color: {{ theme.accent }}">每行字数（汉字，单行）</text>
+        <div class="size-card" style="background-color: {{ theme.card }}">
+          <div class="size-row" for="{{ sizeRows }}">
+            <text class="size-label" style="color: {{ theme.textMuted }}">{{ $item.label }}</text>
+            <text class="size-sample" style="font-size: {{ $item.px }}px; color: {{ theme.text }}; line-height: {{ $item.lineH }}px;">{{ $item.sample }}</text>
+          </div>
+        </div>
+        <text class="note" style="color: {{ theme.textMuted }}">样本 = 该字号 floor(164÷字号) 个汉字，放得下不折行即达标</text>
+
+        <!-- C. 按钮热区：一行几个 + 多高好点 -->
+        <text class="sec-title" style="color: {{ theme.accent }}">按钮热区（等宽 flex + 间隙 6px）</text>
+        <div class="btn-card" style="background-color: {{ theme.card }}">
+          <text class="btn-row-label" style="color: {{ theme.textMuted }}">一行 2 个 · 高 44px</text>
+          <div class="btn-row">
+            <div class="btn" style="background-color: {{ theme.accent }}; height: 44px;">
+              <text class="btn-text" style="color: {{ theme.bg }};">编辑 44</text>
+            </div>
+            <div class="btn" style="background-color: {{ theme.deleteBg }}; height: 44px;">
+              <text class="btn-text" style="color: {{ theme.deleteText }};">删除 44</text>
+            </div>
+          </div>
+          <text class="btn-row-label" style="color: {{ theme.textMuted }}">一行 3 个 · 高 36px</text>
+          <div class="btn-row">
+            <div class="btn" style="background-color: {{ theme.cardLight }}; height: 36px;">
+              <text class="btn-text-s" style="color: {{ theme.text }};">编辑</text>
+            </div>
+            <div class="btn" style="background-color: {{ theme.cardLight }}; height: 36px;">
+              <text class="btn-text-s" style="color: {{ theme.text }};">置顶</text>
+            </div>
+            <div class="btn" style="background-color: {{ theme.deleteBg }}; height: 36px;">
+              <text class="btn-text-s" style="color: {{ theme.deleteText }};">删除</text>
+            </div>
+          </div>
+          <text class="btn-row-label" style="color: {{ theme.textMuted }}">一行 4 个 · 高 32px（下限）</text>
+          <div class="btn-row">
+            <div class="btn" style="background-color: {{ theme.cardLight }}; height: 32px;">
+              <text class="btn-text-xs" style="color: {{ theme.text }};">1</text>
+            </div>
+            <div class="btn" style="background-color: {{ theme.cardLight }}; height: 32px;">
+              <text class="btn-text-xs" style="color: {{ theme.text }};">2</text>
+            </div>
+            <div class="btn" style="background-color: {{ theme.cardLight }}; height: 32px;">
+              <text class="btn-text-xs" style="color: {{ theme.text }};">3</text>
+            </div>
+            <div class="btn" style="background-color: {{ theme.cardLight }}; height: 32px;">
+              <text class="btn-text-xs" style="color: {{ theme.text }};">4</text>
+            </div>
+          </div>
+        </div>
+        <text class="note" style="color: {{ theme.textMuted }}">≤32px 高度仅限次要操作；主操作 ≥36px</text>
+      </div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+var store = require("../../data/store.js")
+
+/** 胶囊屏（小米手环 9，192×490）内容宽定标 164px：每行汉字数 = floor(164 ÷ 字号) */
+var CONTENT_W = 164
+
+export default {
+  private: {
+    iconTheme: "dark",
+    theme: {
+      bg: "#1a1a2e",
+      card: "#16213e",
+      cardLight: "#0f3460",
+      accent: "#7ec8e3",
+      text: "#ffffff",
+      textMuted: "#555566",
+      deleteBg: "#2a1a3e",
+      deleteText: "#e08080"
+    },
+    sizeRows: []
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function (t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
+    var sizes = [12, 13, 14, 15, 16, 18, 20, 24]
+    var rows = []
+    for (var i = 0; i < sizes.length; i++) {
+      var px = sizes[i]
+      var n = Math.floor(CONTENT_W / px)
+      var sample = ""
+      for (var j = 0; j < n; j++) { sample += "汉" }
+      rows.push({
+        px: px,
+        label: px + "px · " + n + "字",
+        sample: sample,
+        lineH: Math.round(px * 1.5)
+      })
+    }
+    this.sizeRows = rows
+  },
+
+  updateIconSrc: function (themeName) {
+    this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.scroll-area {
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+}
+
+.body {
+  flex-direction: column;
+  width: 100%;
+  padding: 30px 14px 14px 14px;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.back-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.back-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.title {
+  flex: 1;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 26px;
+}
+
+.ph {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.sec-title {
+  font-size: 14px;
+  line-height: 20px;
+  margin: 8px 0 4px 2px;
+}
+
+.ruler {
+  width: 164px;
+  height: 24px;
+  border-width: 1px;
+  border-style: dashed;
+  border-radius: 4px;
+  justify-content: center;
+  align-items: center;
+}
+
+.ruler-text {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.size-card {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.size-row {
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.size-label {
+  font-size: 12px;
+  line-height: 16px;
+  margin-bottom: 2px;
+}
+
+.size-sample {
+  lines: 1;
+  text-overflow: clip;
+}
+
+.note {
+  font-size: 12px;
+  line-height: 17px;
+  margin: 4px 2px 0 2px;
+}
+
+.btn-card {
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.btn-row-label {
+  font-size: 12px;
+  line-height: 16px;
+  margin: 4px 0;
+}
+
+.btn-row {
+  flex-direction: row;
+  margin-bottom: 8px;
+}
+
+.btn {
+  flex: 1;
+  border-radius: 9px;
+  justify-content: center;
+  align-items: center;
+  margin: 0 3px;
+}
+
+.btn-text {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.btn-text-s {
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.btn-text-xs {
+  font-size: 12px;
+  line-height: 16px;
+}
+</style>

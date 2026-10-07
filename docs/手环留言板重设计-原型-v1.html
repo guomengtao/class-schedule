@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>手环留言板重设计 · 胶囊屏 v1（设计稿）</title>
+<style>
+  :root{
+    --bg:#f5f0e8; --card:#ffffff; --ink:#3d3229; --muted:#8a7d6d;
+    --acc:#4a7a5a; --accSoft:#e3ede5; --mine:#dcebe0; --theirs:#ffffff;
+    --line:#e8e1d5; --warn:#b5651d;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,"PingFang SC",sans-serif;}
+  body{background:#efe9df;padding:28px;display:flex;gap:44px;justify-content:center;flex-wrap:wrap;}
+  .col{text-align:center;}
+  .col h3{font-size:15px;color:#6b5d4a;font-weight:600;margin-bottom:4px;}
+  .col p{font-size:11px;color:#a09480;margin-bottom:16px;}
+
+  /* ══ 精简外壳线（用户 2026-10-05 选定：两条线，无表带） ══ */
+  .capsule{
+    width:192px;height:490px;flex:none;position:relative;
+    border-radius:96px / 96px;   /* 上下半圆弧 */
+    background:#111;             /* 外壳底 */
+    padding:3px;                 /* 外壳描边线厚度 */
+  }
+  .screen{
+    width:100%;height:100%;border-radius:93px;
+    border:1px solid #3a3a3a;    /* 屏幕分隔线 */
+    overflow:hidden;position:relative;
+  }
+  /* 弧形危险区示意（仅标注，非成品元素） */
+  .danger-top,.danger-bot{
+    position:absolute;left:0;right:0;height:46px;pointer-events:none;z-index:9;
+    background:repeating-linear-gradient(-45deg,rgba(220,60,60,.14) 0 6px,transparent 6px 12px);
+  }
+  .danger-top{top:0;border-radius:93px 93px 0 0;}
+  .danger-bot{bottom:0;height:44px;border-radius:0 0 93px 93px;}
+  .dz-label{position:absolute;font-size:7px;color:rgba(220,60,60,.7);z-index:10;}
+  .dz-t{top:8px;left:16px;}
+  .dz-b{bottom:8px;right:16px;}
+
+  /* ══ 屏内布局（翡翠绿主题示例）══ */
+  .page{width:100%;height:100%;background:var(--bg);display:flex;flex-direction:column;
+    padding:46px 0 44px;}   /* 上下弧区零内容 */
+
+  /* 顶栏：压缩到 40px——标题与返回同排，右侧未读胶囊 */
+  .top{flex:none;height:40px;display:flex;align-items:center;padding:0 34px;gap:8px;}
+  .back{width:24px;height:24px;border-radius:50%;background:var(--card);
+    display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--muted);flex:none;}
+  .title{font-size:16px;font-weight:700;color:var(--ink);flex:1;text-align:left;white-space:nowrap;}
+  .unread-pill{font-size:10px;font-weight:600;color:#fff;background:var(--acc);
+    border-radius:9px;padding:2px 7px;flex:none;}
+
+  /* 消息流：气泡化——上=对方(手机)，下=我(手环) */
+  .flow{flex:1;overflow:hidden;display:flex;flex-direction:column;gap:7px;
+    padding:6px 14px 10px;}
+  .msg{max-width:140px;display:flex;flex-direction:column;gap:2px;}
+  .msg.theirs{align-self:flex-start;align-items:flex-start;}
+  .msg.mine{align-self:flex-end;align-items:flex-end;}
+  .bubble{border-radius:13px;padding:6px 10px;font-size:14px;line-height:1.5;
+    color:var(--ink);word-break:break-all;box-shadow:0 1px 2px rgba(60,50,30,.08);}
+  .theirs .bubble{background:var(--theirs);border:1px solid var(--line);
+    border-top-left-radius:5px;}
+  .mine .bubble{background:var(--mine);border-top-right-radius:5px;}
+  .msg .meta{font-size:12px;color:var(--muted);padding:0 4px;white-space:nowrap;}
+  .msg.unread-theirs .bubble{border:1.5px solid var(--acc);}
+
+  /* 输入态：对方草稿全文预显示（未发送也可见） */
+  .typing{align-self:flex-start;max-width:140px;display:flex;flex-direction:column;gap:3px;
+    background:var(--theirs);border:1px dashed var(--acc);border-radius:13px;
+    border-top-left-radius:5px;padding:6px 10px;}
+  .typing .t-label{font-size:12px;color:var(--acc);font-weight:600;}
+  .typing .t-draft{font-size:14px;line-height:1.5;color:var(--ink);opacity:.75;word-break:break-all;}
+  .typing .tdots{display:flex;gap:4px;}
+  .tdot{width:4px;height:4px;border-radius:50%;background:var(--acc);
+    animation:blink 1.2s infinite;}
+  .tdot:nth-child(2){animation-delay:.2s}.tdot:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+
+  /* 底部回复条：两行结构，全部落在弧区外缘之上 */
+  .reply{flex:none;border-top:1px solid var(--line);background:var(--card);
+    padding:8px 14px 6px;display:flex;flex-direction:column;gap:6px;}
+  .r1{display:flex;align-items:center;gap:6px;}
+  .ph-chip{flex:1;text-align:center;font-size:14px;font-weight:600;color:var(--acc);background:var(--accSoft);
+    border-radius:10px;padding:8px 6px;white-space:nowrap;overflow:hidden;}
+  .send-btn{font-size:14px;font-weight:700;color:#fff;background:var(--acc);
+    border-radius:11px;padding:8px 12px;flex:none;}   /* 热区高≈35px */
+  .r2{display:flex;align-items:center;justify-content:space-between;}
+  .phone{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;white-space:nowrap;}
+  .pdot{width:5px;height:5px;border-radius:50%;background:#3aa76d;flex:none;}
+  .r2r{display:flex;gap:10px;}
+  .r2link{font-size:12px;color:var(--acc);font-weight:600;padding:6px 2px;white-space:nowrap;}
+
+  /* ── 屏3：短语管理 ── */
+  .plist{flex:1;overflow:hidden;display:flex;flex-direction:column;gap:6px;padding:8px 14px;}
+  .prow{flex:none;display:flex;flex-direction:column;gap:5px;background:var(--card);
+    border:1px solid var(--line);border-radius:11px;padding:10px 11px;}
+  .prow.expanded{border:1.5px solid var(--acc);background:var(--accSoft);}
+  .prow .ptext{font-size:14px;line-height:1.45;color:var(--ink);}
+  .prow.expanded .ptext{font-weight:600;}
+  .prow .pacts{display:flex;gap:8px;}
+  .pbtn{flex:1;text-align:center;font-size:12px;font-weight:600;border-radius:9px;padding:8px 0;white-space:nowrap;}
+  .pbtn.edit{color:var(--acc);background:var(--accSoft);}
+  .pbtn.del{color:#b0483a;background:#f5e3df;}
+  .padd{flex:none;display:flex;align-items:center;justify-content:center;gap:5px;
+    border:1.5px dashed var(--acc);border-radius:11px;padding:10px;background:transparent;}
+  .padd span{font-size:14px;font-weight:600;color:var(--acc);}
+
+  /* ── 屏2：空态 ── */
+  .empty{flex:1;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:8px;padding:0 30px;text-align:center;}
+  .e-icon{font-size:30px;opacity:.85;}
+  .e-main{font-size:16px;font-weight:600;color:var(--ink);}
+  .e-sub{font-size:14px;line-height:1.6;color:var(--muted);}
+
+  /* 说明卡 */
+  .notes{max-width:430px;text-align:left;background:#fff;border-radius:14px;
+    padding:18px 22px;box-shadow:0 2px 8px rgba(80,60,30,.08);align-self:center;}
+  .notes h4{font-size:14px;color:#4a3d2e;margin-bottom:10px;}
+  .notes li{font-size:12.5px;color:#6b5d4a;line-height:1.85;margin-left:18px;}
+  .notes b{color:#3d5a45;}
+  .bad{color:#b0483a;}
+</style>
+</head>
+<body>
+
+<div class="col">
+  <h3>屏 1 · 有留言（含对方输入态）</h3>
+  <p>气泡对话流 · 未读左缘描边 · 顶栏 40px + 回复条两行</p>
+  <div class="capsule"><div class="screen">
+    <div class="danger-top"></div><div class="danger-bot"></div>
+    <span class="dz-label dz-t">▲46px 弧区</span><span class="dz-label dz-b">▼44px 弧区</span>
+    <div class="page">
+      <div class="top">
+        <div class="back">‹</div>
+        <div class="title">留言板</div>
+        <div class="unread-pill">2 未读</div>
+      </div>
+      <div class="flow">
+        <div class="msg theirs unread-theirs">
+          <div class="bubble">第三节换自习，带练习册</div>
+          <div class="meta">14:32 · 手机</div>
+        </div>
+        <div class="msg theirs unread-theirs">
+          <div class="bubble">放学校门口等我</div>
+          <div class="meta">14:35 · 手机</div>
+        </div>
+        <div class="typing">
+          <span class="t-label">对方正在输入</span>
+          <span class="t-draft">上完课来找我</span>
+          <span class="tdots"><span class="tdot"></span><span class="tdot"></span><span class="tdot"></span></span>
+        </div>
+      </div>
+      <div class="reply">
+        <div class="r1">
+          <div class="ph-chip">好的，收到！</div>
+          <div class="send-btn">发送</div>
+        </div>
+        <div class="r2">
+          <div class="phone"><span class="pdot"></span>手机在线</div>
+          <div class="r2r"><span class="r2link">✏️ 自己写</span><span class="r2link">☰ 管理</span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<div class="col">
+  <h3>屏 2 · 空态</h3>
+  <p>一句话 + 行动指引，不放大图浪费弧区</p>
+  <div class="capsule"><div class="screen">
+    <div class="danger-top"></div><div class="danger-bot"></div>
+    <div class="page">
+      <div class="top">
+        <div class="back">‹</div>
+        <div class="title">留言板</div>
+      </div>
+      <div class="empty">
+        <div class="e-icon">📭</div>
+        <div class="e-main">暂无留言</div>
+        <div class="e-sub">手机端发来的留言<br>会显示在这里</div>
+      </div>
+      <div class="reply">
+        <div class="r1">
+          <div class="ph-chip">嗨，在吗？</div>
+          <div class="send-btn">发送</div>
+        </div>
+        <div class="r2">
+          <div class="phone"><span class="pdot"></span>手机在线</div>
+          <div class="r2r"><span class="r2link">✏️ 自己写</span><span class="r2link">☰ 管理</span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<div class="col">
+  <h3>屏 3 · 快捷短语管理</h3>
+  <p>增 / 删 / 编 · 行高≈36px 热区 · 删除红色弱底不刺眼</p>
+  <div class="capsule"><div class="screen">
+    <div class="danger-top"></div><div class="danger-bot"></div>
+    <div class="page">
+      <div class="top">
+        <div class="back">‹</div>
+        <div class="title">管理快捷短语</div>
+      </div>
+      <div class="plist">
+        <div class="prow"><span class="ptext">好的，收到！</span></div>
+        <div class="prow expanded">
+          <span class="ptext">马上来，等一下</span>
+          <div class="pacts"><span class="pbtn edit">✎ 编辑</span><span class="pbtn del">🗑 删除</span></div>
+        </div>
+        <div class="prow"><span class="ptext">上课了，回聊</span></div>
+        <div class="padd"><span>＋ 新增短语</span></div>
+      </div>
+      <div class="reply" style="border-top:none;background:transparent;padding-top:0;">
+        <div class="r2" style="justify-content:center;">
+          <div class="phone">点短语展开操作 · 长按置顶</div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<div class="notes">
+  <h4>重设计要点（对照现状 752 行 message-inbox.ux）</h4>
+  <ul>
+    <li><b>气泡化对话流</b>：手机=白气泡左上角、我=绿气泡右上角，方向即身份——删掉「我：」文字前缀与独占一行的 msg-time（时间缩成 10px 气泡下 meta，与来源合并）。</li>
+    <li><b>未读识别</b>：删左侧 4px 圆点（窄屏浪费），改<span class="bad">未读气泡整圈描边</span>，扫一眼即知哪几条没看。</li>
+    <li><b>垂直预算</b>：顶栏 78→40px；统计行「共x条·未读x」整体删除（未读进顶栏胶囊、总数无操作价值）；固定区 348px(81%)→<b>约 90px(20%)</b>。</li>
+    <li><b>回复条两行制</b>：现状三段横排（状态+swiper+按钮）每段只分到 ~50px；改为 R1=短语签+发送、R2=手机状态+自己写+<b>管理</b>（进屏 3 增/删/编短语），短语签独享宽。</li>
+    <li><b>对方输入态</b>：嵌在消息流内，<b>草稿全文预显示</b>（虚线描边+「对方正在输入」小签+跳动点），未发送也能看到、不占固定行。</li>
+    <li><b>字号与热区分离</b>：实测定标（§5）后口径——气泡正文 14px（辅助档）、短语签与发送 14px、管理行 14px、按钮/meta/链接 12px（下限档）；热区靠 padding 兜底——发送键与短语签高≈35px、管理行≈37px，小屏点得中。</li>
+    <li><b>铁律核对</b>：气泡 max-width 140px（192−左右弧区边距），长短语在管理行内自动换行不截断、空态副题两行整行换行——<span class="bad">全页零省略号</span>；内容严格落在 46/44px 弧区外。</li>
+  </ul>
+</div>
+
+</body>
+</html>

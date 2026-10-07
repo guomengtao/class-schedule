@@ -1,0 +1,20 @@
+=== adb devices ===
+List of devices attached
+BTF4C17222009588	device
+emulator-5554	device
+
+=== qemu-system processes ===
+Banner           21601   1.9  0.3 466974320  22368 s004  S     5:05AM   0:13.37 /Users/Banner/.vela/sdk/emulator/darwin-aarch64/qemu/darwin-aarch64/qemu-system-armel -vela -avd xiaomi_band -show-kernel -network-user-mode-options hostfwd=tcp:127.0.0.1:10055-10.0.2.15:101
+
+=== emulator listen ports (grep TCP | emulator pid) ===
+Python     4232 Banner    3u  IPv4   0x3e09375596ae71      0t0  TCP 127.0.0.1:8931 (LISTEN)
+qemu-syst 21601 Banner   37u  IPv4 0xd22315d48b0acb86      0t0  TCP 127.0.0.1:10055 (LISTEN)
+qemu-syst 21601 Banner   59u  IPv6 0xc57c7765bb40666e      0t0  TCP 127.0.0.1:8554 (LISTEN)
+AstroBox  38403 Banner    8u  IPv4 0x6104aa26dba90da1      0t0  TCP 127.0.0.1:10721 (LISTEN)
+AIoT\x20I 99703 Banner   29u  IPv4 0xe09b448599f8608d      0t0  TCP *:8883 (LISTEN)
+
+=== emulator serial → avd name ===
+emulator-5554 → xiaomi_band
+
+=== vapp process on emulators ===
+--- emulator-5554 ---

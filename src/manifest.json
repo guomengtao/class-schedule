@@ -109,12 +109,6 @@
       "pages/device-info": {
         "component": "device-info"
       },
-      "pages/width-detect": {
-        "component": "width-detect"
-      },
-      "pages/capacity-demo": {
-        "component": "capacity-demo"
-      },
       "pages/pinned-pages": {
         "component": "pinned-pages"
       },
@@ -124,50 +118,17 @@
       "pages/vibration-lab": {
         "component": "vibration-lab"
       },
-      "pages/rect-diag": {
-        "component": "rect-diag"
-      },
-      "pages/rect-c1": {
-        "component": "rect-c1"
-      },
-      "pages/rect-c2": {
-        "component": "rect-c2"
-      },
-      "pages/rect-c3": {
-        "component": "rect-c3"
-      },
-      "pages/rect-c4": {
-        "component": "rect-c4"
-      },
-      "pages/rect-c5": {
-        "component": "rect-c5"
-      },
-      "pages/rect-c6": {
-        "component": "rect-c6"
-      },
-      "pages/rect-c7": {
-        "component": "rect-c7"
-      },
       "pages/qrcode-generator": {
         "component": "qrcode-generator"
       },
       "pages/chinese-input": {
         "component": "chinese-input"
       },
-      "pages/loading-lab": {
-        "component": "loading-lab"
-      },
-      "pages/anim-test": {
-        "component": "anim-test"
-      },
       "pages/statistics": {
         "component": "statistics"
       },
       "pages/workday-info": {
         "component": "workday-info"
-      },
-      "pages/time-picker-demo": {
-        "component": "time-picker-demo"
       },
       "pages/message-inbox": {
         "component": "message-inbox"

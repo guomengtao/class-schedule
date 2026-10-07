@@ -16,36 +16,10 @@
         <text class="item-hint" style="color: {{ theme.textMuted }}">调试</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="openWidthDetect">
-        <text class="item-label" style="color: {{ theme.text }}">宽度检测</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">单行字数</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="openCapacityDemo">
-        <text class="item-label" style="color: {{ theme.text }}">容量实测</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">字号/按钮/热区</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openVibrationLab">
         <text class="item-label" style="color: {{ theme.text }}">震动自定义</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">震动方案</text>
       </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="openRectDiag">
-        <text class="item-label" style="color: {{ theme.text }}">布局诊断</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">真机取证</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="openLoadingLab">
-        <text class="item-label" style="color: {{ theme.text }}">加载动画</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">12 种演示</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="openAnimTest">
-        <text class="item-label" style="color: {{ theme.text }}">Anim Test</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">single spinner</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openCountdownManage">
         <text class="item-label" style="color: {{ theme.text }}">倒数日</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">事件倒计时</text>
@@ -132,11 +106,6 @@
         <text class="item-label" style="color: {{ theme.accent }}">@media 语法测试</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">screen and 支持?</text>
       </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="openTimePickerDemo">
-        <text class="item-label" style="color: {{ theme.accent }}">时间选择器 Demo</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">全屏上下滑动</text>
-      </div>
     </div>
     </div>
     </scroll>
@@ -221,22 +190,8 @@ export default {
     router.push({ uri: "/pages/device-info" })
   },
 
-  openWidthDetect() {
-    router.push({ uri: "/pages/width-detect" })
-  },
-
-  openCapacityDemo() {
-    router.push({ uri: "/pages/capacity-demo" })
-  },
-
-
-
   openVibrationLab() {
     router.push({ uri: "/pages/vibration-lab" })
-  },
-
-  openRectDiag() {
-    router.push({ uri: "/pages/rect-diag" })
   },
 
   openCountdownManage() {
@@ -245,14 +200,6 @@ export default {
 
   openQRCodeGenerator() {
     router.push({ uri: "/pages/qrcode-generator" })
-  },
-
-  openLoadingLab() {
-    router.push({ uri: "/pages/loading-lab" })
-  },
-
-  openAnimTest() {
-    router.push({ uri: "/pages/anim-test" })
   },
 
   openStatistics() {
@@ -267,10 +214,6 @@ export default {
   // 这是验证"手环 → 手机"方向能否成立的关键按钮（此前从未被证实过）。
   openMessageInbox() {
     router.push({ uri: "/pages/message-inbox" })
-  },
-
-  openTimePickerDemo() {
-    router.push({ uri: "/pages/time-picker-demo" })
   },
 
   openMediaTest() {
