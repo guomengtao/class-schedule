@@ -8,7 +8,7 @@ var defaultsEngine = require("./data/defaults-engine.js")
 
 // 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
 // DEBUG: 联调时打开，排查同步问题
-var DEBUG = true
+var DEBUG = false
 function dlog() {
   if (DEBUG) console.log.apply(console, arguments)
 }
@@ -180,12 +180,12 @@ function syncToFormatA(list) {
 
 function syncReply(connect, payload) {
   try {
-    console.log("[SYNC-TX] reply payload=" + JSON.stringify(payload).substring(0, 100))
+    dlog("[SYNC-TX] reply payload=" + JSON.stringify(payload).substring(0, 100))
     // 官方文档：connect.send 的 data 是 Object（框架负责序列化）；发字符串会双重转义
     connect.send({ data: payload })
-    console.log("[SYNC-TX] reply send done")
+    dlog("[SYNC-TX] reply send done")
   } catch (e) {
-    console.log("[SYNC-TX] reply failed: " + e)
+    dlog("[SYNC-TX] reply failed: " + e)
   }
 }
 
@@ -214,15 +214,23 @@ function syncHandleChatIncoming(connect, msg) {
       storage.set({
         key: "ev_chat_inbox",
         value: JSON.stringify(list),
-        success: function () { vibrateLong() },
-        fail: function () { vibrateLong() }
+        // 评审 M2：ack 语义 = 已持久化。落库成功才回 ok，失败回 ok:false 让手机端可重试，
+        // 不再"先 ack 后落库"导致存储失败即静默丢消息
+        success: function () {
+          vibrateLong()
+          syncReply(connect, { ok: true, action: "chat_ack", id: item.id, ts: Date.now() })
+        },
+        fail: function () {
+          vibrateLong()
+          syncReply(connect, { ok: false, action: "chat_ack", id: item.id, reason: "persist failed" })
+        }
       })
     },
     fail: function () {
       vibrateLong()
+      syncReply(connect, { ok: false, action: "chat_ack", id: item.id, reason: "inbox read failed" })
     }
   })
-  syncReply(connect, { ok: true, action: "chat_ack", id: msg.id || "", ts: Date.now() })
 }
 
 /** 长震动：优先 vibrator.start（自定义时长/次数），失败回落 vibrate({mode:"long"}) */
@@ -371,12 +379,15 @@ function syncHandleImport(connect, payload) {
 function syncWriteCoursesToIndex(index, data, count, connect, extra) {
   var storage = require("@system.storage")
   var key = "allCourses_" + index
+  // 评审 M3：备份按课表 index 分键——单键会被下一次导入覆盖，
+  // 导致"上一次的旧数据"在最需要回退时反而找不回
+  var backupKey = "astrobox_sync_backup_" + index
 
   storage.get({
     key: key,
     success: function (oldVal) {
       storage.set({
-        key: "astrobox_sync_backup",
+        key: backupKey,
         value: oldVal || "[]",
         success: function () {
           storage.set({
@@ -524,11 +535,13 @@ function syncHandleActivate(connect, payload) {
   function finish(deviceId) {
     var s = String(deviceId == null ? "" : deviceId)
     var last4 = s.substring(s.length - 4)
-    if (String(decrypted.deviceId) !== last4) {
+    // 评审 C3：码里必须带设备段且本机 ID 必须取到，两者皆非空才比对——
+    // 失败模式必须是「拒绝」，不允许空串 vs 空串意外通过
+    if (!s || !decrypted.deviceId || String(decrypted.deviceId) !== last4) {
       syncReply(connect, {
         ok: false,
         action: "activate",
-        reason: "设备ID不匹配",
+        reason: !s ? "无法获取设备ID，请到手环端激活" : "设备ID不匹配",
         codeDeviceId: decrypted.deviceId,
         localDeviceId4: last4
       })
@@ -923,43 +936,46 @@ function syncHandleUpdateSettings(connect, payload) {
 
 function initSyncReceiver() {
   if (!interconnect) {
-    console.log("[SYNC-INIT] interconnect NOT available, module is null")
+    dlog("[SYNC-INIT] interconnect NOT available, module is null")
     return
   }
-  console.log("[SYNC-INIT] interconnect available, getting instance...")
+  dlog("[SYNC-INIT] interconnect available, getting instance...")
   var connect = interconnect.instance()
-  console.log("[SYNC-INIT] instance obtained, setting onmessage...")
+  dlog("[SYNC-INIT] instance obtained, setting onmessage...")
 
   connect.onmessage = function (data) {
-    console.log("[SYNC-RX] onmessage fired, data type=" + (typeof data) + ", has data field=" + !!(data && data.data))
+    dlog("[SYNC-RX] onmessage fired, data type=" + (typeof data) + ", has data field=" + !!(data && data.data))
     var raw = (data && data.data)
     var parsed = null
     try {
       // 兼容插件发字符串或对象两种形态
       if (typeof raw === "string") {
-        console.log("[SYNC-RX] raw is string, length=" + raw.length + ", preview=" + raw.substring(0, 120))
+        dlog("[SYNC-RX] raw is string, length=" + raw.length + ", preview=" + raw.substring(0, 120))
         parsed = JSON.parse(raw)
       } else if (raw) {
-        console.log("[SYNC-RX] raw is object, keys=" + JSON.stringify(Object.keys(raw)))
+        dlog("[SYNC-RX] raw is object, keys=" + JSON.stringify(Object.keys(raw)))
         parsed = raw
       }
     } catch (e) {
-      console.log("[SYNC-RX] parse failed: " + e + ", raw=" + raw)
+      dlog("[SYNC-RX] parse failed: " + e + ", raw=" + raw)
       return
     }
     if (!parsed) {
-      console.log("[SYNC-RX] parsed is empty, raw was: " + raw)
+      dlog("[SYNC-RX] parsed is empty, raw was: " + raw)
       return
     }
-    console.log("[SYNC-RX] action=" + (parsed.action || "(none)"))
+    dlog("[SYNC-RX] action=" + (parsed.action || "(none)"))
 
-    // 原始报文始终留档，便于排错与后续补转换
-    var storage = require("@system.storage")
-    storage.set({
-      key: "astrobox_sync_data",
-      value: JSON.stringify(parsed),
-      fail: function () {}
-    })
+    // 原始报文留档（低频动作），便于排错与后续补转换。
+    // typing 高频报文不落盘：没有排错价值，却是最热的 flash 写路径（评审 C2）
+    if (parsed.action !== "typing") {
+      var storage = require("@system.storage")
+      storage.set({
+        key: "astrobox_sync_data",
+        value: JSON.stringify(parsed),
+        fail: function () {}
+      })
+    }
 
     if (parsed.action === "ping") {
       // 通道探针：同步立即回，最快往返；联调第一步用它判定通道是否双向通
@@ -1035,7 +1051,7 @@ function initSyncReceiver() {
         globalThis.__evSyncPhoneSeenTs = Date.now()
         globalThis.__evSyncPhoneSeenRef = parsed.refAction || ""
       } catch (e) {}
-      console.log("[SYNC-RX] rx_ack, refAction=" + (parsed.refAction || "") + " phone is online")
+      dlog("[SYNC-RX] rx_ack, refAction=" + (parsed.refAction || "") + " phone is online")
       return
     }
     if (parsed.action === "typing") {
@@ -1071,17 +1087,17 @@ function initSyncReceiver() {
       syncHandleImport(connect, parsed)
       return
     }
-    console.log("[SYNC-RX] unknown action ignored: " + parsed.action)
+    dlog("[SYNC-RX] unknown action ignored: " + parsed.action)
   }
 
   connect.onopen = function (data) {
-    console.log("[SYNC-EVT] onopen fired, isReconnected=" + (data && data.isReconnected))
+    dlog("[SYNC-EVT] onopen fired, isReconnected=" + (data && data.isReconnected))
   }
   connect.onerror = function (data) {
-    console.log("[SYNC-EVT] onerror code=" + (data && data.code) + " data=" + (data && data.data))
+    dlog("[SYNC-EVT] onerror code=" + (data && data.code) + " data=" + (data && data.data))
   }
   connect.onclose = function (data) {
-    console.log("[SYNC-EVT] onclose code=" + (data && data.code))
+    dlog("[SYNC-EVT] onclose code=" + (data && data.code))
   }
   // ↓↓↓ 注册到共享模块：手环侧这才具备【主动发送】能力（聊天功能前提）
   _syncConnect = connect
@@ -1089,11 +1105,11 @@ function initSyncReceiver() {
   // 主动探测连接状态，便于真机定位"通道是否建立"
   try {
     connect.getReadyState({
-      success: function (d) { console.log("[SYNC-EVT] readyState=" + (d && d.status)) },
-      fail: function (d, c) { console.log("[SYNC-EVT] getReadyState fail code=" + c) }
+      success: function (d) { dlog("[SYNC-EVT] readyState=" + (d && d.status)) },
+      fail: function (d, c) { dlog("[SYNC-EVT] getReadyState fail code=" + c) }
     })
   } catch (e) {
-    console.log("[SYNC-EVT] getReadyState exception=" + e)
+    dlog("[SYNC-EVT] getReadyState exception=" + e)
   }
 }
 
@@ -1156,14 +1172,15 @@ export default {
     migrateFontScale()
     migrateBuiltinHolidays()
     runDefaults()
-    // 自动常驻保活：保证 interconnect 同步消息随时可收，无需用户手工开启「后台运行」
-    startResident()
+    // 自动常驻保活：走 initBackgroundRunning 的配置分支（评审 M1）——
+    // 默认开启保持"开箱即常驻"，用户显式关闭后不再被冷启动重新拉起
+    this.initBackgroundRunning()
     initSyncReceiver()
   },
 
   initBackgroundRunning() {
     store.getBackgroundRunningConfig(function(config) {
-      if (config && config.running) {
+      if (!config || config.running !== false) {
         startResident()
       }
     })

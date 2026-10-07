@@ -163,7 +163,7 @@ var tables = [
   },
   {
     key: "astrobox_sync_backup",
-    desc: "导入前自动备份的上一份课表，用于导入出错时回退",
+    desc: "导入前自动备份的上一份课表（按课表 index 分键：astrobox_sync_backup_0/1/...，评审 M3），用于导入出错时回退",
     columns: ["backup"],
     type: "object"
   },
