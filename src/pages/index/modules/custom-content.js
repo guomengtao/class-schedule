@@ -1,5 +1,3 @@
-var _timer = null
-
 function init(instance) {
   instance.showCustomContent = false
   instance.customContent = ""
@@ -10,7 +8,7 @@ function init(instance) {
 }
 
 function loadAndRotate(instance) {
-  stopRotation()
+  stopRotation(instance)
   var storage = require("@system.storage")
 
   storage.get({
@@ -87,7 +85,7 @@ function loadLegacy(instance) {
 }
 
 function startRotation(instance) {
-  stopRotation()
+  stopRotation(instance)
   var storage = require("@system.storage")
   storage.get({
     key: "customContentInterval",
@@ -95,23 +93,22 @@ function startRotation(instance) {
       var interval = parseInt(data) || 3
       if (interval < 1) interval = 1
       if (interval > 10) interval = 10
-      _timer = setInterval(function() {
+      instance._rotationTimer = setInterval(function() {
         var list = instance._customContentList
         if (!list || list.length <= 1) {
-          stopRotation()
+          stopRotation(instance)
           return
         }
         instance._customContentIndex = (instance._customContentIndex + 1) % list.length
         instance.customContent = list[instance._customContentIndex]
-        // 探针（临时）：轮播真的发生过，说明页面至少存活过一个轮播周期
         if (typeof instance.markBootStage === 'function') instance.markBootStage(10)
       }, interval * 1000)
     },
     fail: function() {
-      _timer = setInterval(function() {
+      instance._rotationTimer = setInterval(function() {
         var list = instance._customContentList
         if (!list || list.length <= 1) {
-          stopRotation()
+          stopRotation(instance)
           return
         }
         instance._customContentIndex = (instance._customContentIndex + 1) % list.length
@@ -121,10 +118,10 @@ function startRotation(instance) {
   })
 }
 
-function stopRotation() {
-  if (_timer) {
-    clearInterval(_timer)
-    _timer = null
+function stopRotation(instance) {
+  if (instance._rotationTimer) {
+    clearInterval(instance._rotationTimer)
+    instance._rotationTimer = null
   }
 }
 
@@ -132,8 +129,8 @@ function refresh(instance) {
   loadAndRotate(instance)
 }
 
-function destroy() {
-  stopRotation()
+function destroy(instance) {
+  stopRotation(instance)
 }
 
 module.exports = { init: init, refresh: refresh, destroy: destroy }

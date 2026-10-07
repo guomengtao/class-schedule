@@ -10,7 +10,7 @@ function getRealTodayName() {
 
 function init(instance) {
   instance.statusTag = "暂无"
-  instance.statusMainText = "今日无课程安排"
+  instance.statusMainText = "今日无课"   // 铁律四：短文案保证一行放得下，不靠省略号
   instance.statusTimeText = ""
   instance.statusTimer = null
 
@@ -20,6 +20,17 @@ function init(instance) {
 
     if (self.currentDay !== realToday) {
       self.showStatusBar = false
+      return
+    }
+
+    // 方案 D3：状态条必须感知假期 —— 假期日不再渲染「即将上课」，
+    // 否则与下方「国庆假期」卡在同一屏互相打脸（正确性 bug）
+    if (self.isHoliday) {
+      self.statusTag = "假期"
+      // 铁律四：胶囊内容区仅 ≈133px，主文案 ≤4 字（22px 字号）才不截断
+      self.statusMainText = self.holidayName || "假期中"
+      self.statusTimeText = ""
+      self.showStatusBar = (self.statusBarSetting !== false)
       return
     }
 

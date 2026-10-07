@@ -466,7 +466,7 @@ export default {
   },
 
   openCourseManager() {
-    router.push({ uri: "/pages/course-manager" })
+    router.replace({ uri: "/pages/course-manager" })
   },
 
   openAddCourse() {

@@ -302,6 +302,14 @@ export default {
 
   goBack() {
     router.back()
+  },
+
+  onDestroy() {
+    this.courses = null
+    this.subjectRank = null
+    this.dayDistribution = null
+    this.timeDistribution = null
+    this.theme = null
   }
 }
 </script>

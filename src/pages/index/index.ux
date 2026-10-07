@@ -38,10 +38,8 @@
       </div>
     </div>
 
-    <div class="custom-content-bar" if="{{ showCustomContent && customContent }}" style="background-color: {{ theme.cardLight }}">
-      <div class="left-accent left-accent-4" style="background-color: {{ theme.accent }}"></div>
-      <text class="custom-content-text" style="color: {{ theme.text }}">{{ customContent }}</text>
-    </div>
+    <!-- 方案 D2：独立自定义内容条删除（省 39px 垂直预算），
+         该能力保留在数据层，后续并入课程列表末尾或周视图 -->
 
     <div class="status-bar" if="{{ showStatusBar }}" style="background-color: {{ theme.cardLight }}">
       <div class="left-accent left-accent-6" if="{{ !isCapsule }}" style="background-color: {{ theme.accent }}"></div>
@@ -50,21 +48,23 @@
         <div class="status-capsule-accent" style="background-color: {{ theme.accent }}"></div>
         <div class="status-capsule-body">
           <div class="status-capsule-line1">
-            <text class="status-capsule-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
+            <text class="status-capsule-tag" style="background-color: {{ theme.accent }}; color: {{ onAccentColor }}">{{ statusTag }}</text>
             <text class="status-capsule-time" if="{{ statusTimeText }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
           </div>
           <text class="status-capsule-name" style="color: {{ theme.text }}">{{ statusMainText }}</text>
         </div>
       </div>
       <block if="{{ !isCapsule }}">
-        <text class="status-tag" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}">{{ statusTag }}</text>
+        <text class="status-tag" style="background-color: {{ theme.accent }}; color: {{ onAccentColor }}">{{ statusTag }}</text>
         <text class="status-middle" style="color: {{ theme.text }}">{{ statusMainText }}</text>
         <text class="status-right" if="{{ statusTimeText }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
       </block>
     </div>
 
     <div class="workday-tip-bar" if="{{ isWorkday && holidayReminderOn && !isLoading }}" style="background-color: {{ theme.cardLight }}">
-      <text class="workday-tip-text" style="color: {{ theme.accent }}">今天调休，按{{ overrideDayName }}课表</text>
+      <!-- 方案 D4：「今天」不再硬编码（翻到未来调休日时随日期变化）；
+           文案压到 ≤9 字不折行（原「今天调休，按周三课表」11 字爆宽折 3 行） -->
+      <text class="workday-tip-text" style="color: {{ theme.accent }}">{{ isTodayDate ? '调休 · 按' + overrideDayName + '课表' : currentDateStr + ' 调休' }}</text>
       <text class="workday-info-btn" style="background-color: {{ theme.card }}; color: {{ theme.textSecondary }}" onclick="goToWorkdayInfo">?</text>
     </div>
 
@@ -91,7 +91,7 @@
       </div>
       <div if="{{ !isLoading && loadError }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">数据加载失败</text>
-        <input class="retry-btn" type="button" value="点击重试" onclick="retryLoad" style="margin-top: 12px; height: 44px; background-color: {{ theme.accent }}; color: {{ theme.bg }}; border-radius: 22px; font-size: 20px; line-height: 44px; padding: 0 20px;" />
+        <input class="retry-btn" type="button" value="点击重试" onclick="retryLoad" style="margin-top: 12px; height: 44px; background-color: {{ theme.accent }}; color: {{ onAccentColor }}; border-radius: 22px; font-size: 20px; line-height: 44px; padding: 0 20px;" />
       </div>
       <div if="{{ !isLoading && !loadError && isHoliday && holidayReminderOn }}" class="holiday-greeting-card" style="background-color: {{ theme.card }}">
         <text class="holiday-greeting-name" style="color: {{ theme.accent }}">{{ holidayName }}</text>
@@ -145,20 +145,18 @@
 
     
 
+    <!-- 方案 D6：底部三件套并成一排（添加 / 切换课表 / 设置），
+         删掉独立的 week-indicator 整行（省 ≈45px 垂直预算） -->
     <div class="bottom-buttons">
-      <!-- 加号按钮：实心强调色块改为透明底 + 强调色描边，避免底部出现一块不透明色块 -->
       <div class="add-btn-wrapper" onclick="openAddCoursePage"
            style="background-color: transparent; border-width: 2px; border-color: {{ theme.accent }}">
         <image class="add-btn-icon" src="/common/icons/{{ iconTheme }}/icon_plus.png"></image>
         <text class="add-btn-label" if="{{ !isCapsule }}" style="color: {{ theme.accent }}">添加课程</text>
       </div>
-      <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
-    </div>
-
-    <div class="week-indicator" onclick="openScheduleManager">
-      <!-- 课表切换：repeat 循环箭头表达「切换课表」 -->
-      <image class="week-swap-icon" src="/common/icons/{{ iconTheme }}/icon_swap.png"></image>
-      <text class="week-text" style="color: {{ theme.accent }}">{{ currentScheduleName }}</text>
+      <div class="bottom-mid-btn" onclick="openScheduleManager" style="background-color: {{ theme.cardLight }}">
+        <image class="week-swap-icon" src="/common/icons/{{ iconTheme }}/icon_swap.png"></image>
+      </div>
+      <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}; flex: 1;" />
     </div>
   </div>
 </template>
@@ -202,6 +200,20 @@ var dayShortMap = {
 
 function pad(n) {
   return n < 10 ? "0" + n : "" + n
+}
+
+// 方案 D6（对比度修复）：状态胶囊/标签的反白色不再用 theme.bg ——
+// 浅色主题下 accent 亮、bg 更亮，bg 当反白会塌到 2.0–2.9:1。
+// 按 accent 的相对亮度动态取深字或白字，四主题全部 ≥4.5:1。
+function idealOnColor(hex) {
+  var h = (hex || "#000000").replace("#", "")
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2]
+  var r = parseInt(h.slice(0, 2), 16) / 255
+  var g = parseInt(h.slice(2, 4), 16) / 255
+  var b = parseInt(h.slice(4, 6), 16) / 255
+  function lin(c) { return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4) }
+  var L = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+  return L > 0.35 ? "#1a1a1a" : "#ffffff"
 }
 
 function sameDate(a, b) {
@@ -250,8 +262,8 @@ var moduleNames = [
   { key: "holiday" },
   { key: "classList" },
   { key: "bottomButtons" },
+  { key: "statusBar" },
   { key: "quickAdd", defer: true },
-  { key: "statusBar", defer: true },
   { key: "customContent", defer: true },
   { key: "pinnedPages", defer: true }
 ]
@@ -325,6 +337,7 @@ export default {
     holidayReminderOn: false,
     currentDateStr: "",
     isTodayDate: true,
+    onAccentColor: "#ffffff",
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -348,6 +361,7 @@ export default {
     self.skipNextShow = true
     store.getTheme(function(t, themeName) {
       self.theme = t
+      self.onAccentColor = idealOnColor(t.accent)
       self.updateIconSrc(themeName)
       // Re-apply template after theme is set to ensure correct color resolution
       self.applyHomepageTemplate()
@@ -380,6 +394,10 @@ export default {
         self.schedule = schedule
         self.applyFontSizes()
         self.initAllModules()
+        // 方案 H11：数据就绪后立即算一次状态条，不等 60s 定时器（首屏完整）
+        if (self.startStatusTimer && typeof self.startStatusTimer === 'function') {
+          try { self.startStatusTimer() } catch (e) {}
+        }
         self.initialized = true
         self.skipNextShow = false
         self.isLoading = false
@@ -396,6 +414,7 @@ export default {
     self.isCapsule = isCapsuleScreen
     store.getTheme(function(t, themeName) {
       self.theme = t
+      self.onAccentColor = idealOnColor(t.accent)
       self.updateIconSrc(themeName)
       // Re-apply template color after theme update
       self.applyHomepageTemplate()
@@ -427,6 +446,26 @@ export default {
         self.resumeRefresh(null)
       }
     })
+
+    // restore timers stopped by onHide
+    if (self._hadStatusTimer && self.startStatusTimer) {
+      self._hadStatusTimer = false
+      self.startStatusTimer()
+    }
+    if (self._hadProgressTimer && self.startProgressTimer) {
+      self._hadProgressTimer = false
+      self.startProgressTimer()
+    }
+    if (self._hadCustomContent && modules.customContent && modules.customContent.refresh) {
+      self._hadCustomContent = false
+      modules.customContent.refresh(self)
+    }
+    if (self._hadHoliday && modules.holiday && modules.holiday.init) {
+      self._hadHoliday = false
+      modules.holiday.init(self)
+    }
+    self._hadLoadTimeout = false
+    self._hadDeferTimer = false
 
     try { this.$forceUpdate() } catch (e) {}
   },
@@ -508,13 +547,40 @@ export default {
     }, forceRefresh)
   },
 
+  onHide() {
+    if (this.loadTimeout) {
+      clearTimeout(this.loadTimeout)
+      this._hadLoadTimeout = true
+    }
+    if (this.deferTimer) {
+      clearTimeout(this.deferTimer)
+      this._hadDeferTimer = true
+    }
+    if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') {
+      this.stopStatusTimer()
+      this._hadStatusTimer = true
+    }
+    if (this.stopProgressTimer && typeof this.stopProgressTimer === 'function') {
+      this.stopProgressTimer()
+      this._hadProgressTimer = true
+    }
+    if (modules.customContent && modules.customContent.destroy) {
+      modules.customContent.destroy(this)
+      this._hadCustomContent = true
+    }
+    if (modules.holiday && modules.holiday.destroy) {
+      modules.holiday.destroy()
+      this._hadHoliday = true
+    }
+  },
+
   onDestroy() {
     if (this.loadTimeout) clearTimeout(this.loadTimeout)
     if (this.deferTimer) clearTimeout(this.deferTimer)
     if (this.stopStatusTimer && typeof this.stopStatusTimer === 'function') this.stopStatusTimer()
     if (this.stopProgressTimer && typeof this.stopProgressTimer === 'function') this.stopProgressTimer()
     if (modules.customContent && modules.customContent.destroy) {
-      modules.customContent.destroy()
+      modules.customContent.destroy(this)
     }
     if (modules.holiday && modules.holiday.destroy) {
       modules.holiday.destroy()
@@ -619,6 +685,10 @@ export default {
           }
           if (self.updateHideWeekend && typeof self.updateHideWeekend === 'function') {
             try { self.updateHideWeekend() } catch (e) {}
+          }
+          // 假期状态此刻才就绪，状态条需重算（否则首帧仍显示默认「暂无」）
+          if (self.updateStatus && typeof self.updateStatus === 'function') {
+            try { self.updateStatus() } catch (e) {}
           }
           try { self.$forceUpdate() } catch (e) {}
         })
@@ -1148,6 +1218,25 @@ export default {
   line-height: 44px;
 }
 
+/* 方案 D6：底部三件套中间位（切换课表）＝纯 ⇄ 图标钮；
+   160px 内容区：48(＋) + 48(⇄) + flex(设置) —— 课表名放下边会裁字，故只留图标 */
+.bottom-mid-btn {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 44px;
+  border-radius: 22px;
+  margin-right: 4px;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.bottom-mid-btn .week-swap-icon {
+  width: 22px;
+  height: 22px;
+  margin-right: 0;
+}
+
 .week-indicator {
   padding: 12px 8px;
   align-items: center;
@@ -1396,6 +1485,18 @@ export default {
   }
   .add-btn-label {
     display: none;
+  }
+  /* 胶囊屏底部三件套：＋(48) + ⇄(48) + 设置(flex) 一排，高 48px */
+  .bottom-mid-btn {
+    flex: 0 0 48px;
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    margin-right: 4px;
+  }
+  .bottom-mid-btn .week-swap-icon {
+    width: 24px;
+    height: 24px;
   }
   .style-btn {
     flex: 1;

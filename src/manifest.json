@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.7.96",
-  "versionCode": 1098,
+  "versionName": "1.7.122",
+  "versionCode": 1124,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
@@ -111,6 +111,9 @@
       },
       "pages/width-detect": {
         "component": "width-detect"
+      },
+      "pages/capacity-demo": {
+        "component": "capacity-demo"
       },
       "pages/pinned-pages": {
         "component": "pinned-pages"

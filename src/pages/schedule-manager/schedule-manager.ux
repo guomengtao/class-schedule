@@ -624,6 +624,8 @@ export default {
       clearTimeout(this.deleteTimer)
       this.deleteTimer = null
     }
+    this.list = null
+    this.theme = null
   },
 
   updateIconSrc(themeName) {

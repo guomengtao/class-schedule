@@ -863,6 +863,13 @@ export default {
 
   goBack() {
     router.back()
+  },
+
+  onDestroy() {
+    this.scheduleName = null
+    this.timeSlots = null
+    this.theme = null
+    this.templateList = null
   }
 }
 </script>

@@ -59,10 +59,83 @@ function isSendable(text) {
   return buildReply(text).length > 0
 }
 
+// ======================= 短语管理（2026-10-05 留言板 v3 新增） =======================
+
+/** 单条短语的最大长度。管理行 14px 下单行 11 字，超长发送前会被 buildReply 再兜底。 */
+var PHRASE_MAX_LEN = 10
+/** 用户自定义短语最多条数：管理列表一屏滚动可承受，避免 storage 无限膨胀 */
+var PHRASE_MAX_COUNT = 12
+
+/**
+ * 规范化单条短语：去空白/压换行/限长；非法入参返回空串。
+ */
+function normalizePhrase(text) {
+  if (text === null || text === undefined) {
+    return ""
+  }
+  var s = String(text).replace(/[\s\u3000]+/g, " ").trim()
+  if (s.length > PHRASE_MAX_LEN) {
+    s = s.slice(0, PHRASE_MAX_LEN)
+  }
+  return s
+}
+
+/**
+ * 用用户自定义表覆盖默认表，返回最终展示顺序的短语数组。
+ * - 自定义条目在前（用户自己加的更常用），默认条目中未被覆盖的在后
+ * - 覆盖判定：自定义条目与默认条目文本相同 → 视为「保留了这条默认」，只保留一份
+ * - 去重、去空、限条数，任何非法入参都安全降级为默认表
+ */
+function mergePhrases(customList) {
+  var result = []
+  function pushOnce(p) {
+    if (!p) { return }
+    for (var i = 0; i < result.length; i++) {
+      if (result[i] === p) { return }
+    }
+    result.push(p)
+  }
+  if (customList && customList.length) {
+    for (var i = 0; i < customList.length && result.length < PHRASE_MAX_COUNT; i++) {
+      pushOnce(normalizePhrase(customList[i]))
+    }
+  }
+  for (var j = 0; j < PHRASES.length && result.length < PHRASE_MAX_COUNT; j++) {
+    pushOnce(PHRASES[j])
+  }
+  return result
+}
+
+/**
+ * 从 storage 读出的字符串解析成短语数组（容错：坏 JSON / 非数组 → 空数组）。
+ */
+function parsePhrases(str) {
+  var list = []
+  try { list = JSON.parse(str || "[]") } catch (e) { list = [] }
+  if (!list || typeof list.length !== "number") { list = [] }
+  var out = []
+  for (var i = 0; i < list.length; i++) {
+    var p = normalizePhrase(list[i])
+    if (p) { out.push(p) }
+  }
+  return out
+}
+
+/** 序列化成 storage 字符串 */
+function stringifyPhrases(list) {
+  return JSON.stringify(list || [])
+}
+
 module.exports = {
   MAX_LEN: MAX_LEN,
   PHRASES: PHRASES,
+  PHRASE_MAX_LEN: PHRASE_MAX_LEN,
+  PHRASE_MAX_COUNT: PHRASE_MAX_COUNT,
   getPhrases: getPhrases,
   buildReply: buildReply,
-  isSendable: isSendable
+  isSendable: isSendable,
+  normalizePhrase: normalizePhrase,
+  mergePhrases: mergePhrases,
+  parsePhrases: parsePhrases,
+  stringifyPhrases: stringifyPhrases
 }

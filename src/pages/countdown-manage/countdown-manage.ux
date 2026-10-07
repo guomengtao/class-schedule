@@ -380,6 +380,19 @@ export default {
 
   goBack() {
     router.back()
+  },
+
+  onDestroy() {
+    if (this.deleteTimer) {
+      clearTimeout(this.deleteTimer)
+      this.deleteTimer = null
+    }
+    if (this.clearTimer) {
+      clearTimeout(this.clearTimer)
+      this.clearTimer = null
+    }
+    this.countdowns = null
+    this.theme = null
   }
 }
 </script>

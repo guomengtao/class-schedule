@@ -21,6 +21,11 @@
         <text class="item-hint" style="color: {{ theme.textMuted }}">单行字数</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openCapacityDemo">
+        <text class="item-label" style="color: {{ theme.text }}">容量实测</text>
+        <text class="item-hint" style="color: {{ theme.textMuted }}">字号/按钮/热区</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openVibrationLab">
         <text class="item-label" style="color: {{ theme.text }}">震动自定义</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">震动方案</text>
@@ -220,6 +225,10 @@ export default {
     router.push({ uri: "/pages/width-detect" })
   },
 
+  openCapacityDemo() {
+    router.push({ uri: "/pages/capacity-demo" })
+  },
+
 
 
   openVibrationLab() {
@@ -323,6 +332,10 @@ export default {
 
   goBack() {
     router.back()
+  },
+
+  onDestroy() {
+    this.theme = null
   }
 }
 </script>

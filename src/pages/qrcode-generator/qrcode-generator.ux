@@ -385,7 +385,7 @@ export default {
   },
 
   goHome() {
-    router.push({ uri: "/pages/index" })
+    router.replace({ uri: "/pages/index" })
   }
 }
 </script>

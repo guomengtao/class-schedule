@@ -12,7 +12,7 @@
 
     <div class="loading" if="{{ loading }}" style="background-color: {{ theme.card }}">
       <text class="loading-icon">⬡</text>
-      <text class="loading-text" style="color: {{ theme.textMuted }}">获取中...</text>
+      <text class="loading-text" style="color: {{ theme.textMuted }}">读取铭牌中...</text>
     </div>
 
     <div class="error-card" if="{{ errorMsg }}" style="background-color: {{ theme.card }}">
@@ -22,22 +22,54 @@
     </div>
 
     <div class="info-section" if="{{ !loading && !errorMsg }}">
-      <div class="hero-card" style="background-color: {{ theme.card }}">
-        <text class="hero-model" style="color: {{ theme.text }}">{{ heroModel }}</text>
-        <text class="hero-sub" style="color: {{ theme.textSecondary }}">{{ heroSub }}</text>
+      <!-- 铭牌头版：车号 + 关键参数 + 载重表 -->
+      <text class="kicker" style="color: {{ theme.textSecondary }}">设备铭牌 · DEVICE PLATE</text>
+      <text class="unit" style="color: {{ theme.text }}">{{ heroModel }}</text>
+      <text class="unit-code" if="{{ product }}">CODE · {{ product }}</text>
+      <text class="unit-sub" style="color: {{ theme.textSecondary }}">{{ heroSub }}</text>
+
+      <div class="hr"></div>
+      <div class="kv" for="{{ keyRows }}">
+        <text class="lbl" style="color: {{ theme.textSecondary }}">{{ $item.label }}</text>
+        <div class="lead"></div>
+        <text class="val" style="color: {{ theme.text }}">{{ $item.value }}</text>
       </div>
 
-      <div class="grp" for="{{ groups }}" style="background-color: {{ theme.card }}">
-        <text class="grp-title" style="color: {{ theme.textSecondary }}">{{ $item.title }}</text>
-        <div class="item" for="{{ $item.items }}">
-          <text class="item-k" style="color: {{ theme.textSecondary }}">{{ $item.label }}</text>
-          <text class="item-v" style="color: {{ theme.text }}">{{ $item.value || '未知' }}</text>
+      <div class="gauge" if="{{ storage.has }}">
+        <div class="kv" style="padding-bottom: 0">
+          <text class="lbl" style="color: {{ theme.textSecondary }}">存储</text>
+          <div class="lead"></div>
+          <text class="val" style="color: {{ theme.accent }}">余 {{ storage.pct }}%</text>
         </div>
+        <div class="bar">
+          <div class="fill" style="width: {{ storage.pct }}%; background-color: {{ theme.accent }}"></div>
+        </div>
+        <div class="cap" style="color: {{ theme.textMuted }}">
+          <text>可用 {{ storage.avail }}</text>
+          <text>总 {{ storage.total }}</text>
+        </div>
+      </div>
+
+      <!-- 续页：全量参数（分组点线表 + 长值整行下沉） -->
+      <text class="spec-hint" style="color: {{ theme.textMuted }}">── 完整参数 ──</text>
+      <div class="grp" for="{{ groups }}" style="background-color: {{ theme.card }}">
+        <text class="gt" style="color: {{ theme.textSecondary }}">{{ $item.title }}</text>
+        <block for="{{ $item.items }}">
+          <div class="kv" if="{{ !$item.long }}">
+            <text class="lbl" style="color: {{ theme.textSecondary }}">{{ $item.label }}</text>
+            <div class="lead"></div>
+            <text class="val" style="color: {{ theme.text }}">{{ $item.value }}</text>
+          </div>
+          <div class="longrow" if="{{ $item.long }}">
+            <text class="long-k" style="color: {{ theme.textSecondary }}">{{ $item.label }}</text>
+            <text class="long-v" style="color: {{ theme.text }}">{{ $item.value }}</text>
+          </div>
+        </block>
       </div>
     </div>
 
     <div class="pin-row">
-      <text class="pin-link" onclick="pinToHome" style="color: {{ theme.textMuted }}">钉首页</text>
+      <input class="pin-chip" type="button" value="钉首页" onclick="pinToHome" style="background-color: {{ theme.card }}; color: {{ theme.textSecondary }}" />
     </div>
     </div>
     </scroll>
@@ -86,7 +118,10 @@ export default {
     infoList: [],
     groups: [],
     heroModel: "",
-    heroSub: ""
+    heroSub: "",
+    product: "",
+    keyRows: [],
+    storage: { totalBytes: 0, availBytes: 0, has: false, pct: 0, avail: "", total: "" }
   },
 
   onInit() {
@@ -135,11 +170,18 @@ export default {
         ]
         self.heroModel = ret.model || "未知设备"
         self.heroSub = (ret.brand || "") + " · " + (deviceTypeMap[ret.deviceType] || ret.deviceType || "") + " · " + (screenShapeMap[ret.screenShape] || "")
+        self.product = ret.product || ""
+        self.keyRows = [
+          { label: "系统", value: ret.osVersionName || "未知" },
+          { label: "平台", value: ret.platformVersionName ? "快应用 " + ret.platformVersionName : "未知" },
+          { label: "屏幕", value: (ret.screenWidth && ret.screenHeight) ? ret.screenWidth + " × " + ret.screenHeight : "未知" },
+          { label: "API", value: (ret.APILevel != null) ? "" + ret.APILevel : "未知" }
+        ]
         self.buildGroups()
         self.loading = false
       },
       fail: function(data, code) {
-        self.errorMsg = "获取设备信息失败，错误码：" + code
+        self.errorMsg = "铭牌读取失败，错误码：" + code
         self.loading = false
       }
     })
@@ -169,6 +211,7 @@ export default {
     device.getTotalStorage({
       success: function(data) {
         self.setItemValue("总存储空间", formatStorage(data.totalStorage))
+        self.setStorage("total", data.totalStorage)
       },
       fail: function() {
         self.setItemValue("总存储空间", "获取失败")
@@ -178,6 +221,7 @@ export default {
     device.getAvailableStorage({
       success: function(data) {
         self.setItemValue("可用存储空间", formatStorage(data.availableStorage))
+        self.setStorage("avail", data.availableStorage)
       },
       fail: function() {
         self.setItemValue("可用存储空间", "获取失败")
@@ -185,7 +229,24 @@ export default {
     })
   },
 
-  // 把 infoList 按 grp 分组为 groups（两行式键值：值独占整行，超长自动换行禁省略）
+  // 载重表：总量与余量都到手后点亮（两次异步回调谁后到都行）
+  setStorage(key, bytes) {
+    var old = this.storage
+    var s = {
+      totalBytes: key === "total" ? bytes : old.totalBytes,
+      availBytes: key === "avail" ? bytes : old.availBytes,
+      has: false, pct: 0, avail: "", total: ""
+    }
+    if (s.totalBytes > 0 && s.availBytes > 0) {
+      s.has = true
+      s.pct = Math.min(100, Math.round(s.availBytes / s.totalBytes * 100))
+      s.avail = formatStorage(s.availBytes)
+      s.total = formatStorage(s.totalBytes)
+    }
+    this.storage = s
+  },
+
+  // 按 grp 分组；值超 16 字符标记 long → 整行下沉换行禁省略
   buildGroups() {
     var titles = ["设备", "屏幕", "系统", "调试", "标识"]
     var groups = []
@@ -193,7 +254,11 @@ export default {
       var items = []
       for (var i = 0; i < this.infoList.length; i++) {
         var it = this.infoList[i]
-        if (it.grp === g && it.value !== "") items.push({ label: it.label, value: it.value })
+        if (it.grp === g && it.value !== "") {
+          var v = String(it.value || "未知")
+          if (v.length > 16) items.push({ label: it.label, value: v, long: true })
+          else items.push({ label: it.label, value: v })
+        }
       }
       if (items.length) groups.push({ title: titles[g], items: items })
     }
@@ -229,8 +294,7 @@ export default {
   height: 100%;
 }
 
-/* 滚动容器：21 条信息约 1302px 高，超过一屏必须可滚（QA P0-18，
-   参照 settings.ux / homepage-settings.ux 已验证写法） */
+/* 滚动容器：铭牌头版 + 全量参数超过一屏必须可滚 */
 .di-scroll {
   flex: 1;
   width: 100%;
@@ -249,71 +313,146 @@ export default {
   flex-direction: column;
 }
 
-.hero-card {
-  flex-direction: column;
-  border-radius: 14px;
-  padding: 12px 12px 10px 12px;
-  margin-bottom: 8px;
-  align-items: center;
-}
-
-.hero-model {
-  font-size: 26px;
-  line-height: 34px;
+/* ── 铭牌头版 ── */
+.kicker {
+  font-family: monospace;
+  font-size: 19px;
   text-align: center;
+  letter-spacing: 2px;
 }
 
-.hero-sub {
+.unit {
+  font-size: 30px;
+  font-weight: 800;
+  text-align: center;
+  margin-top: 8px;
+}
+
+.unit-code {
+  font-family: monospace;
+  font-size: 18px;
+  color: #FFB300;
+  text-align: center;
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
+
+.unit-sub {
   font-size: 20px;
-  line-height: 28px;
   text-align: center;
+  margin-top: 5px;
+}
+
+.hr {
+  height: 1px;
+  background-color: rgba(128, 128, 128, 0.25);
+  margin: 14px 0 8px 0;
+}
+
+/* 点线检定行：label ···· value（等宽右对齐） */
+.kv {
+  flex-direction: row;
+  align-items: flex-end;
+  padding: 7px 0;
+}
+
+.lbl {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.lead {
+  flex: 1;
+  height: 1px;
+  border-bottom-width: 1px;
+  border-bottom-style: dotted;
+  border-bottom-color: rgba(128, 128, 128, 0.4);
+  margin: 0 6px 4px 6px;
+}
+
+.val {
+  font-family: monospace;
+  font-size: 21px;
+  flex-shrink: 0;
+}
+
+/* 载重表（存储余量） */
+.gauge {
   margin-top: 2px;
+}
+
+.bar {
+  height: 7px;
+  border-radius: 4px;
+  background-color: rgba(128, 128, 128, 0.18);
+  overflow: hidden;
+  margin: 6px 0 4px 0;
+}
+
+.fill {
+  height: 7px;
+  border-radius: 4px;
+}
+
+.cap {
+  flex-direction: row;
+  justify-content: space-between;
+  font-size: 18px;
+  font-family: monospace;
+}
+
+/* ── 续页：全量参数 ── */
+.spec-hint {
+  font-family: monospace;
+  font-size: 18px;
+  text-align: center;
+  margin: 16px 0 8px 0;
 }
 
 .grp {
   flex-direction: column;
   border-radius: 12px;
-  padding: 6px 10px 2px 10px;
+  padding: 8px 10px 4px 10px;
   margin-bottom: 8px;
 }
 
-.grp-title {
+.gt {
   font-size: 20px;
-  line-height: 28px;
-  lines: 1;
+  font-weight: 700;
+  letter-spacing: 2px;
   margin-bottom: 2px;
 }
 
-/* 两行式键值：值独占整行，超长自动换行（禁省略）——外部数据长度不可控的兜底 */
-.item {
+/* 长值整行下沉：独占整行、换行禁省略 */
+.longrow {
   flex-direction: column;
   padding: 6px 0;
-  border-top-width: 1px;
-  border-top-color: rgba(128, 128, 128, 0.25);
 }
 
-.item-k {
-  font-size: 20px;
-  line-height: 28px;
-  lines: 1;
+.long-k {
+  font-size: 19px;
 }
 
-.item-v {
-  font-size: 24px;
-  line-height: 32px;
+.long-v {
+  font-family: monospace;
+  font-size: 18px;
+  line-height: 26px;
+  margin-top: 2px;
 }
 
 .pin-row {
   flex-direction: row;
   justify-content: center;
-  padding: 10px 0 6px 0;
+  padding: 12px 0 8px 0;
 }
 
-.pin-link {
+.pin-chip {
+  width: 110px;
+  height: 30px;
+  border-radius: 9px;
+  font-size: 20px;
   text-align: center;
-  font-size: 22px;
   line-height: 30px;
-  lines: 1;
 }
 
 .loading {
@@ -367,45 +506,58 @@ export default {
 }
 
 /*
- * Capsule screen width budget (192px screen):
- *   192 - 16*2(page padding) = 160px content area
- *   160 - 12*2(menu-item padding) = 136px inner width
- *
- *   Horizontal layout fails: shortest label "品牌"(2ch*22px=44px)
- *   leaves only 136-44-8(gap)=84px for value; longest label
- *   "平台版本名称"(6ch*22px=132px) leaves just 136-132-8=-4px.
- *   Most device info values (model names, IDs, versions) exceed 84px.
- *
- *   Solution: stacked vertical layout, label on top, value wraps below.
+ * 胶囊屏（9 标准版 192×490，r96 标准跑道形）：
+ *   安全区 y≥38 / 侧边 14px / 内容宽 164px
+ *   点线检定行、载重表、铭牌头版字号按此调校
  */
 @media screen and (shape: pill-shaped) {
   .page-body {
-    padding: 30px 16px 30px 16px;
+    padding: 30px 14px 16px 14px;
   }
-  .menu-item {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 10px 12px;
-    margin-bottom: 8px;
+  .kicker {
+    font-size: 17px;
+    letter-spacing: 3px;
   }
-  .menu-label {
-    font-size: 22px;
-    line-height: 30px;
-    margin-bottom: 2px;
+  .unit {
+    font-size: 27px;
+    line-height: 36px;
   }
-  .menu-value {
-    font-size: 20px;
-    line-height: 28px;
-    text-align: left;
-    margin-left: 0;
-    lines: 0;
+  .unit-code {
+    font-size: 16px;
+    letter-spacing: 2px;
+  }
+  .unit-sub {
+    font-size: 18px;
+  }
+  .lbl {
+    font-size: 18px;
+  }
+  .val {
+    font-size: 19px;
+  }
+  .gt {
+    font-size: 19px;
+  }
+  .long-k {
+    font-size: 17px;
+  }
+  .long-v {
+    font-size: 16px;
+    line-height: 24px;
+  }
+  .spec-hint {
+    font-size: 16px;
+  }
+  .cap {
+    font-size: 16px;
+  }
+  .pin-chip {
+    height: 32px;
+    font-size: 19px;
+    line-height: 32px;
   }
   .retry-btn {
     height: 38px;
-    font-size: 24px;
-    line-height: 32px;
-  }
-  .pin-link {
     font-size: 24px;
     line-height: 32px;
   }
@@ -414,18 +566,6 @@ export default {
 @media screen and (shape: circle) {
   .page-body {
     padding: 38px 36px 44px 36px;
-  }
-  .menu-item {
-    padding: 12px 12px;
-    margin-bottom: 8px;
-  }
-  .menu-label {
-    font-size: 26px;
-    line-height: 34px;
-  }
-  .menu-value {
-    font-size: 24px;
-    line-height: 32px;
   }
   .loading-text {
     font-size: 26px;
@@ -440,30 +580,11 @@ export default {
     font-size: 24px;
     line-height: 32px;
   }
-  .pin-link {
-    font-size: 24px;
-    line-height: 32px;
-  }
 }
 
 @media screen and (shape: rect) {
   .page-body {
     padding: 6px 10px 12px 10px;
-  }
-  .menu-item {
-    padding: 12px 12px;
-  }
-  .menu-label {
-    font-size: 28px;
-    line-height: 36px;
-  }
-  .menu-value {
-    font-size: 26px;
-    line-height: 34px;
-  }
-  .pin-link {
-    font-size: 24px;
-    line-height: 32px;
   }
 }
 </style>
