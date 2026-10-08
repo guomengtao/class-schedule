@@ -6,48 +6,63 @@
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">帮助与反馈</text>
+      <text class="header-title" style="color: {{ theme.text }}">反馈</text>
       <div class="header-placeholder"></div>
     </div>
 
-    <!-- 版本信息 -->
     <div class="section" style="background-color: {{ theme.card }}">
       <div class="item-row">
         <text class="item-label" style="color: {{ theme.text }}">当前版本</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">v{{ versionName }} · {{ channel }}</text>
+        <text class="item-value" style="color: {{ theme.textMuted }}">v{{ versionName }}</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row">
-        <text class="item-label" style="color: {{ theme.text }}">设备</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">{{ deviceModel }}</text>
+        <text class="item-label" style="color: {{ theme.text }}">发布渠道</text>
+        <text class="item-value" style="color: {{ theme.textMuted }}">{{ channel }}</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row">
+        <text class="item-label" style="color: {{ theme.text }}">设备型号</text>
+        <text class="item-value" style="color: {{ theme.textMuted }}">{{ deviceModel }}</text>
       </div>
     </div>
 
-    <!-- 扫码反馈 -->
     <div class="section" style="background-color: {{ theme.card }}">
-      <text class="sec-title" style="color: {{ theme.text }}">扫码提交反馈</text>
-      <text class="sec-desc" style="color: {{ theme.textMuted }}">手机扫码打开反馈页，可提交截图与联系方式；信息自动带上版本/机型/渠道</text>
+      <text class="sec-title" style="color: {{ theme.text }}">扫码反馈</text>
+      <text class="sec-desc" style="color: {{ theme.textMuted }}">手机扫码打开反馈页，可提交截图与联系方式</text>
       <div class="qr-wrapper" style="background-color: #ffffff">
-        <qrcode value="{{ feedbackUrl }}" style="color: #000000; background-color: #ffffff; width: 180px; height: 180px;"></qrcode>
+        <qrcode value="{{ feedbackUrl }}" style="color: #000000; background-color: #ffffff; width: 160px; height: 160px;"></qrcode>
       </div>
       <text class="qr-url" style="color: {{ theme.textMuted }}">{{ feedbackUrlShort }}</text>
     </div>
 
-    <!-- QQ 群 -->
     <div class="section" style="background-color: {{ theme.card }}">
-      <text class="sec-title" style="color: {{ theme.text }}">QQ 群交流</text>
-      <text class="sec-desc" style="color: {{ theme.textMuted }}">讨论与第一时间获取更新，加群请备注「课程表用户」</text>
+      <text class="sec-title" style="color: {{ theme.text }}">QQ 群</text>
+      <text class="sec-desc" style="color: {{ theme.textMuted }}">加群交流与获取更新，备注「课程表用户」</text>
       <div class="qq-row">
         <text class="qq-num" style="color: {{ theme.text }}">936886288</text>
         <div class="copy-btn" onclick="copyGroup" style="background-color: {{ theme.accent }}">
-          <text class="copy-text" style="color: #ffffff">复制群号</text>
+          <text class="copy-text" style="color: #ffffff">复制</text>
         </div>
       </div>
     </div>
 
-    <div class="tip-block">
-      <text class="tip-text" style="color: {{ theme.textMuted }}">建议先到官网「帮助与反馈」页查看常见问题，多数问题自助即可解决</text>
+    <div class="section" style="background-color: {{ theme.card }}">
+      <text class="sec-title" style="color: {{ theme.text }}">常见问题</text>
+      <div class="faq-item">
+        <text class="faq-q" style="color: {{ theme.text }}">课程不显示？</text>
+        <text class="faq-a" style="color: {{ theme.textMuted }}">检查周课表是否勾选了对应星期，确认课程时间未冲突</text>
+      </div>
+      <div class="faq-item">
+        <text class="faq-q" style="color: {{ theme.text }}">如何备份数据？</text>
+        <text class="faq-a" style="color: {{ theme.textMuted }}">设置 → 数据备份，登录后即可云端备份与恢复</text>
+      </div>
+      <div class="faq-item">
+        <text class="faq-q" style="color: {{ theme.text }}">如何切换主题？</text>
+        <text class="faq-a" style="color: {{ theme.textMuted }}">设置 → 主题配色，高级版用户可解锁全部 6 款主题</text>
+      </div>
     </div>
+
     </div>
     </scroll>
   </div>
@@ -97,8 +112,7 @@ module.exports = {
       + "&m=" + encodeURIComponent(this.deviceModel)
       + "&ch=" + encodeURIComponent(version.channel)
     this.feedbackUrl = url
-    // 二维码下的小字提示（完整 URL 太长，只展示到参数起点）
-    this.feedbackUrlShort = "app-auth.gudq.com/feedback.html?..."
+    this.feedbackUrlShort = "app-auth.gudq.com/feedback.html"
   },
 
   copyGroup() {
@@ -108,19 +122,22 @@ module.exports = {
         prompt.showToast({ message: "群号已复制" })
       },
       fail: function () {
-        // 部分环境不支持剪贴板：群号已在页面显示，提示手抄
         prompt.showToast({ message: "请手动记下群号 936886288" })
       }
     })
   },
 
   goBack() {
-    this.$page && this.$page.finish()
+    var router = require("@system.router")
+    router.back()
   }
 }
 </script>
 
 <style>
+/* ================================================================
+   BASE CSS = 手环 9 基准（160px 内容区）
+   ================================================================ */
 .page {
   flex-direction: column;
   width: 100%;
@@ -162,12 +179,10 @@ module.exports = {
 
 .header-title {
   flex: 1;
-  font-size: 30px;
+  font-size: 28px;
   font-weight: bold;
   text-align: center;
-  line-height: 40px;
-  lines: 1;
-  text-overflow: ellipsis;
+  line-height: 38px;
 }
 
 .header-placeholder {
@@ -193,12 +208,13 @@ module.exports = {
 
 .item-label {
   font-size: 26px;
+  line-height: 36px;
+  flex-shrink: 0;
 }
 
-.item-hint {
+.item-value {
   font-size: 24px;
-  lines: 1;
-  text-overflow: ellipsis;
+  line-height: 34px;
 }
 
 .row-divider {
@@ -207,30 +223,33 @@ module.exports = {
 }
 
 .sec-title {
-  font-size: 27px;
+  font-size: 26px;
   font-weight: bold;
   margin-bottom: 6px;
+  line-height: 36px;
 }
 
 .sec-desc {
   font-size: 22px;
-  line-height: 32px;
+  line-height: 30px;
   margin-bottom: 12px;
 }
 
 .qr-wrapper {
-  width: 196px;
-  height: 196px;
+  width: 176px;
+  height: 176px;
   border-radius: 10px;
   justify-content: center;
   align-items: center;
+  align-self: center;
   margin-bottom: 8px;
 }
 
 .qr-url {
-  font-size: 20px;
-  lines: 1;
-  text-overflow: ellipsis;
+  font-size: 18px;
+  line-height: 26px;
+  text-align: center;
+  word-break: break-all;
 }
 
 .qq-row {
@@ -240,26 +259,104 @@ module.exports = {
 }
 
 .qq-num {
-  font-size: 30px;
+  font-size: 28px;
   font-weight: bold;
   letter-spacing: 1px;
+  line-height: 38px;
 }
 
 .copy-btn {
-  padding: 8px 16px;
+  padding: 8px 14px;
   border-radius: 8px;
 }
 
 .copy-text {
-  font-size: 24px;
-}
-
-.tip-block {
-  padding: 0 4px 10px 4px;
-}
-
-.tip-text {
-  font-size: 21px;
+  font-size: 22px;
   line-height: 30px;
+}
+
+.faq-item {
+  flex-direction: column;
+  padding: 10px 0;
+}
+
+.faq-q {
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 34px;
+  margin-bottom: 2px;
+}
+
+.faq-a {
+  font-size: 22px;
+  line-height: 30px;
+}
+
+/* ================================================================
+   宽度断点：手环 10 / 胶囊屏大号（width >= 200px）
+   ================================================================ */
+@media (width >= 200px) {
+  .page-body {
+    padding: 44px 10px 12px 10px;
+  }
+  .header-title {
+    font-size: 30px;
+    line-height: 40px;
+  }
+  .item-label {
+    font-size: 28px;
+    line-height: 38px;
+  }
+  .item-value {
+    font-size: 26px;
+    line-height: 36px;
+  }
+  .sec-title {
+    font-size: 28px;
+    line-height: 38px;
+  }
+  .sec-desc {
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .qr-wrapper {
+    width: 196px;
+    height: 196px;
+  }
+  .qq-num {
+    font-size: 30px;
+  }
+  .faq-q {
+    font-size: 26px;
+    line-height: 36px;
+  }
+  .faq-a {
+    font-size: 24px;
+    line-height: 32px;
+  }
+}
+
+/* ================================================================
+   宽度断点：Watch 6 / 方屏（width >= 400px）
+   ================================================================ */
+@media (width >= 400px) {
+  .page-body {
+    padding: 44px 24px 24px 24px;
+  }
+  .header-title {
+    font-size: 32px;
+  }
+  .section {
+    padding: 22px 18px;
+  }
+}
+
+/* ================================================================
+   圆形表盘（唯一保留的 shape 查询）
+   ================================================================ */
+@media (shape: circle) {
+  .page-body {
+    padding: 44px 36px 44px 36px;
+  }
 }
 </style>

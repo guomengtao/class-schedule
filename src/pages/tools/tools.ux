@@ -47,61 +47,6 @@
         <text class="item-hint" style="color: {{ theme.textMuted }}">极简+面板</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="cmdFindPhone">
-        <text class="item-label" style="color: {{ theme.text }}">找手机</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">手机响铃 30 秒</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="cmdPhoneStatus">
-        <text class="item-label" style="color: {{ theme.text }}">手机状态</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">电量 / 静音 / 连接</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="cmdMute">
-        <text class="item-label" style="color: {{ theme.text }}">静音 / 振动</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">切换手机响铃模式</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="cmdCountdown">
-        <text class="item-label" style="color: {{ theme.text }}">倒计时 5 分钟</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">手机端到点提醒</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="cmdFlashlight">
-        <text class="item-label" style="color: {{ theme.text }}">手电筒</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">切换手机手电</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="cmdWeather">
-        <text class="item-label" style="color: {{ theme.text }}">查天气</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">手机定位取天气</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="cmdNavHome">
-        <text class="item-label" style="color: {{ theme.text }}">导航回家</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">手机打开地图</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="cmdNavWork">
-        <text class="item-label" style="color: {{ theme.text }}">导航去公司</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">手机打开地图</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="cmdWord">
-        <text class="item-label" style="color: {{ theme.text }}">问单词</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">手机上输入查词</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="sendChatTest">
-        <text class="item-label" style="color: {{ theme.accent }}">发消息到手机</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">聊天 PoC</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="openMessageInbox">
-        <text class="item-label" style="color: {{ theme.text }}">留言板</text>
-        <text class="item-hint" style="color: {{ theme.textMuted }}">查看手机留言</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openMediaTest">
         <text class="item-label" style="color: {{ theme.accent }}">@media 语法测试</text>
         <text class="item-hint" style="color: {{ theme.textMuted }}">screen and 支持?</text>
@@ -114,10 +59,8 @@
 
 <script>
 import router from "@system.router"
-import prompt from "@system.prompt"
 const store = require("../../data/store.js")
 var pinHelper = require("../../data/pin-helper.js")
-var chatBridge = require("../../data/chat-bridge.js")
 
 export default {
   private: {
@@ -210,68 +153,11 @@ export default {
     router.push({ uri: "/pages/schedule-manager" })
   },
 
-  // 聊天 PoC：手环【主动】给手机发一条消息。
-  // 这是验证"手环 → 手机"方向能否成立的关键按钮（此前从未被证实过）。
-  openMessageInbox() {
-    router.push({ uri: "/pages/message-inbox" })
-  },
-
   openMediaTest() {
     router.push({ uri: "/pages/media-test" })
   },
 
-  sendChatTest() {
-    var ok = chatBridge.send("来自手环 " + new Date().toLocaleTimeString())
-    prompt.showToast({
-      message: ok ? "已发送，看手机端有没有收到" : "connect 未就绪（先让手机发一条，或重启 EV）"
-    })
-  },
-
-  // ====== 手机遥控（工具箱第一批：找手机/状态/静音/倒计时）======
-  // 手机端 CommandRouter 白名单分发；执行结果以手机通知/手环 cmd_result 回传
-  cmdSend(type, params, okMsg) {
-    var ok = chatBridge.sendCmd(type, params)
-    prompt.showToast({
-      message: ok ? okMsg : "connect 未就绪（先在手机端打开 EV 同步）"
-    })
-  },
-
-  cmdFindPhone() {
-    this.cmdSend("find_phone", null, "已触发：手机正在响铃 30 秒")
-  },
-
-  cmdPhoneStatus() {
-    this.cmdSend("phone_status", null, "已请求手机状态（回执稍后显示）")
-  },
-
-  cmdMute() {
-    this.cmdSend("mute", null, "已切换手机响铃模式")
-  },
-
-  cmdCountdown() {
-    this.cmdSend("countdown", { minutes: 5 }, "已设置手机 5 分钟倒计时")
-  },
-
-  // ====== 手机遥控（A 类扩展：手电筒 / 天气 / 导航 / 单词）======
-  cmdFlashlight() {
-    this.cmdSend("flashlight", null, "已切换手机手电筒（看手机闪光灯）")
-  },
-
-  cmdWeather() {
-    this.cmdSend("weather", null, "正在查天气，结果稍后提示")
-  },
-
-  cmdNavHome() {
-    this.cmdSend("nav", { dest: "home" }, "手机已打开地图：回家")
-  },
-
-  cmdNavWork() {
-    this.cmdSend("nav", { dest: "work" }, "手机已打开地图：去公司")
-  },
-
-  cmdWord() {
-    this.cmdSend("word", null, "请在手机上输入要查的单词")
-  },
+  // ====== 手机遥控已迁移至设置 → 手机连接管理 ======
 
   goBack() {
     router.back()

@@ -84,15 +84,86 @@
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
-      <div class="row" onclick="openFeedback">
-        <text class="row-label" style="color: {{ theme.text }}">帮助与反馈</text>
-      </div>
-      <div class="row" onclick="openDeviceIdDiag">
-        <text class="row-label" style="color: {{ theme.text }}">设备ID诊断</text>
+      <div class="group-title-row" onclick="togglePhoneConnect">
+        <text class="group-title" style="color: {{ theme.text }}">手机连接管理</text>
         <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">手环9识别</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">{{ showPhoneConnect ? 'v' : '›' }}</text>
         </div>
+      </div>
+      <div if="{{ showPhoneConnect }}" style="flex-direction: column">
+        <div class="row" onclick="cmdFindPhone">
+          <text class="row-label" style="color: {{ theme.text }}">找手机</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">手机响铃 30 秒</text>
+          </div>
+        </div>
+        <div class="row" onclick="cmdPhoneStatus">
+          <text class="row-label" style="color: {{ theme.text }}">手机状态</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">电量/静音/连接</text>
+          </div>
+        </div>
+        <div class="row" onclick="cmdMute">
+          <text class="row-label" style="color: {{ theme.text }}">静音/振动</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">切换响铃模式</text>
+          </div>
+        </div>
+        <div class="row" onclick="cmdCountdown">
+          <text class="row-label" style="color: {{ theme.text }}">倒计时 5 分钟</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">手机端提醒</text>
+          </div>
+        </div>
+        <div class="row" onclick="cmdFlashlight">
+          <text class="row-label" style="color: {{ theme.text }}">手电筒</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">切换手机手电</text>
+          </div>
+        </div>
+        <div class="row" onclick="cmdWeather">
+          <text class="row-label" style="color: {{ theme.text }}">查天气</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">手机定位取天气</text>
+          </div>
+        </div>
+        <div class="row" onclick="cmdNavHome">
+          <text class="row-label" style="color: {{ theme.text }}">导航回家</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">打开地图</text>
+          </div>
+        </div>
+        <div class="row" onclick="cmdNavWork">
+          <text class="row-label" style="color: {{ theme.text }}">导航去公司</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">打开地图</text>
+          </div>
+        </div>
+        <div class="row" onclick="cmdWord">
+          <text class="row-label" style="color: {{ theme.text }}">问单词</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">手机查词</text>
+          </div>
+        </div>
+        <div class="row" onclick="sendChatTest">
+          <text class="row-label" style="color: {{ theme.text }}">发消息到手机</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">聊天 PoC</text>
+          </div>
+        </div>
+        <div class="row" onclick="openMessageInbox">
+          <text class="row-label" style="color: {{ theme.accent }}">留言板</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">查看手机留言</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group" style="background-color: {{ theme.card }}">
+      <div class="row" onclick="openFeedback">
+        <text class="row-label" style="color: {{ theme.text }}">反馈</text>
       </div>
       <div class="row" onclick="openTools">
         <text class="row-label" style="color: {{ theme.text }}">工具</text>
@@ -197,6 +268,8 @@
 import router from "@system.router"
 const store = require("../../data/store.js")
 const version = require("../../data/version.js")
+const chatBridge = require("../../data/chat-bridge.js")
+const prompt = require("@system.prompt")
 
 const sizeLevels = [20, 28, 36, 48, 62, 76]
 
@@ -241,6 +314,7 @@ export default {
     showFontSize: false,
     showTheme: false,
     showSchedule: false,
+    showPhoneConnect: false,
     exitConfirm: false
   },
 
@@ -394,6 +468,10 @@ export default {
     this.showSchedule = !this.showSchedule
   },
 
+  togglePhoneConnect() {
+    this.showPhoneConnect = !this.showPhoneConnect
+  },
+
   openNicknameEdit() {
     var storage = require("@system.storage")
     storage.set({ key: "chinese_input_title", value: "编辑昵称", success: function() {} })
@@ -407,10 +485,6 @@ export default {
 
   openFeedback() {
     router.push({ uri: "/pages/feedback" })
-  },
-
-  openDeviceIdDiag() {
-    router.push({ uri: "/pages/device-id" })
   },
 
   openTools() {
@@ -439,6 +513,53 @@ export default {
 
   openHomepageSettings() {
     router.push({ uri: "/pages/homepage-settings" })
+  },
+
+  cmdFindPhone() {
+    chatBridge.sendCmd("find_phone", null)
+  },
+
+  cmdPhoneStatus() {
+    chatBridge.sendCmd("phone_status", null)
+  },
+
+  cmdMute() {
+    chatBridge.sendCmd("mute", null)
+  },
+
+  cmdCountdown() {
+    chatBridge.sendCmd("countdown", { minutes: 5 })
+  },
+
+  cmdFlashlight() {
+    chatBridge.sendCmd("flashlight", null)
+  },
+
+  cmdWeather() {
+    chatBridge.sendCmd("weather", null)
+  },
+
+  cmdNavHome() {
+    chatBridge.sendCmd("nav", { dest: "home" })
+  },
+
+  cmdNavWork() {
+    chatBridge.sendCmd("nav", { dest: "work" })
+  },
+
+  cmdWord() {
+    chatBridge.sendCmd("word", null)
+  },
+
+  sendChatTest() {
+    var ok = chatBridge.send("来自手环 " + new Date().toLocaleTimeString())
+    prompt.showToast({
+      message: ok ? "已发送，看手机端有没有收到" : "connect 未就绪（先让手机发一条，或重启 EV）"
+    })
+  },
+
+  openMessageInbox() {
+    router.push({ uri: "/pages/message-inbox" })
   },
 
   openBackupRestore() {
