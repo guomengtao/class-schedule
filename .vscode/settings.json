@@ -20,5 +20,18 @@
         "**/release": true,
         "**/_rpk_check": true,
         "**/.temp_class": true
+    },
+    "terminal.integrated.inheritEnv": false,
+    "terminal.integrated.cwd": "${workspaceFolder}",
+    "terminal.integrated.defaultProfile.osx": "class-schedule",
+    "terminal.integrated.profiles.osx": {
+        "class-schedule": {
+            "path": "/bin/zsh",
+            "args": ["-c", "source ./.vscode/activate.sh && exec zsh"]
+        }
+    },
+    "terminal.integrated.env.osx": {
+        "NODE_ENV": "development",
+        "PROJECT_ID": "class-schedule"
     }
 }
