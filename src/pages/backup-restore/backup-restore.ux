@@ -1,78 +1,56 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <div class="page-body">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">备份</text>
-      <div class="header-placeholder"></div>
-    </div>
-
-    <text class="result-text" if="{{ resultMessage }}" style="color: {{ resultSuccess ? theme.accent : theme.deleteText }}">{{ resultMessage }}</text>
-
-    <div class="progress-bar" if="{{ restoreProgress >= 0 }}" style="background-color: {{ theme.cardLight }}">
-      <text class="progress-text" style="color: {{ theme.accent }}">进度: {{ restoreProgress }}/{{ restoreTotal }}</text>
-      <div class="progress-track" style="background-color: {{ theme.border || theme.borderLight }}">
-        <div class="progress-fill" style="width: {{ restoreProgress / restoreTotal * 100 }}%; background-color: {{ theme.accent }}"></div>
+      <div class="header-title-wrapper">
+        <text class="header-title" style="color: {{ theme.text }}">数据备份</text>
       </div>
     </div>
 
-    <text class="empty-msg" if="{{ backupList.length === 0 }}" style="color: {{ theme.textMuted }}">暂无备份</text>
+    <text class="section-title" style="color: {{ theme.textSecondary }}">已有备份</text>
+
+    <div class="empty-msg" if="{{ backupList.length === 0 }}">
+      <text class="empty-text" style="color: {{ theme.textMuted }}">暂无备份</text>
+    </div>
 
     <div class="backup-row" for="$item in backupList" style="background-color: {{ theme.card }}">
-      <scroll scroll-x="true" class="name-scroll">
-        <text class="backup-row-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-      </scroll>
-      <div class="backup-row-footer">
-        <scroll scroll-x="true" class="meta-scroll">
-          <text class="backup-row-meta" style="color: {{ theme.textSecondary }}">{{ $item.courseCount }}门课程 · {{ $item.scheduleCount }}张课表</text>
-        </scroll>
-        <div class="backup-row-actions">
-          <input class="row-restore-btn" type="button" value="恢复" onclick="restoreBackup($idx)"
-                 style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-          <input class="row-delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}"
-                 onclick="handleDeleteBackup($idx)"
-                 style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : 'transparent' }}; color: {{ deleteConfirmIndex === $idx ? theme.text : theme.deleteText }}; border-color: {{ theme.deleteText }}" />
+      <div class="backup-body">
+        <text class="backup-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+        <text class="backup-meta" style="color: {{ theme.textSecondary }}">{{ $item.courseCount }}门课程 · {{ $item.scheduleCount }}张课表</text>
+      </div>
+      <div class="backup-actions">
+        <div class="action-btn action-restore" onclick="confirmRestoreBackup($idx)" style="background-color: {{ theme.accent }}">
+          <text class="action-text" style="color: {{ theme.text }}">恢复</text>
+        </div>
+        <div class="action-btn action-delete" onclick="confirmDeleteBackup($idx)" style="background-color: transparent">
+          <text class="action-text" style="color: {{ theme.deleteText }}">删除</text>
         </div>
       </div>
     </div>
 
-    <div class="create-section">
-      <input class="bottom-create-btn" type="button" value="+ 新建备份" onclick="doBackup"
-             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    <div class="add-bottom">
+      <div class="btn-add" onclick="createBackup" style="background-color: {{ theme.accent }}">
+        <text class="btn-add-text" style="color: {{ theme.text }}">添加新备份</text>
+      </div>
     </div>
 
-    <div class="info-section" style="background-color: {{ theme.card }}">
-      <text class="info-title" style="color: {{ theme.text }}">备份内容</text>
-      <text class="info-text" style="color: {{ theme.textSecondary }}">课程·课表·设置·主题·提醒·状态</text>
-    </div>
+    <text class="result-msg" if="{{ resultMessage }}" style="color: {{ resultSuccess ? theme.accent : theme.deleteText }}">{{ resultMessage }}</text>
 
-    </div>
-
-    <div class="overlay-modal" show="{{ showDialog }}" onclick="dismissDialog"
+    <div class="overlay-modal" if="{{ showDialog }}" onclick="dismissDialog"
          style="position: absolute; left: 0; top: 0; width: 100%; height: 100%">
-      <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
-        <text class="modal-title" style="color: {{ theme.accent }}">解锁高级版</text>
-        <text class="modal-desc" style="color: {{ theme.textSecondary }}">云备份恢复需要高级版，一次性解锁永久使用</text>
-        <div class="benefit-list">
-          <scroll scroll-x="true" class="benefit-scroll">
-            <text class="benefit-item" style="color: {{ theme.text }}">✓ 多课表管理</text>
-          </scroll>
-          <scroll scroll-x="true" class="benefit-scroll">
-            <text class="benefit-item" style="color: {{ theme.text }}">✓ 数据备份与恢复</text>
-          </scroll>
-          <scroll scroll-x="true" class="benefit-scroll">
-            <text class="benefit-item" style="color: {{ theme.text }}">✓ 首页自定义</text>
-          </scroll>
-          <scroll scroll-x="true" class="benefit-scroll">
-            <text class="benefit-item" style="color: {{ theme.text }}">✓ 多套主题</text>
-          </scroll>
+      <div class="dialog-box" onclick="stopBubble" style="background-color: {{ theme.card }}">
+        <text class="dialog-title" style="color: {{ theme.text }}">{{ dialogType === 'delete' ? '确认删除' : '确认恢复' }}</text>
+        <text class="dialog-desc" style="color: {{ theme.textSecondary }}">{{ dialogType === 'delete' ? '删除 ' + deleteName + ' ？' : '恢复 ' + restoreName + ' ？' }}</text>
+        <div class="dialog-buttons">
+          <div class="dialog-btn dialog-btn-cancel" onclick="dismissDialog" style="background-color: {{ theme.cardLight }}">
+            <text class="dialog-btn-text" style="color: {{ theme.text }}">取消</text>
+          </div>
+          <div class="dialog-btn dialog-btn-delete" onclick="dialogAction" style="background-color: {{ dialogType === 'delete' ? theme.deleteText : theme.accent }}">
+            <text class="dialog-btn-text" style="color: {{ theme.text }}">{{ dialogType === 'delete' ? '删除' : '恢复' }}</text>
+          </div>
         </div>
-        <input class="modal-btn-primary" type="button" value="立即解锁" onclick="goToPremium"
-               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        <input class="modal-btn-secondary" type="button" value="取消" onclick="dismissDialog"
-               style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
       </div>
     </div>
   </div>
@@ -83,12 +61,6 @@ import router from "@system.router"
 var storage = require("@system.storage")
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
-
-// 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
-var DEBUG = false
-function dlog() {
-  if (DEBUG) console.log.apply(console, arguments)
-}
 
 var BACKUP_LIST_KEY = "backup_list"
 var MAX_BACKUPS = 20
@@ -107,96 +79,34 @@ export default {
     iconTheme: "dark",
     theme: store.DEFAULT_THEME,
     backupList: [],
+    showDialog: false,
+    dialogType: '',
+    deleteIndex: -1,
+    deleteName: '',
+    restoreIndex: -1,
+    restoreName: '',
     resultMessage: "",
     resultSuccess: false,
-    deleteConfirmIndex: -1,
-    restoreProgress: -1,
-    restoreTotal: 0,
-    showDialog: false
-  },
-
-  _logStatus() {
-    dlog("[BACKUP] ===== ACCOUNT STATUS DEBUG =====")
-
-    store.isPremiumUnlocked(function(unlocked) {
-      dlog("[BACKUP] isPremiumUnlocked: " + unlocked)
-      dlog("[BACKUP] status: " + (unlocked ? "高级会员" : "标准版"))
-    })
-
-    storage.get({
-      key: "premium_unlocked",
-      success: function(data) {
-        dlog("[BACKUP] premium_unlocked storage: " + (data || "empty"))
-      },
-      fail: function() {
-        dlog("[BACKUP] premium_unlocked storage: NOT FOUND")
-      }
-    })
-
-    storage.get({
-      key: "auth_data",
-      success: function(data) {
-        if (data) {
-          try {
-            var auth = JSON.parse(data)
-            dlog("[BACKUP] auth_data: isActivated=" + auth.isActivated + " | isPermanent=" + auth.isPermanent + " | expireAt=" + (auth.expireAt || "none"))
-          } catch (e) {
-            dlog("[BACKUP] auth_data: parse error: " + e.message)
-          }
-        } else {
-          dlog("[BACKUP] auth_data: empty")
-        }
-      },
-      fail: function() {
-        dlog("[BACKUP] auth_data: NOT FOUND")
-      }
-    })
-    dlog("[BACKUP] ===== STATUS DEBUG END =====")
   },
 
   onInit() {
-    dlog("[BACKUP] onInit: page created")
     var self = this
     store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
     this.loadBackupList()
-    this._logStatus()
-  },
-
-  onReady() {
-    dlog("[BACKUP] onReady: all components ready")
   },
 
   onShow() {
-    dlog("[BACKUP] onShow: page shown")
     var self = this
     store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
-    this._logStatus()
+    this.loadBackupList()
   },
 
-  updateIconSrc: function(themeName) {
-    this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
+  updateIconSrc(themeName) {
+    this.iconTheme = (themeName === "light") ? "dark" : "dark"
   },
 
-  checkAndShowOverlay() {
-    dlog("[BACKUP] checkAndShowOverlay: START, calling store.isPremiumUnlocked...")
-    var self = this
-    store.isPremiumUnlocked(function(unlocked) {
-      dlog("[BACKUP] checkAndShowOverlay: CALLBACK fired, unlocked=" + unlocked)
-      if (!unlocked) {
-        dlog("[BACKUP] checkAndShowOverlay: setting showDialog=true, was=" + self.showDialog)
-        self.showDialog = true
-        dlog("[BACKUP] checkAndShowOverlay: showDialog now=" + self.showDialog)
-      } else {
-        dlog("[BACKUP] checkAndShowOverlay: user IS premium, skip overlay")
-      }
-    })
-    dlog("[BACKUP] checkAndShowOverlay: END (async pending)")
-  },
-
-  goToPremium() {
-    dlog("[BACKUP] goToPremium: navigating to premium page")
-    this.showDialog = false
-    router.push({ uri: "/pages/activation" })
+  goBack() {
+    router.back()
   },
 
   loadBackupList() {
@@ -235,34 +145,7 @@ export default {
     })
   },
 
-  goBack() {
-    router.back()
-  },
-
-  dismissDialog() {
-    this.showDialog = false
-  },
-
-  stopBubble() {
-  },
-
-  doBackup() {
-    dlog("[BACKUP] doBackup: START, user clicked backup, checking premium...")
-    var self = this
-    store.isPremiumUnlocked(function(unlocked) {
-      dlog("[BACKUP] doBackup: CALLBACK, unlocked=" + unlocked + ", showDialog=" + self.showDialog)
-      if (unlocked) {
-        dlog("[BACKUP] doBackup: premium, performing backup")
-        self.performBackup()
-      } else {
-        dlog("[BACKUP] doBackup: NOT premium, setting showDialog=true")
-        self.showDialog = true
-        dlog("[BACKUP] doBackup: showDialog now=" + self.showDialog)
-      }
-    })
-  },
-
-  performBackup() {
+  createBackup() {
     var self = this
     var backupData = {}
     var total = DATA_KEYS.length
@@ -342,31 +225,16 @@ export default {
       }
 
       self.saveBackupList(list)
-      self.resultMessage = "备份成功！(" + timeStr + ")"
+      self.resultMessage = "备份成功 (" + timeStr + ")"
       self.resultSuccess = true
     }
 
     loadKey(0)
   },
 
-  restoreBackup(index) {
-    dlog("[BACKUP] restoreBackup: START, index=" + index + ", checking premium...")
+  restoreBackup() {
     var self = this
-    store.isPremiumUnlocked(function(unlocked) {
-      dlog("[BACKUP] restoreBackup: CALLBACK, unlocked=" + unlocked + ", showDialog=" + self.showDialog)
-      if (unlocked) {
-        dlog("[BACKUP] restoreBackup: premium, performing restore")
-        self.performRestore(index)
-      } else {
-        dlog("[BACKUP] restoreBackup: NOT premium, setting showDialog=true")
-        self.showDialog = true
-        dlog("[BACKUP] restoreBackup: showDialog now=" + self.showDialog)
-      }
-    })
-  },
-
-  performRestore(index) {
-    var self = this
+    var index = self.restoreIndex
     var backup = self.backupList[index]
     if (!backup || !backup.data) {
       self.resultMessage = "备份数据无效"
@@ -384,15 +252,12 @@ export default {
       return
     }
 
-    self.restoreProgress = 0
-    self.restoreTotal = total
-
     function saveKey(i) {
       if (i >= total) {
-        self.restoreProgress = -1
+        self.restoreIndex = -1
+        self.showDialog = false
         self.resultMessage = "已恢复 " + total + " 项"
         self.resultSuccess = true
-        // 备份是直接写存储的，先清掉内存缓存再重新加载，否则会读到恢复前的旧数据
         if (database.resetCache) database.resetCache()
         database.init(function() {
           store.getTheme(function() {}, true)
@@ -404,11 +269,9 @@ export default {
         key: key,
         value: backupData[key],
         success: function() {
-          self.restoreProgress = i + 1
           saveKey(i + 1)
         },
         fail: function() {
-          self.restoreProgress = i + 1
           saveKey(i + 1)
         }
       })
@@ -417,189 +280,172 @@ export default {
     saveKey(0)
   },
 
-  handleDeleteBackup(index) {
+  confirmDeleteBackup(index) {
+    var item = this.backupList[index]
+    this.deleteIndex = index
+    this.deleteName = item ? item.name : ''
+    this.dialogType = 'delete'
+    this.showDialog = true
+  },
+
+  confirmRestoreBackup(index) {
+    var item = this.backupList[index]
+    this.restoreIndex = index
+    this.restoreName = item ? item.name : ''
+    this.dialogType = 'restore'
+    this.showDialog = true
+  },
+
+  deleteBackup() {
     var self = this
-    store.isPremiumUnlocked(function(unlocked) {
-      if (!unlocked) {
-        self.showDialog = true
-        return
-      }
-      if (self.deleteConfirmIndex === index) {
-        var list = self.backupList.slice()
-        list.splice(index, 1)
-        self.saveBackupList(list)
-        self.deleteConfirmIndex = -1
-        self.resultMessage = "备份已删除"
-        self.resultSuccess = true
-      } else {
-        self.deleteConfirmIndex = index
-      }
-    })
+    var index = self.deleteIndex
+    if (index < 0 || index >= self.backupList.length) {
+      self.showDialog = false
+      return
+    }
+    var list = self.backupList.slice()
+    list.splice(index, 1)
+    self.saveBackupList(list)
+    self.deleteIndex = -1
+    self.showDialog = false
+    self.resultMessage = "备份已删除"
+    self.resultSuccess = false
+  },
+
+  dismissDialog() {
+    this.showDialog = false
+  },
+
+  dialogAction() {
+    if (this.dialogType === 'delete') {
+      this.deleteBackup()
+    } else {
+      this.restoreBackup()
+    }
+  },
+
+  stopBubble() {
   }
 }
 </script>
 
 <style>
-@import '../../common/header.css';
-
-/* ================================================================
-   BASE CSS = 手环 9 基准（160px 内容区）
-   手环 9 默认命中，无需任何 media query。弹性 flex + % 撑满。
-   屏幕增大时，下方宽度断点「增量」调整。
-   手环 9 黑屏根因：独立 @media (shape: pill-shaped) 大块命中即崩，
-   故 base 以 9 为基准，彻底移除独立 pill-shaped 分支。
-   ================================================================ */
 .page {
-  flex: 1;
   flex-direction: column;
-  padding: 0;
   width: 100%;
   height: 100%;
 }
 
-/* padding 承载在内层：弹窗 absolute 按父级内容盒计算，根容器带 padding 会让弹窗内缩不对称 */
-.page-body {
-  padding: 30px 8px 30px 8px;
+.header {
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 10px 10px 10px;
 }
 
-.create-section {
-  flex-direction: row;
+.back-btn-wrapper {
+  width: 62px;
+  height: 62px;
+  border-radius: 31px;
   justify-content: center;
-  margin-bottom: 10px;
+  align-items: center;
 }
 
-.bottom-create-btn {
-  width: 100%;
+.back-btn-icon {
+  width: 40px;
   height: 40px;
-  border-radius: 10px;
+}
+
+.header-title-wrapper {
+  align-items: center;
+  margin-top: 4px;
+}
+
+.header-title {
   font-size: 24px;
   font-weight: bold;
-  text-align: center;
 }
 
-.result-text {
-  font-size: 20px;
-  text-align: center;
-  margin-bottom: 10px;
-  font-weight: bold;
-  line-height: 28px;
-}
-
-.progress-bar {
-  flex-direction: column;
-  border-radius: 12px;
-  padding: 12px 10px;
-  margin-bottom: 10px;
-}
-
-.progress-text {
-  font-size: 22px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  text-align: center;
-}
-
-.progress-track {
-  height: 8px;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 4px;
+.section-title {
+  font-size: 16px;
+  margin: 8px 8px 4px 8px;
 }
 
 .empty-msg {
-  font-size: 24px;
-  text-align: center;
-  padding: 20px 0;
+  align-items: center;
+  padding: 16px 8px;
+}
+
+.empty-text {
+  font-size: 18px;
 }
 
 .backup-row {
   flex-direction: column;
-  border-radius: 12px;
-  padding: 10px 8px;
-  margin-bottom: 8px;
+  margin: 4px 8px;
+  padding: 8px;
+  border-radius: 8px;
 }
 
-.backup-row-name {
-  font-size: 24px;
-  font-weight: bold;
-  line-height: 32px;
-}
-
-.name-scroll {
-  width: 100%;
-  height: 32px;
-  margin-bottom: 4px;
-}
-
-.backup-row-footer {
+.backup-body {
   flex-direction: column;
-  align-items: stretch;
-  margin-top: 4px;
 }
 
-.backup-row-meta {
+.backup-name {
   font-size: 20px;
-  line-height: 26px;
 }
 
-.meta-scroll {
-  width: 100%;
-  height: 26px;
-  margin-bottom: 4px;
+.backup-meta {
+  font-size: 14px;
+  margin-top: 2px;
 }
 
-.backup-row-actions {
+.backup-actions {
   flex-direction: row;
-  align-items: center;
-  flex-shrink: 0;
-  margin-left: 0;
+  margin-top: 6px;
 }
 
-.row-restore-btn {
-  width: 56px;
+.action-btn {
+  flex: 1;
   height: 32px;
-  border-radius: 6px;
-  font-size: 22px;
-  font-weight: bold;
-  text-align: center;
+  border-radius: 16px;
+  justify-content: center;
+  align-items: center;
+}
+
+.action-restore {
   margin-right: 6px;
 }
 
-.row-delete-btn {
-  width: 56px;
-  height: 32px;
-  border-radius: 6px;
+.action-text {
+  font-size: 18px;
+}
+
+.add-bottom {
+  align-items: center;
+  margin: 8px 8px 0 8px;
+}
+
+.btn-add {
+  width: 100%;
+  height: 44px;
+  border-radius: 22px;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-add-text {
   font-size: 22px;
   font-weight: bold;
+}
+
+.result-msg {
+  font-size: 14px;
   text-align: center;
-  border-width: 1px;
+  margin: 8px 8px 0 8px;
 }
 
-.info-section {
-  border-radius: 12px;
-  padding: 14px 10px;
-  margin-top: 10px;
-}
-
-.info-title {
-  font-size: 24px;
-  font-weight: bold;
-  line-height: 32px;
-  margin-bottom: 8px;
-}
-
-.info-text {
-  font-size: 20px;
-  line-height: 26px;
-}
-
-/* ---- 高级版弹窗（base = 手环 9）---- */
 .overlay-modal {
-  background-color: rgba(0, 0, 0, 0.35);
+  background-color: rgba(0, 0, 0, 0.5);
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -607,241 +453,144 @@ export default {
   padding: 40px 16px;
 }
 
-.modal-card {
-  width: 100%;
-  border-radius: 14px;
-  padding: 14px 8px;
+.dialog-box {
   flex-direction: column;
   align-items: center;
-}
-
-.modal-title {
-  font-size: 24px;
-  font-weight: bold;
-  line-height: 30px;
-  margin-bottom: 8px;
-  text-align: center;
-}
-
-.modal-desc {
-  font-size: 18px;
-  text-align: center;
-  line-height: 25px;
-  margin-bottom: 10px;
-}
-
-.benefit-list {
   width: 100%;
-  flex-direction: column;
-  padding-left: 0;
-  margin-bottom: 10px;
+  padding: 16px 12px;
+  border-radius: 12px;
 }
 
-.benefit-item {
-  font-size: 17px;
-  line-height: 24px;
-  margin-bottom: 6px;
-}
-
-.benefit-scroll {
-  width: 100%;
-  height: 24px;
-  margin-bottom: 6px;
-}
-
-.modal-btn-primary {
-  width: 100%;
-  height: 40px;
-  border-radius: 20px;
-  font-size: 22px;
-  font-weight: bold;
-  text-align: center;
-  line-height: 28px;
-  margin-bottom: 8px;
-}
-
-.modal-btn-secondary {
-  width: 100%;
-  height: 34px;
-  border-radius: 17px;
+.dialog-title {
   font-size: 20px;
+  font-weight: bold;
+}
+
+.dialog-desc {
+  font-size: 16px;
+  margin-top: 8px;
   text-align: center;
-  line-height: 26px;
 }
 
-/* ================================================================
-   宽度断点：手环 10 / 胶囊屏大号（width >= 200px，内容区 ~180px）
-   在 base 基础上「增量」：字号/间距略增。
-   ================================================================ */
-@media (width >= 200px) {
-  .page-body {
-    padding: 34px 10px 34px 10px;
-  }
-  .bottom-create-btn {
-    height: 42px;
-    font-size: 26px;
-  }
-  .result-text {
-    font-size: 22px;
-    line-height: 30px;
-  }
-  .backup-row-name {
-    font-size: 26px;
-    line-height: 34px;
-  }
-  .name-scroll {
-    height: 34px;
-    margin-bottom: 4px;
-  }
-  .backup-row-meta {
-    font-size: 22px;
-    line-height: 28px;
-  }
-  .meta-scroll {
-    height: 28px;
-  }
-  .info-title {
-    font-size: 26px;
-    line-height: 34px;
-  }
-  .info-text {
-    font-size: 22px;
-    line-height: 28px;
-  }
+.dialog-buttons {
+  flex-direction: row;
+  margin-top: 16px;
 }
 
-/* ================================================================
-   宽度断点：Watch 6 / 方屏（width >= 400px，内容区 ~400px）
-   在 base 基础上「增量」：布局紧凑、字号提升、行内按钮排布。
-   ================================================================ */
-@media (width >= 400px) {
-  .page-body {
-    padding: 6px 8px 10px 8px;
-  }
-  .bottom-create-btn {
-    height: 38px;
-    font-size: 24px;
-  }
-  .backup-row-name {
-    font-size: 26px;
-    line-height: 36px;
-  }
-  .name-scroll {
-    height: 36px;
-    margin-bottom: 4px;
-  }
-  .backup-row-footer {
+.dialog-btn {
+  height: 36px;
+  border-radius: 18px;
+  justify-content: center;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.dialog-btn-cancel {
+  margin-right: 8px;
+}
+
+.dialog-btn-text {
+  font-size: 18px;
+}
+
+@media (width >= 220px) {
+  .header {
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    margin-top: 0;
+    padding: 8px 10px 10px 10px;
   }
-  .backup-row-meta {
-    font-size: 24px;
-    line-height: 32px;
+
+  .back-btn-wrapper {
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
   }
-  .meta-scroll {
+
+  .back-btn-icon {
+    width: 31px;
+    height: 31px;
+  }
+
+  .header-title-wrapper {
     flex: 1;
-    height: 32px;
-    margin-right: 6px;
+    align-items: center;
+    margin-top: 0;
+    margin-left: 8px;
   }
-  .info-section {
-    padding: 14px 12px;
-  }
-  .info-title {
+
+  .header-title {
     font-size: 26px;
-    line-height: 36px;
   }
-  .info-text {
+
+  .section-title {
+    font-size: 18px;
+    margin: 10px 10px 4px 10px;
+  }
+
+  .backup-row {
+    margin: 4px 10px;
+    padding: 10px;
+  }
+
+  .backup-name {
+    font-size: 22px;
+  }
+
+  .backup-meta {
+    font-size: 16px;
+  }
+
+  .action-btn {
+    height: 36px;
+    border-radius: 18px;
+  }
+
+  .action-restore {
+    margin-right: 8px;
+  }
+
+  .btn-add {
+    height: 48px;
+    border-radius: 24px;
+  }
+
+  .btn-add-text {
     font-size: 24px;
-    line-height: 34px;
-  }
-  .modal-card {
-    width: 80%;
-    padding: 20px 16px;
-  }
-  .modal-title {
-    font-size: 30px;
-    line-height: 40px;
-  }
-  .modal-desc {
-    font-size: 24px;
-    line-height: 32px;
-  }
-  .benefit-item {
-    font-size: 24px;
-    line-height: 32px;
-  }
-  .modal-btn-primary {
-    height: 44px;
-    border-radius: 22px;
-    font-size: 26px;
-    line-height: 32px;
-  }
-  .modal-btn-secondary {
-    height: 38px;
-    border-radius: 19px;
-    font-size: 24px;
-    line-height: 30px;
   }
 }
 
-/* ================================================================
-   圆形表盘（唯一保留的 shape 查询——圆方不同构，非宽度可替代）
-   手环 9 不会命中此分支，天然安全。
-   ================================================================ */
-@media (shape: circle) {
-  .page-body {
-    padding: 44px 36px 44px 36px;
+@media (width >= 400px) {
+  .header {
+    padding: 20px 12px 20px 12px;
   }
-  .bottom-create-btn {
-    width: 100%;
-    height: 44px;
+
+  .header-title {
     font-size: 28px;
   }
+
+  .section-title {
+    font-size: 20px;
+  }
+
+  .backup-name {
+    font-size: 24px;
+  }
+}
+
+@media (shape: circle) {
   .backup-row {
-    padding: 14px 12px;
+    margin: 2px 16px;
+    padding: 6px 12px;
   }
-  .backup-row-name {
-    font-size: 30px;
-    line-height: 40px;
+
+  .action-btn {
+    height: 28px;
+    border-radius: 14px;
   }
-  .name-scroll {
+
+  .btn-add {
     height: 40px;
-    margin-bottom: 6px;
-  }
-  .backup-row-footer {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .backup-row-meta {
-    font-size: 26px;
-    line-height: 34px;
-  }
-  .meta-scroll {
-    flex: 1;
-    height: 34px;
-    margin-right: 6px;
-  }
-  .info-section {
-    padding: 18px 16px;
-    margin-top: 12px;
-  }
-  .info-title {
-    font-size: 30px;
-    line-height: 40px;
-  }
-  .info-text {
-    font-size: 26px;
-    line-height: 36px;
-  }
-  .overlay-modal {
-    padding: 44px 36px 44px 36px;
-  }
-  .modal-card {
-    width: 72%;
-    padding: 24px 20px;
+    border-radius: 20px;
   }
 }
 </style>

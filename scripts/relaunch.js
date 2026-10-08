@@ -131,7 +131,7 @@ function killOld(adb, serial) {
 
 // 宿主侧后台、前台、无 --jsdebugger 启动（detached + unref 保证存活）
 function launch(adb, serial) {
-  const child = spawn(adb, ['-s', serial, 'shell', 'vapp', 'app', PKG], {
+  const child = spawn(adb, ['-s', serial, 'shell', 'vapp', 'app/' + PKG], {
     detached: true, stdio: 'ignore',
   });
   child.unref();
