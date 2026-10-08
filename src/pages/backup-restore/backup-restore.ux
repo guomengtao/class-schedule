@@ -361,12 +361,12 @@ export default {
 }
 
 .header-title {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
 }
 
 .section-title {
-  font-size: 16px;
+  font-size: 24px;
   margin: 8px 8px 4px 8px;
 }
 
@@ -376,7 +376,7 @@ export default {
 }
 
 .empty-text {
-  font-size: 18px;
+  font-size: 24px;
 }
 
 .backup-row {
@@ -391,11 +391,11 @@ export default {
 }
 
 .backup-name {
-  font-size: 20px;
+  font-size: 28px;
 }
 
 .backup-meta {
-  font-size: 14px;
+  font-size: 24px;
   margin-top: 2px;
 }
 
@@ -417,7 +417,7 @@ export default {
 }
 
 .action-text {
-  font-size: 18px;
+  font-size: 24px;
 }
 
 .add-bottom {
@@ -434,12 +434,12 @@ export default {
 }
 
 .btn-add-text {
-  font-size: 22px;
+  font-size: 28px;
   font-weight: bold;
 }
 
 .result-msg {
-  font-size: 14px;
+  font-size: 24px;
   text-align: center;
   margin: 8px 8px 0 8px;
 }
@@ -462,14 +462,18 @@ export default {
 }
 
 .dialog-title {
-  font-size: 20px;
+  font-size: 28px;
   font-weight: bold;
 }
 
 .dialog-desc {
-  font-size: 16px;
+  font-size: 24px;
   margin-top: 8px;
   text-align: center;
+}
+
+.dialog-btn-text {
+  font-size: 24px;
 }
 
 .dialog-buttons {
@@ -490,7 +494,7 @@ export default {
 }
 
 .dialog-btn-text {
-  font-size: 18px;
+  font-size: 24px;
 }
 
 @media (width >= 220px) {
@@ -519,11 +523,11 @@ export default {
   }
 
   .header-title {
-    font-size: 26px;
+    font-size: 28px;
   }
 
   .section-title {
-    font-size: 18px;
+    font-size: 24px;
     margin: 10px 10px 4px 10px;
   }
 
@@ -533,11 +537,11 @@ export default {
   }
 
   .backup-name {
-    font-size: 22px;
+    font-size: 28px;
   }
 
   .backup-meta {
-    font-size: 16px;
+    font-size: 24px;
   }
 
   .action-btn {
@@ -555,7 +559,7 @@ export default {
   }
 
   .btn-add-text {
-    font-size: 24px;
+    font-size: 28px;
   }
 }
 
@@ -565,15 +569,15 @@ export default {
   }
 
   .header-title {
-    font-size: 28px;
+    font-size: 30px;
   }
 
   .section-title {
-    font-size: 20px;
+    font-size: 24px;
   }
 
   .backup-name {
-    font-size: 24px;
+    font-size: 30px;
   }
 }
 

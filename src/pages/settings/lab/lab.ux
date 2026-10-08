@@ -1,43 +1,28 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <scroll class="tools-scroll" scroll-y="{{true}}">
+    <scroll class="scroll" scroll-y="{{true}}">
     <div class="page-body">
     <div class="back-header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">工具</text>
+      <text class="header-title" style="color: {{ theme.text }}">实验室</text>
       <div class="header-placeholder"></div>
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
-      <div class="item-row" onclick="openCountdownManage">
-        <text class="item-label" style="color: {{ theme.text }}">倒数日</text>
+      <div class="row" onclick="openChineseInput">
+        <text class="row-label" style="color: {{ theme.text }}">中文输入演示</text>
         <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="openVibrationLab">
-        <text class="item-label" style="color: {{ theme.text }}">震动自定义</text>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="openMediaTest">
+        <text class="row-label" style="color: {{ theme.text }}">@media 语法测试</text>
         <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="openQRCodeGenerator">
-        <text class="item-label" style="color: {{ theme.text }}">二维码生成</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="openWorkdayInfo">
-        <text class="item-label" style="color: {{ theme.text }}">工作日信息</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="openStatistics">
-        <text class="item-label" style="color: {{ theme.text }}">数据统计</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="openDeviceInfo">
-        <text class="item-label" style="color: {{ theme.text }}">设备信息</text>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="openScheduleManagerV2">
+        <text class="row-label" style="color: {{ theme.text }}">课程表管理 V2</text>
         <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
     </div>
@@ -49,7 +34,7 @@
 
 <script>
 import router from "@system.router"
-const store = require("../../data/store.js")
+const store = require("../../../data/store.js")
 
 export default {
   private: {
@@ -63,16 +48,13 @@ export default {
       textSecondary: '#888899',
       textMuted: '#555566',
       border: '#0f3460',
-      borderLight: '#2a2a5a',
       keyBg: '#1a1a3e',
       keyBorder: '#2a2a5a',
       btnSecondary: '#333355',
       btnSecondaryText: '#a0a0b0',
       deleteBg: '#2a1a3e',
       deleteText: '#e08080',
-      icon: '●',
-      progressOngoing: 'rgba(126,200,227,0.2)',
-      progressDone: 'rgba(74,138,154,0.25)'
+      icon: '●'
     }
   },
 
@@ -95,28 +77,16 @@ export default {
     this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
   },
 
-  openDeviceInfo() {
-    router.push({ uri: "/pages/device-info" })
+  openChineseInput() {
+    router.push({ uri: "/pages/chinese-input" })
   },
 
-  openVibrationLab() {
-    router.push({ uri: "/pages/vibration-lab" })
+  openMediaTest() {
+    router.push({ uri: "/pages/media-test" })
   },
 
-  openCountdownManage() {
-    router.push({ uri: "/pages/countdown-manage" })
-  },
-
-  openQRCodeGenerator() {
-    router.push({ uri: "/pages/qrcode-generator" })
-  },
-
-  openStatistics() {
-    router.push({ uri: "/pages/statistics" })
-  },
-
-  openWorkdayInfo() {
-    router.push({ uri: "/pages/workday-info" })
+  openScheduleManagerV2() {
+    router.push({ uri: "/pages/schedule-manager" })
   },
 
   goBack() {
@@ -136,7 +106,7 @@ export default {
   height: 100%;
 }
 
-.tools-scroll {
+.scroll {
   flex: 1;
   width: 100%;
   flex-direction: column;
@@ -191,15 +161,29 @@ export default {
   margin-bottom: 14px;
 }
 
-.item-row {
+.row {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
 }
 
-.item-label {
+.row-label {
   font-size: 28px;
+  flex-shrink: 0;
+  line-height: 38px;
+}
+
+.row-right {
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 1;
+  overflow: hidden;
+}
+
+.row-hint {
+  font-size: 24px;
+  margin-right: 6px;
   line-height: 38px;
 }
 
@@ -209,17 +193,13 @@ export default {
   line-height: 38px;
 }
 
-.row-divider {
+.divider {
   height: 1px;
   margin: 6px 0;
 }
 
 @media (width >= 360) {
   .page-body { padding: 44px 20px 24px 20px; }
-  .item-row { padding: 16px 0; }
-}
-
-@media (width >= 480) {
-  .page-body { padding: 44px 48px 24px 48px; }
+  .row { padding: 16px 0; }
 }
 </style>

@@ -1,0 +1,302 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <scroll class="scroll" scroll-y="{{true}}">
+    <div class="page-body">
+    <div class="back-header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">手机遥控</text>
+      <div class="header-placeholder"></div>
+    </div>
+
+    <div class="section" style="background-color: {{ theme.card }}">
+      <div class="row" onclick="cmdFindPhone">
+        <text class="row-label" style="color: {{ theme.text }}">找手机</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">响铃 30 秒</text>
+        </div>
+      </div>
+      <div class="row" onclick="cmdPhoneStatus">
+        <text class="row-label" style="color: {{ theme.text }}">手机状态</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">电量 / 连接</text>
+        </div>
+      </div>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="cmdMute">
+        <text class="row-label" style="color: {{ theme.text }}">静音 / 振动</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">切换响铃模式</text>
+        </div>
+      </div>
+      <div class="row" onclick="cmdCountdown">
+        <text class="row-label" style="color: {{ theme.text }}">倒计时 5 分钟</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">手机端提醒</text>
+        </div>
+      </div>
+      <div class="row" onclick="cmdFlashlight">
+        <text class="row-label" style="color: {{ theme.text }}">手电筒</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">开关手电</text>
+        </div>
+      </div>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="cmdWeather">
+        <text class="row-label" style="color: {{ theme.text }}">查天气</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">定位取天气</text>
+        </div>
+      </div>
+      <div class="row" onclick="cmdNavHome">
+        <text class="row-label" style="color: {{ theme.text }}">导航回家</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">打开地图</text>
+        </div>
+      </div>
+      <div class="row" onclick="cmdNavWork">
+        <text class="row-label" style="color: {{ theme.text }}">导航去公司</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">打开地图</text>
+        </div>
+      </div>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="cmdWord">
+        <text class="row-label" style="color: {{ theme.text }}">问单词</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">手机查词</text>
+        </div>
+      </div>
+      <div class="row" onclick="sendChatTest">
+        <text class="row-label" style="color: {{ theme.text }}">发消息到手机</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">聊天 PoC</text>
+        </div>
+      </div>
+      <div class="row" onclick="openMessageInbox">
+        <text class="row-label" style="color: {{ theme.accent }}">留言板</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">查看消息</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+    </div>
+
+    </div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../../data/store.js")
+const chatBridge = require("../../../data/chat-bridge.js")
+const prompt = require("@system.prompt")
+
+export default {
+  private: {
+    iconTheme: "dark",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      keyBg: '#1a1a3e',
+      keyBorder: '#2a2a5a',
+      btnSecondary: '#333355',
+      btnSecondaryText: '#a0a0b0',
+      deleteBg: '#2a1a3e',
+      deleteText: '#e08080',
+      icon: '●'
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.updateIconSrc(themeName)
+    })
+  },
+
+  updateIconSrc: function(themeName) {
+    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+  },
+
+  cmdFindPhone() {
+    chatBridge.sendCmd("find_phone", null)
+  },
+
+  cmdPhoneStatus() {
+    chatBridge.sendCmd("phone_status", null)
+  },
+
+  cmdMute() {
+    chatBridge.sendCmd("mute", null)
+  },
+
+  cmdCountdown() {
+    chatBridge.sendCmd("countdown", { minutes: 5 })
+  },
+
+  cmdFlashlight() {
+    chatBridge.sendCmd("flashlight", null)
+  },
+
+  cmdWeather() {
+    chatBridge.sendCmd("weather", null)
+  },
+
+  cmdNavHome() {
+    chatBridge.sendCmd("nav", { dest: "home" })
+  },
+
+  cmdNavWork() {
+    chatBridge.sendCmd("nav", { dest: "work" })
+  },
+
+  cmdWord() {
+    chatBridge.sendCmd("word", null)
+  },
+
+  sendChatTest() {
+    var ok = chatBridge.send("来自手环 " + new Date().toLocaleTimeString())
+    prompt.showToast({
+      message: ok ? "已发送，看手机端有没有收到" : "connect 未就绪（先让手机发一条，或重启 EV）"
+    })
+  },
+
+  openMessageInbox() {
+    router.push({ uri: "/pages/message-inbox" })
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  onDestroy() {
+    this.theme = null
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.scroll {
+  flex: 1;
+  width: 100%;
+  flex-direction: column;
+}
+
+.page-body {
+  flex-direction: column;
+  width: 100%;
+  padding: 44px 10px 12px 10px;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 0 4px;
+}
+
+.back-btn-wrapper {
+  width: 48px;
+  height: 40px;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.back-btn-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.header-title {
+  flex: 1;
+  font-size: 28px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 38px;
+}
+
+.header-placeholder {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.section {
+  width: 100%;
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 18px 14px;
+  margin-bottom: 14px;
+}
+
+.row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.row-label {
+  font-size: 28px;
+  flex-shrink: 0;
+  line-height: 38px;
+}
+
+.row-right {
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 1;
+  overflow: hidden;
+}
+
+.row-hint {
+  font-size: 24px;
+  margin-right: 6px;
+  line-height: 38px;
+}
+
+.arrow {
+  font-size: 28px;
+  flex-shrink: 0;
+  line-height: 38px;
+}
+
+.divider {
+  height: 1px;
+  margin: 6px 0;
+}
+
+@media (width >= 360) {
+  .page-body { padding: 44px 20px 24px 20px; }
+  .row { padding: 14px 0; }
+}
+
+@media (width >= 480) {
+  .page-body { padding: 44px 48px 24px 48px; }
+}
+</style>

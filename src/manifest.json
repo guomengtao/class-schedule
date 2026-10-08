@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.8.1",
-  "versionCode": 1081,
+  "versionName": "1.8.16",
+  "versionCode": 1096,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
@@ -90,6 +90,12 @@
       },
       "pages/settings": {
         "component": "settings"
+      },
+      "pages/settings/phone-remote": {
+        "component": "phone-remote"
+      },
+      "pages/settings/lab": {
+        "component": "lab"
       },
       "pages/tools": {
         "component": "tools"

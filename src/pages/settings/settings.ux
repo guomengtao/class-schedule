@@ -1,9 +1,7 @@
 <import name="unlock-dialog" src="../../components/unlock-dialog"></import>
 <template>
   <div class="settings-page" style="background-color: {{ theme.bg }}">
-    <!-- 可滚动内容区：修复小屏下方行点不到的问题（档案 P0） -->
     <scroll class="settings-scroll" scroll-y="{{true}}">
-    <!-- 内层承载页面 padding：让抽屉弹（绝对定位）能真正贴到屏幕底部与左右边缘 -->
     <div class="settings-body">
     <div class="back-header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
@@ -14,56 +12,62 @@
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
-      <div class="row nickname-row" onclick="openNicknameEdit">
-        <text class="row-label nickname-label" style="color: {{ theme.text }}">昵称</text>
-        <div class="row-right nickname-value-wrap">
-          <text class="row-value nickname-value" if="{{ nickname }}" style="color: {{ theme.accent }}">{{ nickname }}</text>
-          <text class="row-hint" if="{{ !nickname }}" style="color: {{ theme.textMuted }}">点击设置</text>
-          <text class="arrow nickname-arrow" style="color: {{ theme.textMuted }}">›</text>
+      <div class="group-title-row" onclick="toggleGroup('personal')">
+        <text class="group-title" style="color: {{ theme.text }}">个人</text>
+        <text class="arrow" style="color: {{ theme.textMuted }}">{{ showPersonal ? 'v' : '›' }}</text>
+      </div>
+      <div if="{{ showPersonal }}" style="flex-direction: column">
+        <div class="row nickname-row" onclick="openNicknameEdit">
+          <text class="row-label nickname-label" style="color: {{ theme.text }}">昵称</text>
+          <div class="row-right nickname-value-wrap">
+            <text class="row-value nickname-value" if="{{ nickname }}" style="color: {{ theme.accent }}">{{ nickname }}</text>
+            <text class="row-hint" if="{{ !nickname }}" style="color: {{ theme.textMuted }}">点击设置</text>
+            <text class="arrow nickname-arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="toggleTheme">
+          <text class="row-label" style="color: {{ theme.text }}">主题配色</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">深蓝 ████</text>
+          </div>
+        </div>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="toggleFontSize">
+          <text class="row-label" style="color: {{ theme.text }}">课程字号</text>
+          <div class="row-right">
+            <text class="size-indicator" style="color: {{ theme.textMuted }}">{{ displaySize }}px</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">{{ showFontSize ? 'v' : '›' }}</text>
+          </div>
+        </div>
+        <div if="{{ showFontSize }}" class="font-size-body">
+          <div class="scale-row">
+            <input class="scale-btn" type="button" value="−" onclick="decreaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
+            <text class="scale-value" style="color: {{ theme.accent }}">{{ displaySize }}px</text>
+            <input class="scale-btn" type="button" value="+" onclick="increaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
+          </div>
+          <div class="preview-box" style="background-color: {{ theme.cardLight }}">
+            <text class="preview-text" style="font-size: {{ previewDisplaySize }}px; color: {{ theme.text }}">数学 08:00</text>
+          </div>
+          <text class="scope-hint" style="color: {{ theme.textMuted }}">仅影响首页课程卡片，其他页面为固定字号</text>
         </div>
       </div>
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
-      <div class="group-title-row" onclick="toggleTheme">
-        <text class="group-title" style="color: {{ theme.text }}">主题配色</text>
-        <div class="row-right">
-          <text class="arrow" style="color: {{ theme.textMuted }}">{{ showTheme ? 'v' : '›' }}</text>
-        </div>
-      </div>
-    </div>
-
-    <div class="group" style="background-color: {{ theme.card }}">
-      <div class="group-title-row" onclick="toggleFontSize">
-        <text class="group-title" style="color: {{ theme.text }}">课程字号</text>
-        <div class="row-right">
-          <text class="size-indicator" style="color: {{ theme.textMuted }}">{{ displaySize }}px</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">{{ showFontSize ? 'v' : '›' }}</text>
-        </div>
-      </div>
-      <div if="{{ showFontSize }}" class="font-size-body">
-        <div class="scale-row">
-          <input class="scale-btn" type="button" value="−" onclick="decreaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
-          <text class="scale-value" style="color: {{ theme.accent }}">{{ displaySize }}px</text>
-          <input class="scale-btn" type="button" value="+" onclick="increaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
-        </div>
-        <div class="preview-box" style="background-color: {{ theme.cardLight }}">
-          <text class="preview-text" style="font-size: {{ previewDisplaySize }}px; color: {{ theme.text }}">数学 08:00</text>
-        </div>
-        <!-- 本项设计上只作用于首页课程卡片（其余页面用固定字号保证布局与触控达标），
-             必须显式告知用户作用范围，否则会被理解为"设置没生效" -->
-        <text class="scope-hint" style="color: {{ theme.textMuted }}">仅影响首页课程卡片，其他页面为固定字号</text>
-      </div>
-    </div>
-
-    <div class="group" style="background-color: {{ theme.card }}">
-      <div class="group-title-row" onclick="toggleSchedule">
-        <text class="group-title" style="color: {{ theme.text }}">周课表</text>
-        <div class="row-right">
-          <text class="arrow" style="color: {{ theme.textMuted }}">{{ showSchedule ? 'v' : '›' }}</text>
-        </div>
+      <div class="group-title-row" onclick="toggleGroup('schedule')">
+        <text class="group-title" style="color: {{ theme.text }}">课表</text>
+        <text class="arrow" style="color: {{ theme.textMuted }}">{{ showSchedule ? 'v' : '›' }}</text>
       </div>
       <div if="{{ showSchedule }}" style="flex-direction: column">
+        <div class="row" onclick="openHomepageSettings">
+          <text class="row-label" style="color: {{ theme.text }}">首页设置</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">栏目 · 时间</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
         <div class="row">
           <text class="row-label" style="color: {{ theme.text }}">隐藏周末</text>
           <div class="switch-track" style="background-color: {{ hideWeekend ? theme.accent : theme.border }}" onclick="toggleHideWeekend">
@@ -74,87 +78,33 @@
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
-      <div class="row" onclick="openHomepageSettings">
-        <text class="row-label" style="color: {{ theme.text }}">首页设置</text>
+      <div class="row" onclick="openPhoneRemote">
+        <text class="row-label" style="color: {{ theme.text }}">手机遥控</text>
         <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">栏目时间</text>
+          <text class="row-hint" style="color: {{ theme.textMuted }}">找手机 · 静音 · 手电等</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
-      <div class="group-title-row" onclick="togglePhoneConnect">
-        <text class="group-title" style="color: {{ theme.text }}">手机连接管理</text>
-        <div class="row-right">
-          <text class="arrow" style="color: {{ theme.textMuted }}">{{ showPhoneConnect ? 'v' : '›' }}</text>
-        </div>
+      <div class="group-title-row" onclick="toggleGroup('data')">
+        <text class="group-title" style="color: {{ theme.text }}">数据</text>
+        <text class="arrow" style="color: {{ theme.textMuted }}">{{ showData ? 'v' : '›' }}</text>
       </div>
-      <div if="{{ showPhoneConnect }}" style="flex-direction: column">
-        <div class="row" onclick="cmdFindPhone">
-          <text class="row-label" style="color: {{ theme.text }}">找手机</text>
+      <div if="{{ showData }}" style="flex-direction: column">
+        <div class="row" onclick="openBackupRestore">
+          <text class="row-label" style="color: {{ theme.text }}">备份与恢复</text>
           <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">手机响铃 30 秒</text>
+            <text class="row-hint" style="color: {{ theme.textMuted }}">云端备份</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
           </div>
         </div>
-        <div class="row" onclick="cmdPhoneStatus">
-          <text class="row-label" style="color: {{ theme.text }}">手机状态</text>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="openResetData">
+          <text class="row-label" style="color: {{ theme.deleteText }}">重置数据</text>
           <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">电量/静音/连接</text>
-          </div>
-        </div>
-        <div class="row" onclick="cmdMute">
-          <text class="row-label" style="color: {{ theme.text }}">静音/振动</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">切换响铃模式</text>
-          </div>
-        </div>
-        <div class="row" onclick="cmdCountdown">
-          <text class="row-label" style="color: {{ theme.text }}">倒计时 5 分钟</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">手机端提醒</text>
-          </div>
-        </div>
-        <div class="row" onclick="cmdFlashlight">
-          <text class="row-label" style="color: {{ theme.text }}">手电筒</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">切换手机手电</text>
-          </div>
-        </div>
-        <div class="row" onclick="cmdWeather">
-          <text class="row-label" style="color: {{ theme.text }}">查天气</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">手机定位取天气</text>
-          </div>
-        </div>
-        <div class="row" onclick="cmdNavHome">
-          <text class="row-label" style="color: {{ theme.text }}">导航回家</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">打开地图</text>
-          </div>
-        </div>
-        <div class="row" onclick="cmdNavWork">
-          <text class="row-label" style="color: {{ theme.text }}">导航去公司</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">打开地图</text>
-          </div>
-        </div>
-        <div class="row" onclick="cmdWord">
-          <text class="row-label" style="color: {{ theme.text }}">问单词</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">手机查词</text>
-          </div>
-        </div>
-        <div class="row" onclick="sendChatTest">
-          <text class="row-label" style="color: {{ theme.text }}">发消息到手机</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">聊天 PoC</text>
-          </div>
-        </div>
-        <div class="row" onclick="openMessageInbox">
-          <text class="row-label" style="color: {{ theme.accent }}">留言板</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">查看手机留言</text>
+            <text class="row-hint" style="color: {{ theme.textMuted }}">清空课程</text>
             <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
           </div>
         </div>
@@ -162,49 +112,50 @@
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
-      <div class="row" onclick="openFeedback">
-        <text class="row-label" style="color: {{ theme.text }}">反馈</text>
+      <div class="group-title-row" onclick="toggleGroup('about')">
+        <text class="group-title" style="color: {{ theme.text }}">关于</text>
+        <text class="arrow" style="color: {{ theme.textMuted }}">{{ showAbout ? 'v' : '›' }}</text>
       </div>
+      <div if="{{ showAbout }}" style="flex-direction: column">
+        <div class="row" onclick="openActivation">
+          <text class="row-label" style="color: {{ theme.text }}">高级版</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">解锁全功能</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="openDonate">
+          <text class="row-label" style="color: {{ theme.text }}">打赏支持</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">鼓励开发者</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="openFeedback">
+          <text class="row-label" style="color: {{ theme.text }}">反馈</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">常见问题</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group" style="background-color: {{ theme.card }}">
       <div class="row" onclick="openTools">
         <text class="row-label" style="color: {{ theme.text }}">工具</text>
         <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">调试、二维码等</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-    </div>
-
-    <div class="group" style="background-color: {{ theme.card }}">
-      <div class="row" onclick="openBackupRestore">
-        <text class="row-label" style="color: {{ theme.text }}">数据备份</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">云端备份</text>
+          <text class="row-hint" style="color: {{ theme.textMuted }}">倒数日 · 震动等</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
-      <div class="row" onclick="openActivation">
-        <text class="row-label" style="color: {{ theme.text }}">高级版</text>
+      <div class="row" onclick="openLab">
+        <text class="row-label" style="color: {{ theme.text }}">实验室</text>
         <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">解锁</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
-      <div class="row" onclick="openDonate">
-        <text class="row-label" style="color: {{ theme.text }}">打赏支持</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">支持</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-    </div>
-
-    <div class="group" style="background-color: {{ theme.card }}">
-      <div class="row" onclick="openResetData">
-        <text class="row-label" style="color: {{ theme.deleteText }}">恢复默认</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">重置</text>
+          <text class="row-hint" style="color: {{ theme.textMuted }}">新功能测试</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
@@ -213,8 +164,6 @@
     <div class="settings-footer">
       <text class="version-text" style="color: {{ theme.text }}">v{{ versionText }}</text>
       <text class="welcome-link" onclick="goToWelcome" style="color: {{ theme.accent }}">欢迎页</text>
-      <!-- 兜底退出：欢迎页之外唯一可见的显式出口。返回键在部分运行时会被吃掉/不生效时，
-           这里保证从任何能走到设置的地方都能主动终止应用。二次点击确认 + 3 秒自动复位防误触。 -->
       <input class="exit-app-btn" type="button"
              value="{{ exitConfirm ? '再点一次退出' : '退出应用' }}"
              onclick="handleExitApp"
@@ -238,8 +187,6 @@
       </div>
     </div>
 
-    <!-- 主题配色：底部抽屉弹。通栏 + 贴底（left/bottom 定位），不依赖居中计算，
-         与屏幕宽高无关；面板自身 padding 提供内缩。 -->
     <div class="theme-drawer" if="{{ showTheme }}" onclick="closeThemeDrawer"
          style="position: absolute; left: 0; top: 0; width: 100%; height: 100%">
       <div class="theme-drawer-panel" style="position: absolute; left: 0; bottom: 0; width: 100%; background-color: {{ theme.card }}" onclick="stopBubble">
@@ -268,12 +215,9 @@
 import router from "@system.router"
 const store = require("../../data/store.js")
 const version = require("../../data/version.js")
-const chatBridge = require("../../data/chat-bridge.js")
-const prompt = require("@system.prompt")
 
 const sizeLevels = [20, 28, 36, 48, 62, 76]
 
-// 退出二次确认的复位定时器（模块级：goBack / onDestroy 都要能清掉，避免悬空回调改已销毁页面的状态）
 var exitConfirmTimer = null
 
 export default {
@@ -313,8 +257,10 @@ export default {
     showPremiumDialog: false,
     showFontSize: false,
     showTheme: false,
+    showPersonal: false,
     showSchedule: false,
-    showPhoneConnect: false,
+    showData: false,
+    showAbout: false,
     exitConfirm: false
   },
 
@@ -354,7 +300,6 @@ export default {
   },
 
   updatePreviews() {
-    // Use same formula as index.ux computeFontSizes to preview actual homepage size
     var norm = Math.round(this.displaySize * 32 / 48)
     if (norm < 20) norm = 20
     if (norm > 40) norm = 40
@@ -396,7 +341,6 @@ export default {
   selectTheme(themeKey) {
     var self = this
     store.isPremiumUnlocked(function(unlocked) {
-      // 先收起抽屉：否则未解锁时弹窗会被压在抽屉面板下面
       self.showTheme = false
       if (unlocked) {
         self.applyTheme(themeKey)
@@ -456,7 +400,6 @@ export default {
   },
 
   toggleTheme() {
-    // 主题配色改为底部抽屉弹：点一次打开抽屉
     this.showTheme = true
   },
 
@@ -464,12 +407,8 @@ export default {
     this.showTheme = false
   },
 
-  toggleSchedule() {
-    this.showSchedule = !this.showSchedule
-  },
-
-  togglePhoneConnect() {
-    this.showPhoneConnect = !this.showPhoneConnect
+  toggleGroup(group) {
+    this['show' + group.charAt(0).toUpperCase() + group.slice(1)] = !this['show' + group.charAt(0).toUpperCase() + group.slice(1)]
   },
 
   openNicknameEdit() {
@@ -489,6 +428,14 @@ export default {
 
   openTools() {
     router.push({ uri: "/pages/tools" })
+  },
+
+  openPhoneRemote() {
+    router.push({ uri: "/pages/settings/phone-remote" })
+  },
+
+  openLab() {
+    router.push({ uri: "/pages/settings/lab" })
   },
 
   openActivation() {
@@ -515,53 +462,6 @@ export default {
     router.push({ uri: "/pages/homepage-settings" })
   },
 
-  cmdFindPhone() {
-    chatBridge.sendCmd("find_phone", null)
-  },
-
-  cmdPhoneStatus() {
-    chatBridge.sendCmd("phone_status", null)
-  },
-
-  cmdMute() {
-    chatBridge.sendCmd("mute", null)
-  },
-
-  cmdCountdown() {
-    chatBridge.sendCmd("countdown", { minutes: 5 })
-  },
-
-  cmdFlashlight() {
-    chatBridge.sendCmd("flashlight", null)
-  },
-
-  cmdWeather() {
-    chatBridge.sendCmd("weather", null)
-  },
-
-  cmdNavHome() {
-    chatBridge.sendCmd("nav", { dest: "home" })
-  },
-
-  cmdNavWork() {
-    chatBridge.sendCmd("nav", { dest: "work" })
-  },
-
-  cmdWord() {
-    chatBridge.sendCmd("word", null)
-  },
-
-  sendChatTest() {
-    var ok = chatBridge.send("来自手环 " + new Date().toLocaleTimeString())
-    prompt.showToast({
-      message: ok ? "已发送，看手机端有没有收到" : "connect 未就绪（先让手机发一条，或重启 EV）"
-    })
-  },
-
-  openMessageInbox() {
-    router.push({ uri: "/pages/message-inbox" })
-  },
-
   openBackupRestore() {
     router.push({ uri: "/pages/backup-restore" })
   },
@@ -574,8 +474,6 @@ export default {
     router.push({ uri: "/pages/welcome" })
   },
 
-  // 退出应用兜底入口：与欢迎页同一个 utils.exitApp()（进程级退出，和当前在哪页无关）。
-  // 二次点击确认 + 3 秒自动复位：既防住滚动到底时的误触，又不给真正想退出的人设死门槛。
   handleExitApp() {
     var self = this
     if (!this.exitConfirm) {
@@ -592,7 +490,6 @@ export default {
     var utils = require("../../data/utils.js")
     var ok = utils.exitApp()
     if (!ok) {
-      // 运行时不提供任何退出入口时明确告知，避免"点了没反应"
       var prompt = require("@system.prompt")
       prompt.showToast({ message: "请用系统手势退出应用" })
     }
@@ -617,14 +514,6 @@ export default {
 </script>
 
 <style>
-/* ================================================================
-   BASE CSS = 手环 9 基准（160px 内容区）
-   手环 9 默认命中，无需任何 media query。
-   弹性 flex + % 撑满。屏幕增大时，下方宽度断点「增量」调整。
-   原则：base 属性一旦设定，大屏断点只改物理必须区分的值，不覆盖。
-   手环 9 黑屏根因：独立 @media (shape: pill-shaped) 大块命中即崩，
-   故 base 以 9 为基准，彻底移除独立 pill-shaped 分支。
-   ================================================================ */
 .settings-page {
   flex-direction: column;
   width: 100%;
@@ -633,14 +522,12 @@ export default {
   position: relative;
 }
 
-/* 页面内容的内层容器：承载 padding，让绝对定位的抽屉弹能贴到屏幕四边 */
 .settings-body {
   flex-direction: column;
   width: 100%;
-  padding: 44px 10px 12px 10px;
+  padding: 44px 8px 12px 8px;
 }
 
-/* 可滚动内容区：header 固定在顶部，其余内容上下滚动 */
 .settings-scroll {
   flex: 1;
   flex-direction: column;
@@ -684,9 +571,9 @@ export default {
 
 .group {
   flex-direction: column;
-  border-radius: 12px;
-  padding: 18px 14px;
-  margin-bottom: 14px;
+  border-radius: 14px;
+  padding: 18px 8px;
+  margin-bottom: 18px;
 }
 
 .group-title {
@@ -714,10 +601,6 @@ export default {
   padding: 12px 0;
 }
 
-/* ================================================================
-   BASE 内额外：胶囊/手环9 基准（160px 内容区）
-   昵称行窄屏用纵向布局，避免与右侧箭头挤压。
-   ================================================================ */
 .nickname-row {
   flex-direction: column;
   align-items: flex-start;
@@ -740,9 +623,9 @@ export default {
 }
 
 .row-label {
-  font-size: 30px;
+  font-size: 28px;
   flex-shrink: 0;
-  line-height: 40px;
+  line-height: 38px;
 }
 
 .row-right {
@@ -758,15 +641,13 @@ export default {
   line-height: 38px;
 }
 
-/* 小屏（base = 手环 9）默认隐藏每行辅助描述，只显示链接名称，避免内容过窄溢出 */
 .row-hint {
   display: none;
-  font-size: 28px;
+  font-size: 24px;
   margin-right: 6px;
   line-height: 38px;
 }
 
-/* 小屏（base = 手环 9）默认隐藏字号数值，只显示"课程字号"四个字，避免内容过窄溢出 */
 .size-indicator {
   display: none;
   font-size: 24px;
@@ -838,7 +719,7 @@ export default {
   font-size: 24px;
   font-weight: bold;
   text-align: center;
-  line-height: 40px;
+  line-height: 36px;
 }
 
 .scale-value {
@@ -861,9 +742,8 @@ export default {
   text-align: center;
 }
 
-/* 作用范围说明：20px 为规范下限，行高取 1.2 倍 */
 .scope-hint {
-  font-size: 20px;
+  font-size: 24px;
   line-height: 24px;
   text-align: center;
   margin-top: 8px;
@@ -889,7 +769,6 @@ export default {
   line-height: 36px;
 }
 
-/* 底部信息区：链接/版本居中对齐，小屏版本号可自然折成 2 行 */
 .settings-footer {
   flex-direction: column;
   align-items: center;
@@ -903,7 +782,6 @@ export default {
   line-height: 38px;
 }
 
-/* 兜底退出口：通栏设在滚动区最底部，滚到底才可见，天然低误触 */
 .exit-app-btn {
   width: 100%;
   height: 48px;
@@ -970,10 +848,7 @@ export default {
   font-size: 28px;
   line-height: 36px;
 }
-/* ================================================================
-   圆形表盘（唯一保留的 shape 查询——圆方不同构，非宽度可替代）
-   手环 9 不会命中此分支，天然安全。
-   ================================================================ */
+
 @media screen and (shape: circle) {
   .settings-body {
     padding: 44px 36px 44px 36px;
@@ -1028,10 +903,6 @@ export default {
   }
 }
 
-/* ================================================================
-   宽度断点：手环 10 / 胶囊屏大号（width >= 200px，内容区 ~180px）
-   在 base 基础上「增量」：字号略大、抽屉/弹窗内缩适当放宽。
-   ================================================================ */
 @media (width >= 200px) {
   .theme-drawer-panel {
     padding: 8px 12px 16px 12px;
@@ -1054,10 +925,6 @@ export default {
   }
 }
 
-/* ================================================================
-   宽度断点：Watch 6 / 方屏（width >= 400px，内容区 ~400px）
-   rect 屏上下空间充裕，padding 可大幅压缩。
-   ================================================================ */
 @media (width >= 400px) {
   .settings-body {
     padding: 6px 8px 6px 8px;
@@ -1093,10 +960,6 @@ export default {
   }
 }
 
-/* ===== 主题配色：底部抽屉弹 =====
-   几何策略：面板用 left/bottom 贴底 + width: 100% 通栏 —— 不做任何居中计算，
-   因此与屏幕宽高、屏型全部无关（192 胶囊 / 336 方屏表现一致）。
-   定位属性已移至模板 inline style（手环 9 兼容性要求）。 */
 .theme-drawer {
   background-color: rgba(0, 0, 0, 0.45);
   z-index: 1200;
