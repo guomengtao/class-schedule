@@ -1,0 +1,576 @@
+<template>
+  <!--
+    课程表盘 · 电子表（LCD）风格 · 小米手环 9 跑道屏 192×490
+    配色：炭黑底 + 青绿荧光，模拟 LCD 背光。
+    退出四途径（全部隐形，不画按钮、不占画面）：
+      ① 长按时间区 2 秒 —— 时间下方一条荧光进度线推进作反馈
+      ② 长按课程卡片区 2 秒 —— 卡片边框转亮绿作反馈
+      ③ 双击右下角（间隔 <500ms）
+      ④ 自下往上滑（onswipe 在 Vela 不可用，用 touchstart/touchend 判方向）
+    松手即中止计时，防误触。
+  -->
+  <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd">
+    <!-- 顶部状态条 -->
+    <text class="status-left">{{ dateText }}</text>
+    <text class="status-right">{{ countText }}</text>
+
+    <!-- 巨型电子时间 -->
+    <div class="clock-row">
+      <text class="clock-num">{{ hhText }}</text>
+      <text class="clock-colon" style="color: {{ colonOn ? '#7dffb0' : '#1d3a2c' }}">:</text>
+      <text class="clock-num">{{ mmText }}</text>
+      <text class="clock-sec">:{{ ssText }}</text>
+    </div>
+
+    <!-- 时段标签 -->
+    <text class="phase-tag" style="color: {{ phaseColor }}">{{ phaseText }}</text>
+
+    <!-- 课程主卡片 -->
+    <div class="card" style="border-color: {{ cardHot ? '#7dffb0' : '#1d3a2c' }}">
+      <text class="card-name" style="color: {{ hasCourse ? '#7dffb0' : '#3a5a4a' }}">{{ courseName }}</text>
+      <text class="card-meta">{{ courseMeta }}</text>
+      <text class="card-left" style="color: {{ leftColor }}">{{ leftText }}</text>
+    </div>
+
+    <!-- 当前课进度条（课间时作为「距下节」进度） -->
+    <div class="bar-track">
+      <div class="bar-fill" style="width: {{ barWidth }}px"></div>
+    </div>
+
+    <!-- 今日课程时间轴（接下来 3 节，当前项高亮） -->
+    <div class="tl-row" for="{{ upcoming }}" style="top: {{ $item.top }}px">
+      <text class="tl-idx" style="color: {{ $item.hot ? '#7dffb0' : '#2e4a3c' }}">{{ $item.idx }}</text>
+      <text class="tl-name" style="color: {{ $item.hot ? '#d8ffe8' : '#4a6b5a' }}">{{ $item.name }}</text>
+      <text class="tl-time" style="color: {{ $item.hot ? '#7dffb0' : '#2e4a3c' }}">{{ $item.time }}</text>
+    </div>
+
+    <!-- 底部 -->
+    <text class="foot">{{ footText }}</text>
+
+    <!-- 隐形热区 -->
+    <div class="hit-clock" onlongpress="onClockLongPress" ontouchend="cancelExit"></div>
+    <div class="hit-card" onlongpress="onCardLongPress" ontouchend="cancelExit"></div>
+    <div class="hit-corner" onclick="onCornerTap"></div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import vibrator from "@system.vibrator"
+
+const database = require("../../data/database.js")
+
+const DAY_KEYS = [
+  ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+  ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
+  ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+]
+
+const CN_DAY = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
+const BAR_MAX = 156 // 进度条最大宽度
+const TL_TOP = 286 // 时间轴首行 y
+
+function pad2(n) {
+  return (n < 10 ? "0" : "") + n
+}
+
+/** "8:00 - 9:40" / "8:00-9:40" → { s: 480, e: 580 }，解析不出返回 null。 */
+function parseSpan(t) {
+  if (!t) return null
+  const parts = String(t).split(/[-–—~]/)
+  if (parts.length < 2) return null
+  const a = parts[0].trim().split(":")
+  const b = parts[1].trim().split(":")
+  if (a.length < 2 || b.length < 2) return null
+  const s = parseInt(a[0]) * 60 + parseInt(a[1])
+  const e = parseInt(b[0]) * 60 + parseInt(b[1])
+  if (isNaN(s) || isNaN(e)) return null
+  return { s: s, e: e }
+}
+
+export default {
+  private: {
+    hhText: "00",
+    mmText: "00",
+    ssText: "00",
+    colonOn: true,
+    dateText: "",
+    countText: "",
+    phaseText: "",
+    phaseColor: "#7dffb0",
+    courseName: "加载中",
+    courseMeta: "",
+    leftText: "",
+    leftColor: "#ffd166",
+    hasCourse: false,
+    barWidth: 0,
+    footText: "",
+    upcoming: [],
+    cardHot: false,
+    allCourses: null,
+    timer: null,
+    pressTimer: null,
+    pressStep: 0,
+    lastCornerTap: 0,
+    touchStartY: 0,
+    lastMinute: -1
+  },
+
+  onInit() {
+    this.loadCourses()
+    this.tick()
+  },
+
+  onShow() {
+    this.startTimer()
+    this.loadCourses()
+  },
+
+  onHide() {
+    this.stopTimer()
+    this.clearPress()
+  },
+
+  onDestroy() {
+    this.stopTimer()
+    this.clearPress()
+  },
+
+  // ==================== 课表读取 ====================
+
+  loadCourses() {
+    const self = this
+    try {
+      database.getAllCourses(function(all) {
+        self.allCourses = all || {}
+        self.recompute(true)
+      })
+    } catch (e) {
+      self.allCourses = {}
+      self.recompute(true)
+    }
+  },
+
+  /** 取今天的课程数组（兼容 Mon/Monday/周一 等多种 key）。 */
+  todayCourses() {
+    const all = this.allCourses
+    if (!all) return null
+    const d = new Date().getDay()
+    for (let i = 0; i < DAY_KEYS.length; i++) {
+      const k = DAY_KEYS[i][d]
+      if (all[k]) return all[k]
+    }
+    return null
+  },
+
+  // ==================== 时间与课程状态 ====================
+
+  startTimer() {
+    this.stopTimer()
+    const self = this
+    this.timer = setInterval(function() { self.tick() }, 1000)
+  },
+
+  stopTimer() {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = null
+    }
+  },
+
+  tick() {
+    const now = new Date()
+    this.hhText = pad2(now.getHours())
+    this.mmText = pad2(now.getMinutes())
+    this.ssText = pad2(now.getSeconds())
+    this.colonOn = (now.getSeconds() % 2 === 0)
+    this.recompute(false)
+  },
+
+  /** force=true 强制重算（课表刚加载/切回前台）；否则只在分钟变化时重算。 */
+  recompute(force) {
+    const now = new Date()
+    const minuteOfDay = now.getHours() * 60 + now.getMinutes()
+    if (!force && minuteOfDay === this.lastMinute) return
+    this.lastMinute = minuteOfDay
+
+    this.dateText = pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + " " + CN_DAY[now.getDay()]
+
+    const list = this.todayCourses()
+    if (!list || list.length === 0) {
+      this.countText = "今日无课"
+      this.phaseText = "自由时间"
+      this.phaseColor = "#3a5a4a"
+      this.courseName = "今日无课"
+      this.courseMeta = "好好休息"
+      this.leftText = ""
+      this.hasCourse = false
+      this.barWidth = 0
+      this.upcoming = []
+      this.footText = "Ev课程表"
+      return
+    }
+
+    // 解析并按开始时间排序
+    const rows = []
+    for (let i = 0; i < list.length; i++) {
+      const c = list[i] || {}
+      const span = parseSpan(c.time)
+      if (!span) continue
+      rows.push({
+        name: c.name || "未命名",
+        time: String(c.time || ""),
+        s: span.s,
+        e: span.e
+      })
+    }
+    rows.sort(function(a, b) { return a.s - b.s })
+
+    this.countText = "今日 " + rows.length + " 节"
+
+    let cur = null
+    let next = null
+    for (let i = 0; i < rows.length; i++) {
+      if (minuteOfDay >= rows[i].s && minuteOfDay <= rows[i].e) {
+        cur = rows[i]
+        break
+      }
+    }
+    if (!cur) {
+      for (let i = 0; i < rows.length; i++) {
+        if (rows[i].s > minuteOfDay) {
+          next = rows[i]
+          break
+        }
+      }
+    }
+
+    if (cur) {
+      this.phaseText = "上课中"
+      this.phaseColor = "#7dffb0"
+      this.courseName = cur.name
+      this.courseMeta = cur.time
+      const left = cur.e - minuteOfDay
+      this.leftText = "剩余 " + left + " 分钟"
+      this.leftColor = left <= 5 ? "#ff7b7b" : "#ffd166"
+      this.hasCourse = true
+      const total = cur.e - cur.s
+      this.barWidth = total > 0 ? Math.round(BAR_MAX * (minuteOfDay - cur.s) / total) : 0
+    } else if (next) {
+      this.phaseText = "课间"
+      this.phaseColor = "#4a6b5a"
+      this.courseName = next.name
+      this.courseMeta = next.time
+      const wait = next.s - minuteOfDay
+      this.leftText = wait >= 60
+        ? ("还有 " + Math.floor(wait / 60) + " 小时 " + (wait % 60) + " 分")
+        : ("还有 " + wait + " 分钟")
+      this.leftColor = "#7dffb0"
+      this.hasCourse = true
+      this.barWidth = Math.round(BAR_MAX * Math.max(0, 1 - wait / 60))
+    } else {
+      this.phaseText = "放学"
+      this.phaseColor = "#3a5a4a"
+      this.courseName = "今日课程已结束"
+      this.courseMeta = rows.length > 0 ? rows[rows.length - 1].time : ""
+      this.leftText = "辛苦了"
+      this.leftColor = "#3a5a4a"
+      this.hasCourse = false
+      this.barWidth = BAR_MAX
+    }
+
+    // 接下来 3 节（含当前/下一节），每行自带 top 坐标
+    const up = []
+    for (let i = 0; i < rows.length && up.length < 3; i++) {
+      if (rows[i].e < minuteOfDay) continue
+      up.push({
+        idx: (i + 1) + "",
+        name: rows[i].name,
+        time: rows[i].time.split(/[-–—~]/)[0].trim(),
+        hot: (cur && rows[i].s === cur.s) || (!cur && next && rows[i].s === next.s),
+        top: TL_TOP + up.length * 42
+      })
+    }
+    this.upcoming = up
+
+    const lastEnd = rows[rows.length - 1].e
+    if (minuteOfDay < lastEnd) {
+      const leftAll = lastEnd - minuteOfDay
+      this.footText = leftAll >= 60
+        ? ("距放学 " + Math.floor(leftAll / 60) + " 小时 " + (leftAll % 60) + " 分")
+        : ("距放学 " + leftAll + " 分钟")
+    } else {
+      this.footText = "今日进度 100%"
+    }
+  },
+
+  // ==================== 退出途径 ====================
+
+  onClockLongPress() {
+    const self = this
+    this.clearPress()
+    this.pressStep = 0
+    this.barWidth = 0
+    this.pressTimer = setInterval(function() {
+      self.pressStep++
+      // 进度线推进作为长按反馈（2 秒 = 20 步）
+      self.barWidth = Math.min(BAR_MAX, Math.round(BAR_MAX * self.pressStep / 20))
+      if (self.pressStep >= 20) {
+        self.doExit()
+      }
+    }, 100)
+  },
+
+  onCardLongPress() {
+    const self = this
+    this.clearPress()
+    this.cardHot = true
+    this.pressTimer = setTimeout(function() { self.doExit() }, 2000)
+  },
+
+  onCornerTap() {
+    const now = new Date().getTime()
+    if (this.lastCornerTap && (now - this.lastCornerTap) < 500) {
+      this.lastCornerTap = 0
+      this.doExit()
+      return
+    }
+    this.lastCornerTap = now
+  },
+
+  onTouchStart(e) {
+    const t = (e && e.touches && e.touches[0]) || e || {}
+    this.touchStartY = t.clientY || t.offsetY || t.pageY || 0
+  },
+
+  onTouchEnd(e) {
+    const t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]) || e || {}
+    const endY = t.clientY || t.offsetY || t.pageY || 0
+    if (this.touchStartY && (this.touchStartY - endY) >= 40) {
+      this.cancelExit()
+      this.doExit()
+    }
+    this.touchStartY = 0
+  },
+
+  cancelExit() {
+    this.clearPress()
+    this.cardHot = false
+  },
+
+  clearPress() {
+    if (this.pressTimer) {
+      clearInterval(this.pressTimer)
+      clearTimeout(this.pressTimer)
+      this.pressTimer = null
+    }
+  },
+
+  doExit() {
+    this.clearPress()
+    this.cardHot = false
+    try {
+      vibrator.vibrate({ mode: "short" })
+    } catch (e) {
+      /* 无震动模块不影响退出 */
+    }
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  width: 100%;
+  height: 100%;
+  background-color: #0a0e12;
+}
+
+/* ── 顶部状态条 ── */
+.status-left {
+  position: absolute;
+  left: 12px;
+  top: 46px;
+  width: 120px;
+  height: 20px;
+  font-size: 15px;
+  color: #4a6b5a;
+  line-height: 20px;
+}
+
+.status-right {
+  position: absolute;
+  left: 124px;
+  top: 46px;
+  width: 56px;
+  height: 20px;
+  font-size: 15px;
+  color: #4a6b5a;
+  text-align: right;
+  line-height: 20px;
+}
+
+/* ── 巨型电子时间 ── */
+.clock-row {
+  position: absolute;
+  left: 8px;
+  top: 78px;
+  width: 176px;
+  height: 64px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.clock-num {
+  font-size: 62px;
+  font-weight: bold;
+  color: #7dffb0;
+  line-height: 64px;
+}
+
+.clock-colon {
+  font-size: 52px;
+  font-weight: bold;
+  color: #7dffb0;
+  line-height: 64px;
+}
+
+.clock-sec {
+  font-size: 20px;
+  color: #4a6b5a;
+  line-height: 64px;
+  margin-left: 2px;
+}
+
+/* ── 时段标签 ── */
+.phase-tag {
+  position: absolute;
+  left: 12px;
+  top: 168px;
+  width: 100px;
+  height: 22px;
+  font-size: 17px;
+  font-weight: bold;
+  line-height: 22px;
+}
+
+/* ── 课程卡片 ── */
+.card {
+  position: absolute;
+  left: 12px;
+  top: 200px;
+  width: 168px;
+  height: 58px;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 8px;
+  border: 1px solid #1d3a2c;
+  border-radius: 6px;
+}
+
+.card-name {
+  font-size: 22px;
+  font-weight: bold;
+  line-height: 28px;
+}
+
+.card-meta {
+  font-size: 13px;
+  color: #4a6b5a;
+  line-height: 16px;
+}
+
+.card-left {
+  font-size: 13px;
+  line-height: 16px;
+}
+
+/* ── 进度条 ── */
+.bar-track {
+  position: absolute;
+  left: 14px;
+  top: 266px;
+  width: 156px;
+  height: 6px;
+  border-radius: 3px;
+  background-color: #16241d;
+}
+
+.bar-fill {
+  height: 6px;
+  border-radius: 3px;
+  background-color: #7dffb0;
+}
+
+/* ── 今日课程时间轴 ── */
+.tl-row {
+  position: absolute;
+  left: 12px;
+  width: 168px;
+  height: 40px;
+  flex-direction: row;
+  align-items: center;
+}
+
+.tl-idx {
+  width: 20px;
+  font-size: 14px;
+  line-height: 40px;
+}
+
+.tl-name {
+  flex: 1;
+  font-size: 16px;
+  line-height: 40px;
+}
+
+.tl-time {
+  width: 52px;
+  font-size: 14px;
+  text-align: right;
+  line-height: 40px;
+}
+
+/* ── 底部 ── */
+.foot {
+  position: absolute;
+  left: 12px;
+  top: 428px;
+  width: 168px;
+  height: 22px;
+  font-size: 14px;
+  color: #2e4a3c;
+  text-align: center;
+  line-height: 22px;
+}
+
+/* ── 隐形热区 ── */
+.hit-clock {
+  position: absolute;
+  left: 8px;
+  top: 76px;
+  width: 176px;
+  height: 116px;
+  background-color: transparent;
+}
+
+.hit-card {
+  position: absolute;
+  left: 12px;
+  top: 198px;
+  width: 168px;
+  height: 74px;
+  background-color: transparent;
+}
+
+.hit-corner {
+  position: absolute;
+  left: 140px;
+  top: 400px;
+  width: 52px;
+  height: 60px;
+  background-color: transparent;
+}
+</style>

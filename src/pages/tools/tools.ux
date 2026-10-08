@@ -16,6 +16,11 @@
         <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openWatchFaceClass">
+        <text class="item-label" style="color: {{ theme.text }}">课程表盘</text>
+        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openCountdownManage">
         <text class="item-label" style="color: {{ theme.text }}">倒数日</text>
         <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
@@ -106,6 +111,10 @@ export default {
 
   openWatchFace() {
     router.push({ uri: "/pages/watch-face" })
+  },
+
+  openWatchFaceClass() {
+    router.push({ uri: "/pages/watch-face-class" })
   },
 
   openVibrationLab() {
