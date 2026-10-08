@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.8.16",
-  "versionCode": 1096,
+  "versionName": "1.8.33",
+  "versionCode": 1113,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
@@ -138,6 +138,9 @@
       },
       "pages/message-inbox": {
         "component": "message-inbox"
+      },
+      "pages/watch-face": {
+        "component": "watch-face"
       }
     }
   }

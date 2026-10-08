@@ -11,6 +11,11 @@
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
+      <div class="item-row" onclick="openWatchFace">
+        <text class="item-label" style="color: {{ theme.text }}">表盘</text>
+        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openCountdownManage">
         <text class="item-label" style="color: {{ theme.text }}">倒数日</text>
         <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
@@ -97,6 +102,10 @@ export default {
 
   openDeviceInfo() {
     router.push({ uri: "/pages/device-info" })
+  },
+
+  openWatchFace() {
+    router.push({ uri: "/pages/watch-face" })
   },
 
   openVibrationLab() {
