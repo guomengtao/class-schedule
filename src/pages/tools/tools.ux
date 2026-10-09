@@ -21,6 +21,11 @@
         <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openWatchFaceGold">
+        <text class="item-label" style="color: {{ theme.text }}">金属字针表</text>
+        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openCountdownManage">
         <text class="item-label" style="color: {{ theme.text }}">倒数日</text>
         <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
@@ -115,6 +120,10 @@ export default {
 
   openWatchFaceClass() {
     router.push({ uri: "/pages/watch-face-class" })
+  },
+
+  openWatchFaceGold() {
+    router.push({ uri: "/pages/watch-face-gold" })
   },
 
   openVibrationLab() {
