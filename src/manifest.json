@@ -147,6 +147,9 @@
       },
       "pages/watch-face-gold": {
         "component": "watch-face-gold"
+      },
+      "pages/watch-face-evpointer": {
+        "component": "watch-face-evpointer"
       }
     }
   }

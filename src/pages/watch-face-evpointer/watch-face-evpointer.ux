@@ -1,0 +1,62 @@
+<template>
+  <!--
+    EV指针 · 仿古金属指针表盘（独立页面 watch-face-evpointer）
+    —— 与并行会话的 watch-face-metal 完全隔离，各做各的，互不改对方文件。
+    Vela 快应用 · 小米手环 9 标准版 · 跑道屏 192×490
+    本期＝第 1 步骨架：中央一个「表盘」文字，点击即返回上一页。
+    后续分步：青铜表壳/雷纹表圈/篆书刻度 → 时·分·秒指针走时 → 系列同款隐形退出手势。
+  -->
+  <div class="page">
+    <div class="dial"></div>
+    <!-- 中央文字「表盘」，点击返回 -->
+    <text class="face-text" onclick="onFaceTap">表盘</text>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+
+export default {
+  private: {
+    titleText: '表盘'
+  },
+
+  onInit() { },
+
+  // 点击「表盘」文字 → 返回上一页（设置页）
+  onFaceTap() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+  .page {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: #171a13;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* 青铜盘面：暗青铜底 + 铜锈边框（本期占位，第 2 步扩为仿古金属盘面） */
+  .dial {
+    position: absolute;
+    width: 156px;
+    height: 156px;
+    border-radius: 78px;
+    background-color: #45543a;
+    border: 8px solid #7a6a3f;
+  }
+
+  .face-text {
+    width: 120px;
+    text-align: center;
+    font-size: 40px;
+    color: #d8c07a;
+    font-weight: bold;
+    letter-spacing: 8px;
+  }
+</style>
