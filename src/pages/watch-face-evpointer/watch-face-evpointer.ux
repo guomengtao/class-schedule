@@ -2,47 +2,43 @@
   <!--
     EV指针 · 仿古金属指针表盘（独立页面 watch-face-evpointer）
     —— 与并行会话的 watch-face-metal 完全隔离，各做各的，互不改对方文件。
-    Vela 快应用 · 小米手环 9 标准版 · 跑道屏 192×490（弧形安全区 y<40 / y>450 只留底色）
 
-    设计定位：仿中国古代青铜器 —— 青铜同心环表壳（铜锈绿）+ 雷纹式分钟轨表圈
-              + 十二地支（子…亥）替代阿拉伯数字 + 铜色时/分针 + 赤铜秒针。
-    已实现（第 2 步）：盘面视觉 + 刻度 + 地支 + 指针实时走时。
-    待做（后续步）：四路隐形退出手势（长按中心 / 长按铭文 / 双击表冠 / 上滑）；本期退出＝单击盘面返回。
+    设备：小米手环 9 标准版 · 跑道/胶囊屏 192×490
+    几何：盘心 (96,240)，刻度半径 70，地支半径 54（避开上下弧形危险区）
+
+    设计：仿中国古代青铜器 —— 青铜同心环表壳 + 12 格长刻度 + 十二地支（子…亥）
+          + 铜色时/分针 + 赤铜秒针 + 12 点位 EV 铭文。单击盘面返回。
+
+    ⚠️ 简化重写的三条硬约束（黑屏教训，勿回退）：
+      1) 样式表【禁用群组选择器】(.a, .b {}) —— 全仓仅此页用过，疑似导致整表被丢 → 全页失样式黑屏；
+      2) 根容器必须显式 width/height:100% + flex-direction:column（Vela 绝对定位子元素需要 flex 上下文）；
+      3) 少层少 DOM —— 去掉半色调叠影/双影地支，刻度 60 → 12 格。
   -->
   <div class="page">
-    <!-- 表壳：青铜同心环（外缘铜锈高光 → 中圈铜锈绿 → 内圈暗铜），造金属厚度 -->
+    <!-- 表壳：青铜同心环（外缘 → 中圈 → 内圈 → 盘面），靠颜色层次造金属厚度 -->
     <div class="case-outer"></div>
     <div class="case-mid"></div>
     <div class="case-inner"></div>
     <div class="dial"></div>
 
-    <!-- 盘面光影：上半受光 / 下半沉影 + 一处镜面高光（无渐变，靠半色调叠） -->
-    <div class="dial-light"></div>
-    <div class="dial-shade"></div>
-    <div class="glare"></div>
-
-    <!-- 雷纹式分钟轨：60 格（长刻度更粗，仿嵌槽雷纹） -->
+    <!-- 12 格长刻度（每 5 分钟一格，对应十二地支方位） -->
     <div class="tick" for="{{ticks}}"
-         style="left: {{$item.x}}px; top: {{$item.y}}px; width: {{$item.w}}px; height: {{$item.h}}px; transform: rotate({{$item.rot}}deg); background-color: {{$item.c}}"></div>
+         style="left: {{$item.x}}px; top: {{$item.y}}px; width: {{$item.w}}px; height: {{$item.h}}px; background-color: {{$item.c}}"></div>
 
-    <!-- 十二地支（子…亥）：暗影倒角层 + 亮铜层（先影后亮，造浮雕） -->
-    <text class="gan-sh" for="{{ganShadows}}"
-          style="left: {{$item.x}}px; top: {{$item.y}}px; color: {{$item.c}}">{{$item.t}}</text>
+    <!-- 十二地支（子＝12 点，顺时针每 30°） -->
     <text class="gan" for="{{ganZhi}}"
           style="left: {{$item.x}}px; top: {{$item.y}}px; color: {{$item.c}}">{{$item.t}}</text>
 
-    <!-- 12 点位内圈铭文 EV（青铜款识） -->
+    <!-- 12 点位内圈铭文 EV -->
     <text class="brand">EV</text>
 
-    <!-- 指针：铜时/分针 + 赤铜秒针 + 铜轴帽 -->
+    <!-- 指针：铜时针 / 铜分针 / 赤铜秒针 + 铜轴帽 -->
     <div class="hand-hour" style="transform: rotate({{hourDeg}}deg)"></div>
     <div class="hand-minute" style="transform: rotate({{minDeg}}deg)"></div>
-    <div class="sec-hand" style="transform: rotate({{secDeg}}deg)">
-      <div class="sec-tip"></div>
-    </div>
+    <div class="sec-hand" style="transform: rotate({{secDeg}}deg)"></div>
     <div class="center-cap"></div>
 
-    <!-- 隐形热区：覆盖中性盘区，单击返回上一页（后续步再扩多路手势） -->
+    <!-- 隐形热区：覆盖盘区，单击返回上一页 -->
     <div class="hit-face" onclick="onFaceTap"></div>
   </div>
 </template>
@@ -52,7 +48,7 @@ import router from "@system.router"
 
 const CX = 96          // 盘心 x（屏宽 192 正中）
 const CY = 240         // 盘心 y（避上下弧形危险区）
-const R_TICK = 70      // 分钟轨半径
+const R_TICK = 70      // 刻度半径
 const R_GAN = 54       // 地支半径
 const TICK_MS = 100    // 扫秒刷新间隔（连续扫动感）
 
@@ -75,7 +71,6 @@ export default {
     secDeg: 0,
     ticks: [],
     ganZhi: [],
-    ganShadows: [],
     timer: null
   },
 
@@ -84,52 +79,41 @@ export default {
     this.tick()
   },
 
-  onShow() { this.startTimer() },
-  onHide() { this.stopTimer() },
-  onDestroy() { this.stopTimer() },
+  onShow() {
+    this.startTimer()
+  },
+
+  onHide() {
+    this.stopTimer()
+  },
+
+  onDestroy() {
+    this.stopTimer()
+  },
 
   // ==================== 盘面静态构件（一次性算好坐标） ====================
 
   buildDial() {
-    // 雷纹式分钟轨 60 格
+    // 12 格长刻度
     const ticks = []
-    for (let i = 0; i < 60; i++) {
-      const deg = i * 6
-      const long = (i % 5 === 0)
-      const w = long ? 2 : 1
-      const h = long ? 8 : 4
+    for (let i = 0; i < 12; i++) {
+      const deg = i * 30
+      const w = 3
+      const h = 10
       const p = place(R_TICK, deg, w, h)
-      ticks.push({
-        x: p.x, y: p.y, w: w, h: h, rot: deg,
-        c: long ? '#a4904a' : '#5e5a35'
-      })
+      ticks.push({ x: p.x, y: p.y, w: w, h: h, c: '#a4904a' })
     }
     this.ticks = ticks
 
-    // 十二地支：亮铜层 + 暗影倒角层（偏移 +1,+1）
+    // 十二地支
     const ganZhi = []
-    const ganShadows = []
     for (let i = 0; i < 12; i++) {
       const deg = i * 30
-      const rad = deg * Math.PI / 180
-      const nx = CX + R_GAN * Math.sin(rad)
-      const ny = CY - R_GAN * Math.cos(rad)
       const t = GAN[i]
-      ganZhi.push({
-        x: Math.round((nx - 9) * 10) / 10,
-        y: Math.round((ny - 9) * 10) / 10,
-        t: t,
-        c: '#d9c67e'
-      })
-      ganShadows.push({
-        x: Math.round((nx - 9 + 1) * 10) / 10,
-        y: Math.round((ny - 9 + 1) * 10) / 10,
-        t: t,
-        c: '#6f5f2a'
-      })
+      const p = place(R_GAN, deg, 20, 20)
+      ganZhi.push({ x: p.x, y: p.y, t: t, c: '#d9c67e' })
     }
     this.ganZhi = ganZhi
-    this.ganShadows = ganShadows
   },
 
   // ==================== 走时 ====================
@@ -153,13 +137,13 @@ export default {
     const m = d.getMinutes()
     const s = d.getSeconds()
     const ms = d.getMilliseconds()
-    // 时针随分钟连续推进（真机械表的时针是渐进的，不是整点跳）
+    // 时针随分钟连续推进（机械表的时针是渐进的，不是整点跳）
     this.hourDeg = (h % 12) * 30 + m * 0.5
     this.minDeg = m * 6 + s * 0.1
     this.secDeg = (s + ms / 1000) * 6
   },
 
-  // ==================== 退出：单击中性盘区返回 ====================
+  // ==================== 退出：单击盘面返回 ====================
 
   onFaceTap() {
     router.back()
@@ -176,7 +160,7 @@ export default {
     background-color: #0d100a;
   }
 
-  /* ── 表壳同心环：青铜（外缘铜锈高光边 → 中圈铜锈绿 → 内圈暗铜） ── */
+  /* ── 表壳同心环：青铜（外缘高光边 → 中圈铜锈绿 → 内圈暗铜） ── */
   .case-outer {
     position: absolute;
     left: 4px;
@@ -219,69 +203,34 @@ export default {
     border: 1px solid #4b573a;
   }
 
-  /* ── 盘面光影（半色调叠立体，不用渐变） ── */
-  .dial-light {
-    position: absolute;
-    left: 18px;
-    top: 162px;
-    width: 156px;
-    height: 78px;
-    border-radius: 78px 78px 0 0;
-    background-color: #414d34;
-    opacity: 0.55;
-  }
-
-  .dial-shade {
-    position: absolute;
-    left: 18px;
-    top: 240px;
-    width: 156px;
-    height: 78px;
-    border-radius: 0 0 78px 78px;
-    background-color: #090b06;
-    opacity: 0.50;
-  }
-
-  .glare {
-    position: absolute;
-    left: 34px;
-    top: 178px;
-    width: 58px;
-    height: 26px;
-    border-radius: 29px 22px 29px 22px;
-    background-color: #e2e8ca;
-    opacity: 0.09;
-  }
-
-  /* ── 雷纹式分钟轨 ── */
+  /* ── 12 格长刻度 ── */
   .tick {
     position: absolute;
     border-radius: 1px;
   }
 
-  /* ── 十二地支（立体倒角：暗影层 + 亮铜层） ── */
-  .gan-sh,
+  /* ── 十二地支 ── */
   .gan {
     position: absolute;
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     font-size: 14px;
     font-weight: bold;
     text-align: center;
-    line-height: 18px;
+    line-height: 20px;
   }
 
   /* ── 12 点位铭文 EV ── */
   .brand {
     position: absolute;
     left: 66px;
-    top: 198px;
+    top: 196px;
     width: 60px;
-    height: 14px;
+    height: 16px;
     font-size: 12px;
-    letter-spacing: 3px;
+    font-weight: bold;
     text-align: center;
-    line-height: 14px;
+    line-height: 16px;
     color: #c9b978;
   }
 
@@ -292,7 +241,7 @@ export default {
     top: 196px;
     width: 8px;
     height: 44px;
-    border-radius: 4px 4px 1px 1px;
+    border-radius: 4px;
     background-color: #c9a95e;
     border: 1px solid #7d6a34;
     transform-origin: 50% 100%;
@@ -304,7 +253,7 @@ export default {
     top: 180px;
     width: 6px;
     height: 60px;
-    border-radius: 3px 3px 1px 1px;
+    border-radius: 3px;
     background-color: #d2b370;
     border: 1px solid #7d6a34;
     transform-origin: 50% 100%;
@@ -318,16 +267,6 @@ export default {
     height: 68px;
     background-color: #b8703c;
     transform-origin: 50% 100%;
-  }
-
-  .sec-tip {
-    position: absolute;
-    left: -1px;
-    top: 0px;
-    width: 4px;
-    height: 12px;
-    background-color: #8f4f2a;
-    border-radius: 2px;
   }
 
   .center-cap {
