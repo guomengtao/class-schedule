@@ -1,45 +1,31 @@
 <template>
-  <!-- 横屏表盘 ①：整体右转 90°，时间尽量大；按钮全隐藏；点击返回、长按改色。
-       黑屏根因：快应用 transform-origin 默认 0px 0px(左上角) → 必须显式设为中心(px)，见 .rot。 -->
-  <div class="page" onclick="onTap" onlongpress="openPanel">
+  <!-- 横屏表盘 ①：内容整体右转 90°（表右转/横过来），时间一行显示，中间冒号跳动。
+       · transform-origin 必须显式设为中心(px)，否则快应用默认绕左上角转=黑（见 .rot）。
+       · 若要「不旋转的横向一行」：删掉 .rot 的 transform / transform-origin 两行即可。 -->
+  <div class="page" onclick="onTap">
     <div class="rot">
-      <text class="clock" style="color: {{ clockColor }}">{{ timeText }}</text>
-    </div>
-
-    <!-- 颜色选择面板 -->
-    <div class="mask" if="{{ showPanel }}" onclick="closePanel">
-      <div class="panel">
-        <text class="p-title">文字颜色</text>
-        <text class="p-item" style="color: #e8e4da" onclick="pick(0)">米白</text>
-        <text class="p-item" style="color: #7dffb0" onclick="pick(1)">青绿</text>
-        <text class="p-item" style="color: #ffd166" onclick="pick(2)">金色</text>
-        <text class="p-item" style="color: #7ec8e3" onclick="pick(3)">天蓝</text>
-        <text class="p-item" style="color: #ff8fa3" onclick="pick(4)">玫红</text>
-        <text class="p-cancel" onclick="closePanel">取消</text>
+      <div class="line">
+        <text class="d">{{ hh }}</text>
+        <text class="colon">:</text>
+        <text class="d">{{ mm }}</text>
       </div>
     </div>
+    <text class="back" onclick="goBack">返回</text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
 
-const storage = require("@system.storage")
-
 const LIST_PAGE = "/pages/watch-face-list"
-const COLOR_KEY = "wf_clock_color"
-const COLORS = ["#e8e4da", "#7dffb0", "#ffd166", "#7ec8e3", "#ff8fa3"]
 
 export default {
   data: {
-    timeText: "--:--",
-    clockColor: COLORS[0],
-    showPanel: false,
-    suppressTap: false
+    hh: "--",
+    mm: "--"
   },
 
   onInit() {
-    this.loadColor()
     this.tick()
   },
 
@@ -76,59 +62,18 @@ export default {
   },
 
   tick() {
-    const now = new Date()
-    const t = this.pad(now.getHours()) + ":" + this.pad(now.getMinutes())
-    if (t !== this.timeText) this.timeText = t
+    const n = new Date()
+    const h = this.pad(n.getHours())
+    const m = this.pad(n.getMinutes())
+    if (h !== this.hh) this.hh = h
+    if (m !== this.mm) this.mm = m
   },
 
   pad(n) {
     return n < 10 ? "0" + n : "" + n
   },
 
-  loadColor() {
-    const self = this
-    try {
-      storage.get({
-        key: COLOR_KEY,
-        success: function(res) {
-          if (res && res.value) self.clockColor = res.value
-        },
-        fail: function() {}
-      })
-    } catch (e) {}
-  },
-
-  saveColor(c) {
-    try {
-      storage.set({ key: COLOR_KEY, value: c })
-    } catch (e) {}
-  },
-
-  /* 长按开面板；开面板期间 suppressTap 挡住整页「点击返回」 */
-  openPanel() {
-    this.suppressTap = true
-    this.showPanel = true
-  },
-
-  closePanel() {
-    this.showPanel = false
-    const self = this
-    setTimeout(function() {
-      self.suppressTap = false
-    }, 300)
-  },
-
-  pick(i) {
-    const c = COLORS[i]
-    if (!c) return
-    this.clockColor = c
-    this.saveColor(c)
-    this.closePanel()
-  },
-
-  /* 按钮全隐藏：点击整页返回 */
   onTap() {
-    if (this.suppressTap) return
     router.replace({ uri: LIST_PAGE })
   },
 
@@ -139,7 +84,6 @@ export default {
 </script>
 
 <style>
-  /* v2：不叠 flex 居中，避免「flex + 带 transform 子元素」触发黑屏 */
   .page {
     position: relative;
     width: 100%;
@@ -147,9 +91,7 @@ export default {
     background-color: #1a1a2e;
   }
 
-  /* 绝对定位铺满 + 内部 flex 居中 + 字面量旋转（照金属表盘的安全姿势） */
-  /* ⚠️ 快应用 transform-origin 默认 0px 0px（左上角，≠Web 中心），不设 → rotate 把内容甩出屏=黑。
-     显式设为中心（仅支持 px）：96px 245px = 192×490 跑道屏中心；换分辨率按「屏宽/2 屏高/2」改。 */
+  /* 绝对定位铺满 + 内部居中 + 字面量旋转；origin 必须显式设为中心(px) */
   .rot {
     position: absolute;
     left: 0;
@@ -163,45 +105,42 @@ export default {
     transform-origin: 96px 245px;
   }
 
-  .clock {
-    font-size: 108px;
-    font-weight: bold;
-    letter-spacing: 4px;
+  /* 一行：时 冒号 分 */
+  .line {
+    flex-direction: row;
+    align-items: center;
   }
 
-  .mask {
+  .d {
+    font-size: 100px;
+    font-weight: bold;
+    color: #e8e4da;
+  }
+
+  /* 冒号跳动（闪烁） */
+  .colon {
+    font-size: 100px;
+    font-weight: bold;
+    color: #e8e4da;
+    margin: 0 6px;
+    animation-name: kf-blink;
+    animation-duration: 1s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  @keyframes kf-blink {
+    0%   { opacity: 1; }
+    50%  { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  .back {
     position: absolute;
     left: 0;
-    top: 0;
     right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    justify-content: center;
-    align-items: center;
-  }
-
-  .panel {
-    width: 240px;
-    flex-direction: column;
-    align-items: center;
-    background-color: #16213e;
-    border-radius: 12px;
-    padding: 16px 0 12px 0;
-  }
-
-  .p-title {
-    font-size: 22px;
-    color: #ffffff;
-    margin-bottom: 6px;
-  }
-
-  .p-item {
-    font-size: 26px;
-    padding: 7px 0;
-  }
-
-  .p-cancel {
-    margin-top: 8px;
+    bottom: 40px;
+    text-align: center;
     font-size: 22px;
     color: #888899;
   }
