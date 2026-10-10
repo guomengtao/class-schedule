@@ -6,9 +6,9 @@
     秒针 60s 一圈、分针 3600s 一圈、时针 43200s 一圈。
     针走时零 setInterval（纯 CSS 动画）；底部数字时钟用 setInterval(1000) 仅更新文本。
   -->
-  <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd">
+  <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
     <!-- face-wrapper: 统一坐标系容器，flex 居中于页面，156px 方形，所有功能元素在此内部 -->
-    <div class="face-wrapper" onclick="onTap">
+    <div class="face-wrapper">
       <!-- dial: 纯视觉背景，不再承载任何功能子元素 -->
       <div class="dial"></div>
 
@@ -90,7 +90,8 @@ export default {
     animDurMinute: "31536000000s",
     animDurSecond: "31536000000s",
     restartFlag: false,
-    touchStartY: 0
+    touchStartY: 0,
+    suppressTap: false
   },
   FREEZE: "31536000000s",
   RUN_HOUR: "43200s",
@@ -120,6 +121,7 @@ export default {
     this.delayHour = -((h * 3600 + m * 60 + s) % 43200)
   },
   toggleStop() {
+    this.markBtn()
     if (this.stopped) {
       this.stopped = false
       this.animDurHour = this.RUN_HOUR
@@ -136,6 +138,7 @@ export default {
     }
   },
   setPreset(h, m) {
+    this.markBtn()
     if (!this.stopped) {
       this.stopped = true
       this.animDurHour = this.FREEZE
@@ -160,10 +163,17 @@ export default {
   pad(n) {
     return n < 10 ? "0" + n : "" + n
   },
-  /* ── 退出：单击表盘图形任意位置（主路径）。
-         点击区刻意挂在 face-wrapper 上而非 .page ——
-         底部「停止 / 12:00 / 返回」按钮区是 face-wrapper 的兄弟节点、不在事件路径上，因此按钮不受影响。── */
+  /* ── 退出：单击页面任意位置（含表盘上下的空白区）──
+     底部「停止 / 12:00 / 返回」按钮点击后会先走各自的 handler、再冒泡到这里；
+     那些 handler 会调 markBtn() 立一个短命标记，本函数看到标记就让路，
+     于是「按钮照常工作、其余任何位置一点即回目录」。── */
+  markBtn() {
+    this.suppressTap = true
+    setTimeout(() => { this.suppressTap = false }, 150)
+  },
+
   onTap() {
+    if (this.suppressTap) return
     router.replace({ uri: "/pages/watch-face-list" })
   },
 
