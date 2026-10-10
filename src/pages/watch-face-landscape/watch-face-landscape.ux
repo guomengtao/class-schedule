@@ -1,7 +1,7 @@
 <template>
-  <!-- 横屏表盘 ①：内容整体右转 90°（表右转/横过来），时间一行显示，中间冒号跳动。
-       · transform-origin 必须显式设为中心(px)，否则快应用默认绕左上角转=黑（见 .rot）。
-       · 若要「不旋转的横向一行」：删掉 .rot 的 transform / transform-origin 两行即可。 -->
+  <!-- 横屏表盘 ①：整体右转 90°，时间一行显示、字号最大；无按钮（点击整屏返回）。
+       · transform-origin 必须显式设中心(px)，否则快应用默认绕左上角转=黑。
+       · 冒号做跳动。 -->
   <div class="page" onclick="onTap">
     <div class="rot">
       <div class="line">
@@ -10,7 +10,6 @@
         <text class="d">{{ mm }}</text>
       </div>
     </div>
-    <text class="back" onclick="goBack">返回</text>
   </div>
 </template>
 
@@ -73,6 +72,7 @@ export default {
     return n < 10 ? "0" + n : "" + n
   },
 
+  /* 无可见按钮：点击整屏返回 */
   onTap() {
     router.replace({ uri: LIST_PAGE })
   },
@@ -105,21 +105,20 @@ export default {
     transform-origin: 96px 245px;
   }
 
-  /* 一行：时 冒号 分 */
   .line {
     flex-direction: row;
     align-items: center;
   }
 
+  /* 字号最大化（192×490 旋转后，受屏宽 192 限制，约 150px 已是上限附近） */
   .d {
-    font-size: 100px;
+    font-size: 150px;
     font-weight: bold;
     color: #e8e4da;
   }
 
-  /* 冒号跳动（闪烁） */
   .colon {
-    font-size: 100px;
+    font-size: 150px;
     font-weight: bold;
     color: #e8e4da;
     margin: 0 6px;
@@ -133,15 +132,5 @@ export default {
     0%   { opacity: 1; }
     50%  { opacity: 0; }
     100% { opacity: 1; }
-  }
-
-  .back {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 40px;
-    text-align: center;
-    font-size: 22px;
-    color: #888899;
   }
 </style>

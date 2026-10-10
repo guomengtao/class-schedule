@@ -1,16 +1,16 @@
 <template>
-  <!-- 翻页表盘 ⑦：时间 HH:MM:SS（含秒）；各数字做「上下移动·慢慢替换」的滚动动画。
-       保险要点：@keyframes 只 use translateY + opacity，且数值一律带单位(0px)，避免解析失败=黑。 -->
+  <!-- 翻页表盘 ⑦：HH:MM:SS（含秒）；每位数字用 <scroll scroll-y scrolltop> 竖排 0-9，
+       每秒把 scrolltop 移到当前数字 → 数字上下滚动（同「时间选择器」的滚动机制，不用 CSS animation）。 -->
   <div class="page" onclick="onTap">
     <div class="clock">
-      <text class="d a0">{{ d0 }}</text>
-      <text class="d a1">{{ d1 }}</text>
+      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y0}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
+      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y1}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
       <text class="c">:</text>
-      <text class="d a2">{{ d2 }}</text>
-      <text class="d a3">{{ d3 }}</text>
+      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y2}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
+      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y3}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
       <text class="c">:</text>
-      <text class="d a4">{{ d4 }}</text>
-      <text class="d a5">{{ d5 }}</text>
+      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y4}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
+      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y5}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
     </div>
     <text class="back" onclick="goBack">返回</text>
   </div>
@@ -20,10 +20,12 @@
 import router from "@system.router"
 
 const LIST_PAGE = "/pages/watch-face-list"
+const ITEM_H = 56
 
 export default {
   data: {
-    d0: "0", d1: "0", d2: "0", d3: "0", d4: "0", d5: "0"
+    items: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    y0: 0, y1: 0, y2: 0, y3: 0, y4: 0, y5: 0
   },
 
   onInit() {
@@ -64,17 +66,16 @@ export default {
 
   tick() {
     const n = new Date()
-    const s = this.pad(n.getHours()) + this.pad(n.getMinutes()) + this.pad(n.getSeconds())
-    if (s[0] !== this.d0) this.d0 = s[0]
-    if (s[1] !== this.d1) this.d1 = s[1]
-    if (s[2] !== this.d2) this.d2 = s[2]
-    if (s[3] !== this.d3) this.d3 = s[3]
-    if (s[4] !== this.d4) this.d4 = s[4]
-    if (s[5] !== this.d5) this.d5 = s[5]
-  },
-
-  pad(n) {
-    return n < 10 ? "0" + n : "" + n
+    const H = n.getHours()
+    const M = n.getMinutes()
+    const S = n.getSeconds()
+    /* 六位：H 十位 / H 个位 / M 十位 / M 个位 / S 十位 / S 个位 */
+    this.y0 = Math.floor(H / 10) * ITEM_H
+    this.y1 = (H % 10) * ITEM_H
+    this.y2 = Math.floor(M / 10) * ITEM_H
+    this.y3 = (M % 10) * ITEM_H
+    this.y4 = Math.floor(S / 10) * ITEM_H
+    this.y5 = (S % 10) * ITEM_H
   },
 
   onTap() {
@@ -103,38 +104,28 @@ export default {
     align-items: center;
   }
 
-  /* 每个数字：缓慢「上移淡出 → 下方淡入」（错相位，形成逐个替换的节奏） */
-  .d {
-    font-size: 42px;
-    font-weight: bold;
-    color: #e8e4da;
-    animation-name: kf-roll;
-    animation-duration: 4s;
-    animation-timing-function: ease-in-out;
-    animation-iteration-count: infinite;
+  /* 每个数字列：视口只显示 1 项，靠 scrolltop 上下滚动 */
+  .col {
+    width: 26px;
+    height: 56px;
+    flex-direction: column;
   }
 
-  .a0 { animation-delay: 0s; }
-  .a1 { animation-delay: 0.3s; }
-  .a2 { animation-delay: 0.6s; }
-  .a3 { animation-delay: 0.9s; }
-  .a4 { animation-delay: 1.2s; }
-  .a5 { animation-delay: 1.5s; }
+  .di {
+    width: 26px;
+    height: 56px;
+    font-size: 40px;
+    font-weight: bold;
+    line-height: 56px;
+    text-align: center;
+    color: #e8e4da;
+  }
 
   .c {
-    font-size: 36px;
+    font-size: 34px;
     font-weight: bold;
     color: #e8e4da;
     margin: 0 1px;
-  }
-
-  @keyframes kf-roll {
-    0%   { transform: translateY(0px);   opacity: 1; }
-    42%  { transform: translateY(0px);   opacity: 1; }
-    50%  { transform: translateY(-16px); opacity: 0; }
-    58%  { transform: translateY(16px);  opacity: 0; }
-    66%  { transform: translateY(0px);   opacity: 1; }
-    100% { transform: translateY(0px);   opacity: 1; }
   }
 
   .back {
