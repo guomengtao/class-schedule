@@ -1,253 +1,43 @@
 <template>
   <!--
-    仿真机械表盘 · 正装银白 / 蓝钢指针（9 跑道屏 192×490 胶囊）
-    几何：表壳外径 184，盘面 156，盘心 (96, 240)；弧形安全区（y<40 / y>450）只留底色。
-    退出四途径（全部隐形，不占画面、不画按钮）：
-      ① 长按表盘中心 3 秒 —— 中心 52×52 热区，六颗微光点逐颗亮起作进度反馈
-      ② 长按 6 点位 AUTOMATIC 字样 2 秒 —— 字样转为松石绿作反馈
-      ③ 双击 3 点位表冠区（两次间隔 <500ms）
-      ④ 自下往上滑（onswipe 在 Vela 不可用，故用 touchstart/touchend 手写方向判定）
-    松手即中止计时（ontouchend 取消），避免误触发退出。
+    经典表盘（基准页）· 时钟 48px / 米白 #e8e4da / letter-spacing 4px / 画面正中
+    与「课程表盘」watch-face-class 上下滑动互切（见 onTouchEnd）
   -->
   <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd">
-    <!-- 表壳：外圈钢 → 中圈亮钢 → 内圈暗钢 → 银白盘面（同心环造出金属厚度） -->
-    <div class="case-outer"></div>
-    <div class="case-mid"></div>
-    <div class="case-inner"></div>
-    <div class="dial"></div>
-
-    <!-- 盘面光影：上半受光、下半沉影 + 蓝宝石镜面高光（不用渐变，靠半色调叠出立体感） -->
-    <div class="dial-light"></div>
-    <div class="dial-shade"></div>
-    <div class="glare"></div>
-
-    <!-- 分钟轨 60 格 + 12 立体金属时标 -->
-    <div class="tick" for="{{ticks}}"
-         style="left: {{$item.x}}px; top: {{$item.y}}px; width: {{$item.w}}px; height: {{$item.h}}px; transform: rotate({{$item.rot}}deg); background-color: {{$item.c}}"></div>
-    <div class="baton" for="{{batons}}"
-         style="left: {{$item.x}}px; top: {{$item.y}}px; transform: rotate({{$item.rot}}deg)"></div>
-
-    <!-- 12 点位品牌字 + 6 点位 AUTOMATIC（退出热区②） -->
-    <text class="brand">EV</text>
-    <text class="brand-sub" style="color: {{brandColor}}">A U T O M A T I C</text>
-
-    <!-- 6 点位小秒盘 -->
-    <div class="subdial"></div>
-    <div class="subtick" for="{{subTicks}}"
-         style="left: {{$item.x}}px; top: {{$item.y}}px; transform: rotate({{$item.rot}}deg)"></div>
-    <div class="sub-hand" style="transform: rotate({{secDeg}}deg)"></div>
-    <div class="sub-cap"></div>
-
-    <!-- 3 点位日历窗 -->
-    <div class="date-window">
-      <text class="date-text">{{dayText}}</text>
-    </div>
-
-    <!-- 蓝钢时针 / 分针 + 中心宝石轴帽 -->
-    <div class="hand-hour" style="transform: rotate({{hourDeg}}deg)"></div>
-    <div class="hand-minute" style="transform: rotate({{minDeg}}deg)"></div>
-    <div class="center-cap"></div>
-
-    <!-- 长按中心进度：六颗微光点（默认近乎隐形） -->
-    <div class="dot" for="{{dots}}"
-         style="left: {{$item.x}}px; top: {{$item.y}}px; opacity: {{$item.op}}; background-color: {{$item.c}}"></div>
-
-    <!-- 隐形热区：① 中心长按 ② 6 点位字样长按 ③ 3 点位表冠双击 -->
-    <div class="hit-center" onlongpress="onCenterLongPress" ontouchend="cancelCountdown"></div>
-    <div class="hit-brand" onlongpress="onBrandLongPress" ontouchend="cancelCountdown"></div>
-    <div class="hit-crown" onclick="onCrownTap"></div>
+    <text class="clock">{{timeText}}</text>
+    <text class="back" onclick="goBack">返回</text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
-import vibrator from "@system.vibrator"
-
-const CX = 96          // 盘心 x（屏宽 192 正中）
-const CY = 240         // 盘心 y（避开上下弧形危险区）
-const R_TICK = 70      // 分钟轨半径
-const R_BATON = 62     // 时标半径
-const SUB_CX = 96      // 小秒盘心 x
-const SUB_CY = 298     // 小秒盘心 y
-const TICK_MS = 100    // 扫秒刷新间隔：机械表的连续扫动感
-
-/** 极坐标 → 元素左上角坐标（元素自身中心落在半径 R 上）。 */
-function place(radius, deg, w, h) {
-  const rad = deg * Math.PI / 180
-  return {
-    x: Math.round((CX + radius * Math.sin(rad) - w / 2) * 10) / 10,
-    y: Math.round((CY - radius * Math.cos(rad) - h / 2) * 10) / 10
-  }
-}
 
 export default {
-  private: {
-    hourDeg: 0,
-    minDeg: 0,
-    secDeg: 0,
-    dayText: '',
-    ticks: [],
-    batons: [],
-    subTicks: [],
-    dots: [],
-    brandHot: false,
-    brandColor: '#5a6470',
-    timer: null,
-    countdown: null,
-    dotStep: 0,
-    lastCrownTap: 0,
+  data: {
+    timeText: "--:--:--",
     touchStartY: 0
   },
-
   onInit() {
-    this.buildDial()
     this.tick()
   },
-
-  onShow() {
-    this.startTimer()
+  onReady() {
+    this.timer = setInterval(() => this.tick(), 1000)
   },
-
-  onHide() {
-    this.stopTimer()
-  },
-
   onDestroy() {
-    this.stopTimer()
-    this.clearCountdown()
-  },
-
-  // ==================== 盘面静态构件（一次性算好坐标） ====================
-
-  buildDial() {
-    const ticks = []
-    for (let i = 0; i < 60; i++) {
-      const deg = i * 6
-      const long = (i % 5 === 0)
-      const w = long ? 2 : 1
-      const h = long ? 7 : 4
-      const p = place(R_TICK, deg, w, h)
-      ticks.push({
-        x: p.x, y: p.y, w: w, h: h, rot: deg,
-        c: long ? '#5b636e' : '#8a9099'
-      })
-    }
-    this.ticks = ticks
-
-    const batons = []
-    for (let i = 0; i < 12; i++) {
-      const deg = i * 30
-      const p = place(R_BATON, deg, 4, 13)
-      batons.push({ x: p.x, y: p.y, rot: deg })
-    }
-    this.batons = batons
-
-    const subTicks = []
-    for (let i = 0; i < 12; i++) {
-      const deg = i * 30
-      const rad = deg * Math.PI / 180
-      subTicks.push({
-        x: Math.round((SUB_CX + 15 * Math.sin(rad) - 0.5) * 10) / 10,
-        y: Math.round((SUB_CY - 15 * Math.cos(rad) - 2) * 10) / 10,
-        rot: deg
-      })
-    }
-    this.subTicks = subTicks
-
-    // 长按进度六连珠：盘心外一圈 r=22，默认近乎隐形（opacity 0.07）
-    const dots = []
-    for (let i = 0; i < 6; i++) {
-      const deg = i * 60 - 90
-      const rad = deg * Math.PI / 180
-      dots.push({
-        x: Math.round((CX + 22 * Math.sin(rad) - 2) * 10) / 10,
-        y: Math.round((CY - 22 * Math.cos(rad) - 2) * 10) / 10,
-        op: 0.07,
-        c: '#8a9099'
-      })
-    }
-    this.dots = dots
-  },
-
-  // ==================== 走时 ====================
-
-  startTimer() {
-    this.stopTimer()
-    const self = this
-    this.timer = setInterval(function () { self.tick() }, TICK_MS)
-  },
-
-  stopTimer() {
     if (this.timer) {
       clearInterval(this.timer)
-      this.timer = null
+      this.timer = undefined
     }
   },
-
   tick() {
-    const d = new Date()
-    const h = d.getHours()
-    const m = d.getMinutes()
-    const s = d.getSeconds()
-    const ms = d.getMilliseconds()
-    // 时针随分钟连续推进（真机械表的时针是渐进的，不是整点跳）
-    this.hourDeg = (h % 12) * 30 + m * 0.5
-    this.minDeg = m * 6 + s * 0.1
-    this.secDeg = (s + ms / 1000) * 6
-    this.dayText = '' + d.getDate()
+    const now = new Date()
+    this.timeText = this.pad(now.getHours()) + ":" + this.pad(now.getMinutes()) + ":" + this.pad(now.getSeconds())
+  },
+  pad(n) {
+    return n < 10 ? "0" + n : "" + n
   },
 
-  // ==================== 退出途径 ① 长按中心 3 秒 ====================
-
-  onCenterLongPress() {
-    const self = this
-    this.clearCountdown()
-    this.dotStep = 0
-    this.setDots(0)
-    // 每 500ms 点亮一颗，六颗亮满 = 3 秒
-    this.countdown = setInterval(function () {
-      self.dotStep++
-      self.setDots(self.dotStep)
-      if (self.dotStep >= 6) {
-        self.doExit()
-      }
-    }, 500)
-  },
-
-  setDots(n) {
-    const dots = this.dots
-    for (let i = 0; i < dots.length; i++) {
-      const on = (i < n)
-      dots[i].op = on ? 0.85 : 0.07
-      dots[i].c = on ? '#1f7d5d' : '#8a9099'
-    }
-    this.dots = dots
-  },
-
-  // ==================== 退出途径 ② 长按 6 点位字样 2 秒 ====================
-
-  onBrandLongPress() {
-    const self = this
-    this.clearCountdown()
-    this.brandHot = true
-    this.brandColor = '#1f7d5d'   // 长按中：字样转为松石绿作“正在计时”的反馈
-    this.countdown = setTimeout(function () { self.doExit() }, 2000)
-  },
-
-  // ==================== 退出途径 ③ 双击 3 点位表冠区 ====================
-
-  onCrownTap() {
-    const now = new Date().getTime()
-    if (this.lastCrownTap && (now - this.lastCrownTap) < 500) {
-      this.lastCrownTap = 0
-      this.doExit()
-      return
-    }
-    this.lastCrownTap = now
-  },
-
-  // ==================== 退出途径 ④ 自下往上滑（手写方向判定） ====================
-
+  /* 下滑 → 课程表盘。Vela 无 onswipe，靠 touchstart/touchend 手算 Y 位移。 */
   onTouchStart(e) {
     const t = (e && e.touches && e.touches[0]) || e || {}
     this.touchStartY = t.clientY || t.offsetY || t.pageY || 0
@@ -256,300 +46,36 @@ export default {
   onTouchEnd(e) {
     const t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]) || e || {}
     const endY = t.clientY || t.offsetY || t.pageY || 0
-    if (this.touchStartY && (this.touchStartY - endY) >= 40) {
-      this.doExit()
+    if (this.touchStartY && (endY - this.touchStartY) >= 40) {
+      router.replace({ uri: "/pages/watch-face-class" })
     }
     this.touchStartY = 0
   },
 
-  // ==================== 收尾 ====================
-
-  cancelCountdown() {
-    this.clearCountdown()
-    this.setDots(0)
-    this.brandHot = false
-    this.brandColor = '#5a6470'
-  },
-
-  clearCountdown() {
-    if (this.countdown) {
-      clearInterval(this.countdown)
-      clearTimeout(this.countdown)
-      this.countdown = null
-    }
-  },
-
-  doExit() {
-    this.clearCountdown()
-    try {
-      vibrator.vibrate({ mode: 'short' })
-    } catch (e) {
-      /* 无震动模块不影响退出 */
-    }
+  goBack() {
     router.back()
   }
 }
 </script>
 
 <style>
-/* 关键：快应用是纯 flex 布局引擎，根容器必须是 flex 容器并拿到尺寸，
-   否则内部 position:absolute 的子元素不参与布局 → 整页只剩底色（黑屏）。
-   写法与 homepage-settings / loading-lab 等既有页面保持一致。 */
-.page {
-  flex: 1;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  background-color: #14161a;
-}
-
-/* ── 表壳同心环（外钢 / 中亮钢 / 内暗钢） ── */
-.case-outer {
-  position: absolute;
-  left: 4px;
-  top: 148px;
-  width: 184px;
-  height: 184px;
-  border-radius: 92px;
-  background-color: #1a1d22;
-  border: 2px solid #454b55;
-}
-
-.case-mid {
-  position: absolute;
-  left: 11px;
-  top: 155px;
-  width: 170px;
-  height: 170px;
-  border-radius: 85px;
-  background-color: #3a4048;
-}
-
-.case-inner {
-  position: absolute;
-  left: 15px;
-  top: 159px;
-  width: 162px;
-  height: 162px;
-  border-radius: 81px;
-  background-color: #22262c;
-}
-
-/* ── 银白盘面 ── */
-.dial {
-  position: absolute;
-  left: 18px;
-  top: 162px;
-  width: 156px;
-  height: 156px;
-  border-radius: 78px;
-  background-color: #e9ebef;
-}
-
-/* 上半受光 / 下半沉影：造出太阳纹的明暗过渡（无渐变也能立体） */
-.dial-light {
-  position: absolute;
-  left: 18px;
-  top: 162px;
-  width: 156px;
-  height: 78px;
-  border-radius: 78px 78px 0 0;
-  background-color: #ffffff;
-  opacity: 0.45;
-}
-
-.dial-shade {
-  position: absolute;
-  left: 18px;
-  top: 240px;
-  width: 156px;
-  height: 78px;
-  border-radius: 0 0 78px 78px;
-  background-color: #1b1f26;
-  opacity: 0.08;
-}
-
-/* 蓝宝石镜面的一处高光 */
-.glare {
-  position: absolute;
-  left: 34px;
-  top: 178px;
-  width: 58px;
-  height: 26px;
-  border-radius: 29px 22px 29px 22px;
-  background-color: #ffffff;
-  opacity: 0.38;
-}
-
-/* ── 刻度 ── */
-.tick {
-  position: absolute;
-  border-radius: 1px;
-}
-
-.baton {
-  position: absolute;
-  width: 4px;
-  height: 13px;
-  border-radius: 1px;
-  background-color: #cdd2d9;
-  border: 1px solid #6b727c;
-}
-
-/* ── 品牌字 ── */
-.brand {
-  position: absolute;
-  left: 66px;
-  top: 186px;
-  width: 60px;
-  height: 24px;
-  font-size: 18px;
-  font-weight: bold;
-  color: #1e2933;
-  text-align: center;
-}
-
-.brand-sub {
-  position: absolute;
-  left: 56px;
-  top: 266px;
-  width: 80px;
-  height: 16px;
-  font-size: 11px;
-  color: #5a6470;
-  text-align: center;
-}
-
-/* ── 6 点位小秒盘 ── */
-.subdial {
-  position: absolute;
-  left: 77px;
-  top: 279px;
-  width: 38px;
-  height: 38px;
-  border-radius: 19px;
-  background-color: #dcdfe4;
-  border: 1px solid #9aa0a8;
-}
-
-.subtick {
-  position: absolute;
-  width: 1px;
-  height: 4px;
-  background-color: #8a9099;
-}
-
-.sub-hand {
-  position: absolute;
-  left: 95px;
-  top: 281px;
-  width: 2px;
-  height: 17px;
-  background-color: #1f4e79;
-  border-radius: 1px;
-  transform-origin: 50% 100%;
-}
-
-.sub-cap {
-  position: absolute;
-  left: 93px;
-  top: 296px;
-  width: 6px;
-  height: 6px;
-  border-radius: 3px;
-  background-color: #1f4e79;
-}
-
-/* ── 3 点位日历窗 ── */
-.date-window {
-  position: absolute;
-  left: 132px;
-  top: 230px;
-  width: 28px;
-  height: 20px;
-  border-radius: 2px;
-  background-color: #f7f8fa;
-  border: 1px solid #8a9099;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.date-text {
-  font-size: 14px;
-  font-weight: bold;
-  color: #1e2933;
-}
-
-/* ── 蓝钢指针 ── */
-.hand-hour {
-  position: absolute;
-  left: 92px;
-  top: 196px;
-  width: 8px;
-  height: 44px;
-  border-radius: 4px 4px 1px 1px;
-  background-color: #1f4e79;
-  transform-origin: 50% 100%;
-}
-
-.hand-minute {
-  position: absolute;
-  left: 93px;
-  top: 178px;
-  width: 6px;
-  height: 62px;
-  border-radius: 3px 3px 1px 1px;
-  background-color: #1f4e79;
-  transform-origin: 50% 100%;
-}
-
-.center-cap {
-  position: absolute;
-  left: 91px;
-  top: 235px;
-  width: 10px;
-  height: 10px;
-  border-radius: 5px;
-  background-color: #c9ced6;
-  border: 1px solid #6b727c;
-}
-
-/* ── 长按进度微光点 ── */
-.dot {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  border-radius: 2px;
-  background-color: #8a9099;
-  opacity: 0.07;
-}
-
-/* ── 隐形热区（不画任何可见内容） ── */
-.hit-center {
-  position: absolute;
-  left: 70px;
-  top: 214px;
-  width: 52px;
-  height: 52px;
-  background-color: transparent;
-}
-
-.hit-brand {
-  position: absolute;
-  left: 56px;
-  top: 266px;
-  width: 80px;
-  height: 18px;
-  background-color: transparent;
-}
-
-.hit-crown {
-  position: absolute;
-  left: 148px;
-  top: 220px;
-  width: 42px;
-  height: 40px;
-  background-color: transparent;
-}
+  .page {
+    width: 100%;
+    height: 100%;
+    background-color: #1a1a2e;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .clock {
+    font-size: 48px;
+    color: #e8e4da;
+    font-weight: bold;
+    letter-spacing: 4px;
+  }
+  .back {
+    font-size: 20px;
+    color: #888899;
+    margin-top: 40px;
+  }
 </style>

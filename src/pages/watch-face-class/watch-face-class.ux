@@ -6,7 +6,7 @@
       ① 长按时间区 2 秒 —— 时间下方一条荧光进度线推进作反馈
       ② 长按课程卡片区 2 秒 —— 卡片边框转亮绿作反馈
       ③ 双击右下角（间隔 <500ms）
-      ④ 自下往上滑（onswipe 在 Vela 不可用，用 touchstart/touchend 判方向）
+      ④ 自下往上滑 —— 切到「经典表盘」（两页上下滑动互切；onswipe 在 Vela 不可用，用 touchstart/touchend 判方向）
     松手即中止计时，防误触。
   -->
   <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd">
@@ -46,6 +46,7 @@
 
     <!-- 底部 -->
     <text class="foot">{{ footText }}</text>
+    <text class="back-btn" onclick="onBack">返回</text>
 
     <!-- 隐形热区 -->
     <div class="hit-clock" onlongpress="onClockLongPress" ontouchend="cancelExit"></div>
@@ -349,7 +350,9 @@ export default {
     const endY = t.clientY || t.offsetY || t.pageY || 0
     if (this.touchStartY && (this.touchStartY - endY) >= 40) {
       this.cancelExit()
-      this.doExit()
+      // 上滑 = 切到「经典表盘」（两页互滑，用 replace 不堆返回栈）
+      // 退出回目录仍可用：长按时间区 / 长按卡片区 / 双击右下角 / 「返回」按钮
+      router.replace({ uri: "/pages/watch-face" })
     }
     this.touchStartY = 0
   },
@@ -375,6 +378,10 @@ export default {
     } catch (e) {
       /* 无震动模块不影响退出 */
     }
+    router.back()
+  },
+
+  onBack() {
     router.back()
   }
 }
@@ -414,26 +421,28 @@ export default {
 /* ── 巨型电子时间 ── */
 .clock-row {
   position: absolute;
-  left: 8px;
+  left: 0;
   top: 78px;
-  width: 176px;
+  width: 192px;
   height: 64px;
   flex-direction: row;
   align-items: center;
   justify-content: center;
 }
 
+/* 时钟规格与「经典表盘」统一：48px / 米白 #e8e4da / letter-spacing 4px */
 .clock-num {
-  font-size: 44px;
+  font-size: 48px;
   font-weight: bold;
-  color: #7dffb0;
+  color: #e8e4da;
   line-height: 56px;
+  letter-spacing: 4px;
 }
 
 .clock-colon {
-  font-size: 36px;
+  font-size: 44px;
   font-weight: bold;
-  color: #7dffb0;
+  color: #e8e4da;
   line-height: 56px;
 }
 
@@ -544,6 +553,18 @@ export default {
   color: #2e4a3c;
   text-align: center;
   line-height: 22px;
+}
+
+.back-btn {
+  position: absolute;
+  left: 12px;
+  top: 450px;
+  width: 168px;
+  height: 24px;
+  font-size: 16px;
+  color: #4a6b5a;
+  text-align: center;
+  line-height: 24px;
 }
 
 /* ── 隐形热区 ── */
