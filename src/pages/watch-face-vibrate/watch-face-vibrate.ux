@@ -124,10 +124,10 @@ export default {
      单次 vibrate 是「一次性」调用，不占振动任务，无需 stop；
      但 API 或权限在个别机型上可能缺失 → 全部 try/catch + fail 回调吃掉，
      绝不让震动异常把表盘页面带崩。 */
-  fireVibrate() {
+  fireVibrate(mode) {
     try {
       vibrator.vibrate({
-        mode: "long",
+        mode: mode || "long",
         fail: function() {}
       })
     } catch (e) {
@@ -150,8 +150,9 @@ export default {
     this.tickCount = 0
     this.updateCountdown()
     this.saveVibrate(this.vibrateOn)
-    // 打开时立刻给一次反馈，用户能马上确认「开关真的生效了」
-    if (this.vibrateOn) this.fireVibrate()
+    /* 开与关都震一下作回执（用户 2026-10-10 指定）：
+       开 → 长震（正式生效 + 也是首次提醒）；关 → 短震（轻回执，别用长震吵人）。 */
+    this.fireVibrate(this.vibrateOn ? "long" : "short")
   },
 
   /* ── 持久化：颜色 ── */
