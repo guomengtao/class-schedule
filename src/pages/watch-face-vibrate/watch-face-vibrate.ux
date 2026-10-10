@@ -9,6 +9,7 @@
   -->
   <div class="page" onclick="onTap">
     <text class="clock" style="color: {{ clockColor }}">{{timeText}}</text>
+    <text class="countdown" style="color: {{ vibrateOn ? '#7dffb0' : '#888899' }}">{{countdownText}}</text>
     <text class="btn-vibrate" style="color: {{ vibrateOn ? '#7dffb0' : '#888899' }}" onclick="toggleVibrate">{{vibrateLabel}}</text>
     <text class="btn-color" onclick="openPanel">换色</text>
     <text class="back" onclick="goBack">返回</text>
@@ -47,7 +48,8 @@ export default {
     showPanel: false,
     suppressTap: false,
     vibrateOn: true,        // 用户指定：默认打开
-    vibrateLabel: "震动 30秒：开"
+    vibrateLabel: "震动 30秒：开",
+    countdownText: "下次震动 30s"   // 30 秒倒计时（30 29 28 …）
   },
 
   onInit() {
@@ -86,6 +88,7 @@ export default {
         self.tickCount = 0
         self.fireVibrate()
       }
+      self.updateCountdown()
     }, 1000)
   },
 
@@ -95,6 +98,16 @@ export default {
       this.timer = undefined
     }
     this.tickCount = 0
+    this.updateCountdown()
+  },
+
+  /* ── 倒计时文案：剩余秒数 = 30 - 已累计秒数；关闭时明确写「已关闭」 ── */
+  updateCountdown() {
+    if (!this.vibrateOn) {
+      this.countdownText = "震动已关闭"
+      return
+    }
+    this.countdownText = "下次震动 " + (VIBRATE_INTERVAL - (this.tickCount || 0)) + "s"
   },
 
   tick() {
@@ -135,6 +148,7 @@ export default {
     this.vibrateOn = !this.vibrateOn
     this.vibrateLabel = this.vibrateOn ? "震动 30秒：开" : "震动 30秒：关"
     this.tickCount = 0
+    this.updateCountdown()
     this.saveVibrate(this.vibrateOn)
     // 打开时立刻给一次反馈，用户能马上确认「开关真的生效了」
     if (this.vibrateOn) this.fireVibrate()
@@ -172,6 +186,7 @@ export default {
             const v = (res.value === false || res.value === "false") ? false : true
             self.vibrateOn = v
             self.vibrateLabel = v ? "震动 30秒：开" : "震动 30秒：关"
+            self.updateCountdown()
           }
         },
         fail: function() {}
@@ -235,6 +250,12 @@ export default {
     font-size: 68px;
     font-weight: bold;
     letter-spacing: 2px;
+  }
+
+  .countdown {
+    margin-top: 12px;
+    font-size: 22px;
+    letter-spacing: 1px;
   }
 
   .btn-vibrate {
