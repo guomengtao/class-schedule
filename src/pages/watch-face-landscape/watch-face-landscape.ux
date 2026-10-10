@@ -1,14 +1,13 @@
 <template>
   <!--
-    横屏表盘 ① · 内容整体右转 90°，时间尽量大；按钮全部隐藏；长按弹改色
-    ── 关键安全点 ──
-    · rotate 用**静态字面量** `transform: rotate(90deg)`（项目已证实：字面量静态 transform 安全，
-      只有 `rotate({{}})` 数据绑定才黑屏）。所以这里绝不能把角度做成数据绑定。
-    · 骨架照经典表盘：.page flex 居中 + absolute overlay 面板。
-    ── 交互 ──
-    · 按钮全隐藏 → 点击整页返回；长按整页弹出颜色面板（onlongpress）。
-    ── 待真机确认 ──
-    · 192×490 跑道屏旋转后「时间尽量最大」的具体字号需上机微调（现取 108px）。
+    横屏表盘 ①（v2 · 修黑屏）· 内容整体右转 90°，时间尽量大；按钮全隐藏；长按弹改色
+    ── 黑屏根因（本项目实测铁律）──
+    · transform 加在 **flex 子元素** 上会整页黑屏；唯一验证安全的姿势是「**绝对定位 + 字面量 transform**」
+      （见 watch-face-metal 三针表盘）。v1 把 rotate 加在 flex 子元素 .rot 上 → 黑。
+    · v2 改法：.page 用 position:relative（非 flex），旋转容器 .rot 改 **绝对定位铺满**，
+      内部再 flex 居中放时间。旋转仍用**字面量** rotate(90deg)，绝不做数据绑定。
+    ── 交互 ── 按钮全隐藏：点击整屏返回；长按弹出颜色面板（onlongpress）。
+    ── 待真机确认 ── 192×490 旋转后「时间尽量最大」的字号需上机微调（现取 108px）。
   -->
   <div class="page" onclick="onTap" onlongpress="openPanel">
     <div class="rot">
@@ -148,17 +147,24 @@ export default {
 </script>
 
 <style>
+  /* v2：不叠 flex 居中，避免「flex + 带 transform 子元素」触发黑屏 */
   .page {
+    position: relative;
     width: 100%;
     height: 100%;
     background-color: #1a1a2e;
+  }
+
+  /* 绝对定位铺满 + 内部 flex 居中 + 字面量旋转（照金属表盘的安全姿势） */
+  .rot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-  }
-
-  /* 静态字面量旋转，禁止改成数据绑定 */
-  .rot {
     transform: rotate(90deg);
   }
 
@@ -172,8 +178,8 @@ export default {
     position: absolute;
     left: 0;
     top: 0;
-    width: 100%;
-    height: 100%;
+    right: 0;
+    bottom: 0;
     background-color: rgba(0, 0, 0, 0.6);
     justify-content: center;
     align-items: center;

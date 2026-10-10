@@ -1,28 +1,50 @@
 <template>
   <!--
-    功能表盘 ⑥ · 保险版
-    显示「确定支持、且本地可取」的信息：时间 / 日期 / 星期 / 设备型号 / 分辨率 / 电量。
-    · 电量用 @system.battery：**手环 9/9Pro 官方不支持** → 调用失败即整卡隐藏（静默降级，不报错不黑屏）。
-    · 空间 / 手电筒：Vela 无对应 API，本版**不做**。
-    骨架照经典表盘 watch-face.ux（flex 居中，无 absolute 子元素），规避黑屏。
+    功能表盘 ⑥（v2）· 空间使用 / 剩余空间 + 电量（带图表与小图标）
+    ── 数据来源（均官方支持）──
+    · 空间：@system.device 的 device.getTotalStorage() / getAvailableStorage()（单位 Byte）
+      已用 = 总 - 可用；配 <progress> 进度条呈现比例。
+    · 电量：@system.battery（**手环9/9Pro 不支持 → 整项隐藏**，静默降级）；配自绘「电池小图标」+ 进度条。
+    ── 说明 ──
+    · 用官方 <progress percent color> 组件画简易图表（比自绘 div 更稳）。
+    · 电池图标用 div 手绘（外壳 + 电芯 + 正极帽），零外部资源。
+    · 骨架照经典表盘（flex 居中，无 absolute 子元素），规避黑屏。
   -->
   <div class="page" onclick="onTap">
     <text class="clock" style="color: {{ fgColor }}">{{ timeText }}</text>
     <text class="date" style="color: {{ subColor }}">{{ dateText }}</text>
 
-    <div class="rows">
-      <div class="row">
-        <text class="k" style="color: {{ subColor }}">设备</text>
-        <text class="v" style="color: {{ fgColor }}">{{ modelText }}</text>
+    <div class="item">
+      <div class="head">
+        <text class="k" style="color: {{ subColor }}">空间使用</text>
+        <text class="v" style="color: {{ fgColor }}">{{usedStr}} / {{totalStr}}</text>
       </div>
-      <div class="row">
-        <text class="k" style="color: {{ subColor }}">屏幕</text>
-        <text class="v" style="color: {{ fgColor }}">{{ screenText }}</text>
+      <progress class="bar" percent="{{usedPct}}" color="#ff9a3c"></progress>
+    </div>
+
+    <div class="item">
+      <div class="head">
+        <text class="k" style="color: {{ subColor }}">剩余空间</text>
+        <text class="v" style="color: {{ fgColor }}">{{availStr}}</text>
       </div>
-      <div class="row" if="{{ batteryText }}">
+      <progress class="bar" percent="{{availPct}}" color="#4ade80"></progress>
+    </div>
+
+    <div class="item" if="{{ batteryText }}">
+      <div class="head">
         <text class="k" style="color: {{ subColor }}">电量</text>
-        <text class="v" style="color: {{ fgColor }}">{{ batteryText }}</text>
+        <div class="head-right">
+          <!-- 电池小图标 -->
+          <div class="batt">
+            <div class="batt-shell">
+              <div class="batt-level" style="width: {{battW}}px; background-color: {{battColor}}"></div>
+            </div>
+            <div class="batt-nub" style="background-color: {{battColor}}"></div>
+          </div>
+          <text class="v" style="color: {{ fgColor }}">{{batteryText}}</text>
+        </div>
       </div>
+      <progress class="bar" percent="{{battPct}}" color="{{battColor}}"></progress>
     </div>
 
     <text class="back" onclick="goBack">返回</text>
@@ -35,8 +57,7 @@ import router from "@system.router"
 const LIST_PAGE = "/pages/watch-face-list"
 const WEEK = ["日", "一", "二", "三", "四", "五", "六"]
 
-/* 电量 API 用 require + try-catch 兜住：
-   若模块不可用（或机型不支持），不该让整页加载失败 → 静默不可用。 */
+/* 电量 API 用 require + try-catch 兜住：机型不支持也不该让整页加载失败 */
 let battery = null
 try {
   battery = require("@system.battery")
@@ -44,20 +65,24 @@ try {
   battery = null
 }
 
+const KB = 1024
+const MB = 1024 * 1024
+const GB = 1024 * 1024 * 1024
+
 export default {
   data: {
     timeText: "--:--",
     dateText: "--",
-    modelText: "--",
-    screenText: "--",
-    batteryText: "",
     fgColor: "#e8e4da",
-    subColor: "#8a8aa0"
+    subColor: "#8a8aa0",
+    usedStr: "--", totalStr: "--", availStr: "--",
+    usedPct: 0, availPct: 0,
+    batteryText: "", battPct: 0, battW: 0, battColor: "#4ade80"
   },
 
   onInit() {
     this.tick()
-    this.loadDevice()
+    this.loadStorage()
     this.loadBattery()
   },
 
@@ -67,6 +92,7 @@ export default {
 
   onShow() {
     this.refresh()
+    this.loadStorage()
   },
 
   onHide() {
@@ -77,7 +103,6 @@ export default {
     this.stop()
   },
 
-  /* 时间：1s 心跳；每 60 拍顺带刷新一次电量 */
   refresh() {
     this.stop()
     this.tick()
@@ -112,52 +137,59 @@ export default {
     return n < 10 ? "0" + n : "" + n
   },
 
-  /* 设备信息（@system.device，项目已在用，安全） */
-  loadDevice() {
+  fmt(bytes) {
+    if (!bytes && bytes !== 0) return "--"
+    if (bytes >= GB) return (bytes / GB).toFixed(1) + "GB"
+    if (bytes >= MB) return Math.round(bytes / MB) + "MB"
+    return Math.round(bytes / KB) + "KB"
+  },
+
+  /* 空间：总容量 + 可用 → 已用/剩余 + 百分比 */
+  loadStorage() {
     const self = this
     try {
       const device = require("@system.device")
-      device.getInfo({
-        success: function(info) {
-          if (!info) return
-          const brand = info.brand || ""
-          const model = info.model || ""
-          const name = (brand + " " + model).trim()
-          if (name) self.modelText = name
-          const w = info.screenWidth
-          const h = info.screenHeight
-          if (w && h) self.screenText = w + "×" + h
+      device.getTotalStorage({
+        success: function(t) {
+          if (!t || !t.totalStorage) return
+          const total = t.totalStorage
+          self.totalStr = self.fmt(total)
+          device.getAvailableStorage({
+            success: function(a) {
+              if (!a || typeof a.availableStorage !== "number") return
+              const avail = a.availableStorage
+              const used = total - avail
+              self.availStr = self.fmt(avail)
+              self.usedStr = self.fmt(used)
+              self.usedPct = total > 0 ? Math.round((used / total) * 100) : 0
+              self.availPct = total > 0 ? Math.round((avail / total) * 100) : 0
+            },
+            fail: function() {}
+          })
         },
         fail: function() {}
       })
-    } catch (e) {
-      /* 取不到就保持占位符，不影响其它信息 */
-    }
+    } catch (e) {}
   },
 
-  /* 电量（@system.battery）：成功才显示，失败/不支持 → 整卡隐藏 */
+  /* 电量：成功才显示整项；失败/不支持 → batteryText 保持空 → 整项隐藏 */
   loadBattery() {
-    if (!battery || typeof battery.getStatus !== "function") {
-      return
-    }
+    if (!battery || typeof battery.getStatus !== "function") return
     const self = this
     try {
       battery.getStatus({
         success: function(res) {
           if (res && typeof res.level === "number") {
             const pct = Math.round(res.level * 100)
+            self.battPct = pct
             self.batteryText = res.charging ? (pct + "% 充电中") : (pct + "%")
-          } else {
-            self.batteryText = ""
+            self.battW = Math.round(res.level * 30)
+            self.battColor = pct <= 20 ? "#ff5f6d" : (pct <= 50 ? "#ffd166" : "#4ade80")
           }
         },
-        fail: function() {
-          self.batteryText = ""
-        }
+        fail: function() {}
       })
-    } catch (e) {
-      this.batteryText = ""
-    }
+    } catch (e) {}
   },
 
   onTap() {
@@ -181,43 +213,77 @@ export default {
   }
 
   .clock {
-    font-size: 60px;
+    font-size: 48px;
     font-weight: bold;
     letter-spacing: 2px;
   }
 
   .date {
-    margin-top: 8px;
-    font-size: 24px;
+    margin-top: 4px;
+    font-size: 22px;
   }
 
-  .rows {
-    margin-top: 26px;
+  .item {
+    width: 158px;
     flex-direction: column;
-    align-items: center;
+    margin-top: 16px;
   }
 
-  .row {
+  .head {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 158px;
+  }
+
+  .head-right {
     flex-direction: row;
     align-items: center;
-    margin-bottom: 12px;
   }
 
   .k {
     font-size: 22px;
-    width: 76px;
-    text-align: right;
-    margin-right: 10px;
   }
 
   .v {
     font-size: 22px;
-    width: 150px;
-    text-align: left;
+  }
+
+  .bar {
+    width: 158px;
+    margin-top: 6px;
+    stroke-width: 12px;
+  }
+
+  /* 电池小图标：外壳 + 电芯 + 正极帽 */
+  .batt {
+    flex-direction: row;
+    align-items: center;
+    margin-right: 8px;
+  }
+
+  .batt-shell {
+    width: 34px;
+    height: 16px;
+    border: 2px solid #8899aa;
+    border-radius: 4px;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .batt-level {
+    height: 8px;
+    border-radius: 2px;
+  }
+
+  .batt-nub {
+    width: 3px;
+    height: 8px;
+    border-radius: 2px;
   }
 
   .back {
-    margin-top: 26px;
+    margin-top: 24px;
     font-size: 22px;
     color: #888899;
   }

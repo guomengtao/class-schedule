@@ -1,20 +1,22 @@
 <template>
   <!--
-    翻页表盘 ⑦ · 翻动走时间的效果（2D 安全版）
+    翻页表盘 ⑦（v2 · 修黑屏）· 翻动走时间的效果（2D 安全版）
     ── 核实结论 ──
-    · Vela 官方 transform 文档为 2D 转换；3D 翻转（rotateX/rotateY）**未证实** → 本版不做 3D。
-    · 改用 @keyframes + translateY/opacity 的「翻出→翻入」动画模拟翻页（项目已证实 keyframes 动画安全）。
-    · 动画只用**字面量**关键帧，不碰数据绑定 transform（黑屏铁律）。
+    · Vela 官方仅保证 2D transform；3D 翻转（rotateX/rotateY）**未证实** → 不做 3D。
+    · 用 @keyframes + translateY/opacity 的「翻出→翻入」模拟翻页。
+    ── 黑屏根因（本项目实测铁律）──
+    · transform/animation 加在 **flex 子元素** 上会黑屏；v1 把动画加在每个 .digit（flex 子元素）→ 黑。
+    · v2 改法：.page 改 position:relative（非 flex），动画移到 **绝对定位** 的 .clock 上。
+    · 仍只用**字面量**关键帧，不碰数据绑定 transform。
     · 时间仍是真实时间（每分钟刷新）；动画是叠加的「翻动」质感，二者并存。
-    ── 骨架 ── 照经典表盘（flex 居中）。
   -->
   <div class="page" onclick="onTap">
     <div class="clock">
-      <text class="digit d0" style="color: {{ clockColor }}">{{ d0ch }}</text>
-      <text class="digit d1" style="color: {{ clockColor }}">{{ d1ch }}</text>
+      <text class="digit" style="color: {{ clockColor }}">{{ d0ch }}</text>
+      <text class="digit" style="color: {{ clockColor }}">{{ d1ch }}</text>
       <text class="colon" style="color: {{ clockColor }}">:</text>
-      <text class="digit d2" style="color: {{ clockColor }}">{{ d2ch }}</text>
-      <text class="digit d3" style="color: {{ clockColor }}">{{ d3ch }}</text>
+      <text class="digit" style="color: {{ clockColor }}">{{ d2ch }}</text>
+      <text class="digit" style="color: {{ clockColor }}">{{ d3ch }}</text>
     </div>
     <text class="back" onclick="goBack">返回</text>
   </div>
@@ -109,36 +111,34 @@ export default {
 </script>
 
 <style>
+  /* v2：.page 不做 flex；动画只加在「绝对定位」的 .clock 上（避开 flex 子元素 transform） */
   .page {
+    position: relative;
     width: 100%;
     height: 100%;
     background-color: #12141c;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
   }
 
+  /* 绝对定位铺满 + 内部 flex 居中；动画加在此层（非 flex 子元素） */
   .clock {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
     flex-direction: row;
     justify-content: center;
     align-items: center;
-  }
-
-  /* 数字：周期性「翻出→翻入」。动画为字面量关键帧，安全 */
-  .digit {
-    font-size: 60px;
-    font-weight: bold;
     animation-name: kf-flip;
     animation-duration: 3s;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
   }
 
-  /* 错开相位，形成逐个翻动的节奏 */
-  .d0 { animation-delay: 0s; }
-  .d1 { animation-delay: 0.2s; }
-  .d2 { animation-delay: 0.4s; }
-  .d3 { animation-delay: 0.6s; }
+  .digit {
+    font-size: 60px;
+    font-weight: bold;
+  }
 
   .colon {
     font-size: 56px;
@@ -146,17 +146,22 @@ export default {
     margin: 0 2px;
   }
 
+  /* 整体「翻出→翻入」（translateY/opacity 均为字面量关键帧） */
   @keyframes kf-flip {
     0%   { transform: translateY(0);     opacity: 1; }
-    38%  { transform: translateY(0);     opacity: 1; }
-    48%  { transform: translateY(-12px); opacity: 0; }
-    58%  { transform: translateY(12px);  opacity: 0; }
-    68%  { transform: translateY(0);     opacity: 1; }
+    40%  { transform: translateY(0);     opacity: 1; }
+    50%  { transform: translateY(-14px); opacity: 0; }
+    60%  { transform: translateY(14px);  opacity: 0; }
+    70%  { transform: translateY(0);     opacity: 1; }
     100% { transform: translateY(0);     opacity: 1; }
   }
 
   .back {
-    margin-top: 40px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 70px;
+    text-align: center;
     font-size: 22px;
     color: #888899;
   }
