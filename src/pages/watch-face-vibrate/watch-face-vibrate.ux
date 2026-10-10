@@ -123,6 +123,15 @@ export default {
   },
 
   toggleVibrate() {
+    /* ⚠️ 必须在同步阶段先挡住整页的「点击返回」：
+       点击先到本按钮、再冒泡到根节点 .page 的 onTap，不挡就会「一按开关就被踢回目录」。
+       同经典表盘换色按钮的 suppressTap 套路。 */
+    this.suppressTap = true
+    const self = this
+    setTimeout(function() {
+      self.suppressTap = false
+    }, 300)
+
     this.vibrateOn = !this.vibrateOn
     this.vibrateLabel = this.vibrateOn ? "震动 30秒：开" : "震动 30秒：关"
     this.tickCount = 0
