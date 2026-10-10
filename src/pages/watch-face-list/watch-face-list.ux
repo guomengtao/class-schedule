@@ -60,6 +60,16 @@
         <text class="item-label" style="color: {{ theme.text }}">功能表盘</text>
         <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openLandscape">
+        <text class="item-label" style="color: {{ theme.text }}">横屏表盘</text>
+        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openFlip">
+        <text class="item-label" style="color: {{ theme.text }}">翻页表盘</text>
+        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
     </div>
 
     </div>
@@ -146,6 +156,14 @@ export default {
 
   openFunctional() {
     router.push({ uri: "/pages/watch-face-functional" })
+  },
+
+  openLandscape() {
+    router.push({ uri: "/pages/watch-face-landscape" })
+  },
+
+  openFlip() {
+    router.push({ uri: "/pages/watch-face-flip" })
   },
 
   goBack() {

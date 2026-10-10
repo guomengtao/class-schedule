@@ -1,0 +1,207 @@
+<template>
+  <!--
+    横屏表盘 ① · 内容整体右转 90°，时间尽量大；按钮全部隐藏；长按弹改色
+    ── 关键安全点 ──
+    · rotate 用**静态字面量** `transform: rotate(90deg)`（项目已证实：字面量静态 transform 安全，
+      只有 `rotate({{}})` 数据绑定才黑屏）。所以这里绝不能把角度做成数据绑定。
+    · 骨架照经典表盘：.page flex 居中 + absolute overlay 面板。
+    ── 交互 ──
+    · 按钮全隐藏 → 点击整页返回；长按整页弹出颜色面板（onlongpress）。
+    ── 待真机确认 ──
+    · 192×490 跑道屏旋转后「时间尽量最大」的具体字号需上机微调（现取 108px）。
+  -->
+  <div class="page" onclick="onTap" onlongpress="openPanel">
+    <div class="rot">
+      <text class="clock" style="color: {{ clockColor }}">{{ timeText }}</text>
+    </div>
+
+    <!-- 颜色选择面板 -->
+    <div class="mask" if="{{ showPanel }}" onclick="closePanel">
+      <div class="panel">
+        <text class="p-title">文字颜色</text>
+        <text class="p-item" style="color: #e8e4da" onclick="pick(0)">米白</text>
+        <text class="p-item" style="color: #7dffb0" onclick="pick(1)">青绿</text>
+        <text class="p-item" style="color: #ffd166" onclick="pick(2)">金色</text>
+        <text class="p-item" style="color: #7ec8e3" onclick="pick(3)">天蓝</text>
+        <text class="p-item" style="color: #ff8fa3" onclick="pick(4)">玫红</text>
+        <text class="p-cancel" onclick="closePanel">取消</text>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+
+const storage = require("@system.storage")
+
+const LIST_PAGE = "/pages/watch-face-list"
+const COLOR_KEY = "wf_clock_color"
+const COLORS = ["#e8e4da", "#7dffb0", "#ffd166", "#7ec8e3", "#ff8fa3"]
+
+export default {
+  data: {
+    timeText: "--:--",
+    clockColor: COLORS[0],
+    showPanel: false,
+    suppressTap: false
+  },
+
+  onInit() {
+    this.loadColor()
+    this.tick()
+  },
+
+  onReady() {
+    this.refresh()
+  },
+
+  onShow() {
+    this.refresh()
+  },
+
+  onHide() {
+    this.stop()
+  },
+
+  onDestroy() {
+    this.stop()
+  },
+
+  refresh() {
+    this.stop()
+    this.tick()
+    const self = this
+    this.timer = setInterval(function() {
+      self.tick()
+    }, 1000)
+  },
+
+  stop() {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = undefined
+    }
+  },
+
+  tick() {
+    const now = new Date()
+    const t = this.pad(now.getHours()) + ":" + this.pad(now.getMinutes())
+    if (t !== this.timeText) this.timeText = t
+  },
+
+  pad(n) {
+    return n < 10 ? "0" + n : "" + n
+  },
+
+  loadColor() {
+    const self = this
+    try {
+      storage.get({
+        key: COLOR_KEY,
+        success: function(res) {
+          if (res && res.value) self.clockColor = res.value
+        },
+        fail: function() {}
+      })
+    } catch (e) {}
+  },
+
+  saveColor(c) {
+    try {
+      storage.set({ key: COLOR_KEY, value: c })
+    } catch (e) {}
+  },
+
+  /* 长按开面板；开面板期间 suppressTap 挡住整页「点击返回」 */
+  openPanel() {
+    this.suppressTap = true
+    this.showPanel = true
+  },
+
+  closePanel() {
+    this.showPanel = false
+    const self = this
+    setTimeout(function() {
+      self.suppressTap = false
+    }, 300)
+  },
+
+  pick(i) {
+    const c = COLORS[i]
+    if (!c) return
+    this.clockColor = c
+    this.saveColor(c)
+    this.closePanel()
+  },
+
+  /* 按钮全隐藏：点击整页返回 */
+  onTap() {
+    if (this.suppressTap) return
+    router.replace({ uri: LIST_PAGE })
+  },
+
+  goBack() {
+    router.replace({ uri: LIST_PAGE })
+  }
+}
+</script>
+
+<style>
+  .page {
+    width: 100%;
+    height: 100%;
+    background-color: #1a1a2e;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* 静态字面量旋转，禁止改成数据绑定 */
+  .rot {
+    transform: rotate(90deg);
+  }
+
+  .clock {
+    font-size: 108px;
+    font-weight: bold;
+    letter-spacing: 4px;
+  }
+
+  .mask {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .panel {
+    width: 240px;
+    flex-direction: column;
+    align-items: center;
+    background-color: #16213e;
+    border-radius: 12px;
+    padding: 16px 0 12px 0;
+  }
+
+  .p-title {
+    font-size: 22px;
+    color: #ffffff;
+    margin-bottom: 6px;
+  }
+
+  .p-item {
+    font-size: 26px;
+    padding: 7px 0;
+  }
+
+  .p-cancel {
+    margin-top: 8px;
+    font-size: 22px;
+    color: #888899;
+  }
+</style>
