@@ -1,0 +1,284 @@
+<template>
+  <!--
+    震动表盘 · 复制自「经典表盘」（pages/watch-face/watch-face.ux）
+    在经典表盘之上追加：
+      ⑤ 「震动 30s」开关按钮，默认开启；开启时每 30 秒震动一次
+    其余（大号时间 / 换色面板 / 点击空白返回）与经典表盘完全一致，
+    颜色与开关各自独立持久化，避免影响经典表盘的既有表现。
+    ⚠️ 震动 API 来源：@system.vibrator（Vela 官方文档；支持设备含小米手环10 / REDMI Watch 6）。
+  -->
+  <div class="page" onclick="onTap">
+    <text class="clock" style="color: {{ clockColor }}">{{timeText}}</text>
+    <text class="btn-vibrate" style="color: {{ vibrateOn ? '#7dffb0' : '#888899' }}" onclick="toggleVibrate">{{vibrateLabel}}</text>
+    <text class="btn-color" onclick="openPanel">换色</text>
+    <text class="back" onclick="goBack">返回</text>
+
+    <!-- 颜色选择面板 -->
+    <div class="mask" if="{{ showPanel }}" onclick="closePanel">
+      <div class="panel">
+        <text class="p-title">文字颜色</text>
+        <text class="p-item" style="color: #e8e4da" onclick="pick(0)">米白</text>
+        <text class="p-item" style="color: #7dffb0" onclick="pick(1)">青绿</text>
+        <text class="p-item" style="color: #ffd166" onclick="pick(2)">金色</text>
+        <text class="p-item" style="color: #7ec8e3" onclick="pick(3)">天蓝</text>
+        <text class="p-item" style="color: #ff8fa3" onclick="pick(4)">玫红</text>
+        <text class="p-cancel" onclick="closePanel">取消</text>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import vibrator from "@system.vibrator"
+
+const storage = require("@system.storage")
+
+const LIST_PAGE = "/pages/watch-face-list"
+const COLOR_KEY = "wf_vibrate_clock_color"
+const VIBRATE_KEY = "wf_vibrate_30s"
+const COLORS = ["#e8e4da", "#7dffb0", "#ffd166", "#7ec8e3", "#ff8fa3"]
+const VIBRATE_INTERVAL = 30 // 秒
+
+export default {
+  data: {
+    timeText: "--:--",
+    clockColor: COLORS[0],
+    showPanel: false,
+    suppressTap: false,
+    vibrateOn: true,        // 用户指定：默认打开
+    vibrateLabel: "震动 30秒：开"
+  },
+
+  onInit() {
+    this.loadColor()
+    this.loadVibrate()
+    this.tick()
+  },
+
+  onReady() {
+    this.refresh()
+  },
+
+  onShow() {
+    this.refresh()
+  },
+
+  onHide() {
+    this.stop()
+  },
+
+  onDestroy() {
+    this.stop()
+  },
+
+  /* ── 时间 + 震动：共用一个 1s 心跳，秒数累加满 30 触发震动 ──
+     省一个定时器，也保证「时间在走」与「到点震动」永远同一节拍。 */
+  refresh() {
+    this.stop()
+    this.tick()
+    const self = this
+    this.timer = setInterval(function() {
+      self.tick()
+      if (!self.vibrateOn) return
+      self.tickCount = (self.tickCount || 0) + 1
+      if (self.tickCount >= VIBRATE_INTERVAL) {
+        self.tickCount = 0
+        self.fireVibrate()
+      }
+    }, 1000)
+  },
+
+  stop() {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = undefined
+    }
+    this.tickCount = 0
+  },
+
+  tick() {
+    const now = new Date()
+    const t = this.pad(now.getHours()) + ":" + this.pad(now.getMinutes())
+    if (t !== this.timeText) this.timeText = t
+  },
+
+  pad(n) {
+    return n < 10 ? "0" + n : "" + n
+  },
+
+  /* ── 震动 ──
+     单次 vibrate 是「一次性」调用，不占振动任务，无需 stop；
+     但 API 或权限在个别机型上可能缺失 → 全部 try/catch + fail 回调吃掉，
+     绝不让震动异常把表盘页面带崩。 */
+  fireVibrate() {
+    try {
+      vibrator.vibrate({
+        mode: "long",
+        fail: function() {}
+      })
+    } catch (e) {
+      /* 该机型不支持震动：静默跳过，不影响取时与显示 */
+    }
+  },
+
+  toggleVibrate() {
+    this.vibrateOn = !this.vibrateOn
+    this.vibrateLabel = this.vibrateOn ? "震动 30秒：开" : "震动 30秒：关"
+    this.tickCount = 0
+    this.saveVibrate(this.vibrateOn)
+    // 打开时立刻给一次反馈，用户能马上确认「开关真的生效了」
+    if (this.vibrateOn) this.fireVibrate()
+  },
+
+  /* ── 持久化：颜色 ── */
+  loadColor() {
+    const self = this
+    try {
+      storage.get({
+        key: COLOR_KEY,
+        success: function(res) {
+          if (res && res.value) self.clockColor = res.value
+        },
+        fail: function() {}
+      })
+    } catch (e) {}
+  },
+
+  saveColor(c) {
+    try {
+      storage.set({ key: COLOR_KEY, value: c })
+    } catch (e) {}
+  },
+
+  /* ── 持久化：震动开关（默认开 = 取不到历史时保持 true） ── */
+  loadVibrate() {
+    const self = this
+    try {
+      storage.get({
+        key: VIBRATE_KEY,
+        success: function(res) {
+          if (res && res.value !== undefined && res.value !== null) {
+            // storage 可能返回字符串 "true"/"false"
+            const v = (res.value === false || res.value === "false") ? false : true
+            self.vibrateOn = v
+            self.vibrateLabel = v ? "震动 30秒：开" : "震动 30秒：关"
+          }
+        },
+        fail: function() {}
+      })
+    } catch (e) {}
+  },
+
+  saveVibrate(on) {
+    try {
+      storage.set({ key: VIBRATE_KEY, value: on ? "true" : "false" })
+    } catch (e) {}
+  },
+
+  /* ── 面板开关（同经典表盘：面板打开期间挡住整页点击返回） ── */
+  openPanel() {
+    this.suppressTap = true
+    this.showPanel = true
+  },
+
+  closePanel() {
+    this.showPanel = false
+    const self = this
+    setTimeout(function() {
+      self.suppressTap = false
+    }, 300)
+  },
+
+  pick(i) {
+    const c = COLORS[i]
+    if (!c) return
+    this.clockColor = c
+    this.saveColor(c)
+    this.closePanel()
+  },
+
+  /* ── 返回 ── */
+  onTap() {
+    if (this.suppressTap) return
+    this.stop()
+    router.replace({ uri: LIST_PAGE })
+  },
+
+  goBack() {
+    this.stop()
+    router.replace({ uri: LIST_PAGE })
+  }
+}
+</script>
+
+<style>
+  .page {
+    width: 100%;
+    height: 100%;
+    background-color: #1a1a2e;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .clock {
+    font-size: 68px;
+    font-weight: bold;
+    letter-spacing: 2px;
+  }
+
+  .btn-vibrate {
+    margin-top: 30px;
+    font-size: 22px;
+  }
+
+  .btn-color {
+    margin-top: 18px;
+    font-size: 22px;
+    color: #7ec8e3;
+  }
+
+  .back {
+    margin-top: 14px;
+    font-size: 22px;
+    color: #888899;
+  }
+
+  .mask {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .panel {
+    width: 240px;
+    flex-direction: column;
+    align-items: center;
+    background-color: #16213e;
+    border-radius: 12px;
+    padding: 16px 0 12px 0;
+  }
+
+  .p-title {
+    font-size: 22px;
+    color: #ffffff;
+    margin-bottom: 6px;
+  }
+
+  .p-item {
+    font-size: 26px;
+    padding: 7px 0;
+  }
+
+  .p-cancel {
+    margin-top: 8px;
+    font-size: 22px;
+    color: #888899;
+  }
+</style>
