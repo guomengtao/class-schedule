@@ -1,0 +1,252 @@
+<template>
+  <!--
+    渐变表盘 ③ · 数字呈渐变色
+    骨架照经典表盘 watch-face.ux（已验证不黑屏）：flex 居中 + absolute overlay 面板。
+    渐变的实现：**逐字符取渐变色带上的 5 档色**（H H : M M），视觉即一条渐变。
+    刻意不用 linear-gradient / transition 等未实测属性，全部走「颜色数据绑定」，零黑屏风险。
+  -->
+  <div class="page" onclick="onTap">
+    <div class="clock">
+      <text class="digit" style="color: {{ c0 }}">{{ d0 }}</text>
+      <text class="digit" style="color: {{ c1 }}">{{ d1 }}</text>
+      <text class="colon" style="color: {{ cColon }}">:</text>
+      <text class="digit" style="color: {{ c2 }}">{{ d2 }}</text>
+      <text class="digit" style="color: {{ c3 }}">{{ d3 }}</text>
+    </div>
+    <text class="btn-color" onclick="openPanel">渐变</text>
+    <text class="back" onclick="goBack">返回</text>
+
+    <!-- 渐变色带选择面板 -->
+    <div class="mask" if="{{ showPanel }}" onclick="closePanel">
+      <div class="panel">
+        <text class="p-title">渐变色带</text>
+        <text class="p-item" style="color: {{ pal0Color }}" onclick="pick(0)">晚霞</text>
+        <text class="p-item" style="color: {{ pal1Color }}" onclick="pick(1)">海洋</text>
+        <text class="p-item" style="color: {{ pal2Color }}" onclick="pick(2)">森林</text>
+        <text class="p-item" style="color: {{ pal3Color }}" onclick="pick(3)">极光</text>
+        <text class="p-cancel" onclick="closePanel">取消</text>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+
+const storage = require("@system.storage")
+
+const LIST_PAGE = "/pages/watch-face-list"
+const GRAD_KEY = "wf_gradient_theme"
+
+/* 4 条渐变色带：每条 5 档（H H : M M），从浅到深、色相平滑过渡 */
+const RAMPS = [
+  { colors: ["#ffd166", "#ff9a3c", "#ff5f6d", "#c44b9b", "#7b2ff7"] }, // 晚霞
+  { colors: ["#7ee8fa", "#4fc3f7", "#2196f3", "#3f51b5", "#7e57c2"] }, // 海洋
+  { colors: ["#d9f99d", "#a3e635", "#4ade80", "#22c55e", "#059669"] }, // 森林
+  { colors: ["#a7ffeb", "#64ffda", "#18ffff", "#40c4ff", "#b388ff"] }  // 极光
+]
+
+export default {
+  data: {
+    d0: "0", d1: "0", d2: "0", d3: "0",
+    c0: "#ffd166", c1: "#ff9a3c", cColon: "#ff5f6d", c2: "#c44b9b", c3: "#7b2ff7",
+    pal0Color: "#ffd166", pal1Color: "#7ee8fa", pal2Color: "#d9f99d", pal3Color: "#a7ffeb",
+    showPanel: false,
+    suppressTap: false
+  },
+
+  onInit() {
+    this.loadTheme()
+    this.tick()
+  },
+
+  onReady() {
+    this.refresh()
+  },
+
+  onShow() {
+    this.refresh()
+  },
+
+  onHide() {
+    this.stop()
+  },
+
+  onDestroy() {
+    this.stop()
+  },
+
+  refresh() {
+    this.stop()
+    this.tick()
+    const self = this
+    this.timer = setInterval(function() {
+      self.tick()
+    }, 1000)
+  },
+
+  stop() {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = undefined
+    }
+  },
+
+  tick() {
+    const now = new Date()
+    const h = this.pad(now.getHours())
+    const m = this.pad(now.getMinutes())
+    if (h[0] !== this.d0) this.d0 = h[0]
+    if (h[1] !== this.d1) this.d1 = h[1]
+    if (m[0] !== this.d2) this.d2 = m[0]
+    if (m[1] !== this.d3) this.d3 = m[1]
+  },
+
+  pad(n) {
+    return n < 10 ? "0" + n : "" + n
+  },
+
+  applyTheme(i) {
+    const r = RAMPS[i] || RAMPS[0]
+    const c = r.colors
+    this.c0 = c[0]
+    this.c1 = c[1]
+    this.cColon = c[2]
+    this.c2 = c[3]
+    this.c3 = c[4]
+  },
+
+  loadTheme() {
+    const self = this
+    try {
+      storage.get({
+        key: GRAD_KEY,
+        success: function(res) {
+          var i = 0
+          if (res && res.value !== undefined && res.value !== null) {
+            i = parseInt(res.value, 10)
+            if (isNaN(i)) i = 0
+          }
+          self.applyTheme(i)
+        },
+        fail: function() {
+          self.applyTheme(0)
+        }
+      })
+    } catch (e) {
+      this.applyTheme(0)
+    }
+  },
+
+  saveTheme(i) {
+    try {
+      storage.set({ key: GRAD_KEY, value: String(i) })
+    } catch (e) {}
+  },
+
+  openPanel() {
+    this.suppressTap = true
+    this.showPanel = true
+  },
+
+  closePanel() {
+    this.showPanel = false
+    const self = this
+    setTimeout(function() {
+      self.suppressTap = false
+    }, 300)
+  },
+
+  pick(i) {
+    this.applyTheme(i)
+    this.saveTheme(i)
+    this.closePanel()
+  },
+
+  onTap() {
+    if (this.suppressTap) return
+    router.replace({ uri: LIST_PAGE })
+  },
+
+  goBack() {
+    router.replace({ uri: LIST_PAGE })
+  }
+}
+</script>
+
+<style>
+  .page {
+    width: 100%;
+    height: 100%;
+    background-color: #14131f;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .clock {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .digit {
+    font-size: 60px;
+    font-weight: bold;
+  }
+
+  .colon {
+    font-size: 56px;
+    font-weight: bold;
+    margin: 0 2px;
+  }
+
+  .btn-color {
+    margin-top: 36px;
+    font-size: 22px;
+    color: #7ec8e3;
+  }
+
+  .back {
+    margin-top: 14px;
+    font-size: 22px;
+    color: #888899;
+  }
+
+  .mask {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .panel {
+    width: 240px;
+    flex-direction: column;
+    align-items: center;
+    background-color: #16213e;
+    border-radius: 12px;
+    padding: 16px 0 12px 0;
+  }
+
+  .p-title {
+    font-size: 22px;
+    color: #ffffff;
+    margin-bottom: 6px;
+  }
+
+  .p-item {
+    font-size: 26px;
+    padding: 7px 0;
+  }
+
+  .p-cancel {
+    margin-top: 8px;
+    font-size: 22px;
+    color: #888899;
+  }
+</style>

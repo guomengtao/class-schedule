@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.8.154",
-  "versionCode": 1234,
+  "versionName": "1.8.156",
+  "versionCode": 1236,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
@@ -41,6 +41,9 @@
     },
     {
       "name": "system.file"
+    },
+    {
+      "name": "system.battery"
     }
   ],
   "permissions": [
@@ -162,6 +165,12 @@
       },
       "pages/watch-face-background": {
         "component": "watch-face-background"
+      },
+      "pages/watch-face-gradient": {
+        "component": "watch-face-gradient"
+      },
+      "pages/watch-face-functional": {
+        "component": "watch-face-functional"
       },
       "pages/watch-face-list": {
         "component": "watch-face-list"

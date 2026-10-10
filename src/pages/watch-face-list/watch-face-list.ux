@@ -50,6 +50,16 @@
         <text class="item-label" style="color: {{ theme.text }}">背景表盘</text>
         <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openGradient">
+        <text class="item-label" style="color: {{ theme.text }}">渐变表盘</text>
+        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openFunctional">
+        <text class="item-label" style="color: {{ theme.text }}">功能表盘</text>
+        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
     </div>
 
     </div>
@@ -128,6 +138,14 @@ export default {
 
   openBackground() {
     router.push({ uri: "/pages/watch-face-background" })
+  },
+
+  openGradient() {
+    router.push({ uri: "/pages/watch-face-gradient" })
+  },
+
+  openFunctional() {
+    router.push({ uri: "/pages/watch-face-functional" })
   },
 
   goBack() {
