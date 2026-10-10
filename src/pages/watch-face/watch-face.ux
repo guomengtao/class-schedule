@@ -1,13 +1,14 @@
 <template>
   <!--
-    经典表盘 ① · 最简版
-    页面上只有两件事：
-      ① 一个可见的「返回」按钮
-      ② 点击页面任何位置（含四周空白区）也能返回
-    两者都导航到「表盘目录」。
-    已撤掉：时钟 / setInterval / 上下滑动 / 长按退出 / 防重入 等全部逻辑。
+    经典表盘 ① · 简单版
+    页面上就三样，别的一概没有：
+      ① 一行大号时间（HH:MM，每分钟自己刷新）
+      ② 一个可见的「返回」按钮
+      ③ 点击页面任何位置（含四周空白区）也能返回
+    不加：上下滑动 / 长按退出 / 秒针 / 日期 / 课程信息。
   -->
   <div class="page" onclick="onTap">
+    <text class="clock">{{timeText}}</text>
     <text class="back" onclick="goBack">返回</text>
   </div>
 </template>
@@ -18,6 +19,57 @@ import router from "@system.router"
 const LIST_PAGE = "/pages/watch-face-list"
 
 export default {
+  data: {
+    timeText: "--:--"
+  },
+
+  onInit() {
+    this.tick()
+  },
+
+  onReady() {
+    this.refresh()
+  },
+
+  onShow() {
+    this.refresh()
+  },
+
+  onHide() {
+    this.stop()
+  },
+
+  onDestroy() {
+    this.stop()
+  },
+
+  /* 1s 一跳：到分钟才重设文本，避免无谓重渲染（Vela 对高频刷新敏感） */
+  refresh() {
+    this.stop()
+    this.tick()
+    const self = this
+    this.timer = setInterval(function() {
+      self.tick()
+    }, 1000)
+  },
+
+  stop() {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = undefined
+    }
+  },
+
+  tick() {
+    const now = new Date()
+    const t = this.pad(now.getHours()) + ":" + this.pad(now.getMinutes())
+    if (t !== this.timeText) this.timeText = t
+  },
+
+  pad(n) {
+    return n < 10 ? "0" + n : "" + n
+  },
+
   /* 点击页面任意位置（空白区）→ 回表盘目录 */
   onTap() {
     router.replace({ uri: LIST_PAGE })
@@ -42,8 +94,18 @@ export default {
     align-items: center;
   }
 
-  .back {
-    font-size: 28px;
+  /* 主角：大号时间，水平垂直居中 */
+  .clock {
+    font-size: 68px;
     color: #e8e4da;
+    font-weight: bold;
+    letter-spacing: 2px;
+  }
+
+  /* 返回按钮：低调灰字，挂在时间下方 */
+  .back {
+    margin-top: 44px;
+    font-size: 22px;
+    color: #888899;
   }
 </style>
