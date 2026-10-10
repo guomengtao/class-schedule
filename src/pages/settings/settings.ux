@@ -144,10 +144,10 @@
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
-      <div class="row" onclick="openEvPointer">
-        <text class="row-label" style="color: {{ theme.text }}">EV指针</text>
+      <div class="row" onclick="openWatchFaceList">
+        <text class="row-label" style="color: {{ theme.text }}">表盘目录</text>
         <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">仿古金属指针表盘</text>
+          <text class="row-hint" style="color: {{ theme.textMuted }}">全部表盘</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
@@ -440,6 +440,10 @@ export default {
 
   openEvPointer() {
     router.push({ uri: "/pages/watch-face-evpointer" })
+  },
+
+  openWatchFaceList() {
+    router.push({ uri: "/pages/watch-face-list" })
   },
 
   openPhoneRemote() {

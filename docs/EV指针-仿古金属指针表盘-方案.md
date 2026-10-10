@@ -192,3 +192,28 @@
 ③ **少层少 DOM**。
 
 **验证**：`npm run build:dev` → `build success 5347ms`，产出 `.temp_class-schedule/dist/com.application.watch.classschedule.debug.1.8.55.rpk`，本页零报错（其余告警均为存量他页）。真机观感按 §3.8e **待用户手动核实**。
+
+---
+
+## 十一、用户指令：不抄别人，自己从零增量开发（2026-10-09 21:46）
+
+**用户原话**：「别抄别人的，别人的也是有问题，你自己一点点的开发 一点点的实验，代码一步步的加」
+
+**裁决**：手册 §十 之前的排查结论互相打架（先说「群组选择器」，后被「一次加一项」实验推翻说「setInterval 致黑」，又拿别人 `watch-face-gold` 推翻说「是 flex 居中」）。
+用户明确不信任任何「别人的页面」作为参照，要求**自己重写、变量逐个加、每步可验证**。
+
+**新开发策略（实验阶梯，每步独立验证显示与否）**：
+
+| 步进 | 内容 | 验证目标 |
+|---|---|---|
+| **v1**（已做） | 青铜表壳 + 三指针（打开/onShow 算一次当前角度，**无定时器**）+ EV 铭文。**无 for 循环、无 setInterval**。`.page` 用 `position:relative` + 全屏，**绝不加 flex centering** | 验证「relative 根 + 全 absolute 子元素 + 静态 transform:rotate」能否正常显示（手册受控实验已证此部分安全） |
+| v2（待） | + 12 地支 + 12 刻度（仍静态，`onInit` 一次性 `for` 算坐标） | 验证 for 循环静态渲染是否安全 |
+| v3（待） | + `setInterval` 扫秒走时 | 专门验「是不是定时器导致黑屏」这个悬案 |
+
+**v1 落地**：
+- 重写 `src/pages/watch-face-evpointer/watch-face-evpointer.ux`（从零自己写，未参照任何他人页面源码）。
+- 构建：`npm run release` → `dist/com.application.watch.classschedule.release.1.8.70.rpk`（含 `ev-v1.8.70-t-9p-d.rpk`）。拆包确认 `pages/watch-face-evpointer/watch-face-evpointer.jsc` 已编译进包。
+- 构建期 `workday-info` 页的 `FSMoveObjectToTrashSync` 回收站报错为**他页环境噪音**，本页 jsc 正常产出，不影响本页验证。
+- 真机观感（是否显示青铜表盘+三指针）按 §3.8e **待用户手动核实**——若显示→v1 基线成立，进 v2；若仍黑→把盘面/指针逐项再砍到最小定位。
+
+**纪律**：v1 未提交（WIP、待用户验证）；只动 `watch-face-evpointer.ux` 一个文件，不动他人 WIP。
