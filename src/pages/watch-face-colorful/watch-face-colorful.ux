@@ -1,0 +1,260 @@
+<template>
+  <!--
+    彩色表盘 ② · 每个数字不同色
+    骨架完全照经典表盘 watch-face.ux（已验证不黑屏）：
+      · .page flex 居中；文字/按钮走正常流；换色面板用 absolute overlay（与经典一致）
+      · 「换色」按钮 → 弹出配色面板（4 套配色），storage 持久化
+      · 「返回」按钮 + 点击空白处返回
+    本表盘差异：时间拆成 H H : M M 五个字符，各自绑定不同颜色。
+  -->
+  <div class="page" onclick="onTap">
+    <div class="clock">
+      <text class="digit" style="color: {{ c0 }}">{{ d0 }}</text>
+      <text class="digit" style="color: {{ c1 }}">{{ d1 }}</text>
+      <text class="colon" style="color: {{ cColon }}">:</text>
+      <text class="digit" style="color: {{ c2 }}">{{ d2 }}</text>
+      <text class="digit" style="color: {{ c3 }}">{{ d3 }}</text>
+    </div>
+    <text class="btn-color" onclick="openPanel">换色</text>
+    <text class="back" onclick="goBack">返回</text>
+
+    <!-- 配色选择面板 -->
+    <div class="mask" if="{{ showPanel }}" onclick="closePanel">
+      <div class="panel">
+        <text class="p-title">配色</text>
+        <text class="p-item" style="color: {{ pal0Color }}" onclick="pick(0)">糖果</text>
+        <text class="p-item" style="color: {{ pal1Color }}" onclick="pick(1)">霓虹</text>
+        <text class="p-item" style="color: {{ pal2Color }}" onclick="pick(2)">马卡龙</text>
+        <text class="p-item" style="color: {{ pal3Color }}" onclick="pick(3)">冷色</text>
+        <text class="p-cancel" onclick="closePanel">取消</text>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+
+const storage = require("@system.storage")
+
+const LIST_PAGE = "/pages/watch-face-list"
+const PAL_KEY = "wf_colorful_palette"
+
+/* 4 套配色：每套 5 色，依次 = 时十位 / 时个位 / 冒号 / 分十位 / 分个位 */
+const PALETTES = [
+  { colors: ["#ff6b6b", "#ffd166", "#7ec8e3", "#7dffb0", "#c792ea"] }, // 糖果
+  { colors: ["#ff0090", "#00e5ff", "#ffee00", "#00ff85", "#ff6a00"] }, // 霓虹
+  { colors: ["#ff9aa2", "#ffb7b2", "#ffdac1", "#e2f0cb", "#b5ead7"] }, // 马卡龙
+  { colors: ["#4fc3f7", "#81d4fa", "#a5d6a7", "#c5e1a5", "#e6ee9c"] }  // 冷色
+]
+
+export default {
+  data: {
+    d0: "0", d1: "0", d2: "0", d3: "0",
+    c0: "#ff6b6b", c1: "#ffd166", cColon: "#7ec8e3", c2: "#7dffb0", c3: "#c792ea",
+    pal0Color: "#ff6b6b", pal1Color: "#ff0090", pal2Color: "#ff9aa2", pal3Color: "#4fc3f7",
+    showPanel: false,
+    suppressTap: false
+  },
+
+  onInit() {
+    this.loadPalette()
+    this.tick()
+  },
+
+  onReady() {
+    this.refresh()
+  },
+
+  onShow() {
+    this.refresh()
+  },
+
+  onHide() {
+    this.stop()
+  },
+
+  onDestroy() {
+    this.stop()
+  },
+
+  /* ── 时间：1s 心跳，只在变化时写文本 ── */
+  refresh() {
+    this.stop()
+    this.tick()
+    const self = this
+    this.timer = setInterval(function() {
+      self.tick()
+    }, 1000)
+  },
+
+  stop() {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = undefined
+    }
+  },
+
+  tick() {
+    const now = new Date()
+    const h = this.pad(now.getHours())
+    const m = this.pad(now.getMinutes())
+    if (h[0] !== this.d0) this.d0 = h[0]
+    if (h[1] !== this.d1) this.d1 = h[1]
+    if (m[0] !== this.d2) this.d2 = m[0]
+    if (m[1] !== this.d3) this.d3 = m[1]
+  },
+
+  pad(n) {
+    return n < 10 ? "0" + n : "" + n
+  },
+
+  /* ── 配色 ── */
+  applyPalette(i) {
+    const p = PALETTES[i] || PALETTES[0]
+    const c = p.colors
+    this.c0 = c[0]
+    this.c1 = c[1]
+    this.cColon = c[2]
+    this.c2 = c[3]
+    this.c3 = c[4]
+  },
+
+  loadPalette() {
+    const self = this
+    try {
+      storage.get({
+        key: PAL_KEY,
+        success: function(res) {
+          var i = 0
+          if (res && res.value !== undefined && res.value !== null) {
+            i = parseInt(res.value, 10)
+            if (isNaN(i)) i = 0
+          }
+          self.applyPalette(i)
+        },
+        fail: function() {
+          self.applyPalette(0)
+        }
+      })
+    } catch (e) {
+      this.applyPalette(0)
+    }
+  },
+
+  savePalette(i) {
+    try {
+      storage.set({ key: PAL_KEY, value: String(i) })
+    } catch (e) {}
+  },
+
+  /* ── 面板开关（打开期间挡住整页点击返回） ── */
+  openPanel() {
+    this.suppressTap = true
+    this.showPanel = true
+  },
+
+  closePanel() {
+    this.showPanel = false
+    const self = this
+    setTimeout(function() {
+      self.suppressTap = false
+    }, 300)
+  },
+
+  pick(i) {
+    this.applyPalette(i)
+    this.savePalette(i)
+    this.closePanel()
+  },
+
+  /* ── 返回 ── */
+  onTap() {
+    if (this.suppressTap) return
+    router.replace({ uri: LIST_PAGE })
+  },
+
+  goBack() {
+    router.replace({ uri: LIST_PAGE })
+  }
+}
+</script>
+
+<style>
+  .page {
+    width: 100%;
+    height: 100%;
+    background-color: #1a1a2e;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* 一行：H H : M M */
+  .clock {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .digit {
+    font-size: 60px;
+    font-weight: bold;
+  }
+
+  .colon {
+    font-size: 56px;
+    font-weight: bold;
+    margin: 0 2px;
+  }
+
+  .btn-color {
+    margin-top: 36px;
+    font-size: 22px;
+    color: #7ec8e3;
+  }
+
+  .back {
+    margin-top: 14px;
+    font-size: 22px;
+    color: #888899;
+  }
+
+  /* ── 配色面板 ── */
+  .mask {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .panel {
+    width: 240px;
+    flex-direction: column;
+    align-items: center;
+    background-color: #16213e;
+    border-radius: 12px;
+    padding: 16px 0 12px 0;
+  }
+
+  .p-title {
+    font-size: 22px;
+    color: #ffffff;
+    margin-bottom: 6px;
+  }
+
+  .p-item {
+    font-size: 26px;
+    padding: 7px 0;
+  }
+
+  .p-cancel {
+    margin-top: 8px;
+    font-size: 22px;
+    color: #888899;
+  }
+</style>

@@ -142,6 +142,9 @@
       "pages/watch-face": {
         "component": "watch-face"
       },
+      "pages/watch-face-random": {
+        "component": "watch-face-random"
+      },
       "pages/watch-face-class": {
         "component": "watch-face-class"
       },
@@ -153,6 +156,12 @@
       },
       "pages/watch-face-evpointer": {
         "component": "watch-face-evpointer"
+      },
+      "pages/watch-face-colorful": {
+        "component": "watch-face-colorful"
+      },
+      "pages/watch-face-background": {
+        "component": "watch-face-background"
       },
       "pages/watch-face-list": {
         "component": "watch-face-list"

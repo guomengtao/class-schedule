@@ -16,6 +16,11 @@
         <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openWatchFaceRandom">
+        <text class="item-label" style="color: {{ theme.text }}">随机表盘</text>
+        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openWatchFaceClass">
         <text class="item-label" style="color: {{ theme.text }}">课程表盘</text>
         <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
@@ -33,6 +38,16 @@
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openWatchFaceMetal">
         <text class="item-label" style="color: {{ theme.text }}">仿古金属表盘</text>
+        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openColorful">
+        <text class="item-label" style="color: {{ theme.text }}">彩色表盘</text>
+        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openBackground">
+        <text class="item-label" style="color: {{ theme.text }}">背景表盘</text>
         <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
     </div>
@@ -87,6 +102,10 @@ export default {
     router.push({ uri: "/pages/watch-face" })
   },
 
+  openWatchFaceRandom() {
+    router.push({ uri: "/pages/watch-face-random" })
+  },
+
   openWatchFaceClass() {
     router.push({ uri: "/pages/watch-face-class" })
   },
@@ -101,6 +120,14 @@ export default {
 
   openWatchFaceMetal() {
     router.push({ uri: "/pages/watch-face-metal" })
+  },
+
+  openColorful() {
+    router.push({ uri: "/pages/watch-face-colorful" })
+  },
+
+  openBackground() {
+    router.push({ uri: "/pages/watch-face-background" })
   },
 
   goBack() {
