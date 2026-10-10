@@ -37,7 +37,8 @@ export default {
     return n < 10 ? "0" + n : "" + n
   },
 
-  /* 下滑 → 课程表盘。Vela 无 onswipe，靠 touchstart/touchend 手算 Y 位移。 */
+  /* 上下滑动切表盘（Vela 无 onswipe，靠 touchstart/touchend 手算 Y 位移）
+     环：①经典 上滑→⑤仿古金属 / 下滑→②课程 */
   onTouchStart(e) {
     const t = (e && e.touches && e.touches[0]) || e || {}
     this.touchStartY = t.clientY || t.offsetY || t.pageY || 0
@@ -46,7 +47,10 @@ export default {
   onTouchEnd(e) {
     const t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]) || e || {}
     const endY = t.clientY || t.offsetY || t.pageY || 0
-    if (this.touchStartY && (endY - this.touchStartY) >= 40) {
+    const d = this.touchStartY ? (this.touchStartY - endY) : 0
+    if (d >= 40) {
+      router.replace({ uri: "/pages/watch-face-metal" })
+    } else if (d <= -40) {
       router.replace({ uri: "/pages/watch-face-class" })
     }
     this.touchStartY = 0

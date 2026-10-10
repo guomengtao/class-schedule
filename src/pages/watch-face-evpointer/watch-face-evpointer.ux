@@ -1,151 +1,57 @@
 <template>
-  <!--
-    EV指针 · 仿古金属指针表盘（独立页面 watch-face-evpointer）
-    —— 与并行会话的 watch-face-metal 完全隔离，各做各的，互不改对方文件。
-
-    设备：小米手环 9 标准版 · 跑道/胶囊屏 192×490
-    几何：盘心 (96,240)，刻度半径 70，地支半径 54（避开上下弧形危险区）
-
-    设计：仿中国古代青铜器 —— 青铜同心环表壳 + 12 格长刻度 + 十二地支（子…亥）
-          + 铜色时/分针 + 赤铜秒针 + 12 点位 EV 铭文。单击盘面返回。
-
-    ⚠️ 简化重写的三条硬约束（黑屏教训，勿回退）：
-      1) 样式表【禁用群组选择器】(.a, .b {}) —— 全仓仅此页用过，疑似导致整表被丢 → 全页失样式黑屏；
-      2) 根容器必须显式 width/height:100% + flex-direction:column（Vela 绝对定位子元素需要 flex 上下文）；
-      3) 少层少 DOM —— 去掉半色调叠影/双影地支，刻度 60 → 12 格。
-  -->
-  <div class="page">
-    <!-- 表壳：青铜同心环（外缘 → 中圈 → 内圈 → 盘面），靠颜色层次造金属厚度 -->
-    <div class="case-outer"></div>
-    <div class="case-mid"></div>
-    <div class="case-inner"></div>
-    <div class="dial"></div>
-
-    <!-- 12 格长刻度（每 5 分钟一格，对应十二地支方位） -->
-    <div class="tick" for="{{ticks}}"
-         style="left: {{$item.x}}px; top: {{$item.y}}px; width: {{$item.w}}px; height: {{$item.h}}px; background-color: {{$item.c}}"></div>
-
-    <!-- 十二地支（子＝12 点，顺时针每 30°） -->
-    <text class="gan" for="{{ganZhi}}"
-          style="left: {{$item.x}}px; top: {{$item.y}}px; color: {{$item.c}}">{{$item.t}}</text>
-
-    <!-- 12 点位内圈铭文 EV -->
-    <text class="brand">EV</text>
-
-    <!-- 指针：铜时针 / 铜分针 / 赤铜秒针 + 铜轴帽 -->
-    <div class="hand-hour" style="transform: rotate({{hourDeg}}deg)"></div>
-    <div class="hand-minute" style="transform: rotate({{minDeg}}deg)"></div>
-    <div class="sec-hand" style="transform: rotate({{secDeg}}deg)"></div>
-    <div class="center-cap"></div>
-
-    <!-- 隐形热区：覆盖盘区，单击返回上一页 -->
-    <div class="hit-face" onclick="onFaceTap"></div>
+  <!-- EV指针 ④ · 上下滑动切表盘：上滑→③金属字针表，下滑→⑤仿古金属表盘 -->
+  <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd">
+    <text class="clock">{{timeText}}</text>
+    <text class="back" onclick="goBack">返回</text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
 
-const CX = 96          // 盘心 x（屏宽 192 正中）
-const CY = 240         // 盘心 y（避上下弧形危险区）
-const R_TICK = 70      // 刻度半径
-const R_GAN = 54       // 地支半径
-const TICK_MS = 100    // 扫秒刷新间隔（连续扫动感）
-
-// 十二地支：子(12点) → 亥，顺时针每 30°
-const GAN = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
-
-/** 极坐标 → 元素左上角坐标（元素自身中心落在半径 R 上）。 */
-function place(radius, deg, w, h) {
-  const rad = deg * Math.PI / 180
-  return {
-    x: Math.round((CX + radius * Math.sin(rad) - w / 2) * 10) / 10,
-    y: Math.round((CY - radius * Math.cos(rad) - h / 2) * 10) / 10
-  }
-}
-
 export default {
-  private: {
-    hourDeg: 0,
-    minDeg: 0,
-    secDeg: 0,
-    ticks: [],
-    ganZhi: [],
-    timer: null
+  data: {
+    timeText: "--:--:--",
+    touchStartY: 0
   },
-
   onInit() {
-    this.buildDial()
     this.tick()
   },
-
-  onShow() {
-    this.startTimer()
+  onReady() {
+    this.timer = setInterval(() => this.tick(), 1000)
   },
-
-  onHide() {
-    this.stopTimer()
-  },
-
   onDestroy() {
-    this.stopTimer()
-  },
-
-  // ==================== 盘面静态构件（一次性算好坐标） ====================
-
-  buildDial() {
-    // 12 格长刻度
-    const ticks = []
-    for (let i = 0; i < 12; i++) {
-      const deg = i * 30
-      const w = 3
-      const h = 10
-      const p = place(R_TICK, deg, w, h)
-      ticks.push({ x: p.x, y: p.y, w: w, h: h, c: '#a4904a' })
-    }
-    this.ticks = ticks
-
-    // 十二地支
-    const ganZhi = []
-    for (let i = 0; i < 12; i++) {
-      const deg = i * 30
-      const t = GAN[i]
-      const p = place(R_GAN, deg, 20, 20)
-      ganZhi.push({ x: p.x, y: p.y, t: t, c: '#d9c67e' })
-    }
-    this.ganZhi = ganZhi
-  },
-
-  // ==================== 走时 ====================
-
-  startTimer() {
-    this.stopTimer()
-    const self = this
-    this.timer = setInterval(function () { self.tick() }, TICK_MS)
-  },
-
-  stopTimer() {
     if (this.timer) {
       clearInterval(this.timer)
-      this.timer = null
+      this.timer = undefined
     }
   },
-
   tick() {
-    const d = new Date()
-    const h = d.getHours()
-    const m = d.getMinutes()
-    const s = d.getSeconds()
-    const ms = d.getMilliseconds()
-    // 时针随分钟连续推进（机械表的时针是渐进的，不是整点跳）
-    this.hourDeg = (h % 12) * 30 + m * 0.5
-    this.minDeg = m * 6 + s * 0.1
-    this.secDeg = (s + ms / 1000) * 6
+    const now = new Date()
+    this.timeText = this.pad(now.getHours()) + ":" + this.pad(now.getMinutes()) + ":" + this.pad(now.getSeconds())
+  },
+  pad(n) {
+    return n < 10 ? "0" + n : "" + n
   },
 
-  // ==================== 退出：单击盘面返回 ====================
+  /* 上下滑动切表盘（Vela 无 onswipe，靠 touchstart/touchend 手算 Y 位移） */
+  onTouchStart(e) {
+    const t = (e && e.touches && e.touches[0]) || e || {}
+    this.touchStartY = t.clientY || t.offsetY || t.pageY || 0
+  },
+  onTouchEnd(e) {
+    const t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]) || e || {}
+    const endY = t.clientY || t.offsetY || t.pageY || 0
+    const d = this.touchStartY ? (this.touchStartY - endY) : 0
+    if (d >= 40) {
+      router.replace({ uri: "/pages/watch-face-gold" })
+    } else if (d <= -40) {
+      router.replace({ uri: "/pages/watch-face-metal" })
+    }
+    this.touchStartY = 0
+  },
 
-  onFaceTap() {
+  goBack() {
     router.back()
   }
 }
@@ -153,140 +59,22 @@ export default {
 
 <style>
   .page {
-    flex: 1;
-    flex-direction: column;
     width: 100%;
     height: 100%;
-    background-color: #0d100a;
+    background-color: #1a1a2e;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
-
-  /* ── 表壳同心环：青铜（外缘高光边 → 中圈铜锈绿 → 内圈暗铜） ── */
-  .case-outer {
-    position: absolute;
-    left: 4px;
-    top: 148px;
-    width: 184px;
-    height: 184px;
-    border-radius: 92px;
-    background-color: #2b3226;
-    border: 2px solid #6b7657;
-  }
-
-  .case-mid {
-    position: absolute;
-    left: 11px;
-    top: 155px;
-    width: 170px;
-    height: 170px;
-    border-radius: 85px;
-    background-color: #39422f;
-  }
-
-  .case-inner {
-    position: absolute;
-    left: 15px;
-    top: 159px;
-    width: 162px;
-    height: 162px;
-    border-radius: 81px;
-    background-color: #1e2418;
-  }
-
-  .dial {
-    position: absolute;
-    left: 18px;
-    top: 162px;
-    width: 156px;
-    height: 156px;
-    border-radius: 78px;
-    background-color: #262d1e;
-    border: 1px solid #4b573a;
-  }
-
-  /* ── 12 格长刻度 ── */
-  .tick {
-    position: absolute;
-    border-radius: 1px;
-  }
-
-  /* ── 十二地支 ── */
-  .gan {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    font-size: 14px;
+  .clock {
+    font-size: 48px;
+    color: #e8e4da;
     font-weight: bold;
-    text-align: center;
-    line-height: 20px;
+    letter-spacing: 4px;
   }
-
-  /* ── 12 点位铭文 EV ── */
-  .brand {
-    position: absolute;
-    left: 66px;
-    top: 196px;
-    width: 60px;
-    height: 16px;
-    font-size: 12px;
-    font-weight: bold;
-    text-align: center;
-    line-height: 16px;
-    color: #c9b978;
-  }
-
-  /* ── 指针（transform-origin 50% 100%：绕元素底边中点＝盘心旋转） ── */
-  .hand-hour {
-    position: absolute;
-    left: 92px;
-    top: 196px;
-    width: 8px;
-    height: 44px;
-    border-radius: 4px;
-    background-color: #c9a95e;
-    border: 1px solid #7d6a34;
-    transform-origin: 50% 100%;
-  }
-
-  .hand-minute {
-    position: absolute;
-    left: 93px;
-    top: 180px;
-    width: 6px;
-    height: 60px;
-    border-radius: 3px;
-    background-color: #d2b370;
-    border: 1px solid #7d6a34;
-    transform-origin: 50% 100%;
-  }
-
-  .sec-hand {
-    position: absolute;
-    left: 95px;
-    top: 172px;
-    width: 2px;
-    height: 68px;
-    background-color: #b8703c;
-    transform-origin: 50% 100%;
-  }
-
-  .center-cap {
-    position: absolute;
-    left: 91px;
-    top: 235px;
-    width: 10px;
-    height: 10px;
-    border-radius: 5px;
-    background-color: #dcc57e;
-    border: 1px solid #7d6a34;
-  }
-
-  /* ── 隐形热区（不画内容，单击返回） ── */
-  .hit-face {
-    position: absolute;
-    left: 18px;
-    top: 162px;
-    width: 156px;
-    height: 156px;
-    background-color: transparent;
+  .back {
+    font-size: 20px;
+    color: #888899;
+    margin-top: 40px;
   }
 </style>

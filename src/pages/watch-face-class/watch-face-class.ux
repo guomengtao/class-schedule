@@ -348,11 +348,15 @@ export default {
   onTouchEnd(e) {
     const t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]) || e || {}
     const endY = t.clientY || t.offsetY || t.pageY || 0
-    if (this.touchStartY && (this.touchStartY - endY) >= 40) {
+    const d = this.touchStartY ? (this.touchStartY - endY) : 0
+    if (d >= 40) {
       this.cancelExit()
-      // 上滑 = 切到「经典表盘」（两页互滑，用 replace 不堆返回栈）
+      // 上滑 = 上一页「经典表盘」；下滑 = 下一页「金属字针表」（环：①→②→③→④→⑤→①）
       // 退出回目录仍可用：长按时间区 / 长按卡片区 / 双击右下角 / 「返回」按钮
       router.replace({ uri: "/pages/watch-face" })
+    } else if (d <= -40) {
+      this.cancelExit()
+      router.replace({ uri: "/pages/watch-face-gold" })
     }
     this.touchStartY = 0
   },
