@@ -1,14 +1,6 @@
 <template>
-  <!--
-    横屏表盘 ①（v2 · 修黑屏）· 内容整体右转 90°，时间尽量大；按钮全隐藏；长按弹改色
-    ── 黑屏根因（本项目实测铁律）──
-    · transform 加在 **flex 子元素** 上会整页黑屏；唯一验证安全的姿势是「**绝对定位 + 字面量 transform**」
-      （见 watch-face-metal 三针表盘）。v1 把 rotate 加在 flex 子元素 .rot 上 → 黑。
-    · v2 改法：.page 用 position:relative（非 flex），旋转容器 .rot 改 **绝对定位铺满**，
-      内部再 flex 居中放时间。旋转仍用**字面量** rotate(90deg)，绝不做数据绑定。
-    ── 交互 ── 按钮全隐藏：点击整屏返回；长按弹出颜色面板（onlongpress）。
-    ── 待真机确认 ── 192×490 旋转后「时间尽量最大」的字号需上机微调（现取 108px）。
-  -->
+  <!-- 横屏表盘 ①：整体右转 90°，时间尽量大；按钮全隐藏；点击返回、长按改色。
+       黑屏根因：快应用 transform-origin 默认 0px 0px(左上角) → 必须显式设为中心(px)，见 .rot。 -->
   <div class="page" onclick="onTap" onlongpress="openPanel">
     <div class="rot">
       <text class="clock" style="color: {{ clockColor }}">{{ timeText }}</text>
@@ -156,6 +148,8 @@ export default {
   }
 
   /* 绝对定位铺满 + 内部 flex 居中 + 字面量旋转（照金属表盘的安全姿势） */
+  /* ⚠️ 快应用 transform-origin 默认 0px 0px（左上角，≠Web 中心），不设 → rotate 把内容甩出屏=黑。
+     显式设为中心（仅支持 px）：96px 245px = 192×490 跑道屏中心；换分辨率按「屏宽/2 屏高/2」改。 */
   .rot {
     position: absolute;
     left: 0;
@@ -166,6 +160,7 @@ export default {
     justify-content: center;
     align-items: center;
     transform: rotate(90deg);
+    transform-origin: 96px 245px;
   }
 
   .clock {
