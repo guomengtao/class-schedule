@@ -1,132 +1,25 @@
 <template>
   <!--
-    经典表盘 ① · 极简 —— 全屏只留一行动态大数字，不留任何按钮、不画任何元素。
-    退出（三条，前两条隐形、第三条可见）：
-      ① 单击屏幕任意位置 —— 直接回表盘目录（主路径）
-      ② 长按屏幕 2 秒 —— 松手即中止计时（防误触），满 2 秒震动一下并回表盘目录
-      ③ 点击时钟下方的「返回」文字 —— 回表盘目录
-    切换：上滑 → ⑤仿古金属表盘；下滑 → ②课程表盘。
-    Vela 无 onswipe，滑动方向靠 touchstart/touchend 手算 Y 位移。
+    经典表盘 · 最小 demo（排障专用，临时版）
+    目的：隔离「返回黑屏」到底出在表盘页，还是在目标页 / 导航本身。
+
+    刻意剔除一切可疑变量：
+      ✗ 时钟与 setInterval   ✗ 上下滑动（touchstart/touchend）
+      ✗ 整页 onclick         ✗ onlongpress      ✗ import vibrator
+      ✗ router.replace       ✗ exit()/防重入
+    .page 上零事件绑定，只有一个子元素「返回」，用最朴素的 router.back()。
   -->
-  <div class="page"
-       ontouchstart="onTouchStart"
-       ontouchend="onTouchEnd"
-       onlongpress="onLongPress"
-       onclick="onTap">
-    <text class="clock">{{timeText}}</text>
-    <text class="back" onclick="exit">返回</text>
+  <div class="page">
+    <text class="back" onclick="goBack">返回</text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
-import vibrator from "@system.vibrator"
-
-const SWIPE_MIN = 40   // 判定为滑动的最小 Y 位移
-const LONG_PRESS_MS = 2000
-const DOUBLE_TAP_MS = 500
 
 export default {
-  data: {
-    timeText: "--:--",
-    touchStartY: 0,
-    pressTimer: null,
-    lastTap: 0,
-    exiting: false
-  },
-
-  onInit() {
-    this.tick()
-  },
-
-  onReady() {
-    this.timer = setInterval(() => this.tick(), 1000)
-  },
-
-  onHide() {
-    this.clearPress()
-  },
-
-  onDestroy() {
-    if (this.timer) {
-      clearInterval(this.timer)
-      this.timer = undefined
-    }
-    this.clearPress()
-  },
-
-  tick() {
-    const now = new Date()
-    this.timeText = this.pad(now.getHours()) + ":" + this.pad(now.getMinutes())
-  },
-
-  pad(n) {
-    return n < 10 ? "0" + n : "" + n
-  },
-
-  /* ── 退出途径一：长按 2 秒 ── */
-  onLongPress() {
-    const self = this
-    this.clearPress()
-    this.pressTimer = setTimeout(function() {
-      self.exit()
-    }, LONG_PRESS_MS)
-  },
-
-  clearPress() {
-    if (this.pressTimer) {
-      clearTimeout(this.pressTimer)
-      this.pressTimer = null
-    }
-  },
-
-  /* ── 退出途径二：单击任意位置（主路径）──
-     单击即返回，所以「双击」在效果上同样成立（第一击就退出去了）。── */
-  onTap() {
-    const now = new Date().getTime()
-    if (this.lastTap && (now - this.lastTap) < DOUBLE_TAP_MS) {
-      this.lastTap = 0
-      this.exit()
-      return
-    }
-    this.lastTap = now
-    this.exit()
-  },
-
-  /* ── 上下滑动切换表盘（环：①经典 上滑→⑤仿古金属 / 下滑→②课程） ── */
-  onTouchStart(e) {
-    const t = (e && e.touches && e.touches[0]) || e || {}
-    this.touchStartY = t.clientY || t.offsetY || t.pageY || 0
-  },
-
-  onTouchEnd(e) {
-    this.clearPress()   // 松手即中止长按计时，避免误退出
-    const t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]) || e || {}
-    const endY = t.clientY || t.offsetY || t.pageY || 0
-    const d = this.touchStartY ? (this.touchStartY - endY) : 0
-    if (d >= SWIPE_MIN) {
-      router.replace({ uri: "/pages/watch-face-metal" })
-    } else if (d <= -SWIPE_MIN) {
-      router.replace({ uri: "/pages/watch-face-class" })
-    }
-    this.touchStartY = 0
-  },
-
-  exit() {
-    // 防重入：点「返回」按钮会先触发按钮自身的 onclick、再冒泡到 .page 的 onclick，
-    // 只认第一次，避免重复导航 / 重复震动。
-    if (this.exiting) return
-    this.exiting = true
-    this.clearPress()
-    this.lastTap = 0
-    try {
-      vibrator.vibrate({ mode: "short" })
-    } catch (e) {
-      /* 无震动模块不影响退出 */
-    }
-    // 用 replace 精确落到「表盘目录」，不依赖返回栈 ——
-    // back() 在 replace 切换过页面的场景下会落到已销毁的页面，是黑屏高发点。
-    router.replace({ uri: "/pages/watch-face-list" })
+  goBack() {
+    router.back()
   }
 }
 </script>
@@ -141,18 +34,8 @@ export default {
     align-items: center;
   }
 
-  /* 全屏主角：大号等宽数字，水平垂直居中 */
-  .clock {
-    font-size: 68px;
-    color: #e8e4da;
-    font-weight: bold;
-    letter-spacing: 2px;
-  }
-
-  /* 可见的「返回」按钮：低调灰字，挂在时钟下方，不抢画面 */
   .back {
-    margin-top: 44px;
-    font-size: 22px;
-    color: #888899;
+    font-size: 28px;
+    color: #e8e4da;
   }
 </style>
