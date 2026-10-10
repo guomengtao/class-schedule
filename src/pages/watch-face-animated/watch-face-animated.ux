@@ -1,0 +1,162 @@
+<template>
+  <!--
+    动画表盘 ④ · 最小 demo（先验证不黑屏，再加完整版）
+    ── 安全红线（本项目实测铁律）──
+    · 只见 @keyframes + animation-name/duration/delay/iteration-count(起用 infinite)/timing-function
+    · 动画内只用**字面量** transform(scaleY) 与 opacity；绝不把 transform 做成数据绑定
+    · 不用 transition / position:fixed / z-index / 伪类 / 大 for
+    · 动画元素宁少勿多 → 本 demo 仅 5 根柱
+    ── 骨架 ── 照经典表盘（flex 居中，无 absolute 子元素）
+  -->
+  <div class="page" onclick="onTap">
+    <text class="clock" style="color: {{ clockColor }}">{{ timeText }}</text>
+
+    <!-- 5 根错相位「均衡器」柱 -->
+    <div class="bars">
+      <div class="bar b0" style="background-color: {{ clockColor }}"></div>
+      <div class="bar b1" style="background-color: {{ clockColor }}"></div>
+      <div class="bar b2" style="background-color: {{ clockColor }}"></div>
+      <div class="bar b3" style="background-color: {{ clockColor }}"></div>
+      <div class="bar b4" style="background-color: {{ clockColor }}"></div>
+    </div>
+
+    <text class="back" onclick="goBack">返回</text>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+
+const storage = require("@system.storage")
+
+const LIST_PAGE = "/pages/watch-face-list"
+const COLOR_KEY = "wf_clock_color"
+
+export default {
+  data: {
+    timeText: "--:--",
+    clockColor: "#7ec8e3"
+  },
+
+  onInit() {
+    this.loadColor()
+    this.tick()
+  },
+
+  onReady() {
+    this.refresh()
+  },
+
+  onShow() {
+    this.refresh()
+  },
+
+  onHide() {
+    this.stop()
+  },
+
+  onDestroy() {
+    this.stop()
+  },
+
+  refresh() {
+    this.stop()
+    this.tick()
+    const self = this
+    this.timer = setInterval(function() {
+      self.tick()
+    }, 1000)
+  },
+
+  stop() {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = undefined
+    }
+  },
+
+  tick() {
+    const now = new Date()
+    const t = this.pad(now.getHours()) + ":" + this.pad(now.getMinutes())
+    if (t !== this.timeText) this.timeText = t
+  },
+
+  pad(n) {
+    return n < 10 ? "0" + n : "" + n
+  },
+
+  loadColor() {
+    const self = this
+    try {
+      storage.get({
+        key: COLOR_KEY,
+        success: function(res) {
+          if (res && res.value) self.clockColor = res.value
+        },
+        fail: function() {}
+      })
+    } catch (e) {}
+  },
+
+  onTap() {
+    router.replace({ uri: LIST_PAGE })
+  },
+
+  goBack() {
+    router.replace({ uri: LIST_PAGE })
+  }
+}
+</script>
+
+<style>
+  .page {
+    width: 100%;
+    height: 100%;
+    background-color: #0e0f16;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .clock {
+    font-size: 64px;
+    font-weight: bold;
+    letter-spacing: 2px;
+  }
+
+  .bars {
+    margin-top: 30px;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .bar {
+    width: 12px;
+    height: 52px;
+    border-radius: 6px;
+    margin: 0 4px;
+    animation-name: kf-eq;
+    animation-duration: 1.2s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+  }
+
+  /* 错相位，形成流动的律动 */
+  .b0 { animation-delay: 0s; }
+  .b1 { animation-delay: 0.15s; }
+  .b2 { animation-delay: 0.3s; }
+  .b3 { animation-delay: 0.45s; }
+  .b4 { animation-delay: 0.6s; }
+
+  @keyframes kf-eq {
+    0%   { transform: scaleY(0.3); opacity: 0.5; }
+    50%  { transform: scaleY(1);   opacity: 1; }
+    100% { transform: scaleY(0.3); opacity: 0.5; }
+  }
+
+  .back {
+    margin-top: 34px;
+    font-size: 22px;
+    color: #888899;
+  }
+</style>
