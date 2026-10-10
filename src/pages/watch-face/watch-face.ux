@@ -1,9 +1,10 @@
 <template>
   <!--
     经典表盘 ① · 极简 —— 全屏只留一行动态大数字，不留任何按钮、不画任何元素。
-    退出（两条，全部隐形，不占画面）：
-      ① 长按屏幕 2 秒 —— 松手即中止计时（防误触），满 2 秒震动一下并回表盘目录
-      ② 双击屏幕（两次间隔 <500ms）—— 直接回表盘目录
+    退出（三条，前两条隐形、第三条可见）：
+      ① 单击屏幕任意位置 —— 直接回表盘目录（主路径）
+      ② 长按屏幕 2 秒 —— 松手即中止计时（防误触），满 2 秒震动一下并回表盘目录
+      ③ 点击时钟下方的「返回」文字 —— 回表盘目录
     切换：上滑 → ⑤仿古金属表盘；下滑 → ②课程表盘。
     Vela 无 onswipe，滑动方向靠 touchstart/touchend 手算 Y 位移。
   -->
@@ -13,6 +14,7 @@
        onlongpress="onLongPress"
        onclick="onTap">
     <text class="clock">{{timeText}}</text>
+    <text class="back" onclick="exit">返回</text>
   </div>
 </template>
 
@@ -29,7 +31,8 @@ export default {
     timeText: "--:--",
     touchStartY: 0,
     pressTimer: null,
-    lastTap: 0
+    lastTap: 0,
+    exiting: false
   },
 
   onInit() {
@@ -110,6 +113,10 @@ export default {
   },
 
   exit() {
+    // 防重入：点「返回」按钮会先触发按钮自身的 onclick、再冒泡到 .page 的 onclick，
+    // 只认第一次，避免重复导航 / 重复震动。
+    if (this.exiting) return
+    this.exiting = true
     this.clearPress()
     this.lastTap = 0
     try {
@@ -134,11 +141,18 @@ export default {
     align-items: center;
   }
 
-  /* 全屏唯一元素：大号等宽数字，水平垂直居中 */
+  /* 全屏主角：大号等宽数字，水平垂直居中 */
   .clock {
     font-size: 68px;
     color: #e8e4da;
     font-weight: bold;
     letter-spacing: 2px;
+  }
+
+  /* 可见的「返回」按钮：低调灰字，挂在时钟下方，不抢画面 */
+  .back {
+    margin-top: 44px;
+    font-size: 22px;
+    color: #888899;
   }
 </style>
