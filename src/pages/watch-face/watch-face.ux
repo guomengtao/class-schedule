@@ -115,7 +115,9 @@ export default {
     } catch (e) {
       /* 无震动模块不影响退出 */
     }
-    router.back()
+    // 用 replace 精确落到「表盘目录」，不依赖返回栈 ——
+    // back() 在 replace 切换过页面的场景下会落到已销毁的页面，是黑屏高发点。
+    router.replace({ uri: "/pages/watch-face-list" })
   }
 }
 </script>

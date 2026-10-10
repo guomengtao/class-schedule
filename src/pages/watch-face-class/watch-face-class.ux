@@ -110,6 +110,7 @@ export default {
     upcoming: [],
     cardHot: false,
     allCourses: null,
+    fallbackLabel: "",
     timer: null,
     pressTimer: null,
     pressStep: 0,
@@ -153,15 +154,33 @@ export default {
     }
   },
 
-  /** 取今天的课程数组（兼容 Mon/Monday/周一 等多种 key）。 */
+  /**
+   * 取今天的课程数组（兼容 Mon/Monday/周一 等多种 key）。
+   * 今日无课（周末 / 调休 / 当天没排课）时回退到「最近一个有课日」，
+   * 并把来源写进 this.fallbackLabel（如「周一课表」），由 recompute 负责展示。
+   */
   todayCourses() {
     const all = this.allCourses
     if (!all) return null
     const d = new Date().getDay()
     for (let i = 0; i < DAY_KEYS.length; i++) {
       const k = DAY_KEYS[i][d]
-      if (all[k]) return all[k]
+      if (all[k] && all[k].length) {
+        this.fallbackLabel = ""
+        return all[k]
+      }
     }
+    for (let step = 1; step <= 6; step++) {
+      const d2 = (d + step) % 7
+      for (let i = 0; i < DAY_KEYS.length; i++) {
+        const k = DAY_KEYS[i][d2]
+        if (all[k] && all[k].length) {
+          this.fallbackLabel = CN_DAY[d2] + "课表"
+          return all[k]
+        }
+      }
+    }
+    this.fallbackLabel = ""
     return null
   },
 
@@ -229,6 +248,32 @@ export default {
     rows.sort(function(a, b) { return a.s - b.s })
 
     this.countText = "今日 " + rows.length + " 节"
+
+    // 今日无课 → 回退展示「最近一个有课日」的课表。
+    // 只列课表、不做实时进度计算：时间基准是另一天，算「上课中/还剩几分钟」必然是错的。
+    if (this.fallbackLabel) {
+      this.countText = rows.length + " 节"
+      this.phaseText = this.fallbackLabel
+      this.phaseColor = "#ffd166"
+      this.courseName = rows[0] ? rows[0].name : "无课"
+      this.courseMeta = rows[0] ? rows[0].time : ""
+      this.leftText = ""
+      this.hasCourse = false
+      this.barWidth = 0
+      const up = []
+      for (let i = 0; i < rows.length && i < 3; i++) {
+        up.push({
+          idx: (i + 1) + "",
+          name: rows[i].name,
+          time: rows[i].time.split(/[-–—~]/)[0].trim(),
+          hot: false,
+          top: TL_TOP + i * 42
+        })
+      }
+      this.upcoming = up
+      this.footText = "今日无课 · 显示" + this.fallbackLabel
+      return
+    }
 
     let cur = null
     let next = null
