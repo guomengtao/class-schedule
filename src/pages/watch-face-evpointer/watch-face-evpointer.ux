@@ -1,6 +1,6 @@
 <template>
   <!-- EV指针 ④ · 上下滑动切表盘：上滑→③金属字针表，下滑→⑤仿古金属表盘 -->
-  <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd">
+  <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
     <text class="clock">{{timeText}}</text>
     <text class="back" onclick="goBack">返回</text>
   </div>
@@ -51,8 +51,13 @@ export default {
     this.touchStartY = 0
   },
 
+  /* ── 退出：单击任意位置（主路径）── */
+  onTap() {
+    router.replace({ uri: "/pages/watch-face-list" })
+  },
+
   goBack() {
-    router.back()
+    router.replace({ uri: "/pages/watch-face-list" })
   }
 }
 </script>

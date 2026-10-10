@@ -8,7 +8,7 @@
   -->
   <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd">
     <!-- face-wrapper: 统一坐标系容器，flex 居中于页面，156px 方形，所有功能元素在此内部 -->
-    <div class="face-wrapper">
+    <div class="face-wrapper" onclick="onTap">
       <!-- dial: 纯视觉背景，不再承载任何功能子元素 -->
       <div class="dial"></div>
 
@@ -160,8 +160,15 @@ export default {
   pad(n) {
     return n < 10 ? "0" + n : "" + n
   },
+  /* ── 退出：单击表盘图形任意位置（主路径）。
+         点击区刻意挂在 face-wrapper 上而非 .page ——
+         底部「停止 / 12:00 / 返回」按钮区是 face-wrapper 的兄弟节点、不在事件路径上，因此按钮不受影响。── */
+  onTap() {
+    router.replace({ uri: "/pages/watch-face-list" })
+  },
+
   onFaceTap() {
-    router.back()
+    router.replace({ uri: "/pages/watch-face-list" })
   },
 
   /* 上下滑动切表盘（环：⑤仿古金属 上滑→④EV指针 / 下滑→①经典）。

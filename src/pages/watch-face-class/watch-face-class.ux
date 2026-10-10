@@ -9,7 +9,7 @@
       ④ 自下往上滑 —— 切到「经典表盘」（两页上下滑动互切；onswipe 在 Vela 不可用，用 touchstart/touchend 判方向）
     松手即中止计时，防误触。
   -->
-  <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd">
+  <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
     <!-- 顶部状态条 -->
     <text class="status-left">{{ dateText }}</text>
     <text class="status-right">{{ countText }}</text>
@@ -419,6 +419,11 @@ export default {
     }
   },
 
+  /* ── 退出：单击任意位置（主路径）── */
+  onTap() {
+    this.doExit()
+  },
+
   doExit() {
     this.clearPress()
     this.cardHot = false
@@ -427,11 +432,12 @@ export default {
     } catch (e) {
       /* 无震动模块不影响退出 */
     }
-    router.back()
+    // replace 到目录：幂等 —— 连触两次也只停在目录；back 会退过头导致黑屏
+    router.replace({ uri: "/pages/watch-face-list" })
   },
 
   onBack() {
-    router.back()
+    this.doExit()
   }
 }
 </script>

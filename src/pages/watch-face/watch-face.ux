@@ -77,7 +77,8 @@ export default {
     }
   },
 
-  /* ── 退出途径二：双击 ── */
+  /* ── 退出途径二：单击任意位置（主路径）──
+     单击即返回，所以「双击」在效果上同样成立（第一击就退出去了）。── */
   onTap() {
     const now = new Date().getTime()
     if (this.lastTap && (now - this.lastTap) < DOUBLE_TAP_MS) {
@@ -86,6 +87,7 @@ export default {
       return
     }
     this.lastTap = now
+    this.exit()
   },
 
   /* ── 上下滑动切换表盘（环：①经典 上滑→⑤仿古金属 / 下滑→②课程） ── */
