@@ -5,6 +5,10 @@
     重走针用 @keyframes 动画（绕开 js 数据绑定 transform），三针速率对齐真实时间：
     秒针 60s 一圈、分针 3600s 一圈、时针 43200s 一圈。
     针走时零 setInterval（纯 CSS 动画）；底部数字时钟用 setInterval(1000) 仅更新文本。
+
+    ⏰ 时针独立（2026-10-12 用户定）：onReady 先 syncDelay() 按当前时间自动定位三针；
+    animDurHour 恒为 43200s 独立走时——「停止/继续」与预设按钮只冻结分秒针，
+    时针不被秒针状态绑架，也不再硬编码 delayHour=-10800（那会让时针永停 9 点方向）。
   -->
   <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
     <!-- face-wrapper: 统一坐标系容器，flex 居中于页面，156px 方形，所有功能元素在此内部 -->
@@ -86,7 +90,7 @@ export default {
     delaySecond: 0,
     timeText: "03:00:00",
     stopped: true,
-    animDurHour: "31536000000s",
+    animDurHour: "43200s",
     animDurMinute: "31536000000s",
     animDurSecond: "31536000000s",
     restartFlag: false,
@@ -98,11 +102,18 @@ export default {
   RUN_MINUTE: "3600s",
   RUN_SECOND: "60s",
   onInit() {
-    this.delayHour = -10800
+    // 时针 delay 初值 0：真正定位在 onReady 的 syncDelay() 里按当前时间算
+    // （旧代码这里硬编码 -10800 = 永远停在 9 点方向，是「时针位置不对」的根因）
+    this.delayHour = 0
     this.delayMinute = 0
     this.delaySecond = 0
   },
   onReady() {
+    // 进页面即按当前时间自动定位三针（时针独立走时，不受 stopped 影响）
+    this.syncDelay()
+    this.forceRestart()
+    const n0 = new Date()
+    this.timeText = this.pad(n0.getHours()) + ":" + this.pad(n0.getMinutes()) + ":" + this.pad(n0.getSeconds())
     this.timer = setInterval(() => this.tick(), 1000)
   },
   onDestroy() {
@@ -122,16 +133,15 @@ export default {
   },
   toggleStop() {
     this.markBtn()
+    // 时针独立走时：停止/继续只管分针与秒针，animDurHour 恒为 RUN_HOUR 不受牵连
     if (this.stopped) {
       this.stopped = false
-      this.animDurHour = this.RUN_HOUR
       this.animDurMinute = this.RUN_MINUTE
       this.animDurSecond = this.RUN_SECOND
       this.syncDelay()
       this.forceRestart()
     } else {
       this.stopped = true
-      this.animDurHour = this.FREEZE
       this.animDurMinute = this.FREEZE
       this.animDurSecond = this.FREEZE
       // duration 改变本身就会触发 Vela 重绘，无需 forceRestart
@@ -141,7 +151,6 @@ export default {
     this.markBtn()
     if (!this.stopped) {
       this.stopped = true
-      this.animDurHour = this.FREEZE
       this.animDurMinute = this.FREEZE
       this.animDurSecond = this.FREEZE
     }
