@@ -27,6 +27,16 @@
       </div>
     </div>
 
+    <div class="section" style="background-color: {{ theme.card }}">
+      <div class="row">
+        <text class="row-label" style="color: {{ theme.text }}">后台常驻</text>
+        <div class="switch-track" style="background-color: {{ bgRunning ? theme.accent : theme.border }}" onclick="toggleBgRunning">
+          <div class="switch-thumb" style="left: {{ bgRunning ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
+        </div>
+      </div>
+      <text class="row-hint" style="color: {{ theme.textMuted }}">退到后台继续接收手机同步消息，关闭后冷启动不再拉起</text>
+    </div>
+
     </div>
     </scroll>
   </div>
@@ -39,6 +49,7 @@ const store = require("../../../data/store.js")
 export default {
   private: {
     iconTheme: "dark",
+    bgRunning: true,
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -64,12 +75,36 @@ export default {
       self.theme = t
       self.updateIconSrc(themeName)
     })
+    store.getBackgroundRunningConfig(function(config) {
+      self.bgRunning = !(config && config.enabled === false)
+    })
   },
 
   onShow() {
     var self = this
     store.getTheme(function(t, themeName) {
       self.updateIconSrc(themeName)
+    })
+    store.getBackgroundRunningConfig(function(config) {
+      self.bgRunning = !(config && config.enabled === false)
+    })
+  },
+
+  // 后台常驻开关：写配置 + 通过 app.ux 暴露的全局控制即时 start/stop，
+  // 不用等冷启动。模块多副本，globalThis 是唯一跨副本通道。
+  toggleBgRunning() {
+    var self = this
+    var next = !this.bgRunning
+    this.bgRunning = next
+    store.setBackgroundRunningConfig({ enabled: next }, function() {
+      var control = globalThis.__evResidentControl
+      if (control) {
+        if (next) {
+          control.start()
+        } else {
+          control.stop()
+        }
+      }
     })
   },
 
@@ -196,6 +231,22 @@ export default {
 .divider {
   height: 1px;
   margin: 6px 0;
+}
+
+.switch-track {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.switch-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  position: absolute;
+  top: 2px;
 }
 
 @media (width >= 360) {

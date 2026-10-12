@@ -57,7 +57,7 @@ var ITEMS = [
   { id: "remind.minutes",             key: "remindSettings",    field: "minutes", value: 5,    policy: "keep", since: 1, desc: "提前提醒分钟数" },
   { id: "vibration.style",            key: "vibrationStyle",    value: "short",        policy: "keep", since: 1, desc: "震动样式" },
   { id: "defaultHomepage",            key: "defaultHomepage",   value: { targetPage: "index", autoSeconds: 3 }, policy: "keep", since: 1, desc: "开机默认进入页面" },
-  { id: "backgroundRunning",          key: "background_running_config", value: { enabled: false }, policy: "keep", since: 1, desc: "后台运行配置" },
+  { id: "backgroundRunning",          key: "background_running_config", value: { enabled: true }, policy: "keep", since: 1, desc: "后台运行配置（默认开箱即常驻，实验室可关）" },
 
   // 每张课程表的假期提醒：懒读型，读不到即用默认值。
   // 「新建课程表默认开启」即由此保证 —— 新建时 storage 里没有该 key，自然落到默认值。
