@@ -93,7 +93,6 @@ export default {
   // 后台常驻开关：写配置 + 通过 app.ux 暴露的全局控制即时 start/stop，
   // 不用等冷启动。模块多副本，globalThis 是唯一跨副本通道。
   toggleBgRunning() {
-    var self = this
     var next = !this.bgRunning
     this.bgRunning = next
     store.setBackgroundRunningConfig({ enabled: next }, function() {
