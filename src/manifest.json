@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.8.257",
-  "versionCode": 1337,
+  "versionName": "1.8.267",
+  "versionCode": 1347,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
@@ -90,6 +90,30 @@
       },
       "pages/schedule-qrcode": {
         "component": "schedule-qrcode"
+      },
+      "pages/schedule-panel-colorful": {
+        "component": "schedule-panel-colorful"
+      },
+      "pages/schedule-panel": {
+        "component": "schedule-panel"
+      },
+      "pages/schedule-panel-simple": {
+        "component": "schedule-panel-simple"
+      },
+      "pages/schedule-panel-progress": {
+        "component": "schedule-panel-progress"
+      },
+      "pages/schedule-panel-remaining": {
+        "component": "schedule-panel-remaining"
+      },
+      "pages/schedule-panel-subject-color": {
+        "component": "schedule-panel-subject-color"
+      },
+      "pages/schedule-panel-countdown": {
+        "component": "schedule-panel-countdown"
+      },
+      "pages/schedule-panel-dual-mode": {
+        "component": "schedule-panel-dual-mode"
       },
       "pages/settings": {
         "component": "settings"

@@ -144,6 +144,16 @@
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
+      <div class="row" onclick="openSchedulePanel">
+        <text class="row-label" style="color: {{ theme.text }}">课程面板</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">7 种风格</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+    </div>
+
+    <div class="group" style="background-color: {{ theme.card }}">
       <div class="row" onclick="openWatchFaceList">
         <text class="row-label" style="color: {{ theme.text }}">表盘目录</text>
         <div class="row-right">
@@ -434,6 +444,10 @@ export default {
 
   openTools() {
     router.push({ uri: "/pages/tools" })
+  },
+
+  openSchedulePanel() {
+    router.push({ uri: "/pages/schedule-panel" })
   },
 
   openWatchFaceList() {
