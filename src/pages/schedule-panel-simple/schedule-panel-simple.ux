@@ -23,9 +23,6 @@ import router from "@system.router"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 
-// 官方示例色（vela-sample general/color）：hex + rgb 两种官方验证写法
-const OFFICIAL_COLORS = ["#ff6b6b", "#51cf66", "rgb(51, 154, 240)", "#ff6a24", "#6f6f6f", "#51cf66"]
-
 export default {
   private: {
     theme: {
