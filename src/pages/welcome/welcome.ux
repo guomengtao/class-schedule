@@ -62,9 +62,10 @@ export default {
   },
 
   // 版本号即入口：点击进入设置页的「课程面板」栏目
+  // （schedule-panel 目录页为未提交 WIP，push 它会打不开；设置页是稳定入口）
   openSchedulePanel() {
     var router = require("@system.router")
-    router.push({ uri: "/pages/schedule-panel" })
+    router.push({ uri: "/pages/settings" })
   },
 
   exitApp() {

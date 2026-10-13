@@ -1,70 +1,19 @@
-<!-- 本页由官方 week-view.ux 完整套用，锁定模板 极简（minimal-char）；请勿在此自创 UI -->
 <template>
-  <div class="wv-page" style="background-color:{{ theme.bg }}">
-    <!-- header -->
-    <div class="wv-header">
-      <div class="wv-back-wrapper" onclick="goBack" style="background-color:{{ theme.card }}">
-        <image class="wv-back-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
-      </div>
-      <text class="wv-title" style="color:{{ theme.text }}">简易课表</text>
-    </div>
-
-    <!-- grid area -->
-    <scroll class="wv-grid-scroll" scroll-x="true" scroll-y="true">
-      <!-- skeleton loading -->
-      <div if="{{ isLoading }}" class="wv-scroll-inner" style="min-width:{{ gridContentWidth }}px">
-        <div class="wv-day-row">
-          <text if="{{ showRowNum }}" class="wv-day-spacer" style="width:{{ rowNumWidth }}px"></text>
-          <text if="{{ !showRowNum }}" class="wv-day-spacer" style="width:0px"></text>
-          <text class="wv-day-cell {{ $idx === todayIndex ? 'wv-today' : '' }}" for="{{ weekDays }}" style="width:{{ cellWidth }}px;color:{{ $idx === todayIndex ? theme.accent : theme.textSecondary }}">{{ $item }}</text>
-        </div>
-        <div for="{{ skeletonRows }}" class="wv-row" style="min-height:{{ rowHeight }}px">
-          <text if="{{ showRowNum }}" class="wv-time" style="width:{{ rowNumWidth }}px"></text>
-          <text if="{{ !showRowNum }}" class="wv-time" style="width:0px;padding-right:0"></text>
-          <div class="wv-cells">
-            <div for="{{ weekDays }}" class="wv-skel-cell" style="width:{{ cellWidth }}px;height:{{ cellHeight }}px;border-radius:{{ cellRadius }};background-color:{{ theme.borderLight }};"></div>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <text class="today-text" style="color: {{ theme.text }}">简易课表</text>
+    <div class="item-box">
+      <list class="list" onscrollbottom="onScrollBottom">
+        <list-item type="item" class="item-wrapper" for="{{ courseList }}" onclick="toDetail($item)">
+          <div class="content-common">
+            
+            <text class="title-text" style="color: {{ theme.text }}">{{ $item.name }}</text>
           </div>
-        </div>
-      </div>
-
-      <!-- real content -->
-      <div if="{{ !isLoading }}" class="wv-scroll-inner" style="min-width:{{ gridContentWidth }}px">
-        <!-- day header -->
-        <div class="wv-day-row">
-          <text if="{{ showRowNum }}" class="wv-day-spacer" style="width:{{ rowNumWidth }}px"></text>
-          <text if="{{ !showRowNum }}" class="wv-day-spacer" style="width:0px"></text>
-          <text class="wv-day-cell {{ $idx === todayIndex ? 'wv-today' : '' }}" for="{{ weekDays }}" style="width:{{ cellWidth }}px;color:{{ $idx === todayIndex ? theme.accent : theme.textSecondary }};font-size:{{ transparentCells ? '20px' : '' }}">{{ $item }}</text>
-        </div>
-
-        <!-- course rows -->
-        <div for="{{ timeSlots }}" class="wv-row" style="min-height:{{ rowHeight }}px">
-          <text if="{{ showRowNum }}" class="wv-time" style="width:{{ rowNumWidth }}px;color:{{ theme.textSecondary }}">{{ rowNumMode === 'index' ? ($idx + 1) : $item.time }}</text>
-          <text if="{{ !showRowNum }}" class="wv-time" style="width:0px;padding-right:0"></text>
-          <div class="wv-cells">
-            <div for="{{ $item.cells }}" class="wv-cell {{ $item.isCurrent ? 'wv-now' : '' }} {{ !$item.course ? 'wv-cell-empty' : '' }} {{ transparentCells ? 'wv-cell-text' : '' }} {{ cellBordered ? 'wv-cell-bordered' : '' }}" onclick="showDetail($item.day, $item.course)" style="width:{{ cellWidth }}px;margin:{{ cellMargin }}px;background-color:{{ getCellBg($item.course) }};border-radius:{{ cellRadius }};height:{{ cellHeight }}px;{{ cellBordered ? 'border-color:' + theme.borderLight : '' }}">
-              <text if="{{ $item.course }}" class="wv-name {{ transparentCells ? 'wv-name-transparent' : '' }} {{ $item.isCurrent && transparentCells ? 'wv-name-now' : '' }}" style="color:{{ getCellTextColor($item.course) }};font-size:{{ nameFontSize }}px;line-height:{{ nameLineHeight }}px;font-weight:{{ nameFontWeight }}">{{ getDisplayName($item.course) }}</text>
-              <text if="{{ $item.course && showRoom && $item.course.location }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.location }}</text>
-              <text if="{{ $item.course && showTeacher && $item.course.teacher }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.teacher }}</text>
-              <text if="{{ $item.course && $item.course.extraCount > 0 && currentTplId !== 'minimal-char' && currentTplId !== 'minimal-clean' }}" class="wv-extra" style="color:{{ theme.textMuted }}">+{{ $item.course.extraCount }}</text>
-              <text if="{{ !$item.course && !transparentCells }}" class="wv-empty" style="color:{{ theme.textMuted }}">·</text>
-            </div>
+          <div class="date-text-box">
+            <text class="date-text" style="color: {{ theme.textMuted }}">{{ $item.timeText }}</text>
           </div>
-        </div>
-      </div>
-    </scroll>
-
-    <!-- footer: template buttons -->
-    <div class="wv-footer" style="background-color:{{ theme.card }}">
-      <scroll class="wv-tpl-row" scroll-x="true">
-        <div for="{{ templateList }}" class="wv-tpl {{ $item.id === currentTplId ? 'wv-tpl-on' : '' }}" onclick="switchTemplate($item.id)" style="background-color:{{ $item.id === currentTplId ? $item.activeColor : theme.borderLight }};color:{{ $item.id === currentTplId ? '#fff' : theme.textSecondary }};border-color:{{ $item.id === currentTplId ? $item.activeColor : 'transparent' }}">
-          <text class="wv-tpl-text">{{ $item.label }}</text>
-        </div>
-      </scroll>
-
-      <!-- schedule name at bottom -->
-      <div class="week-indicator">
-        <text class="week-text" style="color:{{ theme.accent }}">⇄ {{ scheduleName }}</text>
-      </div>
+        </list-item>
+      </list>
+      <text class="empty-text" show="{{ courseList.length === 0 }}">暂无课程</text>
     </div>
   </div>
 </template>
@@ -72,1140 +21,188 @@
 <script>
 import router from "@system.router"
 const store = require("../../data/store.js")
-
-// 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
-var DEBUG = false
-function dlog() {
-  if (DEBUG) console.log.apply(console, arguments)
-}
 const database = require("../../data/database.js")
-const prompt = require("@system.prompt")
-const device = require("@system.device")
 
-// --- debug logger ---
-var log = (function() {
-  var seq = 0
-  return function(msg, data) {
-    seq++
-    var line = "[WV:" + seq + "] " + msg
-    if (data !== undefined) {
-      try { line += " " + JSON.stringify(data) } catch(e) { line += " " + String(data) }
-    }
-    dlog(line)
-  }
-})()
-
-// map Chinese day names (from DB) to English (used internally)
-var DAY_NAME_MAP = {
-  "星期一": "Monday", "星期二": "Tuesday", "星期三": "Wednesday",
-  "星期四": "Thursday", "星期五": "Friday", "星期六": "Saturday", "星期日": "Sunday",
-  "Monday": "Monday", "Tuesday": "Tuesday", "Wednesday": "Wednesday",
-  "Thursday": "Thursday", "Friday": "Friday", "Saturday": "Saturday", "Sunday": "Sunday"
-}
-
-// English → Chinese：detail 只认"星期X"（DAY_NAMES），而 week-view 内部用英文键（Monday）。
-// 缺这层转换会导致 周视图→编辑页 100% 显示"这门课已经被删除"（detail 兜底到星期日找不到课）。
-var EN_TO_CN_DAY = {
-  "Monday": "星期一", "Tuesday": "星期二", "Wednesday": "星期三",
-  "Thursday": "星期四", "Friday": "星期五", "Saturday": "星期六", "Sunday": "星期日"
-}
-function toCnDay(day) {
-  return EN_TO_CN_DAY[day] || day
-}
-
-// Week-view compute cache: avoids rebuilding timeSlots when data/template unchanged
-var _renderCache = null
-
-// Data-layer cache: stores raw allCourses to skip storage I/O across template switches
-var _cachedAllCourses = null
-var _cachedViewIndex = -1
-
-function dataFingerprint(allCourses) {
-  var parts = []
-  var keys = Object.keys(allCourses).sort()
-  for (var i = 0; i < keys.length; i++) {
-    var day = keys[i]
-    var courses = allCourses[day] || []
-    for (var j = 0; j < courses.length; j++) {
-      parts.push(day + "|" + courses[j].id + "|" + courses[j].time + "|" + courses[j].name)
-    }
-  }
-  return parts.join(",")
-}
-
-function clearRenderCache() {
-  _renderCache = null
-}
-
-function clearDataCache() {
-  _cachedAllCourses = null
-  _cachedViewIndex = -1
-}
-
-var SUBJECT_COLORS = {
-  "math": "rgba(74,144,217,0.3)",
-  "eng": "rgba(80,184,108,0.3)",
-  "chn": "rgba(155,89,182,0.3)",
-  "phy": "rgba(230,126,34,0.3)",
-  "pe": "rgba(231,76,60,0.3)",
-  "chem": "rgba(26,188,156,0.3)",
-  "bio": "rgba(243,156,18,0.3)",
-  "history": "rgba(52,152,219,0.3)",
-  "geo": "rgba(233,30,99,0.3)",
-  "default": "rgba(100,100,120,0.2)"
-}
-
-var SUBJECT_TEXT_COLORS = {
-  "math": "#6aaaff",
-  "eng": "#6ae6a0",
-  "chn": "#c08ae0",
-  "phy": "#f0a050",
-  "pe": "#f06060",
-  "chem": "#50d0b0",
-  "bio": "#f0c040",
-  "history": "#60b0f0",
-  "geo": "#f060a0",
-  "default": "#aaaac0"
-}
-
-function guessSubjectKey(name) {
-  if (!name) return "default"
-  var n = name.toLowerCase()
-  if (n.indexOf("math") !== -1 || n.indexOf("数") !== -1) return "math"
-  if (n.indexOf("eng") !== -1 || n.indexOf("英") !== -1) return "eng"
-  if (n.indexOf("chn") !== -1 || n.indexOf("语") !== -1 || n.indexOf("文") !== -1) return "chn"
-  if (n.indexOf("phy") !== -1 || n.indexOf("物") !== -1) return "phy"
-  if (n.indexOf("pe") !== -1 || n.indexOf("体") !== -1 || n.indexOf("体育") !== -1) return "pe"
-  if (n.indexOf("chem") !== -1 || n.indexOf("化") !== -1) return "chem"
-  if (n.indexOf("bio") !== -1 || n.indexOf("生") !== -1) return "bio"
-  if (n.indexOf("history") !== -1 || n.indexOf("史") !== -1 || n.indexOf("历史") !== -1) return "history"
-  if (n.indexOf("geo") !== -1 || n.indexOf("地") !== -1) return "geo"
-  return "default"
-}
-
-var TEMPLATE_CONFIGS = {
-  "minimal-char": {
-    showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
-    showDayCount: false, showTotal: false,
-    nameDisplay: "char",
-    dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
-    cellRadius: "6px", rowHeight: 58, cellHeight: 52, rowNumWidth: 0,
-    nameFontSize: 36, nameLineHeight: 42, nameFontWeight: "bold", infoFontSize: 0,
-    useColorScheme: true, denseMode: false, cellWidth: 42, cellMargin: 0
-  },
-  "minimal-en": {
-    showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
-    showDayCount: false, showTotal: false,
-    nameDisplay: "en-abbr",
-    dayLabels: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
-    cellRadius: "8px", rowHeight: 54, cellHeight: 50, rowNumWidth: 0,
-    nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "bold", infoFontSize: 0,
-    useColorScheme: true, denseMode: false, cellWidth: 60
-  },
-  "standard-block": {
-    showRowNum: true, showRoom: false, showTeacher: false, showTime: true,
-    showDayCount: false, showTotal: true,
-    nameDisplay: "full",
-    dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
-    cellRadius: "6px", rowHeight: 72, cellHeight: 64, rowNumWidth: 50,
-    nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "normal", infoFontSize: 0,
-    useColorScheme: true, denseMode: false, cellWidth: 70
-  },
-  "compact-grid": {
-    showRowNum: true, showRoom: false, showTeacher: false, showTime: false,
-    showDayCount: true, showTotal: true,
-    nameDisplay: "char",
-    dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
-    cellRadius: "4px", rowHeight: 54, cellHeight: 48, rowNumWidth: 40,
-    nameFontSize: 32, nameLineHeight: 38, nameFontWeight: "bold", infoFontSize: 0,
-    useColorScheme: true, denseMode: true, cellWidth: 40, rowNumMode: "index",
-    cellBordered: true, cellMargin: 0
-  },
-  "minimal-clean": {
-    showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
-    showDayCount: false, showTotal: false,
-    nameDisplay: "char",
-    dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
-    cellRadius: "10px", rowHeight: 66, cellHeight: 58, rowNumWidth: 0,
-    nameFontSize: 24, nameLineHeight: 30, nameFontWeight: "normal", infoFontSize: 0,
-    useColorScheme: true, denseMode: false, cellWidth: 42, cellMargin: 0
-  },
-  "color-pastel": {
-    showRowNum: true, showRoom: false, showTeacher: false, showTime: true,
-    showDayCount: false, showTotal: true,
-    nameDisplay: "full",
-    dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
-    cellRadius: "10px", rowHeight: 72, cellHeight: 64, rowNumWidth: 50,
-    nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "normal", infoFontSize: 0,
-    useColorScheme: false, denseMode: false, rowNumMode: "index", cellWidth: 70
-  }
-}
+// 官方示例色（vela-sample general/color）：hex + rgb 两种官方验证写法
+const OFFICIAL_COLORS = ["#ff6b6b", "#51cf66", "rgb(51, 154, 240)", "#ff6a24", "#6f6f6f", "#51cf66"]
 
 export default {
   private: {
-    iconTheme: "dark",
-    allWeekDays: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
-    allDayNames: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-    weekDays: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
-    displayDayNames: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-    scheduleName: "",
-    timeSlots: [],
-    totalCourses: 0,
-    totalDays: 0,
-    dayCounts: [0, 0, 0, 0, 0, 0, 0],
-    isLoading: true,
-    skeletonRows: [1, 2, 3, 4, 5],
-    hideWeekend: true,
-    viewIndex: 0,
-    todayIndex: 0,
-    isCapsule: false,
-    screenWidth: 0,
-    currentCourseDay: "",
-    currentCourseTime: "",
-    initDone: false,
-    firstLoad: true,
-    currentTplId: "minimal-char",
-    templateList: [
-      { id: "minimal-char", label: "极简", activeColor: "#e67e22" }
-    ],
-    // template config
-    showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
-    showDayCount: false, showTotal: false,
-    nameDisplay: "full",
-    cellRadius: "12px",
-    rowHeight: 60,
-    cellHeight: 56,
-    rowNumWidth: 0,
-    nameFontSize: 28,
-    nameLineHeight: 34,
-    nameFontWeight: "bold",
-    infoFontSize: 0,
-    cellWidth: 60,
-    gridContentWidth: 500,
-    rowNumMode: "time",
-    useColorScheme: true,
-    transparentCells: false,
-    templateDayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
     theme: {
-      bg: '#1a1a2e',
-      card: '#16213e',
-      cardLight: '#0f3460',
-      accent: '#7ec8e3',
-      text: '#ffffff',
-      textSecondary: '#888899',
-      textMuted: '#555566',
-      border: '#0f3460',
-      borderLight: '#2a2a5a',
-      keyBg: '#1a1a3e',
-      keyBorder: '#2a2a5a',
-      btnSecondary: '#333355',
-      btnSecondaryText: '#a0a0b0',
-      deleteBg: '#2a1a3e',
-      deleteText: '#e08080',
-      icon: '\uD83D\uDD35',
-      progressOngoing: 'rgba(126,200,227,0.2)',
-      progressDone: 'rgba(74,138,154,0.25)'
-    }
+      bg: '#1a1a2e', card: '#16213e', cardLight: '#0f3460',
+      accent: '#7ec8e3', text: '#ffffff', textSecondary: '#888899',
+      textMuted: '#555566', border: '#0f3460'
+    },
+    courseList: []
   },
 
   onInit() {
     var self = this
-    log("onInit start")
-    self.firstLoad = true
-    var now = new Date()
-    var dayIdx = now.getDay()
-    self.todayIndex = dayIdx === 0 ? 6 : dayIdx - 1
-    log("todayIndex=" + self.todayIndex + " dayIdx=" + dayIdx)
-    // 屏型异步返回：胶囊屏下要关闭行号列并收敛列宽，否则可视列数跌到 1.57
-    device.getInfo({
-      success: function(data) {
-        var shape = data.screenShape || ""
-        var capsule = (shape === "capsule" || shape === "pill-shaped")
-        // 保存真实屏宽：胶囊屏列宽自适应需要（手环9=192，手环10/11=212）
-        self.screenWidth = data.screenWidth || 0
-        if (self.isCapsule !== capsule) {
-          self.isCapsule = capsule
-          // 模板可能已按默认（非胶囊）应用过，屏型回填后需重新应用
-          if (self.currentTplId) {
-            self.applyTemplate(self.currentTplId)
-          }
-        }
-      },
-      fail: function() {}
-    })
-    store.getTheme(function(t, themeName) {
-      self.theme = t
-      self.updateIconSrc(themeName)
-    })
-    store.getHideWeekend(function(hide) {
-      self.hideWeekend = hide
-      self.applyWeekendFilter()
-      self.hideWeekendLoaded = true
-      if (self.weekViewIndexLoaded) {
-        self.initDone = true
-        self.loadData()
-      }
-    })
-    var storage = require("@system.storage")
-    storage.get({
-      key: "weekview_index",
-      success: function(data) {
-        self.viewIndex = parseInt(data) || 0
-        log("onInit viewIndex loaded=" + self.viewIndex)
-        self.weekViewIndexLoaded = true
-        if (self.hideWeekendLoaded) {
-          self.initDone = true
-          self.loadData()
-        }
-      },
-      fail: function() {
-        log("onInit viewIndex not found, use 0")
-        self.weekViewIndexLoaded = true
-        if (self.hideWeekendLoaded) {
-          self.initDone = true
-          self.loadData()
-        }
-      }
-    })
-    // 锁定模板：本页固定 极简，不读全局周视图模板设置
-    self.applyTemplate("minimal-char")
-    setTimeout(function() {
-      if (!self.initDone) {
-        log("onInit timeout fallback, forcing loadData")
-        self.initDone = true
-        self.loadData()
-      }
-    }, 800)
+    store.getTheme(function(t) { self.theme = t })
+    self.loadCourses()
   },
 
   onShow() {
     var self = this
-    log("onShow start")
-    store.getTheme(function(t, themeName) {
-      self.theme = t
-      self.updateIconSrc(themeName)
-    })
-    store.getHideWeekend(function(hide) {
-      self.hideWeekend = hide
-      self.applyWeekendFilter()
-      if (self.firstLoad) {
-        log("onShow firstLoad=false, skip reload")
-        self.firstLoad = false
-        return
-      }
-      clearDataCache()
-      var storage = require("@system.storage")
-      storage.get({
-        key: "weekview_index",
-        success: function(data) {
-          self.viewIndex = parseInt(data) || 0
-          log("onShow viewIndex=" + self.viewIndex)
-          self.loadTemplateAndReload()
-        },
-        fail: function() {
-          self.loadTemplateAndReload()
-        }
-      })
-    })
+    store.getTheme(function(t) { self.theme = t })
+    self.loadCourses()
   },
 
-  loadTemplateAndReload() {
+  // 简易课表：极简单字，不使用彩色块（官方 basic/text 的常规字重文本模式）
+
+  // 数据加载：database.getAllCoursesWithIndex 属 §11 例外——官方示例无课程业务实现，已在方案注明
+  loadCourses() {
     var self = this
-    self.applyTemplate("minimal-char")
-    self.isLoading = true
-    self.loadData()
-  },
-
-  switchTemplate(id) {
-    var self = this
-    log("switchTemplate -> " + id)
-    clearRenderCache()
-    self.applyTemplate(id)
-
-    // Reuse data-layer cache if available, skip storage I/O
-    if (_cachedAllCourses && _cachedViewIndex === self.viewIndex) {
-      log("switchTemplate data cache hit, re-rendering")
-      self.isLoading = true
-      self.renderScheduleData(_cachedAllCourses)
-      return
-    }
-
-    // Fallback: no cache yet, read from storage
-    self.isLoading = true
-    self.loadData()
-  },
-
-  applyTemplate(id) {
-    var cfg = TEMPLATE_CONFIGS[id] || TEMPLATE_CONFIGS["minimal-char"]
-    log("applyTemplate id=" + id + " nameDisplay=" + cfg.nameDisplay)
-    this.currentTplId = id
-    this.showRowNum = cfg.showRowNum
-    this.showRoom = cfg.showRoom
-    this.showTeacher = cfg.showTeacher
-    this.showTime = cfg.showTime
-    this.showDayCount = cfg.showDayCount !== false
-    this.showTotal = cfg.showTotal !== false
-    this.nameDisplay = cfg.nameDisplay
-    this.cellRadius = cfg.cellRadius
-    this.rowHeight = cfg.rowHeight
-    this.cellHeight = cfg.cellHeight
-    // 胶囊屏：行号列会吃掉 40~50px，160px 内容区下可视列数仅 1.57（规范下限 2.5）。
-    // 窄屏关闭行号列，把宽度全部让给课程格。
-    if (this.isCapsule === true) {
-      this.rowNumWidth = 0
-      this.showRowNum = false
-    } else {
-      this.rowNumWidth = cfg.rowNumWidth
-    }
-    this.nameFontSize = cfg.nameFontSize
-    this.nameLineHeight = cfg.nameLineHeight || (cfg.nameFontSize + 6)
-    this.nameFontWeight = cfg.nameFontWeight
-    var w = cfg.cellWidth || Math.max(100, this.nameFontSize * 5)
-    // 胶囊屏把列宽收敛到 ≤60px：160px 内容区 ÷ 60 ≈ 2.67 列，落入规范 2.5~3.5 区间
-    this.cellWidth = (this.isCapsule === true) ? Math.min(w, 60) : w
-    this.rowNumMode = cfg.rowNumMode || "time"
-    this.infoFontSize = cfg.infoFontSize
-    this.useColorScheme = cfg.useColorScheme
-    this.transparentCells = cfg.transparentCells === true
-    this.cellBordered = cfg.cellBordered === true
-    this.cellMargin = cfg.cellMargin !== undefined ? cfg.cellMargin : 1
-    this.templateDayLabels = cfg.dayLabels || ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"]
-    this.applyWeekendFilter()
-    if (id === "minimal-clean" || id === "minimal-char" || id === "compact-grid") {
-      var cellExtra = 2 * this.cellMargin + (this.cellBordered ? 2 : 0)
-      // 胶囊屏按真实屏宽自适应（.wv-page 左右 padding 为 0）。
-      // 此前胶囊屏被排除、固定 42px：5×42=210 > 192，周五整列被屏幕右缘裁掉半个字（2026-09-28 用户反馈）。
-      var availCells = (this.isCapsule === true ? (this.screenWidth || 192) : 316) - this.rowNumWidth
-      this.cellWidth = Math.max(30, Math.floor(availCells / this.weekDays.length) - cellExtra)
-    }
-    this.gridContentWidth = this.rowNumWidth + this.weekDays.length * (this.cellWidth + 2 * this.cellMargin + (this.cellBordered ? 2 : 0))
-  },
-
-  applyWeekendFilter() {
-    var fullLabels = this.templateDayLabels || ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"]
-    if (this.hideWeekend) {
-      this.weekDays = fullLabels.slice(0, 5)
-      this.displayDayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-      if (this.todayIndex >= 5) {
-        this.todayIndex = -1
-      }
-    } else {
-      this.weekDays = fullLabels
-      this.displayDayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-      var now = new Date()
-      var dayIdx = now.getDay()
-      this.todayIndex = dayIdx === 0 ? 6 : dayIdx - 1
-    }
-    log("applyWeekendFilter hide=" + this.hideWeekend + " days=" + this.weekDays.join(",") + " todayIdx=" + this.todayIndex)
-  },
-
-  loadData() {
-    var self = this
-    log("loadData start viewIndex=" + self.viewIndex)
-
-    store.getScheduleNames(function(names) {
-      store.getCurrentScheduleIndex(function() {
-        if (names && names.length > self.viewIndex) {
-          self.scheduleName = names[self.viewIndex]
-          log("loadData scheduleName=" + self.scheduleName)
-        }
-      })
-    })
-
-    // Check data-layer cache: if we already loaded this viewIndex, skip I/O
-    if (_cachedAllCourses && _cachedViewIndex === self.viewIndex) {
-      log("loadData data cache hit, skipping storage I/O")
-      self.renderScheduleData(_cachedAllCourses)
-      return
-    }
-
-    var dataLoaded = false
-    database.getAllCoursesWithIndex(this.viewIndex, function(schedule) {
-      if (dataLoaded) return
-      dataLoaded = true
-      log("loadData getAllCoursesWithIndex returned, len=" + (schedule ? schedule.length : "null"))
-      if (!schedule) {
-        log("loadData schedule is null, fallback to getAllCourses")
-        database.getAllCourses(function(fallback) {
-          self.renderSchedule(fallback)
-        })
-        return
-      }
-
-      var allCourses = {}
+    database.getAllCoursesWithIndex(0, function(schedule) {
+      var list = []
+      if (!schedule) return
       for (var d = 0; d < schedule.length; d++) {
         var dayData = schedule[d]
-        if (dayData && dayData.day) {
-          var enDay = DAY_NAME_MAP[dayData.day] || dayData.day
-          allCourses[enDay] = dayData.classes || []
-        }
-      }
-      log("loadData allCourses keys=" + Object.keys(allCourses).join(","))
-
-      // dump every course
-      for (var dk in allCourses) {
-        if (allCourses.hasOwnProperty(dk)) {
-          var cls = allCourses[dk]
-          for (var ci = 0; ci < cls.length; ci++) {
-            var c = cls[ci]
-            log("loadData course " + dk + " #" + ci + " raw=" + JSON.stringify(c))
-          }
-        }
-      }
-
-      var totalCourses = 0
-      for (var key in allCourses) {
-        if (allCourses.hasOwnProperty(key)) {
-          totalCourses += allCourses[key].length
-        }
-      }
-      log("loadData totalCourses=" + totalCourses)
-
-      if (totalCourses === 0) {
-        log("loadData no courses found, fallback to getAllCourses")
-        database.getAllCourses(function(fallback) {
-          self.renderSchedule(fallback)
-        })
-        return
-      }
-
-      self.renderScheduleData(allCourses)
-
-      // Save to data-layer cache for template switches
-      _cachedAllCourses = allCourses
-      _cachedViewIndex = self.viewIndex
-      log("loadData saved to data cache viewIndex=" + self.viewIndex)
-    })
-
-    setTimeout(function() {
-      if (!dataLoaded) {
-        dataLoaded = true
-        log("loadData timeout 1500ms fallback")
-        database.getAllCourses(function(fallback) {
-          self.renderSchedule(fallback)
-        })
-      }
-    }, 1500)
-  },
-
-  renderSchedule(schedule) {
-    log("renderSchedule len=" + (schedule ? schedule.length : "null"))
-    var allCourses = {}
-    if (schedule) {
-      for (var d = 0; d < schedule.length; d++) {
-        var dayData = schedule[d]
-        if (dayData && dayData.day) {
-          var enDay = DAY_NAME_MAP[dayData.day] || dayData.day
-          allCourses[enDay] = dayData.classes || []
-        }
-      }
-    }
-    // dump fallback courses
-    for (var dk in allCourses) {
-      if (allCourses.hasOwnProperty(dk)) {
-        var cls = allCourses[dk]
-        for (var ci = 0; ci < cls.length; ci++) {
-          log("renderSchedule course " + dk + " #" + ci + " raw=" + JSON.stringify(cls[ci]))
-        }
-      }
-    }
-    log("renderSchedule days=" + Object.keys(allCourses).join(","))
-    this.renderScheduleData(allCourses)
-  },
-
-  renderScheduleData(allCourses) {
-    var self = this
-    log("renderScheduleData displayDayNames=" + JSON.stringify(self.displayDayNames) + " allCourses keys=" + Object.keys(allCourses).join(","))
-
-    // Compute cache key: data fingerprint + template + weekend + capsule
-    var fp = dataFingerprint(allCourses)
-    var cacheKey = self.viewIndex + "|" + self.currentTplId + "|" + self.hideWeekend + "|" + self.isCapsule
-
-    if (_renderCache && _renderCache.key === cacheKey && _renderCache.fp === fp) {
-      log("renderScheduleData cache hit, skipping rebuild")
-      self.timeSlots = _renderCache.timeSlots
-      self.totalCourses = _renderCache.totalCourses
-      self.totalDays = _renderCache.totalDays
-      self.dayCounts = _renderCache.dayCounts
-      self.detectCurrentCourse(allCourses)
-      self.isLoading = false
-      return
-    }
-
-    // log per-day course list
-    var dayNames = self.displayDayNames
-    for (var d = 0; d < dayNames.length; d++) {
-      var day = dayNames[d]
-      var courses = allCourses[day] || []
-      if (courses.length > 0) {
-        var names = courses.map(function(c) { return (c.name || "?") + "@" + (c.time || "?") }).join(", ")
-        log("renderScheduleData day=" + day + " " + courses.length + " courses: " + names)
-      }
-    }
-
-    self.detectCurrentCourse(allCourses)
-    self.buildTimeSlots(allCourses)
-
-    var total = 0
-    var totalDays = 0
-    for (var key in allCourses) {
-      if (allCourses.hasOwnProperty(key)) {
-        total += allCourses[key].length
-        if (allCourses[key].length > 0) totalDays++
-      }
-    }
-    self.totalCourses = total
-    self.totalDays = totalDays
-    log("renderScheduleData total=" + total + " days=" + totalDays)
-
-    var dayCounts = []
-    for (var dn = 0; dn < dayNames.length; dn++) {
-      var dayCourses = allCourses[dayNames[dn]]
-      dayCounts.push(dayCourses ? dayCourses.length : 0)
-    }
-    self.dayCounts = dayCounts
-    log("renderScheduleData dayCounts=" + JSON.stringify(dayCounts))
-
-    // Save to cache
-    _renderCache = {
-      key: cacheKey,
-      fp: fp,
-      timeSlots: self.timeSlots,
-      totalCourses: total,
-      totalDays: totalDays,
-      dayCounts: dayCounts
-    }
-
-    self.isLoading = false
-  },
-
-  getDisplayName(course) {
-    if (!course) return ""
-    var name = course.name || "?"
-    var result
-    if (this.nameDisplay === "char") {
-      result = name.charAt(0)
-    } else if (this.nameDisplay === "en-abbr") {
-      result = name.substring(0, 3)
-    } else {
-      result = name
-    }
-    // log("getDisplayName mode=" + this.nameDisplay + " in=" + name + " out=" + result)
-    return result
-  },
-
-  getCellBg(course) {
-    if (!course) return "transparent"
-    if (this.transparentCells) return "transparent"
-    if (!this.useColorScheme) {
-      return this.theme.cardLight || "#0f3460"
-    }
-    var key = guessSubjectKey(course.name)
-    return SUBJECT_COLORS[key] || SUBJECT_COLORS["default"]
-  },
-
-  getCellTextColor(course) {
-    if (!course) return "transparent"
-    if (this.transparentCells) return this.theme.text || "#ffffff"
-    if (!this.useColorScheme) {
-      return this.theme.accent || "#7ec8e3"
-    }
-    var key = guessSubjectKey(course.name)
-    return SUBJECT_TEXT_COLORS[key] || SUBJECT_TEXT_COLORS["default"]
-  },
-
-  buildTimeSlots(allCourses) {
-    var self = this
-    var timeSet = {}
-    var dayList = self.displayDayNames
-
-    for (var d = 0; d < dayList.length; d++) {
-      var day = dayList[d]
-      var courses = allCourses[day] || []
-      for (var c = 0; c < courses.length; c++) {
-        var time = courses[c].time
-        if (time && !timeSet[time]) {
-          timeSet[time] = true
-        }
-      }
-    }
-
-    var timeKeys = Object.keys(timeSet)
-    timeKeys.sort(function(a, b) {
-      var aStart = a.split("-")[0].trim()
-      var bStart = b.split("-")[0].trim()
-      if (aStart < bStart) return -1
-      if (aStart > bStart) return 1
-      return 0
-    })
-
-    var timeSlots = []
-    for (var t = 0; t < timeKeys.length; t++) {
-      var time = timeKeys[t]
-      var cells = []
-      for (var d = 0; d < dayList.length; d++) {
-        var day = dayList[d]
-        var courses = allCourses[day] || []
-        var matched = []
-        for (var c = 0; c < courses.length; c++) {
-          if (courses[c].time === time) {
-            matched.push(courses[c])
-          }
-        }
-        if (matched.length > 0) {
-          var firstCourse = matched[0]
-          cells.push({
-            day: day,
-            isCurrent: day === self.currentCourseDay && time === self.currentCourseTime,
-            course: {
-              id: firstCourse.id,
-              name: firstCourse.name,
-              displayChar: self.getFirstChar(firstCourse.name),
-              extraCount: matched.length > 1 ? matched.length - 1 : 0,
-              time: firstCourse.time,
-              teacher: firstCourse.teacher,
-              location: firstCourse.location,
-              allCourses: matched
-            }
-          })
-        } else {
-          cells.push({
-            day: day,
-            isCurrent: false,
-            course: null
+        if (!dayData || !dayData.classes) continue
+        var classes = dayData.classes
+        for (var i = 0; i < classes.length; i++) {
+          var c = classes[i]
+          if (!c || !c.name) continue
+          var timeText = c.time || ""
+          if (c.location) timeText = timeText ? timeText + " · " + c.location : c.location
+          list.push({
+            id: c.id,
+            name: c.name,
+            timeText: timeText,
+            subjectColor: "null"
           })
         }
       }
-      timeSlots.push({
-        time: time,
-        cells: cells
-      })
-    }
-
-    this.timeSlots = timeSlots
-    log("buildTimeSlots slots=" + timeSlots.length + " times=" + timeKeys.join(","))
-  },
-
-  getFirstChar(name) {
-    if (!name) return "?"
-    return name.charAt(0)
-  },
-
-  detectCurrentCourse(allCourses) {
-    var todayName = this.displayDayNames[this.todayIndex]
-    if (!todayName) {
-      this.currentCourseDay = ""
-      this.currentCourseTime = ""
-      return
-    }
-    var now = new Date()
-    var currentTime = now.getHours() * 60 + now.getMinutes()
-
-    this.currentCourseDay = ""
-    this.currentCourseTime = ""
-
-    var todayCourses = allCourses[todayName]
-    if (!todayCourses) return
-
-    for (var i = 0; i < todayCourses.length; i++) {
-      var course = todayCourses[i]
-      var timeRange = course.time
-      if (!timeRange) continue
-      var parts = timeRange.split("-")
-      if (parts.length !== 2) continue
-      var startParts = parts[0].trim().split(":")
-      var endParts = parts[1].trim().split(":")
-      var startTime = parseInt(startParts[0]) * 60 + parseInt(startParts[1])
-      var endTime = parseInt(endParts[0]) * 60 + parseInt(endParts[1])
-      if (currentTime >= startTime && currentTime <= endTime) {
-        this.currentCourseDay = todayName
-        this.currentCourseTime = course.time
-        return
-      }
-    }
-  },
-
-  showDetail(day, course) {
-    if (!course) return
-    var storage = require("@system.storage")
-    storage.set({
-      key: "detail_classId",
-      value: String(course.id),
-      success: function() {
-        storage.set({
-          key: "detail_day",
-          value: toCnDay(day),
-          success: function() {
-            router.push({ uri: "/pages/detail" })
-          },
-          fail: function() {
-            prompt.showToast({ message: "请重试" })
-          }
-        })
-      },
-      fail: function() {
-        prompt.showToast({ message: "请重试" })
-      }
+      self.courseList = list
     })
   },
 
-  updateIconSrc(themeName) {
-    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+  // 官方 todolist task 页同款：点击列表项 push 详情页并带参数
+  toDetail(item) {
+    if (!item || !item.id) return
+    router.push({
+      uri: "/pages/detail",
+      params: { courseId: item.id }
+    })
   },
 
-  goBack() {
-    router.back()
-  },
-
-  onDestroy() {
-    this.scheduleName = null
-    this.timeSlots = null
-    this.theme = null
-    this.templateList = null
+  // 官方 container/list 同款滚动监听
+  onScrollBottom(e) {
+    console.log("[schedule-panel] scrollBottom")
   }
 }
 </script>
 
 <style>
-/* ── page ── */
-.wv-page {
+/* ================================================================
+   UI/实现全部套用官方标准 demo（open-vela-learning，§11）：
+   - 布局骨架   官方 multi_screen_todolist task 页（item-box/item-wrapper/content-common/date-text-box）
+   - 列表容器   官方 vela-sample container/list（list/list-item/onscrollbottom）
+   - 文本属性   官方 vela-sample basic/text（font-size/font-weight/line-height/text-align）
+   - 分隔线     官方 list 示例 item 的 border-bottom
+   - 自适应断点 项目 §10 触底自适应（铁律优先：官方 @import aspect-ratio 模式不用）
+   ================================================================ */
+
+.page {
   flex-direction: column;
-  padding: 44px 10px 12px 10px;
+  width: 100%;
+  height: 100%;
+  padding: 44px 12px 12px 12px;
+}
+
+/* 官方 todolist today-text：居中标题 */
+.today-text {
+  width: 100%;
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 38px;
+  margin-bottom: 12px;
+}
+
+/* 官方 todolist item-box */
+.item-box {
+  flex: 1;
+  flex-direction: column;
+}
+
+/* 官方 container/list */
+.list {
+  width: 100%;
   height: 100%;
 }
 
-/* ── header ── */
-.wv-header {
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 10px;
-  position: relative;
-}
-
-.wv-back {
-  width: 48px;
-  height: 40px;
-  border-radius: 8px;
-  font-size: 28px;
-  text-align: center;
-  line-height: 40px;
-}
-
-.wv-title {
-  font-size: 30px;
-  font-weight: bold;
-  text-align: center;
-  flex: 1;
-  line-height: 40px;
-}
-
-.week-indicator {
-  padding: 12px 8px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.week-text {
-  font-size: 20px;
-  text-align: center;
-  line-height: 28px;
-}
-
-/* ── grid ── */
-.wv-grid-scroll {
-  flex: 1;
-  flex-direction: column;
-}
-
-.wv-scroll-inner {
-  flex-direction: column;
-}
-
-.wv-day-row {
-  flex-direction: row;
-  margin-bottom: 6px;
-  flex-shrink: 0;
-}
-
-.wv-day-spacer {
-  width: 50px;
-  flex-shrink: 0;
-}
-
-.wv-day-cell {
-  text-align: center;
-  font-size: 20px;
-  font-weight: bold;
-  flex-shrink: 0;
-  text-overflow: ellipsis;
-  line-height: 28px;
-  lines: 1;
-}
-
-.wv-day-cell.wv-today {
-  font-size: 24px;
-  text-decoration: underline;
-  line-height: 32px;
-}
-
-.wv-row {
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 2px;
-  min-height: 34px;
-  flex-shrink: 0;
-}
-
-.wv-time {
-  width: 50px;
-  font-size: 20px;
-  text-align: right;
-  padding-right: 6px;
-  flex-shrink: 0;
-  line-height: 28px;
-}
-
-.wv-cells {
-  flex-direction: row;
-}
-
-.wv-cell {
-  height: 32px;
-  margin: 1px;
-  border-radius: 6px;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.wv-cell-empty {
-  background-color: transparent;
-  opacity: 0.3;
-}
-
-.wv-cell-bordered {
-  border: 1px solid;
-}
-
-.wv-cell-text {
-  background-color: transparent !important;
-  margin: 2px 1px;
-  opacity: 1;
-}
-
-.wv-cell-text.wv-cell-empty {
-  opacity: 0;
-}
-
-.wv-name-transparent {
-  text-align: center;
-  font-weight: 400;
-  letter-spacing: 0.3px;
-}
-
-.wv-cell.wv-now {
-  background-color: rgba(126, 200, 227, 0.12);
-  margin: 1px;
-}
-
-.wv-cell-text.wv-now {
-  background-color: transparent !important;
-}
-
-.wv-name-now {
-  color: #7ec8e3 !important;
-  font-weight: 500;
-}
-
-.wv-name {
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: bold;
-  text-align: center;
-  text-overflow: ellipsis;
-}
-
-.wv-info {
-  font-size: 20px;
-  line-height: 28px;
-  text-align: center;
-  text-overflow: ellipsis;
-}
-
-.wv-extra {
-  font-size: 20px;
-  text-align: center;
-  line-height: 28px;
-}
-
-.wv-empty {
-  font-size: 20px;
-  text-align: center;
-  line-height: 28px;
-}
-
-/* ── skeleton ── */
-.wv-skel-cell {
-  margin: 1px;
-  flex-shrink: 0;
-  opacity: 0.4;
-}
-
-/* ── footer ── */
-.wv-footer {
-  flex-direction: column;
-  padding: 8px 0 6px 0;
-  align-items: center;
-}
-
-.wv-tpl-row {
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
+/* 官方 todolist item-wrapper + 官方 list 示例 item 的 border-bottom 分隔线 */
+.item-wrapper {
   width: 100%;
-  height: 44px;
-}
-
-.wv-tpl {
-  flex-direction: row;
-  flex-shrink: 0;
+  flex-direction: column;
   justify-content: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid #cccccc;
+}
+
+/* 官方 todolist content-common：图标 + 标题一行 */
+.content-common {
+  width: 100%;
+  flex-direction: row;
   align-items: center;
-  height: 36px;
-  padding: 0 10px;
-  margin: 0 3px;
-  border-radius: 18px;
-  border-width: 1.5px;
-  border-style: solid;
-  border-color: transparent;
 }
 
-.wv-tpl-on {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  font-weight: bold;
+.color-block {
+  width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  margin-right: 10px;
+  flex-shrink: 0;
 }
 
-.wv-tpl-text {
+/* 官方 basic/text 属性 */
+.title-text {
   font-size: 24px;
-  letter-spacing: 0.5px;
-  text-align: center;
+  font-weight: normal;
   line-height: 32px;
+  flex: 1;
 }
 
-/* ── circle shape ── */
-@media (shape: circle) {
-  .wv-page {
-    padding: 44px 36px 44px 36px;
-  }
-  .wv-header {
-    margin-bottom: 8px;
-  }
-  .wv-back {
-    width: 44px;
-    height: 40px;
-    font-size: 28px;
-    line-height: 40px;
-  }
-  .wv-title {
-    font-size: 30px;
-    line-height: 40px;
-  }
-  .wv-day-spacer {
-    width: 42px;
-  }
-  .wv-day-cell {
-    font-size: 20px;
-  }
-  .wv-day-cell.wv-today {
-    font-size: 24px;
-  }
-  .wv-row {
-    min-height: 28px;
-  }
-  .wv-time {
-    width: 42px;
-    font-size: 20px;
-  }
-  .wv-cell {
-    height: 28px;
-  }
-  .wv-name {
-    font-size: 20px;
-  }
-  .wv-empty {
-    font-size: 20px;
-  }
-  .wv-footer {
-    padding: 6px 0 4px 0;
-  }
-  .wv-tpl-row {
-    padding: 0 4px;
-  }
-  .wv-tpl {
-    height: 44px;
-    padding: 0 8px;
-    margin: 0 2px;
-  }
-  .wv-tpl-text {
-    font-size: 24px;
-  }
+/* 官方 todolist date-text-box */
+.date-text-box {
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 4px;
 }
 
-@media (shape: pill-shaped) {
-  .wv-page {
-    padding: 44px 0 8px 0;
-  }
-  .wv-header {
-    margin-bottom: 8px;
-  }
-  .wv-grid-scroll {
-    padding: 0;
-  }
-  .wv-title {
-    font-size: 30px;
-    line-height: 40px;
-  }
-  .wv-tpl {
-    height: 48px;
-    padding: 0 8px;
-    margin: 0 2px;
-  }
-  .wv-tpl-text {
-    font-size: 24px;
-    line-height: 32px;
-  }
+.date-text {
+  font-size: 20px;
+  line-height: 28px;
 }
 
-@media (shape: rect) {
-  .wv-page {
-    padding: 6px 10px 12px 10px;
-  }
-  .wv-header {
-    margin-bottom: 8px;
-  }
-  .wv-back {
-    width: 44px;
-    height: 36px;
-    font-size: 28px;
+/* 官方 todolist complete-text 空态样式 */
+.empty-text {
+  width: 100%;
+  text-align: center;
+  font-size: 20px;
+  line-height: 28px;
+  color: #6f6f6f;
+  margin-top: 40px;
+}
+
+
+/* ================================================================
+   宽度断点：手环 10 / 胶囊屏大号（width >= 200px），增量放大
+   ================================================================ */
+@media (width >= 200px) {
+  .today-text {
+    font-size: 26px;
     line-height: 36px;
   }
-  .wv-title {
-    font-size: 30px;
-    line-height: 40px;
+  .title-text {
+    font-size: 26px;
+    line-height: 34px;
   }
-  /* 模板切换按钮提到规范的 48px */
-  .wv-tpl {
-    height: 48px;
-    padding: 0 6px;
-    margin: 0 2px;
-  }
-  .wv-tpl-text {
-    font-size: 24px;
-    line-height: 32px;
+  .date-text {
+    font-size: 22px;
+    line-height: 30px;
   }
 }
-.wv-back-wrapper { width: 52px; height: 48px; border-radius: 8px; justify-content: center; align-items: center; }
-.wv-back-icon { width: 24px; height: 24px; }
 </style>
