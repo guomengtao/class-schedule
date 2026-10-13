@@ -1,0 +1,198 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">当前进度</text>
+      <div class="header-placeholder"></div>
+    </div>
+
+    <div if="{{ isLoading }}" class="loading-area">
+      <text class="loading-text" style="color: {{ theme.textMuted }}">加载中...</text>
+    </div>
+
+    <div if="{{ !isLoading && !currentClass }}" class="no-class-area">
+      <text class="no-class-icon">⏳</text>
+      <text class="no-class-text" style="color: {{ theme.textSecondary }}">{{ noClassMessage }}</text>
+    </div>
+
+    <div if="{{ !isLoading && currentClass }}" class="card" style="background-color: {{ theme.card }}">
+      <text class="card-name" style="color: {{ theme.accent }}">{{ currentClass.name }}</text>
+      <text class="card-time" style="color: {{ theme.textSecondary }}">{{ currentClass.time }}</text>
+      <text class="card-location" if="{{ currentClass.location }}" style="color: {{ theme.textMuted }}">{{ currentClass.location }}</text>
+
+      <div class="progress-bar-bg" style="background-color: {{ theme.border }}">
+        <div class="progress-bar-fill" style="width: {{ progressPercent }}%; background-color: {{ theme.accent }}"></div>
+      </div>
+
+      <div class="progress-labels">
+        <text class="progress-elapsed" style="color: {{ theme.textSecondary }}">已过 {{ elapsedMinutes }} 分</text>
+        <text class="progress-remaining" style="color: {{ theme.accent }}">剩余 {{ remainingMinutes }} 分</text>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const database = require("../../data/database.js")
+const store = require("../../data/store.js")
+
+var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+
+function parseTimeRange(timeStr) {
+  if (!timeStr) return null
+  var parts = timeStr.split(" - ")
+  if (parts.length !== 2) return null
+  var s1 = parts[0].trim().split(":")
+  var s2 = parts[1].trim().split(":")
+  if (s1.length !== 2 || s2.length !== 2) return null
+  return {
+    startMin: parseInt(s1[0]) * 60 + parseInt(s1[1]),
+    endMin: parseInt(s2[0]) * 60 + parseInt(s2[1])
+  }
+}
+
+export default {
+  private: {
+    iconTheme: "dark",
+    isLoading: true,
+    currentClass: null,
+    noClassMessage: "",
+    progressPercent: 0,
+    elapsedMinutes: 0,
+    remainingMinutes: 0,
+    theme: {
+      bg: '#1a1a2e', card: '#16213e', cardLight: '#0f3460',
+      accent: '#7ec8e3', text: '#ffffff', textSecondary: '#888899',
+      textMuted: '#555566', border: '#0f3460'
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
+    self.loadData()
+    self.timer = setInterval(function() { self.refreshProgress() }, 10000)
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
+  },
+
+  updateIconSrc: function(themeName) {
+    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+  },
+
+  loadData: function() {
+    var self = this
+    database.init(function() {
+      database.getAllCourses(function(schedule) {
+        var todayIndex = new Date().getDay()
+        var todayName = DAY_NAMES[todayIndex]
+        var todayDay = null
+        for (var i = 0; i < schedule.length; i++) {
+          if (schedule[i].day === todayName) { todayDay = schedule[i]; break }
+        }
+        var classes = (todayDay && todayDay.classes) ? todayDay.classes.slice() : []
+        self.isLoading = false
+        self.todayClasses = classes
+        self.refreshProgress()
+      })
+    })
+  },
+
+  refreshProgress: function() {
+    var self = this
+    var now = new Date()
+    var nowMin = now.getHours() * 60 + now.getMinutes()
+    var classes = self.todayClasses || []
+    self.currentClass = null
+
+    for (var i = 0; i < classes.length; i++) {
+      var range = parseTimeRange(classes[i].time)
+      if (!range) continue
+      if (nowMin >= range.startMin && nowMin < range.endMin) {
+        self.currentClass = classes[i]
+        var total = range.endMin - range.startMin
+        var elapsed = nowMin - range.startMin
+        var remaining = range.endMin - nowMin
+        self.progressPercent = Math.min(100, Math.round(elapsed / total * 100))
+        self.elapsedMinutes = elapsed
+        self.remainingMinutes = remaining
+        return
+      }
+    }
+
+    var nextClass = null
+    for (var j = 0; j < classes.length; j++) {
+      var r = parseTimeRange(classes[j].time)
+      if (r && r.startMin > nowMin) {
+        if (!nextClass || r.startMin < parseTimeRange(nextClass.time).startMin) {
+          nextClass = classes[j]
+        }
+      }
+    }
+    if (nextClass) {
+      var nr = parseTimeRange(nextClass.time)
+      var waitMin = nr.startMin - nowMin
+      var waitH = Math.floor(waitMin / 60)
+      var waitM = waitMin % 60
+      self.noClassMessage = "距下节课 " + (waitH > 0 ? waitH + "时" : "") + waitM + "分"
+    } else if (classes.length > 0) {
+      self.noClassMessage = "今日课程已全部结束"
+    } else {
+      self.noClassMessage = "今天没有课"
+    }
+  },
+
+  goBack() { router.back() },
+
+  onDestroy() {
+    if (this.timer) { clearInterval(this.timer); this.timer = null }
+  }
+}
+</script>
+
+<style>
+.page { flex-direction: column; width: 100%; height: 100%; padding: 44px 12px 12px 12px }
+
+.back-header { flex-direction: row; align-items: center; margin-bottom: 16px; padding: 0 4px }
+.back-btn-wrapper { width: 48px; height: 40px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0 }
+.back-btn-icon { width: 24px; height: 24px }
+.header-title { flex: 1; font-size: 28px; font-weight: bold; text-align: center; line-height: 38px }
+.header-placeholder { width: 48px; height: 48px; flex-shrink: 0 }
+
+.loading-area { align-items: center; padding: 30px 0 }
+.loading-text { font-size: 22px; line-height: 30px }
+
+.no-class-area { flex-direction: column; align-items: center; padding: 40px 0 }
+.no-class-icon { font-size: 48px; margin-bottom: 12px }
+.no-class-text { font-size: 24px; line-height: 32px; text-align: center }
+
+.card { flex-direction: column; border-radius: 18px; padding: 24px 20px; margin: 8px 4px }
+.card-name { font-size: 34px; font-weight: bold; line-height: 42px; margin-bottom: 6px }
+.card-time { font-size: 24px; line-height: 32px; margin-bottom: 2px }
+.card-location { font-size: 20px; line-height: 28px; margin-bottom: 18px }
+
+.progress-bar-bg { height: 14px; border-radius: 7px; margin-bottom: 10px; overflow: hidden }
+.progress-bar-fill { height: 14px; border-radius: 7px }
+
+.progress-labels { flex-direction: row; justify-content: space-between }
+.progress-elapsed { font-size: 20px; line-height: 28px }
+.progress-remaining { font-size: 20px; line-height: 28px; font-weight: bold }
+
+@media (width >= 200px) {
+  .page { padding: 44px 16px 14px 16px }
+  .card { padding: 30px 24px; border-radius: 20px }
+  .card-name { font-size: 40px; line-height: 48px }
+  .progress-bar-bg { height: 16px; border-radius: 8px }
+  .progress-bar-fill { height: 16px; border-radius: 8px }
+}
+
+@media (width >= 400px) {
+  .page { padding: 12px 20px 16px 20px }
+}
+</style>

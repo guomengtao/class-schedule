@@ -61,11 +61,10 @@ export default {
     router.push({ uri: "/pages/settings" })
   },
 
-  // 版本号即入口：点击进入设置页的「课程面板」栏目
-  // （schedule-panel 目录页为未提交 WIP，push 它会打不开；设置页是稳定入口）
+  // 版本号即入口：点击进入课程面板目录页（/pages/schedule-panel 已随功能入 git，确保可打开）
   openSchedulePanel() {
     var router = require("@system.router")
-    router.push({ uri: "/pages/settings" })
+    router.push({ uri: "/pages/schedule-panel" })
   },
 
   exitApp() {
