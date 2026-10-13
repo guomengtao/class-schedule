@@ -1,204 +1,115 @@
+<!-- UI/实现来源：open-vela-learning/packages_apps/wearable/settings/src/pages/home/index.ux（ev-minimal 最小改动法，2026-10-14；注入点仅数据源/文案/跳转） -->
 <template>
-  <div class="page" style="background-color: {{ theme.bg }}">
-    <text class="today-text" style="color: {{ theme.text }}">简易课表</text>
-    <div class="item-box">
-      <scroll class="list">
-        <div class="item-wrapper" for="{{ (index, item) in courseList }}" onclick="toDetail(item)">
-          <div class="content-common">
-            
-            <text class="title-text" style="color: {{ theme.text }}">{{ item.name }}</text>
-          </div>
-          <div class="date-text-box">
-            <text class="date-text" style="color: {{ theme.textMuted }}">{{ item.timeText }}</text>
-          </div>
+  <div class="w-full h-full bg-black">
+    <list class="list">
+      <list-item class="list-item justify-center" type="title">
+        <image class="w-30 h-30 mr-10" src="/common/image/back.png" onclick="handleClick"></image>
+        <text class="list-item-title">简易课表</text>
+      </list-item>
+      <list-item class="list-item justify-between pl-60" type="setting-item" for="{{list}}" onclick="routeDetail($item)">
+        <div>
+          <image class="subject-image mt-4" src="{{$item.iconSrc}}"></image>
+          <text class="subject-name">{{ $item.name }}</text>
         </div>
-      </scroll>
-      <text class="empty-text" show="{{ isEmpty }}">暂无课程</text>
-    </div>
+
+        <image class="subject-image mr-60" src="/common/image/right.png"></image>
+      </list-item>
+    </list>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
-const store = require("../../data/store.js")
+import app from "@system.app"
 const database = require("../../data/database.js")
 
 export default {
+  // 页面级组件的数据模型，影响传入数据的覆盖机制：private内定义的属性不允许被覆盖
   private: {
-    theme: {
-      bg: '#1a1a2e', card: '#16213e', cardLight: '#0f3460',
-      accent: '#7ec8e3', text: '#ffffff', textSecondary: '#888899',
-      textMuted: '#555566', border: '#0f3460'
-    },
-    courseList: [],
-    isEmpty: true
+    title: "简易课表",
+    list: []
   },
 
   onInit() {
-    var self = this
-    store.getTheme(function(t) { self.theme = t })
-    self.loadCourses()
-  },
-
-  onShow() {
-    var self = this
-    store.getTheme(function(t) { self.theme = t })
-    self.loadCourses()
-  },
-
-  // 简易课表：极简单字，不使用彩色块（官方 basic/text 的常规字重文本模式）
-
-  // 数据加载：database.getAllCoursesWithIndex 属 §11 例外——官方示例无课程业务实现，已在方案注明
-  loadCourses() {
+    // 注入点①数据源：官方 settings 静态 list → 项目课程列表（database.getAllCoursesWithIndex，§11 例外：官方无课程业务）
     var self = this
     database.getAllCoursesWithIndex(0, function(schedule) {
       var list = []
-      if (!schedule) return
-      for (var d = 0; d < schedule.length; d++) {
-        var dayData = schedule[d]
-        if (!dayData || !dayData.classes) continue
-        var classes = dayData.classes
-        for (var i = 0; i < classes.length; i++) {
-          var c = classes[i]
-          if (!c || !c.name) continue
-          var timeText = c.time || ""
-          if (c.location) timeText = timeText ? timeText + " · " + c.location : c.location
-          list.push({
-            id: c.id,
-            name: c.name,
-            timeText: timeText,
-            subjectColor: "null"
-          })
+      if (schedule) {
+        for (var d = 0; d < schedule.length; d++) {
+          var dayData = schedule[d]
+          if (!dayData || !dayData.classes) continue
+          var classes = dayData.classes
+          for (var i = 0; i < classes.length; i++) {
+            var c = classes[i]
+            if (!c || !c.name) continue
+            var label = (dayData.day || "") + " " + c.name
+            if (c.time) label = label + " · " + c.time
+            list.push({ name: label, iconSrc: "" })
+          }
         }
       }
-      self.courseList = list
-      self.isEmpty = list.length === 0
+      self.list = list
     })
   },
 
-  // 官方 todolist task 页同款：点击列表项 push 详情页并带参数
-  toDetail(item) {
-    if (!item || !item.id) return
+  // 注入点③跳转：官方 routeDetail（/pages/detail，本工程不存在）→ 项目课程管理页
+  routeDetail(item) {
     router.push({
-      uri: "/pages/detail",
-      params: { courseId: item.id }
+      uri: "/pages/schedule-manager"
     })
   },
-
+  handleClick() {
+    app.terminate()
+  }
 }
 </script>
 
 <style>
-/* ================================================================
-   UI/实现全部套用官方标准 demo（open-vela-learning，§11）：
-   - 布局骨架   官方 multi_screen_todolist task 页（item-wrapper/content-common/date-text-box，div for 渲染）
-   - 滚动+渲染   官方 container/scroll + todolist div for（禁用 list 虚拟列表：子项无确定高度会塌缩空白）
-   - 文本属性   官方 vela-sample basic/text（font-size/font-weight/line-height/text-align）
-   - 分隔线     官方 list 示例 item 的 border-bottom
-   - 自适应断点 项目 §10 触底自适应（铁律优先：官方 @import aspect-ratio 模式不用）
-   ================================================================ */
-
-.page {
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  padding: 44px 12px 12px 12px;
-}
-
-/* 官方 todolist today-text：居中标题 */
-.today-text {
-  width: 100%;
-  text-align: center;
-  font-size: 24px;
-  font-weight: bold;
-  line-height: 38px;
-  margin-bottom: 12px;
-}
-
-/* 官方 todolist item-box */
-.item-box {
-  flex: 1;
-  flex-direction: column;
-}
-
-/* 官方 container/scroll 滚动容器 */
+/* ev-minimal 注：官方 home 原 @import "./index.less" 已移除——该 less 仅含官方 detail 页残留类（.demo-page/.title），与本页样式无关，且本工程无此文件会导致构建失败；本页所需全部类均在下方 style 内 */
 .list {
   width: 100%;
-  flex: 1;
+  height: 100%;
 }
-
-/* 官方 todolist item-wrapper + 官方 list 示例 item 的 border-bottom 分隔线 */
-.item-wrapper {
-  width: 100%;
-  min-height: 56px;
-  flex-direction: column;
-  justify-content: center;
-  padding: 10px 12px;
-  border-bottom: 1px solid #cccccc;
+.title {
+  color: #fff;
+  font-size: 40px;
+  margin-top: 42px;
 }
-
-/* 官方 todolist content-common：图标 + 标题一行 */
-.content-common {
-  width: 100%;
+.list-item-title{
+  font-size: 36px;
+  color:white;
+}
+.list-item {
   flex-direction: row;
   align-items: center;
+  height: 88px;
 }
 
-.color-block {
-  width: 14px;
-  height: 14px;
-  border-radius: 7px;
-  margin-right: 10px;
-  flex-shrink: 0;
+.subject-image {
+	width: 58px;
+	height: 58px;
+	margin-right: 30px;
 }
-
-/* 官方 basic/text 属性 */
-.title-text {
-  font-size: 24px;
-  font-weight: normal;
-  line-height: 32px;
-  flex: 1;
-}
-
-/* 官方 todolist date-text-box */
-.date-text-box {
-  width: 100%;
-  flex-direction: row;
-  align-items: center;
-  margin-top: 4px;
-}
-
-.date-text {
-  font-size: 20px;
-  line-height: 28px;
-}
-
-/* 官方 todolist complete-text 空态样式 */
-.empty-text {
-  width: 100%;
-  text-align: center;
-  font-size: 20px;
-  line-height: 28px;
-  color: #6f6f6f;
-  margin-top: 40px;
-}
-
-
-/* ================================================================
-   宽度断点：手环 10 / 胶囊屏大号（width >= 200px），增量放大
-   ================================================================ */
-@media (width >= 200px) {
-  .today-text {
-    font-size: 26px;
-    line-height: 36px;
-  }
-  .title-text {
-    font-size: 26px;
-    line-height: 34px;
-  }
-  .date-text {
-    font-size: 22px;
-    line-height: 30px;
-  }
+.subject-name {
+	font-size: 36px;
+	font-weight: 400;
+	color: #fff;
 }
 </style>
+
+/* ================================================================
+   以下原子类照抄自官方 settings/src/app.ux <style> 块（ev-minimal 军规 3：追加式，原值不改）
+   官方 home 页模板使用 w-full/h-full/bg-black/pl-60/mr-10/mr-60/mt-4/w-30/h-30/justify-* 等
+   ================================================================ */
+.pl-60 { padding-left: 60px; }
+.mr-10 { margin-right: 10px; }
+.mr-60 { margin-right: 60px; }
+.mt-4 { margin-top: 4px; }
+.bg-black { background-color: rgba(0, 0, 0, 1); }
+.h-30 { height: 30px; }
+.h-full { height: 100%; }
+.w-30 { width: 30px; }
+.w-full { width: 100%; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }

@@ -1,211 +1,279 @@
+<!-- UI/实现来源：open-vela-learning/packages_apps/wearable/calendar/src/pages/index/index.ux（ev-minimal 最小改动法，2026-10-14；注入点仅数据源/文案/跳转） -->
 <template>
-  <div class="page" style="background-color: {{ theme.bg }}">
-    <text class="today-text" style="color: {{ theme.text }}">多彩课表</text>
-    <div class="item-box">
-      <scroll class="list">
-        <div class="item-wrapper" for="{{ (index, item) in courseList }}" onclick="toDetail(item)">
-          <div class="content-common">
-            <div class="color-block" style="background-color: {{ item.subjectColor }}"></div>
-            <text class="title-text" style="color: {{ theme.text }}">{{ item.name }}</text>
-          </div>
-          <div class="date-text-box">
-            <text class="date-text" style="color: {{ theme.textMuted }}">{{ item.timeText }}</text>
-          </div>
+  <div class="home-page" @swipe="handleSwipe">
+    <div class="header">
+      <div class="year-month">
+        <text class="title">本周课表</text>
+      </div>
+      <div class="week-head">
+        <text class="week-text weekend">一</text>
+        <text class="week-text">二</text>
+        <text class="week-text">三</text>
+        <text class="week-text">四</text>
+        <text class="week-text">五</text>
+        <text class="week-text weekend">六</text>
+        <text class="week-text weekend">日</text>
+      </div>
+      <div class="divider"></div>
+    </div>
+    <div class="list">
+      <div for="row in list" class="item" style="height: {{height}}">
+        <div class="cell" for="cell in row" tid="id">
+          <text @click="handleClick(cell)" class="{{cell.className}}">
+            {{ cell.value }}
+          </text>
         </div>
-      </scroll>
-      <text class="empty-text" show="{{ isEmpty }}">暂无课程</text>
+      </div>
+    </div>
+    <div else class="container" if="{{$app.$def.screenShape === 'pill-shaped'}}">
+      <text @click="backClick">返回</text>
     </div>
   </div>
 </template>
 
 <script>
-import router from "@system.router"
-const store = require("../../data/store.js")
-const database = require("../../data/database.js")
-
-// 官方示例色（vela-sample general/color）：hex + rgb 两种官方验证写法
-const OFFICIAL_COLORS = ["#ff6b6b", "#51cf66", "rgb(51, 154, 240)", "#ff6a24", "#6f6f6f", "#51cf66"]
-
+import router from "@system.router";
+import app from "@system.app";
+const database = require("../../data/database.js");
 export default {
-  private: {
-    theme: {
-      bg: '#1a1a2e', card: '#16213e', cardLight: '#0f3460',
-      accent: '#7ec8e3', text: '#ffffff', textSecondary: '#888899',
-      textMuted: '#555566', border: '#0f3460'
-    },
-    courseList: [],
-    isEmpty: true
-  },
+	private: {
+		date: new Date(),
+		year: "",
+		month: "",
+		list: null,
+		height: "50px",
+		viewIndex: 0
+	},
 
-  onInit() {
-    var self = this
-    store.getTheme(function(t) { self.theme = t })
-    self.loadCourses()
-  },
+	onInit() {
+		this.initList();
+		this.loadMatrix();
+	},
 
-  onShow() {
-    var self = this
-    store.getTheme(function(t) { self.theme = t })
-    self.loadCourses()
-  },
+	initList() {
+		let list = [];
+		for (let i = 0; i < 5; i++) {
+			let initArray = new Array(7).fill("x").map((item) => {
+				return {
+					value: "",
+					className: "",
+				};
+			});
+			list.push(initArray);
+		}
 
-  // 科目色值取官方 general/color 组件示例色（#ff6b6b/#51cf66/rgb(51,154,240)/#ff6a24/#6f6f6f），
-  // rgba 半透明写法同官方 color 组件验证过的 rgb()/hex 用法
-  officialColorAt: function(idx) {
-    return OFFICIAL_COLORS[idx % OFFICIAL_COLORS.length]
-  },
+		this.list = list;
+	},
+	backClick() {
+		app.terminate();
+	},
 
-  // 数据加载：database.getAllCoursesWithIndex 属 §11 例外——官方示例无课程业务实现，已在方案注明
-  loadCourses() {
-    var self = this
-    database.getAllCoursesWithIndex(0, function(schedule) {
-      var list = []
-      if (!schedule) return
-      for (var d = 0; d < schedule.length; d++) {
-        var dayData = schedule[d]
-        if (!dayData || !dayData.classes) continue
-        var classes = dayData.classes
-        for (var i = 0; i < classes.length; i++) {
-          var c = classes[i]
-          if (!c || !c.name) continue
-          var timeText = c.time || ""
-          if (c.location) timeText = timeText ? timeText + " · " + c.location : c.location
-          list.push({
-            id: c.id,
-            name: c.name,
-            timeText: timeText,
-            subjectColor: self.officialColorAt(i)
-          })
-        }
-      }
-      self.courseList = list
-      self.isEmpty = list.length === 0
-    })
-  },
+	// 注入点①数据源：官方 getCalendar（日期矩阵）→ 课表矩阵。
+	// 渲染机制全部保留官方：rows×7 矩阵、className 三类（workday/weekend/today）、动态行高、点击进详情。
+	// 有课格子直接套官方 cell-text-today 红底高亮类；§11 例外：官方无课程业务，数据层用项目 database。
+	loadMatrix() {
+		const self = this;
+		database.getAllCoursesWithIndex(self.viewIndex, function(schedule) {
+			const matrix = {};
+			if (schedule) {
+				for (let d = 0; d < schedule.length; d++) {
+					const dayData = schedule[d];
+					if (dayData && dayData.day) matrix[dayData.day] = dayData.classes || [];
+				}
+			}
+			self.buildScheduleMatrix(matrix);
+		});
+	},
 
-  // 官方 todolist task 页同款：点击列表项 push 详情页并带参数
-  toDetail(item) {
-    if (!item || !item.id) return
-    router.push({
-      uri: "/pages/detail",
-      params: { courseId: item.id }
-    })
-  },
+	buildScheduleMatrix(matrix) {
+		const DAY_COLS = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"];
+		let rows = 1;
+		for (let i = 0; i < DAY_COLS.length; i++) {
+			const cls = matrix[DAY_COLS[i]] || [];
+			if (cls.length > rows) rows = cls.length;
+		}
+		this.updateListRows(rows);
+		this.height = 300 / rows + "px";
 
-}
+		for (let i = 0; i < rows; i++) {
+			for (let j = 0; j < 7; j++) {
+				const cls = matrix[DAY_COLS[j]] || [];
+				const c = cls[i];
+				if (j === 5 || j === 6) {
+					this.list[i][j].className = "cell-text-weekend";
+				} else {
+					this.list[i][j].className = "cell-text-workday";
+				}
+				if (c && c.name) {
+					this.list[i][j].value = c.name;
+					this.list[i][j].className = "cell-text-today";
+					this.list[i][j].courseId = c.id;
+				} else {
+					this.list[i][j].value = "";
+				}
+			}
+		}
+	},
+
+	updateListRows(rows) {
+		while (this.list.length < rows) {
+			let initArray = new Array(7).fill("x").map((item) => {
+				return {
+					value: "",
+					className: "",
+				};
+			});
+			this.list.push(initArray);
+		}
+
+		while (this.list.length > rows) {
+			this.list.pop();
+		}
+	},
+
+	prevWeek() {
+		if (this.viewIndex <= 0) return;
+		this.viewIndex -= 1;
+		this.loadMatrix();
+	},
+
+	nextWeek() {
+		this.viewIndex += 1;
+		this.loadMatrix();
+	},
+
+	// 注入点③跳转：官方 handleClick（push 本工程不存在的 pages/detail）→ 项目课程管理页
+	handleClick(item) {
+		if (item.value === "") return;
+		router.push({
+			uri: "/pages/schedule-manager"
+		});
+	},
+
+	handleSwipe(eve) {
+		if (eve.direction === "left") {
+			this.nextWeek();
+		} else if (eve.direction === "right") {
+			this.prevWeek();
+		}
+	},
+};
 </script>
 
 <style>
-/* ================================================================
-   UI/实现全部套用官方标准 demo（open-vela-learning，§11）：
-   - 布局骨架   官方 multi_screen_todolist task 页（item-wrapper/content-common/date-text-box，div for 渲染）
-   - 滚动+渲染   官方 container/scroll + todolist div for（禁用 list 虚拟列表：子项无确定高度会塌缩空白）
-   - 文本属性   官方 vela-sample basic/text（font-size/font-weight/line-height/text-align）
-   - 分隔线     官方 list 示例 item 的 border-bottom
-   - 自适应断点 项目 §10 触底自适应（铁律优先：官方 @import aspect-ratio 模式不用）
-   ================================================================ */
-
-.page {
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  padding: 44px 12px 12px 12px;
+.home-page {
+	width: 100%;
+	height: 100%;
+	border-radius: 240px;
+	flex-direction: column;
+  align-items: center;
 }
 
-/* 官方 todolist today-text：居中标题 */
-.today-text {
-  width: 100%;
-  text-align: center;
-  font-size: 28px;
-  font-weight: bold;
-  line-height: 38px;
-  margin-bottom: 12px;
+@media screen and (shape: pill-shaped) {
+	.home-page {
+		width: 100%;
+		height: 100%;
+		border-radius: 240px;
+		flex-direction: column;
+		align-items: flex-start;
+	}
 }
 
-/* 官方 todolist item-box */
-.item-box {
-  flex: 1;
-  flex-direction: column;
+.header {
+	width: 350px;
+	height: 80px;
+	margin-top: 20px;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: center;
 }
 
-/* 官方 container/scroll 滚动容器 */
+.year-month {
+	width: 240px;
+	height: 60px;
+	justify-content: center;
+	align-items: center;
+}
+.container {
+	justify-content: center;
+	padding: 10px;
+	color: white;
+	border-radius: 20px;
+	margin: 0px 20px 0px 20px;
+	background-color: grey;
+}
+
+.title {
+	font-weight: 700;
+}
+
+.red {
+	color: #f00;
+}
+
+.week-head {
+	width: 350px;
+	justify-content: center;
+	align-items: center;
+}
+
+.week-text {
+	width: 50px;
+	font-weight: 700;
+	color: #fff;
+	text-align: center;
+}
+
+.weekend {
+	color: rgba(255, 255, 255, 0.6);
+}
+
+.divider {
+	width: 100%;
+	height: 2px;
+	margin-top: 4px;
+	background-color: rgba(255, 255, 255, 0.3);
+}
+
 .list {
-  width: 100%;
-  flex: 1;
+	width: 350px;
+	height: 300px;
+	flex-direction: column;
 }
 
-/* 官方 todolist item-wrapper + 官方 list 示例 item 的 border-bottom 分隔线 */
-.item-wrapper {
-  width: 100%;
-  min-height: 64px;
-  flex-direction: column;
-  justify-content: center;
-  padding: 14px 12px;
-  border-bottom: 1px solid #cccccc;
+.item {
+	width: 100%;
 }
 
-/* 官方 todolist content-common：图标 + 标题一行 */
-.content-common {
-  width: 100%;
-  flex-direction: row;
-  align-items: center;
+.cell {
+	width: 50px;
+	height: 100%;
 }
 
-.color-block {
-  width: 14px;
-  height: 14px;
-  border-radius: 7px;
-  margin-right: 10px;
-  flex-shrink: 0;
+.cell-text-workday {
+	width: 100%;
+	height: 100%;
+	font-weight: 700;
+	text-align: center;
+	color: rgba(255, 255, 255, 1);
+	background-color: transparent;
 }
 
-/* 官方 basic/text 属性 */
-.title-text {
-  font-size: 24px;
-  font-weight: bold;
-  line-height: 32px;
-  flex: 1;
+.cell-text-weekend {
+	width: 100%;
+	height: 100%;
+	font-weight: 700;
+	text-align: center;
+	color: rgba(255, 255, 255, 0.6);
+	background-color: transparent;
 }
 
-/* 官方 todolist date-text-box */
-.date-text-box {
-  width: 100%;
-  flex-direction: row;
-  align-items: center;
-  margin-top: 4px;
-}
-
-.date-text {
-  font-size: 20px;
-  line-height: 28px;
-}
-
-/* 官方 todolist complete-text 空态样式 */
-.empty-text {
-  width: 100%;
-  text-align: center;
-  font-size: 20px;
-  line-height: 28px;
-  color: #6f6f6f;
-  margin-top: 40px;
-}
-
-
-/* ================================================================
-   宽度断点：手环 10 / 胶囊屏大号（width >= 200px），增量放大
-   ================================================================ */
-@media (width >= 200px) {
-  .today-text {
-    font-size: 26px;
-    line-height: 36px;
-  }
-  .title-text {
-    font-size: 26px;
-    line-height: 34px;
-  }
-  .date-text {
-    font-size: 22px;
-    line-height: 30px;
-  }
+.cell-text-today {
+	width: 100%;
+	height: 100%;
+	font-weight: 700;
+	text-align: center;
+	color: rgba(255, 255, 255, 1);
+	background-color: #ff3a3a;
 }
 </style>
