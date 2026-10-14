@@ -25,6 +25,29 @@ CHANNELS=(
 
 cd "$PROJECT_DIR"
 
+# ---- 版本号自动 +1（铁律 §3.2，2026-10-14 版本纠察员🚨 补；原全靠人工手改到 1.8.318）----
+# 必须放在"读取当前版本号"之前：脚本末尾"恢复默认渠道"会把 VERSION_FILE 重写为
+# $VERSION + 常量，若在读取后 bump，恢复逻辑会把你刚 +1 的版本号打回旧值（evbox 同款陷阱）。
+# 顺带修掉原脚本两处硬编码 versionCode: 1080（一跑就被打回常量，与 versionName 脱节）。
+# --no-bump 跳过
+if [ "${1:-}" != "--no-bump" ]; then
+  node -e "
+const fs = require('fs');
+const p = process.argv[1];
+let s = fs.readFileSync(p, 'utf8');
+const m = s.match(/versionName: \"(\d+)\.(\d+)\.(\d+)\"/);
+if (m) {
+  const nv = m[1] + '.' + m[2] + '.' + (parseInt(m[3]) + 1);
+  const c = (s.match(/versionCode: (\d+)/) || [0, 0])[1];
+  s = s.replace(/versionName: \"[^\"]+\"/, 'versionName: \"' + nv + '\"');
+  s = s.replace(/versionCode: \d+/, 'versionCode: ' + (parseInt(c) + 1));
+  fs.writeFileSync(p, s);
+  console.log('  version → ' + nv + ' (versionCode ' + (parseInt(c) + 1) + ')');
+}
+" "$VERSION_FILE"
+fi
+VCODE_NOW=$(node -e "var v=require('$VERSION_FILE'); console.log(v.versionCode)")
+
 # 读取当前版本号
 VERSION=$(node -e "var v=require('$VERSION_FILE'); console.log(v.versionName)")
 
@@ -42,7 +65,7 @@ for ch in "${CHANNELS[@]}"; do
   echo "[$count/$total] Building channel: $ch (v$VERSION)"
   echo "=========================================="
 
-  echo "module.exports = { versionName: \"$VERSION\", versionCode: 1080, channel: \"$ch\" }" > "$VERSION_FILE"
+  echo "module.exports = { versionName: \"$VERSION\", versionCode: $VCODE_NOW, channel: \"$ch\" }" > "$VERSION_FILE"
 
   NODE_OPTIONS= npx aiot release --enable-jsc
 
@@ -62,7 +85,7 @@ for ch in "${CHANNELS[@]}"; do
 done
 
 # 恢复默认渠道
-echo "module.exports = { versionName: \"$VERSION\", versionCode: 1080, channel: \"t-9p-d\" }" > "$VERSION_FILE"
+echo "module.exports = { versionName: \"$VERSION\", versionCode: $VCODE_NOW, channel: \"t-9p-d\" }" > "$VERSION_FILE"
 
 echo ""
 echo "=========================================="
