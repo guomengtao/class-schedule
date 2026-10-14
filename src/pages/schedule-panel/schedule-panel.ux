@@ -1,132 +1,102 @@
+<!-- UI/实现来源：open-vela-learning/packages_apps/wearable/settings/src/pages/home/index.ux（ev-minimal 最小改动法，2026-10-14；注入点仅数据源/文案/跳转） -->
 <template>
-  <div class="page" style="background-color: {{ theme.bg }}">
-    <div class="back-header">
-      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
-      </div>
-      <text class="header-title" style="color: {{ theme.text }}">课程面板</text>
-      <div class="header-placeholder"></div>
-    </div>
+  <div class="w-full h-full bg-black">
+    <list class="list">
+      <list-item class="list-item justify-center" type="title">
+        <image class="w-30 h-30 mr-10" src="/common/image/back.png" onclick="handleClick"></image>
+        <text class="list-item-title">课程面板</text>
+      </list-item>
+      <list-item class="list-item justify-between pl-60" type="setting-item" for="{{list}}" onclick="routeDetail($item)">
+        <div>
+          <image class="subject-image mt-4" src="{{$item.iconSrc}}"></image>
+          <text class="subject-name">{{ $item.name }}</text>
+        </div>
 
-    <div class="section" style="background-color: {{ theme.card }}">
-      <div class="row" onclick="goPage('schedule-panel-progress')">
-        <text class="row-label" style="color: {{ theme.text }}">当前进度</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">进度条 · 倒计时</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
-      <div class="row" onclick="goPage('schedule-panel-remaining')">
-        <text class="row-label" style="color: {{ theme.text }}">剩余课程</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">自动隐藏已过</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
-      <div class="row" onclick="goPage('schedule-panel-subject-color')">
-        <text class="row-label" style="color: {{ theme.text }}">科目色卡</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">科目固定颜色</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
-      <div class="row" onclick="goPage('schedule-panel-countdown')">
-        <text class="row-label" style="color: {{ theme.text }}">倒计时</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">大号倒计时</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
-      <div class="row" onclick="goPage('schedule-panel-dual-mode')">
-        <text class="row-label" style="color: {{ theme.text }}">智能切换</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">上课课间自动切</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-    </div>
-
-    <div class="section" style="background-color: {{ theme.card }}; margin-top: 12px">
-      <div class="row" onclick="goPage('schedule-panel-colorful')">
-        <text class="row-label" style="color: {{ theme.text }}">多彩课表</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">多彩色 · 最新课程</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
-      <div class="row" onclick="goPage('schedule-panel-simple')">
-        <text class="row-label" style="color: {{ theme.text }}">简易课表</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">极简 · 核心课程</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-    </div>
+        <image class="subject-image mr-60" src="/common/image/right.png"></image>
+      </list-item>
+    </list>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
-const store = require("../../data/store.js")
+
+// 注入点①数据源：官方 settings 静态 list（15 项设置）→ 课程面板 7 个栏目入口。
+// 图标资源原样拷贝自官方 settings/src/common/image/*.indexed_8.png（官方 demo 本身即一图多项复用）；
+// page 字段为本工程栏目页路由名（官方 demo 无此字段，§11 例外：官方无课程面板业务）。
+var ENTRIES = [
+  { name: "当前进度", iconSrc: "/common/image/motion.indexed_8.png", page: "schedule-panel-progress" },
+  { name: "剩余课程", iconSrc: "/common/image/battery.indexed_8.png", page: "schedule-panel-remaining" },
+  { name: "科目色卡", iconSrc: "/common/image/display.indexed_8.png", page: "schedule-panel-subject-color" },
+  { name: "倒计时", iconSrc: "/common/image/disturb.indexed_8.png", page: "schedule-panel-countdown" },
+  { name: "智能切换", iconSrc: "/common/image/applayout.indexed_8.png", page: "schedule-panel-dual-mode" },
+  { name: "多彩课表", iconSrc: "/common/image/sound.indexed_8.png", page: "schedule-panel-colorful" },
+  { name: "简易课表", iconSrc: "/common/image/novice.indexed_8.png", page: "schedule-panel-simple" }
+]
 
 export default {
+  // 页面级组件的数据模型，影响传入数据的覆盖机制：private内定义的属性不允许被覆盖
   private: {
-    iconTheme: "dark",
-    theme: {
-      bg: '#1a1a2e', card: '#16213e', cardLight: '#0f3460',
-      accent: '#7ec8e3', text: '#ffffff', textSecondary: '#888899',
-      textMuted: '#555566', border: '#0f3460'
-    }
+    title: "课程面板",
+    list: ENTRIES
   },
 
-  onInit() {
-    var self = this
-    store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
+  // 注入点③跳转：官方 routeDetail（/pages/detail，本工程不存在）→ 按条目进对应栏目页
+  routeDetail(item) {
+    router.push({
+      uri: "/pages/" + item.page
+    })
   },
-
-  onShow() {
-    var self = this
-    store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
-  },
-
-  updateIconSrc: function(themeName) {
-    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
-  },
-
-  goPage(name) {
-    router.push({ uri: "/pages/" + name })
-  },
-
-  goBack() { router.back() }
+  // 注入点③跳转-返回：官方 handleClick 为 app.terminate()（官方 demo 是根页）；
+  // 本页由设置页 push 而来非根页，返回应为 router.back()，官方 app 导入随之移除。
+  handleClick() {
+    router.back()
+  }
 }
 </script>
 
 <style>
-.page { flex-direction: column; width: 100%; height: 100%; padding: 44px 12px 12px 12px }
+@import "./index.less";
+.list {
+  width: 100%;
+  height: 100%;
+}
+.title {
+  color: #fff;
+  font-size: 40px;
+  margin-top: 42px;
+}
+.list-item-title{
+  font-size: 36px;
+  color:white;
+}
+.list-item {
+  flex-direction: row;
+  align-items: center;
+  height: 88px;
+}
 
-.back-header { flex-direction: row; align-items: center; margin-bottom: 16px; padding: 0 4px }
-.back-btn-wrapper { width: 48px; height: 40px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0 }
-.back-btn-icon { width: 24px; height: 24px }
-.header-title { flex: 1; font-size: 28px; font-weight: bold; text-align: center; line-height: 38px }
-.header-placeholder { width: 48px; height: 48px; flex-shrink: 0 }
-
-.section { flex-direction: column; border-radius: 14px; overflow: hidden; margin: 0 4px }
-.row { flex-direction: row; align-items: center; padding: 18px 16px }
-.row-label { font-size: 24px; line-height: 32px; font-weight: bold; flex: 1 }
-.row-right { flex-direction: row; align-items: center; flex-shrink: 0 }
-.row-hint { font-size: 18px; line-height: 26px; margin-right: 6px }
-.arrow { font-size: 24px; line-height: 32px }
-.divider { height: 1px; margin: 0 16px }
-
-@media (width >= 200px) {
-  .page { padding: 44px 16px 14px 16px }
-  .row { padding: 20px 18px }
-  .row-label { font-size: 26px; line-height: 34px }
-  .row-hint { font-size: 20px; line-height: 28px }
+.subject-image {
+	width: 58px;
+	height: 58px;
+	margin-right: 30px;
+}
+.subject-name {
+	font-size: 36px;
+	font-weight: 400;
+	color: #fff;
 }
 </style>
+
+/* atomics below copied verbatim from official settings app.ux style block (ev-minimal rule 3: append-only) */
+.pl-60 { padding-left: 60px; }
+.mr-10 { margin-right: 10px; }
+.mr-60 { margin-right: 60px; }
+.mt-4 { margin-top: 4px; }
+.bg-black { background-color: rgba(0, 0, 0, 1); }
+.h-30 { height: 30px; }
+.h-full { height: 100%; }
+.w-30 { width: 30px; }
+.w-full { width: 100%; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
