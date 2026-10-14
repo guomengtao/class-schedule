@@ -1,17 +1,16 @@
-<!-- UI/实现来源：open-vela-learning/packages_apps/wearable/vela-sample/src/home/index.ux（ev-minimal 最小改动法 v3，2026-10-14；官方正统栏目目录页：分章→分组折叠→链接导航，原生 pill 适配。注入点仅数据源/文案） -->
+<!-- UI/实现来源：open-vela-learning/packages_apps/wearable/vela-sample/src/home/index.ux（ev-minimal v3，2026-10-14）
+     本轮改动（注入点：数据源/跳转/返回）：去掉官方分组折叠，caseList 直接平铺为链接列表；顶部加居中返回按钮。 -->
 <template>
   <div class="page home-page">
+    <div class="back-header" @click="goBack">
+      <image class="back-icon" src="/common/image/back.png"></image>
+      <text class="back-text">返回</text>
+    </div>
     <block for="{{tabs}}">
       <div class="chapter">
         <text class="h1">{{$item.name}}</text>
         <block for="{{$item.groupList}}">
-          <div class="header" @click="toggleGroup($item.name)">
-            <image class="arrow" src="/common/image/arrow-{{expandedGroups[$item.name] ? 1 : 0}}.png"></image>
-            <text class="h2">{{$item.name}}</text>
-          </div>
-          <block if="{{expandedGroups[$item.name]}}">
-            <text class="link" for="{{$item.caseList}}" @click="route($item.path)">{{$item.name}}</text>
-          </block>
+          <text class="link" for="{{$item.caseList}}" @click="route($item.path)">{{$item.name}}</text>
         </block>
       </div>
     </block>
@@ -21,24 +20,23 @@
 <script>
 import router from '@system.router'
 // 注入点1数据源：官方 tabsData（框架/组件/接口三章）→ 课程面板一章一组 7 个栏目。
-// 官方字段 name/path 原样沿用（path=manifest 页 key，官方 route(uri) 零改动直通）；
-// 结构由官方对象字典改为单章数组（官方 demo 三章并列，本工程一章即可，其余逐字保留）。
+// 官方字段 name/path 原样沿用；path 写全 /pages/ 前缀（官方 manifest 页 key 无 pages/ 前缀，
+// 本项目 manifest 为 "pages/schedule-panel-xxx"，故跳转必须带前缀，否则链接点不开 —— 跳转属注入点）。
 import { tabsData } from './data.js'
 
 export default {
   private: {
-    tabs: tabsData,
-    expandedGroups: {}
+    tabs: tabsData
   },
 
-  // 官方 route 原样保留：官方 path 即页 key（官方 manifest 同款直通），
-  // 我们的 data.js path 同样写 manifest 页 key（schedule-panel-xxx），无需注入跳转逻辑
+  // 注入点3跳转：官方 route 原样保留（router.push uri）
   route(uri) {
     router.push({ uri })
   },
 
-  toggleGroup(name) {
-    this.expandedGroups[name] = !this.expandedGroups[name]
+  // 注入点3跳转-返回：本页由设置页 push 而来非根页，顶部返回按钮回上一页
+  goBack() {
+    router.back()
   }
 }
 </script>
@@ -50,6 +48,24 @@ export default {
   align-items: flex-start;
   justify-content: flex-start;
   padding: 60px 80px;
+}
+
+.back-header {
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.back-icon {
+  width: 30px;
+  height: 30px;
+  margin-right: 6px;
+}
+
+.back-text {
+  font-size: 30px;
 }
 
 .chapter {
@@ -65,19 +81,6 @@ export default {
 .h2 {
   margin-top: 15px;
   font-size: 30px;
-}
-
-.header {
-  align-items: center;
-  margin-top: 0;
-  margin-bottom: 0;
-}
-
-.arrow {
-  width: 20px;
-  height: 20px;
-  margin-top: 7px;
-  margin-right: 3px;
 }
 
 /* ev-minimal 军规4例外：官方此处另有 text-overflow: ellipsis 一行，
@@ -99,6 +102,11 @@ text {
     padding: 60px 10px;
   }
 
+  .back-icon {
+    width: 36px;
+    height: 36px;
+  }
+
   .link {
     height: 70px;
     margin-left: 15px;
@@ -110,11 +118,6 @@ text {
 
   text {
     font-size: 48px;
-  }
-
-  .arrow {
-    width: 30px;
-    height: 36px;
   }
 }
 </style>
