@@ -23,6 +23,35 @@ import router from "@system.router"
 import app from "@system.app"
 const database = require("../../data/database.js")
 
+// 注入点①数据源-图标：官方 settings 静态 iconSrc → 科目图标。
+// 图标资源原样拷贝自官方 settings/src/common/image/*.indexed_8.png（官方 demo 本身即一图多项复用，见官方 index.ux 列表）；
+// 未命中科目回落官方 motion 图标。
+var SUBJECT_ICONS = {
+  "语文": "/common/image/novice.indexed_8.png",
+  "数学": "/common/image/display.indexed_8.png",
+  "英语": "/common/image/wlan.indexed_8.png",
+  "物理": "/common/image/motion.indexed_8.png",
+  "化学": "/common/image/battery.indexed_8.png",
+  "生物": "/common/image/disturb.indexed_8.png",
+  "历史": "/common/image/downkey.indexed_8.png",
+  "地理": "/common/image/guesture.indexed_8.png",
+  "政治": "/common/image/wrist.indexed_8.png",
+  "体育": "/common/image/sound.indexed_8.png",
+  "音乐": "/common/image/system.indexed_8.png",
+  "美术": "/common/image/applayout.indexed_8.png",
+  "信息": "/common/image/notify.indexed_8.png"
+}
+var DEFAULT_ICON = "/common/image/motion.indexed_8.png"
+
+function pickIcon(name) {
+  if (!name) return DEFAULT_ICON
+  if (SUBJECT_ICONS[name]) return SUBJECT_ICONS[name]
+  for (var key in SUBJECT_ICONS) {
+    if (name.indexOf(key) >= 0) return SUBJECT_ICONS[key]
+  }
+  return DEFAULT_ICON
+}
+
 export default {
   // 页面级组件的数据模型，影响传入数据的覆盖机制：private内定义的属性不允许被覆盖
   private: {
@@ -32,6 +61,8 @@ export default {
 
   onInit() {
     // 注入点①数据源：官方 settings 静态 list → 项目课程列表（database.getAllCoursesWithIndex，§11 例外：官方无课程业务）
+    // 行文案精简为"周X 课程名"：官方 36px 字号 + 58px 图标槽下，方形屏可用文本宽约 200px，
+    // "星期一 数学 · 08:00" 约 13 字必溢出，故去掉时间（时间以课程管理页为准）。
     var self = this
     database.getAllCoursesWithIndex(0, function(schedule) {
       var list = []
@@ -43,9 +74,8 @@ export default {
           for (var i = 0; i < classes.length; i++) {
             var c = classes[i]
             if (!c || !c.name) continue
-            var label = (dayData.day || "") + " " + c.name
-            if (c.time) label = label + " · " + c.time
-            list.push({ name: label, iconSrc: "" })
+            var dayShort = (dayData.day || "").replace("星期", "周")
+            list.push({ name: dayShort + " " + c.name, iconSrc: pickIcon(c.name) })
           }
         }
       }
@@ -66,7 +96,7 @@ export default {
 </script>
 
 <style>
-/* ev-minimal: official index.less import removed; unrelated leftover, absent in this project */
+@import "./index.less";
 .list {
   width: 100%;
   height: 100%;

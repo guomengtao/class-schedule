@@ -3,7 +3,7 @@
   <div class="home-page" @swipe="handleSwipe">
     <div class="header">
       <div class="year-month">
-        <text class="title">本周课表</text>
+        <text class="title">多彩课表</text>
       </div>
       <div class="week-head">
         <text class="week-text weekend">一</text>
@@ -70,7 +70,8 @@ export default {
 
 	// 注入点①数据源：官方 getCalendar（日期矩阵）→ 课表矩阵。
 	// 渲染机制全部保留官方：rows×7 矩阵、className 三类（workday/weekend/today）、动态行高、点击进详情。
-	// 有课格子直接套官方 cell-text-today 红底高亮类；§11 例外：官方无课程业务，数据层用项目 database。
+	// 有课格按官方 color demo 色板配色（见 <style> 末尾 cell-course-* 追加类，§3 已批准：业务色值取自官方示例色板）；
+	// §11 例外：官方无课程业务，数据层用项目 database。
 	loadMatrix() {
 		const self = this;
 		database.getAllCoursesWithIndex(self.viewIndex, function(schedule) {
@@ -87,6 +88,9 @@ export default {
 
 	buildScheduleMatrix(matrix) {
 		const DAY_COLS = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"];
+		// 官方 color demo 色板（#ff6b6b / #51cf66 / rgb(51,154,240) / red 名 / #f00 即本页官方 .red 值）
+		const PALETTE = ["cell-course-0", "cell-course-1", "cell-course-2", "cell-course-3", "cell-course-4"];
+		if (!this._subjectColors) this._subjectColors = {};
 		let rows = 1;
 		for (let i = 0; i < DAY_COLS.length; i++) {
 			const cls = matrix[DAY_COLS[i]] || [];
@@ -105,8 +109,15 @@ export default {
 					this.list[i][j].className = "cell-text-workday";
 				}
 				if (c && c.name) {
-					this.list[i][j].value = c.name;
-					this.list[i][j].className = "cell-text-today";
+					// 军规3 加法适配：官方格宽 50px 且 cell 类无字号（官方只放 1-2 位日期数字），
+					// 课程名截两字 + cell-course-* 追加类补 22px，保证不溢出格宽。
+					this.list[i][j].value = c.name.length > 2 ? c.name.slice(0, 2) : c.name;
+					let colorIdx = this._subjectColors[c.name];
+					if (colorIdx === undefined) {
+						colorIdx = Object.keys(this._subjectColors).length % PALETTE.length;
+						this._subjectColors[c.name] = colorIdx;
+					}
+					this.list[i][j].className = PALETTE[colorIdx];
 					this.list[i][j].courseId = c.id;
 				} else {
 					this.list[i][j].value = "";
@@ -275,5 +286,54 @@ export default {
 	text-align: center;
 	color: rgba(255, 255, 255, 1);
 	background-color: #ff3a3a;
+}
+
+/* ev-minimal rule 3 append-only: occupied-cell colors from official color demo palette
+   (#ff6b6b / #51cf66 / rgb(51,154,240) / blue name / #f00). Official cell-text-* above untouched.
+   font-size 22px is the additive adaptation for 2-char course names in the 50px official cell. */
+.cell-course-0 {
+	width: 100%;
+	height: 100%;
+	font-weight: 700;
+	font-size: 22px;
+	text-align: center;
+	color: rgba(255, 255, 255, 1);
+	background-color: #ff6b6b;
+}
+.cell-course-1 {
+	width: 100%;
+	height: 100%;
+	font-weight: 700;
+	font-size: 22px;
+	text-align: center;
+	color: rgba(255, 255, 255, 1);
+	background-color: #51cf66;
+}
+.cell-course-2 {
+	width: 100%;
+	height: 100%;
+	font-weight: 700;
+	font-size: 22px;
+	text-align: center;
+	color: rgba(255, 255, 255, 1);
+	background-color: rgb(51, 154, 240);
+}
+.cell-course-3 {
+	width: 100%;
+	height: 100%;
+	font-weight: 700;
+	font-size: 22px;
+	text-align: center;
+	color: rgba(255, 255, 255, 1);
+	background-color: blue;
+}
+.cell-course-4 {
+	width: 100%;
+	height: 100%;
+	font-weight: 700;
+	font-size: 22px;
+	text-align: center;
+	color: rgba(255, 255, 255, 1);
+	background-color: #f00;
 }
 </style>
