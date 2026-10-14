@@ -97,6 +97,16 @@
   3. 未过 §7 筛查表的 demo 一律视为禁用，不得以"看起来差不多"提名。
 - 每个候选 demo 先过 **§7 筛查表**，通过后写入 **§3 批准清单**，两个清单之外的官方代码不得进项目。
 
+### 军规 8 · 项目既有标准模式优先（v3 新增，2026-10-14）
+
+官方 demo 只在**项目无对应标准实现**时启用。凡项目已有标准模式的领域，一律复用项目模式，**禁用官方 demo 覆写**：
+
+- 列表/目录 = 项目范本 `src/pages/tools/tools.ux`、`src/pages/settings/settings.ux`（scroll 全量滚动 / back-header 三件套 / item-row 单行 + `›` 箭头 / section 卡片 + divider / store.getTheme 主题）；
+- 页头 = `back-header` 三件套（返回键 + 居中标题 + 占位）；主题 = `store.getTheme`；适配 = 三形模版 `pill-shaped`；
+- 官方 demo 只准填补项目空白（如无先例的矩阵/日历类视图）；
+- 冲突时按 §4 仲裁：**项目铁律/既有标准 > 官方做法 > 个人审美**；
+- 场景对齐是选源第一关：先定场景（目录/设置项/任务/日历），再在官方库里挑同场景 demo，禁止拿场景不符的 demo 硬套（todolist task = 任务场景，禁用于目录页即此军规反面案例，见 `docs/课程面板目录页-vs工具栏目-列表实现对比.md`）。
+
 ---
 
 ## 2. 官方库在哪（唯一参考源）
@@ -104,7 +114,12 @@
 | 副本 | 路径 | 说明 |
 |------|------|------|
 | **完整副本（钦定）** | `~/WorkBuddy/2026-10-11-21-15-20/open-vela-learning/` | 含 `packages_apps/wearable/vela-sample`（组件手册）+ 13 个 wearable 应用 demo + 182 篇官方文档 |
-| 部分子仓 | `~/Documents/open-vela-learning/` | 只有部分示例工程（multi_screen_todolist / calendar / settings 等），**无 vela-sample**，别在这找组件手册 |
+
+**官方坐标与验真（v3 补记，2026-10-14 联网核验）**：
+- 唯一权威源 = GitHub **`open-vela/packages_apps`**（默认分支 `dev`，最新提交 2026-06-02 "chore: add openvela-reviewer team"）；
+- 本地快照与官方线上**逐字节一致**（md5 验证：`vela-sample/src/home/index.ux` = `994f9c97…`、`vela-sample/src/style/comm.css` = `cc578ea7…`）——内容没被篡改也没过期，**"参考错"从来不是库错，是选 demo 选错**；
+- 复核方法：`curl --proxy $(env|grep -oE 'http_proxy=http://127.0.0.1:[0-9]+'|head -1|cut -d= -f2) https://raw.githubusercontent.com/open-vela/packages_apps/dev/<路径> | md5 -q` 与本地对比；
+- 部分子仓 `~/Documents/open-vela-learning/` 只有部分示例工程（multi_screen_todolist / calendar / settings 等），**无 vela-sample**，别在这找组件手册。
 
 **索引速查**：`vela-sample-87文件明细.md` 标注了每个组件的适用场景（如 `container/list` = "课表/设置列表基础"）。找不到合适 demo 时先查这份明细，再翻官方文档目录。
 
@@ -116,10 +131,11 @@
 
 | 用途 | 官方来源 | 胶囊屏（194px）兼容性 | 复用时注意 |
 |------|----------|----------------------|-----------|
-| 菜单/设置列表 | `settings/src/pages/home` | ⚠️ 无原生 pill，结构宽度自适应 | 须追加军规 6 胶囊适配层；36px 文本+58px 图标槽在 182px 内临界，真机复核 |
+| **栏目目录/导航列表（分组折叠）** | `vela-sample/src/home` | ✅ **原生 pill @media** | **官方正统目录页**（2026-10-14 核验登记）：分章 chapter → 分组折叠 header（arrow-0/1 图）→ 链接 for 循环 @click 跳转；pill 分支官方已放大字号（h1 52px / text 48px / link 70px 高 / arrow 30×36），194px 开箱即用。连依赖：`vela-sample/src/style/comm.css` + `src/Common/arrow-0.png`/`arrow-1.png` + `src/home/data.js`。目录场景首选基底 |
+| 菜单/设置列表 | `settings/src/pages/home` | ⚠️ 无原生 pill，结构宽度自适应 | 设置项场景专用；须追加军规 6 胶囊适配层；36px 文本+58px 图标槽在 182px 内临界，真机复核 |
 | 周历矩阵 | `calendar/src/pages/index` | ⚠️ 有 pill `@media` 但矩阵 350px 固定宽 | **必须先追加 pill 收窄适配**（多彩课表待办，见 §8） |
 | 日历详情 | `calendar/src/pages/detail` | ⚠️ 有 pill `@media`，宽度待核 | 同上，先筛查后提名 |
-| 双行列表项 + 进详情 | `multi_screen_todolist/src/pages/task` | ❌ 无原生 pill | 竖排结构预计可自适应，须追加胶囊适配层 + 真机复核后才可批准 |
+| 双行列表项 + 进详情 | `multi_screen_todolist/src/pages/task` | ❌ 无原生 pill | ⚠️ **任务场景专用**（分页 3 条/页、checkbox 勾选、日期行均为任务语义），**禁用于栏目目录/设置类页面**；竖排结构预计可自适应，须追加胶囊适配层 + 真机复核后才可批准 |
 | 列表容器/滚动 | `vela-sample/src/component/container/list`（或 `container/scroll`） | ✅ vela-sample 家族带 pill | `<list>` 子项**必须补确定高度**（官方给了 `height: 60px`）；用 todolist 的 `scroll + div for` 时同理要给项显式高度 |
 | 文本属性 | `vela-sample/src/component/basic/text` | ✅ 组件级 | font-size / weight / line-height / text-align 官方写法；`lines:` / `ellipsis` 项目禁用（军规 4 豁免） |
 | 颜色写法 | `vela-sample/src/component/general/color` | ✅ 组件级 | hex + `rgb()` / `rgba()` 官方验证写法，业务色值可取自官方示例色板 |
@@ -182,11 +198,11 @@
 | 官方 demo | 原生 pill 适配 | 194px 布局成立？ | 处置 |
 |-----------|:---:|:---:|------|
 | `calendar/src/pages/index` + `detail` | ✅ | ❌ 矩阵/表头 350px 固定宽 | 复用须追加 pill 收窄（多彩课表待办） |
-| `settings/src/pages/home` | ❌ | ✅ 竖排列表宽度自适应 | 可复用 + 追加胶囊适配层 |
+| `settings/src/pages/home` | ❌ | ✅ 竖排列表宽度自适应 | 设置项场景专用，可复用 + 追加胶囊适配层 |
 | `fistPower`（index/result/record/loading/fail + app.ux） | ✅ | 待核 | 待逐页筛查 |
 | `multi-screen-calculator/src/pages/index` | ✅ | 待核 | 待逐页筛查 |
-| `vela-sample/src/home` + `style/comm.css` + `framework/media-query` | ✅ | ✅ | 组件/样式基准，可放心用 |
-| `multi_screen_todolist/src/pages/task` | ❌ | 待核（竖排预计可自适应） | 须追加胶囊适配层 + 真机复核 |
+| `vela-sample/src/home` + `style/comm.css` + `framework/media-query` | ✅ | ✅ | **官方正统目录页**：分章/分组折叠/链接导航，pill 分支官方放大字号（h1 52px/text 48px/link 70px）；栏目目录场景首选 |
+| `multi_screen_todolist/src/pages/task` | ❌ | 待核（竖排预计可自适应） | ❌ 任务场景专用（分页/勾选/日期语义），禁用于栏目目录/设置类页面；如复用须追加胶囊适配层 + 真机复核 |
 | 其余 wearable apps（24count / dice / player / woodenFish / eventBus / launcher / parentChildComp / interconnect_image_demo / chart） | 未命中 | — | **默认禁用**，逐个筛查后才可提名 |
 
 ---
@@ -196,7 +212,7 @@
 | 页面 | 当前基底 | pill 风险 | 动作 |
 |------|----------|----------|------|
 | `schedule-panel-colorful`（多彩课表） | calendar index | **350px 矩阵超 194px 屏宽** | ✅ 已追加 pill 收窄（矩阵 178px/格 25px/格字 12px/行高基准 200，JS 按屏型收敛）· 待真机复核 |
-| `schedule-panel`（课程面板目录页） | settings home | 无原生 pill；pl-60+58px 图标+36px 文本在 182px 临界 | ✅ 已追加胶囊适配层（行高 72px/图标 30px/名称 24px/pl-60→8px）· 待真机复核 |
+| `schedule-panel`（课程面板目录页） | ~~settings home~~ → 本轮 todolist task | ~~无原生 pill；182px 临界~~ / ~~无原生 pill + 任务语义错配~~ | 🔴 **选型错误（两轮）**：官方正统目录页基底 = `vela-sample/src/home`（分章/分组折叠/链接导航 + 原生 pill），见 §3；另项目自有标准列表范本 = `pages/tools`（见对比 md）；重建时按军规 8 仲裁二者优先级 |
 | `schedule-panel-simple`（简易课表） | settings home | 同上 | ✅ 已追加胶囊适配层（同目录页）· 待真机复核 |
 | `schedule-panel-progress` / `-remaining` / `-subject-color` / `-countdown` / `-dual-mode` | 项目自研 | 按三形模版复核 pill 分支是否在位 | 🟢 逐页核查，缺项的按三形模版补齐 |
 
@@ -208,3 +224,4 @@
 |------|------|------|
 | 2026-10-13 | v1 | 首版。由课程面板白屏事故复盘 + 用户钦定口径固化 |
 | 2026-10-14 | v2 | 新增军规 6（胶囊屏自适应硬约束：三形体系/单一 shape 媒体查询/模版基准值）与军规 7（选源仅限 9 手环胶囊屏，禁圆屏方屏专用布局）；§3 清单加胶囊屏兼容列；新增 §7 官方 demo 筛查表、§8 既有落页复核清单；checklist 增补 3 项 |
+| 2026-10-14 | v3 | 联网核验官方库坐标（open-vela/packages_apps @ dev，本地 md5 逐字节一致）写入 §2；**选型纠错**：`vela-sample/src/home` 登记为官方正统栏目目录页基底（§3/§7），`multi_screen_todolist/task` 标注任务场景专用禁用于目录页，`settings/home` 标注设置项场景；§8 目录页行改判两轮选型错误；新增军规 8（项目既有标准模式优先）；§9 记 v3 |
