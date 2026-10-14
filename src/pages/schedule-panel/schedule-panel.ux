@@ -1,115 +1,186 @@
-<!-- UI/实现来源：open-vela-learning/packages_apps/wearable/settings/src/pages/home/index.ux（ev-minimal 最小改动法，2026-10-14；注入点仅数据源/文案/跳转） -->
+<!-- UI/实现来源：open-vela-learning/packages_apps/wearable/multi_screen_todolist/src/pages/task/index.ux（ev-minimal 最小改动法，2026-10-14；官方库最基础列表实现：div for 循环行 + text onclick。注入点仅数据源/文案/跳转） -->
 <template>
-  <div class="w-full h-full bg-black">
-    <list class="list">
-      <list-item class="list-item justify-center" type="title">
-        <image class="w-30 h-30 mr-10" src="/common/image/back.png" onclick="handleClick"></image>
-        <text class="list-item-title">课程面板</text>
-      </list-item>
-      <list-item class="list-item justify-between pl-60" type="setting-item" for="{{list}}" onclick="routeDetail($item)">
-        <div>
-          <image class="subject-image mt-4" src="{{$item.iconSrc}}"></image>
-          <text class="subject-name">{{ $item.name }}</text>
+  <div class="list" onswipe="touchMove">
+    <text class="today-text" onclick="toPrev">{{showPrev ? '上一页' : '课程面板'}}</text>
+    <div class="item-box">
+      <div for="{{(index, task) in pageTasks}}" class="item-wrapper">
+        <div class="content-common">
+          <image src="./checkbox.png" class="image"></image>
+          <text class="title-text" onclick="toDetail(task)">{{task.title}}</text>
         </div>
-
-        <image class="subject-image mr-60" src="/common/image/right.png"></image>
-      </list-item>
-    </list>
+        <div class="date-text-box" onclick="toDetail(task)">
+          <text class="date-text">{{task.dateString}}</text>
+        </div>
+      </div>
+    </div>
+    <text show="{{showNext}}" onclick="toNext" class="more-text">下一页</text>
   </div>
 </template>
 
 <script>
-import router from "@system.router"
+import router from "@system.router";
 
-// 注入点①数据源：官方 settings 静态 list（15 项设置）→ 课程面板 7 个栏目入口。
-// 图标资源原样拷贝自官方 settings/src/common/image/*.indexed_8.png（官方 demo 本身即一图多项复用）；
+// 注入点1数据源：官方 tasks（5 条静态任务）→ 课程面板 7 个栏目入口。
+// 官方字段 title/dateString 原样沿用（dateString 注入为栏目简短说明）；
 // page 字段为本工程栏目页路由名（官方 demo 无此字段，§11 例外：官方无课程面板业务）。
+// 官方分页逻辑（3 条/页）原样保留，未改。
 var ENTRIES = [
-  { name: "当前进度", iconSrc: "/common/image/motion.indexed_8.png", page: "schedule-panel-progress" },
-  { name: "剩余课程", iconSrc: "/common/image/battery.indexed_8.png", page: "schedule-panel-remaining" },
-  { name: "科目色卡", iconSrc: "/common/image/display.indexed_8.png", page: "schedule-panel-subject-color" },
-  { name: "倒计时", iconSrc: "/common/image/disturb.indexed_8.png", page: "schedule-panel-countdown" },
-  { name: "智能切换", iconSrc: "/common/image/applayout.indexed_8.png", page: "schedule-panel-dual-mode" },
-  { name: "多彩课表", iconSrc: "/common/image/sound.indexed_8.png", page: "schedule-panel-colorful" },
-  { name: "简易课表", iconSrc: "/common/image/novice.indexed_8.png", page: "schedule-panel-simple" }
+  { title: "当前进度", dateString: "今日上课情况", page: "schedule-panel-progress" },
+  { title: "剩余课程", dateString: "还没上的课", page: "schedule-panel-remaining" },
+  { title: "科目色卡", dateString: "科目颜色一览", page: "schedule-panel-subject-color" },
+  { title: "倒计时", dateString: "下课倒计时", page: "schedule-panel-countdown" },
+  { title: "智能切换", dateString: "课表库自动切换", page: "schedule-panel-dual-mode" },
+  { title: "多彩课表", dateString: "彩色周视图", page: "schedule-panel-colorful" },
+  { title: "简易课表", dateString: "简洁周视图", page: "schedule-panel-simple" }
 ]
 
 export default {
   // 页面级组件的数据模型，影响传入数据的覆盖机制：private内定义的属性不允许被覆盖
   private: {
-    title: "课程面板",
-    list: ENTRIES
+    tasks: ENTRIES,
+    pageTasks: [],
+    showPrev: false,
+    showNext: true,
+    showMore: false,
+    isShow: false,
+    page: 0
   },
 
-  // 注入点③跳转：官方 routeDetail（/pages/detail，本工程不存在）→ 按条目进对应栏目页
-  routeDetail(item) {
-    router.push({
-      uri: "/pages/" + item.page
-    })
+  onShow() {
+    this.updatePageTask()
   },
-  // 注入点③跳转-返回：官方 handleClick 为 app.terminate()（官方 demo 是根页）；
-  // 本页由设置页 push 而来非根页，返回应为 router.back()，官方 app 导入随之移除。
-  handleClick() {
-    router.back()
-  }
-}
+
+  updatePageTask() {
+    const start = this.page * 3
+    const end = (this.page + 1) * 3
+    this.pageTasks = this.tasks.slice(start, end)
+    if (end >= this.tasks.length) this.showNext = false
+  },
+
+  toPrev() {
+    if (this.page === 0) return
+    this.page--
+    if (this.page === 0) this.showPrev = false
+
+    this.updatePageTask()
+    if (this.page !== 5) this.showNext = true
+  },
+
+  toNext() {
+    this.page++
+    if (this.page > 0) this.showPrev = true
+    if (this.page === 5) this.showNext = false
+    this.updatePageTask()
+  },
+  // 注入点3跳转：官方 toDetail（/pages/detail，本工程不存在）→ 按条目进对应栏目页
+  toDetail(task) {
+    router.push({
+      uri: "/pages/" + task.page
+    });
+  },
+  // 注入点3跳转-返回：官方 touchMove 右滑为 app.terminate()（官方 demo 是根页）；
+  // 本页由设置页 push 而来非根页，右滑返回应为 router.back()，官方 app 导入随之移除。
+  touchMove: function (e) {
+    if (e.direction == "right") {
+      router.back();
+    }
+  },
+};
 </script>
 
 <style>
-@import "./index.less";
+@import "./radioLessThanHalf.css" screen and (aspect-ratio < 1/2);
+@import "./radioMoreThanHalf.css" screen and (aspect-ratio > 1/2) and (aspect-ratio < 1/1);
+@import "./radioMoreThanOne.css" screen and (aspect-ratio >= 1);
+
 .list {
   width: 100%;
   height: 100%;
-}
-.title {
-  color: #fff;
-  font-size: 40px;
-  margin-top: 42px;
-}
-.list-item-title{
-  font-size: 36px;
-  color:white;
-}
-.list-item {
-  flex-direction: row;
-  align-items: center;
-  height: 88px;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.subject-image {
-	width: 58px;
-	height: 58px;
-	margin-right: 30px;
+.today-text {
+  width: 100%;
+  text-align: center;
+  color: #ff6a24;
 }
-.subject-name {
-	font-size: 36px;
-	font-weight: 400;
-	color: #fff;
+
+.complete-text {
+  width: 100%;
+  text-align: center;
+  color: #6f6f6f;
+}
+
+/* ev-minimal 军规4例外：官方此处有 text-overflow: ellipsis 与 lines: 1 两行，
+   撞项目铁律（禁 lines/ellipsis，详见项目字号规范）故删除，其余逐行保留 */
+text {
+  font-size: 30px;
+  color: white;
+}
+
+.item-box {
+  flex: 1;
+  flex-direction: column;
+}
+
+.content-common {
+  width: 100%;
+  height: 50%;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.date-text-box {
+  width: 100%;
+  height: 50%;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.item-wrapper {
+  width: 100%;
+  height: 30%;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.image {
+  margin-right: 10px;
+}
+
+.content-wrapper {
+  height: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+  border:1px solid pink;
+}
+
+.date-text {
+  color: #6f6f6f;
+}
+
+.more-text {
+  width: 100%;
+  text-align: center;
+  color: #ff6a24;
+}
+
+/* ev-minimal v2 军规6：手环9 胶囊屏 194x368（aspect-ratio≈0.53 走官方 radioMoreThanHalf 档），
+   但该档 title-text/date-text 为 332px 固定宽，超 194px 屏宽。
+   追加式收窄（单一 shape 无逗号，官方 class 定义未动）：
+   算账 194px - image 60px - margin 30px = 104px 标题预算；4 字栏目名@24px=96px 达标；
+   副文案无图标占位，164px 预算@24px 约 6 字达标。 */
+@media screen and (shape: pill-shaped) {
+  .title-text {
+    width: 104px;
+    margin-right: 0;
+    font-size: 24px;
+  }
+  .date-text {
+    width: 164px;
+    margin-right: 0;
+    font-size: 24px;
+  }
 }
 </style>
-
-/* atomics below copied verbatim from official settings app.ux style block (ev-minimal rule 3: append-only) */
-.pl-60 { padding-left: 60px; }
-.mr-10 { margin-right: 10px; }
-.mr-60 { margin-right: 60px; }
-.mt-4 { margin-top: 4px; }
-.bg-black { background-color: rgba(0, 0, 0, 1); }
-.h-30 { height: 30px; }
-.h-full { height: 100%; }
-.w-30 { width: 30px; }
-.w-full { width: 100%; }
-.justify-center { justify-content: center; }
-.justify-between { justify-content: space-between; }
-
-/* ev-minimal v2 rule 6: band-9 pill screen 194x368 narrowing (append-only; official class defs untouched; single-shape query, no comma).
-   Official settings home has no pill branch. At 194px the official row (pl-60 + 58px icon + 36px name + 60px + 58px arrow) overflows.
-   Narrowed per three-shape template baselines: row 88->72px, icon/arrow 58->30px, name 36->24px, pl-60->8px, mr-60->8px.
-   Math: usable 194px - fixed 84px (8+30+8+8+30) = 110px name budget; 4 chars at 24px = 96px fits. */
-@media screen and (shape: pill-shaped) {
-  .list-item { height: 72px; }
-  .list-item-title { font-size: 28px; }
-  .subject-image { width: 30px; height: 30px; margin-right: 8px; }
-  .subject-name { font-size: 24px; }
-  .pl-60 { padding-left: 8px; }
-  .mr-60 { margin-right: 8px; }
-}
