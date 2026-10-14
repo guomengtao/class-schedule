@@ -195,9 +195,9 @@
 
 | 页面 | 当前基底 | pill 风险 | 动作 |
 |------|----------|----------|------|
-| `schedule-panel-colorful`（多彩课表） | calendar index | **350px 矩阵超 194px 屏宽** | 🔴 优先：追加 `@media (shape: pill-shaped)` 收窄适配，真机验证 |
-| `schedule-panel`（课程面板目录页） | settings home | 无原生 pill；pl-60+58px 图标+36px 文本在 182px 临界 | 🟡 追加胶囊适配层后真机复核 |
-| `schedule-panel-simple`（简易课表） | settings home | 同上 | 🟡 同上 |
+| `schedule-panel-colorful`（多彩课表） | calendar index | **350px 矩阵超 194px 屏宽** | ✅ 已追加 pill 收窄（矩阵 178px/格 25px/格字 12px/行高基准 200，JS 按屏型收敛）· 待真机复核 |
+| `schedule-panel`（课程面板目录页） | settings home | 无原生 pill；pl-60+58px 图标+36px 文本在 182px 临界 | ✅ 已追加胶囊适配层（行高 72px/图标 30px/名称 24px/pl-60→8px）· 待真机复核 |
+| `schedule-panel-simple`（简易课表） | settings home | 同上 | ✅ 已追加胶囊适配层（同目录页）· 待真机复核 |
 | `schedule-panel-progress` / `-remaining` / `-subject-color` / `-countdown` / `-dual-mode` | 项目自研 | 按三形模版复核 pill 分支是否在位 | 🟢 逐页核查，缺项的按三形模版补齐 |
 
 ---

@@ -100,3 +100,16 @@ export default {
 .w-full { width: 100%; }
 .justify-center { justify-content: center; }
 .justify-between { justify-content: space-between; }
+
+/* ev-minimal v2 rule 6: band-9 pill screen 194x368 narrowing (append-only; official class defs untouched; single-shape query, no comma).
+   Official settings home has no pill branch. At 194px the official row (pl-60 + 58px icon + 36px name + 60px + 58px arrow) overflows.
+   Narrowed per three-shape template baselines: row 88->72px, icon/arrow 58->30px, name 36->24px, pl-60->8px, mr-60->8px.
+   Math: usable 194px - fixed 84px (8+30+8+8+30) = 110px name budget; 4 chars at 24px = 96px fits. */
+@media screen and (shape: pill-shaped) {
+  .list-item { height: 72px; }
+  .list-item-title { font-size: 28px; }
+  .subject-image { width: 30px; height: 30px; margin-right: 8px; }
+  .subject-name { font-size: 24px; }
+  .pl-60 { padding-left: 8px; }
+  .mr-60 { margin-right: 8px; }
+}

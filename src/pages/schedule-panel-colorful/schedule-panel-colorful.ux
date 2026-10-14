@@ -34,6 +34,7 @@
 <script>
 import router from "@system.router";
 import app from "@system.app";
+import device from "@system.device";
 const database = require("../../data/database.js");
 export default {
 	private: {
@@ -42,12 +43,25 @@ export default {
 		month: "",
 		list: null,
 		height: "50px",
-		viewIndex: 0
+		viewIndex: 0,
+		isCapsule: false
 	},
 
 	onInit() {
 		this.initList();
-		this.loadMatrix();
+		// 军规6（v2）：先取屏型再建矩阵。手环9 胶囊屏 194×368，官方 300px 矩阵 + 80px 表头 + pill 返回条会溢出屏底，
+		// 行高基准按屏型收敛（官方 base/rows 公式的胶囊适配，官方 class 未动；屏型探测沿用 week-view 既有写法）。
+		const self = this;
+		device.getInfo({
+			success: function(data) {
+				var shape = data.screenShape || "";
+				self.isCapsule = (shape === "capsule" || shape === "pill-shaped");
+				self.loadMatrix();
+			},
+			fail: function() {
+				self.loadMatrix();
+			}
+		});
 	},
 
 	initList() {
@@ -97,7 +111,8 @@ export default {
 			if (cls.length > rows) rows = cls.length;
 		}
 		this.updateListRows(rows);
-		this.height = 300 / rows + "px";
+		// 军规6（v2）：官方基准 300px（圆/方屏向）；胶囊屏 194×368 扣除表头 100px 与 pill 返回条约 60px 后收敛为 200px，防溢出屏底
+		this.height = (this.isCapsule ? 200 : 300) / rows + "px";
 
 		for (let i = 0; i < rows; i++) {
 			for (let j = 0; j < 7; j++) {
@@ -335,5 +350,27 @@ export default {
 	text-align: center;
 	color: rgba(255, 255, 255, 1);
 	background-color: #f00;
+}
+
+/* ev-minimal v2 rules 6+7: band-9 pill screen 194x368 narrowing (append-only; official class defs untouched; single-shape query, no comma).
+   Official calendar base is 350px fixed width (round/square watches) - it overflows the 194px pill screen,
+   so per rule 7 this page was NOT allowed on band 9 until narrowed here:
+   matrix/week-head/list 350->178px, cells 50->25px (7*25=175<=178), cell text 22->12px (2 chars=24px<=25px),
+   week header chars 16px; home-page align-items overridden back to center (official pill branch sets flex-start,
+   which would clip the header against the top corners); list height 300->200px pairs with the script-side
+   row-height baseline switch (300/rows -> 200/rows) so matrix + pill back-bar fit above the 368px screen bottom. */
+@media screen and (shape: pill-shaped) {
+  .home-page { align-items: center; }
+  .header { width: 178px; }
+  .year-month { width: 178px; }
+  .week-head { width: 178px; }
+  .week-text { width: 25px; font-size: 16px; }
+  .list { width: 178px; height: 200px; }
+  .cell { width: 25px; }
+  .cell-course-0 { font-size: 12px; }
+  .cell-course-1 { font-size: 12px; }
+  .cell-course-2 { font-size: 12px; }
+  .cell-course-3 { font-size: 12px; }
+  .cell-course-4 { font-size: 12px; }
 }
 </style>
