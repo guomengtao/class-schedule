@@ -88,7 +88,11 @@ export default {
 	// §11 例外：官方无课程业务，数据层用项目 database。
 	loadMatrix() {
 		const self = this;
-		database.getAllCoursesWithIndex(self.viewIndex, function(schedule) {
+		// 注入点①数据源（2026-10-14 用户要求）：课程改为显示【当前生效方案】——
+		// database.getAllCourses 内部走 currentScheduleIndex（见 data/database.js 663 行），
+		// 不再用 viewIndex 取数（viewIndex 会被官方 @swipe 翻页改变，会跳到别的方案）。
+		// viewIndex 与官方 prevWeek/nextWeek 交互按军规4保留（不删官方结构），滑动仅重载当前方案数据。
+		database.getAllCourses(function(schedule) {
 			const matrix = {};
 			if (schedule) {
 				for (let d = 0; d < schedule.length; d++) {
