@@ -21,3 +21,16 @@ shots/
 # 注意：只挡 memory/ 与 plans/；rules/ 是团队共享的项目规则，三仓统一入库。
 .codebuddy/memory/
 .codebuddy/plans/
+
+# --- WIP 噪音抑制（2026-10-15 陈账催收员🧾 批量补入）---
+__pycache__/
+*.pyc
+*.pyo
+*_out.txt
+_probe*.js
+_tmp_*
+_kc_*
+_persist_*
+_dbe_backup/
+trae_verify*
+*.log
