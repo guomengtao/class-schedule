@@ -1,0 +1,16 @@
+{
+  "unauthorized": [
+    {
+      "at": 1791891844110,
+      "sid": "84feb9eb-3120-40e3-a249-366cad94593f1791888028899",
+      "file": "/git/scm0/input",
+      "reason": "closed"
+    },
+    {
+      "at": 1791891848759,
+      "sid": "84feb9eb-3120-40e3-a249-366cad94593f1791888028899",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/package.json",
+      "reason": "closed"
+    }
+  ]
+}

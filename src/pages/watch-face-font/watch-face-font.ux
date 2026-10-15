@@ -1,0 +1,429 @@
+<template>
+  <div class="page" onclick="onTap">
+
+    <!-- 变体 0 · 巨型加粗（克隆经典表盘骨架） -->
+    <div class="clock" if="{{ isBig }}">
+      <text class="d-clock">{{ timeText }}</text>
+    </div>
+
+    <!-- 变体 1 · 等宽数码 + 冒号跳动（monospace 有先例；冒号 opacity 动画） -->
+    <div class="clock" if="{{ isDigital }}">
+      <text class="dgt-mono">{{ d0 }}</text>
+      <text class="dgt-mono">{{ d1 }}</text>
+      <text class="colon-blink">:</text>
+      <text class="dgt-mono">{{ d2 }}</text>
+      <text class="dgt-mono">{{ d3 }}</text>
+    </div>
+
+    <!-- 变体 2 · 逐字渐变（克隆彩色表盘骨架，内联 color 绑定有先例） -->
+    <div class="clock" if="{{ isGrad }}">
+      <text class="digit" style="color: {{ c0 }}">{{ d0 }}</text>
+      <text class="digit" style="color: {{ c1 }}">{{ d1 }}</text>
+      <text class="colon" style="color: {{ cColon }}">:</text>
+      <text class="digit" style="color: {{ c2 }}">{{ d2 }}</text>
+      <text class="digit" style="color: {{ c3 }}">{{ d3 }}</text>
+    </div>
+
+    <!-- 变体 3 · 错落双行（上 H 大、下 M 小；flex 正常流，字距拉开） -->
+    <div class="stack" if="{{ isStack }}">
+      <text class="st-h">{{ timeTextH }}</text>
+      <text class="st-m">{{ timeTextM }}</text>
+    </div>
+
+    <!-- 变体 4 · 细边描签（大字号 + 大字距 + 弱对比色；仅字号/字距/颜色） -->
+    <div class="clock" if="{{ isThin }}">
+      <text class="thin-t">{{ timeText }}</text>
+    </div>
+
+    <!-- 变体 5 · 等宽秒带（monospace + 下方秒刻度条，width 绑定同功能表盘） -->
+    <div class="meter" if="{{ isMeter }}">
+      <text class="m-time">{{ timeText }}</text>
+      <div class="m-track"><div class="m-bar" style="width: {{ secPct }}px"></div></div>
+    </div>
+
+    <!-- 变体 6 · 翻页滚动（scroll scrolltop 竖排滚动，无需轮有先例） -->
+    <div class="clock" if="{{ isFlip }}">
+      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y0}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
+      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y1}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
+      <text class="c">:</text>
+      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y2}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
+      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y3}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
+    </div>
+
+    <!-- 变体 7 · 横铺跑道（字面量 rotate(-90deg)，显式 transform-origin，同横屏表盘） -->
+    <div class="rot" if="{{ isRotate }}">
+      <div class="line">
+        <text class="d">{{ d0 }}</text>
+        <text class="d">{{ d1 }}</text>
+        <text class="colon">:</text>
+        <text class="d">{{ d2 }}</text>
+        <text class="d">{{ d3 }}</text>
+      </div>
+    </div>
+
+    <!-- 变体 8 · 分色跳动（逐字彩色 + 冒号 opacity 动画，classic+colorful 合并） -->
+    <div class="clock" if="{{ isBlinky }}">
+      <text class="digit" style="color: {{ c0 }}">{{ d0 }}</text>
+      <text class="digit" style="color: {{ c1 }}">{{ d1 }}</text>
+      <text class="colon-blink" style="color: {{ cColon }}">:</text>
+      <text class="digit" style="color: {{ c2 }}">{{ d2 }}</text>
+      <text class="digit" style="color: {{ c3 }}">{{ d3 }}</text>
+    </div>
+
+    <text class="btn-switch" onclick="onSwitch">切换样式</text>
+    <text class="back" onclick="goBack">返回</text>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+
+const storage = require("@system.storage")
+
+const LIST_PAGE = "/pages/watch-face-list"
+const STYLE_KEY = "wf_font_style"
+const ITEM_H = 56
+
+/* 逐字渐变配色（H H : M M 五点） */
+const GRAD = ["#ff6b6b", "#ffd166", "#7ec8e3", "#7dffb0", "#c792ea"]
+
+export default {
+  data: {
+    timeText: "--:--",
+    timeTextH: "--",
+    timeTextM: "--",
+    d0: "0", d1: "0", d2: "0", d3: "0",
+    c0: GRAD[0], c1: GRAD[1], cColon: GRAD[2], c2: GRAD[3], c3: GRAD[4],
+    secPct: 0,
+    items: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    y0: 0, y1: 0, y2: 0, y3: 0,
+    mode: 0,
+    isBig: true,
+    isDigital: false,
+    isGrad: false,
+    isStack: false,
+    isThin: false,
+    isMeter: false,
+    isFlip: false,
+    isRotate: false,
+    isBlinky: false,
+    suppressTap: false
+  },
+
+  onInit() {
+    this.tick()
+    this.loadStyle()
+  },
+
+  onReady() {
+    this.refresh()
+  },
+
+  onShow() {
+    this.refresh()
+  },
+
+  onHide() {
+    this.stop()
+  },
+
+  onDestroy() {
+    this.stop()
+  },
+
+  refresh() {
+    this.stop()
+    this.tick()
+    const self = this
+    this.timer = setInterval(function() {
+      self.tick()
+    }, 1000)
+  },
+
+  stop() {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = undefined
+    }
+  },
+
+  tick() {
+    const now = new Date()
+    const h = this.pad(now.getHours())
+    const m = this.pad(now.getMinutes())
+    const s = now.getSeconds()
+    const t = h + ":" + m
+    if (t !== this.timeText) this.timeText = t
+    if (h !== this.timeTextH) this.timeTextH = h
+    if (m !== this.timeTextM) this.timeTextM = m
+    if (h[0] !== this.d0) this.d0 = h[0]
+    if (h[1] !== this.d1) this.d1 = h[1]
+    if (m[0] !== this.d2) this.d2 = m[0]
+    if (m[1] !== this.d3) this.d3 = m[1]
+    /* 秒带刻度：0-100，映射到 90px 刻度条宽度（功能表盘已验证 width 绑定） */
+    const p = Math.round(s / 60 * 90)
+    if (p !== this.secPct) this.secPct = p
+    /* 翻页滚动：只处理 H/M（H 十位视情况，如 <10 十位补 0） */
+    const y0 = Math.floor(h / 10) * ITEM_H
+    const y1 = (h % 10) * ITEM_H
+    const y2 = Math.floor(m / 10) * ITEM_H
+    const y3 = (m % 10) * ITEM_H
+    if (y0 !== this.y0) this.y0 = y0
+    if (y1 !== this.y1) this.y1 = y1
+    if (y2 !== this.y2) this.y2 = y2
+    if (y3 !== this.y3) this.y3 = y3
+  },
+
+  pad(n) {
+    return n < 10 ? "0" + n : "" + n
+  },
+
+  /* ── 样式切换：只走布尔 if，避免模板 == 表达式 ── */
+  applyMode(m) {
+    this.mode = m
+    this.isBig = (m === 0)
+    this.isDigital = (m === 1)
+    this.isGrad = (m === 2)
+    this.isStack = (m === 3)
+    this.isThin = (m === 4)
+    this.isMeter = (m === 5)
+    this.isFlip = (m === 6)
+    this.isRotate = (m === 7)
+    this.isBlinky = (m === 8)
+  },
+
+  loadStyle() {
+    const self = this
+    try {
+      storage.get({
+        key: STYLE_KEY,
+        success: function(res) {
+          var m = 0
+          if (res && res.value !== undefined && res.value !== null) {
+            m = parseInt(res.value, 10)
+            if (isNaN(m) || m < 0 || m > 8) m = 0
+          }
+          self.applyMode(m)
+        },
+        fail: function() {
+          self.applyMode(0)
+        }
+      })
+    } catch (e) {
+      this.applyMode(0)
+    }
+  },
+
+  saveStyle(m) {
+    try {
+      storage.set({ key: STYLE_KEY, value: String(m) })
+    } catch (e) {}
+  },
+
+  onSwitch() {
+    /* 点击「切换样式」会冒泡到 .page 的 onTap → 直接退出。
+       同步置 suppressTap 拦截本次冒泡（与经典表盘 openPanel 同款），
+       点击结束后马上复位，避免影响后续点击。 */
+    this.suppressTap = true
+    const m = (this.mode + 1) % 9
+    this.applyMode(m)
+    this.saveStyle(m)
+    const self = this
+    setTimeout(function() {
+      self.suppressTap = false
+    }, 150)
+  },
+
+  /* ── 返回 ── */
+  onTap() {
+    if (this.suppressTap) return
+    router.replace({ uri: LIST_PAGE })
+  },
+
+  goBack() {
+    router.replace({ uri: LIST_PAGE })
+  }
+}
+</script>
+
+<style>
+  .page {
+    width: 100%;
+    height: 100%;
+    background-color: #1a1a2e;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* 变体 0 · 巨型加粗 */
+  .clock {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .d-clock {
+    font-size: 68px;
+    font-weight: bold;
+    letter-spacing: 4px;
+    color: #e8e4da;
+  }
+
+  /* 变体 1 · 等宽数码 */
+  .dgt-mono {
+    font-family: monospace;
+    font-size: 48px;
+    font-weight: bold;
+    color: #7dffb0;
+  }
+
+  .colon-blink {
+    font-size: 44px;
+    font-weight: bold;
+    color: #7dffb0;
+    margin: 0 4px;
+    animation-name: kf-blink;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+  }
+
+  /* 变体 3 · 错落双行 */
+  .stack {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .st-h {
+    font-size: 72px;
+    font-weight: bold;
+    letter-spacing: 8px;
+    color: #ffffff;
+  }
+
+  .st-m {
+    font-size: 40px;
+    font-weight: normal;
+    letter-spacing: 12px;
+    color: #7ec8e3;
+    margin-top: 8px;
+  }
+
+  /* 变体 4 · 细边描签 */
+  .thin-t {
+    font-size: 64px;
+    font-weight: bold;
+    letter-spacing: 6px;
+    color: #8a93a6;
+  }
+
+  /* 变体 5 · 等宽秒带 */
+  .meter {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .m-time {
+    font-family: monospace;
+    font-size: 52px;
+    font-weight: bold;
+    color: #e8e4da;
+    margin-bottom: 18px;
+  }
+
+  .m-track {
+    width: 90px;
+    height: 6px;
+    background-color: #2a3450;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .m-bar {
+    height: 6px;
+    border-radius: 3px;
+    background-color: #4ade80;
+  }
+
+  /* 变体 6 · 翻页滚动 */
+  .col {
+    width: 26px;
+    height: 56px;
+    flex-direction: column;
+  }
+
+  .di {
+    width: 26px;
+    height: 56px;
+    font-size: 40px;
+    font-weight: bold;
+    line-height: 56px;
+    text-align: center;
+    color: #7ec8e3;
+  }
+
+  .c {
+    font-size: 40px;
+    font-weight: bold;
+    color: #7ec8e3;
+    margin: 0 4px;
+  }
+
+  /* 变体 7 · 横铺跑道（字面量 rotate，origin 必须显式中心） */
+  .rot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transform: rotate(-90deg);
+    transform-origin: 96px 245px;
+  }
+
+  .line {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .d {
+    font-size: 60px;
+    font-weight: bold;
+    line-height: 64px;
+    color: #ffd166;
+  }
+
+  .colon {
+    font-size: 44px;
+    font-weight: bold;
+    color: #ffd166;
+  }
+
+  /* 变体 2 · 逐字渐变（仅内联 color，无独立类）和 变体 8 共用 .digit */
+  .digit {
+    font-size: 60px;
+    font-weight: bold;
+  }
+
+  .btn-switch {
+    margin-top: 40px;
+    font-size: 24px;
+    color: #7ec8e3;
+  }
+
+  .back {
+    margin-top: 14px;
+    font-size: 22px;
+    color: #888899;
+  }
+
+  @keyframes kf-blink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.35; }
+  }
+</style>

@@ -1,0 +1,108 @@
+<template>
+  <div class="page">
+    <text class="minute-label">分钟</text>
+    <picker class="min-picker {{ animClass }}" type="text" range="{{ minutes }}" selected="{{ mIdx }}" onchange="onMinChange">
+    </picker>
+  </div>
+</template>
+
+<script>
+function pad(n) {
+  return n < 10 ? "0" + n : "" + n
+}
+
+export default {
+  data: {
+    minutes: [],
+    mIdx: 0,
+    animClass: "",
+    timer: null
+  },
+
+  onInit: function() {
+    var arr = []
+    for (var i = 0; i < 60; i++) {
+      arr.push(pad(i))
+    }
+    this.minutes = arr
+
+    var self = this
+    this.tick()
+    this.timer = setInterval(function() {
+      self.tick()
+    }, 1000)
+  },
+
+  tick: function() {
+    var now = new Date()
+    var m = now.getMinutes()
+    this.mIdx = m
+
+    var self = this
+    this.animClass = "animate"
+    setTimeout(function() {
+      self.animClass = ""
+    }, 500)
+  },
+
+  onMinChange: function(e) {
+    this.mIdx = e.newSelected
+  },
+
+  onDestroy: function() {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = null
+    }
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background-color: #1a1a2e;
+  align-items: center;
+  justify-content: center;
+}
+
+.minute-label {
+  font-size: 24px;
+  line-height: 32px;
+  color: #888899;
+  margin-bottom: 16px;
+}
+
+.min-picker {
+  width: 60%;
+  font-size: 30px;
+  color: #ffffff;
+  selected-font-size: 56px;
+  selected-color: #7ec8e3;
+  selected-background-color: #0f3460;
+}
+
+.min-picker.animate {
+  animation-name: autoSlide;
+  animation-duration: 500ms;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+}
+
+@keyframes autoSlide {
+  0% {
+    transform: translateY(0px);
+  }
+  45% {
+    transform: translateY(-40px);
+  }
+  70% {
+    transform: translateY(6px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+</style>

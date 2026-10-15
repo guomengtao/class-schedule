@@ -1,13 +1,16 @@
 <template>
-  <!-- 横屏表盘 ①：整体右转 90°，时间一行显示、字号最大；无按钮（点击整屏返回）。
-       · transform-origin 必须显式设中心(px)，否则快应用默认绕左上角转=黑。
-       · 冒号做跳动。 -->
+  <!-- 横屏表盘 ①：内容整体逆时针转 90°，时间沿长边「横铺」。
+       · 关键：时间拆成 5 个独立字符【纵向堆叠】，旋转后才沿长边(490)横向铺开，字号可接近最大。
+       · transform-origin 必须显式设为中心(px)，否则快应用默认绕左上角转=黑屏。
+       · 无可见按钮：点击整屏返回。中间冒号做跳动。 -->
   <div class="page" onclick="onTap">
     <div class="rot">
       <div class="line">
-        <text class="d">{{ hh }}</text>
+        <text class="d">{{ hh0 }}</text>
+        <text class="d">{{ hh1 }}</text>
         <text class="colon">:</text>
-        <text class="d">{{ mm }}</text>
+        <text class="d">{{ mm0 }}</text>
+        <text class="d">{{ mm1 }}</text>
       </div>
     </div>
   </div>
@@ -20,8 +23,10 @@ const LIST_PAGE = "/pages/watch-face-list"
 
 export default {
   data: {
-    hh: "--",
-    mm: "--"
+    hh0: "1",
+    hh1: "2",
+    mm0: "3",
+    mm1: "4"
   },
 
   onInit() {
@@ -64,8 +69,10 @@ export default {
     const n = new Date()
     const h = this.pad(n.getHours())
     const m = this.pad(n.getMinutes())
-    if (h !== this.hh) this.hh = h
-    if (m !== this.mm) this.mm = m
+    this.hh0 = h[0]
+    this.hh1 = h[1]
+    this.mm0 = m[0]
+    this.mm1 = m[1]
   },
 
   pad(n) {
@@ -91,7 +98,8 @@ export default {
     background-color: #1a1a2e;
   }
 
-  /* 绝对定位铺满 + 内部居中 + 字面量旋转；origin 必须显式设为中心(px) */
+  /* 绝对定位铺满 + 字面量旋转；origin 必须显式设为中心(px)。
+     旋转 -90°(逆时针)：纵向堆叠的字符旋转后从左到右 = 正确读数方向。 */
   .rot {
     position: absolute;
     left: 0;
@@ -101,27 +109,29 @@ export default {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    transform: rotate(90deg);
+    transform: rotate(-90deg);
     transform-origin: 96px 245px;
   }
 
+  /* 字符纵向堆叠（旋转后变成横向一行，沿 490 长边铺开） */
   .line {
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
   }
 
-  /* 字号最大化（192×490 旋转后，受屏宽 192 限制，约 150px 已是上限附近） */
+  /* 字号接近最大：5 个字符总高 ≤ 490 长边 => 单字约 96 */
   .d {
-    font-size: 150px;
+    font-size: 96px;
     font-weight: bold;
+    line-height: 96px;
     color: #e8e4da;
   }
 
   .colon {
-    font-size: 150px;
+    font-size: 96px;
     font-weight: bold;
+    line-height: 96px;
     color: #e8e4da;
-    margin: 0 6px;
     animation-name: kf-blink;
     animation-duration: 1s;
     animation-timing-function: linear;

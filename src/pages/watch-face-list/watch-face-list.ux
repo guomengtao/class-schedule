@@ -85,6 +85,11 @@
         <text class="item-label" style="color: {{ theme.text }}">动画表盘</text>
         <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openPickDate">
+        <text class="item-label" style="color: {{ theme.text }}">日期选择器表盘</text>
+        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+      </div>
     </div>
 
     </div>
@@ -191,6 +196,10 @@ export default {
 
   openAnimated() {
     router.push({ uri: "/pages/watch-face-animated" })
+  },
+
+  openPickDate() {
+    router.push({ uri: "/pages/watch-face-pickdate" })
   },
 
   goBack() {
