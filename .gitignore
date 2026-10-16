@@ -23,6 +23,9 @@ shots/
 .codebuddy/plans/
 
 # --- WIP 噪音抑制（2026-10-15 陈账催收员🧾 批量补入）---
+# MkDocs 构建输出
+site/
+
 __pycache__/
 *.pyc
 *.pyo

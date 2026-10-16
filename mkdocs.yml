@@ -1,0 +1,843 @@
+site_name: Ev课程表 技术手册
+
+site_description: Ev课程表——手环快应用开发技术文档手册
+
+site_author: Ev团队
+
+repo_url: https://github.com/your-org/class-schedule
+
+edit_uri: edit/main/docs/
+
+
+theme:
+
+  name: material
+
+  language: zh
+
+  palette:
+
+    - media: "(prefers-color-scheme: light)"
+
+      scheme: default
+
+      primary: indigo
+
+      accent: indigo
+
+      toggle:
+
+        icon: material/brightness-7
+
+        name: 切换至暗色模式
+
+    - media: "(prefers-color-scheme: dark)"
+
+      scheme: slate
+
+      primary: indigo
+
+      accent: indigo
+
+      toggle:
+
+        icon: material/brightness-4
+
+        name: 切换至亮色模式
+
+  features:
+
+    - navigation.sections
+
+    - navigation.expand
+
+    - navigation.indexes
+
+    - search.suggest
+
+    - search.highlight
+
+    - content.code.copy
+
+
+markdown_extensions:
+
+  - admonition
+
+  - pymdownx.details
+
+  - pymdownx.superfences
+
+  - pymdownx.highlight
+
+  - pymdownx.inlinehilite
+
+  - pymdownx.tabbed:
+
+      alternate_style: true
+
+  - toc:
+
+      permalink: true
+
+      toc_depth: 3
+
+
+plugins:
+
+  - search:
+
+      lang: zh
+
+
+nav:
+
+  - 首页: index.md
+
+  - 核心页面手册:
+
+    - 手册入口: pages/core/README.md
+
+    - 启动欢迎页: pages/core/welcome.md
+
+    - 首页（课程表主页）: pages/core/index.md
+
+    - 添加课程: pages/core/add-course.md
+
+    - 编辑课程: pages/core/detail.md
+
+    - 周课表（总课表）: pages/core/week-view.md
+
+    - 课程管理: pages/core/course-manager.md
+
+    - 课程表管理: pages/core/schedule-manager.md
+
+    - 设置: pages/core/settings.md
+
+    - 首页设置: pages/core/homepage-settings.md
+
+    - 高级版激活: pages/core/activation.md
+
+    - 数据备份: pages/core/backup-restore.md
+
+    - 课程统计: pages/core/statistics.md
+
+    - 打赏支持: pages/core/donate.md
+
+    - 反馈: pages/core/feedback.md
+
+    - 留言板: pages/core/message-inbox.md
+
+  - 项目概述:
+
+    - 项目介绍: app-intro.md
+
+    - 项目文件清单: project-files.md
+
+    - 完善度分析: 项目完善度分析.md
+
+    - 标准版评测报告: 标准版最新评测报告.md
+
+    - 标准版完善度评分: 标准版完善度综合评分.md
+
+    - 版本更新 1.4.0: 1.4.0版更新内容.md
+
+    - 自动版本号: auto-version-bump.md
+
+  - 构建与部署:
+
+    - 包体构成分析: 包体构成分析.md
+
+    - RPK构建缺pages修复: 手环rpk构建缺pages-根因与修复.md
+
+    - 构建错误分析: build-error-analysis.md
+
+    - 包体积优化方案: project-slimming-plan.md
+
+    - 应用体积分析: app-size-analysis.md
+
+    - 渠道识别与升级统计: 渠道识别与升级转化统计方案-参数对接分析.md
+
+  - 模拟器:
+
+    - 黑屏排查指南: 模拟器黑屏排查指南.md
+
+    - emulator-black-screen: emulator-black-screen.md
+
+    - 故障修复经验总结: 模拟器故障修复经验总结.md
+
+    - 启动稳定性方案: 模拟器启动稳定性方案.md
+
+    - 复现真机Watch6可行性: 模拟器复现真机Watch6问题-可行性分析.md
+
+    - Vela模拟器使用指南: Vela模拟器使用指南与测试有效性分析.md
+
+    - AIoT IDE模拟器重置分析: AIoT-IDE-模拟器重置分析报告.md
+
+    - AIoT IDE调试卡住分析: aiot-ide调试卡住-根因分析.md
+
+    - EvEmuBuddy设计方案: Mac菜单栏模拟器保姆-EvEmuBuddy设计方案.md
+
+    - EvEmuBuddy真机连接分析: EvEmuBuddy真机连接可行性分析-设备ID与authKey.md
+
+  - 胶囊屏适配:
+
+    - 胶囊屏优化清单: 胶囊屏优化清单.md
+
+    - 胶囊屏专项走查报告: 胶囊屏专项走查报告.md
+
+    - 首页文字显示不全方案: 胶囊屏首页文字显示不全解决方案.md
+
+    - header布局与触控分析: 胶囊屏header布局与触控问题分析.md
+
+    - 字体规范: capsule-font-standard.md
+
+    - 字体规则: capsule-font-rules.md
+
+    - 文字遮挡分析: capsule-text-occlusion-analysis.md
+
+    - 打赏页文字溢出分析: capsule-donate-text-overflow-analysis.md
+
+    - 打赏页规格: capsule-donate-spec.md
+
+    - 返回按钮分析: capsule-back-btn-analysis.md
+
+    - 倒计时重设计方案: capsule-countdown-redesign-plan.md
+
+    - 编辑页胶囊屏重设计: edit-page-capsule-redesign.md
+
+  - 手环兼容性:
+
+    - 手环9胶囊屏切换bug: 手环9-胶囊屏-无法切换课程表-bug分析.md
+
+    - band9编辑课程不可见文字: band9-edit-course-invisible-text-analysis.md
+
+    - band9pro黑屏分析: index-band9pro-black-screen-analysis.md
+
+    - band9pro修复方案: band9pro-black-screen-fix-plan.md
+
+    - band9pro测试版方案: band9pro-test-version-plan.md
+
+    - media-query逗号不兼容: media-query逗号不兼容手环9.md
+
+    - media-screen-and三页面分析: media-screen-and-三页面为何更好.md
+
+    - media-screen-and黑屏分析: media-screen-and导致黑屏重启分析.md
+
+    - fix-capsule-shape-media-query: fix-capsule-shape-media-query.md
+
+    - position-fixed黑屏验证: position-fixed-black-screen-verification.md
+
+    - position-fixed渲染问题: position-fixed-手环渲染问题分析.md
+
+    - Redmi Watch6兼容性: RedmiWatch6兼容性分析.md
+
+    - Redmi Watch6 432x514适配: REDMI-Watch6-432x514-适配问题分析.md
+
+    - 小米手环11找不到应用: 小米手环11安装后找不到应用分析.md
+
+    - xiaomi-quickapp-overlay: xiaomi-quickapp-overlay-transparency-analysis.md
+
+    - 手环端设计错误记录: 手环端设计错误记录-v1.md
+
+    - 手环欢迎页设计评审: 手环欢迎页设计评审-v1.md
+
+  - 字体与字号:
+
+    - 字号Bug分析: font-size-bug-analysis.md
+
+    - 字号重构方案: font-size-refactor-plan.md
+
+    - 字体预览大小分析: font-preview-size-analysis.md
+
+    - 最小字符可读性: minimal-char-readability-analysis.md
+
+    - 最小字符5列分析: minimal-char-5cols-analysis.md
+
+    - 最小字符空间计算: minimal-char-space-calc.md
+
+    - 字号规范手册: Ev课程表_手环字号规范_v1.md
+
+  - 输入法:
+
+    - 输入法规格: input-method-spec.md
+
+    - 输入法分析: input-method-analysis.md
+
+    - 输入法对比: input-method-comparison.md
+
+    - 中文输入bug分析: chinese-input-bugs-analysis.md
+
+    - 中文输入字体bug: chinese-input-font-bug-analysis.md
+
+    - 中文键盘布局分析: chinese-input-keyboard-layouts-analysis.md
+
+    - 中文输入键盘: chinese-input-keyboard.md
+
+    - 中文输入小写分析: chinese-input-lowercase-analysis.md
+
+    - 中文输入小写指南: chinese-input-lowercase-guide.md
+
+    - 中文输入布局优化: chinese-input-layout-optimization.md
+
+    - 中文输入重构方案: chinese-input-refactor-plan.md
+
+    - 输入法候选挤压: input-method-candidate-squeeze-analysis.md
+
+    - 输入法内存分析: inputmethod-memory-analysis.md
+
+    - 输入法PNG实验页: inputmethod-png-lab-page-analysis.md
+
+    - 数字键盘方案: numpad-input-dev-plan.md
+
+    - rename键盘分析: rename-keyboard-analysis.md
+
+    - 上游Vela输入法修复: 上游Vela输入法修复对照.md
+
+  - 激活与解锁:
+
+    - 激活码系统: activation-code-system.md
+
+    - 激活码校验规则: activation-code-validation-rules.md
+
+    - 激活系统升级方案: activation-system-upgrade-plan.md
+
+    - 激活系统详述: activation-system.md
+
+    - 激活按钮点击问题: activation-button-click-issue-analysis.md
+
+    - 激活页崩溃分析: activation-page-crash-analysis.md
+
+    - 激活页回归分析: activation-page-regression-analysis.md
+
+    - 激活输入拥挤分析: activation-input-crowding-analysis.md
+
+    - 激活URL字体分析: activation-url-capsule-font-analysis.md
+
+    - 激活提醒: activation-reminder.md
+
+    - 激活bug分析demo: bug-analysis-activation-demo.md
+
+    - 16位激活码算法: 16-bit-activation-code-algorithm.md
+
+    - 主码管理: master-code.md
+
+    - 解锁弹窗实现方案: 解锁弹窗实现方案.md
+
+    - 激活页数字键盘方案: 激活页数字键盘热区最大化方案（胶囊屏精确计算）.md
+
+    - 激活页与解锁弹窗排版测试: 激活页与解锁弹窗排版测试（模拟器实测）.md
+
+    - 加密规格: CRYPTO_SPEC.md
+
+    - 加密规格V5: CRYPTO_SPEC_V5.md
+
+    - 加密测试指南: crypto-test-guide.md
+
+  - 首页:
+
+    - 首页开发需求: 首页开发需求文档.md
+
+    - 首页白屏分析: homepage-white-screen-analysis.md
+
+    - 首页性能: homepage-performance.md
+
+    - 首页加载性能分析: homepage-loading-performance-analysis.md
+
+    - 首页速度分析: homepage-speed-analysis.md
+
+    - 首页缓存分析: homepage-cache-analysis.md
+
+    - 首页设置方案: homepage-settings-plan.md
+
+    - 首页设置重设计: homepage-settings-redesign.md
+
+    - 首页设置开发方案: homepage-settings-dev-plan.md
+
+    - 首页设置UI分析: homepage-settings-ui-analysis.md
+
+    - 首页图标规范: homepage-icon-spec.md
+
+    - 首页图标生成分析: homepage-icon-generation-analysis.md
+
+    - 首页状态图标分析: index-status-icon-analysis.md
+
+    - 首页状态切换不显示: index-status-toggle-not-showing-analysis.md
+
+    - 首页滚动到课程bug: index-scroll-to-course-bug-analysis.md
+
+    - index多文件重构: index-multi-file-refactor-plan.md
+
+    - 假期提醒首页分析: holiday-reminder-homepage-analysis.md
+
+    - 首页假期临界提醒方案: 首页假期临界提醒-方案.md
+
+    - 课程面板vs工具栏目: 课程面板目录页-vs工具栏目-列表实现对比.md
+
+  - 课程表管理:
+
+    - 课程管理删除布局分析: course-manager-delete-layout-analysis.md
+
+    - schedule-manager布局分析: schedule-manager-layout-analysis.md
+
+    - schedule-manager胶囊布局: schedule-manager-capsule-layout-analysis.md
+
+    - schedule-manager空白bug: schedule-manager-blank-bug-analysis.md
+
+    - schedule-manager bug分析: schedule-manager-bug-analysis.md
+
+    - schedule-manager分击分析: schedule-manager-split-tap-analysis.md
+
+    - 课程表点击标题打不开: 课程表管理页点击标题打不开编辑弹窗分析.md
+
+    - 切换课程表无效: 切换课程表无效问题分析.md
+
+    - 新增课程表自动带课程: 新增课程表自动带课程bug分析.md
+
+    - 新增课程表不切换: add-schedule-no-switch.md
+
+    - 课程排序不生效: course-sort-not-working-analysis.md
+
+    - 总课表极简模板: 总课表-极简模板右侧余量计算.md
+
+    - 方屏总课表宽度: fangping-total-schedule-clean-template-width.md
+
+    - 方屏顶部间距: fangping-top-padding-analysis.md
+
+    - week-view缓存分析: week-view-cache-analysis.md
+
+  - 编辑课程:
+
+    - 添加课程保存按钮bug: add-course-save-button-bug-analysis.md
+
+    - 添加课程提交按钮不可见: add-course-submit-button-invisible-analysis.md
+
+    - 添加课程时间选择器: add-course-time-picker-analysis.md
+
+    - 编辑页胶囊屏重设计: edit-page-capsule-redesign.md
+
+    - 编辑页顶部图标PNG分析: 编辑课程页面顶部图标-PNG替换分析.md
+
+    - 编辑页截屏方案: 编辑页与多屏页面-完整截屏方案.md
+
+  - 快速添加:
+
+    - 快速添加分析: quick-add-analysis.md
+
+    - 快速添加失败分析: quick-add-course-failure-analysis.md
+
+    - 快速添加时间溢出: quick-add-time-overflow-analysis.md
+
+    - 快速添加功能需求: 快速添加功能需求分析.md
+
+  - 添加课程:
+
+    - 添加课程栏目需求: 添加课程栏目开发需求文档.md
+
+    - 添加课程胶囊屏方案: 添加课程-胶囊屏重新规划方案.md
+
+    - 添加课程全新设计: 添加课程页面全新设计方案.md
+
+    - time-picker-wheel设计: time-picker-wheel-design.md
+
+    - stepper高度分析: stepper-height-analysis.md
+
+  - 设置页:
+
+    - 设置页胶囊布局bug: settings-capsule-layout-bug-analysis.md
+
+    - 设置行布局bug: settings-row-layout-bug-analysis.md
+
+    - 设置顶部空白: settings-top-whitespace-analysis.md
+
+    - 设置版本分析: settings-version-analysis.md
+
+    - 设置首次启动黑屏: settings-first-launch-black-screen.md
+
+    - 实验室链接空白: 实验室链接空白问题分析.md
+
+    - 工具动画栏目黑屏: 工具-动画栏目黑屏调试报告.md
+
+    - loading-lab黑屏分析: loading-lab-black-screen-analysis.md
+
+    - 设备ID诊断: 设备ID诊断实测结果与替代方案.md
+
+    - 设备信息页挤在一行: 设备信息页为何挤在一行.md
+
+    - device-info开发方案: device-info-page-dev-plan.md
+
+  - 性能优化:
+
+    - 性能修复方案: 性能修复方案-页面栈与定时器泄漏.md
+
+    - 首页性能: homepage-performance.md
+
+    - 首页加载性能: homepage-loading-performance-analysis.md
+
+    - 首页速度: homepage-speed-analysis.md
+
+    - 缓存分析: cache-analysis.md
+
+    - 分帧方案: 第三轮反馈-卡顿重启与分帧方案.md
+
+    - 第二轮F项卡住: 第二轮结果-F项卡住分析.md
+
+    - 模块加速分析: analysis-module-acceleration.md
+
+    - 骨架屏分析: analysis-skeleton-screen.md
+
+    - entry-index白屏分析: analysis-entry-index-full-whitescreen.md
+
+    - 错误日志持久化: error-log-persist-plan.md
+
+  - Bug分析:
+
+    - 四问题分析: four-issues-analysis.md
+
+    - cannot-exit分析: cannot-exit-analysis.md
+
+    - 时钟抖动bug: bug-clock-shake-analysis.md
+
+    - 闪屏bug: bug-flash-screen-analysis.md
+
+    - 布局bug: bug-layout-analysis.md
+
+    - 布局交互bug: bug-layout-interaction-analysis.md
+
+    - 黑屏检查实现: black-screen-check-implementation.md
+
+    - 白屏调试方法: white-screen-debugging-methodology.md
+
+    - 长按选择删除: longpress-select-delete-analysis.md
+
+    - 13个delete方法分析: 13-delete-methods-analysis.md
+
+    - 重置数据不一致: reset-data-inconsistency-analysis.md
+
+    - border单边bug: border-single-side-bug-analysis.md
+
+    - 颜色列表布局: color-list-layout-analysis.md
+
+    - 时钟不居中: clock-not-centered-analysis.md
+
+    - 数据丢失排查: 代码丢失排查与防护（2026假期数据找回）.md
+
+    - 备份恢复重布局方案: backup-restore-relayout-plan.md
+
+    - 备份UI分析: backup-ui-analysis.md
+
+    - 备份v2返回按钮计算: backup-v2-back-btn-calc.md
+
+    - orphan-pages分析: orphan-pages-analysis.md
+
+  - 功能方案:
+
+    - 简易课表方案: 简易课表方案.md
+
+    - 自定义内容栏: 自定义内容栏模块功能需求.md
+
+    - 自定义内容独立页: custom-content-independent-page-plan.md
+
+    - 状态栏模块: 状态栏模块功能需求.md
+
+    - 置顶页模块: 置顶页模块功能需求.md
+
+    - pin-to-home升级: pin-to-home-upgrade.md
+
+    - pin-to-home分析: pin-to-home-analysis.md
+
+    - 置顶页UI重设计: pinned-pages-ui-redesign.md
+
+    - 方案B详细计划: 方案B-详细实施计划.md
+
+    - 方案B开发指南: 方案B-开发步骤指南.md
+
+    - 共享审核组件: 共享审核组件方案.md
+
+    - pages-html审核功能: pages-html审核结果功能规划.md
+
+    - 推荐文案方案: recommend-text-plan.md
+
+    - 倒计时栏目规划: 倒计时栏目-胶囊屏布局与功能规划.md
+
+    - countdown-days分析: countdown-days-analysis.md
+
+    - 课程进度背景分析: course-progress-background-analysis.md
+
+    - logo-dash分析: logo-dash-analysis.md
+
+    - 缺失功能分析: missing-features-analysis.md
+
+    - pro功能分析: pro-features-analysis.md
+
+    - pro-prompt升级: pro-prompt-upgrade.md
+
+    - 导入导出JSON格式: import-export-json-format-analysis.md
+
+    - 商业模式方案: 商业模式方案.md
+
+    - 打赏页面规划: donate-page-plan.md
+
+    - 打赏tab换行分析: donate-tab-wrap-analysis.md
+
+    - Ev课程表主动发送消息: EV课程表主动发送测试消息到插件.md
+
+    - Ev课程表接收接口改造: Ev课程表接收接口改造方案.md
+
+    - 手环主动发送消息分析: 手环主动发送消息给同步器能力分析.md
+
+    - AstroBox插件同步分析: AstroBox插件与课表同步路径分析.md
+
+    - 默认配置参数: 默认配置参数说明.md
+
+    - Mac语音通知: Mac语音通知实现说明.md
+
+  - 表盘:
+
+    - 表盘数据固化机制: 表盘数据固化机制解析.md
+
+    - 独立课程表盘能力边界: 独立课程表盘能力边界分析.md
+
+    - WatchFace字体表盘: WatchFace-字体表盘-方案.md
+
+    - 课程表盘电子表风格: 课程表盘-电子表风格-方案.md
+
+    - 震动表盘方案: 震动表盘-方案.md
+
+    - EV指针仿古指针表盘: EV指针-仿古金属指针表盘-方案.md
+
+  - 二维码:
+
+    - 二维码生成器方案: qrcode-generator-dev-plan.md
+
+    - 二维码生成器升级: qrcode-generator-upgrade-spec.md
+
+    - 二维码重构方案: qrcode-refactor-plan.md
+
+    - 课表二维码导出: schedule-qrcode-export-plan.md
+
+    - 二维码质量提升: 二维码质量提升方案.md
+
+  - 图标与PNG:
+
+    - PNG图标十色兼容: PNG图标十色兼容分析.md
+
+    - PNG图标叹号问题: PNG图标叹号问题分析.md
+
+    - 图标收集方案: icon-collection-plan.md
+
+    - 图标平台分析: ICON_PLATFORM_ANALYSIS.md
+
+    - 全页面Unicode图标: 全页面Unicode图标分析.md
+
+    - 应用图标默认分析: app-icon-default-analysis.md
+
+    - PNG资源清单: png-assets-list.md
+
+    - PNG输入法最小页: png-inputmethod-minimal-page.md
+
+  - CSS与样式:
+
+    - CSS样式方案统一头部: CSS样式方案_统一头部适配.md
+
+    - header样式分析: header-style-analysis.md
+
+    - header统一分析: header-unification-analysis.md
+
+    - 圆形屏幕样式指南: circle-screen-style-guide.md
+
+    - UI一致性detail按钮: UI一致性-detail页按钮36-40px分析与修改方案.md
+
+    - UI修改截图方案: UI修改截图-实施方案.md
+
+    - UI审计清单: UI审计清单.md
+
+    - overlay-mask技术指南: overlay-mask-technical-guide.md
+
+    - 胶囊屏header分析: CAPSULE_HEADER_ANALYSIS.md
+
+    - 胶囊屏优化: CAPSULE_OPTIMIZATION.md
+
+    - 状态栏设计: STATUS_BAR_DESIGN.md
+
+  - 提示词与Demo:
+
+    - prompt-demo链接打开分析: prompt-demo-link-not-opening-analysis.md
+
+    - prompt-demo开发方案: prompt-demo-dev-plan.md
+
+    - demo页面布局分析: demo-page-layout-analysis.md
+
+    - demo-pages分析6: demo-pages-analysis-6.md
+
+    - demo-lang布局分析: demo-lang-layout-analysis.md
+
+    - demo滑动删除bug: demo-swipe-delete-link-bug-analysis.md
+
+    - demo动物水果bug: demo-animal-fruit-bug-analysis.md
+
+  - 后台运行:
+
+    - 后台运行官方文档: 后台运行-官方文档核实与实测指南.md
+
+    - 后台运行开发方案: background-running-dev-plan.md
+
+  - Vela官方示例:
+
+    - vela-sample 87文件明细: vela-sample-87文件明细.md
+
+    - vela不支持的引用: vela-unsupported-reference.md
+
+    - toast集成分析: toast-integration-analysis.md
+
+    - 输入页汇总: input-pages.md
+
+  - 统计:
+
+    - 统计页开发方案: statistics-page-dev-plan.md
+
+    - 统计UI分析: statistics-ui-analysis.md
+
+  - QA报告:
+
+    - QA HANDOFF:
+
+      - STATUS: qa-reports/HANDOFF/STATUS.md
+
+      - README: qa-reports/HANDOFF/README.md
+
+      - REPLY: qa-reports/HANDOFF/REPLY.md
+
+      - round1: qa-reports/HANDOFF/2026-09-11-round1.md
+
+      - round2: qa-reports/HANDOFF/2026-09-11-round2.md
+
+      - round3: qa-reports/HANDOFF/2026-09-11-round3.md
+
+      - round4: qa-reports/HANDOFF/2026-09-11-round4.md
+
+      - round5: qa-reports/HANDOFF/2026-09-11-round5.md
+
+      - round6: qa-reports/HANDOFF/2026-09-11-round6.md
+
+      - round7: qa-reports/HANDOFF/2026-09-11-round7.md
+
+      - round8: qa-reports/HANDOFF/2026-09-12-round8.md
+
+      - round9: qa-reports/HANDOFF/2026-09-12-round9.md
+
+      - round10: qa-reports/HANDOFF/2026-09-12-round10.md
+
+      - round10-pill: qa-reports/HANDOFF/2026-09-12-round10-pill.md
+
+      - round10-fixed-verdict: qa-reports/HANDOFF/2026-09-12-round10-fixed-verdict.md
+
+      - round11: qa-reports/HANDOFF/2026-09-13-round11.md
+
+      - round16: qa-reports/HANDOFF/2026-09-29-round16.md
+
+    - QA报告列表:
+
+      - 2026-09-10 1230: qa-reports/class-schedule-QA-20260910-1230.md
+
+      - 2026-09-10 1820: qa-reports/class-schedule-QA-20260910-1820.md
+
+      - 2026-09-11 0035: qa-reports/class-schedule-QA-20260911-0035.md
+
+      - 2026-09-11 1725: qa-reports/class-schedule-QA-20260911-1725.md
+
+      - 2026-09-11 2345: qa-reports/class-schedule-QA-20260911-2345.md
+
+      - 2026-09-12 0616: qa-reports/class-schedule-QA-20260912-0616.md
+
+      - 2026-09-12 1244: qa-reports/class-schedule-QA-20260912-1244.md
+
+      - 2026-09-12 1853: qa-reports/class-schedule-QA-20260912-1853.md
+
+      - 2026-09-12 1930-pill: qa-reports/class-schedule-QA-20260912-1930-pill.md
+
+      - 2026-09-12 2135-fixed: qa-reports/class-schedule-QA-20260912-2135-fixed-根因裁定.md
+
+      - 2026-09-13 0927: qa-reports/class-schedule-QA-20260913-0927.md
+
+      - 2026-09-17 1935: qa-reports/class-schedule-QA-20260917-1935.md
+
+      - 2026-09-20 1809: qa-reports/class-schedule-QA-20260920-1809.md
+
+      - 2026-09-21 0715: qa-reports/class-schedule-QA-20260921-0715.md
+
+      - 2026-09-22 0723: qa-reports/class-schedule-QA-20260922-0723.md
+
+      - 2026-09-29 0739: qa-reports/class-schedule-QA-20260929-0739.md
+
+    - UI QA:
+
+      - 2026-09-11 UI QA: qa-reports/class-schedule-UI-QA-20260911-2130.md
+
+    - UX Officer:
+
+      - STATUS: qa-reports/ux-officer/UX-STATUS.md
+
+      - README: qa-reports/ux-officer/README.md
+
+      - Report 2026-09-13: qa-reports/ux-officer/reports/UX-Report_2026-09-13_1433.md
+
+      - Report 2026-09-14 0017: qa-reports/ux-officer/reports/UX-Report_2026-09-14_0017.md
+
+      - Report 2026-09-14 0617: qa-reports/ux-officer/reports/UX-Report_2026-09-14_0617.md
+
+      - Report 2026-09-14 1209: qa-reports/ux-officer/reports/UX-Report_2026-09-14_1209.md
+
+      - Report 2026-09-14 1809: qa-reports/ux-officer/reports/UX-Report_2026-09-14_1809.md
+
+  - 页面文档:
+
+    - 概览: page-doc-system-analysis.md
+
+    - 入口/启动:
+
+      - 启动欢迎页: pages/core/welcome.md
+
+      - 首页（课程表主页）: pages/core/index.md
+
+    - 课程操作:
+
+      - 添加课程: pages/core/add-course.md
+
+      - 编辑课程: pages/core/detail.md
+
+      - 周课表（总课表）: pages/core/week-view.md
+
+    - 课程管理:
+
+      - 课程管理: pages/core/course-manager.md
+
+      - 课程表管理: pages/core/schedule-manager.md
+
+    - 设置:
+
+      - 设置: pages/core/settings.md
+
+      - 首页设置: pages/core/homepage-settings.md
+
+    - 高级功能:
+
+      - 高级版激活: pages/core/activation.md
+
+      - 数据备份: pages/core/backup-restore.md
+
+      - 课程统计: pages/core/statistics.md
+
+    - 其他:
+
+      - 打赏支持: pages/core/donate.md
+
+      - 反馈: pages/core/feedback.md
+
+      - 留言板: pages/core/message-inbox.md
+
+  - 变更日志:
+
+    - CHANGELOG: CHANGELOG.md
+
+    - CHANGELOG 2026-08-25: CHANGELOG-2026-08-25.md

@@ -1,157 +1,274 @@
-<!-- UI/实现来源：open-vela-learning/packages_apps/wearable/settings/src/pages/home/index.ux（ev-minimal 最小改动法，2026-10-14；注入点仅数据源/文案/跳转） -->
 <template>
-  <div class="w-full h-full bg-black">
-    <list class="list">
-      <list-item class="list-item justify-center" type="title">
-        <image class="w-30 h-30 mr-10" src="/common/image/back.png" onclick="handleClick"></image>
-        <text class="list-item-title">简易课表</text>
-      </list-item>
-      <list-item class="list-item justify-between pl-60" type="setting-item" for="{{list}}" onclick="routeDetail($item)">
-        <div>
-          <image class="subject-image mt-4" src="{{$item.iconSrc}}"></image>
-          <text class="subject-name">{{ $item.name }}</text>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">简易课表</text>
+      <div class="header-placeholder"></div>
+    </div>
+    <div if="{{ isLoading }}" class="loading-area">
+      <text class="loading-text" style="color: {{ theme.textMuted }}">加载中...</text>
+    </div>
+    <div if="{{ !isLoading && daySections.length === 0 }}" class="empty-area">
+      <text class="empty-text" style="color: {{ theme.textMuted }}">暂无课程数据</text>
+    </div>
+    <scroll if="{{ !isLoading && daySections.length > 0 }}" class="scroll-body" scroll-y="true">
+      <div for="{{ daySections }}" class="day-section">
+        <div class="day-header">
+          <text class="day-name" style="color: {{ $item.isToday ? theme.accent : theme.text }}">{{ $item.dayName }}</text>
+          <text class="day-count" style="color: {{ $item.isToday ? theme.accent : theme.textMuted }}">{{ $item.classes.length }} 门课</text>
         </div>
-
-        <image class="subject-image mr-60" src="/common/image/right.png"></image>
-      </list-item>
-    </list>
+        <div class="day-divider" style="background-color: {{ $item.isToday ? theme.accent : theme.border }}"></div>
+        <div for="{{ $item.classes }}" class="course-row" onclick="goToDetail($item, $item.dayName)">
+          <div class="course-accent" style="background-color: {{ theme.accent }}"></div>
+          <div class="course-body">
+            <div class="course-name-row">
+              <text class="course-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+              <text class="course-time" style="color: {{ theme.accent }}">{{ $item.time }}</text>
+            </div>
+            <text class="course-location" if="{{ $item.location }}" style="color: {{ theme.textMuted }}">{{ $item.location }}</text>
+          </div>
+        </div>
+      </div>
+    </scroll>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
-import app from "@system.app"
 const database = require("../../data/database.js")
+const store = require("../../data/store.js")
 
-// 注入点①数据源-图标：官方 settings 静态 iconSrc → 科目图标。
-// 图标资源原样拷贝自官方 settings/src/common/image/*.indexed_8.png（官方 demo 本身即一图多项复用，见官方 index.ux 列表）；
-// 未命中科目回落官方 motion 图标。
-var SUBJECT_ICONS = {
-  "语文": "/common/image/novice.indexed_8.png",
-  "数学": "/common/image/display.indexed_8.png",
-  "英语": "/common/image/wlan.indexed_8.png",
-  "物理": "/common/image/motion.indexed_8.png",
-  "化学": "/common/image/battery.indexed_8.png",
-  "生物": "/common/image/disturb.indexed_8.png",
-  "历史": "/common/image/downkey.indexed_8.png",
-  "地理": "/common/image/guesture.indexed_8.png",
-  "政治": "/common/image/wrist.indexed_8.png",
-  "体育": "/common/image/sound.indexed_8.png",
-  "音乐": "/common/image/system.indexed_8.png",
-  "美术": "/common/image/applayout.indexed_8.png",
-  "信息": "/common/image/notify.indexed_8.png"
+var DAY_ORDER = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+
+function getTodayName() {
+  return DAY_ORDER[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1]
 }
-var DEFAULT_ICON = "/common/image/motion.indexed_8.png"
 
-function pickIcon(name) {
-  if (!name) return DEFAULT_ICON
-  if (SUBJECT_ICONS[name]) return SUBJECT_ICONS[name]
-  for (var key in SUBJECT_ICONS) {
-    if (name.indexOf(key) >= 0) return SUBJECT_ICONS[key]
-  }
-  return DEFAULT_ICON
+function parseMinutes(t) {
+  if (!t) return 0
+  var i = t.indexOf(" - ")
+  if (i < 0) return 0
+  var sp = t.substring(0, i).trim().split(":")
+  if (sp.length !== 2) return 0
+  return parseInt(sp[0]) * 60 + parseInt(sp[1])
 }
 
 export default {
-  // 页面级组件的数据模型，影响传入数据的覆盖机制：private内定义的属性不允许被覆盖
   private: {
-    title: "简易课表",
-    list: []
+    iconTheme: "dark",
+    isLoading: true,
+    daySections: [],
+    theme: {
+      bg: '#1a1a2e', card: '#16213e', cardLight: '#0f3460',
+      accent: '#7ec8e3', text: '#ffffff', textSecondary: '#888899',
+      textMuted: '#555566', border: '#0f3460'
+    }
   },
 
   onInit() {
-    // 注入点①数据源：官方 settings 静态 list → 项目课程列表（database.getAllCourses 当前方案，§11 例外：官方无课程业务）
-    // 行文案精简为"周X 课程名"：官方 36px 字号 + 58px 图标槽下，方形屏可用文本宽约 200px，
-    // "星期一 数学 · 08:00" 约 13 字必溢出，故去掉时间（时间以课程管理页为准）。
     var self = this
-    // 注入点①数据源（2026-10-14 用户要求）：课程改为显示【当前生效方案】——
-    // database.getAllCourses 内部走 currentScheduleIndex（见 data/database.js 663 行），不再写死 index 0。
-    database.getAllCourses(function(schedule) {
-      var list = []
-      if (schedule) {
-        for (var d = 0; d < schedule.length; d++) {
-          var dayData = schedule[d]
-          if (!dayData || !dayData.classes) continue
-          var classes = dayData.classes
-          for (var i = 0; i < classes.length; i++) {
-            var c = classes[i]
-            if (!c || !c.name) continue
-            var dayShort = (dayData.day || "").replace("星期", "周")
-            list.push({ name: dayShort + " " + c.name, iconSrc: pickIcon(c.name) })
+    store.getTheme(function(t, themeName) { self.theme = t; self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark' })
+    this.loadData()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t, themeName) { self.theme = t; self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark' })
+  },
+
+  loadData: function() {
+    var self = this
+    database.init(function() {
+      database.getAllCourses(function(schedule) {
+        var today = getTodayName()
+        var out = []
+        if (schedule) {
+          for (var di = 0; di < DAY_ORDER.length; di++) {
+            var dn = DAY_ORDER[di]
+            var dd = null
+            for (var s = 0; s < schedule.length; s++) {
+              if (schedule[s].day === dn) { dd = schedule[s]; break }
+            }
+            if (!dd || !dd.classes || !dd.classes.length) continue
+            var cls = dd.classes.slice()
+            cls.sort(function(a, b) { return parseMinutes(a.time) - parseMinutes(b.time) })
+            out.push({ dayName: dn, isToday: dn === today, classes: cls })
           }
         }
-      }
-      self.list = list
+        self.daySections = out
+        self.isLoading = false
+      })
     })
   },
 
-  // 注入点③跳转：官方 routeDetail（/pages/detail，本工程不存在）→ 项目课程管理页
-  routeDetail(item) {
-    router.push({
-      uri: "/pages/schedule-manager"
-    })
+  goToDetail: function(course, dayName) {
+    var storage = require("@system.storage")
+    storage.set({ key: "detail_classId", value: String(course.id) })
+    storage.set({ key: "detail_day", value: dayName, success: function() { router.push({ uri: "/pages/detail" }) } })
   },
-  handleClick() {
-    app.terminate()
+
+  goBack: function() {
+    router.back()
   }
 }
 </script>
 
 <style>
-@import "./index.less";
-.list {
+.page {
+  flex-direction: column;
   width: 100%;
   height: 100%;
+  padding: 44px 6px 6px 6px;
 }
-.title {
-  color: #fff;
-  font-size: 40px;
-  margin-top: 42px;
-}
-.list-item-title{
-  font-size: 36px;
-  color:white;
-}
-.list-item {
+.back-header {
   flex-direction: row;
   align-items: center;
-  height: 88px;
+  margin-bottom: 12px;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+.back-btn-wrapper {
+  width: 40px;
+  height: 36px;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+.back-btn-icon {
+  width: 20px;
+  height: 20px;
+}
+.header-title {
+  flex: 1;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 32px;
+}
+.header-placeholder {
+  width: 40px;
+  height: 36px;
+  flex-shrink: 0;
+}
+.loading-area {
+  align-items: center;
+  padding: 30px 0;
+}
+.loading-text {
+  font-size: 20px;
+  line-height: 28px;
+}
+.empty-area {
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+}
+.empty-text {
+  font-size: 22px;
+  line-height: 30px;
+}
+.scroll-body {
+  flex: 1;
+  flex-direction: column;
+}
+.day-section {
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+.day-header {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 4px 4px 2px 4px;
+}
+.day-name {
+  font-size: 22px;
+  font-weight: bold;
+  line-height: 30px;
+}
+.day-count {
+  font-size: 18px;
+  line-height: 26px;
+}
+.day-divider {
+  height: 2px;
+  margin: 2px 0 6px 0;
+  border-radius: 1px;
+}
+.course-row {
+  flex-direction: row;
+  align-items: stretch;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  overflow: hidden;
+}
+.course-accent {
+  width: 4px;
+  flex-shrink: 0;
+  border-radius: 2px;
+  margin: 6px 0;
+}
+.course-body {
+  flex: 1;
+  flex-direction: column;
+  padding: 8px;
+}
+.course-name-row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.course-name {
+  font-size: 22px;
+  font-weight: bold;
+  line-height: 30px;
+}
+.course-time {
+  font-size: 18px;
+  line-height: 26px;
+  flex-shrink: 0;
+  margin-left: 6px;
+}
+.course-location {
+  font-size: 17px;
+  line-height: 24px;
+  margin-top: 2px;
 }
 
-.subject-image {
-	width: 58px;
-	height: 58px;
-	margin-right: 30px;
+@media (width >= 200px) {
+  .page { padding: 44px 10px 8px 10px; }
+  .back-header { margin-bottom: 16px; padding: 0 4px; }
+  .back-btn-wrapper { width: 48px; height: 40px; }
+  .back-btn-icon { width: 24px; height: 24px; }
+  .header-title { font-size: 28px; line-height: 38px; }
+  .header-placeholder { width: 48px; height: 40px; }
+  .day-name { font-size: 24px; line-height: 32px; }
+  .day-count { font-size: 20px; line-height: 28px; }
+  .course-body { padding: 10px 12px; }
+  .course-name { font-size: 24px; line-height: 32px; }
+  .course-time { font-size: 20px; line-height: 28px; }
+  .course-location { font-size: 18px; line-height: 26px; }
+  .day-section { margin-bottom: 14px; }
 }
-.subject-name {
-	font-size: 36px;
-	font-weight: 400;
-	color: #fff;
+
+@media (width >= 400px) {
+  .page { padding: 12px 16px; }
+  .back-header { margin-bottom: 20px; }
+  .header-title { font-size: 32px; line-height: 42px; }
+  .day-name { font-size: 28px; line-height: 36px; }
+  .day-count { font-size: 22px; line-height: 30px; }
+  .course-body { padding: 12px 16px; }
+  .course-name { font-size: 28px; line-height: 36px; }
+  .course-time { font-size: 22px; line-height: 30px; }
+  .course-location { font-size: 20px; line-height: 28px; }
+  .day-section { margin-bottom: 18px; }
+}
+
+@media (shape: circle) {
+  .page { padding: 30px 20px 20px 20px; }
+  .course-row { border-radius: 12px; }
 }
 </style>
-
-/* atomics below copied verbatim from official settings app.ux style block (ev-minimal rule 3: append-only) */
-.pl-60 { padding-left: 60px; }
-.mr-10 { margin-right: 10px; }
-.mr-60 { margin-right: 60px; }
-.mt-4 { margin-top: 4px; }
-.bg-black { background-color: rgba(0, 0, 0, 1); }
-.h-30 { height: 30px; }
-.h-full { height: 100%; }
-.w-30 { width: 30px; }
-.w-full { width: 100%; }
-.justify-center { justify-content: center; }
-.justify-between { justify-content: space-between; }
-
-/* ev-minimal v2 rule 6: band-9 pill screen 194x368 narrowing (append-only; official class defs untouched; single-shape query, no comma).
-   Official settings home has no pill branch. At 194px the official row (pl-60 + 58px icon + 36px name + 60px + 58px arrow) overflows.
-   Narrowed per three-shape template baselines: row 88->72px, icon/arrow 58->30px, name 36->24px, pl-60->8px, mr-60->8px.
-   Math: usable 194px - fixed 84px (8+30+8+8+30) = 110px name budget; 4 chars at 24px = 96px fits. */
-@media screen and (shape: pill-shaped) {
-  .list-item { height: 72px; }
-  .list-item-title { font-size: 28px; }
-  .subject-image { width: 30px; height: 30px; margin-right: 8px; }
-  .subject-name { font-size: 24px; }
-  .pl-60 { padding-left: 8px; }
-  .mr-60 { margin-right: 8px; }
-}
