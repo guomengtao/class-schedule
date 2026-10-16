@@ -149,7 +149,13 @@ function syncExtractCourses(payload) {
   } else if (payload && payload.payload) {
     return syncExtractCourses(payload.payload)
   }
-  return (list && list.length) ? list : null
+  // 评审：区分「字段缺失」与「数组为空」
+  //   · list 仍为 null（四种形态都没匹配上）→ 真错误，由调用方回 "no courses"
+  //   · 数组存在但长度为 0 → 【合法输入】用户清空课表，返回空数组交给调用方走清空分支
+  //     旧实现 (list && list.length) ? list : null 会把空数组也判成 null，
+  //     导致「清空课表」永远同步不进手环，还被手机端渲染成「手环拒绝了写入」。
+  if (!list || typeof list.length !== "number") { return null }
+  return list
 }
 
 // Course[] → 格式 A（按 day 分组）
@@ -342,6 +348,14 @@ function syncHandleImport(connect, payload) {
     syncReply(connect, { ok: false, reason: "no courses" })
     return
   }
+  // 空课表＝合法操作（用户清空课表）：走清空分支，不能当成失败回 ok:false
+  if (!list.length) {
+    var clearIndex = 0
+    try { clearIndex = database.getScheduleIndex() } catch (e) { clearIndex = 0 }
+    dlog("[SYNC] import: empty courses -> clear index=" + clearIndex)
+    syncWriteCoursesToIndex(clearIndex, [], 0, connect, { cleared: true })
+    return
+  }
   var data = syncToFormatA(list)
   if (!data.length) {
     dlog("[SYNC] import: convert empty")
@@ -404,7 +418,11 @@ function syncWriteCoursesToIndex(index, data, count, connect, extra) {
               database.resetCache()
               try { database.setScheduleIndex(index, function () {}) } catch (e) {}
               var reply = { ok: true, count: count }
-              if (extra) {
+              if (extra && extra.cleared) {
+                // 清空课表成功：手机端据此提示「已同步空课表」而非失败
+                reply.action = "import"
+                reply.cleared = true
+              } else if (extra) {
                 reply.action = "import"
                 reply.scheduleName = extra.scheduleName
                 reply.scheduleIndex = index
