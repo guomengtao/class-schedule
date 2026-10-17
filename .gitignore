@@ -4,6 +4,12 @@
 /node_modules
 /sign
 /build
+
+# ====== 敏感凭证：本地密钥文件，禁止提交 ======
+.env
+.env.local
+.env.*.local
+*.local
 .husky/
 .trae/
 .DS_Store
