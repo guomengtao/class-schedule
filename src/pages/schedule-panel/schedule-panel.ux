@@ -7,24 +7,25 @@
      逻辑与数据源未动：仍是 data.js 的 tabsData，route/goBack 行为不变。 -->
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <div class="page-body">
-      <div class="back-header">
-        <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-          <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
-        </div>
-        <text class="header-title" style="color: {{ theme.text }}">课程面板</text>
-        <div class="header-placeholder"></div>
-      </div>
-
-      <div class="section" style="background-color: {{ theme.card }}">
-        <block for="{{ items }}">
-          <div class="item-row" @click="route($item.path)">
-            <text class="item-label" style="color: {{ theme.text }}">{{ $item.name }}</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+    <scroll class="page-scroll" scroll-y="{{ true }}">
+      <div class="page-body">
+        <div class="back-header">
+          <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+            <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
           </div>
-        </block>
+          <text class="header-title" style="color: {{ theme.text }}">课程面板</text>
+        </div>
+
+        <div class="section" style="background-color: {{ theme.card }}">
+          <block for="{{ items }}">
+            <div class="item-row" @click="route($item.path)">
+              <text class="item-label" style="color: {{ theme.text }}">{{ $item.name }}</text>
+              <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+            </div>
+          </block>
+        </div>
       </div>
-    </div>
+    </scroll>
   </div>
 </template>
 
@@ -87,6 +88,12 @@ export default {
   height: 100%;
 }
 
+.page-scroll {
+  flex: 1;
+  width: 100%;
+  flex-direction: column;
+}
+
 .page-body {
   flex-direction: column;
   width: 100%;
@@ -115,19 +122,14 @@ export default {
   height: 24px;
 }
 
-/* 标题居中：左右各一个等宽占位，保证文字在屏幕正中 */
+/* 标题居中：192 宽屏减去返回钮后仅剩 ~120px，4 个汉字 28px 必然折行，
+   故降到 26px 并去掉右侧等宽占位（占位 48px 会把标题压到 64px，直接两行）。 */
 .header-title {
   flex: 1;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: bold;
   text-align: center;
-  line-height: 38px;
-}
-
-.header-placeholder {
-  width: 48px;
-  height: 40px;
-  flex-shrink: 0;
+  line-height: 36px;
 }
 
 /* 单张卡片承载 7 个栏目：整块成组，比原来一串散落的蓝色下划线链接干净 */
@@ -142,8 +144,8 @@ export default {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  /* 7px 上下 + 38px 行高 = 52px/行 × 7 行 + 卡片内边距 + 头部，正好落在一屏内 */
-  padding: 7px 0;
+  /* 6px 上下 + 38px 行高 = 50px/行 × 7 行 + 卡片内边距 + 头部 = 478px，稳稳落在一屏内 */
+  padding: 6px 0;
 }
 
 .item-label {
