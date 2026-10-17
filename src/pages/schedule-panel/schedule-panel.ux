@@ -1,32 +1,71 @@
-<!-- UI/实现来源：open-vela-learning/packages_apps/wearable/vela-sample/src/home/index.ux（ev-minimal v3，2026-10-14）
-     本轮改动（注入点：数据源/跳转/返回）：去掉官方分组折叠，caseList 直接平铺为链接列表；顶部加居中返回按钮。 -->
+<!-- UI/实现来源：早期沿用 open-vela-learning 官方 sample（home/index.ux），
+     2026-10-17 UI 整理：原样式 padding 60px 80px 在 192 宽屏上左右各吃掉 80px，7 个栏目被压成
+     一条窄柱；.link 的 margin-left:23px 又被后面的 margin:5px 0 简写覆盖（等于没缩进）；
+     行高 40px 装 30px 字，行间距全靠全局 text 规则，视觉松散不成组。
+     现改为对标 pages/tools/tools.ux 的标准样式：状态栏留白 + 返回钮/居中标题头部 + 单张卡片内
+     7 行（行 + 箭头 ›），配色全部走 store.getTheme 的 theme 变量，深浅主题自动适配。
+     逻辑与数据源未动：仍是 data.js 的 tabsData，route/goBack 行为不变。 -->
 <template>
-  <div class="page home-page">
-    <div class="back-header" @click="goBack">
-      <image class="back-icon" src="/common/image/back.png"></image>
-      <text class="back-text">返回</text>
-    </div>
-    <block for="{{tabs}}">
-      <div class="chapter">
-        <text class="h1">{{$item.name}}</text>
-        <block for="{{$item.groupList}}">
-          <text class="link" for="{{$item.caseList}}" @click="route($item.path)">{{$item.name}}</text>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="page-body">
+      <div class="back-header">
+        <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+          <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+        </div>
+        <text class="header-title" style="color: {{ theme.text }}">课程面板</text>
+        <div class="header-placeholder"></div>
+      </div>
+
+      <div class="section" style="background-color: {{ theme.card }}">
+        <block for="{{ items }}">
+          <div class="item-row" @click="route($item.path)">
+            <text class="item-label" style="color: {{ theme.text }}">{{ $item.name }}</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
         </block>
       </div>
-    </block>
+    </div>
   </div>
 </template>
 
 <script>
 import router from '@system.router'
-// 注入点1数据源：官方 tabsData（框架/组件/接口三章）→ 课程面板一章一组 7 个栏目。
-// 官方字段 name/path 原样沿用；path 写全 /pages/ 前缀（官方 manifest 页 key 无 pages/ 前缀，
-// 本项目 manifest 为 "pages/schedule-panel-xxx"，故跳转必须带前缀，否则链接点不开 —— 跳转属注入点）。
+// 数据源沿用 data.js 的 tabsData（课程面板一章一组 7 个栏目）；此处只做「章节 → 平铺列表」的展平。
 import { tabsData } from './data.js'
+
+const store = require('../../data/store.js')
+
+const flatItems = []
+for (let i = 0; i < tabsData.length; i++) {
+  const groups = tabsData[i].groupList || []
+  for (let j = 0; j < groups.length; j++) {
+    const cases = groups[j].caseList || []
+    for (let k = 0; k < cases.length; k++) {
+      flatItems.push({ name: cases[k].name, path: cases[k].path })
+    }
+  }
+}
 
 export default {
   private: {
-    tabs: tabsData
+    iconTheme: 'dark',
+    items: flatItems,
+    // 首帧默认深色（与 tools.ux 同款），onInit 里由 store.getTheme 覆盖为当前主题
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      text: '#ffffff',
+      textMuted: '#555566',
+      border: '#0f3460'
+    }
+  },
+
+  onInit() {
+    const self = this
+    store.getTheme(function (t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
   },
 
   // 注入点3跳转：官方 route 原样保留（router.push uri）
@@ -42,82 +81,92 @@ export default {
 </script>
 
 <style>
-@import './comm.css';
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
 
-.home-page {
-  align-items: flex-start;
-  justify-content: flex-start;
-  padding: 60px 80px;
+.page-body {
+  flex-direction: column;
+  width: 100%;
+  /* 44px 顶部留白避开状态栏，左右 12px 与兄弟面板页一致 */
+  padding: 44px 12px 12px 12px;
 }
 
 .back-header {
   flex-direction: row;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.back-btn-wrapper {
+  width: 48px;
+  height: 40px;
+  border-radius: 8px;
   justify-content: center;
   align-items: center;
-  width: 100%;
-  margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
-.back-icon {
-  width: 30px;
-  height: 30px;
-  margin-right: 6px;
+.back-btn-icon {
+  width: 24px;
+  height: 24px;
 }
 
-.back-text {
-  font-size: 30px;
-}
-
-.chapter {
-  margin-bottom: 30px;
-  flex-direction: column;
-}
-
-.h1 {
+/* 标题居中：左右各一个等宽占位，保证文字在屏幕正中 */
+.header-title {
+  flex: 1;
+  font-size: 28px;
   font-weight: bold;
-  font-size: 36px;
+  text-align: center;
+  line-height: 38px;
 }
 
-.h2 {
-  margin-top: 15px;
-  font-size: 30px;
-}
-
-/* ev-minimal 军规4例外：官方此处另有 text-overflow: ellipsis 一行，
-   撞项目铁律（禁 ellipsis）故删除，其余逐行保留 */
-.link {
+.header-placeholder {
+  width: 48px;
   height: 40px;
-  margin-left: 23px;
-  font-size: 30px;
-  margin: 5px 0;
+  flex-shrink: 0;
 }
 
-text {
-  font-size: 30px;
-  margin: 5px 0;
+/* 单张卡片承载 7 个栏目：整块成组，比原来一串散落的蓝色下划线链接干净 */
+.section {
+  width: 100%;
+  flex-direction: column;
+  border-radius: 14px;
+  padding: 10px 14px;
 }
 
-@media (shape: pill-shaped) {
-  .home-page {
-    padding: 60px 10px;
-  }
+.item-row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  /* 7px 上下 + 38px 行高 = 52px/行 × 7 行 + 卡片内边距 + 头部，正好落在一屏内 */
+  padding: 7px 0;
+}
 
-  .back-icon {
-    width: 36px;
-    height: 36px;
-  }
+.item-label {
+  font-size: 28px;
+  line-height: 38px;
+}
 
-  .link {
-    height: 70px;
-    margin-left: 15px;
-  }
+.arrow {
+  font-size: 28px;
+  line-height: 38px;
+  flex-shrink: 0;
+}
 
-  .h1 {
-    font-size: 52px;
-  }
+@media (width >= 360) {
+  .page-body { padding: 44px 16px 16px 16px; }
+  .item-row { padding: 10px 0; }
+  .item-label { font-size: 32px; line-height: 44px; }
+  .arrow { font-size: 32px; line-height: 44px; }
+}
 
-  text {
-    font-size: 48px;
-  }
+@media (width >= 480) {
+  .page-body { padding: 44px 40px 24px 40px; }
+  .item-row { padding: 14px 0; }
+  .section { border-radius: 18px; padding: 14px 20px; }
 }
 </style>
