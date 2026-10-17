@@ -1,0 +1,273 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">选择日期</text>
+    </div>
+
+    <text class="preview-text" style="color: {{ theme.accent }}">{{ resultStr }}</text>
+
+    <scroll class="page-scroll" scroll-y="{{true}}">
+      <div class="picker-card" style="background-color: {{ theme.card }}">
+        <text class="picker-label" style="color: {{ theme.textSecondary }}">年</text>
+        <picker class="date-picker" type="text" range="{{ yearStrs }}" selected="{{ yIdx }}" onchange="onYearChange"></picker>
+        <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+        <text class="picker-label" style="color: {{ theme.textSecondary }}">月</text>
+        <picker class="date-picker" type="text" range="{{ monthStrs }}" selected="{{ mIdx }}" onchange="onMonthChange"></picker>
+        <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+        <text class="picker-label" style="color: {{ theme.textSecondary }}">日</text>
+        <picker class="date-picker" type="text" range="{{ dayStrs }}" selected="{{ dIdx }}" onchange="onDayChange"></picker>
+      </div>
+    </scroll>
+
+    <div class="done-row">
+      <input class="done-btn" type="button" value="确定" onclick="confirmDate"
+             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+var storage = require("@system.storage")
+const store = require("../../data/store.js")
+
+var RESULT_KEY = "countdown_date_result"
+
+export default {
+  private: {
+    iconTheme: "dark",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460'
+    },
+    years: [],
+    yearStrs: [],
+    monthStrs: [],
+    dayStrs: [],
+    yIdx: 0,
+    mIdx: 0,
+    dIdx: 0,
+    resultStr: "----/--/--"
+  },
+
+  onInit() {
+    var self = this
+    var now = new Date()
+    var cy = now.getFullYear()
+
+    var yArr = []
+    var startY = 2020
+    for (var i = startY; i <= cy + 5; i++) {
+      yArr.push(i)
+    }
+    self.years = yArr
+    self.yearStrs = yArr.map(function(v) { return String(v) })
+
+    self.monthStrs = []
+    for (var j = 1; j <= 12; j++) {
+      self.monthStrs.push(String(j))
+    }
+
+    // 默认定位到今天，再尝试读预设日期
+    self.yIdx = yArr.indexOf(cy)
+    if (self.yIdx < 0) self.yIdx = yArr.length - 1
+    self.mIdx = now.getMonth()
+    self.dayStrs = self.buildDayStrs(yArr[self.yIdx], now.getMonth() + 1)
+    self.dIdx = now.getDate() - 1
+    if (self.dIdx < 0) self.dIdx = 0
+    if (self.dIdx >= self.dayStrs.length) self.dIdx = self.dayStrs.length - 1
+    self.refreshPreview()
+
+    // 读取预设日期（添加/编辑时传入，用于回显）
+    storage.get({ key: "cd_date_preset", success: function(data) { self.applyPreset(data) }, fail: function() {} })
+    storage.get({ key: "cd_date_return_key", success: function(data) { if (data) RESULT_KEY = data }, fail: function() {} })
+
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
+  },
+
+  applyPreset: function(data) {
+    if (!data || !/^\d{4}-\d{2}-\d{2}$/.test(String(data))) return
+    var p = String(data).split("-")
+    var y = parseInt(p[0], 10)
+    var m = parseInt(p[1], 10)
+    var d = parseInt(p[2], 10)
+    var yi = this.years.indexOf(y)
+    if (yi >= 0) this.yIdx = yi
+    var mi = this.monthStrs.indexOf(String(m))
+    if (mi >= 0) this.mIdx = mi
+    this.dayStrs = this.buildDayStrs(this.years[this.yIdx], m)
+    var di = d - 1
+    if (di < 0) di = 0
+    if (di >= this.dayStrs.length) di = this.dayStrs.length - 1
+    this.dIdx = di
+    this.refreshPreview()
+  },
+
+  updateIconSrc: function(themeName) {
+    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+  },
+
+  buildDayStrs: function(y, m) {
+    var daysInMonth = 31
+    if (m === 2) {
+      var isLeap = (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0)
+      daysInMonth = isLeap ? 29 : 28
+    } else if (m === 4 || m === 6 || m === 9 || m === 11) {
+      daysInMonth = 30
+    }
+    var arr = []
+    for (var d = 1; d <= daysInMonth; d++) {
+      arr.push(String(d))
+    }
+    return arr
+  },
+
+  refreshPreview: function() {
+    this.resultStr = (this.years[this.yIdx] || "----") + "-" + this.pad(this.mIdx + 1) + "-" + this.pad(this.dIdx + 1)
+  },
+
+  pad: function(n) {
+    return n < 10 ? "0" + n : "" + n
+  },
+
+  onYearChange: function(e) {
+    this.yIdx = e.newSelected
+    this.recalcDays()
+  },
+
+  onMonthChange: function(e) {
+    this.mIdx = e.newSelected
+    this.recalcDays()
+  },
+
+  onDayChange: function(e) {
+    this.dIdx = e.newSelected
+    this.refreshPreview()
+  },
+
+  recalcDays: function() {
+    var yv = this.years[this.yIdx]
+    var mv = parseInt(this.monthStrs[this.mIdx], 10)
+    this.dayStrs = this.buildDayStrs(yv, mv)
+    if (this.dIdx >= this.dayStrs.length) {
+      this.dIdx = this.dayStrs.length - 1
+    }
+    this.refreshPreview()
+  },
+
+  confirmDate: function() {
+    var val = this.resultStr
+    storage.set({ key: RESULT_KEY, value: val, success: function() { router.back() }, fail: function() { router.back() } })
+  },
+
+  goBack: function() {
+    router.back()
+  },
+
+  onDestroy: function() {
+    this.theme = null
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 36px 10px 6px 10px;
+  flex: 1;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.back-btn-wrapper {
+  width: 48px;
+  height: 40px;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.back-btn-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.header-title {
+  flex: 1;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 40px;
+}
+
+.preview-text {
+  text-align: center;
+  font-size: 24px;
+  line-height: 34px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.page-scroll {
+  flex: 1;
+  flex-direction: column;
+}
+
+.picker-card {
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 4px 14px;
+}
+
+.picker-label {
+  font-size: 20px;
+  line-height: 26px;
+  color: #888899;
+  margin-top: 4px;
+}
+
+.date-picker {
+  width: 100%;
+  height: 52px;
+}
+
+.row-divider {
+  height: 1px;
+  margin: 4px 0;
+}
+
+.done-row {
+  flex-shrink: 0;
+  padding-top: 10px;
+}
+
+.done-btn {
+  width: 100%;
+  height: 48px;
+  border-radius: 24px;
+  font-size: 24px;
+  text-align: center;
+  line-height: 48px;
+}
+</style>
