@@ -1,6 +1,6 @@
 {
   "name": "class",
-  "version": "1.0.0",
+  "version": "1.8.339",
   "description": "",
   "engines": {
     "node": ">=8.10"
@@ -9,6 +9,8 @@
     "clean": "rm -rf build dist ../.temp_class-schedule ../.temp_class",
     "start": "npm run clean && aiot start --watch",
     "bump": "node scripts/bump-version.js",
+    "sync-version": "node scripts/sync-version.js",
+    "check-version": "node scripts/sync-version.js --check",
     "prebuild": "npm run clean && node scripts/bump-version.js",
     "build": "node scripts/build.js && node scripts/relaunch.js",
     "build:dev": "npm run clean && aiot build",
