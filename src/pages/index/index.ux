@@ -145,18 +145,19 @@
 
     
 
-    <!-- 方案 D6：底部三件套并成一排（添加 / 切换课表 / 设置），
-         删掉独立的 week-indicator 整行（省 ≈45px 垂直预算） -->
+    <!-- 方案 D7：切换课表作为独立一行（课表名+⇄），底部仅保留添加/设置两钮，
+         避免 192px 屏把切换钮压成孤立图标 -->
+    <div class="schedule-indicator" onclick="openScheduleManager" style="background-color: {{ theme.cardLight }}">
+      <image class="schedule-swap-icon" src="/common/icons/{{ iconTheme }}/icon_swap.png"></image>
+      <text class="schedule-name" style="color: {{ theme.text }}">{{ currentScheduleName }}</text>
+    </div>
     <div class="bottom-buttons">
       <div class="add-btn-wrapper" onclick="openAddCoursePage"
            style="background-color: transparent; border-width: 2px; border-color: {{ theme.accent }}">
         <image class="add-btn-icon" src="/common/icons/{{ iconTheme }}/icon_plus.png"></image>
         <text class="add-btn-label" if="{{ !isCapsule }}" style="color: {{ theme.accent }}">添加课程</text>
       </div>
-      <div class="bottom-mid-btn" onclick="openScheduleManager" style="background-color: {{ theme.cardLight }}">
-        <image class="week-swap-icon" src="/common/icons/{{ iconTheme }}/icon_swap.png"></image>
-      </div>
-      <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}; flex: 1;" />
+      <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }};" />
     </div>
   </div>
 </template>
@@ -1255,6 +1256,30 @@ export default {
   font-size: 20px;
   line-height: 28px;
   text-align: center;
+}
+
+/* 方案 D7：课表切换指示条（单独一行，可点击进入课表管理） */
+.schedule-indicator {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  border-radius: 18px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.schedule-swap-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+}
+
+.schedule-name {
+  font-size: 18px;
+  line-height: 26px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .left-accent {
