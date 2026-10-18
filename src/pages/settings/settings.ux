@@ -170,13 +170,6 @@
         </div>
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
-      <div class="row" onclick="openLab">
-        <text class="row-label" style="color: {{ theme.text }}">实验室</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">新功能测试</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
     </div>
 
     <div class="settings-footer">
@@ -433,9 +426,11 @@ export default {
     storage.set({ key: "chinese_input_placeholder", value: "输入昵称", success: function() {} })
     storage.set({ key: "chinese_input_value", value: this.nickname, success: function() {} })
     storage.set({ key: "chinese_input_maxlen", value: "12", success: function() {} })
-    storage.set({ key: "chinese_input_return_key", value: "chinese_input_nickname_result", success: function() {
-      router.push({ uri: "/pages/chinese-input" })
-    }})
+    storage.set({ key: "chinese_input_return_key", value: "chinese_input_nickname_result", success: function() {} })
+    // 2026-10-18：push 原来挂在最后一个 storage.set 的 success 回调里，
+    // 实测该回调不触发 → 点昵称行完全没反应（模拟器连点3次页面无变化）。
+    // storage.set 是即写即走的，同进程内 get 能读到刚写入的值，不必等回调再导航。
+    router.push({ uri: "/pages/chinese-input" })
   },
 
   openFeedback() {
@@ -456,10 +451,6 @@ export default {
 
   openPhoneRemote() {
     router.push({ uri: "/pages/settings/phone-remote" })
-  },
-
-  openLab() {
-    router.push({ uri: "/pages/settings/lab" })
   },
 
   openActivation() {
@@ -635,6 +626,7 @@ export default {
   flex-direction: column;
   align-items: flex-start;
   padding: 14px 0;
+  width: 100%; /* 手环铁律：div 宽度默认随内容收缩，列表项必须显式满宽，否则热区塌到左下角 */
 }
 .nickname-label {
   line-height: 36px;

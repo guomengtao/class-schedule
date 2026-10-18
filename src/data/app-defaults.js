@@ -43,7 +43,6 @@ var ITEMS = [
   { id: "homepage.showDayNavZong",    key: "homepage_settings", field: "showDayNavZong",    value: true,  policy: "keep", since: 1, desc: "首页-总课程导航" },
   { id: "homepage.showDayNavJin",     key: "homepage_settings", field: "showDayNavJin",     value: true,  policy: "keep", since: 1, desc: "首页-今日导航" },
   { id: "homepage.showDayNavMing",    key: "homepage_settings", field: "showDayNavMing",    value: true,  policy: "keep", since: 1, desc: "首页-明日导航" },
-  { id: "homepage.showLabSection",    key: "homepage_settings", field: "showLabSection",    value: false, policy: "keep", since: 1, desc: "首页-实验室区块是否显示" },
 
   // ---------- 主题与外观（用户主观选择，禁止重置） ----------
   { id: "appearance.theme",           key: "appTheme",          value: "blue",         policy: "keep", since: 1, desc: "主题风格（禁止重置）" },
