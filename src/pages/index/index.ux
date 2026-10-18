@@ -145,12 +145,8 @@
 
     
 
-    <!-- 方案 D7：切换课表作为独立一行（课表名+⇄），底部仅保留添加/设置两钮，
-         避免 192px 屏把切换钮压成孤立图标 -->
-    <div class="schedule-indicator" onclick="openScheduleManager" style="background-color: {{ theme.cardLight }}">
-      <image class="schedule-swap-icon" src="/common/icons/{{ iconTheme }}/icon_swap.png"></image>
-      <text class="schedule-name" style="color: {{ theme.text }}">{{ currentScheduleName }}</text>
-    </div>
+    <!-- 方案 D8：切换课表独立行移到最末（在 添加/设置 两钮之下），
+         仍保持独立一行，避免 192px 屏把切换钮压成孤立图标 -->
     <div class="bottom-buttons">
       <div class="add-btn-wrapper" onclick="openAddCoursePage"
            style="background-color: transparent; border-width: 2px; border-color: {{ theme.accent }}">
@@ -158,6 +154,10 @@
         <text class="add-btn-label" if="{{ !isCapsule }}" style="color: {{ theme.accent }}">添加课程</text>
       </div>
       <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }};" />
+    </div>
+    <div class="schedule-indicator" onclick="openScheduleManager" style="background-color: {{ theme.cardLight }}">
+      <image class="schedule-swap-icon" src="/common/icons/{{ iconTheme }}/icon_swap.png"></image>
+      <text class="schedule-name" style="color: {{ theme.text }}">{{ currentScheduleName }}</text>
     </div>
   </div>
 </template>
