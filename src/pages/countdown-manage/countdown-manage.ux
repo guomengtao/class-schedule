@@ -5,7 +5,6 @@
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">倒数日</text>
-      <input class="add-btn" type="button" value="添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
     <div class="toolbar" if="{{ countdownList.length > 0 }}">
@@ -39,18 +38,27 @@
           </div>
           <div class="cd-meta">
             <text class="cd-date" style="color: {{ theme.textSecondary }}">{{ item.dateDisplay }}</text>
-            <input class="switch-btn" type="button" value="{{ item.enabled ? 'ON' : 'OFF' }}" onclick="toggleItem(idx)"
-                   style="background-color: {{ item.enabled ? theme.accent : theme.btnSecondary }}; color: {{ item.enabled ? theme.bg : theme.btnSecondaryText }}" />
+            <div class="switch-btn" onclick="toggleItem(idx)"
+                 style="background-color: {{ item.enabled ? theme.accent : theme.btnSecondary }}">
+              <text class="switch-label" style="color: {{ item.enabled ? theme.bg : theme.btnSecondaryText }}">{{ item.enabled ? 'ON' : 'OFF' }}</text>
+            </div>
           </div>
           <div class="cd-actions">
-            <input class="action-btn edit-btn" type="button" value="编辑" onclick="startEdit(idx)"
-                   style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-            <input class="action-btn del-btn" type="button" value="{{ deleteConfirmIndex === idx ? '确认' : '删除' }}" onclick="deleteItem(idx)"
-                   style="background-color: {{ deleteConfirmIndex === idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === idx ? theme.text : theme.deleteText }}" />
+            <div class="action-btn edit-btn" onclick="startEdit(idx)"
+                 style="background-color: {{ theme.accent }}">
+              <text class="btn-label" style="color: {{ theme.bg }}">编辑</text>
+            </div>
+            <div class="action-btn del-btn" onclick="deleteItem(idx)"
+                 style="background-color: {{ deleteConfirmIndex === idx ? theme.deleteText : theme.deleteBg }}">
+              <text class="btn-label" style="color: {{ deleteConfirmIndex === idx ? theme.text : theme.deleteText }}">{{ deleteConfirmIndex === idx ? '确认' : '删除' }}</text>
+            </div>
           </div>
         </div>
       </div>
-      <text if="{{ countdownList.length === 0 }}" class="empty-text" style="color: {{ theme.textMuted }}">暂无倒数日，点击右上角添加</text>
+      <text if="{{ countdownList.length === 0 }}" class="empty-text" style="color: {{ theme.textMuted }}">暂无倒数日</text>
+      <div class="add-row-btn" onclick="startAdd" style="background-color: {{ theme.accent }}">
+        <text class="btn-label" style="color: {{ theme.bg }}">+ 添加倒数日</text>
+      </div>
     </scroll>
 
     <div if="{{ detailVisible }}" class="detail-mask" onclick="closeDetail">
@@ -65,14 +73,20 @@
         <text class="detail-title" style="color: {{ theme.text }}">{{ detailItem.title }}</text>
         <text class="detail-date" style="color: {{ theme.textSecondary }}">{{ detailItem.dateDisplay }}</text>
         <div class="detail-actions">
-          <input class="action-btn detail-edit" type="button" value="编辑" onclick="editFromDetail"
-                 style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-          <input class="action-btn detail-del" type="button" value="{{ detailDeleteConfirm ? '确认' : '删除' }}" onclick="deleteFromDetail"
-                 style="background-color: {{ detailDeleteConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ detailDeleteConfirm ? theme.text : theme.deleteText }}" />
+          <div class="action-btn detail-edit" onclick="editFromDetail"
+               style="background-color: {{ theme.accent }}">
+            <text class="btn-label" style="color: {{ theme.bg }}">编辑</text>
+          </div>
+          <div class="action-btn detail-del" onclick="deleteFromDetail"
+               style="background-color: {{ detailDeleteConfirm ? theme.deleteText : theme.deleteBg }}">
+            <text class="btn-label" style="color: {{ detailDeleteConfirm ? theme.text : theme.deleteText }}">{{ detailDeleteConfirm ? '确认' : '删除' }}</text>
+          </div>
         </div>
         <div class="detail-actions">
-          <input class="switch-btn detail-switch" type="button" value="{{ detailItem.enabled ? 'ON' : 'OFF' }}" onclick="toggleFromDetail"
-                 style="background-color: {{ detailItem.enabled ? theme.accent : theme.btnSecondary }}; color: {{ detailItem.enabled ? theme.bg : theme.btnSecondaryText }}" />
+          <div class="switch-btn detail-switch" onclick="toggleFromDetail"
+               style="background-color: {{ detailItem.enabled ? theme.accent : theme.btnSecondary }}">
+            <text class="switch-label" style="color: {{ detailItem.enabled ? theme.bg : theme.btnSecondaryText }}">{{ detailItem.enabled ? 'ON' : 'OFF' }}</text>
+          </div>
         </div>
       </div>
     </div>
@@ -433,7 +447,9 @@ export default {
    所有文案按「不被截断」定量：标题整行独占、天数独立一行、日期与开关同行。
    ================================================================ */
 
-/* 头部：192 宽下「返回 + 倒数日 + 添加」必须一行放得下（32 + 52 + 标题 72） */
+/* 头部：胶囊屏只有一行、横向极窄（192 − 24 留白 = 168）。
+   铁律：头部只放「返回 + 标题」，任何操作按钮一律不准进头部（见
+   docs/胶囊屏UI规范与模拟器快速迭代-20261018.md）。新增入口下沉到列表底部整行按钮。 */
 .header {
   height: 34px;
   margin-bottom: 8px;
@@ -461,13 +477,14 @@ export default {
   padding: 24px 12px 20px 12px;
 }
 
-.add-btn {
-  width: 52px;
-  height: 30px;
-  border-radius: 15px;
-  font-size: 18px;
-  text-align: center;
-  line-height: 30px;
+/* 新增入口：列表底部整行按钮（头部禁放按钮后的唯一入口），热区 168×44 */
+.add-row-btn {
+  width: 168px;
+  height: 44px;
+  border-radius: 22px;
+  justify-content: center;
+  align-items: center;
+  margin: 12px 0 16px 0;
   flex-shrink: 0;
 }
 
@@ -599,20 +616,16 @@ export default {
 .cd-actions {
   flex-direction: row;
   width: 100%;
-  height: 28px;
-  margin-top: 6px;
+  height: 40px;
+  margin-top: 8px;
   flex-shrink: 0;
 }
 
-.cd-actions .edit-btn {
-  margin-right: 6px;
-}
-
-/* Vela 里 input 按钮靠 flex:1 分配宽度时可能算不出宽度而不可见，
-   故显式给定宽度（卡片内宽 152 = 68 + 6 + 68） */
-.cd-actions .edit-btn,
-.cd-actions .del-btn {
-  width: 68px;
+/* ⚠️ 必须用单类选择器：Vela 编译会静默丢弃 `.父 .子` 后代选择器，
+   写了不生效也不报错 —— 之前 width 从 68 改到 72 毫无反应就是这个原因。
+   卡片内可用宽度 = 168 − padding 8×2 = 152 → 72 + 8 + 72 */
+.del-btn {
+  margin-left: 8px;
 }
 
 .cd-group-divider {
@@ -636,29 +649,43 @@ export default {
 }
 
 .switch-btn {
-  width: 44px;
-  height: 24px;
-  border-radius: 12px;
-  font-size: 14px;
-  text-align: center;
-  line-height: 24px;
+  width: 52px;
+  height: 28px;
+  border-radius: 14px;
+  justify-content: center;
+  align-items: center;
   flex-shrink: 0;
 }
 
-.action-btn {
-  height: 28px;
-  border-radius: 14px;
-  font-size: 18px;
+.switch-label {
+  font-size: 15px;
+  line-height: 20px;
   text-align: center;
-  line-height: 28px;
+}
+
+/* 按钮一律 div + text：Vela 里 input[type=button] 的 width 不生效（宽度只跟文案走），
+   热区调不动。div 宽高完全可控，onclick 一样能点。 */
+.action-btn {
+  width: 72px;
+  height: 40px;
+  border-radius: 20px;
+  justify-content: center;
+  align-items: center;
   margin-bottom: 0;
+}
+
+.btn-label {
+  font-size: 20px;
+  line-height: 24px;
+  text-align: center;
 }
 
 .empty-text {
   font-size: 20px;
   line-height: 28px;
   text-align: center;
-  margin-top: 60px;
+  width: 100%;
+  margin-top: 40px;
 }
 
 .detail-mask {
@@ -675,10 +702,11 @@ export default {
   background-color: rgba(0, 0, 0, 0.6);
 }
 
+/* 184 = 屏宽 192 − 左右各 4；内容区 168，正好容下 72 + 8 + 72 的操作排 */
 .detail-panel {
   flex-direction: column;
   align-items: center;
-  width: 168px;
+  width: 184px;
   border-radius: 14px;
   padding: 18px 8px 14px 8px;
 }
@@ -735,22 +763,14 @@ export default {
   margin-top: 8px;
 }
 
-.detail-actions .detail-edit,
-.detail-actions .detail-del {
-  margin-right: 6px;
+.detail-del {
+  margin-left: 8px;
 }
 
-/* 复用列表已验证的固定宽度：input 按钮走 flex 分配会算不出宽度而整排消失 */
-.detail-actions .action-btn {
-  width: 68px;
-  margin-bottom: 0;
-  font-size: 16px;
-  height: 28px;
-  line-height: 28px;
-}
-
-.detail-actions .detail-switch {
-  width: 68px;
+/* 同样必须单类选择器（后代选择器会被丢弃） */
+.detail-switch {
+  width: 80px;
+  height: 32px;
 }
 
 /* 大屏（9 Pro / 10 Pro 336×480 等 rect 屏）只做增量：留白与按钮放大，
@@ -760,12 +780,10 @@ export default {
     padding: 24px 20px 20px 20px;
   }
 
-  .add-btn {
-    width: 64px;
-    height: 34px;
-    border-radius: 17px;
-    font-size: 20px;
-    line-height: 34px;
+  .add-row-btn {
+    width: 296px;
+    height: 48px;
+    border-radius: 24px;
   }
 }
 </style>
