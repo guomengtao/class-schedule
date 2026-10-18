@@ -1,77 +1,41 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <scroll class="di-scroll" scroll-y="{{true}}">
-    <div class="page-body">
-    <div class="header">
-      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
-      </div>
-      <text class="header-title" style="color: {{ theme.text }}">设备信息</text>
-      <div class="header-placeholder"></div>
-    </div>
-
-    <div class="loading" if="{{ loading }}" style="background-color: {{ theme.card }}">
-      <text class="loading-icon">⬡</text>
-      <text class="loading-text" style="color: {{ theme.textMuted }}">读取铭牌中...</text>
-    </div>
-
-    <div class="error-card" if="{{ errorMsg }}" style="background-color: {{ theme.card }}">
-      <text class="error-icon">⚠</text>
-      <text class="error-text" style="color: #e74c3c">{{ errorMsg }}</text>
-      <input class="retry-btn" type="button" value="重试" onclick="fetchDeviceInfo" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-    </div>
-
-    <div class="info-section" if="{{ !loading && !errorMsg }}">
-      <!-- 铭牌头版：车号 + 关键参数 + 载重表 -->
-      <text class="kicker" style="color: {{ theme.textSecondary }}">设备铭牌 · DEVICE PLATE</text>
-      <text class="unit" style="color: {{ theme.text }}">{{ heroModel }}</text>
-      <text class="unit-code" if="{{ product }}">CODE · {{ product }}</text>
-      <text class="unit-sub" style="color: {{ theme.textSecondary }}">{{ heroSub }}</text>
-
-      <div class="hr"></div>
-      <div class="kv" for="{{ keyRows }}">
-        <text class="lbl" style="color: {{ theme.textSecondary }}">{{ $item.label }}</text>
-        <div class="lead"></div>
-        <text class="val" style="color: {{ theme.text }}">{{ $item.value }}</text>
-      </div>
-
-      <div class="gauge" if="{{ storage.has }}">
-        <div class="kv" style="padding-bottom: 0">
-          <text class="lbl" style="color: {{ theme.textSecondary }}">存储</text>
-          <div class="lead"></div>
-          <text class="val" style="color: {{ theme.accent }}">余 {{ storage.pct }}%</text>
+      <div class="page-body">
+        <div class="header">
+          <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+            <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+          </div>
+          <text class="header-title" style="color: {{ theme.text }}">设备信息</text>
+          <div class="header-placeholder"></div>
         </div>
-        <div class="bar">
-          <div class="fill" style="width: {{ storage.pct }}%; background-color: {{ theme.accent }}"></div>
-        </div>
-        <div class="cap" style="color: {{ theme.textMuted }}">
-          <text>可用 {{ storage.avail }}</text>
-          <text>总 {{ storage.total }}</text>
-        </div>
-      </div>
 
-      <!-- 续页：全量参数（分组点线表 + 长值整行下沉） -->
-      <text class="spec-hint" style="color: {{ theme.textMuted }}">── 完整参数 ──</text>
-      <div class="grp" for="{{ groups }}" style="background-color: {{ theme.card }}">
-        <text class="gt" style="color: {{ theme.textSecondary }}">{{ $item.title }}</text>
-        <block for="{{ $item.items }}">
-          <div class="kv" if="{{ !$item.long }}">
+        <div class="loading" if="{{ loading }}" style="background-color: {{ theme.card }}">
+          <text class="loading-icon">⬡</text>
+          <text class="loading-text" style="color: {{ theme.textMuted }}">读取铭牌中...</text>
+        </div>
+
+        <div class="error-card" if="{{ errorMsg }}" style="background-color: {{ theme.card }}">
+          <text class="error-icon">⚠</text>
+          <text class="error-text" style="color: #e74c3c">{{ errorMsg }}</text>
+          <input class="retry-btn" type="button" value="重试" onclick="fetchDeviceInfo" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+        </div>
+
+        <div class="info-section" if="{{ !loading && !errorMsg }}">
+          <div class="hr"></div>
+
+          <!-- 全部数据统一「两行成对」：标签一行、值一行。
+               值不设 lines —— 超宽时自动换行，完整显示，绝不截断。 -->
+          <div class="kv" for="{{ rows }}">
             <text class="lbl" style="color: {{ theme.textSecondary }}">{{ $item.label }}</text>
-            <div class="lead"></div>
             <text class="val" style="color: {{ theme.text }}">{{ $item.value }}</text>
           </div>
-          <div class="longrow" if="{{ $item.long }}">
-            <text class="long-k" style="color: {{ theme.textSecondary }}">{{ $item.label }}</text>
-            <text class="long-v" style="color: {{ theme.text }}">{{ $item.value }}</text>
-          </div>
-        </block>
-      </div>
-    </div>
+        </div>
 
-    <div class="pin-row">
-      <input class="pin-chip" type="button" value="钉首页" onclick="pinToHome" style="background-color: {{ theme.card }}; color: {{ theme.textSecondary }}" />
-    </div>
-    </div>
+        <div class="pin-row">
+          <input class="pin-chip" type="button" value="钉首页" onclick="pinToHome" style="background-color: {{ theme.card }}; color: {{ theme.textSecondary }}" />
+        </div>
+      </div>
     </scroll>
   </div>
 </template>
@@ -115,13 +79,9 @@ export default {
     },
     loading: true,
     errorMsg: "",
-    infoList: [],
-    groups: [],
-    heroModel: "",
-    heroSub: "",
-    product: "",
-    keyRows: [],
-    storage: { totalBytes: 0, availBytes: 0, has: false, pct: 0, avail: "", total: "" }
+    rows: [],
+    totalBytes: 0,
+    availBytes: 0
   },
 
   onInit() {
@@ -145,39 +105,32 @@ export default {
     var self = this
     self.loading = true
     self.errorMsg = ""
+    self.totalBytes = 0
+    self.availBytes = 0
 
     device.getInfo({
       success: function(ret) {
-        self.infoList = [
-          { label: "设备型号", value: ret.model, grp: 0 },
-          { label: "设备品牌", value: ret.brand, grp: 0 },
-          { label: "设备类型", value: deviceTypeMap[ret.deviceType] || ret.deviceType, grp: 0 },
-          { label: "屏幕形状", value: screenShapeMap[ret.screenShape] || ret.screenShape, grp: 0 },
-          { label: "屏幕分辨率", value: (ret.screenWidth && ret.screenHeight) ? ret.screenWidth + " × " + ret.screenHeight + " px" : "", grp: 1 },
-          { label: "屏幕密度", value: ret.screenDensity, grp: 1 },
-          { label: "系统版本", value: ret.osVersionName, grp: 2 },
-          { label: "平台版本", value: ret.platformVersionName, grp: 2 },
-          { label: "API Level", value: ret.APILevel, grp: 2 },
-          { label: "总存储空间", value: "", grp: 2 },
-          { label: "语言 / 地区", value: ret.language ? ret.language + " · " + ret.region : "", grp: 2 },
-          { label: "设备代号", value: ret.product, grp: 3 },
-          { label: "制造商", value: ret.manufacturer, grp: 3 },
-          { label: "操作系统", value: ret.osType, grp: 3 },
-          { label: "系统版本号", value: ret.osVersionCode, grp: 3 },
-          { label: "平台版本号", value: ret.platformVersionCode, grp: 3 },
-          { label: "设备 ID", value: "", grp: 4 },
-          { label: "序列号", value: "", grp: 4 }
+        // 一份顺序固定的两行成对清单；异步字段先占位，到达后原位更新，布局不跳
+        self.rows = [
+          { label: "设备型号", value: ret.model || "未知" },
+          { label: "设备品牌", value: ret.brand || "未知" },
+          { label: "设备类型", value: deviceTypeMap[ret.deviceType] || ret.deviceType || "未知" },
+          { label: "屏幕形状", value: screenShapeMap[ret.screenShape] || ret.screenShape || "未知" },
+          { label: "屏幕分辨率", value: (ret.screenWidth && ret.screenHeight) ? ret.screenWidth + " × " + ret.screenHeight + " px" : "未知" },
+          { label: "屏幕密度", value: ret.screenDensity || "未知" },
+          { label: "系统版本", value: ret.osVersionName || "未知" },
+          { label: "平台版本", value: ret.platformVersionName ? "快应用 " + ret.platformVersionName : "未知" },
+          { label: "API Level", value: (ret.APILevel != null) ? "" + ret.APILevel : "未知" },
+          { label: "可用存储空间", value: "读取中…" },
+          { label: "总存储空间", value: "读取中…" },
+          { label: "存储余量", value: "读取中…" },
+          { label: "语言 / 地区", value: ret.language ? ret.language + " · " + ret.region : "未知" },
+          { label: "设备代号", value: ret.product || "未知" },
+          { label: "制造商", value: ret.manufacturer || "未知" },
+          { label: "操作系统", value: ret.osType || "未知" },
+          { label: "设备 ID", value: "读取中…" },
+          { label: "序列号", value: "读取中…" }
         ]
-        self.heroModel = ret.model || "未知设备"
-        self.heroSub = (ret.brand || "") + " · " + (deviceTypeMap[ret.deviceType] || ret.deviceType || "") + " · " + (screenShapeMap[ret.screenShape] || "")
-        self.product = ret.product || ""
-        self.keyRows = [
-          { label: "系统", value: ret.osVersionName || "未知" },
-          { label: "平台", value: ret.platformVersionName ? "快应用 " + ret.platformVersionName : "未知" },
-          { label: "屏幕", value: (ret.screenWidth && ret.screenHeight) ? ret.screenWidth + " × " + ret.screenHeight : "未知" },
-          { label: "API", value: (ret.APILevel != null) ? "" + ret.APILevel : "未知" }
-        ]
-        self.buildGroups()
         self.loading = false
       },
       fail: function(data, code) {
@@ -188,91 +141,65 @@ export default {
 
     device.getDeviceId({
       success: function(data) {
-        self.infoList.push({ label: "设备 ID", value: data.deviceId, grp: 4 })
-        self.buildGroups()
+        self.setRow("设备 ID", data.deviceId || "未知")
       },
       fail: function(data, code) {
-        self.infoList.push({ label: "设备 ID", value: "获取失败(" + code + ")", grp: 4 })
-        self.buildGroups()
+        self.setRow("设备 ID", "获取失败(" + code + ")")
       }
     })
 
     device.getSerial({
       success: function(data) {
-        self.infoList.push({ label: "序列号", value: data.serial, grp: 4 })
-        self.buildGroups()
+        self.setRow("序列号", data.serial || "未知")
       },
       fail: function(data, code) {
-        self.infoList.push({ label: "序列号", value: "获取失败(" + code + ")", grp: 4 })
-        self.buildGroups()
+        self.setRow("序列号", "获取失败(" + code + ")")
       }
     })
 
     device.getTotalStorage({
       success: function(data) {
-        self.setItemValue("总存储空间", formatStorage(data.totalStorage))
-        self.setStorage("total", data.totalStorage)
+        self.totalBytes = data.totalStorage || 0
+        self.setRow("总存储空间", formatStorage(data.totalStorage))
+        self.refreshStoragePct()
       },
       fail: function() {
-        self.setItemValue("总存储空间", "获取失败")
+        self.setRow("总存储空间", "获取失败")
       }
     })
 
     device.getAvailableStorage({
       success: function(data) {
-        self.setItemValue("可用存储空间", formatStorage(data.availableStorage))
-        self.setStorage("avail", data.availableStorage)
+        self.availBytes = data.availableStorage || 0
+        self.setRow("可用存储空间", formatStorage(data.availableStorage))
+        self.refreshStoragePct()
       },
       fail: function() {
-        self.setItemValue("可用存储空间", "获取失败")
+        self.setRow("可用存储空间", "获取失败")
       }
     })
   },
 
-  // 载重表：总量与余量都到手后点亮（两次异步回调谁后到都行）
-  setStorage(key, bytes) {
-    var old = this.storage
-    var s = {
-      totalBytes: key === "total" ? bytes : old.totalBytes,
-      availBytes: key === "avail" ? bytes : old.availBytes,
-      has: false, pct: 0, avail: "", total: ""
-    }
-    if (s.totalBytes > 0 && s.availBytes > 0) {
-      s.has = true
-      s.pct = Math.min(100, Math.round(s.availBytes / s.totalBytes * 100))
-      s.avail = formatStorage(s.availBytes)
-      s.total = formatStorage(s.totalBytes)
-    }
-    this.storage = s
-  },
-
-  // 按 grp 分组；值超 16 字符标记 long → 整行下沉换行禁省略
-  buildGroups() {
-    var titles = ["设备", "屏幕", "系统", "调试", "标识"]
-    var groups = []
-    for (var g = 0; g < titles.length; g++) {
-      var items = []
-      for (var i = 0; i < this.infoList.length; i++) {
-        var it = this.infoList[i]
-        if (it.grp === g && it.value !== "") {
-          var v = String(it.value || "未知")
-          if (v.length > 16) items.push({ label: it.label, value: v, long: true })
-          else items.push({ label: it.label, value: v })
-        }
-      }
-      if (items.length) groups.push({ title: titles[g], items: items })
-    }
-    this.groups = groups
-  },
-
-  setItemValue(label, value) {
-    for (var i = 0; i < this.infoList.length; i++) {
-      if (this.infoList[i].label === label) {
-        this.infoList[i].value = value
-        break
+  // 按标签原位更新；找不到则追加。值再长也不截断，交给 text 自动换行
+  setRow(label, value) {
+    var rows = (this.rows || []).slice()
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].label === label) {
+        rows[i] = { label: label, value: value }
+        this.rows = rows
+        return
       }
     }
-    this.buildGroups()
+    rows.push({ label: label, value: value })
+    this.rows = rows
+  },
+
+  // 总量与余量都到手后算一次百分比（两个异步回调谁后到都行）
+  refreshStoragePct() {
+    if (this.totalBytes > 0 && this.availBytes > 0) {
+      var pct = Math.min(100, Math.round(this.availBytes / this.totalBytes * 100))
+      this.setRow("存储余量", "余 " + pct + "%")
+    }
   },
 
   goBack() {
@@ -294,7 +221,7 @@ export default {
   height: 100%;
 }
 
-/* 滚动容器：铭牌头版 + 全量参数超过一屏必须可滚 */
+/* 滚动容器：18 组成对数据超过一屏必须可滚 */
 .di-scroll {
   flex: 1;
   width: 100%;
@@ -313,131 +240,34 @@ export default {
   flex-direction: column;
 }
 
-/* ── 铭牌头版 ── */
-.kicker {
-  font-family: monospace;
-  font-size: 19px;
-  text-align: center;
-  letter-spacing: 2px;
-}
-
-.unit {
-  font-size: 30px;
-  font-weight: 800;
-  text-align: center;
-  margin-top: 8px;
-}
-
-.unit-code {
-  font-family: monospace;
-  font-size: 18px;
-  color: #FFB300;
-  text-align: center;
-  letter-spacing: 2px;
-  margin-top: 4px;
-}
-
-.unit-sub {
-  font-size: 20px;
-  text-align: center;
-  margin-top: 5px;
-}
-
 .hr {
   height: 1px;
   background-color: rgba(128, 128, 128, 0.25);
-  margin: 14px 0 8px 0;
+  margin: 12px 0 6px 0;
 }
 
-/* 点线检定行：label ···· value（等宽右对齐） */
+/* ── 两行成对（全页唯一数据行样式） ─────────────────────────
+ * 标签上行、值下行，值独占整行 164px。
+ * 不设 lines：值超宽时自动换行，从结构上杜绝
+ * 「隐藏 / 省略 / 截断」——长数据（如 32 位设备 ID）
+ * 会完整折成多行显示。
+ * ──────────────────────────────────────────────────────── */
 .kv {
-  flex-direction: row;
-  align-items: flex-end;
-  padding: 7px 0;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 6px 0;
 }
 
 .lbl {
-  font-size: 20px;
-  flex-shrink: 0;
-}
-
-.lead {
-  flex: 1;
-  height: 1px;
-  border-bottom-width: 1px;
-  border-bottom-style: dotted;
-  border-bottom-color: rgba(128, 128, 128, 0.4);
-  margin: 0 6px 4px 6px;
+  font-size: 14px;
+  letter-spacing: 1px;
 }
 
 .val {
   font-family: monospace;
-  font-size: 21px;
-  flex-shrink: 0;
-}
-
-/* 载重表（存储余量） */
-.gauge {
+  font-size: 18px;
   margin-top: 2px;
-}
-
-.bar {
-  height: 7px;
-  border-radius: 4px;
-  background-color: rgba(128, 128, 128, 0.18);
-  overflow: hidden;
-  margin: 6px 0 4px 0;
-}
-
-.fill {
-  height: 7px;
-  border-radius: 4px;
-}
-
-.cap {
-  flex-direction: row;
-  justify-content: space-between;
-  font-size: 18px;
-  font-family: monospace;
-}
-
-/* ── 续页：全量参数 ── */
-.spec-hint {
-  font-family: monospace;
-  font-size: 18px;
-  text-align: center;
-  margin: 16px 0 8px 0;
-}
-
-.grp {
-  flex-direction: column;
-  border-radius: 12px;
-  padding: 8px 10px 4px 10px;
-  margin-bottom: 8px;
-}
-
-.gt {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  margin-bottom: 2px;
-}
-
-/* 长值整行下沉：独占整行、换行禁省略 */
-.longrow {
-  flex-direction: column;
-  padding: 6px 0;
-}
-
-.long-k {
-  font-size: 19px;
-}
-
-.long-v {
-  font-family: monospace;
-  font-size: 18px;
-  line-height: 26px;
-  margin-top: 2px;
+  text-align: left;
 }
 
 .pin-row {
@@ -448,11 +278,11 @@ export default {
 
 .pin-chip {
   width: 110px;
-  height: 30px;
+  height: 32px;
   border-radius: 9px;
-  font-size: 20px;
+  font-size: 18px;
   text-align: center;
-  line-height: 30px;
+  line-height: 32px;
 }
 
 .loading {
@@ -468,10 +298,11 @@ export default {
   line-height: 36px;
 }
 
+/* 不设 lines：文案允许换行，绝不截断 */
 .loading-text {
-  font-size: 24px;
-  line-height: 32px;
-  lines: 1;
+  font-size: 22px;
+  text-align: center;
+  line-height: 30px;
 }
 
 .error-card {
@@ -488,78 +319,32 @@ export default {
   line-height: 36px;
 }
 
+/* 不设 lines：错误码文案允许换行，绝不截断 */
 .error-text {
-  font-size: 24px;
+  font-size: 22px;
   text-align: center;
   margin-bottom: 8px;
-  line-height: 32px;
-  lines: 1;
+  line-height: 30px;
 }
 
 .retry-btn {
   width: 72px;
-  height: 32px;
+  height: 36px;
   border-radius: 16px;
   font-size: 22px;
   text-align: center;
-  line-height: 30px;
+  line-height: 32px;
 }
 
 /*
  * 胶囊屏（9 标准版 192×490，r96 标准跑道形）：
  *   安全区 y≥38 / 侧边 14px / 内容宽 164px
- *   点线检定行、载重表、铭牌头版字号按此调校
+ *   字号全局统一：标签 14px、值 18px，两行成对，
+ *   长值自动换行，不截断
  */
 @media screen and (shape: pill-shaped) {
   .page-body {
     padding: 30px 14px 16px 14px;
-  }
-  .kicker {
-    font-size: 17px;
-    letter-spacing: 3px;
-  }
-  .unit {
-    font-size: 27px;
-    line-height: 36px;
-  }
-  .unit-code {
-    font-size: 16px;
-    letter-spacing: 2px;
-  }
-  .unit-sub {
-    font-size: 18px;
-  }
-  .lbl {
-    font-size: 18px;
-  }
-  .val {
-    font-size: 19px;
-  }
-  .gt {
-    font-size: 19px;
-  }
-  .long-k {
-    font-size: 17px;
-  }
-  .long-v {
-    font-size: 16px;
-    line-height: 24px;
-  }
-  .spec-hint {
-    font-size: 16px;
-  }
-  .cap {
-    font-size: 16px;
-  }
-  .pin-chip {
-    height: 32px;
-    font-size: 19px;
-    line-height: 32px;
-  }
-  .retry-btn {
-    height: 38px;
-    font-size: 24px;
-    line-height: 32px;
   }
 }
 
@@ -568,12 +353,12 @@ export default {
     padding: 38px 36px 44px 36px;
   }
   .loading-text {
-    font-size: 26px;
-    line-height: 34px;
+    font-size: 24px;
+    line-height: 32px;
   }
   .error-text {
-    font-size: 26px;
-    line-height: 34px;
+    font-size: 24px;
+    line-height: 32px;
   }
   .retry-btn {
     height: 36px;
