@@ -8,7 +8,7 @@
       <div class="back-btn-capsule" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon-capsule" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title-capsule" style="color: {{ theme.text }}">设置</text>
+      <text class="header-title-capsule" onclick="goBack" style="color: {{ theme.text }}">设置</text>
     </div>
 
     <!-- 大屏（10Pro/方屏）：返回+标题同行，整行可点返回 -->
@@ -562,7 +562,7 @@ export default {
   flex-direction: column;
   width: 100%;
   box-sizing: border-box;
-  padding: 44px 8px 12px 8px;
+  padding: 8px 8px 12px 8px;
 }
 
 .settings-scroll {
@@ -956,13 +956,13 @@ export default {
 
 @media (shape: capsule) {
   .settings-body {
-    padding: 44px 8px 12px 8px;
+    padding: 8px 8px 12px 8px;
   }
 }
 
 @media (shape: rect) {
   .settings-body {
-    padding: 44px 6px 6px 6px;
+    padding: 6px 6px 6px 6px;
   }
 }
 
