@@ -844,7 +844,7 @@ export default {
 }
 
 .date-row {
-  padding: 2px 0;
+  padding: 0;
   flex-shrink: 0;
 }
 
@@ -853,9 +853,6 @@ export default {
   line-height: 30px;
   text-align: center;
   width: 100%;
-}
-
-.header { line-height: 28px;
 }
 
 .day-title {
