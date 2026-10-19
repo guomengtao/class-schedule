@@ -75,8 +75,8 @@ var device = require("@system.device")
 var clipboard = require("@system.clipboard")
 var prompt = require("@system.prompt")
 
-module.exports = {
-  data: {
+export default {
+  private: {
     theme: {},
     iconTheme: "dark",
     versionName: version.versionName,
