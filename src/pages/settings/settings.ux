@@ -3,12 +3,18 @@
   <div class="settings-page" style="background-color: {{ theme.bg }}">
     <scroll class="settings-scroll" scroll-y="{{true}}">
     <div class="settings-body">
-    <div class="back-header">
-      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+    <!-- 小屏（胶囊/手环9）：大圆返回按钮，标题居中下方 -->
+    <div class="back-header-capsule" if="{{ isCapsule }}">
+      <div class="back-btn-capsule" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon-capsule" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">设置</text>
-      <div class="header-placeholder"></div>
+      <text class="header-title-capsule" style="color: {{ theme.text }}">设置</text>
+    </div>
+
+    <!-- 大屏（10Pro/方屏）：返回+标题同行，整行可点返回 -->
+    <div class="back-header-row" if="{{ !isCapsule }}" onclick="goBack">
+      <image class="back-btn-icon-row" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      <text class="header-title-row" style="color: {{ theme.text }}">设置</text>
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
@@ -221,13 +227,27 @@
 import router from "@system.router"
 const store = require("../../data/store.js")
 const version = require("../../data/version.js")
+const device = require("@system.device")
 
 const sizeLevels = [20, 28, 36, 48, 62, 76]
 
 var exitConfirmTimer = null
+var isCapsuleScreen = false
+var settingsInstance = null
+
+device.getInfo({
+  success: function(data) {
+    var shape = data.screenShape || ""
+    isCapsuleScreen = (shape === "capsule" || shape === "pill-shaped")
+    if (settingsInstance) {
+      settingsInstance.isCapsule = isCapsuleScreen
+    }
+  }
+})
 
 export default {
   private: {
+    isCapsule: false,
     nickname: "",
     displaySize: 48,
     previewClassSize: 48,
@@ -271,6 +291,8 @@ export default {
   },
 
   onInit() {
+    settingsInstance = this
+    this.isCapsule = isCapsuleScreen
     var self = this
     this.themes = store.getAvailableThemes ? store.getAvailableThemes() : []
     var mid = Math.ceil(this.themes.length / 2)
@@ -550,39 +572,54 @@ export default {
   box-sizing: border-box;
 }
 
-.back-header {
-  flex-direction: row;
+.back-header-capsule {
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   padding: 0 4px;
 }
 
-.back-btn-wrapper {
+.back-btn-capsule {
   width: 48px;
-  height: 40px;
-  border-radius: 8px;
+  height: 48px;
+  border-radius: 24px;
   justify-content: center;
   align-items: center;
   flex-shrink: 0;
 }
 
-.back-btn-icon {
-  width: 24px;
-  height: 24px;
+.back-btn-icon-capsule {
+  width: 28px;
+  height: 28px;
 }
 
-.header-title {
-  flex: 1;
-  font-size: 28px;
+.header-title-capsule {
+  font-size: 24px;
   font-weight: bold;
   text-align: center;
-  line-height: 38px;
+  line-height: 34px;
+  margin-top: 6px;
 }
 
-.header-placeholder {
-  width: 48px;
-  height: 48px;
+.back-header-row {
+  flex-direction: row;
+  align-items: center;
+  padding: 2px 4px;
+  margin-bottom: 8px;
+}
+
+.back-btn-icon-row {
+  width: 28px;
+  height: 28px;
+  margin-right: 8px;
   flex-shrink: 0;
+}
+
+.header-title-row {
+  flex: 1;
+  font-size: 26px;
+  font-weight: bold;
+  line-height: 34px;
 }
 
 .group {
@@ -860,16 +897,29 @@ export default {
   .settings-body {
     padding: 44px 36px 44px 36px;
   }
-  .back-header {
+  .back-header-capsule {
     margin-bottom: 8px;
     padding: 0 20px;
     justify-content: center;
   }
-  .back-btn-wrapper {
+  .back-btn-capsule {
     width: 52px;
-    height: 40px;
+    height: 52px;
   }
-  .header-title {
+  .back-btn-icon-capsule {
+    width: 32px;
+    height: 32px;
+  }
+  .header-title-capsule {
+    font-size: 30px;
+    line-height: 40px;
+  }
+  .back-btn-icon-row {
+    width: 32px;
+    height: 32px;
+    margin-right: 12px;
+  }
+  .header-title-row {
     font-size: 30px;
     line-height: 40px;
   }
@@ -917,6 +967,22 @@ export default {
 }
 
 @media (width >= 200px) {
+  .settings-body {
+    padding: 8px 8px 12px 8px;
+  }
+  .back-header-row {
+    padding: 2px 0;
+    margin-bottom: 6px;
+  }
+  .back-btn-icon-row {
+    width: 28px;
+    height: 28px;
+    margin-right: 8px;
+  }
+  .header-title-row {
+    font-size: 26px;
+    line-height: 34px;
+  }
   .theme-drawer-panel {
     padding: 8px 12px 16px 12px;
   }
@@ -940,16 +1006,18 @@ export default {
 
 @media (width >= 400px) {
   .settings-body {
-    padding: 6px 8px 6px 8px;
+    padding: 4px 8px 4px 8px;
   }
-  .back-header {
-    margin-bottom: 6px;
+  .back-header-row {
+    padding: 2px 0;
+    margin-bottom: 4px;
   }
-  .back-btn-wrapper {
-    width: 50px;
-    height: 48px;
+  .back-btn-icon-row {
+    width: 32px;
+    height: 32px;
+    margin-right: 12px;
   }
-  .header-title {
+  .header-title-row {
     font-size: 30px;
     line-height: 40px;
   }
