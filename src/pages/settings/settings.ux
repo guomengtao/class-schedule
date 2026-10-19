@@ -74,15 +74,13 @@
             <div class="switch-thumb" style="left: {{ hideWeekend ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <div class="group" style="background-color: {{ theme.card }}">
-      <div class="row" onclick="openPhoneRemote">
-        <text class="row-label" style="color: {{ theme.text }}">手机遥控</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">找手机 · 静音 · 手电等</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="openSchedulePanel">
+          <text class="row-label" style="color: {{ theme.text }}">更多首页</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">7 种风格</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
         </div>
       </div>
     </div>
@@ -125,14 +123,6 @@
           </div>
         </div>
         <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="openDonate">
-          <text class="row-label" style="color: {{ theme.text }}">打赏支持</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">鼓励开发者</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
-        </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
         <div class="row" onclick="openFeedback">
           <text class="row-label" style="color: {{ theme.text }}">反馈</text>
           <div class="row-right">
@@ -140,15 +130,13 @@
             <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
           </div>
         </div>
-      </div>
-    </div>
-
-    <div class="group" style="background-color: {{ theme.card }}">
-      <div class="row" onclick="openSchedulePanel">
-        <text class="row-label" style="color: {{ theme.text }}">更多首页</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">7 种风格</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        <div class="divider" style="background-color: {{ theme.border }}"></div>
+        <div class="row" onclick="openDonate">
+          <text class="row-label" style="color: {{ theme.text }}">打赏支持</text>
+          <div class="row-right">
+            <text class="row-hint" style="color: {{ theme.textMuted }}">鼓励开发者</text>
+            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+          </div>
         </div>
       </div>
     </div>
@@ -170,6 +158,13 @@
         </div>
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="openPhoneRemote">
+        <text class="row-label" style="color: {{ theme.text }}">手机遥控</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">找手机 · 静音 · 手电等</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
     </div>
 
     <div class="settings-footer">
