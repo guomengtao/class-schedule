@@ -199,7 +199,8 @@ export default {
 .progress-bar-bg { height: 14px; border-radius: 7px; margin-bottom: 10px; overflow: hidden }
 .progress-bar-fill { height: 14px; border-radius: 7px }
 
-.progress-labels { flex-direction: row; justify-content: space-between }
+/* 独立首页化修正：同 dual-mode——「已过 X 分」「剩余 Y 分」左右排合计超卡片宽溢出截断，改纵向堆叠 */
+.progress-labels { flex-direction: column }
 .progress-elapsed { font-size: 20px; line-height: 28px }
 .progress-remaining { font-size: 20px; line-height: 28px; font-weight: bold }
 
