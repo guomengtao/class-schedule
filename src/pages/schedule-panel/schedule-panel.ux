@@ -71,9 +71,9 @@ export default {
     })
   },
 
-  // 注入点3跳转：官方 route 原样保留（router.push uri）
+  // 注入点3跳转：官方 route 原样保留（router.push uri）；带 fromPanel 标记，供目标页判定 root
   route(uri) {
-    router.push({ uri })
+    router.push({ uri: uri, params: { fromPanel: '1' } })
   },
 
   // 注入点3跳转-返回：本页由设置页 push 而来非根页，顶部返回按钮回上一页
