@@ -37,7 +37,7 @@
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openWatchFaceGold">
-        <text class="item-label" style="color: {{ theme.text }}">金属字针表</text>
+        <text class="item-label" style="color: {{ theme.text }}">机械表盘</text>
         <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>

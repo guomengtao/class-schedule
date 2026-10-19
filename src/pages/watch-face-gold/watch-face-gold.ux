@@ -1,85 +1,868 @@
+<!--
+  机械表盘（watch-face-gold）
+  ─────────────────────────────────────────────────────────────
+  设计：168px 银钢表壳（不是 184，留出表耳才有"实物表"轮廓）
+        + 8 层错位同心圆造金属厚度 + 12 整点刻度 + 阿拉伯时标
+        + 三针立体（暗影 / 主针 / 左缘高光三层）+ 日期窗 + 4 螺钉 + 表耳。
+
+  仿真三条铁律（见 docs/机械表盘-重构方案.md §3）：
+  ① 单一主光源在【左上】。所有亮面在左上、暗面在右下，一处反向就"假"。
+  ② 没有渐变，用「错位双圆」造月牙：亮圆在下、暗圆向右下偏 1–3px，
+     露出的未重叠月牙就是高光带；层层递进即有倒角和厚度。
+  ③ 细节密度 = 像不像。刻度、螺钉、日期窗、机芯小字决定"真"。
+
+  走针方案（沿用 2026-10-19 实拍标定的定稿路线）：
+  ① 禁动态 transform —— `transform: rotate({{deg}}deg)` 数据绑定会整页黑屏。
+  ② 引擎旋转轴 = 【元素顶部中点】，`transform-origin` 不按 CSS 语义生效。
+     故三针一律「顶部中点压在盘心 (84,84) + 向下延伸」，rotate(180+θ) 指向 θ。
+  ③ 每帧只改 class 名（120 档字面量类 .r0….r119，3°/档），不改 transform 值。
+  ④ 三层针共用同一个档位 class，靠 left/top 固定偏移造立体，不额外算角度。
+
+  布局铁律：`.page` 只给 position:relative + width/height:100%，
+  子元素全部 absolute 手写坐标；不叠 flex 居中（会与 absolute 共同触发黑屏）。
+-->
+
 <template>
-  <!-- 金属字针表 ③ · 上下滑动切表盘：上滑→②课程表盘，下滑→④EV指针 -->
   <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
-    <text class="clock">{{timeText}}</text>
-    <text class="back" onclick="goBack">返回</text>
+
+    <!-- 顶部：品牌字（机械表惯用的两行小字） -->
+    <text class="brand">MECHANICAL</text>
+    <text class="brand-sub">EV · 自动机械</text>
+
+    <!-- 表耳（画在表壳之前，被表壳压住 → 层次） -->
+    <div class="lug lug-top"></div>
+    <div class="lug lug-bottom"></div>
+
+    <!-- 表壳 + 盘面：168×168，中心 (84,84) -->
+    <div class="dial-wrap">
+
+      <!-- 8 层错位同心圆：每层都比外层向右下偏 1–3px，左上留出月牙高光 -->
+      <div class="case-outer"></div>
+      <div class="case-shade"></div>
+      <div class="bezel-hi"></div>
+      <div class="bezel-lo"></div>
+      <div class="bezel-in"></div>
+      <div class="dial-rim"></div>
+      <div class="dial-face"></div>
+      <div class="dial-tex"></div>
+
+      <!-- 镜面反光：只留两条贴内圈的窄弧光（大片灰块会读成污渍） -->
+      <div class="glare gl1"></div>
+      <div class="glare gl2"></div>
+
+      <!-- 48 分钟刻度（跳过 5 的倍数）：外端 64、内端 60，比整点刻度暗一档 -->
+      <div class="mtick" style="left:90.2px;top:20.4px;transform:rotate(6deg)"></div>
+      <div class="mtick" style="left:96.8px;top:21.4px;transform:rotate(12deg)"></div>
+      <div class="mtick" style="left:103.3px;top:23.1px;transform:rotate(18deg)"></div>
+      <div class="mtick" style="left:109.5px;top:25.5px;transform:rotate(24deg)"></div>
+      <div class="mtick" style="left:121.1px;top:32.2px;transform:rotate(36deg)"></div>
+      <div class="mtick" style="left:126.3px;top:36.4px;transform:rotate(42deg)"></div>
+      <div class="mtick" style="left:131.1px;top:41.2px;transform:rotate(48deg)"></div>
+      <div class="mtick" style="left:135.3px;top:46.4px;transform:rotate(54deg)"></div>
+      <div class="mtick" style="left:142.0px;top:58.0px;transform:rotate(66deg)"></div>
+      <div class="mtick" style="left:144.4px;top:64.2px;transform:rotate(72deg)"></div>
+      <div class="mtick" style="left:146.1px;top:70.7px;transform:rotate(78deg)"></div>
+      <div class="mtick" style="left:147.1px;top:77.3px;transform:rotate(84deg)"></div>
+      <div class="mtick" style="left:147.1px;top:90.7px;transform:rotate(96deg)"></div>
+      <div class="mtick" style="left:146.1px;top:97.3px;transform:rotate(102deg)"></div>
+      <div class="mtick" style="left:144.4px;top:103.8px;transform:rotate(108deg)"></div>
+      <div class="mtick" style="left:142.0px;top:110.0px;transform:rotate(114deg)"></div>
+      <div class="mtick" style="left:135.3px;top:121.6px;transform:rotate(126deg)"></div>
+      <div class="mtick" style="left:131.1px;top:126.8px;transform:rotate(132deg)"></div>
+      <div class="mtick" style="left:126.3px;top:131.6px;transform:rotate(138deg)"></div>
+      <div class="mtick" style="left:121.1px;top:135.8px;transform:rotate(144deg)"></div>
+      <div class="mtick" style="left:109.5px;top:142.5px;transform:rotate(156deg)"></div>
+      <div class="mtick" style="left:103.3px;top:144.9px;transform:rotate(162deg)"></div>
+      <div class="mtick" style="left:96.8px;top:146.6px;transform:rotate(168deg)"></div>
+      <div class="mtick" style="left:90.2px;top:147.6px;transform:rotate(174deg)"></div>
+      <div class="mtick" style="left:76.8px;top:147.6px;transform:rotate(186deg)"></div>
+      <div class="mtick" style="left:70.2px;top:146.6px;transform:rotate(192deg)"></div>
+      <div class="mtick" style="left:63.7px;top:144.9px;transform:rotate(198deg)"></div>
+      <div class="mtick" style="left:57.5px;top:142.5px;transform:rotate(204deg)"></div>
+      <div class="mtick" style="left:45.9px;top:135.8px;transform:rotate(216deg)"></div>
+      <div class="mtick" style="left:40.7px;top:131.6px;transform:rotate(222deg)"></div>
+      <div class="mtick" style="left:35.9px;top:126.8px;transform:rotate(228deg)"></div>
+      <div class="mtick" style="left:31.7px;top:121.6px;transform:rotate(234deg)"></div>
+      <div class="mtick" style="left:25.0px;top:110.0px;transform:rotate(246deg)"></div>
+      <div class="mtick" style="left:22.6px;top:103.8px;transform:rotate(252deg)"></div>
+      <div class="mtick" style="left:20.9px;top:97.3px;transform:rotate(258deg)"></div>
+      <div class="mtick" style="left:19.9px;top:90.7px;transform:rotate(264deg)"></div>
+      <div class="mtick" style="left:19.9px;top:77.3px;transform:rotate(276deg)"></div>
+      <div class="mtick" style="left:20.9px;top:70.7px;transform:rotate(282deg)"></div>
+      <div class="mtick" style="left:22.6px;top:64.2px;transform:rotate(288deg)"></div>
+      <div class="mtick" style="left:25.0px;top:58.0px;transform:rotate(294deg)"></div>
+      <div class="mtick" style="left:31.7px;top:46.4px;transform:rotate(306deg)"></div>
+      <div class="mtick" style="left:35.9px;top:41.2px;transform:rotate(312deg)"></div>
+      <div class="mtick" style="left:40.7px;top:36.4px;transform:rotate(318deg)"></div>
+      <div class="mtick" style="left:45.9px;top:32.2px;transform:rotate(324deg)"></div>
+      <div class="mtick" style="left:57.5px;top:25.5px;transform:rotate(336deg)"></div>
+      <div class="mtick" style="left:63.7px;top:23.1px;transform:rotate(342deg)"></div>
+      <div class="mtick" style="left:70.2px;top:21.4px;transform:rotate(348deg)"></div>
+      <div class="mtick" style="left:76.8px;top:20.4px;transform:rotate(354deg)"></div>
+
+      <!-- 12 整点刻度：外端半径 66、内端 57，rotate(θ) 使针指向盘心 -->
+      <div class="tick" style="left:83px;top:18px;transform:rotate(0deg)"></div>
+      <div class="tick" style="left:116px;top:26.8px;transform:rotate(30deg)"></div>
+      <div class="tick" style="left:140.2px;top:51px;transform:rotate(60deg)"></div>
+      <div class="tick" style="left:149px;top:84px;transform:rotate(90deg)"></div>
+      <div class="tick" style="left:140.2px;top:117px;transform:rotate(120deg)"></div>
+      <div class="tick" style="left:116px;top:141.2px;transform:rotate(150deg)"></div>
+      <div class="tick" style="left:83px;top:150px;transform:rotate(180deg)"></div>
+      <div class="tick" style="left:50px;top:141.2px;transform:rotate(210deg)"></div>
+      <div class="tick" style="left:25.8px;top:117px;transform:rotate(240deg)"></div>
+      <div class="tick" style="left:17px;top:84px;transform:rotate(270deg)"></div>
+      <div class="tick" style="left:25.8px;top:51px;transform:rotate(300deg)"></div>
+      <div class="tick" style="left:50px;top:26.8px;transform:rotate(330deg)"></div>
+
+      <!-- 阿拉伯时标（半径 44）。3 点位置让给日期窗，不写 3 -->
+      <text class="num num-lg" style="left:73.0px;top:40.0px">12</text>
+      <text class="num" style="left:95.0px;top:45.9px">1</text>
+      <text class="num" style="left:111.1px;top:62.0px">2</text>
+      <text class="num" style="left:111.1px;top:106.0px">4</text>
+      <text class="num" style="left:95.0px;top:122.1px">5</text>
+      <text class="num num-lg" style="left:73.0px;top:128.0px">6</text>
+      <text class="num" style="left:51.0px;top:122.1px">7</text>
+      <text class="num" style="left:34.9px;top:106.0px">8</text>
+      <text class="num num-lg" style="left:29.0px;top:84.0px">9</text>
+      <text class="num" style="left:34.9px;top:62.0px">10</text>
+      <text class="num" style="left:51.0px;top:45.9px">11</text>
+
+      <!-- 日期窗（3 点方向，半径 42）：金属边框 + 深底 + 日期字 -->
+      <div class="date-frame"></div>
+      <div class="date-well"></div>
+      <text class="date-num">{{dayText}}</text>
+
+      <!-- 表圈螺钉 ×4（斜 45°，左上高光点） -->
+      <div class="screw s1"></div>
+      <div class="screw s2"></div>
+      <div class="screw s3"></div>
+      <div class="screw s4"></div>
+      <div class="screw-hi s1h"></div>
+      <div class="screw-hi s2h"></div>
+      <div class="screw-hi s3h"></div>
+      <div class="screw-hi s4h"></div>
+
+      <!-- 盘面小字 -->
+      <text class="dial-mark">AUTOMATIC</text>
+
+      <!-- 三针：暗影（右下偏 2px）+ 主针 + 左缘高光，共用同一档位 class -->
+      <div class="hand hour-sh {{hourCls}}"></div>
+      <div class="hand hour {{hourCls}}"></div>
+      <div class="hand-hl hour-hl {{hourCls}}"></div>
+
+      <div class="hand minute-sh {{minuteCls}}"></div>
+      <div class="hand minute {{minuteCls}}"></div>
+      <div class="hand-hl minute-hl {{minuteCls}}"></div>
+
+      <div class="hand second-sh {{secondCls}}"></div>
+      <div class="hand second {{secondCls}}"></div>
+      <div class="hand-hl second-hl {{secondCls}}"></div>
+
+      <!-- 盘心轴：暗底 + 亮环 + 中心点 -->
+      <div class="hub-base"></div>
+      <div class="hub-ring"></div>
+      <div class="hub-dot"></div>
+    </div>
+
+    <!-- 底部信息 -->
+    <text class="date-line">{{dateText}}</text>
+    <text class="time-line">{{timeText}}</text>
+    <text class="back">轻触返回</text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
 
+const LIST_PAGE = "/pages/watch-face-list"
+const FULL_DAY = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
+
+function pad2(n) {
+  return (n < 10 ? "0" : "") + n
+}
+
+// 角度 → 120 档类名（3°/档）。引擎轴在顶部中点，故 .rN 内部为 rotate(180 + 3N)
+function stepClass(deg) {
+  let step = Math.round(deg / 3) % 120
+  if (step < 0) step += 120
+  return "r" + step
+}
+
 export default {
   data: {
-    timeText: "--:--:--",
-    touchStartY: 0
-  },
-  onInit() {
-    this.tick()
-  },
-  onReady() {
-    this.timer = setInterval(() => this.tick(), 1000)
-  },
-  onDestroy() {
-    if (this.timer) {
-      clearInterval(this.timer)
-      this.timer = undefined
-    }
-  },
-  tick() {
-    const now = new Date()
-    this.timeText = this.pad(now.getHours()) + ":" + this.pad(now.getMinutes()) + ":" + this.pad(now.getSeconds())
-  },
-  pad(n) {
-    return n < 10 ? "0" + n : "" + n
+    hourCls: "r0",
+    minuteCls: "r0",
+    secondCls: "r0",
+    timeText: "--:--",
+    dateText: "",
+    dayText: "1",
+    touchStartY: 0,
+    suppressTap: false,
+    timer: null
   },
 
-  /* 上下滑动切表盘（Vela 无 onswipe，靠 touchstart/touchend 手算 Y 位移） */
+  onInit() {
+    this.syncHands()
+    this.tick()
+  },
+
+  onReady() {
+    this.startTimer()
+  },
+
+  onShow() {
+    this.syncHands()
+    this.tick()
+    this.startTimer()
+  },
+
+  onHide() {
+    this.stopTimer()
+  },
+
+  onDestroy() {
+    this.stopTimer()
+  },
+
+  /* ── 走针：当前时刻 → 三针角度 → 120 档 class ── */
+  syncHands() {
+    const now = new Date()
+    const h = now.getHours() % 12
+    const m = now.getMinutes()
+    const s = now.getSeconds()
+
+    this.hourCls = stepClass((h + m / 60 + s / 3600) * 30)
+    this.minuteCls = stepClass((m + s / 60) * 6)
+    this.secondCls = stepClass(s * 6)
+  },
+
+  startTimer() {
+    this.stopTimer()
+    const self = this
+    this.timer = setInterval(function() {
+      self.tick()
+    }, 1000)
+  },
+
+  stopTimer() {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = null
+    }
+  },
+
+  tick() {
+    const now = new Date()
+    this.timeText = pad2(now.getHours()) + ":" + pad2(now.getMinutes())
+    this.dateText = pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + " " + FULL_DAY[now.getDay()]
+    this.dayText = pad2(now.getDate())
+    this.syncHands()
+  },
+
+  /* ── 上下滑动切表盘（Vela 无 onswipe，靠 Y 位移手算；阈值 40px）──
+     目录环：机械表盘 ← 上滑→课程表盘 ｜ 下滑→EV指针 */
   onTouchStart(e) {
     const t = (e && e.touches && e.touches[0]) || e || {}
     this.touchStartY = t.clientY || t.offsetY || t.pageY || 0
   },
+
   onTouchEnd(e) {
     const t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]) || e || {}
     const endY = t.clientY || t.offsetY || t.pageY || 0
     const d = this.touchStartY ? (this.touchStartY - endY) : 0
     if (d >= 40) {
+      this.suppressTap = true
       router.replace({ uri: "/pages/watch-face-class" })
     } else if (d <= -40) {
+      this.suppressTap = true
       router.replace({ uri: "/pages/watch-face-evpointer" })
     }
     this.touchStartY = 0
   },
 
-  /* ── 退出：单击任意位置（主路径）── */
+  /* ── 退出：单击任意位置返回目录 ── */
   onTap() {
-    router.replace({ uri: "/pages/watch-face-list" })
-  },
-
-  goBack() {
-    router.replace({ uri: "/pages/watch-face-list" })
+    if (this.suppressTap) return
+    router.replace({ uri: LIST_PAGE })
   }
 }
 </script>
 
 <style>
+  /* 布局铁律：纯 relative + 子元素绝对定位，禁 flex 居中 */
   .page {
+    position: relative;
     width: 100%;
     height: 100%;
-    background-color: #1a1a2e;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    background-color: #0d0f12;
   }
-  .clock {
-    font-size: 48px;
-    color: #e8e4da;
+
+  /* ── 顶部品牌 ── */
+  .brand {
+    position: absolute;
+    left: 0;
+    top: 50px;
+    width: 192px;
+    height: 14px;
+    text-align: center;
+    font-size: 11px;
+    color: #8d949c;
+    letter-spacing: 3px;
+  }
+
+  .brand-sub {
+    position: absolute;
+    left: 0;
+    top: 68px;
+    width: 192px;
+    height: 14px;
+    text-align: center;
+    font-size: 10px;
+    color: #5f666e;
+    letter-spacing: 2px;
+  }
+
+  /* ── 表耳：上下各一块，被表壳压住 2–4px，模拟"表壳压表带" ── */
+  .lug {
+    position: absolute;
+    left: 54px;
+    width: 84px;
+    height: 26px;
+    border-radius: 8px;
+    background-color: #3a4047;
+  }
+
+  .lug-top {
+    top: 96px;
+  }
+
+  .lug-bottom {
+    top: 282px;
+  }
+
+  /* ── 表壳容器：168×168，中心 (84,84) ── */
+  .dial-wrap {
+    position: absolute;
+    left: 12px;
+    top: 118px;
+    width: 168px;
+    height: 168px;
+  }
+
+  /* ① 最外钢壳（迎光面） */
+  .case-outer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 168px;
+    height: 168px;
+    border-radius: 84px;
+    background-color: #6b727a;
+  }
+
+  /* ② 向右下偏 1.5px 的暗面 → 左上留 1.5–3px 亮月牙 */
+  .case-shade {
+    position: absolute;
+    left: 2.5px;
+    top: 2.5px;
+    width: 164px;
+    height: 164px;
+    border-radius: 82px;
+    background-color: #525960;
+  }
+
+  /* ③ 抛光高光带（最亮，出现在左上） */
+  .bezel-hi {
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 162px;
+    height: 162px;
+    border-radius: 81px;
+    background-color: #ccd3da;
+  }
+
+  /* ④ 抛光带凹槽 */
+  .bezel-lo {
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    width: 156px;
+    height: 156px;
+    border-radius: 78px;
+    background-color: #676e76;
+  }
+
+  /* ⑤ 内斜面（二次迎光） */
+  .bezel-in {
+    position: absolute;
+    left: 9px;
+    top: 9px;
+    width: 150px;
+    height: 150px;
+    border-radius: 75px;
+    background-color: #b3babf;
+  }
+
+  /* ⑥ 盘面边框（深，制造"下沉"） */
+  .dial-rim {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    width: 144px;
+    height: 144px;
+    border-radius: 72px;
+    background-color: #14181d;
+  }
+
+  /* ⑦ 盘面本体 */
+  .dial-face {
+    position: absolute;
+    left: 14px;
+    top: 14px;
+    width: 140px;
+    height: 140px;
+    border-radius: 70px;
+    background-color: #1b2027;
+  }
+
+  /* ⑧ 中心略亮的机刻纹底 */
+  .dial-tex {
+    position: absolute;
+    left: 24px;
+    top: 24px;
+    width: 120px;
+    height: 120px;
+    border-radius: 60px;
+    background-color: #1d2128;
+  }
+
+  /* ── 镜面反光：贴内圈的两条窄弧光（切向旋转），只在左上 ── */
+  .glare {
+    position: absolute;
+    border-radius: 2.5px;
+    background-color: rgba(255, 255, 255, 0.07);
+  }
+
+  .gl1 {
+    left: 16.6px;
+    top: 39.1px;
+    width: 40px;
+    height: 4px;
+    transform: rotate(45deg);
+  }
+
+  .gl2 {
+    left: 22px;
+    top: 54.5px;
+    width: 24px;
+    height: 3px;
+    transform: rotate(30deg);
+  }
+
+  /* ── 分刻度：外端 64 / 内端 60，暗一档，避免与整点抢视线 ── */
+  .mtick {
+    position: absolute;
+    width: 1px;
+    height: 4px;
+    background-color: #7d848c;
+  }
+
+  /* ── 整点刻度：外端 66 / 内端 57，长 9 ── */
+  .tick {
+    position: absolute;
+    width: 2px;
+    height: 9px;
+    background-color: #e6ebf0;
+  }
+
+  /* ── 阿拉伯时标（半径 48） ── */
+  .num {
+    position: absolute;
+    width: 22px;
+    height: 16px;
+    text-align: center;
+    font-size: 11px;
+    color: #cfd6dc;
+  }
+
+  .num-lg {
+    font-size: 13px;
     font-weight: bold;
-    letter-spacing: 4px;
+    color: #eef3f7;
   }
+
+  /* ── 日期窗（中心 126,84） ── */
+  .date-frame {
+    position: absolute;
+    left: 112.5px;
+    top: 75px;
+    width: 27px;
+    height: 19px;
+    border-radius: 2px;
+    background-color: #5f666e;
+  }
+
+  .date-well {
+    position: absolute;
+    left: 114.5px;
+    top: 77px;
+    width: 23px;
+    height: 15px;
+    border-radius: 1px;
+    background-color: #0f1216;
+  }
+
+  .date-num {
+    position: absolute;
+    left: 114px;
+    top: 77px;
+    width: 24px;
+    height: 15px;
+    text-align: center;
+    font-size: 11px;
+    color: #e6ebf0;
+  }
+
+  /* ── 螺钉：底 + 左上高光点 ── */
+  .screw {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    border-radius: 3.5px;
+    background-color: #5f666e;
+  }
+
+  .screw-hi {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 1.5px;
+    background-color: #d5dbe1;
+  }
+
+  /* 斜 45°，半径 71 */
+  .s1 {
+    left: 30.6px;
+    top: 30.6px;
+  }
+
+  .s1h {
+    left: 31.6px;
+    top: 31.6px;
+  }
+
+  .s2 {
+    left: 130.4px;
+    top: 30.6px;
+  }
+
+  .s2h {
+    left: 131.4px;
+    top: 31.6px;
+  }
+
+  .s3 {
+    left: 130.4px;
+    top: 130.4px;
+  }
+
+  .s3h {
+    left: 131.4px;
+    top: 131.4px;
+  }
+
+  .s4 {
+    left: 30.6px;
+    top: 130.4px;
+  }
+
+  .s4h {
+    left: 31.6px;
+    top: 131.4px;
+  }
+
+  /* ── 盘面小字 ── */
+  .dial-mark {
+    position: absolute;
+    left: 59px;
+    top: 100px;
+    width: 50px;
+    height: 8px;
+    text-align: center;
+    font-size: 6px;
+    color: #5f666e;
+  }
+
+  /* ── 三针：顶部中点压在盘心 (84,84)，向下延伸 ── */
+  .hand {
+    position: absolute;
+  }
+
+  .hand-hl {
+    position: absolute;
+  }
+
+  /* 时针：长 38、宽 7 */
+  .hour {
+    left: 80.5px;
+    top: 84px;
+    width: 7px;
+    height: 38px;
+    background-color: #ccd5dd;
+  }
+
+  .hour-sh {
+    left: 82.5px;
+    top: 86px;
+    width: 7px;
+    height: 38px;
+    background-color: #0a0c0f;
+  }
+
+  .hour-hl {
+    left: 80.5px;
+    top: 84px;
+    width: 2px;
+    height: 32px;
+    background-color: #f2f7fb;
+  }
+
+  /* 分针：长 57、宽 5 */
+  .minute {
+    left: 81.5px;
+    top: 84px;
+    width: 5px;
+    height: 57px;
+    background-color: #ccd5dd;
+  }
+
+  .minute-sh {
+    left: 83.5px;
+    top: 86px;
+    width: 5px;
+    height: 57px;
+    background-color: #0a0c0f;
+  }
+
+  .minute-hl {
+    left: 81.5px;
+    top: 84px;
+    width: 2px;
+    height: 51px;
+    background-color: #f6fafd;
+  }
+
+  /* 秒针：长 66、宽 2，橙 */
+  .second {
+    left: 83px;
+    top: 84px;
+    width: 2px;
+    height: 66px;
+    background-color: #e8722c;
+  }
+
+  .second-sh {
+    left: 84px;
+    top: 85px;
+    width: 2px;
+    height: 66px;
+    background-color: #0a0c0f;
+  }
+
+  .second-hl {
+    left: 83px;
+    top: 84px;
+    width: 1px;
+    height: 60px;
+    background-color: #ffab6e;
+  }
+
+  /* ── 盘心轴 ── */
+  .hub-base {
+    position: absolute;
+    left: 76px;
+    top: 76px;
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    background-color: #0a0c0f;
+  }
+
+  .hub-ring {
+    position: absolute;
+    left: 77px;
+    top: 77px;
+    width: 14px;
+    height: 14px;
+    border-radius: 7px;
+    background-color: #9aa1a8;
+  }
+
+  .hub-dot {
+    position: absolute;
+    left: 80px;
+    top: 80px;
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background-color: #e8722c;
+  }
+
+  /* ── 底部信息 ── */
+  .date-line {
+    position: absolute;
+    left: 0;
+    top: 314px;
+    width: 192px;
+    height: 16px;
+    text-align: center;
+    font-size: 13px;
+    color: #8d949c;
+  }
+
+  .time-line {
+    position: absolute;
+    left: 0;
+    top: 334px;
+    width: 192px;
+    height: 34px;
+    text-align: center;
+    font-size: 32px;
+    color: #dfe6ec;
+    letter-spacing: 2px;
+  }
+
   .back {
-    font-size: 20px;
-    color: #888899;
-    margin-top: 40px;
+    position: absolute;
+    left: 0;
+    top: 396px;
+    width: 192px;
+    height: 14px;
+    text-align: center;
+    font-size: 12px;
+    color: #4f565d;
   }
+
+  /* ── 120 档字面量旋转：rotate(180 + 3N)，180° 使针由「向下」转为「向上」── */
+  .r0 { transform: rotate(180deg); }
+  .r1 { transform: rotate(183deg); }
+  .r2 { transform: rotate(186deg); }
+  .r3 { transform: rotate(189deg); }
+  .r4 { transform: rotate(192deg); }
+  .r5 { transform: rotate(195deg); }
+  .r6 { transform: rotate(198deg); }
+  .r7 { transform: rotate(201deg); }
+  .r8 { transform: rotate(204deg); }
+  .r9 { transform: rotate(207deg); }
+  .r10 { transform: rotate(210deg); }
+  .r11 { transform: rotate(213deg); }
+  .r12 { transform: rotate(216deg); }
+  .r13 { transform: rotate(219deg); }
+  .r14 { transform: rotate(222deg); }
+  .r15 { transform: rotate(225deg); }
+  .r16 { transform: rotate(228deg); }
+  .r17 { transform: rotate(231deg); }
+  .r18 { transform: rotate(234deg); }
+  .r19 { transform: rotate(237deg); }
+  .r20 { transform: rotate(240deg); }
+  .r21 { transform: rotate(243deg); }
+  .r22 { transform: rotate(246deg); }
+  .r23 { transform: rotate(249deg); }
+  .r24 { transform: rotate(252deg); }
+  .r25 { transform: rotate(255deg); }
+  .r26 { transform: rotate(258deg); }
+  .r27 { transform: rotate(261deg); }
+  .r28 { transform: rotate(264deg); }
+  .r29 { transform: rotate(267deg); }
+  .r30 { transform: rotate(270deg); }
+  .r31 { transform: rotate(273deg); }
+  .r32 { transform: rotate(276deg); }
+  .r33 { transform: rotate(279deg); }
+  .r34 { transform: rotate(282deg); }
+  .r35 { transform: rotate(285deg); }
+  .r36 { transform: rotate(288deg); }
+  .r37 { transform: rotate(291deg); }
+  .r38 { transform: rotate(294deg); }
+  .r39 { transform: rotate(297deg); }
+  .r40 { transform: rotate(300deg); }
+  .r41 { transform: rotate(303deg); }
+  .r42 { transform: rotate(306deg); }
+  .r43 { transform: rotate(309deg); }
+  .r44 { transform: rotate(312deg); }
+  .r45 { transform: rotate(315deg); }
+  .r46 { transform: rotate(318deg); }
+  .r47 { transform: rotate(321deg); }
+  .r48 { transform: rotate(324deg); }
+  .r49 { transform: rotate(327deg); }
+  .r50 { transform: rotate(330deg); }
+  .r51 { transform: rotate(333deg); }
+  .r52 { transform: rotate(336deg); }
+  .r53 { transform: rotate(339deg); }
+  .r54 { transform: rotate(342deg); }
+  .r55 { transform: rotate(345deg); }
+  .r56 { transform: rotate(348deg); }
+  .r57 { transform: rotate(351deg); }
+  .r58 { transform: rotate(354deg); }
+  .r59 { transform: rotate(357deg); }
+  .r60 { transform: rotate(360deg); }
+  .r61 { transform: rotate(363deg); }
+  .r62 { transform: rotate(366deg); }
+  .r63 { transform: rotate(369deg); }
+  .r64 { transform: rotate(372deg); }
+  .r65 { transform: rotate(375deg); }
+  .r66 { transform: rotate(378deg); }
+  .r67 { transform: rotate(381deg); }
+  .r68 { transform: rotate(384deg); }
+  .r69 { transform: rotate(387deg); }
+  .r70 { transform: rotate(390deg); }
+  .r71 { transform: rotate(393deg); }
+  .r72 { transform: rotate(396deg); }
+  .r73 { transform: rotate(399deg); }
+  .r74 { transform: rotate(402deg); }
+  .r75 { transform: rotate(405deg); }
+  .r76 { transform: rotate(408deg); }
+  .r77 { transform: rotate(411deg); }
+  .r78 { transform: rotate(414deg); }
+  .r79 { transform: rotate(417deg); }
+  .r80 { transform: rotate(420deg); }
+  .r81 { transform: rotate(423deg); }
+  .r82 { transform: rotate(426deg); }
+  .r83 { transform: rotate(429deg); }
+  .r84 { transform: rotate(432deg); }
+  .r85 { transform: rotate(435deg); }
+  .r86 { transform: rotate(438deg); }
+  .r87 { transform: rotate(441deg); }
+  .r88 { transform: rotate(444deg); }
+  .r89 { transform: rotate(447deg); }
+  .r90 { transform: rotate(450deg); }
+  .r91 { transform: rotate(453deg); }
+  .r92 { transform: rotate(456deg); }
+  .r93 { transform: rotate(459deg); }
+  .r94 { transform: rotate(462deg); }
+  .r95 { transform: rotate(465deg); }
+  .r96 { transform: rotate(468deg); }
+  .r97 { transform: rotate(471deg); }
+  .r98 { transform: rotate(474deg); }
+  .r99 { transform: rotate(477deg); }
+  .r100 { transform: rotate(480deg); }
+  .r101 { transform: rotate(483deg); }
+  .r102 { transform: rotate(486deg); }
+  .r103 { transform: rotate(489deg); }
+  .r104 { transform: rotate(492deg); }
+  .r105 { transform: rotate(495deg); }
+  .r106 { transform: rotate(498deg); }
+  .r107 { transform: rotate(501deg); }
+  .r108 { transform: rotate(504deg); }
+  .r109 { transform: rotate(507deg); }
+  .r110 { transform: rotate(510deg); }
+  .r111 { transform: rotate(513deg); }
+  .r112 { transform: rotate(516deg); }
+  .r113 { transform: rotate(519deg); }
+  .r114 { transform: rotate(522deg); }
+  .r115 { transform: rotate(525deg); }
+  .r116 { transform: rotate(528deg); }
+  .r117 { transform: rotate(531deg); }
+  .r118 { transform: rotate(534deg); }
+  .r119 { transform: rotate(537deg); }
 </style>
