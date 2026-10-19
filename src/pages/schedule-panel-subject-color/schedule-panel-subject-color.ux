@@ -3,11 +3,11 @@
     <scroll class="page-scroll" scroll-y="{{true}}">
     <div class="page-body">
     <div class="back-header">
-      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+      <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">科目色卡</text>
-      <div class="header-placeholder"></div>
+      <div if="{{ !isRoot }}" class="header-placeholder"></div>
     </div>
 
     <div if="{{ isLoading }}" class="loading-area">
@@ -18,7 +18,7 @@
       <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
     </div>
 
-    <div for="{{ todayClasses }}" class="course-card">
+    <div for="{{ todayClasses }}" class="course-card" style="background-color: {{ theme.card }}">
       <div class="color-stripe" style="background-color: {{ $item.subjectColor }}"></div>
       <div class="card-body">
         <text class="card-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
@@ -36,6 +36,7 @@
 import router from "@system.router"
 const database = require("../../data/database.js")
 const store = require("../../data/store.js")
+const utils = require("../../data/utils.js")
 
 var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
@@ -80,6 +81,9 @@ export default {
 
   onInit() {
     var self = this
+    // 独立首页 root 判定：由「更多首页」push 时带 fromPanel='1'；无参数即被设为首页冷启动
+    self.fromPanel = (self.fromPanel === '1') ? '1' : ''
+    self.isRoot = self.fromPanel !== '1'
     store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
     self.loadData()
   },
@@ -113,7 +117,20 @@ export default {
     })
   },
 
-  goBack() { router.back() }
+  goBack() {
+    // 双模返回：被「更多首页」push（fromPanel）→ 回父页；作为 root 首页 → 退出应用
+    if (this.fromPanel === '1') {
+      router.back()
+    } else {
+      utils.exitApp()
+    }
+  },
+
+  onBackPress() {
+    // 硬件返回键：push 态交还系统默认返回（回更多首页）；root 态退出（与默认首页 index 一致）
+    if (this.fromPanel === '1') return false
+    return utils.exitApp() === true
+  }
 }
 </script>
 
@@ -134,7 +151,9 @@ export default {
 .empty-area { align-items: center; padding: 30px 0 }
 .empty-text { font-size: 22px; line-height: 30px }
 
-.course-card { flex-direction: row; border-radius: 14px; margin-bottom: 10px; background-color: rgba(255,255,255,0.05); overflow: hidden }
+/* 独立首页化修正：底色原硬编码 rgba(255,255,255,0.05)，浅色主题下白叠加隐形；
+   改模板行内 theme.card（见 template），此处仅保留形状属性 */
+.course-card { flex-direction: row; border-radius: 14px; margin-bottom: 10px; overflow: hidden }
 .color-stripe { width: 8px; flex-shrink: 0 }
 .card-body { flex: 1; flex-direction: column; padding: 16px 14px }
 .card-name { font-size: 26px; font-weight: bold; line-height: 34px; margin-bottom: 4px }
