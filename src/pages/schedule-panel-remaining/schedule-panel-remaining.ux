@@ -3,11 +3,11 @@
     <scroll class="page-scroll" scroll-y="{{true}}">
     <div class="page-body">
     <div class="back-header">
-      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+      <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">剩余课程</text>
-      <div class="header-placeholder"></div>
+      <div if="{{ !isRoot }}" class="header-placeholder"></div>
     </div>
 
     <div if="{{ isLoading }}" class="loading-area">
@@ -39,6 +39,7 @@
 import router from "@system.router"
 const database = require("../../data/database.js")
 const store = require("../../data/store.js")
+const utils = require("../../data/utils.js")
 
 var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
@@ -54,6 +55,8 @@ function parseEndMin(timeStr) {
 export default {
   private: {
     iconTheme: "dark",
+    fromPanel: "",
+    isRoot: false,
     isLoading: true,
     remainingClasses: [],
     allDone: false,
@@ -67,6 +70,9 @@ export default {
 
   onInit() {
     var self = this
+    // 独立首页 root 判定：由「更多首页」push 时带 fromPanel='1'；无参数即被设为首页冷启动
+    self.fromPanel = (self.fromPanel === '1') ? '1' : ''
+    self.isRoot = self.fromPanel !== '1'
     store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
     self.loadData()
   },
@@ -111,7 +117,20 @@ export default {
     })
   },
 
-  goBack() { router.back() }
+  goBack() {
+    // 双模返回：被「更多首页」push（fromPanel）→ 回父页；作为 root 首页 → 退出应用
+    if (this.fromPanel === '1') {
+      router.back()
+    } else {
+      utils.exitApp()
+    }
+  },
+
+  onBackPress() {
+    // 硬件返回键：push 态交还系统默认返回（回更多首页）；root 态退出（与默认首页 index 一致）
+    if (this.fromPanel === '1') return false
+    return utils.exitApp() === true
+  }
 }
 </script>
 
@@ -137,9 +156,12 @@ export default {
 .course-left { flex-direction: row; align-items: center; margin-bottom: 4px }
 .course-index { font-size: 20px; line-height: 28px; width: 28px; flex-shrink: 0 }
 .course-name { font-size: 26px; line-height: 34px; font-weight: bold }
-.course-right { flex-direction: row; padding-left: 28px }
-.course-time { font-size: 20px; line-height: 28px; margin-right: 16px }
-.course-location { font-size: 18px; line-height: 26px }
+/* 独立首页化修正：时间+教室原为同行（row），192px 内容区 28px 缩进 + 20px 字号时间串
+   「10:00 - 10:45」+ 18px 教室必然溢出截断（实测「10:00 - 10:」+「实验/室B」错位折行）。
+   改纵向堆叠：时间独占一行完整显示，教室次行，宽度充裕不再截断 */
+.course-right { flex-direction: column; padding-left: 8px }
+.course-time { font-size: 20px; line-height: 28px }
+.course-location { font-size: 18px; line-height: 26px; margin-top: 2px }
 
 @media (width >= 200px) {
   .page-body { padding: 44px 16px 14px 16px }
