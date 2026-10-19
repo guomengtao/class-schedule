@@ -24,7 +24,7 @@
     <div class="list">
       <div for="row in list" class="item" style="height: {{height}}">
         <div class="cell" for="cell in row" tid="id">
-          <text @click="handleClick(cell)" class="{{cell.className}}">
+          <text @click="handleClick(cell)" class="{{cell.className}}" style="color: {{ cell.colorKey ? theme[cell.colorKey] : '#ffffff' }}">
             {{ cell.value }}
           </text>
         </div>
@@ -37,6 +37,7 @@
 import router from "@system.router";
 import device from "@system.device";
 const database = require("../../data/database.js");
+const store = require("../../data/store.js");
 export default {
 	private: {
 		date: new Date(),
@@ -45,14 +46,25 @@ export default {
 		list: null,
 		height: "50px",
 		viewIndex: 0,
-		isCapsule: false
+		isCapsule: false,
+		fromPanel: "",
+		isRoot: false,
+		hasCourses: false,
+		theme: {
+			bg: '#1a1a2e', card: '#16213e', accent: '#7ec8e3',
+			text: '#ffffff', textSecondary: '#888899', textMuted: '#555566', border: '#0f3460'
+		}
 	},
 
 	onInit() {
+		// 独立首页化：root 判定 + 主题接入（原页面标题/星期头/分隔线/空格文字全硬编码白色，浅色主题不可读）
+		const self = this;
+		self.fromPanel = (self.fromPanel === '1') ? '1' : '';
+		self.isRoot = self.fromPanel !== '1';
+		store.getTheme(function(t) { self.theme = t; });
 		this.initList();
 		// 军规6（v2）：先取屏型再建矩阵。手环9 胶囊屏 194×368，官方 300px 矩阵 + 80px 表头 + pill 返回条会溢出屏底，
 		// 行高基准按屏型收敛（官方 base/rows 公式的胶囊适配，官方 class 未动；屏型探测沿用 week-view 既有写法）。
-		const self = this;
 		device.getInfo({
 			success: function(data) {
 				var shape = data.screenShape || "";
@@ -72,6 +84,7 @@ export default {
 				return {
 					value: "",
 					className: "",
+					colorKey: "text"
 				};
 			});
 			list.push(initArray);
@@ -79,10 +92,21 @@ export default {
 
 		this.list = list;
 	},
-	// 注入点3返回：官方为 app.terminate()（官方 demo 是根页）；
-	// 本页由课程面板目录页 push 而来非根页，应为 router.back()。
+	// 注入点3返回（独立首页化改双模）：官方为 app.terminate()（官方 demo 是根页）；
+	// 被「更多首页」push（fromPanel）→ router.back()；作为 root 首页冷启动 → 退出应用（与 index 一致）。
 	backClick() {
-		router.back();
+		if (this.fromPanel === '1') {
+			router.back();
+		} else {
+			const utils = require("../../data/utils.js");
+			utils.exitApp();
+		}
+	},
+
+	onBackPress() {
+		if (this.fromPanel === '1') return false;
+		const utils = require("../../data/utils.js");
+		return utils.exitApp() === true;
 	},
 
 	// 注入点①数据源：官方 getCalendar（日期矩阵）→ 课表矩阵。
@@ -113,10 +137,13 @@ export default {
 		const PALETTE = ["cell-course-0", "cell-course-1", "cell-course-2", "cell-course-3", "cell-course-4"];
 		if (!this._subjectColors) this._subjectColors = {};
 		let rows = 1;
+		let total = 0;
 		for (let i = 0; i < DAY_COLS.length; i++) {
 			const cls = matrix[DAY_COLS[i]] || [];
+			total += cls.length;
 			if (cls.length > rows) rows = cls.length;
 		}
+		this.hasCourses = total > 0;
 		this.updateListRows(rows);
 		// 军规6（v2）：官方基准 300px（圆/方屏向）；胶囊屏 194×368 扣除表头 100px 与 pill 返回条约 60px 后收敛为 200px，防溢出屏底
 		this.height = (this.isCapsule ? 200 : 300) / rows + "px";
@@ -141,6 +168,8 @@ export default {
 					}
 					this.list[i][j].className = PALETTE[colorIdx];
 					this.list[i][j].courseId = c.id;
+					// 占用格底色为彩色，强制白字（colorKey 置空 → 模板落到 #ffffff），浅色主题下仍为白字可读
+					this.list[i][j].colorKey = "";
 				} else {
 					this.list[i][j].value = "";
 				}
@@ -154,6 +183,7 @@ export default {
 				return {
 					value: "",
 					className: "",
+					colorKey: "text"
 				};
 			});
 			this.list.push(initArray);
