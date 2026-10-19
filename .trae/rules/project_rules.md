@@ -429,33 +429,15 @@ node scripts/png-measure.js runrow <图> <y>     # 量化左右边距
 
 ---
 
-## 13. Trae 独立领单与花名（走 ev-mcp，不与 workbuddy 混用）（2026-10-17 新增，用户指定）
+## 13. Trae 独立领单与花名（指针 → 全局规则真源）
 
-> **用户指定（2026-10-17）：Trae IDE 的运行环境与 workbuddy 不同，须独立走自己的「领单 + 花名」系统，独立体系目录 = `ev/ev-mcp/`（一个专为 Trae IDE 设计的 MCP Server）。Trae 一律通过 ev-mcp 处理领单/花名，禁止与 workbuddy 的脚本体系混淆、混用。**
-
-### 13.1 为什么独立
-
-- **workbuddy 体系**（`ev-claim.sh` / `ev-add-task.js` / `ev-session-name.sh`，读本地 `workbuddy.db`、打 `app-auth.gudq.com` API）是**另一个运行环境**的产物，不适用于 Trae。
-- **ev-mcp 体系**（`ev/ev-mcp/index.js`，一个零依赖 MCP Server）是为 **Trae IDE 这类 AI 客户端**设计的：AI 直接调 MCP 工具，走 Supabase 线上存储，落 `ev_mcp_sessions`（花名）+ `ev_mcp_tasks`（任务/单号）+ `ev_mcp_logs`（对话）。
-
-### 13.2 Trae 领单 + 花名标准流程（全程走 ev-mcp MCP 工具）
-
-| 动作 | ev-mcp MCP 工具 | 落库 | 说明 |
-| --- | --- | --- | --- |
-| 起花名 | `ev_name_session(name="🐘...")` | Supabase `ev_mcp_sessions.name` | AI 自己起（≤8 汉字，含 1 emoji），**禁止问用户**；同项目唯一 |
-| 领单 | `ev_add_task(title, description≥50字)` | Supabase `ev_mcp_tasks` | 返回 `evm-{tool}-{proj}-{yymmdd}-{hhmm}-{rand}` 单号 |
-| 看状态 | `ev_status` | SDR 表格 | 每轮开场必须调，把 SDR 表格附在回复末尾 |
-| 开始/完成 | `ev_start(id)` / `ev_done(id)` | `ev_mcp_tasks.status` | doing / done |
-| 记对话 | `ev_log_message(...)` | `ev_mcp_logs` | 存在进行中任务须带 `task_id`，否则拒绝 |
-
-- **花名门禁**：ev-mcp 未设花名前，除 `ev_name_session` / `ev_status` 外的工具一律拒绝（返回「🚫 尚未设置花名」）→ 先起名解锁。
-
-### 13.3 铁律（Trae 会话强制）
-
-1. **Trae 一律走 ev-mcp，禁止跑 workbuddy 的 `ev-claim.sh claim` / `ev-add-task.js` / `ev-session-name.sh` 来领单或改名**——那是另一套环境，两套单号体系（`evtask-` vs `evm-`）不相通，不得互认、混编。
-2. **单号体系**：Trae 领的是 **`evm-`** 单号（ev-mcp），不是 workbuddy 的 `evtask-`；引用时写明来源体系，禁混用。
-3. **先花名后领单、先领单后动手**：开工前先 `ev_name_session` 起名 + `ev_add_task` 领单，拿到 `evm-` 单号再改代码。
-4. **快速通道/Git 提交**：Git 提交门禁（§3.7/§11）仍按仓库钩子执行；Trae 无 PreToolUse 钩子，用沙箱只读兜底——但领单/花名归属一律记 ev-mcp（本会话先弹窗告知用户（§5）是否领单）。
+> **本条规定已移至 Trae 全局规则真源**（`ev/ev-mcp/rules/trae-global-rules.md`），所有 Trae 项目共享，纳入 git 版本控制。
+>
+> **加载方式**：`~/.trae/rules/project_rules.md` **软链**至上述真源，Trae 会话自动加载，无需逐项目重复。
+>
+> **操作手册**：`ev/ev-mcp/docs/ev-mcp-Trae领单与花名手册.md`（分步详解）。
+>
+> 本项目文件不再重复领单/花名规则；此处仅留指针，避免多份副本漂移。本文件中 §5、§9 的旧 `evtask-`/`task-register` 引用为 workbuddy 体系残余，Trae 会话一律以全局规则真源为准（走 ev-mcp，`evm-` 单号）。
 
 ---
 
@@ -463,6 +445,39 @@ node scripts/png-measure.js runrow <图> <y>     # 量化左右边距
 
 > **用户指定（2026-10-18）：以后禁止在头部标题旁加按钮。胶囊屏头部本来就看不见多少。**
 > 完整实测与踩坑见 `docs/胶囊屏UI规范与模拟器快速迭代-20261018.md`。
+
+---
+
+## 15. trae-hello-button 插件修改后必须安装并测试（2026-10-19 新增，用户指定）
+
+> **强制规则**：每次修改 `trae-hello-button` 插件代码后，必须：
+> 1. **重新构建**最新版 `.vsix` 安装包
+> 2. **安装**到 VS Code 扩展目录
+> 3. **重载窗口**使新版本生效
+> 以上步骤未完成，不得视为修改完成。
+
+### 15.1 标准流程（分步执行，每步检查 exit code）
+
+```bash
+# Step 1: 构建 .vsix
+cd ../trae-hello-button && bash scripts/build-vsix.sh
+# 产物：trae-hello-button-<version>.vsix（项目根）
+
+# Step 2: 安装扩展
+bash install-extension.sh
+# 安装到 ~/.vscode/extensions/local.trae-hello-button-<version>/
+
+# Step 3: 重载窗口生效
+# 用户手动执行：Cmd+Shift+P → Reload Window
+# 或通知用户重载窗口
+```
+
+### 15.2 验证清单
+
+- [ ] `build-vsix.sh` exit code 为 0
+- [ ] `install-extension.sh` exit code 为 0
+- [ ] 重载窗口后，状态栏出现「你好」/「确认:x」按钮
+- [ ] 功能改动点手动验证通过
 
 ### 14.1 头部铁律（强制）
 
