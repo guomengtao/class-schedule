@@ -61,14 +61,14 @@ import vibrator from "@system.vibrator"
 
 const database = require("../../data/database.js")
 
-const DAY_KEYS = [
-  ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-  ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-  ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
-  ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
-]
-
 const CN_DAY = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
+// 存储里 course 的 day 字段用长名（"星期一"…），与 getDay() 索引一一对应。
+// 全工程写入约定一致：add-course-v2 的 DAY_NAMES / quick-add 的 fullDayNames 均为长名。
+const CN_DAY_FULL = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+const WEEKDAY_INDEX = {
+  "星期日": 0, "星期一": 1, "星期二": 2, "星期三": 3,
+  "星期四": 4, "星期五": 5, "星期六": 6
+}
 const BAR_MAX = 156 // 进度条最大宽度
 const TL_TOP = 286 // 时间轴首行 y
 
@@ -155,31 +155,50 @@ export default {
   },
 
   /**
-   * 取今天的课程数组（兼容 Mon/Monday/周一 等多种 key）。
-   * 今日无课（周末 / 调休 / 当天没排课）时回退到「最近一个有课日」，
-   * 并把来源写进 this.fallbackLabel（如「周一课表」），由 recompute 负责展示。
+   * 取今天的课程数组（list = 课程对象数组 [{name,time,...}]）。
+   *
+   * 注意：database.getAllCourses() 返回的是**排课数组**
+   *   [{ day: "星期一", classes: [{id,name,time,...}] }, ...]
+   * 不是「以星期名为 key 的对象」。旧实现按 all["星期一"] 取值必然 undefined，
+   * 导致本盘面恒定显示「今日无课」——已按数组形态修正。
+   *
+   * 今日无课（周末 / 调休 / 当天没排课）时回退到「本周内最近一个有课日」，
+   * 并把来源写进 this.fallbackLabel（如「星期一课表」），由 recompute 展示。
    */
   todayCourses() {
     const all = this.allCourses
-    if (!all) return null
-    const d = new Date().getDay()
-    for (let i = 0; i < DAY_KEYS.length; i++) {
-      const k = DAY_KEYS[i][d]
-      if (all[k] && all[k].length) {
+    if (!all || !Array.isArray(all)) return null
+
+    // 1) 今天（getDay(): 0=周日 … 6=周六，与 CN_DAY_FULL 对齐）
+    const todayName = CN_DAY_FULL[new Date().getDay()]
+    for (let i = 0; i < all.length; i++) {
+      const dayObj = all[i]
+      if (dayObj && dayObj.day === todayName && dayObj.classes && dayObj.classes.length) {
         this.fallbackLabel = ""
-        return all[k]
+        return dayObj.classes
       }
     }
-    for (let step = 1; step <= 6; step++) {
-      const d2 = (d + step) % 7
-      for (let i = 0; i < DAY_KEYS.length; i++) {
-        const k = DAY_KEYS[i][d2]
-        if (all[k] && all[k].length) {
-          this.fallbackLabel = CN_DAY[d2] + "课表"
-          return all[k]
-        }
+
+    // 2) fallback：本周内向前看，取最近一个有课日（不含今天）
+    const todayIdx = new Date().getDay()
+    let bestIdx = -1
+    let bestDist = 99
+    for (let i = 0; i < all.length; i++) {
+      const dayObj = all[i]
+      if (!dayObj || !dayObj.classes || !dayObj.classes.length) continue
+      const di = WEEKDAY_INDEX[dayObj.day]
+      if (di === undefined) continue
+      const dist = (di - todayIdx + 7) % 7
+      if (dist > 0 && dist < bestDist) {
+        bestDist = dist
+        bestIdx = i
       }
     }
+    if (bestIdx >= 0) {
+      this.fallbackLabel = all[bestIdx].day + "课表"
+      return all[bestIdx].classes
+    }
+
     this.fallbackLabel = ""
     return null
   },
