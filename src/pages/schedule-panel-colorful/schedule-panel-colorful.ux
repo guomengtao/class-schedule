@@ -1,25 +1,26 @@
 <!-- UI/实现来源：open-vela-learning/packages_apps/wearable/calendar/src/pages/index/index.ux（ev-minimal 最小改动法，2026-10-14；注入点仅数据源/文案/跳转） -->
 <template>
   <div class="home-page" @swipe="handleSwipe">
-    <div class="back-header" @click="backClick">
+    <div class="back-header" @click="backClick" if="{{ !isRoot }}">
       <image class="back-icon" src="/common/image/back.png"></image>
       <text class="back-text">返回</text>
     </div>
     <div class="header">
       <div class="year-month">
-        <text class="title">多彩课表</text>
+        <text class="title" style="color: {{ theme.text }}">多彩课表</text>
       </div>
       <div class="week-head">
-        <text class="week-text weekend">一</text>
-        <text class="week-text">二</text>
-        <text class="week-text">三</text>
-        <text class="week-text">四</text>
-        <text class="week-text">五</text>
-        <text class="week-text weekend">六</text>
-        <text class="week-text weekend">日</text>
+        <text class="week-text" style="color: {{ theme.text }}">一</text>
+        <text class="week-text" style="color: {{ theme.text }}">二</text>
+        <text class="week-text" style="color: {{ theme.text }}">三</text>
+        <text class="week-text" style="color: {{ theme.text }}">四</text>
+        <text class="week-text" style="color: {{ theme.text }}">五</text>
+        <text class="week-text" style="color: {{ theme.textSecondary }}">六</text>
+        <text class="week-text" style="color: {{ theme.textSecondary }}">日</text>
       </div>
-      <div class="divider"></div>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
     </div>
+    <text class="empty-hint" if="{{ !hasCourses }}" style="color: {{ theme.textMuted }}">本周暂无课程</text>
     <div class="list">
       <div for="row in list" class="item" style="height: {{height}}">
         <div class="cell" for="cell in row" tid="id">
