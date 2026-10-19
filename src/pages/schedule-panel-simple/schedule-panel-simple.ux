@@ -1,11 +1,11 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+      <div class="back-btn-wrapper" if="{{ !isRoot }}" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">简易课表</text>
-      <div class="header-placeholder"></div>
+      <div class="header-placeholder" if="{{ !isRoot }}"></div>
     </div>
     <div if="{{ isLoading }}" class="loading-area">
       <text class="loading-text" style="color: {{ theme.textMuted }}">加载中...</text>
@@ -39,6 +39,7 @@
 import router from "@system.router"
 const database = require("../../data/database.js")
 const store = require("../../data/store.js")
+const utils = require("../../data/utils.js")
 
 var DAY_ORDER = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
 
@@ -60,6 +61,8 @@ export default {
     iconTheme: "dark",
     isLoading: true,
     daySections: [],
+    fromPanel: "",
+    isRoot: false,
     theme: {
       bg: '#1a1a2e', card: '#16213e', cardLight: '#0f3460',
       accent: '#7ec8e3', text: '#ffffff', textSecondary: '#888899',
@@ -69,6 +72,9 @@ export default {
 
   onInit() {
     var self = this
+    // 独立首页化：root 判定（被「更多首页」push 带 fromPanel='1'；作为 root 首页冷启动则无此参）
+    self.fromPanel = (self.fromPanel === '1') ? '1' : ''
+    self.isRoot = self.fromPanel !== '1'
     store.getTheme(function(t, themeName) { self.theme = t; self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark' })
     this.loadData()
   },
@@ -110,7 +116,17 @@ export default {
   },
 
   goBack: function() {
-    router.back()
+    // 被「更多首页」push（fromPanel）→ 回目录；作为 root 首页冷启动 → 退出应用（与 index 一致）
+    if (this.fromPanel === '1') {
+      router.back()
+    } else {
+      utils.exitApp()
+    }
+  },
+
+  onBackPress: function() {
+    if (this.fromPanel === '1') return false
+    return utils.exitApp() === true
   }
 }
 </script>
