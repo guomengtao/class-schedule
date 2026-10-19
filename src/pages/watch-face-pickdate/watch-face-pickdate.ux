@@ -1,108 +1,382 @@
 <template>
-  <div class="page">
-    <text class="minute-label">分钟</text>
-    <picker class="min-picker {{ animClass }}" type="text" range="{{ minutes }}" selected="{{ mIdx }}" onchange="onMinChange">
-    </picker>
+  <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
+
+    <!-- 顶部：月份 / 年份 -->
+    <text class="mon">{{ monText }}</text>
+    <text class="year">{{ yearText }}</text>
+
+    <!-- 日期鼓：上一日 / 今日 / 下一日 -->
+    <text class="nd nd-prev">{{ prevDay }}</text>
+    <text class="cur {{ curCls }}">{{ dayText }}</text>
+    <text class="nd nd-next">{{ nextDay }}</text>
+
+    <!-- 鼓窗切口：左右竖线 + 上下沿（上亮下暗） -->
+    <div class="cut cut-l"></div>
+    <div class="cut cut-r"></div>
+    <div class="edge edge-t"></div>
+    <div class="edge edge-b"></div>
+
+    <!-- 底部：星期 / 分隔线 / 一年第几天 -->
+    <text class="wd">{{ weekText }}</text>
+    <div class="hr"></div>
+    <text class="doy">{{ doyText }}</text>
+
+    <!-- 操作提示 -->
+    <text class="hint">{{ hintText }}</text>
   </div>
 </template>
 
 <script>
-function pad(n) {
+import router from "@system.router"
+import vibrator from "@system.vibrator"
+
+const LIST_PAGE = "/pages/watch-face-list"
+
+const MON = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
+             "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"]
+const WD = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"]
+
+function pad2(n) {
   return n < 10 ? "0" + n : "" + n
+}
+
+/* 字间距：Vela 的 text 不支持 letter-spacing，用空格手动撑开 */
+function sp(s) {
+  var out = ""
+  for (var i = 0; i < s.length; i++) {
+    out += (i ? " " : "") + s.charAt(i)
+  }
+  return out
+}
+
+function isLeap(y) {
+  return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0
 }
 
 export default {
   data: {
-    minutes: [],
-    mIdx: 0,
-    animClass: "",
+    monText: "",
+    yearText: "",
+    dayText: "",
+    prevDay: "",
+    nextDay: "",
+    weekText: "",
+    doyText: "",
+    hintText: "长按回到今天",
+    curCls: "c0",
     timer: null
   },
 
-  onInit: function() {
-    var arr = []
-    for (var i = 0; i < 60; i++) {
-      arr.push(pad(i))
-    }
-    this.minutes = arr
+  onInit() {
+    this.browseOffset = 0
+    this.touchStartY = 0
+    this.pressTs = 0
+    this.suppressTap = false
+    this.backTimer = null
+    this.jitterTimer = null
+    this.lastDay = -1
+    this.applyDate(0)
 
     var self = this
-    this.tick()
     this.timer = setInterval(function() {
       self.tick()
     }, 1000)
   },
 
-  tick: function() {
-    var now = new Date()
-    var m = now.getMinutes()
-    this.mIdx = m
-
-    var self = this
-    this.animClass = "animate"
-    setTimeout(function() {
-      self.animClass = ""
-    }, 500)
+  /* 页面重新可见时兜底刷新（定时器若被引擎挂起，至少进入页面总是准的） */
+  onShow() {
+    if (this.browseOffset === 0) this.applyDate(0)
   },
 
-  onMinChange: function(e) {
-    this.mIdx = e.newSelected
-  },
-
-  onDestroy: function() {
+  onDestroy() {
     if (this.timer) {
       clearInterval(this.timer)
       this.timer = null
     }
+    if (this.backTimer) {
+      clearTimeout(this.backTimer)
+      this.backTimer = null
+    }
+    if (this.jitterTimer) {
+      clearTimeout(this.jitterTimer)
+      this.jitterTimer = null
+    }
+  },
+
+  /* 每秒跑，但浏览模式下直接退出；只有跨日才写一次数据 */
+  tick() {
+    /* 浏览模式：靠秒级轮询判定 3 秒无操作（setTimeout 实测不触发，改用轮询；Date.now() 不可靠，用 getTime） */
+    if (this.browseOffset !== 0) {
+      var left = 3 - Math.floor((new Date().getTime() - this.browseTs) / 1000)
+      if (left <= 0) {
+        this.browseOffset = 0
+        this.browseTs = 0
+        this.applyDate(0)
+      } else {
+        var h = left + " 秒后回到今天"
+        if (h !== this.hintText) this.hintText = h
+      }
+      return
+    }
+    var d = new Date().getDate()
+    if (d !== this.lastDay) this.applyDate(0)
+  },
+
+  /* 把 browseOffset 折算成一个真实 Date，逐字段脏值判断后写回 */
+  applyDate(dir) {
+    var base = new Date()
+    var d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + this.browseOffset)
+
+    var y = d.getFullYear()
+    var m = d.getMonth()
+    var day = d.getDate()
+
+    var mon = sp(MON[m])
+    if (mon !== this.monText) this.monText = mon
+
+    var ys = "" + y
+    if (ys !== this.yearText) this.yearText = ys
+
+    var ds = pad2(day)
+    if (ds !== this.dayText) this.dayText = ds
+
+    var p = pad2(new Date(y, m, day - 1).getDate())
+    if (p !== this.prevDay) this.prevDay = p
+
+    var n = pad2(new Date(y, m, day + 1).getDate())
+    if (n !== this.nextDay) this.nextDay = n
+
+    var wd = sp(WD[d.getDay()])
+    if (wd !== this.weekText) this.weekText = wd
+
+    var doy = Math.floor((d.getTime() - new Date(y, 0, 0).getTime()) / 86400000)
+    var dt = doy + " / " + (isLeap(y) ? 366 : 365) + " 天"
+    if (dt !== this.doyText) this.doyText = dt
+
+    var hint = this.browseOffset === 0 ? "长按回到今天" : "3 秒后回到今天"
+    if (hint !== this.hintText) this.hintText = hint
+
+    this.lastDay = base.getDate()
+
+    /* 位移两帧：先偏移再归位，靠字面量类切 top，不碰 transform */
+    if (dir) {
+      this.curCls = dir > 0 ? "c2" : "c1"
+      var self = this
+      if (this.jitterTimer) clearTimeout(this.jitterTimer)
+      this.jitterTimer = setTimeout(function() {
+        self.curCls = "c0"
+        self.jitterTimer = null
+      }, 120)
+    }
+  },
+
+  browseStep(dir) {
+    this.browseOffset += dir
+    this.browseTs = new Date().getTime()
+    this.applyDate(dir)
+  },
+
+  backToToday(doVibrate) {
+    if (this.backTimer) {
+      clearTimeout(this.backTimer)
+      this.backTimer = null
+    }
+    if (this.browseOffset !== 0) {
+      this.browseOffset = 0
+      this.browseTs = 0
+      this.applyDate(0)
+    }
+    if (doVibrate) {
+      try {
+        vibrator.vibrate({ mode: "short" })
+      } catch (e) {}
+    }
+  },
+
+  /* ── 触摸：上下滑翻日期 / 长按回今天 / 单击返回 ── */
+  onTouchStart(e) {
+    var t = (e && e.touches && e.touches[0]) || e || {}
+    this.touchStartY = t.clientY || t.offsetY || t.pageY || 0
+    this.pressTs = new Date().getTime()
+    this.suppressTap = false
+  },
+
+  onTouchEnd(e) {
+    var t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]) || e || {}
+    var endY = t.clientY || t.offsetY || t.pageY || 0
+    var startY = this.touchStartY || 0
+    var d = startY ? (startY - endY) : 0
+    var held = this.pressTs ? (new Date().getTime() - this.pressTs) : 0
+
+    this.touchStartY = 0
+    this.pressTs = 0
+
+    /* 长按 600ms：立即回今天 */
+    if (held >= 600 && Math.abs(d) < 40) {
+      this.suppressTap = true
+      this.backToToday(true)
+      return
+    }
+
+    /* 上滑 → 后一天；下滑 → 前一天（阈值 40px） */
+    if (d >= 40) {
+      this.suppressTap = true
+      this.browseStep(1)
+      return
+    }
+    if (d <= -40) {
+      this.suppressTap = true
+      this.browseStep(-1)
+      return
+    }
+  },
+
+  onTap() {
+    if (this.suppressTap) return
+    this.onDestroy()
+    router.replace({ uri: LIST_PAGE })
   }
 }
 </script>
 
 <style>
-.page {
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  background-color: #1a1a2e;
-  align-items: center;
-  justify-content: center;
-}
-
-.minute-label {
-  font-size: 24px;
-  line-height: 32px;
-  color: #888899;
-  margin-bottom: 16px;
-}
-
-.min-picker {
-  width: 60%;
-  font-size: 30px;
-  color: #ffffff;
-  selected-font-size: 56px;
-  selected-color: #7ec8e3;
-  selected-background-color: #0f3460;
-}
-
-.min-picker.animate {
-  animation-name: autoSlide;
-  animation-duration: 500ms;
-  animation-timing-function: ease-out;
-  animation-fill-mode: forwards;
-}
-
-@keyframes autoSlide {
-  0% {
-    transform: translateY(0px);
+  /* 布局铁律：纯 relative + 子元素绝对定位，禁 flex 居中；禁 transform / vw */
+  .page {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: #0f1115;
   }
-  45% {
-    transform: translateY(-40px);
+
+  /* ── 顶部 ── */
+  .mon {
+    position: absolute;
+    left: 0;
+    top: 24px;
+    width: 192px;
+    height: 16px;
+    font-size: 11px;
+    color: #7d858f;
+    text-align: center;
   }
-  70% {
-    transform: translateY(6px);
+
+  .year {
+    position: absolute;
+    left: 0;
+    top: 44px;
+    width: 192px;
+    height: 14px;
+    font-size: 9px;
+    color: #4f5861;
+    text-align: center;
   }
-  100% {
-    transform: translateY(0px);
+
+  /* ── 日期鼓 ── */
+  .nd {
+    position: absolute;
+    left: 0;
+    width: 192px;
+    text-align: center;
+    font-size: 16px;
+    color: #454c54;
   }
-}
+
+  .nd-prev {
+    top: 100px;
+    height: 24px;
+  }
+
+  .nd-next {
+    top: 268px;
+    height: 24px;
+  }
+
+  .cur {
+    position: absolute;
+    left: 0;
+    top: 138px;
+    width: 192px;
+    height: 124px;
+    font-size: 88px;
+    line-height: 124px;
+    text-align: center;
+    color: #e9eef2;
+  }
+
+  /* 位移两帧（字面量 top，不用 transform） */
+  .c0 { top: 138px; }
+  .c1 { top: 132px; }
+  .c2 { top: 144px; }
+
+  /* ── 鼓窗切口 ── */
+  .cut {
+    position: absolute;
+    top: 148px;
+    height: 106px;
+    width: 1px;
+    background-color: #333a42;
+  }
+
+  .cut-l { left: 26px; }
+  .cut-r { left: 165px; }
+
+  .edge {
+    position: absolute;
+    left: 26px;
+    width: 140px;
+    height: 1px;
+  }
+
+  .edge-t {
+    top: 148px;
+    background-color: #3a424b;
+  }
+
+  .edge-b {
+    top: 254px;
+    background-color: #23282e;
+  }
+
+  /* ── 底部 ── */
+  .wd {
+    position: absolute;
+    left: 0;
+    top: 336px;
+    width: 192px;
+    height: 18px;
+    font-size: 12px;
+    color: #98a1aa;
+    text-align: center;
+  }
+
+  .hr {
+    position: absolute;
+    left: 76px;
+    top: 362px;
+    width: 40px;
+    height: 1px;
+    background-color: #2b3138;
+  }
+
+  .doy {
+    position: absolute;
+    left: 0;
+    top: 374px;
+    width: 192px;
+    height: 14px;
+    font-size: 9px;
+    color: #4d545c;
+    text-align: center;
+  }
+
+  .hint {
+    position: absolute;
+    left: 0;
+    top: 452px;
+    width: 192px;
+    height: 14px;
+    font-size: 9px;
+    color: #343b43;
+    text-align: center;
+  }
 </style>
