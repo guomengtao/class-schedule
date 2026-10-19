@@ -70,6 +70,8 @@ function pad(n) { return n < 10 ? "0" + n : String(n) }
 export default {
   private: {
     iconTheme: "dark",
+    fromPanel: "",
+    isRoot: false,
     isLoading: true,
     mode: "break",
     modeLabel: "课间 · 倒计时",
