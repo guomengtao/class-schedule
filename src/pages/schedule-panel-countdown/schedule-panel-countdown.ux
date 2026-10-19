@@ -19,7 +19,7 @@
         <text class="label-text" style="color: {{ theme.textSecondary }}">{{ countdownLabel }}</text>
         <text class="countdown-time" style="color: {{ theme.accent }}">{{ displayTime }}</text>
 
-        <div class="next-info">
+        <div class="next-info" style="background-color: {{ theme.card }}">
           <text class="next-name" style="color: {{ theme.text }}">{{ nextClass.name }}</text>
           <text class="next-detail" style="color: {{ theme.textSecondary }}">{{ nextClass.time }}</text>
           <text class="next-detail" if="{{ nextClass.location }}" style="color: {{ theme.textMuted }}">{{ nextClass.location }}</text>
@@ -178,23 +178,23 @@ export default {
 .empty-text { font-size: 24px; line-height: 32px; text-align: center }
 
 .countdown-card { flex-direction: column; align-items: center }
-.label-text { font-size: 22px; line-height: 30px; margin-bottom: 8px }
-.countdown-time { font-size: 72px; font-weight: bold; line-height: 80px; font-family: monospace; margin-bottom: 20px }
+.label-text { font-size: 22px; line-height: 30px; margin-bottom: 6px; letter-spacing: 1px }
+.countdown-time { font-size: 52px; font-weight: bold; line-height: 58px; font-family: monospace; margin-bottom: 16px; letter-spacing: 1px }
 
 /* 独立首页化修正：左右 padding 24→12px，给「10:00 - 10:45」留足一行宽度（原在 192px 屏折行成 10:45 掉行） */
-.next-info { flex-direction: column; align-items: center; padding: 16px 12px; border-radius: 14px; background-color: rgba(255,255,255,0.05) }
-.next-name { font-size: 28px; font-weight: bold; line-height: 36px; margin-bottom: 4px }
-.next-detail { font-size: 20px; line-height: 28px }
+.next-info { flex-direction: column; align-items: center; padding: 16px 14px; margin-top: 4px; border-radius: 14px }
+.next-name { font-size: 28px; font-weight: bold; line-height: 36px; margin-bottom: 6px }
+.next-detail { font-size: 20px; line-height: 28px; margin-top: 2px }
 
 @media (width >= 200px) {
   .page { padding: 44px 16px 14px 16px }
-  .countdown-time { font-size: 96px; line-height: 104px }
+  .countdown-time { font-size: 90px; line-height: 100px; letter-spacing: 2px }
   .next-name { font-size: 32px; line-height: 40px }
   .next-detail { font-size: 24px; line-height: 32px }
 }
 
 @media (width >= 400px) {
   .page { padding: 12px 20px 16px 20px }
-  .countdown-time { font-size: 120px; line-height: 128px }
+  .countdown-time { font-size: 104px; line-height: 116px; letter-spacing: 3px }
 }
 </style>

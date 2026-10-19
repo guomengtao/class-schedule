@@ -1,431 +1,209 @@
-<!-- UI/实现来源：open-vela-learning/packages_apps/wearable/calendar/src/pages/index/index.ux（ev-minimal 最小改动法，2026-10-14；注入点仅数据源/文案/跳转） -->
+<!-- 多彩课表（单日视图）—— 由整周矩阵重构为「只显示一天」的彩色课程卡片列表。
+     保留价值：科目稳定配色（多彩身份）；交互：左右滑动切天（prevDay/nextDay）。
+     独立首页化：root 判定 + 双模返回 + 主题全适配 + 空态 + 自加载数据。 -->
 <template>
-  <div class="home-page" @swipe="handleSwipe">
-    <div class="back-header" @click="backClick" if="{{ !isRoot }}">
-      <image class="back-icon" src="/common/image/back.png"></image>
-      <text class="back-text">返回</text>
-    </div>
-    <div class="header">
-      <div class="year-month">
-        <text class="title" style="color: {{ theme.text }}">多彩课表</text>
+  <div class="page" @swipe="handleSwipe" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="backClick" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <div class="week-head">
-        <text class="week-text" style="color: {{ theme.text }}">一</text>
-        <text class="week-text" style="color: {{ theme.text }}">二</text>
-        <text class="week-text" style="color: {{ theme.text }}">三</text>
-        <text class="week-text" style="color: {{ theme.text }}">四</text>
-        <text class="week-text" style="color: {{ theme.text }}">五</text>
-        <text class="week-text" style="color: {{ theme.textSecondary }}">六</text>
-        <text class="week-text" style="color: {{ theme.textSecondary }}">日</text>
+      <div class="header-center">
+        <text class="header-title" style="color: {{ theme.text }}">多彩课表</text>
+        <text class="header-day" style="color: {{ theme.textSecondary }}">{{ dayLabel }}</text>
       </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div if="{{ !isRoot }}" class="header-placeholder"></div>
     </div>
-    <text class="empty-hint" if="{{ !hasCourses }}" style="color: {{ theme.textMuted }}">本周暂无课程</text>
-    <div class="list">
-      <div for="row in list" class="item" style="height: {{height}}">
-        <div class="cell" for="cell in row" tid="id">
-          <text @click="handleClick(cell)" class="{{cell.className}}" style="color: {{ cell.colorKey ? theme[cell.colorKey] : '#ffffff' }}">
-            {{ cell.value }}
-          </text>
+
+    <text if="{{ !hasCourses }}" class="empty-hint" style="color: {{ theme.textMuted }}">{{ emptyHint }}</text>
+
+    <scroll if="{{ hasCourses }}" class="scroll-body" scroll-y="true">
+      <div for="{{ dayClasses }}" class="course-card" style="background-color: {{ $item.color }}">
+        <div class="course-main">
+          <text class="course-name" style="color: #ffffff">{{ $item.name }}</text>
+          <text class="course-time" style="color: rgba(255,255,255,0.9)">{{ $item.time }}</text>
         </div>
+        <text if="{{ $item.location }}" class="course-location" style="color: rgba(255,255,255,0.75)">{{ $item.location }}</text>
       </div>
-    </div>
+    </scroll>
   </div>
 </template>
 
 <script>
 import router from "@system.router";
-import device from "@system.device";
 const database = require("../../data/database.js");
 const store = require("../../data/store.js");
+const utils = require("../../data/utils.js");
+
+var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+// 多彩身份：科目稳定配色（官方 color demo 色板：#ff6b6b / #51cf66 / rgb(51,154,240) / blue / #f00）
+var PALETTE = ["#ff6b6b", "#51cf66", "rgb(51,154,240)", "#3b82f6", "#f00"];
+
+function parseMinutes(t) {
+  if (!t) return 0;
+  var i = t.indexOf(" - ");
+  if (i < 0) return 0;
+  var s = t.substring(0, i).trim().split(":");
+  if (s.length !== 2) return 0;
+  return parseInt(s[0], 10) * 60 + parseInt(s[1], 10);
+}
+
 export default {
-	private: {
-		date: new Date(),
-		year: "",
-		month: "",
-		list: null,
-		height: "50px",
-		viewIndex: 0,
-		isCapsule: false,
-		fromPanel: "",
-		isRoot: false,
-		hasCourses: false,
-		theme: {
-			bg: '#1a1a2e', card: '#16213e', accent: '#7ec8e3',
-			text: '#ffffff', textSecondary: '#888899', textMuted: '#555566', border: '#0f3460'
-		}
-	},
+  private: {
+    iconTheme: "dark",
+    fromPanel: "",
+    isRoot: false,
+    dayCursor: 0,
+    dayLabel: "",
+    dayClasses: [],
+    hasCourses: false,
+    emptyHint: "今天暂无课程",
+    theme: {
+      bg: '#1a1a2e', card: '#16213e', accent: '#7ec8e3',
+      text: '#ffffff', textSecondary: '#888899', textMuted: '#555566', border: '#0f3460'
+    }
+  },
 
-	onInit() {
-		// 独立首页化：root 判定 + 主题接入（原页面标题/星期头/分隔线/空格文字全硬编码白色，浅色主题不可读）
-		const self = this;
-		self.fromPanel = (self.fromPanel === '1') ? '1' : '';
-		self.isRoot = self.fromPanel !== '1';
-		store.getTheme(function(t) { self.theme = t; });
-		this.initList();
-		// 军规6（v2）：先取屏型再建矩阵。手环9 胶囊屏 194×368，官方 300px 矩阵 + 80px 表头 + pill 返回条会溢出屏底，
-		// 行高基准按屏型收敛（官方 base/rows 公式的胶囊适配，官方 class 未动；屏型探测沿用 week-view 既有写法）。
-		device.getInfo({
-			success: function(data) {
-				var shape = data.screenShape || "";
-				self.isCapsule = (shape === "capsule" || shape === "pill-shaped");
-				self.loadMatrix();
-			},
-			fail: function() {
-				self.loadMatrix();
-			}
-		});
-	},
+  onInit() {
+    var self = this;
+    // 独立首页 root 判定：由「更多首页」push 时带 fromPanel='1'；无参数即被设为首页冷启动
+    self.fromPanel = (self.fromPanel === '1') ? '1' : '';
+    self.isRoot = self.fromPanel !== '1';
+    self.updateTheme();
+    // 默认显示今天
+    self.dayCursor = new Date().getDay();
+    self.loadDay();
+  },
 
-	initList() {
-		let list = [];
-		for (let i = 0; i < 5; i++) {
-			let initArray = new Array(7).fill("x").map((item) => {
-				return {
-					value: "",
-					className: "",
-					colorKey: "text"
-				};
-			});
-			list.push(initArray);
-		}
+  onShow() {
+    this.updateTheme();
+  },
 
-		this.list = list;
-	},
-	// 注入点3返回（独立首页化改双模）：官方为 app.terminate()（官方 demo 是根页）；
-	// 被「更多首页」push（fromPanel）→ router.back()；作为 root 首页冷启动 → 退出应用（与 index 一致）。
-	backClick() {
-		if (this.fromPanel === '1') {
-			router.back();
-		} else {
-			const utils = require("../../data/utils.js");
-			utils.exitApp();
-		}
-	},
+  updateTheme: function() {
+    var self = this;
+    store.getTheme(function(t, themeName) {
+      self.theme = t;
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark';
+    });
+  },
 
-	onBackPress() {
-		if (this.fromPanel === '1') return false;
-		const utils = require("../../data/utils.js");
-		return utils.exitApp() === true;
-	},
+  loadDay: function() {
+    var self = this;
+    database.init(function() {
+      database.getAllCourses(function(schedule) {
+        var matrix = {};
+        if (schedule) {
+          for (var d = 0; d < schedule.length; d++) {
+            var dd = schedule[d];
+            if (dd && dd.day) matrix[dd.day] = dd.classes || [];
+          }
+        }
+        self.renderDay(matrix);
+      });
+    });
+  },
 
-	// 注入点①数据源：官方 getCalendar（日期矩阵）→ 课表矩阵。
-	// 渲染机制全部保留官方：rows×7 矩阵、className 三类（workday/weekend/today）、动态行高、点击进详情。
-	// 有课格按官方 color demo 色板配色（见 <style> 末尾 cell-course-* 追加类，§3 已批准：业务色值取自官方示例色板）；
-	// §11 例外：官方无课程业务，数据层用项目 database。
-	loadMatrix() {
-		const self = this;
-		// 注入点①数据源（2026-10-14 用户要求）：课程改为显示【当前生效方案】——
-		// database.getAllCourses 内部走 currentScheduleIndex（见 data/database.js 663 行），
-		// 不再用 viewIndex 取数（viewIndex 会被官方 @swipe 翻页改变，会跳到别的方案）。
-		// viewIndex 与官方 prevWeek/nextWeek 交互按军规4保留（不删官方结构），滑动仅重载当前方案数据。
-		database.getAllCourses(function(schedule) {
-			const matrix = {};
-			if (schedule) {
-				for (let d = 0; d < schedule.length; d++) {
-					const dayData = schedule[d];
-					if (dayData && dayData.day) matrix[dayData.day] = dayData.classes || [];
-				}
-			}
-			self.buildScheduleMatrix(matrix);
-		});
-	},
+  renderDay: function(matrix) {
+    var self = this;
+    var dayName = DAY_NAMES[self.dayCursor];
+    var todayIdx = new Date().getDay();
+    if (!self._subjectColors) self._subjectColors = {};
+    var cls = (matrix[dayName] || []).slice();
+    cls.sort(function(a, b) { return parseMinutes(a.time) - parseMinutes(b.time); });
+    var out = cls.map(function(c) {
+      var ci = self._subjectColors[c.name];
+      if (ci === undefined) {
+        ci = Object.keys(self._subjectColors).length % PALETTE.length;
+        self._subjectColors[c.name] = ci;
+      }
+      return { name: c.name, time: c.time, location: c.location, id: c.id, color: PALETTE[ci] };
+    });
+    self.dayClasses = out;
+    self.hasCourses = out.length > 0;
+    self.dayLabel = (self.dayCursor === todayIdx) ? ("今天 · " + dayName) : dayName;
+    self.emptyHint = (self.dayCursor === todayIdx) ? "今天暂无课程" : (dayName + " 暂无课程");
+  },
 
-	buildScheduleMatrix(matrix) {
-		const DAY_COLS = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"];
-		// 官方 color demo 色板（#ff6b6b / #51cf66 / rgb(51,154,240) / red 名 / #f00 即本页官方 .red 值）
-		const PALETTE = ["cell-course-0", "cell-course-1", "cell-course-2", "cell-course-3", "cell-course-4"];
-		if (!this._subjectColors) this._subjectColors = {};
-		let rows = 1;
-		let total = 0;
-		for (let i = 0; i < DAY_COLS.length; i++) {
-			const cls = matrix[DAY_COLS[i]] || [];
-			total += cls.length;
-			if (cls.length > rows) rows = cls.length;
-		}
-		this.hasCourses = total > 0;
-		this.updateListRows(rows);
-		// 军规6（v2）：官方基准 300px（圆/方屏向）；胶囊屏 194×368 扣除表头 100px 与 pill 返回条约 60px 后收敛为 200px，防溢出屏底
-		this.height = (this.isCapsule ? 200 : 300) / rows + "px";
+  reloadDay: function() {
+    var self = this;
+    database.getAllCourses(function(schedule) {
+      var matrix = {};
+      if (schedule) {
+        for (var d = 0; d < schedule.length; d++) {
+          var dd = schedule[d];
+          if (dd && dd.day) matrix[dd.day] = dd.classes || [];
+        }
+      }
+      self.renderDay(matrix);
+    });
+  },
 
-		for (let i = 0; i < rows; i++) {
-			for (let j = 0; j < 7; j++) {
-				const cls = matrix[DAY_COLS[j]] || [];
-				const c = cls[i];
-				if (j === 5 || j === 6) {
-					this.list[i][j].className = "cell-text-weekend";
-				} else {
-					this.list[i][j].className = "cell-text-workday";
-				}
-				if (c && c.name) {
-					// 军规3 加法适配：官方格宽 50px 且 cell 类无字号（官方只放 1-2 位日期数字），
-					// 课程名截两字 + cell-course-* 追加类补 22px，保证不溢出格宽。
-					this.list[i][j].value = c.name.length > 2 ? c.name.slice(0, 2) : c.name;
-					let colorIdx = this._subjectColors[c.name];
-					if (colorIdx === undefined) {
-						colorIdx = Object.keys(this._subjectColors).length % PALETTE.length;
-						this._subjectColors[c.name] = colorIdx;
-					}
-					this.list[i][j].className = PALETTE[colorIdx];
-					this.list[i][j].courseId = c.id;
-					// 占用格底色为彩色，强制白字（colorKey 置空 → 模板落到 #ffffff），浅色主题下仍为白字可读
-					this.list[i][j].colorKey = "";
-				} else {
-					this.list[i][j].value = "";
-				}
-			}
-		}
-	},
+  prevDay: function() {
+    if (this.dayCursor > 0) { this.dayCursor -= 1; this.reloadDay(); }
+  },
 
-	updateListRows(rows) {
-		while (this.list.length < rows) {
-			let initArray = new Array(7).fill("x").map((item) => {
-				return {
-					value: "",
-					className: "",
-					colorKey: "text"
-				};
-			});
-			this.list.push(initArray);
-		}
+  nextDay: function() {
+    if (this.dayCursor < 6) { this.dayCursor += 1; this.reloadDay(); }
+  },
 
-		while (this.list.length > rows) {
-			this.list.pop();
-		}
-	},
+  handleSwipe: function(eve) {
+    if (eve.direction === "left") this.nextDay();
+    else if (eve.direction === "right") this.prevDay();
+  },
 
-	prevWeek() {
-		if (this.viewIndex <= 0) return;
-		this.viewIndex -= 1;
-		this.loadMatrix();
-	},
+  backClick() {
+    if (this.fromPanel === '1') {
+      router.back();
+    } else {
+      utils.exitApp();
+    }
+  },
 
-	nextWeek() {
-		this.viewIndex += 1;
-		this.loadMatrix();
-	},
+  onBackPress() {
+    if (this.fromPanel === '1') return false;
+    return utils.exitApp() === true;
+  },
 
-	// 注入点③跳转：官方 handleClick（push 本工程不存在的 pages/detail）→ 项目课程管理页
-	handleClick(item) {
-		if (item.value === "") return;
-		router.push({
-			uri: "/pages/schedule-manager"
-		});
-	},
-
-	handleSwipe(eve) {
-		if (eve.direction === "left") {
-			this.nextWeek();
-		} else if (eve.direction === "right") {
-			this.prevWeek();
-		}
-	},
+  handleClick(item) {
+    router.push({ uri: "/pages/schedule-manager" });
+  }
 };
 </script>
 
 <style>
-.back-header {
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 10px;
+.page { flex-direction: column; width: 100%; height: 100%; padding: 44px 12px 12px 12px }
+
+.back-header { flex-direction: row; align-items: center; margin-bottom: 14px; padding: 0 4px }
+.back-btn-wrapper { width: 48px; height: 40px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0 }
+.back-btn-icon { width: 24px; height: 24px }
+.header-center { flex: 1; flex-direction: column; align-items: center; justify-content: center }
+.header-title { font-size: 26px; font-weight: bold; line-height: 34px; text-align: center }
+.header-day { font-size: 16px; line-height: 22px; text-align: center; margin-top: 2px }
+.header-placeholder { width: 48px; height: 40px; flex-shrink: 0 }
+
+.empty-hint { flex: 1; align-items: center; justify-content: center; font-size: 22px; line-height: 30px; text-align: center }
+
+.scroll-body { flex: 1; flex-direction: column }
+.course-card { flex-direction: column; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px }
+.course-main { flex-direction: row; justify-content: space-between; align-items: baseline }
+.course-name { font-size: 24px; font-weight: bold; line-height: 32px }
+.course-time { font-size: 18px; line-height: 26px; flex-shrink: 0; margin-left: 8px }
+.course-location { font-size: 16px; line-height: 22px; margin-top: 4px }
+
+/* 宽屏 / 大屏断点：字号与卡片间距同步放大，保持工整比例 */
+@media (width >= 200px) {
+  .page { padding: 44px 16px 14px 16px }
+  .header-title { font-size: 28px; line-height: 36px }
+  .course-card { margin-bottom: 12px }
+  .course-name { font-size: 28px; line-height: 36px }
+  .course-time { font-size: 20px; line-height: 28px }
+  .course-location { font-size: 18px; line-height: 24px }
 }
 
-.back-icon {
-  width: 30px;
-  height: 30px;
-  margin-right: 6px;
-}
-
-.back-text {
-  font-size: 30px;
-}
-
-.home-page {
-	width: 100%;
-	height: 100%;
-	border-radius: 240px;
-	flex-direction: column;
-  align-items: center;
-}
-
-@media screen and (shape: pill-shaped) {
-	.home-page {
-		width: 100%;
-		height: 100%;
-		border-radius: 240px;
-		flex-direction: column;
-		align-items: flex-start;
-	}
-}
-
-.header {
-	width: 350px;
-	height: 80px;
-	margin-top: 20px;
-	flex-direction: column;
-	justify-content: space-between;
-	align-items: center;
-}
-
-.year-month {
-	width: 240px;
-	height: 60px;
-	justify-content: center;
-	align-items: center;
-}
-.container {
-	justify-content: center;
-	padding: 10px;
-	color: white;
-	border-radius: 20px;
-	margin: 0px 20px 0px 20px;
-	background-color: grey;
-}
-
-.title {
-	font-weight: 700;
-}
-
-.red {
-	color: #f00;
-}
-
-.week-head {
-	width: 350px;
-	justify-content: center;
-	align-items: center;
-}
-
-.week-text {
-	width: 50px;
-	font-weight: 700;
-	color: #fff;
-	text-align: center;
-}
-
-.weekend {
-	color: rgba(255, 255, 255, 0.6);
-}
-
-.divider {
-	width: 100%;
-	height: 2px;
-	margin-top: 4px;
-	background-color: rgba(255, 255, 255, 0.3);
-}
-
-.list {
-	width: 350px;
-	height: 300px;
-	flex-direction: column;
-}
-
-.item {
-	width: 100%;
-}
-
-.cell {
-	width: 50px;
-	height: 100%;
-}
-
-.cell-text-workday {
-	width: 100%;
-	height: 100%;
-	font-weight: 700;
-	text-align: center;
-	color: rgba(255, 255, 255, 1);
-	background-color: transparent;
-}
-
-.cell-text-weekend {
-	width: 100%;
-	height: 100%;
-	font-weight: 700;
-	text-align: center;
-	color: rgba(255, 255, 255, 0.6);
-	background-color: transparent;
-}
-
-.cell-text-today {
-	width: 100%;
-	height: 100%;
-	font-weight: 700;
-	text-align: center;
-	color: rgba(255, 255, 255, 1);
-	background-color: #ff3a3a;
-}
-
-/* ev-minimal rule 3 append-only: occupied-cell colors from official color demo palette
-   (#ff6b6b / #51cf66 / rgb(51,154,240) / blue name / #f00). Official cell-text-* above untouched.
-   font-size 22px is the additive adaptation for 2-char course names in the 50px official cell. */
-.cell-course-0 {
-	width: 100%;
-	height: 100%;
-	font-weight: 700;
-	font-size: 22px;
-	text-align: center;
-	color: rgba(255, 255, 255, 1);
-	background-color: #ff6b6b;
-}
-.cell-course-1 {
-	width: 100%;
-	height: 100%;
-	font-weight: 700;
-	font-size: 22px;
-	text-align: center;
-	color: rgba(255, 255, 255, 1);
-	background-color: #51cf66;
-}
-.cell-course-2 {
-	width: 100%;
-	height: 100%;
-	font-weight: 700;
-	font-size: 22px;
-	text-align: center;
-	color: rgba(255, 255, 255, 1);
-	background-color: rgb(51, 154, 240);
-}
-.cell-course-3 {
-	width: 100%;
-	height: 100%;
-	font-weight: 700;
-	font-size: 22px;
-	text-align: center;
-	color: rgba(255, 255, 255, 1);
-	background-color: blue;
-}
-.cell-course-4 {
-	width: 100%;
-	height: 100%;
-	font-weight: 700;
-	font-size: 22px;
-	text-align: center;
-	color: rgba(255, 255, 255, 1);
-	background-color: #f00;
-}
-
-/* ev-minimal v2 rules 6+7: band-9 pill screen 194x368 narrowing (append-only; official class defs untouched; single-shape query, no comma).
-   Official calendar base is 350px fixed width (round/square watches) - it overflows the 194px pill screen,
-   so per rule 7 this page was NOT allowed on band 9 until narrowed here:
-   matrix/week-head/list 350->178px, cells 50->25px (7*25=175<=178), cell text 22->12px (2 chars=24px<=25px),
-   week header chars 16px; home-page align-items overridden back to center (official pill branch sets flex-start,
-   which would clip the header against the top corners); list height 300->200px pairs with the script-side
-   row-height baseline switch (300/rows -> 200/rows) so matrix + pill back-bar fit above the 368px screen bottom. */
-@media screen and (shape: pill-shaped) {
-  .home-page { align-items: center; }
-  .header { width: 178px; }
-  .year-month { width: 178px; }
-  .week-head { width: 178px; }
-  .week-text { width: 25px; font-size: 16px; }
-  .list { width: 178px; height: 200px; }
-  .cell { width: 25px; }
-  .cell-course-0 { font-size: 12px; }
-  .cell-course-1 { font-size: 12px; }
-  .cell-course-2 { font-size: 12px; }
-  .cell-course-3 { font-size: 12px; }
-  .cell-course-4 { font-size: 12px; }
+@media (width >= 400px) {
+  .page { padding: 12px 20px 16px 20px }
+  .header-title { font-size: 32px; line-height: 40px }
+  .course-card { padding: 16px 18px; margin-bottom: 14px }
+  .course-name { font-size: 32px; line-height: 40px }
+  .course-time { font-size: 22px; line-height: 30px }
 }
 </style>

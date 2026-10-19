@@ -228,47 +228,62 @@ ok("宽屏断点适配保留（@media width >= 360 / 480）",
 ok("header 标题渲染为「更多首页」", panelSrc.indexOf(">更多首页</text>") >= 0)
 ok("header 下方有定位说明文案（含「默认首页不受影响」）", panelSrc.indexOf("默认首页不受影响") >= 0)
 
-// ================================================================ 2. 多彩课表
+// ================================================================ 2. 多彩课表（单日视图）
 
 console.log("")
-console.log(bold("2. 多彩课表 schedule-panel-colorful —— 当前方案 + 矩阵"))
+console.log(bold("2. 多彩课表 schedule-panel-colorful —— 单日视图 + 当前方案"))
 
 var colorEnv = makeEnv({ courses: MOCK_SCHEDULE, pill: false })
 var colorful = newInstance("colorful", colorEnv.req)
 colorful.onInit()
 
-ok("数据源走 getCurrent / getAllCourses（当前方案），不用可被滑动改变的 viewIndex",
+ok("数据源走 getAllCourses（当前方案），不用可被滑动改变的 viewIndex",
   colorEnv.env.calls.indexOf("getAllCourses") >= 0 &&
   colorEnv.env.calls.filter(function (c) { return c.indexOf("getAllCoursesWithIndex") === 0 }).length === 0,
   "实际调用：" + JSON.stringify(colorEnv.env.calls))
 
-var weekdayCells = colorful.list.filter(function (row) { return row[0].value !== "" })
-ok("星期一有课渲染出课程格", colorful.list[0][0].value === "数学",
-  "实际：" + JSON.stringify(colorful.list[0][0].value))
-ok("超 2 字课程名截断为两字（官方格宽 50px 限制）", colorful.list[1][0].value === "语文",
-  "实际：" + JSON.stringify(colorful.list[1][0].value))
-ok("方屏行高基准 300/rows", colorful.height !== "50px" && colorful.height.indexOf(".") >= 0 ||
-  colorful.height === (300 / colorful.list.length) + "px", "实际：" + colorful.height)
+// 单日视图：默认 dayCursor = 今天；测试确定性地切到星期一（DAY_NAMES[1]）
+colorful.dayCursor = 1
+colorful.loadDay()
+ok("切到星期一后 hasCourses=true", colorful.hasCourses === true)
+eq("星期一渲染 2 门课（数学 + 语文课）", colorful.dayClasses.length, 2)
+eq("课程名不截断（单日卡片无需压缩）", colorful.dayClasses[0].name, "数学")
+ok("同一天内按时间升序（08:00 在 10:00 前）",
+  colorful.dayClasses[0].time === "08:00" && colorful.dayClasses[1].time === "10:00",
+  JSON.stringify(colorful.dayClasses.map(function (c) { return c.name + "@" + c.time })))
+ok("每门课带 color 字段（多彩身份：科目稳定配色）", colorful.dayClasses.every(function (c) { return !!c.color }))
 
-var mathIdx = colorful.list[0][0].className
-var mathIdxAgain = (function () {
-  var env2 = makeEnv({ courses: MOCK_SCHEDULE })
-  var c2 = newInstance("colorful", env2.req)
-  c2.onInit()
-  return c2.list[0][0].className
-})()
-eq("同一科目配色稳定（跨实例一致）", mathIdxAgain, mathIdx)
+// 空天：切到星期二（mock 无课）→ 空态
+colorful.dayCursor = 2
+colorful.loadDay()
+ok("切到无课天 hasCourses=false（触发空态）", colorful.hasCourses === false)
+ok("空态文案含星期名", colorful.emptyHint.indexOf("星期二") >= 0, colorful.emptyHint)
 
-var colorEnvCapsule = makeEnv({ courses: MOCK_SCHEDULE, pill: true })
-var colorfulCapsule = newInstance("colorful", colorEnvCapsule.req)
-colorfulCapsule.onInit()
-ok("胶囊屏下 rowHeight 基准收敛为 200/rows（防矩阵溢出 368px 屏底）",
-  colorfulCapsule.height === (200 / colorfulCapsule.list.length) + "px" ||
-  colorfulCapsule.height !== colorful.height, "胶囊 = " + colorfulCapsule.height + "，方屏 = " + colorful.height)
+// 配色稳定（跨实例一致）
+var colorEnv2 = makeEnv({ courses: MOCK_SCHEDULE })
+var colorful2 = newInstance("colorful", colorEnv2.req)
+colorful2.dayCursor = 1; colorful2.loadDay()
+// 实例1 此前已切到「无课天」(星期二) 做空态断言，dayClasses 已为空，需先切回星期一再比配色
+colorful.dayCursor = 1; colorful.loadDay()
+eq("同一科目配色稳定（跨实例一致）", colorful2.dayClasses[0].color, colorful.dayClasses[0].color)
+
+// 滑动切天：nextDay / prevDay 修改 dayCursor + dayLabel
+var colorEnv3 = makeEnv({ courses: MOCK_SCHEDULE })
+var colorful3 = newInstance("colorful", colorEnv3.req)
+var todayIdx = new Date().getDay()
+colorful3.dayCursor = todayIdx; colorful3.loadDay()
+ok("选中今天时 dayLabel 带「今天 ·」前缀", colorful3.dayLabel.indexOf("今天 ·") === 0, colorful3.dayLabel)
+colorful3.dayCursor = (todayIdx + 1) % 7; colorful3.loadDay()
+ok("选中非今天时 dayLabel 仅为星期名（无前缀）", colorful3.dayLabel.indexOf("今天") < 0, colorful3.dayLabel)
+colorful3.dayCursor = 1; colorful3.loadDay()
+colorful3.nextDay()
+ok("nextDay 切到下一星期且 dayLabel 跟随", colorful3.dayCursor === 2 && colorful3.dayLabel === "星期二", colorful3.dayLabel)
+colorful3.prevDay()
+eq("prevDay 回到星期一且 dayLabel 跟随", colorful3.dayCursor, 1)
 
 var colorSrc = readFile(PAGES.colorful.file)
-ok("官方结构保留：prevWeek / nextWeek / @swipe 未删（军规4 禁删官方元素）",
-  colorSrc.indexOf("prevWeek") > 0 && colorSrc.indexOf("nextWeek") > 0)
+ok("保留左右滑动切天：@swipe + handleSwipe + prevDay/nextDay",
+  colorSrc.indexOf("@swipe") > 0 && colorSrc.indexOf("handleSwipe") > 0 && colorSrc.indexOf("nextDay") > 0)
 
 // ================================================================ 3. 简易课表
 
