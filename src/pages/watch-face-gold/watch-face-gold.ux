@@ -231,9 +231,14 @@ export default {
     const m = now.getMinutes()
     const s = now.getSeconds()
 
-    this.hourCls = stepClass((h + m / 60 + s / 3600) * 30)
-    this.minuteCls = stepClass((m + s / 60) * 6)
-    this.secondCls = stepClass(s * 6)
+    var hc = stepClass((h + m / 60 + s / 3600) * 30)
+    var mc = stepClass((m + s / 60) * 6)
+    var sc = stepClass(s * 6)
+    // 脏值判断：值没变就不赋值。Vela 每次赋值都会跑一轮全树 diff + 整屏重绘，
+    // 同一帧内多次赋值不合并 —— 6 次/秒的重绘正是「整页闪」的来源。
+    if (hc !== this.hourCls) this.hourCls = hc
+    if (mc !== this.minuteCls) this.minuteCls = mc
+    if (sc !== this.secondCls) this.secondCls = sc
   },
 
   startTimer() {
@@ -253,9 +258,13 @@ export default {
 
   tick() {
     const now = new Date()
-    this.timeText = pad2(now.getHours()) + ":" + pad2(now.getMinutes())
-    this.dateText = pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + " " + FULL_DAY[now.getDay()]
-    this.dayText = pad2(now.getDate())
+    // 时分每分钟变一次、日期/日期窗每天变一次，都不必每秒写
+    var t = pad2(now.getHours()) + ":" + pad2(now.getMinutes())
+    if (t !== this.timeText) this.timeText = t
+    var d = pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + " " + FULL_DAY[now.getDay()]
+    if (d !== this.dateText) this.dateText = d
+    var day = pad2(now.getDate())
+    if (day !== this.dayText) this.dayText = day
     this.syncHands()
   },
 
