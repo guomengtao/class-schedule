@@ -589,8 +589,8 @@ export default {
 }
 
 .back-btn-icon-capsule {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
 }
 
 .header-title-capsule {
