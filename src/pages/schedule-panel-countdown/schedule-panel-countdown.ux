@@ -1,11 +1,11 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+      <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">倒计时</text>
-      <div class="header-placeholder"></div>
+      <div if="{{ !isRoot }}" class="header-placeholder"></div>
     </div>
 
     <div if="{{ isLoading }}" class="loading-area">
@@ -33,6 +33,7 @@
 import router from "@system.router"
 const database = require("../../data/database.js")
 const store = require("../../data/store.js")
+const utils = require("../../data/utils.js")
 
 var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
@@ -51,6 +52,8 @@ function pad(n) { return n < 10 ? "0" + n : String(n) }
 export default {
   private: {
     iconTheme: "dark",
+    fromPanel: "",
+    isRoot: false,
     isLoading: true,
     nextClass: null,
     countdownLabel: "",
@@ -65,6 +68,9 @@ export default {
 
   onInit() {
     var self = this
+    // 独立首页 root 判定：由「更多首页」push 时带 fromPanel='1'；无参数即被设为首页冷启动
+    self.fromPanel = (self.fromPanel === '1') ? '1' : ''
+    self.isRoot = self.fromPanel !== '1'
     store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
     self.loadData()
     self.timer = setInterval(function() { self.tick() }, 1000)
@@ -135,7 +141,20 @@ export default {
     }
   },
 
-  goBack() { router.back() },
+  goBack() {
+    // 双模返回：被「更多首页」push（fromPanel）→ 回父页；作为 root 首页 → 退出应用
+    if (this.fromPanel === '1') {
+      router.back()
+    } else {
+      utils.exitApp()
+    }
+  },
+
+  onBackPress() {
+    // 硬件返回键：push 态交还系统默认返回（回更多首页）；root 态退出（与默认首页 index 一致）
+    if (this.fromPanel === '1') return false
+    return utils.exitApp() === true
+  },
 
   onDestroy() {
     if (this.timer) { clearInterval(this.timer); this.timer = null }
@@ -162,7 +181,8 @@ export default {
 .label-text { font-size: 22px; line-height: 30px; margin-bottom: 8px }
 .countdown-time { font-size: 72px; font-weight: bold; line-height: 80px; font-family: monospace; margin-bottom: 20px }
 
-.next-info { flex-direction: column; align-items: center; padding: 16px 24px; border-radius: 14px; background-color: rgba(255,255,255,0.05) }
+/* 独立首页化修正：左右 padding 24→12px，给「10:00 - 10:45」留足一行宽度（原在 192px 屏折行成 10:45 掉行） */
+.next-info { flex-direction: column; align-items: center; padding: 16px 12px; border-radius: 14px; background-color: rgba(255,255,255,0.05) }
 .next-name { font-size: 28px; font-weight: bold; line-height: 36px; margin-bottom: 4px }
 .next-detail { font-size: 20px; line-height: 28px }
 
