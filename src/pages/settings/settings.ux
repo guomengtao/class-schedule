@@ -86,6 +86,32 @@
     </div>
 
     <div class="group" style="background-color: {{ theme.card }}">
+      <div class="row" onclick="openWatchFaceList">
+        <text class="row-label" style="color: {{ theme.text }}">表盘目录</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">全部表盘</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="openTools">
+        <text class="row-label" style="color: {{ theme.text }}">工具</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">倒数日 · 震动等</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+      <div class="divider" style="background-color: {{ theme.border }}"></div>
+      <div class="row" onclick="openPhoneRemote">
+        <text class="row-label" style="color: {{ theme.text }}">手机遥控</text>
+        <div class="row-right">
+          <text class="row-hint" style="color: {{ theme.textMuted }}">找手机 · 静音 · 手电等</text>
+          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+      </div>
+    </div>
+
+    <div class="group" style="background-color: {{ theme.card }}">
       <div class="group-title-row" onclick="toggleGroup('data')">
         <text class="group-title" style="color: {{ theme.text }}">数据</text>
         <text class="arrow" style="color: {{ theme.textMuted }}">{{ showData ? 'v' : '›' }}</text>
@@ -137,32 +163,6 @@
             <text class="row-hint" style="color: {{ theme.textMuted }}">鼓励开发者</text>
             <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="group" style="background-color: {{ theme.card }}">
-      <div class="row" onclick="openWatchFaceList">
-        <text class="row-label" style="color: {{ theme.text }}">表盘目录</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">全部表盘</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
-      <div class="row" onclick="openTools">
-        <text class="row-label" style="color: {{ theme.text }}">工具</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">倒数日 · 震动等</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-      </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
-      <div class="row" onclick="openPhoneRemote">
-        <text class="row-label" style="color: {{ theme.text }}">手机遥控</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">找手机 · 静音 · 手电等</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
     </div>
