@@ -1,3 +1,5 @@
+var defaultCourseNames = ["语文", "数学", "英语", "物理", "化学", "政治", "音乐", "体育", "美术", "历史", "地理", "生物"]
+
 function init(instance) {
   instance.quickAdd = {
     expanded: false,
@@ -18,19 +20,21 @@ function init(instance) {
       storage.get({
         key: "course_preset_list",
         success: function(data) {
+          var names = []
           try {
             var list = JSON.parse(data)
-            var names = []
-            for (var i = 0; i < list.length; i++) {
-              names.push(list[i].name || list[i])
+            if (Array.isArray(list) && list.length > 0) {
+              for (var i = 0; i < list.length; i++) {
+                names.push(list[i].name || list[i])
+              }
+              self.quickAdd.courseNames = names
+              return
             }
-            self.quickAdd.courseNames = names
-          } catch (e) {
-            self.quickAdd.courseNames = []
-          }
+          } catch (e) {}
+          self.quickAdd.courseNames = defaultCourseNames.slice()
         },
         fail: function() {
-          self.quickAdd.courseNames = []
+          self.quickAdd.courseNames = defaultCourseNames.slice()
         }
       })
     },
