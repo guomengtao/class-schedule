@@ -145,7 +145,7 @@
 
     <div class="group" style="background-color: {{ theme.card }}">
       <div class="row" onclick="openSchedulePanel">
-        <text class="row-label" style="color: {{ theme.text }}">课程面板</text>
+        <text class="row-label" style="color: {{ theme.text }}">更多首页</text>
         <div class="row-right">
           <text class="row-hint" style="color: {{ theme.textMuted }}">7 种风格</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>

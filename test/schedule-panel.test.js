@@ -1,5 +1,5 @@
 /**
- * 课程面板（目录页 + 多彩课表 + 简易课表）单元测试
+ * 更多首页（目录页 + 多彩课表 + 简易课表）单元测试
  *
  * 用法：node test/schedule-panel.test.js
  *
@@ -126,8 +126,26 @@ function makeEnv(opts) {
       }
     }
     if (id.indexOf("data.js") >= 0) return null
-    // database 桩：只实现两个接口的访问记录 + 当前方案返回
+    // store 桩：简易课表 onInit 调 store.getTheme(cb)（真实签名见 src/data/store.js:287，
+    // 回调 (theme, themeName)，此处镜像 THEMES.blue 真实色值）。
+    // 2026-10-19 修存量坏账：目录页 183 行崩溃修好后暴露出此桩缺失——修复前整组套件
+    // 从未跑完过（必崩于第 3 节简易课表 onInit）。
+    if (id.indexOf("store.js") >= 0) {
+      return {
+        getTheme: function (cb) {
+          cb({
+            bg: "#1a1a2e", card: "#16213e", cardLight: "#0f3460", accent: "#7ec8e3",
+            text: "#ffffff", textSecondary: "#888899", textMuted: "#555566",
+            border: "#0f3460", borderLight: "#2a2a5a"
+          }, "blue")
+        }
+      }
+    }
+    // database 桩：init（开库）+ 两个读接口的访问记录 + 当前方案返回。
+    // init 2026-10-19 补：简易课表 loadData 先 database.init(cb) 再 getAllCourses(cb)，
+    // 与 store.getTheme 同属第三处存量坏账（套件修复前从未跑完过第 3 节）。
     return {
+      init: function (cb) { cb && cb() },
       getAllCourses: function (cb) {
         env.calls.push("getAllCourses")
         cb(env.courses)
@@ -180,7 +198,7 @@ var panel = newInstance("panel", function (id) {
   if (id.indexOf("data.js") >= 0) return tabsData
   return {}
 })
-eq("标题正文为「课程面板」", panel.tabs[0].name, "课程面板")
+eq("目录页名称为「更多首页」", tabsData[0].name, "更多首页")
 
 var firstUri = entries[0].path
 panel.route(firstUri)
@@ -202,8 +220,13 @@ var panelSrc = readFile(PAGES.panel.file)
 ok("已无折叠状态 expandedGroups（接口列表 = 直接链接，不再要点一下展开）",
   panelSrc.indexOf("expandedGroups") < 0)
 ok("已无折叠开关 toggleGroup", panelSrc.indexOf("toggleGroup") < 0)
-ok("保留官方 pill 适配分支 @media (shape: pill-shaped)",
-  panelSrc.indexOf("pill-shaped") > 0)
+// 2026-10-19：原断言钉 @media (shape: pill-shaped)，但 2026-10-17 UI 整理
+// （evtask-D-evclass-sche-261017-3gkyrk）已将其换成 @media (width >= 360/480) 宽屏断点，
+// 旧断言随实现更新（不改源码——那是别人的有意重构）。
+ok("宽屏断点适配保留（@media width >= 360 / 480）",
+  panelSrc.indexOf("@media (width >= 360)") >= 0 && panelSrc.indexOf("@media (width >= 480)") >= 0)
+ok("header 标题渲染为「更多首页」", panelSrc.indexOf(">更多首页</text>") >= 0)
+ok("header 下方有定位说明文案（含「默认首页不受影响」）", panelSrc.indexOf("默认首页不受影响") >= 0)
 
 // ================================================================ 2. 多彩课表
 
@@ -250,7 +273,7 @@ ok("官方结构保留：prevWeek / nextWeek / @swipe 未删（军规4 禁删官
 // ================================================================ 3. 简易课表
 
 console.log("")
-console.log(bold("3. 简易课表 schedule-panel-simple —— 当前方案 + 拉平"))
+console.log(bold("3. 简易课表 schedule-panel-simple —— 当前方案 + 分组"))
 
 var simpleEnv = makeEnv({ courses: MOCK_SCHEDULE })
 var simple = newInstance("simple", simpleEnv.req)
@@ -261,10 +284,22 @@ ok("数据源走当前方案，不再写死 index 0",
   simpleEnv.env.calls.filter(function (c) { return c.indexOf("getAllCoursesWithIndex") === 0 }).length === 0,
   "实际调用：" + JSON.stringify(simpleEnv.env.calls))
 
-var names = simple.list.map(function (i) { return i.name })
-ok("星期几压缩为「周X」再拼课程名", names[0] === "周一 数学", "实际：" + JSON.stringify(names))
-eq("全部课程拉平为条目（2+1+1）", simple.list.length, 4)
-ok("每条都有图标且非空", simple.list.every(function (i) { return !!i.iconSrc }))
+// 2026-10-19：简易课表已从「flat list（周X 压缩 + 每条目 iconSrc）」重构为
+// 「daySections 分组」模型（见 schedule-panel-simple.ux 的 loadData），旧断言随实现更新。
+// 这段漂移此前的暴露路径：套件崩在 183 行 → 第 3 节从未跑到 → 一直没人发现。
+var sections = simple.daySections
+eq("只保留有课天（星期一2 + 星期三1 + 星期六1 → 3 天）", sections.length, 3)
+eq("分组顺序遵循 DAY_ORDER", sections[0].dayName, "星期一")
+var flatNames = []
+sections.forEach(function (s) { s.classes.forEach(function (c) { flatNames.push(c.name) }) })
+eq("全部课程拉平为 4 条（2+1+1）", flatNames.length, 4)
+eq("课程名原样保留不压缩", flatNames[0], "数学")
+ok("同一天内课程按时间升序（数学 08:00 在 语文课 10:00 前）",
+  sections[0].classes[0].name === "数学" && sections[0].classes[1].name === "语文课",
+  "实际：" + JSON.stringify(sections[0].classes.map(function (c) { return c.name + "@" + c.time })))
+ok("每条课程都带时间与 id 字段", sections.every(function (s) {
+  return s.classes.every(function (c) { return !!c.time && c.id != null })
+}))
 
 // ================================================================ 结果
 

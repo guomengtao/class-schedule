@@ -13,8 +13,10 @@
           <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
             <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
           </div>
-          <text class="header-title" style="color: {{ theme.text }}">课程面板</text>
+          <text class="header-title" style="color: {{ theme.text }}">更多首页</text>
         </div>
+
+        <text class="panel-desc" style="color: {{ theme.textMuted }}">这里的每个栏目都是一个独立的课表首页，可长期当作首页使用；默认首页不受影响。</text>
 
         <div class="section" style="background-color: {{ theme.card }}">
           <block for="{{ items }}">
@@ -31,7 +33,7 @@
 
 <script>
 import router from '@system.router'
-// 数据源沿用 data.js 的 tabsData（课程面板一章一组 7 个栏目）；此处只做「章节 → 平铺列表」的展平。
+// 数据源沿用 data.js 的 tabsData（更多首页一章一组 7 个栏目）；此处只做「章节 → 平铺列表」的展平。
 import { tabsData } from './data.js'
 
 const store = require('../../data/store.js')
@@ -130,6 +132,14 @@ export default {
   font-weight: bold;
   text-align: center;
   line-height: 36px;
+}
+
+/* 目录页定位说明（「更多首页」改名配套）：14px/20px 行高、次要色，164px 宽约 11 字一行自动折 3 行 */
+.panel-desc {
+  font-size: 14px;
+  line-height: 20px;
+  padding: 0 4px;
+  margin-bottom: 12px;
 }
 
 /* 单张卡片承载 7 个栏目：整块成组，比原来一串散落的蓝色下划线链接干净 */

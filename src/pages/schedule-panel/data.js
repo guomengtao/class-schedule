@@ -1,6 +1,6 @@
 export const tabsData = [
   {
-    name: '课程面板',
+    name: '更多首页',
     groupList: [
       {
         name: '栏目',
