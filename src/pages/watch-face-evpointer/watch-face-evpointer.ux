@@ -1,85 +1,422 @@
+<!--
+  EV 指针表盘（仿古青铜）
+  ─────────────────────────────────────────────────────────────
+  设计：184px 青铜三层同心环表壳 + 十二地支刻度 + 三针 + 数字时间/日期。
+
+  走针方案（2026-10-19 标定后定稿，绕开引擎三大坑）：
+  ① 不用 `transform: rotate({{deg}}deg)` 数据绑定 —— Vela 会整页黑屏；
+  ② 不用 @keyframes 动画承载「当前时刻」—— 实测动画合成不可靠：
+     指针角度与盘面时间对不上、周期性整根消失、画面长时间冻结；
+  ③ 引擎的旋转轴实测为【元素顶部中点】，`transform-origin` 不按 CSS 语义生效
+     （4 色标定针实测：top 对齐盘心的元素，rotate(90) 得到向左的水平线）。
+     故三针一律「顶部中点压在盘心 + 向下延伸」，rotate(180+θ) 即指向 θ（0=12点）。
+  ④ 角度用 60 档字面量类 `.r0…​.r59`（字面量 transform 安全），
+     时钟只改 class 名（不是 transform 值），引擎走普通样式重算。
+
+  布局铁律：`.page` 只给 width/height:100% + flex 列，绝不加
+  justify-content / align-items（加了会与 absolute 子元素共同触发黑屏）。
+-->
+
 <template>
-  <!-- EV指针 ④ · 上下滑动切表盘：上滑→③金属字针表，下滑→⑤仿古金属表盘 -->
   <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
-    <text class="clock">{{timeText}}</text>
-    <text class="back" onclick="goBack">返回</text>
+
+    <!-- 顶部品牌 -->
+    <text class="brand">EV</text>
+    <text class="brand-sub">指针表盘</text>
+
+    <!-- 表盘 -->
+    <div class="dial-wrap">
+      <!-- 青铜表壳：三层同心色阶造厚度（不用渐变） -->
+      <div class="ring-outer"></div>
+      <div class="ring-mid"></div>
+      <div class="dial-face"></div>
+
+      <!-- 12 短刻度（静态 rotate，literal transform，安全） -->
+      <div class="tick" style="left:91px;top:7px;transform:rotate(0deg)"></div>
+      <div class="tick" style="left:131px;top:18px;transform:rotate(30deg)"></div>
+      <div class="tick" style="left:160px;top:47px;transform:rotate(60deg)"></div>
+      <div class="tick" style="left:171px;top:87px;transform:rotate(90deg)"></div>
+      <div class="tick" style="left:160px;top:127px;transform:rotate(120deg)"></div>
+      <div class="tick" style="left:131px;top:156px;transform:rotate(150deg)"></div>
+      <div class="tick" style="left:91px;top:167px;transform:rotate(180deg)"></div>
+      <div class="tick" style="left:51px;top:156px;transform:rotate(210deg)"></div>
+      <div class="tick" style="left:22px;top:127px;transform:rotate(240deg)"></div>
+      <div class="tick" style="left:11px;top:87px;transform:rotate(270deg)"></div>
+      <div class="tick" style="left:22px;top:47px;transform:rotate(300deg)"></div>
+      <div class="tick" style="left:51px;top:18px;transform:rotate(330deg)"></div>
+
+      <!-- 十二地支（子位 12 点，顺时针每 30°） -->
+      <text class="gan" style="left:82px;top:18px">子</text>
+      <text class="gan" style="left:114px;top:27px">丑</text>
+      <text class="gan" style="left:137px;top:50px">寅</text>
+      <text class="gan" style="left:146px;top:82px">卯</text>
+      <text class="gan" style="left:137px;top:114px">辰</text>
+      <text class="gan" style="left:114px;top:137px">巳</text>
+      <text class="gan" style="left:82px;top:146px">午</text>
+      <text class="gan" style="left:50px;top:137px">未</text>
+      <text class="gan" style="left:27px;top:114px">申</text>
+      <text class="gan" style="left:18px;top:82px">酉</text>
+      <text class="gan" style="left:27px;top:50px">戌</text>
+      <text class="gan" style="left:50px;top:27px">亥</text>
+
+      <!-- 三针：顶部中点压在盘心 (92,92)，向下延伸，rotate(180+θ) 指向 θ -->
+      <div class="hand hour {{hourCls}}"></div>
+      <div class="hand minute {{minuteCls}}"></div>
+      <div class="hand second {{secondCls}}"></div>
+
+      <!-- 盘心 + 铭文 -->
+      <div class="hub"></div>
+      <text class="ev">EV</text>
+    </div>
+
+    <!-- 底部：日期 / 数字时间 / 返回提示 -->
+    <text class="date-line">{{dateText}}</text>
+    <text class="time-line">{{timeText}}</text>
+    <text class="back">轻触返回</text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
 
+const LIST_PAGE = "/pages/watch-face-list"
+const FULL_DAY = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
+
+function pad2(n) {
+  return (n < 10 ? "0" : "") + n
+}
+
+// 角度 → 60 档类名（6° 一档）。引擎轴在顶部中点，故 .rN 内部为 rotate(180 + 6N)
+function stepClass(deg) {
+  let step = Math.round(deg / 6) % 60
+  if (step < 0) step += 60
+  return "r" + step
+}
+
 export default {
   data: {
-    timeText: "--:--:--",
-    touchStartY: 0
-  },
-  onInit() {
-    this.tick()
-  },
-  onReady() {
-    this.timer = setInterval(() => this.tick(), 1000)
-  },
-  onDestroy() {
-    if (this.timer) {
-      clearInterval(this.timer)
-      this.timer = undefined
-    }
-  },
-  tick() {
-    const now = new Date()
-    this.timeText = this.pad(now.getHours()) + ":" + this.pad(now.getMinutes()) + ":" + this.pad(now.getSeconds())
-  },
-  pad(n) {
-    return n < 10 ? "0" + n : "" + n
+    hourCls: "r0",
+    minuteCls: "r0",
+    secondCls: "r0",
+    timeText: "--:--",
+    dateText: "",
+    touchStartY: 0,
+    suppressTap: false,
+    timer: null
   },
 
-  /* 上下滑动切表盘（Vela 无 onswipe，靠 touchstart/touchend 手算 Y 位移） */
+  onInit() {
+    this.syncHands()
+    this.tick()
+  },
+
+  onReady() {
+    this.startTimer()
+  },
+
+  onShow() {
+    this.syncHands()
+    this.tick()
+    this.startTimer()
+  },
+
+  onHide() {
+    this.stopTimer()
+  },
+
+  onDestroy() {
+    this.stopTimer()
+  },
+
+  /* ── 走针：当前时刻 → 三针角度 → 60 档 class ── */
+  syncHands() {
+    const now = new Date()
+    const h = now.getHours() % 12
+    const m = now.getMinutes()
+    const s = now.getSeconds()
+
+    this.hourCls = stepClass((h + m / 60 + s / 3600) * 30)
+    this.minuteCls = stepClass((m + s / 60) * 6)
+    this.secondCls = stepClass(s * 6)
+  },
+
+  startTimer() {
+    this.stopTimer()
+    const self = this
+    this.timer = setInterval(function() {
+      self.tick()
+    }, 1000)
+  },
+
+  stopTimer() {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = null
+    }
+  },
+
+  tick() {
+    const now = new Date()
+    this.timeText = pad2(now.getHours()) + ":" + pad2(now.getMinutes())
+    this.dateText = pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + " " + FULL_DAY[now.getDay()]
+    this.syncHands()
+  },
+
+  /* ── 上下滑动切表盘（Vela 无 onswipe，靠 Y 位移手算；阈值 40px）──
+     目录环：金属字针表(gold) ← 上滑 ｜ 下滑 → 仿古金属表盘(metal) */
   onTouchStart(e) {
     const t = (e && e.touches && e.touches[0]) || e || {}
     this.touchStartY = t.clientY || t.offsetY || t.pageY || 0
   },
+
   onTouchEnd(e) {
     const t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]) || e || {}
     const endY = t.clientY || t.offsetY || t.pageY || 0
     const d = this.touchStartY ? (this.touchStartY - endY) : 0
     if (d >= 40) {
+      this.suppressTap = true
       router.replace({ uri: "/pages/watch-face-gold" })
     } else if (d <= -40) {
+      this.suppressTap = true
       router.replace({ uri: "/pages/watch-face-metal" })
     }
     this.touchStartY = 0
   },
 
-  /* ── 退出：单击任意位置（主路径）── */
+  /* ── 退出：单击任意位置返回目录（系列统一）── */
   onTap() {
-    router.replace({ uri: "/pages/watch-face-list" })
-  },
-
-  goBack() {
-    router.replace({ uri: "/pages/watch-face-list" })
+    if (this.suppressTap) return
+    router.replace({ uri: LIST_PAGE })
   }
 }
 </script>
 
 <style>
+  /* 布局铁律：只给尺寸 + 列向 flex，禁 justify-content / align-items */
   .page {
     width: 100%;
     height: 100%;
-    background-color: #1a1a2e;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    background-color: #10120f;
   }
-  .clock {
-    font-size: 48px;
-    color: #e8e4da;
-    font-weight: bold;
-    letter-spacing: 4px;
+
+  .brand {
+    position: absolute;
+    left: 0;
+    top: 52px;
+    width: 192px;
+    text-align: center;
+    font-size: 22px;
+    color: #d8b45a;
+    letter-spacing: 3px;
   }
+
+  .brand-sub {
+    position: absolute;
+    left: 0;
+    top: 78px;
+    width: 192px;
+    text-align: center;
+    font-size: 11px;
+    color: #8a7d54;
+    letter-spacing: 2px;
+  }
+
+  /* ── 表盘容器：184×184 ── */
+  .dial-wrap {
+    position: absolute;
+    left: 4px;
+    top: 153px;
+    width: 184px;
+    height: 184px;
+  }
+
+  .ring-outer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 184px;
+    height: 184px;
+    border-radius: 92px;
+    background-color: #3a4a26;
+  }
+
+  .ring-mid {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    width: 168px;
+    height: 168px;
+    border-radius: 84px;
+    background-color: #2a3720;
+  }
+
+  .dial-face {
+    position: absolute;
+    left: 18px;
+    top: 18px;
+    width: 148px;
+    height: 148px;
+    border-radius: 74px;
+    background-color: #1b2416;
+  }
+
+  .tick {
+    position: absolute;
+    width: 2px;
+    height: 10px;
+    background-color: #c9a961;
+  }
+
+  .gan {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
+    text-align: center;
+    color: #d8b45a;
+  }
+
+  .hub {
+    position: absolute;
+    left: 84px;
+    top: 84px;
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    background-color: #d8b45a;
+  }
+
+  .ev {
+    position: absolute;
+    left: 62px;
+    top: 96px;
+    width: 60px;
+    text-align: center;
+    font-size: 10px;
+    color: #8a7d54;
+    letter-spacing: 2px;
+  }
+
+  /* ── 三针：顶部中点压在盘心，向下延伸（引擎轴=顶部中点）── */
+  .hand {
+    position: absolute;
+  }
+
+  .hour {
+    left: 89.5px;
+    top: 92px;
+    width: 5px;
+    height: 48px;
+    background-color: #d8b45a;
+  }
+
+  .minute {
+    left: 90px;
+    top: 92px;
+    width: 4px;
+    height: 66px;
+    background-color: #e8c877;
+  }
+
+  .second {
+    left: 91px;
+    top: 92px;
+    width: 2px;
+    height: 80px;
+    background-color: #d9552f;
+  }
+
+  /* ── 60 档字面量旋转：rotate(180 + 6N)，180° 使其由「向下」转为「向上」── */
+  .r0 { transform: rotate(180deg); }
+  .r1 { transform: rotate(186deg); }
+  .r2 { transform: rotate(192deg); }
+  .r3 { transform: rotate(198deg); }
+  .r4 { transform: rotate(204deg); }
+  .r5 { transform: rotate(210deg); }
+  .r6 { transform: rotate(216deg); }
+  .r7 { transform: rotate(222deg); }
+  .r8 { transform: rotate(228deg); }
+  .r9 { transform: rotate(234deg); }
+  .r10 { transform: rotate(240deg); }
+  .r11 { transform: rotate(246deg); }
+  .r12 { transform: rotate(252deg); }
+  .r13 { transform: rotate(258deg); }
+  .r14 { transform: rotate(264deg); }
+  .r15 { transform: rotate(270deg); }
+  .r16 { transform: rotate(276deg); }
+  .r17 { transform: rotate(282deg); }
+  .r18 { transform: rotate(288deg); }
+  .r19 { transform: rotate(294deg); }
+  .r20 { transform: rotate(300deg); }
+  .r21 { transform: rotate(306deg); }
+  .r22 { transform: rotate(312deg); }
+  .r23 { transform: rotate(318deg); }
+  .r24 { transform: rotate(324deg); }
+  .r25 { transform: rotate(330deg); }
+  .r26 { transform: rotate(336deg); }
+  .r27 { transform: rotate(342deg); }
+  .r28 { transform: rotate(348deg); }
+  .r29 { transform: rotate(354deg); }
+  .r30 { transform: rotate(360deg); }
+  .r31 { transform: rotate(366deg); }
+  .r32 { transform: rotate(372deg); }
+  .r33 { transform: rotate(378deg); }
+  .r34 { transform: rotate(384deg); }
+  .r35 { transform: rotate(390deg); }
+  .r36 { transform: rotate(396deg); }
+  .r37 { transform: rotate(402deg); }
+  .r38 { transform: rotate(408deg); }
+  .r39 { transform: rotate(414deg); }
+  .r40 { transform: rotate(420deg); }
+  .r41 { transform: rotate(426deg); }
+  .r42 { transform: rotate(432deg); }
+  .r43 { transform: rotate(438deg); }
+  .r44 { transform: rotate(444deg); }
+  .r45 { transform: rotate(450deg); }
+  .r46 { transform: rotate(456deg); }
+  .r47 { transform: rotate(462deg); }
+  .r48 { transform: rotate(468deg); }
+  .r49 { transform: rotate(474deg); }
+  .r50 { transform: rotate(480deg); }
+  .r51 { transform: rotate(486deg); }
+  .r52 { transform: rotate(492deg); }
+  .r53 { transform: rotate(498deg); }
+  .r54 { transform: rotate(504deg); }
+  .r55 { transform: rotate(510deg); }
+  .r56 { transform: rotate(516deg); }
+  .r57 { transform: rotate(522deg); }
+  .r58 { transform: rotate(528deg); }
+  .r59 { transform: rotate(534deg); }
+
+  /* ── 底部信息 ── */
+  .date-line {
+    position: absolute;
+    left: 0;
+    top: 360px;
+    width: 192px;
+    text-align: center;
+    font-size: 13px;
+    color: #b9a86f;
+  }
+
+  .time-line {
+    position: absolute;
+    left: 0;
+    top: 386px;
+    width: 192px;
+    text-align: center;
+    font-size: 34px;
+    color: #f0e2b6;
+  }
+
   .back {
-    font-size: 20px;
-    color: #888899;
-    margin-top: 40px;
+    position: absolute;
+    left: 0;
+    top: 444px;
+    width: 192px;
+    text-align: center;
+    font-size: 12px;
+    color: #6f6650;
   }
 </style>
