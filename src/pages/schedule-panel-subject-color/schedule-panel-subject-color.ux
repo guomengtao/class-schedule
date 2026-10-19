@@ -67,6 +67,8 @@ function getSubjectColor(name) {
 export default {
   private: {
     iconTheme: "dark",
+    fromPanel: "",
+    isRoot: false,
     isLoading: true,
     todayClasses: [],
     theme: {
