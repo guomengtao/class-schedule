@@ -1,464 +1,511 @@
+<!--
+  仿古金属表盘（watch-face-metal）
+  ─────────────────────────────────────────────────────────────
+  设计：184px 黄铜四层同心表壳 + 罗马数字时标 + 12 整点刻度 + 4 铆钉
+        + 三针（做旧黄铜 / 氧化铜）+ 底部日期与数字时间。
+
+  走针方案（沿用 watch-face-evpointer 2026-10-19 实拍标定的定稿路线）：
+  ① 禁动态 transform —— `transform: rotate({{deg}}deg)` 数据绑定会整页黑屏；
+     只允许字面量 transform。
+  ② 禁 @keyframes 承载「当前时刻」—— 实测动画合成不可靠：针角与盘面时间
+     不符、粗针周期性整根消失、画面冻结 12s（10 帧 md5 全同）。
+  ③ 引擎旋转轴 = 【元素顶部中点】，`transform-origin` 不按 CSS 语义生效。
+     故三针一律「顶部中点压在盘心 (92,92) + 向下延伸」，rotate(180+θ) 即指向 θ。
+  ④ 角度用 120 档字面量类 `.r0…​.r119`（3° 一档，比 evpointer 的 6° 更细腻），
+     每秒只改 class 名、不改 transform 值，引擎走普通样式重算。
+
+  历史背景：本页此前是「找不到旋转轴」时期的试验场，带着 5 种找圆心辅助线、
+  5 个预设时刻按钮、停止/继续开关与硬编码版本号。轴已标定明确，全部移除。
+
+  布局铁律：`.page` 只给 position:relative + width/height:100%，
+  子元素全部 absolute 手写坐标；不叠 flex 居中（会与 absolute 共同触发黑屏）。
+-->
+
 <template>
-  <!--
-    仿古青铜表盘 · 动画走针版
-    铁律（已实测）：Vela transform 用 {{}} 数据绑定会黑屏；字面量静态定位安全。
-    重走针用 @keyframes 动画（绕开 js 数据绑定 transform），三针速率对齐真实时间：
-    秒针 60s 一圈、分针 3600s 一圈、时针 43200s 一圈。
-    针走时零 setInterval（纯 CSS 动画）；底部数字时钟用 setInterval(1000) 仅更新文本。
-
-    ⏰ 时针独立（2026-10-12 用户定）：onReady 先 syncDelay() 按当前时间自动定位三针；
-    animDurHour 恒为 43200s 独立走时——「停止/继续」与预设按钮只冻结分秒针，
-    时针不被秒针状态绑架，也不再硬编码 delayHour=-10800（那会让时针永停 9 点方向）。
-  -->
   <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
-    <!-- face-wrapper: 统一坐标系容器，flex 居中于页面，156px 方形，所有功能元素在此内部 -->
-    <div class="face-wrapper">
-      <!-- dial: 纯视觉背景，不再承载任何功能子元素 -->
-      <div class="dial"></div>
 
-      <!-- face-overlay: 功能层，absolute 覆盖 dial，独立坐标系 (0,0)-(156,156)，圆心 = (78,78) -->
-      <div class="face-overlay">
-        <!-- === 5种找圆心方法，交叉锁定 === -->
-        <!-- 方法1: 对角线X（金标准 — 无论box-sizing如何变化，对角线交点必然等分矩形） -->
-        <div class="g-x1"></div>
-        <div class="g-x2"></div>
-        <!-- 方法2: 十字线（水平+垂直过中心） -->
-        <div class="g-h"></div>
-        <div class="g-v"></div>
-        <!-- 方法3: 中心实心点 -->
-        <div class="g-dot"></div>
-        <!-- 方法4: 四角标记（确认156×156边界框） -->
-        <div class="g-corner" style="left:0px;top:0px"></div>
-        <div class="g-corner" style="left:152px;top:0px"></div>
-        <div class="g-corner" style="left:0px;top:152px"></div>
-        <div class="g-corner" style="left:152px;top:152px"></div>
-        <!-- 方法5: 边界框（1px 描边，确认 overlay 范围） -->
-        <div class="g-border"></div>
+    <!-- 顶部品牌 -->
+    <text class="brand">EV</text>
+    <text class="brand-sub">仿古金属</text>
 
-        <!-- 12 时标：数字 1-12，r=58 圆上，圆心(78,78) -->
-        <text class="tick-num" style="left:68px;top:10px">12</text>
-        <text class="tick-num" style="left:97px;top:18px">1</text>
-        <text class="tick-num" style="left:118px;top:39px">2</text>
-        <text class="tick-num" style="left:126px;top:68px">3</text>
-        <text class="tick-num" style="left:118px;top:97px">4</text>
-        <text class="tick-num" style="left:97px;top:118px">5</text>
-        <text class="tick-num" style="left:68px;top:126px">6</text>
-        <text class="tick-num" style="left:39px;top:118px">7</text>
-        <text class="tick-num" style="left:18px;top:97px">8</text>
-        <text class="tick-num" style="left:10px;top:68px">9</text>
-        <text class="tick-num" style="left:18px;top:39px">10</text>
-        <text class="tick-num" style="left:39px;top:18px">11</text>
+    <!-- 表盘 -->
+    <div class="dial-wrap">
+      <!-- 黄铜表壳：四层同心色阶造厚度（不用渐变） -->
+      <div class="ring-outer"></div>
+      <div class="ring-mid"></div>
+      <div class="ring-in"></div>
+      <div class="dial-face"></div>
 
-        <!-- 三针：@keyframes 动画，顶部对齐圆心(78,78)；if 切换实现强制重启；
-          暂停用极大 duration（1000年等效冻结），绕开 animation-play-state 兼容问题 -->
-        <div class="hand-hour" if="{{!restartFlag}}" style="animation-delay: {{delayHour}}s; animation-duration: {{animDurHour}}"></div>
-        <div class="hand-minute" if="{{!restartFlag}}" style="animation-delay: {{delayMinute}}s; animation-duration: {{animDurMinute}}"></div>
-        <div class="hand-second" if="{{!restartFlag}}" style="animation-delay: {{delaySecond}}s; animation-duration: {{animDurSecond}}"></div>
+      <!-- 表壳铆钉 ×4（斜 45°） -->
 
-        <div class="hub"></div>
-        <text class="face-text" onclick="onFaceTap">Ev</text>
-      </div>
+      <div class="rivet" style="left:147px;top:31px"></div>
+      <div class="rivet" style="left:147px;top:147px"></div>
+      <div class="rivet" style="left:31px;top:147px"></div>
+      <div class="rivet" style="left:31px;top:31px"></div>
+
+      <!-- 12 整点刻度（静态字面量 rotate，安全） -->
+
+      <div class="tick" style="left:91px;top:22px;transform:rotate(0deg)"></div>
+      <div class="tick" style="left:126px;top:31.5px;transform:rotate(30deg)"></div>
+      <div class="tick" style="left:151.5px;top:57px;transform:rotate(60deg)"></div>
+      <div class="tick" style="left:161px;top:92px;transform:rotate(90deg)"></div>
+      <div class="tick" style="left:151.5px;top:127px;transform:rotate(120deg)"></div>
+      <div class="tick" style="left:126px;top:152.5px;transform:rotate(150deg)"></div>
+      <div class="tick" style="left:91px;top:162px;transform:rotate(180deg)"></div>
+      <div class="tick" style="left:56px;top:152.5px;transform:rotate(210deg)"></div>
+      <div class="tick" style="left:30.5px;top:127px;transform:rotate(240deg)"></div>
+      <div class="tick" style="left:21px;top:92px;transform:rotate(270deg)"></div>
+      <div class="tick" style="left:30.5px;top:57px;transform:rotate(300deg)"></div>
+      <div class="tick" style="left:56px;top:31.5px;transform:rotate(330deg)"></div>
+
+      <!-- 罗马数字时标 I–XII（半径 54） -->
+
+      <text class="roman" style="left:82px;top:30px">XII</text>
+      <text class="roman" style="left:109px;top:37px">I</text>
+      <text class="roman" style="left:129px;top:57px">II</text>
+      <text class="roman" style="left:136px;top:84px">III</text>
+      <text class="roman" style="left:129px;top:111px">IV</text>
+      <text class="roman" style="left:109px;top:131px">V</text>
+      <text class="roman" style="left:82px;top:138px">VI</text>
+      <text class="roman" style="left:55px;top:131px">VII</text>
+      <text class="roman" style="left:35px;top:111px">VIII</text>
+      <text class="roman" style="left:28px;top:84px">IX</text>
+      <text class="roman" style="left:35px;top:57px">X</text>
+      <text class="roman" style="left:55px;top:37px">XI</text>
+
+      <!-- 三针：顶部中点压在盘心 (92,92)，向下延伸，rotate(180+θ) 指向 θ -->
+      <div class="hand hour {{hourCls}}"></div>
+      <div class="hand minute {{minuteCls}}"></div>
+      <div class="hand second {{secondCls}}"></div>
+
+      <!-- 盘心铜轴 -->
+      <div class="hub"></div>
     </div>
 
-    <!-- 底部栏 -->
-    <div class="bottom-bar">
-      <text class="b-ver">EV课程表 v1.8.88</text>
-      <text class="b-time">{{timeText}}</text>
-      <div class="btn-row">
-        <text class="b-btn" onclick="setPreset(12,0)">12:00</text>
-        <text class="b-btn" onclick="setPreset(12,30)">12:30</text>
-        <text class="b-btn" onclick="setPreset(3,0)">3:00</text>
-        <text class="b-btn" onclick="setPreset(9,30)">9:30</text>
-        <text class="b-btn" onclick="setPreset(9,0)">9:00</text>
-      </div>
-      <div class="btn-row">
-        <text class="b-btn" if="{{!stopped}}" onclick="toggleStop">停止</text>
-        <text class="b-btn" if="{{stopped}}" onclick="toggleStop">继续</text>
-        <text class="b-back" onclick="onFaceTap">返回</text>
-      </div>
-    </div>
+    <!-- 底部：日期 / 数字时间 / 返回提示 -->
+    <text class="date-line">{{dateText}}</text>
+    <text class="time-line">{{timeText}}</text>
+    <text class="back">轻触返回</text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
 
+const LIST_PAGE = "/pages/watch-face-list"
+const FULL_DAY = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
+
+function pad2(n) {
+  return (n < 10 ? "0" : "") + n
+}
+
+// 角度 → 120 档类名（3° 一档）。引擎轴在顶部中点，故 .rN 内部为 rotate(180 + 3N)
+function stepClass(deg) {
+  let step = Math.round(deg / 3) % 120
+  if (step < 0) step += 120
+  return "r" + step
+}
+
 export default {
   data: {
-    delayHour: 0,
-    delayMinute: 0,
-    delaySecond: 0,
-    timeText: "03:00:00",
-    stopped: true,
-    animDurHour: "43200s",
-    animDurMinute: "31536000000s",
-    animDurSecond: "31536000000s",
-    restartFlag: false,
+    hourCls: "r0",
+    minuteCls: "r0",
+    secondCls: "r0",
+    timeText: "--:--",
+    dateText: "",
     touchStartY: 0,
-    suppressTap: false
+    suppressTap: false,
+    timer: null
   },
-  FREEZE: "31536000000s",
-  RUN_HOUR: "43200s",
-  RUN_MINUTE: "3600s",
-  RUN_SECOND: "60s",
+
   onInit() {
-    // 时针 delay 初值 0：真正定位在 onReady 的 syncDelay() 里按当前时间算
-    // （旧代码这里硬编码 -10800 = 永远停在 9 点方向，是「时针位置不对」的根因）
-    this.delayHour = 0
-    this.delayMinute = 0
-    this.delaySecond = 0
+    this.syncHands()
+    this.tick()
   },
+
   onReady() {
-    // 进页面即按当前时间自动定位三针（时针独立走时，不受 stopped 影响）
-    this.syncDelay()
-    this.forceRestart()
-    const n0 = new Date()
-    this.timeText = this.pad(n0.getHours()) + ":" + this.pad(n0.getMinutes()) + ":" + this.pad(n0.getSeconds())
-    this.timer = setInterval(() => this.tick(), 1000)
+    this.startTimer()
   },
+
+  onShow() {
+    this.syncHands()
+    this.tick()
+    this.startTimer()
+  },
+
+  onHide() {
+    this.stopTimer()
+  },
+
   onDestroy() {
-    if (this.timer) {
-      clearInterval(this.timer)
-      this.timer = undefined
-    }
+    this.stopTimer()
   },
-  syncDelay() {
+
+  /* ── 走针：当前时刻 → 三针角度 → 120 档 class ── */
+  syncHands() {
     const now = new Date()
     const h = now.getHours() % 12
     const m = now.getMinutes()
     const s = now.getSeconds()
-    this.delaySecond = -s
-    this.delayMinute = -((m * 60 + s) % 3600)
-    this.delayHour = -((h * 3600 + m * 60 + s) % 43200)
+
+    this.hourCls = stepClass((h + m / 60 + s / 3600) * 30)
+    this.minuteCls = stepClass((m + s / 60) * 6)
+    this.secondCls = stepClass(s * 6)
   },
-  toggleStop() {
-    this.markBtn()
-    // 时针独立走时：停止/继续只管分针与秒针，animDurHour 恒为 RUN_HOUR 不受牵连
-    if (this.stopped) {
-      this.stopped = false
-      this.animDurMinute = this.RUN_MINUTE
-      this.animDurSecond = this.RUN_SECOND
-      this.syncDelay()
-      this.forceRestart()
-    } else {
-      this.stopped = true
-      this.animDurMinute = this.FREEZE
-      this.animDurSecond = this.FREEZE
-      // duration 改变本身就会触发 Vela 重绘，无需 forceRestart
+
+  startTimer() {
+    this.stopTimer()
+    const self = this
+    this.timer = setInterval(function() {
+      self.tick()
+    }, 1000)
+  },
+
+  stopTimer() {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = null
     }
   },
-  setPreset(h, m) {
-    this.markBtn()
-    if (!this.stopped) {
-      this.stopped = true
-      this.animDurMinute = this.FREEZE
-      this.animDurSecond = this.FREEZE
-    }
-    this.delayHour = -((h * 3600 + m * 60) % 43200)
-    this.delayMinute = -((m * 60) % 3600)
-    this.delaySecond = 0
-    this.timeText = this.pad(h) + ":" + this.pad(m) + ":00"
-    this.forceRestart()
-  },
-  forceRestart() {
-    this.restartFlag = true
-    setTimeout(() => { this.restartFlag = false }, 50)
-  },
+
   tick() {
-    if (this.stopped) return
     const now = new Date()
-    this.timeText = this.pad(now.getHours()) + ":" + this.pad(now.getMinutes()) + ":" + this.pad(now.getSeconds())
-  },
-  pad(n) {
-    return n < 10 ? "0" + n : "" + n
-  },
-  /* ── 退出：单击页面任意位置（含表盘上下的空白区）──
-     底部「停止 / 12:00 / 返回」按钮点击后会先走各自的 handler、再冒泡到这里；
-     那些 handler 会调 markBtn() 立一个短命标记，本函数看到标记就让路，
-     于是「按钮照常工作、其余任何位置一点即回目录」。── */
-  markBtn() {
-    this.suppressTap = true
-    setTimeout(() => { this.suppressTap = false }, 150)
+    this.timeText = pad2(now.getHours()) + ":" + pad2(now.getMinutes())
+    this.dateText = pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + " " + FULL_DAY[now.getDay()]
+    this.syncHands()
   },
 
-  onTap() {
-    if (this.suppressTap) return
-    router.replace({ uri: "/pages/watch-face-list" })
-  },
-
-  onFaceTap() {
-    router.replace({ uri: "/pages/watch-face-list" })
-  },
-
-  /* 上下滑动切表盘（环：⑤仿古金属 上滑→④EV指针 / 下滑→①经典）。
-     Vela 无 onswipe，靠 touchstart/touchend 手算 Y 位移；阈值 40px 不会误触发底部按钮。 */
+  /* ── 上下滑动切表盘（Vela 无 onswipe，靠 Y 位移手算；阈值 40px）──
+     目录环：EV指针表 ← 上滑 ｜ 下滑 → 经典表盘（收尾回绕） */
   onTouchStart(e) {
     const t = (e && e.touches && e.touches[0]) || e || {}
     this.touchStartY = t.clientY || t.offsetY || t.pageY || 0
   },
+
   onTouchEnd(e) {
     const t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]) || e || {}
     const endY = t.clientY || t.offsetY || t.pageY || 0
     const d = this.touchStartY ? (this.touchStartY - endY) : 0
     if (d >= 40) {
+      this.suppressTap = true
       router.replace({ uri: "/pages/watch-face-evpointer" })
     } else if (d <= -40) {
+      this.suppressTap = true
       router.replace({ uri: "/pages/watch-face" })
     }
     this.touchStartY = 0
+  },
+
+  /* ── 退出：单击任意位置返回目录（系列统一）── */
+  onTap() {
+    if (this.suppressTap) return
+    router.replace({ uri: LIST_PAGE })
   }
 }
 </script>
 
 <style>
+  /* 布局铁律：纯 relative + 子元素绝对定位，禁 flex 居中 */
   .page {
     position: relative;
     width: 100%;
     height: 100%;
-    background-color: #141210;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    background-color: #12100c;
   }
 
-  /* face-wrapper: 统一坐标系容器，flex 居中于页面 */
-  .face-wrapper {
-    position: relative;
-    width: 156px;
-    height: 156px;
-  }
-
-  /* dial: 纯视觉背景，border 可能影响尺寸但 overlay 不受牵连 */
-  .dial {
+  /* ── 顶部品牌 ── */
+  .brand {
     position: absolute;
     left: 0;
-    top: 0;
-    width: 156px;
-    height: 156px;
-    border-radius: 78px;
-    background-color: #2a2317;
-    border: 8px solid #4a3a20;
+    top: 48px;
+    width: 192px;
+    height: 26px;
+    text-align: center;
+    font-size: 22px;
+    color: #d8b45a;
+    letter-spacing: 3px;
   }
 
-  /* face-overlay: 功能层，绝对定位于 wrapper，独立坐标系 0-156 */
-  .face-overlay {
+  .brand-sub {
     position: absolute;
     left: 0;
-    top: 0;
-    width: 156px;
-    height: 156px;
-  }
-
-  /* ===== 5 种找圆心方法 ===== */
-
-  /* 方法1a: 对角线 X（左上→右下），static transform，无数据绑定，安全 */
-  .g-x1 {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 1px;
-    height: 221px;
-    background-color: rgba(255,80,80,0.5);
-    transform: rotate(45deg);
-    transform-origin: 0px 0px;
-  }
-
-  /* 方法1b: 对角线 X（右上→左下） */
-  .g-x2 {
-    position: absolute;
-    left: 156px;
-    top: 0;
-    width: 1px;
-    height: 221px;
-    background-color: rgba(255,80,80,0.5);
-    transform: rotate(-45deg);
-    transform-origin: 100% 0px;
-  }
-
-  /* 方法2: 十字线（水平 + 垂直）*/
-  .g-h {
-    position: absolute;
-    left: 0;
-    top: 78px;
-    width: 156px;
-    height: 1px;
-    background-color: rgba(100,255,100,0.5);
-  }
-
-  .g-v {
-    position: absolute;
-    left: 78px;
-    top: 0;
-    width: 1px;
-    height: 156px;
-    background-color: rgba(100,255,100,0.5);
-  }
-
-  /* 方法3: 中心实心圆点（白）*/
-  .g-dot {
-    position: absolute;
-    left: 74px;
     top: 74px;
-    width: 8px;
-    height: 8px;
-    border-radius: 4px;
-    background-color: rgba(255,255,255,0.7);
+    width: 192px;
+    height: 14px;
+    text-align: center;
+    font-size: 11px;
+    color: #8a7d54;
+    letter-spacing: 2px;
   }
 
-  /* 方法4: 四角 4×4 方块（黄），确认 overlay 四角位置 */
-  .g-corner {
+  /* ── 表盘容器：184×184，盘心 (92,92) ── */
+  .dial-wrap {
     position: absolute;
-    width: 4px;
-    height: 4px;
-    background-color: rgba(255,255,60,0.6);
+    left: 4px;
+    top: 153px;
+    width: 184px;
+    height: 184px;
   }
 
-  /* 方法5: 边界框，青色 1px 描边，确认 overlay 范围 */
-  .g-border {
+  .ring-outer {
     position: absolute;
     left: 0;
     top: 0;
-    width: 154px;
-    height: 154px;
-    border: 1px solid rgba(60,180,255,0.5);
+    width: 184px;
+    height: 184px;
+    border-radius: 92px;
+    background-color: #4a3f28;
   }
 
-  /* ===== 元素 ===== */
+  .ring-mid {
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    width: 174px;
+    height: 174px;
+    border-radius: 87px;
+    background-color: #6f5a33;
+  }
 
-  .tick-num {
+  .ring-in {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    width: 164px;
+    height: 164px;
+    border-radius: 82px;
+    background-color: #2c2a22;
+  }
+
+  .dial-face {
+    position: absolute;
+    left: 18px;
+    top: 18px;
+    width: 148px;
+    height: 148px;
+    border-radius: 74px;
+    background-color: #1c1a15;
+  }
+
+  /* ── 铆钉 ── */
+  .rivet {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background-color: #9a8248;
+  }
+
+  /* ── 整点刻度 ── */
+  .tick {
+    position: absolute;
+    width: 2px;
+    height: 8px;
+    background-color: #c9a961;
+  }
+
+  /* ── 罗马数字 ── */
+  .roman {
     position: absolute;
     width: 20px;
-    height: 20px;
-    font-size: 14px;
-    color: #d8b45a;
+    height: 16px;
+    font-size: 12px;
     text-align: center;
+    color: #c9a961;
   }
 
-  .hand-hour {
+  /* ── 三针：顶部中点压在盘心，向下延伸（引擎轴=顶部中点）── */
+  .hand {
     position: absolute;
-    left: 76px;
-    top: 78px;
-    width: 4px;
-    height: 32px;
-    border-radius: 2px 2px 1px 1px;
-    background-color: #d33a2c;
-    animation-name: kf-hour;
-    animation-duration: 43200s;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
   }
 
-  @keyframes kf-hour {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  .hand-minute {
-    position: absolute;
-    left: 75.5px;
-    top: 78px;
+  .hour {
+    left: 89.5px;
+    top: 92px;
     width: 5px;
-    height: 56px;
-    border-radius: 3px 3px 1px 1px;
-    background-color: #7f9cf5;
-    animation-name: kf-minute;
-    animation-duration: 3600s;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
+    height: 38px;
+    background-color: #d8b45a;
   }
 
-  @keyframes kf-minute {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+  .minute {
+    left: 90px;
+    top: 92px;
+    width: 4px;
+    height: 54px;
+    background-color: #e8c877;
   }
 
-  .hand-second {
-    position: absolute;
-    left: 77px;
-    top: 78px;
+  .second {
+    left: 91px;
+    top: 92px;
     width: 2px;
-    height: 66px;
-    border-radius: 1px 1px 0px 0px;
-    background-color: #e0823a;
-    animation-name: kf-second;
-    animation-duration: 60s;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-  }
-
-  @keyframes kf-second {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    height: 72px;
+    background-color: #c0562f;
   }
 
   .hub {
     position: absolute;
-    left: 73px;
-    top: 73px;
-    width: 10px;
-    height: 10px;
-    border-radius: 5px;
+    left: 85px;
+    top: 85px;
+    width: 14px;
+    height: 14px;
+    border-radius: 7px;
     background-color: #caa64a;
-    border: 1px solid #8a7330;
   }
 
-  .face-text {
+  /* ── 底部信息 ── */
+  .date-line {
     position: absolute;
     left: 0;
-    top: 100px;
-    width: 156px;
+    top: 360px;
+    width: 192px;
+    height: 16px;
     text-align: center;
-    font-size: 16px;
-    color: #caa64a;
-    font-weight: bold;
-    letter-spacing: 2px;
+    font-size: 13px;
+    color: #b9a86f;
   }
 
-  /* 底部栏 */
-  .bottom-bar {
+  .time-line {
     position: absolute;
     left: 0;
-    right: 0;
-    bottom: 8px;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
+    top: 386px;
+    width: 192px;
+    height: 34px;
+    text-align: center;
+    font-size: 34px;
+    color: #f0e2b6;
   }
 
-  .b-ver {
-    font-size: 14px;
-    color: #8a8a80;
-    margin-top: 2px;
+  .back {
+    position: absolute;
+    left: 0;
+    top: 444px;
+    width: 192px;
+    height: 14px;
+    text-align: center;
+    font-size: 12px;
+    color: #6f6650;
   }
 
-  .b-time {
-    font-size: 20px;
-    color: #e8e4da;
-    font-weight: bold;
-    letter-spacing: 2px;
-    margin-top: 4px;
-  }
-
-  .b-back {
-    font-size: 18px;
-    color: #d8b45a;
-    font-weight: bold;
-    margin-top: 4px;
-  }
-
-  .btn-row {
-    flex-direction: row;
-    margin-top: 4px;
-  }
-
-  .b-btn {
-    font-size: 16px;
-    color: #9a8a6a;
-    background-color: #2a2317;
-    border: 1px solid #4a3a20;
-    border-radius: 6px;
-    padding: 2px 10px;
-    margin-left: 4px;
-    margin-right: 4px;
-  }
+  /* ── 120 档字面量旋转：rotate(180 + 3N)，180° 使其由「向下」转为「向上」── */
+  .r0 { transform: rotate(180deg); }
+  .r1 { transform: rotate(183deg); }
+  .r2 { transform: rotate(186deg); }
+  .r3 { transform: rotate(189deg); }
+  .r4 { transform: rotate(192deg); }
+  .r5 { transform: rotate(195deg); }
+  .r6 { transform: rotate(198deg); }
+  .r7 { transform: rotate(201deg); }
+  .r8 { transform: rotate(204deg); }
+  .r9 { transform: rotate(207deg); }
+  .r10 { transform: rotate(210deg); }
+  .r11 { transform: rotate(213deg); }
+  .r12 { transform: rotate(216deg); }
+  .r13 { transform: rotate(219deg); }
+  .r14 { transform: rotate(222deg); }
+  .r15 { transform: rotate(225deg); }
+  .r16 { transform: rotate(228deg); }
+  .r17 { transform: rotate(231deg); }
+  .r18 { transform: rotate(234deg); }
+  .r19 { transform: rotate(237deg); }
+  .r20 { transform: rotate(240deg); }
+  .r21 { transform: rotate(243deg); }
+  .r22 { transform: rotate(246deg); }
+  .r23 { transform: rotate(249deg); }
+  .r24 { transform: rotate(252deg); }
+  .r25 { transform: rotate(255deg); }
+  .r26 { transform: rotate(258deg); }
+  .r27 { transform: rotate(261deg); }
+  .r28 { transform: rotate(264deg); }
+  .r29 { transform: rotate(267deg); }
+  .r30 { transform: rotate(270deg); }
+  .r31 { transform: rotate(273deg); }
+  .r32 { transform: rotate(276deg); }
+  .r33 { transform: rotate(279deg); }
+  .r34 { transform: rotate(282deg); }
+  .r35 { transform: rotate(285deg); }
+  .r36 { transform: rotate(288deg); }
+  .r37 { transform: rotate(291deg); }
+  .r38 { transform: rotate(294deg); }
+  .r39 { transform: rotate(297deg); }
+  .r40 { transform: rotate(300deg); }
+  .r41 { transform: rotate(303deg); }
+  .r42 { transform: rotate(306deg); }
+  .r43 { transform: rotate(309deg); }
+  .r44 { transform: rotate(312deg); }
+  .r45 { transform: rotate(315deg); }
+  .r46 { transform: rotate(318deg); }
+  .r47 { transform: rotate(321deg); }
+  .r48 { transform: rotate(324deg); }
+  .r49 { transform: rotate(327deg); }
+  .r50 { transform: rotate(330deg); }
+  .r51 { transform: rotate(333deg); }
+  .r52 { transform: rotate(336deg); }
+  .r53 { transform: rotate(339deg); }
+  .r54 { transform: rotate(342deg); }
+  .r55 { transform: rotate(345deg); }
+  .r56 { transform: rotate(348deg); }
+  .r57 { transform: rotate(351deg); }
+  .r58 { transform: rotate(354deg); }
+  .r59 { transform: rotate(357deg); }
+  .r60 { transform: rotate(360deg); }
+  .r61 { transform: rotate(363deg); }
+  .r62 { transform: rotate(366deg); }
+  .r63 { transform: rotate(369deg); }
+  .r64 { transform: rotate(372deg); }
+  .r65 { transform: rotate(375deg); }
+  .r66 { transform: rotate(378deg); }
+  .r67 { transform: rotate(381deg); }
+  .r68 { transform: rotate(384deg); }
+  .r69 { transform: rotate(387deg); }
+  .r70 { transform: rotate(390deg); }
+  .r71 { transform: rotate(393deg); }
+  .r72 { transform: rotate(396deg); }
+  .r73 { transform: rotate(399deg); }
+  .r74 { transform: rotate(402deg); }
+  .r75 { transform: rotate(405deg); }
+  .r76 { transform: rotate(408deg); }
+  .r77 { transform: rotate(411deg); }
+  .r78 { transform: rotate(414deg); }
+  .r79 { transform: rotate(417deg); }
+  .r80 { transform: rotate(420deg); }
+  .r81 { transform: rotate(423deg); }
+  .r82 { transform: rotate(426deg); }
+  .r83 { transform: rotate(429deg); }
+  .r84 { transform: rotate(432deg); }
+  .r85 { transform: rotate(435deg); }
+  .r86 { transform: rotate(438deg); }
+  .r87 { transform: rotate(441deg); }
+  .r88 { transform: rotate(444deg); }
+  .r89 { transform: rotate(447deg); }
+  .r90 { transform: rotate(450deg); }
+  .r91 { transform: rotate(453deg); }
+  .r92 { transform: rotate(456deg); }
+  .r93 { transform: rotate(459deg); }
+  .r94 { transform: rotate(462deg); }
+  .r95 { transform: rotate(465deg); }
+  .r96 { transform: rotate(468deg); }
+  .r97 { transform: rotate(471deg); }
+  .r98 { transform: rotate(474deg); }
+  .r99 { transform: rotate(477deg); }
+  .r100 { transform: rotate(480deg); }
+  .r101 { transform: rotate(483deg); }
+  .r102 { transform: rotate(486deg); }
+  .r103 { transform: rotate(489deg); }
+  .r104 { transform: rotate(492deg); }
+  .r105 { transform: rotate(495deg); }
+  .r106 { transform: rotate(498deg); }
+  .r107 { transform: rotate(501deg); }
+  .r108 { transform: rotate(504deg); }
+  .r109 { transform: rotate(507deg); }
+  .r110 { transform: rotate(510deg); }
+  .r111 { transform: rotate(513deg); }
+  .r112 { transform: rotate(516deg); }
+  .r113 { transform: rotate(519deg); }
+  .r114 { transform: rotate(522deg); }
+  .r115 { transform: rotate(525deg); }
+  .r116 { transform: rotate(528deg); }
+  .r117 { transform: rotate(531deg); }
+  .r118 { transform: rotate(534deg); }
+  .r119 { transform: rotate(537deg); }
 </style>
