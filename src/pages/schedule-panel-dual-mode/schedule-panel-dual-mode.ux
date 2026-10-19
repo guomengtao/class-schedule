@@ -1,11 +1,11 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+      <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" style="color: {{ theme.text }}">智能切换</text>
-      <div class="header-placeholder"></div>
+      <div if="{{ !isRoot }}" class="header-placeholder"></div>
     </div>
 
     <div if="{{ isLoading }}" class="loading-area">
@@ -52,6 +52,7 @@
 import router from "@system.router"
 const database = require("../../data/database.js")
 const store = require("../../data/store.js")
+const utils = require("../../data/utils.js")
 
 var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
@@ -91,6 +92,9 @@ export default {
 
   onInit() {
     var self = this
+    // 独立首页 root 判定：由「更多首页」push 时带 fromPanel='1'；无参数即被设为首页冷启动
+    self.fromPanel = (self.fromPanel === '1') ? '1' : ''
+    self.isRoot = self.fromPanel !== '1'
     store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
     self.loadData()
     self.timer = setInterval(function() { self.tick() }, 10000)
@@ -171,7 +175,20 @@ export default {
     }
   },
 
-  goBack() { router.back() },
+  goBack() {
+    // 双模返回：被「更多首页」push（fromPanel）→ 回父页；作为 root 首页 → 退出应用
+    if (this.fromPanel === '1') {
+      router.back()
+    } else {
+      utils.exitApp()
+    }
+  },
+
+  onBackPress() {
+    // 硬件返回键：push 态交还系统默认返回（回更多首页）；root 态退出（与默认首页 index 一致）
+    if (this.fromPanel === '1') return false
+    return utils.exitApp() === true
+  },
 
   onDestroy() {
     if (this.timer) { clearInterval(this.timer); this.timer = null }
@@ -196,13 +213,16 @@ export default {
 .mode-tag { align-self: center; border-radius: 10px; padding: 6px 18px; margin-bottom: 18px }
 .mode-tag-text { font-size: 18px; line-height: 26px; font-weight: bold }
 
-.progress-card { flex-direction: column; border-radius: 18px; padding: 24px 20px }
+/* 独立首页化修正：左右 padding 20→12px，给 22px 字号「10:00 - 10:45」留足一行宽度 */
+.progress-card { flex-direction: column; border-radius: 18px; padding: 24px 12px }
 .prog-name { font-size: 30px; font-weight: bold; line-height: 38px; margin-bottom: 4px }
 .prog-time { font-size: 22px; line-height: 30px; margin-bottom: 18px }
 
 .progress-bar-bg { height: 14px; border-radius: 7px; margin-bottom: 10px; overflow: hidden }
 .progress-bar-fill { height: 14px; border-radius: 7px }
-.progress-labels { flex-direction: row; justify-content: space-between }
+/* 独立首页化修正：「已过 X 分钟」+「剩余 Y 分钟」左右排合计约 244px，144px 卡内溢出截断
+   （实测只见「已过 2 剩余」），改纵向堆叠两行完整显示 */
+.progress-labels { flex-direction: column }
 .prog-label { font-size: 20px; line-height: 28px }
 
 .countdown-card { flex: 1; flex-direction: column; justify-content: center; align-items: center }
