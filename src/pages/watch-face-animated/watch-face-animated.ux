@@ -1,54 +1,87 @@
+<!--
+  动画表盘 ④ · v2（2026-10-20 重构：秒环转盘 + 呼吸光晕 + 大字时间）
+  ─────────────────────────────────────────────────────────────
+  三层结构（详见 docs/动画表盘-重构方案.md）：
+    L1 秒环 60 格 + 秒游标 —— 极坐标算 left/top，靠数据绑定移动，不碰 transform
+    L2 HH / MM 88px 大字   —— 整分脏检查，读数优先准确
+    L3 呼吸光晕            —— 唯一一条 @keyframes，只改 opacity（字面量、纯色 div、无文字）
+
+  硬约束（本项目血泪，改本文件前必须读）：
+  ① 禁 transform 数据绑定（rotate({{deg}}deg)）→ 整页黑屏（metal 头注释）；
+  ② 禁 scroll + scrolltop → 引擎无效（flip v1 日志 domUpdate type:0）；
+  ③ 禁群组选择器 → 整张样式表被丢弃 → 黑屏；
+  ④ .page 只给 width/height:100% + position:relative，子元素全 absolute 手写坐标，
+     不叠 flex 居中（与 absolute 共存会黑屏，见 metal 头注释）；
+  ⑤ keyframes 里只放字面量；只挂在纯色无文字的节点上。
+-->
 <template>
-  <!--
-    动画表盘 ④ · 最小 demo（先验证不黑屏，再加完整版）
-    ── 安全红线（本项目实测铁律）──
-    · 只见 @keyframes + animation-name/duration/delay/iteration-count(起用 infinite)/timing-function
-    · 动画内只用**字面量** transform(scaleY) 与 opacity；绝不把 transform 做成数据绑定
-    · 不用 transition / position:fixed / z-index / 伪类 / 大 for
-    · 动画元素宁少勿多 → 本 demo 仅 5 根柱
-    ── 骨架 ── 照经典表盘（flex 居中，无 absolute 子元素）
-  -->
   <div class="page" onclick="onTap">
-    <text class="clock" style="color: {{ clockColor }}">{{ timeText }}</text>
 
-    <!-- 5 根错相位「均衡器」柱 -->
-    <div class="bars">
-      <div class="bar b0" style="background-color: {{ clockColor }}"></div>
-      <div class="bar b1" style="background-color: {{ clockColor }}"></div>
-      <div class="bar b2" style="background-color: {{ clockColor }}"></div>
-      <div class="bar b3" style="background-color: {{ clockColor }}"></div>
-      <div class="bar b4" style="background-color: {{ clockColor }}"></div>
-    </div>
+    <text class="brand">EV</text>
 
-    <text class="back" onclick="goBack">返回</text>
+    <!-- L3 呼吸光晕：外圈暗环 + 内圈底色挖空 = 10px 光带 -->
+    <div class="halo"></div>
+    <div class="haloIn"></div>
+
+    <!-- L1 秒环：60 格静态刻度（5 的倍数加亮） -->
+    <div class="dot {{ $item.c }}" for="{{ dots }}" style="left: {{ $item.l }}px; top: {{ $item.t }}px"></div>
+
+    <!-- 秒游标：每秒沿环跳一格（6°） -->
+    <div class="cur" style="left: {{ curL }}px; top: {{ curT }}px"></div>
+
+    <!-- 环心：秒数 -->
+    <text class="sec">{{ secText }}</text>
+    <text class="seclab">SEC</text>
+
+    <!-- L2 时间大字 -->
+    <text class="dg" style="top: 186px">{{ timeH }}</text>
+    <text class="dg" style="top: 290px">{{ timeM }}</text>
+
+    <text class="date">{{ dateText }}</text>
+    <text class="hint">轻触返回</text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
 
-const storage = require("@system.storage")
-
 const LIST_PAGE = "/pages/watch-face-list"
-const COLOR_KEY = "wf_clock_color"
+
+/* 秒环几何：圆心 (96,96)、半径 66、6° 一格 —— 与 CSS 里的 .halo 同圆心 */
+const CX = 96
+const CY = 96
+const R = 66
+const DOT = 5      // 普通刻度边长
+const DOT_M = 7    // 5 的倍数刻度边长
+const CUR = 14     // 游标边长
+const WEEKS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
+
+function round1(v) {
+  return Math.round(v * 10) / 10
+}
 
 export default {
   data: {
-    timeText: "--:--",
-    clockColor: "#7ec8e3"
+    dots: [],
+    curL: 0,
+    curT: 0,
+    secText: "--",
+    timeH: "--",
+    timeM: "--",
+    dateText: "--"
   },
 
   onInit() {
-    this.loadColor()
+    this.buildDots()
     this.tick()
   },
 
   onReady() {
-    this.refresh()
+    this.start()
   },
 
   onShow() {
-    this.refresh()
+    this.start()
   },
 
   onHide() {
@@ -59,50 +92,78 @@ export default {
     this.stop()
   },
 
-  refresh() {
+  /* 60 格刻度只生成一次，之后永不重绘 */
+  buildDots() {
+    const list = []
+    for (let i = 0; i < 60; i++) {
+      const deg = i * 6 * Math.PI / 180
+      const major = i % 5 === 0
+      const size = major ? DOT_M : DOT
+      list.push({
+        l: round1(CX + R * Math.sin(deg) - size / 2),
+        t: round1(CY - R * Math.cos(deg) - size / 2),
+        c: major ? "dotM" : "dot"
+      })
+    }
+    this.dots = list
+  },
+
+  /* 走时：整秒对齐后再起 1s 心跳，避免跳秒与长跑漂移 */
+  start() {
     this.stop()
     this.tick()
     const self = this
-    this.timer = setInterval(function() {
+    const rest = 1000 - (Date.now() % 1000)
+    this.alignTimer = setTimeout(function() {
+      self.alignTimer = undefined
       self.tick()
-    }, 1000)
+      self.timer = setInterval(function() {
+        self.tick()
+      }, 1000)
+    }, rest === 1000 ? 1000 : rest)
   },
 
   stop() {
+    if (this.alignTimer) {
+      clearTimeout(this.alignTimer)
+      this.alignTimer = undefined
+    }
     if (this.timer) {
       clearInterval(this.timer)
       this.timer = undefined
     }
   },
 
+  /* 分级脏检查：秒每拍写；分只在上位变化时写；日期只在跨日时写 */
   tick() {
     const now = new Date()
-    const t = this.pad(now.getHours()) + ":" + this.pad(now.getMinutes())
-    if (t !== this.timeText) this.timeText = t
+    const s = now.getSeconds()
+    const ss = this.pad(s)
+    if (ss !== this.secText) {
+      this.secText = ss
+      this.placeCur(s)
+    }
+    const hh = this.pad(now.getHours())
+    const mm = this.pad(now.getMinutes())
+    if (hh !== this.timeH) this.timeH = hh
+    if (mm !== this.timeM) this.timeM = mm
+    const d = this.pad(now.getMonth() + 1) + "-" + this.pad(now.getDate())
+            + " " + WEEKS[now.getDay()]
+    if (d !== this.dateText) this.dateText = d
+  },
+
+  /* 游标按极坐标落位（数据绑定 left/top，不涉及 transform） */
+  placeCur(sec) {
+    const deg = sec * 6 * Math.PI / 180
+    this.curL = round1(CX + R * Math.sin(deg) - CUR / 2)
+    this.curT = round1(CY - R * Math.cos(deg) - CUR / 2)
   },
 
   pad(n) {
     return n < 10 ? "0" + n : "" + n
   },
 
-  loadColor() {
-    const self = this
-    try {
-      storage.get({
-        key: COLOR_KEY,
-        success: function(res) {
-          if (res && res.value) self.clockColor = res.value
-        },
-        fail: function() {}
-      })
-    } catch (e) {}
-  },
-
   onTap() {
-    router.replace({ uri: LIST_PAGE })
-  },
-
-  goBack() {
     router.replace({ uri: LIST_PAGE })
   }
 }
@@ -113,50 +174,127 @@ export default {
     width: 100%;
     height: 100%;
     background-color: #0e0f16;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    position: relative;
   }
 
-  .clock {
-    font-size: 64px;
-    font-weight: bold;
-    letter-spacing: 2px;
+  .brand {
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 192px;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: #5c7a8c;
   }
 
-  .bars {
-    margin-top: 30px;
-    flex-direction: row;
-    align-items: center;
-  }
-
-  .bar {
-    width: 12px;
-    height: 52px;
-    border-radius: 6px;
-    margin: 0 4px;
-    animation-name: kf-eq;
-    animation-duration: 1.2s;
+  /* 呼吸光带：140 外圈 - 120 内圈 = 10px 环 */
+  .halo {
+    position: absolute;
+    left: 26px;
+    top: 26px;
+    width: 140px;
+    height: 140px;
+    border-radius: 70px;
+    background-color: #16232e;
+    animation-name: kf-breathe;
+    animation-duration: 3s;
     animation-timing-function: ease-in-out;
     animation-iteration-count: infinite;
   }
 
-  /* 错相位，形成流动的律动 */
-  .b0 { animation-delay: 0s; }
-  .b1 { animation-delay: 0.15s; }
-  .b2 { animation-delay: 0.3s; }
-  .b3 { animation-delay: 0.45s; }
-  .b4 { animation-delay: 0.6s; }
-
-  @keyframes kf-eq {
-    0%   { transform: scaleY(0.3); opacity: 0.5; }
-    50%  { transform: scaleY(1);   opacity: 1; }
-    100% { transform: scaleY(0.3); opacity: 0.5; }
+  .haloIn {
+    position: absolute;
+    left: 36px;
+    top: 36px;
+    width: 120px;
+    height: 120px;
+    border-radius: 60px;
+    background-color: #0e0f16;
   }
 
-  .back {
-    margin-top: 34px;
-    font-size: 22px;
-    color: #888899;
+  .dot {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 3px;
+    background-color: #2a3b49;
+  }
+
+  .dotM {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    border-radius: 4px;
+    background-color: #46687f;
+  }
+
+  .cur {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 7px;
+    background-color: #7ec8e3;
+  }
+
+  .sec {
+    position: absolute;
+    left: 0;
+    top: 70px;
+    width: 192px;
+    text-align: center;
+    font-size: 40px;
+    line-height: 46px;
+    font-weight: bold;
+    color: #eaf6fb;
+  }
+
+  .seclab {
+    position: absolute;
+    left: 0;
+    top: 120px;
+    width: 192px;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #4f6a7a;
+  }
+
+  .dg {
+    position: absolute;
+    left: 0;
+    width: 192px;
+    text-align: center;
+    font-size: 96px;
+    line-height: 100px;
+    font-weight: bold;
+    color: #f2fbff;
+  }
+
+  .date {
+    position: absolute;
+    left: 0;
+    top: 404px;
+    width: 192px;
+    text-align: center;
+    font-size: 14px;
+    color: #8fa6b5;
+  }
+
+  .hint {
+    position: absolute;
+    left: 0;
+    top: 432px;
+    width: 192px;
+    text-align: center;
+    font-size: 11px;
+    color: #5a6b78;
+  }
+
+  /* 全页唯一动画：只动 opacity，纯色无文字节点 → 允许 */
+  @keyframes kf-breathe {
+    0%   { opacity: 0.35; }
+    50%  { opacity: 1; }
+    100% { opacity: 0.35; }
   }
 </style>
