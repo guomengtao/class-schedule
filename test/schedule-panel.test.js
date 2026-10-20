@@ -125,6 +125,9 @@ function makeEnv(opts) {
         }
       }
     }
+    // 2026-10-20：多彩课表改吃共享固定配色表 src/data/subject-color.js，
+    // 旧桩把 *.js 一律返回 null → render 调 getSubjectColor 直接炸。此处给真模块。
+    if (id.indexOf("subject-color.js") >= 0) return require("../src/data/subject-color.js")
     if (id.indexOf("data.js") >= 0) return null
     // store 桩：简易课表 onInit 调 store.getTheme(cb)（真实签名见 src/data/store.js:287，
     // 回调 (theme, themeName)，此处镜像 THEMES.blue 真实色值）。
@@ -228,10 +231,10 @@ ok("宽屏断点适配保留（@media width >= 360 / 480）",
 ok("header 标题渲染为「更多首页」", panelSrc.indexOf(">更多首页</text>") >= 0)
 ok("header 下方有定位说明文案（含「默认首页不受影响」）", panelSrc.indexOf("默认首页不受影响") >= 0)
 
-// ================================================================ 2. 多彩课表（单日视图）
+// ================================================================ 2. 多彩课表（7天×5节固定网格）
 
 console.log("")
-console.log(bold("2. 多彩课表 schedule-panel-colorful —— 单日视图 + 当前方案"))
+console.log(bold("2. 多彩课表 schedule-panel-colorful —— 固定网格 + 箭头切天（P0/P1/P2）"))
 
 var colorEnv = makeEnv({ courses: MOCK_SCHEDULE, pill: false })
 var colorful = newInstance("colorful", colorEnv.req)
@@ -242,56 +245,54 @@ ok("数据源走 getAllCourses（当前方案），不用可被滑动改变的 v
   colorEnv.env.calls.filter(function (c) { return c.indexOf("getAllCoursesWithIndex") === 0 }).length === 0,
   "实际调用：" + JSON.stringify(colorEnv.env.calls))
 
-// 单日视图：默认 dayCursor = 今天；测试确定性地切到星期一（DAY_NAMES[1]）
+// ── P0：固定 3 列 × 5 行网格（不再滚动、不再单日卡片）──
 colorful.dayCursor = 1
-colorful.loadDay()
+colorful.render()
 ok("切到星期一后 hasCourses=true", colorful.hasCourses === true)
-eq("星期一渲染 2 门课（数学 + 语文课）", colorful.dayClasses.length, 2)
-eq("课程名不截断（单日卡片无需压缩）", colorful.dayClasses[0].name, "数学")
-ok("同一天内按时间升序（08:00 在 10:00 前）",
-  colorful.dayClasses[0].time === "08:00" && colorful.dayClasses[1].time === "10:00",
-  JSON.stringify(colorful.dayClasses.map(function (c) { return c.name + "@" + c.time })))
-ok("每门课带 color 字段（多彩身份：科目稳定配色）", colorful.dayClasses.every(function (c) { return !!c.color }))
+eq("星期条 7 格", colorful.weekCells.length, 7)
+eq("网格 5 行 × 3 列", colorful.gridCells.length, 5)
+eq("星期一 2 门课 → 2 个非空格", colorful.gridCells.reduce(function (n, r) { return n + r.filter(Boolean).length }, 0), 2)
+eq("格子课名不压缩", colorful.gridCells[0][0].name, "数学")
+ok("每格带 color（共享固定表 subject-color.js）", colorful.gridCells[0][0].color === "#3498db", colorful.gridCells[0][0].color)
+eq("格子带 startMin/endMin（当前时段判定用）", typeof colorful.gridCells[0][0].startMin, "number")
 
-// 空天：切到一个「MOCK 无课、且不是今天」的星期 → 空态
-// 不能写死 2（星期二）：机器日期正好是星期二时，源码会正确走「今天」分支，
-// emptyHint 变成「今天暂无课程」，断言就假失败（本用例踩过）。
+// ── P1：切天改箭头，touch 手势必须移除（drag 会被本引擎误判成点击 → 跳页）──
+for (var i = 0; i < 10; i++) colorful.nextDay()
+eq("nextDay 到 6 不越界", colorful.dayCursor, 6)
+for (var j = 0; j < 10; j++) colorful.prevDay()
+eq("prevDay 到 0 不越界", colorful.dayCursor, 0)
+eq("当前日高亮唯一", colorful.weekCells.filter(function (w) { return w.current }).length, 1)
+
+// ── 空态：不写死索引（机器日期正好是那天时会走「今天」分支，本用例踩过）──
 var TODAY_IDX = new Date().getDay()
 var WEEK_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 var EMPTY_IDX = [0, 2, 4, 5].filter(function (d) { return d !== TODAY_IDX })[0]
-var EMPTY_NAME = WEEK_NAMES[EMPTY_IDX]
 colorful.dayCursor = EMPTY_IDX
-colorful.loadDay()
+colorful.render()
 ok("切到无课天 hasCourses=false（触发空态）", colorful.hasCourses === false)
-ok("空态文案含星期名", colorful.emptyHint.indexOf(EMPTY_NAME) >= 0, colorful.emptyHint + " / 期望含 " + EMPTY_NAME)
+var SHORT_NAMES = ["日", "一", "二", "三", "四", "五", "六"]
+ok("空态文案含短星期名", colorful.emptyHint.indexOf("周" + SHORT_NAMES[EMPTY_IDX]) >= 0, colorful.emptyHint)
 
-// 配色稳定（跨实例一致）
-var colorEnv2 = makeEnv({ courses: MOCK_SCHEDULE })
-var colorful2 = newInstance("colorful", colorEnv2.req)
-colorful2.dayCursor = 1; colorful2.loadDay()
-// 实例1 此前已切到「无课天」(EMPTY_NAME) 做空态断言，dayClasses 已为空，需先切回星期一再比配色
-colorful.dayCursor = 1; colorful.loadDay()
-eq("同一科目配色稳定（跨实例一致）", colorful2.dayClasses[0].color, colorful.dayClasses[0].color)
+// ── P2 溢出计数 ──
+var colorEnv4 = makeEnv({ courses: [{ day: "星期一", classes: (function () {
+  var a = []
+  for (var k = 0; k < 16; k++) a.push({ name: "科" + k, time: "08:00", id: k })
+  return a
+})() }] })
+var colorful4 = newInstance("colorful", colorEnv4.req)
+colorful4.onInit()
+colorful4.dayCursor = 1; colorful4.render()
+eq("16 节只显示 15 格（3×5）", colorful4.gridCells.reduce(function (n, r) { return n + r.filter(Boolean).length }, 0), 15)
+eq("totalCount 记真实节数", colorful4.totalCount, 16)
 
-// 滑动切天：nextDay / prevDay 修改 dayCursor + dayLabel
-var colorEnv3 = makeEnv({ courses: MOCK_SCHEDULE })
-var colorful3 = newInstance("colorful", colorEnv3.req)
-var todayIdx = new Date().getDay()
-colorful3.dayCursor = todayIdx; colorful3.loadDay()
-ok("选中今天时 dayLabel 带「今天 ·」前缀", colorful3.dayLabel.indexOf("今天 ·") === 0, colorful3.dayLabel)
-colorful3.dayCursor = (todayIdx + 1) % 7; colorful3.loadDay()
-ok("选中非今天时 dayLabel 仅为星期名（无前缀）", colorful3.dayLabel.indexOf("今天") < 0, colorful3.dayLabel)
-colorful3.dayCursor = 1; colorful3.loadDay()
-colorful3.nextDay()
-// 同理不写死「星期二」：走到的那天若正好是今天，源码会加「今天 · 」前缀（这是对的）。
-var NEXT_LABEL = (2 === TODAY_IDX) ? ("今天 · " + WEEK_NAMES[2]) : WEEK_NAMES[2]
-ok("nextDay 切到下一星期且 dayLabel 跟随", colorful3.dayCursor === 2 && colorful3.dayLabel === NEXT_LABEL, colorful3.dayLabel + " / 期望 " + NEXT_LABEL)
-colorful3.prevDay()
-eq("prevDay 回到星期一且 dayLabel 跟随", colorful3.dayCursor, 1)
-
-var colorSrc = readFile(PAGES.colorful.file)
-ok("保留左右滑动切天：@swipe + handleSwipe + prevDay/nextDay",
-  colorSrc.indexOf("@swipe") > 0 && colorSrc.indexOf("handleSwipe") > 0 && colorSrc.indexOf("nextDay") > 0)
+// 剥掉 HTML 注释后再做「标签/指令级」判定：注释里出现「<scroll>」「@swipe」字样是说明文字，不算实现
+var colorSrc = readFile(PAGES.colorful.file).replace(/<!--[\s\S]*?-->/g, "")
+ok("**已无 @swipe 指令**（P1：touch 手势移除，改箭头切天）", !/@swipe\s*=/.test(colorSrc))
+ok("**已无 <scroll> 标签**（固定网格不滚动）", !/<scroll[\s>]/.test(colorSrc))
+ok("箭头切天入口在位（prevDay/nextDay + .arrow-btn）",
+  colorSrc.indexOf("prevDay") > 0 && colorSrc.indexOf("nextDay") > 0 && colorSrc.indexOf("arrow-btn") > 0)
+ok("配色走共享固定表（require subject-color.js + 调 getSubjectColor）",
+  colorSrc.indexOf("subject-color.js") > 0 && colorSrc.indexOf("getSubjectColor(") > 0)
 
 // ================================================================ 3. 简易课表
 
