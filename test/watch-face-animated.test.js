@@ -46,12 +46,26 @@ function makeClock(ms) {
 function makeTimers() {
   var seq = 0, q = [], dead = {}
   var t = {
-    now: 0,
+    now: 0, frames: 0,
     setTimeout: function(fn, ms) { var id = ++seq; q.push({ id: id, at: t.now + (ms || 0), fn: fn }); return id },
     setInterval: function(fn, ms) { var id = ++seq; q.push({ id: id, at: t.now + (ms || 0), fn: fn, every: ms || 1 }); return id },
     clearTimeout: function(id) { dead[id] = 1 },
     clearInterval: function(id) { dead[id] = 1 },
-    pending: function() { return q.filter(function(j) { return !dead[j.id] }).length }
+    pending: function() { return q.filter(function(j) { return !dead[j.id] }).length },
+    flush: function(max) {                      // 只跑一次性 setTimeout，不跑 interval（防死循环）
+      var lim = max || 60
+      while (q.length && t.frames < lim) {
+        q.sort(function(a, b) { return a.at - b.at })
+        var job = q[0]
+        if (dead[job.id]) { q.shift(); continue }
+        if (job.every) break
+        q.shift()
+        t.now = job.at
+        t.frames++
+        job.fn()
+      }
+      return t.frames
+    }
   }
   return t
 }
@@ -99,7 +113,12 @@ console.log("\n\x1b[1m结构契约\x1b[0m")
   truthy("秒环用 for 渲染 dots", /for="\{\{ dots \}\}"/.test(TPL))
   truthy("有秒游标节点", /class="cur"/.test(TPL))
   truthy("有环心秒数", /class="sec"/.test(TPL))
-  eq("两行时间大字", (TPL.match(/class="dg"/g) || []).length, 2)
+  eq("HH 一行静态大字", (TPL.match(/class="dg"/g) || []).length, 1)
+  truthy("MM 十位是静态文字", /class="mmTen"/.test(TPL))
+  truthy("MM 个位有裁切窗", /class="mmWin"/.test(TPL))
+  truthy("窗内是数字带（分帧推 top）", /class="mmStrip" style="top: \{\{ mmTop \}\}px"/.test(TPL))
+  truthy("数字带 11 项（0-9 + 副本 0）", /for="\{\{ nums \}\}"/.test(TPL))
+  eq("nums 长度 11", (function() { var a = makeInst(at(14, 30, 7)); a.onInit(); return a.nums.length })(), 11)
   truthy("有日期行", /class="date"/.test(TPL))
   truthy("有返回提示", /轻触返回/.test(TPL))
 }
@@ -205,6 +224,48 @@ console.log("\n\x1b[1m走时与游标\x1b[0m")
   var e = makeInst(at(9, 5, 0))
   e.onInit()
   eq("补零：09:05", e.timeH + ":" + e.timeM, "09:05")
+}
+
+/* ── 分钟个位上滚 ───────────────────────────────────── */
+
+console.log("\n\x1b[1m分钟个位上滚\x1b[0m")
+{
+  var a = makeInst(at(14, 30, 59))
+  a.onInit()
+  a.__timers.flush()
+  eq("初始落位：上滚到第 0 格", a.mmTop, 0)
+  eq("十位 3", a.mmTen, "3")
+
+  var b = makeInst(at(14, 30, 59))
+  b.onInit()
+  b.__timers.flush()                    // 初次落位（30 → 个位 0，无滚动）
+  b.__clock.ms = at(14, 31, 0)
+  b.tick()
+  eq("跨分钟立刻回到起点（还没滚）", b.mmTop, 0)
+  b.__timers.now = 0; b.__timers.frames = 0
+  b.__timers.flush()
+  eq("滚完落在第 1 格", b.mmTop, -100)
+  eq("mmIdx = 1", b.mmIdx, 1)
+  eq("十位仍是 3", b.mmTen, "3")
+
+  var c = makeInst(at(14, 39, 59))
+  c.onInit()
+  c.__timers.flush()
+  c.__clock.ms = at(14, 40, 0)
+  c.tick()
+  c.__timers.now = 0; c.__timers.frames = 0
+  c.__timers.flush()
+  eq("9→0：先滚到副本格 10 再瞬回 0（最终 mmTop=0）", c.mmTop, 0)
+  eq("9→0：mmIdx 归位到 0", c.mmIdx, 0)
+  eq("9→0：十位跟着进位到 4", c.mmTen, "4")
+
+  var d = makeInst(at(14, 30, 30))
+  d.onInit()
+  d.__timers.flush()
+  var before = d.mmTop
+  d.__clock.ms = at(14, 30, 31)
+  d.tick()
+  eq("同一分钟内的秒跳不碰分钟带", d.mmTop, before)
 }
 
 /* ── 定时器纪律 ─────────────────────────────────────── */

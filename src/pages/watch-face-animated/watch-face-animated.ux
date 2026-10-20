@@ -35,9 +35,14 @@
     <text class="sec">{{ secText }}</text>
     <text class="seclab">SEC</text>
 
-    <!-- L2 时间大字 -->
+    <!-- L2 时间大字：HH 整行静态；MM 十位静态 + 个位数字带上滚 -->
     <text class="dg" style="top: 186px">{{ timeH }}</text>
-    <text class="dg" style="top: 290px">{{ timeM }}</text>
+    <text class="mmTen">{{ mmTen }}</text>
+    <div class="mmWin">
+      <div class="mmStrip" style="top: {{ mmTop }}px">
+        <text class="mmDig" for="{{ nums }}">{{ $item }}</text>
+      </div>
+    </div>
 
     <text class="date">{{ dateText }}</text>
     <text class="hint">轻触返回</text>
@@ -76,6 +81,10 @@ export default {
     secText: "--",
     timeH: "--",
     timeM: "--",
+    mmTen: "-",
+    mmTop: 0,
+    mmIdx: 0,
+    nums: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
     dateText: "--"
   },
 
@@ -119,6 +128,7 @@ export default {
   /* 走时：整秒对齐后再起 1s 心跳，避免跳秒与长跑漂移 */
   start() {
     this.stop()
+    this.timeM = "--"   // 强制重算分钟：stop() 会掐掉首帧滚动，不重置就再也不会滚
     this.tick()
     const self = this
     const rest = 1000 - (Date.now() % 1000)
@@ -140,6 +150,10 @@ export default {
       clearInterval(this.timer)
       this.timer = undefined
     }
+    if (this.rollTimer) {
+      clearTimeout(this.rollTimer)
+      this.rollTimer = undefined
+    }
   },
 
   /* 分级脏检查：秒每拍写；分只在上位变化时写；日期只在跨日时写 */
@@ -154,7 +168,10 @@ export default {
     const hh = this.pad(now.getHours())
     const mm = this.pad(now.getMinutes())
     if (hh !== this.timeH) this.timeH = hh
-    if (mm !== this.timeM) this.timeM = mm
+    if (mm !== this.timeM) {
+      this.timeM = mm
+      this.setMinute(now.getMinutes())
+    }
     const d = this.pad(now.getMonth() + 1) + "-" + this.pad(now.getDate())
             + " " + WEEKS[now.getDay()]
     if (d !== this.dateText) this.dateText = d
@@ -179,6 +196,44 @@ export default {
       l: round1(CX + R * Math.sin(rad) - size / 2),
       t: round1(CY - R * Math.cos(rad) - size / 2)
     }
+  },
+
+  /* 分钟变化：十位直接换字，个位走数字带上滚（0 时滚到副本格再瞬回 0） */
+  setMinute(m) {
+    const ten = Math.floor(m / 10)
+    const one = m % 10
+    if ("" + ten !== this.mmTen) this.mmTen = "" + ten
+    if (one === this.mmIdx % 10 && this.rollTimer === undefined) return
+    this.rollTo(one)
+  },
+
+  rollTo(one) {
+    const self = this
+    if (this.rollTimer) {
+      clearTimeout(this.rollTimer)
+      this.rollTimer = undefined
+    }
+    const from = this.mmIdx
+    const target = (one === 0 && from === 9) ? 10 : one
+    const dir = target >= from ? 1 : -1
+    const n = Math.abs(target - from)
+    let k = 0
+    const step = function() {
+      k++
+      self.mmIdx = from + dir * k
+      self.mmTop = -self.mmIdx * 100
+      if (k < n) {
+        self.rollTimer = setTimeout(step, 60)
+      } else {
+        self.rollTimer = undefined
+        if (self.mmIdx === 10) {      // 副本格归位，避免下一轮越界
+          self.mmIdx = 0
+          self.mmTop = 0
+        }
+      }
+    }
+    if (n === 0) return
+    this.rollTimer = setTimeout(step, 60)
   },
 
   pad(n) {
@@ -310,8 +365,47 @@ export default {
     color: #f2fbff;
   }
 
-  .date {
+  /* 分钟：十位静态 + 个位上滚窗（两字中心 69.5 / 122.5，与 HH 同一中心线） */
+  .mmTen {
     position: absolute;
+    left: 42px;
+    top: 290px;
+    width: 55px;
+    text-align: center;
+    font-size: 96px;
+    line-height: 100px;
+    font-weight: bold;
+    color: #f2fbff;
+  }
+
+  .mmWin {
+    position: absolute;
+    left: 95px;
+    top: 290px;
+    width: 55px;
+    height: 100px;
+    overflow: hidden;
+  }
+
+  .mmStrip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 55px;
+    flex-direction: column;   /* 关键：没有列向 flex，11 格会全部叠在原点 */
+  }
+
+  .mmDig {
+    width: 55px;
+    height: 100px;
+    text-align: center;
+    font-size: 96px;
+    line-height: 100px;
+    font-weight: bold;
+    color: #f2fbff;
+  }
+
+  .date {    position: absolute;
     left: 0;
     top: 404px;
     width: 192px;
