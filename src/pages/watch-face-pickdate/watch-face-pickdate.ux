@@ -1,52 +1,47 @@
 <template>
-  <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
+  <div class="page">
 
-    <!-- 顶部：月份 / 年份 -->
-    <text class="mon">{{ monText }}</text>
-    <text class="year">{{ yearText }}</text>
+    <div class="back" onclick="onTap"></div>
 
-    <!-- 日期鼓：上一日 / 今日 / 下一日 -->
-    <text class="nd nd-prev">{{ prevDay }}</text>
-    <text class="cur {{ curCls }}">{{ dayText }}</text>
-    <text class="nd nd-next">{{ nextDay }}</text>
+    <text class="brand">EV</text>
+    <text class="brand-sub">时 间 表 盘</text>
 
-    <!-- 鼓窗切口：左右竖线 + 上下沿（上亮下暗） -->
-    <div class="cut cut-l"></div>
-    <div class="cut cut-r"></div>
-    <div class="edge edge-t"></div>
-    <div class="edge edge-b"></div>
+    <!-- 三列原生 picker：上下滑就是系统原生滚动，不写任何手势代码 -->
+    <div class="drum" onclick="stopBubble">
+      <picker class="pick" type="text" range="{{ hours }}" selected="{{ hIdx }}" onchange="onH"></picker>
+      <text class="c">:</text>
+      <picker class="pick" type="text" range="{{ mins }}" selected="{{ mIdx }}" onchange="onM"></picker>
+      <text class="c">:</text>
+      <picker class="pick" type="text" range="{{ secs }}" selected="{{ sIdx }}" onchange="onS"></picker>
+    </div>
 
-    <!-- 底部：星期 / 分隔线 / 一年第几天 -->
-    <text class="wd">{{ weekText }}</text>
+    <div class="edge-t"></div>
+    <div class="edge-b"></div>
+
+    <text class="date">{{ dateText }}</text>
     <div class="hr"></div>
     <text class="doy">{{ doyText }}</text>
 
-    <!-- 操作提示 -->
     <text class="hint">{{ hintText }}</text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
-import vibrator from "@system.vibrator"
 
 const LIST_PAGE = "/pages/watch-face-list"
-
-const MON = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
-             "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"]
-const WD = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"]
+const WD = ["日", "一", "二", "三", "四", "五", "六"]
+const HINT_IDLE = "上下滑调时 · 点顶部返回"
 
 function pad2(n) {
   return n < 10 ? "0" + n : "" + n
 }
 
-/* 字间距：Vela 的 text 不支持 letter-spacing，用空格手动撑开 */
-function sp(s) {
-  var out = ""
-  for (var i = 0; i < s.length; i++) {
-    out += (i ? " " : "") + s.charAt(i)
-  }
-  return out
+/* 0..n-1 的两位字符串数组，picker 的 range 要字符串 */
+function seq(n) {
+  const a = []
+  for (let i = 0; i < n; i++) a.push(pad2(i))
+  return a
 }
 
 function isLeap(y) {
@@ -55,192 +50,152 @@ function isLeap(y) {
 
 export default {
   data: {
-    monText: "",
-    yearText: "",
-    dayText: "",
-    prevDay: "",
-    nextDay: "",
-    weekText: "",
+    hours: seq(24),
+    mins: seq(60),
+    secs: seq(60),
+    hIdx: 0,
+    mIdx: 0,
+    sIdx: 0,
+    dateText: "",
     doyText: "",
-    hintText: "长按回到今天",
-    curCls: "c0",
-    timer: null
+    hintText: HINT_IDLE
   },
 
   onInit() {
-    this.browseOffset = 0
-    this.touchStartY = 0
-    this.pressTs = 0
-    this.suppressTap = false
-    this.backTimer = null
-    this.jitterTimer = null
-    this.lastDay = -1
-    this.applyDate(0)
-
-    var self = this
-    this.timer = setInterval(function() {
-      self.tick()
-    }, 1000)
+    /* shown = 三列当前真实值的脏检查基准 */
+    this.shown = [-1, -1, -1]
+    this.manualTs = 0
+    this.tick()
+    this.align()
   },
 
-  /* 页面重新可见时兜底刷新（定时器若被引擎挂起，至少进入页面总是准的） */
+  /* 表盘可能被系统挂起，回到前台先对齐一次 */
   onShow() {
-    if (this.browseOffset === 0) this.applyDate(0)
+    this.align()
+  },
+
+  onHide() {
+    this.stopAll()
   },
 
   onDestroy() {
+    this.stopAll()
+  },
+
+  /* ── 定时器 ─────────────────────────────────────────── */
+
+  stopAll() {
     if (this.timer) {
       clearInterval(this.timer)
-      this.timer = null
+      this.timer = undefined
     }
-    if (this.backTimer) {
-      clearTimeout(this.backTimer)
-      this.backTimer = null
-    }
-    if (this.jitterTimer) {
-      clearTimeout(this.jitterTimer)
-      this.jitterTimer = null
+    if (this.alignTimer) {
+      clearTimeout(this.alignTimer)
+      this.alignTimer = undefined
     }
   },
 
-  /* 每秒跑，但浏览模式下直接退出；只有跨日才写一次数据 */
+  /* 先对齐整秒再起 interval，避免跳秒与长跑漂移 */
+  align() {
+    this.stopAll()
+    this.tick()
+    const self = this
+    this.alignTimer = setTimeout(function() {
+      self.alignTimer = undefined
+      self.tick()
+      self.timer = setInterval(function() {
+        self.tick()
+      }, 1000)
+    }, 1000 - (new Date().getTime() % 1000))
+  },
+
+  /* ── 走时 ───────────────────────────────────────────── */
+
   tick() {
-    /* 浏览模式：靠秒级轮询判定 3 秒无操作（setTimeout 实测不触发，改用轮询；Date.now() 不可靠，用 getTime） */
-    if (this.browseOffset !== 0) {
-      var left = 3 - Math.floor((new Date().getTime() - this.browseTs) / 1000)
+    const now = new Date()
+
+    /* 手动滑动后进入 browse 态：3 秒无操作回到现在 */
+    if (this.manualTs) {
+      const left = 3 - Math.floor((now.getTime() - this.manualTs) / 1000)
       if (left <= 0) {
-        this.browseOffset = 0
-        this.browseTs = 0
-        this.applyDate(0)
+        this.manualTs = 0
+        this.syncNow(now)
+        this.setHint(HINT_IDLE)
       } else {
-        var h = left + " 秒后回到今天"
-        if (h !== this.hintText) this.hintText = h
+        this.setHint(left + " 秒后回到现在")
       }
       return
     }
-    var d = new Date().getDate()
-    if (d !== this.lastDay) this.applyDate(0)
+
+    this.syncNow(now)
   },
 
-  /* 把 browseOffset 折算成一个真实 Date，逐字段脏值判断后写回 */
-  applyDate(dir) {
-    var base = new Date()
-    var d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + this.browseOffset)
+  syncNow(now) {
+    const H = now.getHours()
+    const M = now.getMinutes()
+    const S = now.getSeconds()
 
-    var y = d.getFullYear()
-    var m = d.getMonth()
-    var day = d.getDate()
-
-    var mon = sp(MON[m])
-    if (mon !== this.monText) this.monText = mon
-
-    var ys = "" + y
-    if (ys !== this.yearText) this.yearText = ys
-
-    var ds = pad2(day)
-    if (ds !== this.dayText) this.dayText = ds
-
-    var p = pad2(new Date(y, m, day - 1).getDate())
-    if (p !== this.prevDay) this.prevDay = p
-
-    var n = pad2(new Date(y, m, day + 1).getDate())
-    if (n !== this.nextDay) this.nextDay = n
-
-    var wd = sp(WD[d.getDay()])
-    if (wd !== this.weekText) this.weekText = wd
-
-    var doy = Math.floor((d.getTime() - new Date(y, 0, 0).getTime()) / 86400000)
-    var dt = doy + " / " + (isLeap(y) ? 366 : 365) + " 天"
-    if (dt !== this.doyText) this.doyText = dt
-
-    var hint = this.browseOffset === 0 ? "长按回到今天" : "3 秒后回到今天"
-    if (hint !== this.hintText) this.hintText = hint
-
-    this.lastDay = base.getDate()
-
-    /* 位移两帧：先偏移再归位，靠字面量类切 top，不碰 transform */
-    if (dir) {
-      this.curCls = dir > 0 ? "c2" : "c1"
-      var self = this
-      if (this.jitterTimer) clearTimeout(this.jitterTimer)
-      this.jitterTimer = setTimeout(function() {
-        self.curCls = "c0"
-        self.jitterTimer = null
-      }, 120)
+    /* 脏检查：常态每秒只写 1 个字段（秒列） */
+    if (H !== this.shown[0]) {
+      this.shown[0] = H
+      this.hIdx = H
     }
+    if (M !== this.shown[1]) {
+      this.shown[1] = M
+      this.mIdx = M
+    }
+    if (S !== this.shown[2]) {
+      this.shown[2] = S
+      this.sIdx = S
+    }
+
+    const dt = pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + " 周" + WD[now.getDay()]
+    if (dt !== this.dateText) this.dateText = dt
+
+    const y = now.getFullYear()
+    const doy = Math.floor((now.getTime() - new Date(y, 0, 0).getTime()) / 86400000)
+    const ds = doy + " / " + (isLeap(y) ? 366 : 365) + " 天"
+    if (ds !== this.doyText) this.doyText = ds
   },
 
-  browseStep(dir) {
-    this.browseOffset += dir
-    this.browseTs = new Date().getTime()
-    this.applyDate(dir)
+  setHint(s) {
+    if (s !== this.hintText) this.hintText = s
   },
 
-  backToToday(doVibrate) {
-    if (this.backTimer) {
-      clearTimeout(this.backTimer)
-      this.backTimer = null
-    }
-    if (this.browseOffset !== 0) {
-      this.browseOffset = 0
-      this.browseTs = 0
-      this.applyDate(0)
-    }
-    if (doVibrate) {
-      try {
-        vibrator.vibrate({ mode: "short" })
-      } catch (e) {}
-    }
+  /* ── 用户手动滑动 ───────────────────────────────────── */
+
+  onH(e) { this.onManual(0, e) },
+  onM(e) { this.onManual(1, e) },
+  onS(e) { this.onManual(2, e) },
+
+  /*
+    程序写 selected 可能回环一次 change，带回的就是刚写进去的值。
+    所以"值没变就忽略"比布尔标记更稳：不会残留状态把下一次真手滑吞掉。
+  */
+  /* 鼓区吞掉点击：滑动不该被页面当成"返回目录"（同 time-picker-demo） */
+  stopBubble() {
+    return
   },
 
-  /* ── 触摸：上下滑翻日期 / 长按回今天 / 单击返回 ── */
-  onTouchStart(e) {
-    var t = (e && e.touches && e.touches[0]) || e || {}
-    this.touchStartY = t.clientY || t.offsetY || t.pageY || 0
-    this.pressTs = new Date().getTime()
-    this.suppressTap = false
+  onManual(i, e) {
+    const v = e && typeof e.newSelected === "number" ? e.newSelected : -1
+    if (v < 0 || v === this.shown[i]) return
+    this.shown[i] = v
+    this.manualTs = new Date().getTime()
+    this.setHint("3 秒后回到现在")
   },
 
-  onTouchEnd(e) {
-    var t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]) || e || {}
-    var endY = t.clientY || t.offsetY || t.pageY || 0
-    var startY = this.touchStartY || 0
-    var d = startY ? (startY - endY) : 0
-    var held = this.pressTs ? (new Date().getTime() - this.pressTs) : 0
-
-    this.touchStartY = 0
-    this.pressTs = 0
-
-    /* 长按 600ms：立即回今天 */
-    if (held >= 600 && Math.abs(d) < 40) {
-      this.suppressTap = true
-      this.backToToday(true)
-      return
-    }
-
-    /* 上滑 → 后一天；下滑 → 前一天（阈值 40px） */
-    if (d >= 40) {
-      this.suppressTap = true
-      this.browseStep(1)
-      return
-    }
-    if (d <= -40) {
-      this.suppressTap = true
-      this.browseStep(-1)
-      return
-    }
-  },
+  /* ── 交互出口 ───────────────────────────────────────── */
 
   onTap() {
-    if (this.suppressTap) return
-    this.onDestroy()
+    this.stopAll()
     router.replace({ uri: LIST_PAGE })
   }
 }
 </script>
 
 <style>
-  /* 布局铁律：纯 relative + 子元素绝对定位，禁 flex 居中；禁 transform / vw */
+  /* 布局铁律：relative 容器 + absolute 子元素；禁群组选择器；禁 transform 数据绑定 */
   .page {
     position: relative;
     width: 100%;
@@ -248,111 +203,102 @@ export default {
     background-color: #0f1115;
   }
 
-  /* ── 顶部 ── */
-  .mon {
+  /* 返回热区：顶部 0~120，与鼓区完全分离 */
+  .back {
     position: absolute;
     left: 0;
-    top: 24px;
+    top: 0;
     width: 192px;
-    height: 16px;
-    font-size: 11px;
-    color: #7d858f;
-    text-align: center;
+    height: 120px;
   }
 
-  .year {
+  .brand {
     position: absolute;
     left: 0;
-    top: 44px;
+    top: 52px;
+    width: 192px;
+    height: 24px;
+    font-size: 20px;
+    letter-spacing: 3px;
+    text-align: center;
+    color: #d8dde8;
+  }
+
+  .brand-sub {
+    position: absolute;
+    left: 0;
+    top: 76px;
     width: 192px;
     height: 14px;
-    font-size: 9px;
-    color: #4f5861;
+    font-size: 11px;
     text-align: center;
+    color: #5a6274;
   }
 
-  /* ── 日期鼓 ── */
-  .nd {
+  /* 鼓容器：6 + 52 + 12 + 52 + 12 + 52 = 186，右留 6 */
+  .drum {
     position: absolute;
-    left: 0;
-    width: 192px;
+    left: 6px;
+    top: 150px;
+    width: 180px;
+    height: 150px;
+    flex-direction: row;
+  }
+
+  /* 三列同一套参数，就是日期选择器的基础样式 */
+  .pick {
+    width: 52px;
+    height: 150px;
+    font-size: 25px;
+    color: #5a6470;
+    selected-font-size: 30px;
+    selected-color: #7ec8e3;
+    selected-background-color: #0f3460;
+  }
+
+  .c {
+    width: 12px;
+    height: 150px;
+    font-size: 26px;
+    line-height: 150px;
     text-align: center;
-    font-size: 16px;
-    color: #454c54;
+    color: #4a5265;
   }
 
-  .nd-prev {
-    top: 100px;
-    height: 24px;
-  }
-
-  .nd-next {
-    top: 268px;
-    height: 24px;
-  }
-
-  .cur {
-    position: absolute;
-    left: 0;
-    top: 138px;
-    width: 192px;
-    height: 124px;
-    font-size: 88px;
-    line-height: 124px;
-    text-align: center;
-    color: #e9eef2;
-  }
-
-  /* 位移两帧（字面量 top，不用 transform） */
-  .c0 { top: 138px; }
-  .c1 { top: 132px; }
-  .c2 { top: 144px; }
-
-  /* ── 鼓窗切口 ── */
-  .cut {
-    position: absolute;
-    top: 148px;
-    height: 106px;
-    width: 1px;
-    background-color: #333a42;
-  }
-
-  .cut-l { left: 26px; }
-  .cut-r { left: 165px; }
-
-  .edge {
-    position: absolute;
-    left: 26px;
-    width: 140px;
-    height: 1px;
-  }
-
+  /* 鼓窗上下沿：纯装饰 1px，不覆盖触摸区（选中行 200~250） */
   .edge-t {
-    top: 148px;
-    background-color: #3a424b;
+    position: absolute;
+    left: 4px;
+    top: 200px;
+    width: 184px;
+    height: 1px;
+    background-color: #2f3846;
   }
 
   .edge-b {
-    top: 254px;
-    background-color: #23282e;
+    position: absolute;
+    left: 4px;
+    top: 249px;
+    width: 184px;
+    height: 1px;
+    background-color: #232a34;
   }
 
-  /* ── 底部 ── */
-  .wd {
+  .date {
     position: absolute;
     left: 0;
-    top: 336px;
+    top: 300px;
     width: 192px;
     height: 18px;
-    font-size: 12px;
-    color: #98a1aa;
+    font-size: 13px;
     text-align: center;
+    color: #98a1aa;
   }
 
   .hr {
     position: absolute;
     left: 76px;
-    top: 362px;
+    top: 324px;
     width: 40px;
     height: 1px;
     background-color: #2b3138;
@@ -361,12 +307,12 @@ export default {
   .doy {
     position: absolute;
     left: 0;
-    top: 374px;
+    top: 336px;
     width: 192px;
     height: 14px;
     font-size: 9px;
-    color: #4d545c;
     text-align: center;
+    color: #4d545c;
   }
 
   .hint {
@@ -376,7 +322,7 @@ export default {
     width: 192px;
     height: 14px;
     font-size: 9px;
-    color: #343b43;
     text-align: center;
+    color: #343b43;
   }
 </style>
