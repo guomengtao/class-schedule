@@ -56,7 +56,7 @@ function makeTimers() {
   return t
 }
 
-var WATCH = ["timeH", "timeM", "secText", "curL", "curT", "dateText"]
+var WATCH = ["timeH", "timeM", "secText", "curL", "curT", "cur2L", "cur2T", "cur3L", "cur3T", "dateText"]
 
 function makeInst(atMs) {
   var m = SRC.match(/<script>([\s\S]*?)<\/script>/)
@@ -164,8 +164,24 @@ console.log("\n\x1b[1m走时与游标\x1b[0m")
   a.__clock.ms = at(14, 30, 8)
   a.tick()
   var d0 = writesOf(a, w0)
-  eq("秒变 1 拍：只写秒数与游标两点", d0.length, 3)
-  eq("写入字段是 secText/curL/curT", d0.map(function(x) { return x.k }).join(","), "secText,curL,curT")
+  eq("秒变 1 拍：只写秒数与游标三点六坐标", d0.length, 7)
+  eq("写入字段是 secText + 三级游标坐标", d0.map(function(x) { return x.k }).join(","),
+     "secText,curL,curT,cur2L,cur2T,cur3L,cur3T")
+
+  /* 拖尾：第 1 级在 08 时落在 07 的位置，第 2 级落在 06 的位置（越小越靠后） */
+  var b0 = makeInst(at(14, 30, 8))
+  b0.onInit()
+  var p7 = b0.posOf(7 * 6, 12), p6 = b0.posOf(6 * 6, 10), p8 = b0.posOf(8 * 6, 14)
+  eq("拖尾1 = 前 1 秒（42°）的位置", b0.cur2L + "," + b0.cur2T, p7.l + "," + p7.t)
+  eq("拖尾2 = 前 2 秒（36°）的位置", b0.cur3L + "," + b0.cur3T, p6.l + "," + p6.t)
+  eq("游标永远在最前（08 秒 = 48°）", b0.curL + "," + b0.curT, p8.l + "," + p8.t)
+  truthy("拖尾沿逆时针方向递减（y 递增或 x 递减）", b0.cur3T >= b0.cur2T && b0.cur2T >= b0.curT - 0.1 ||
+         b0.cur3L <= b0.cur2L + 0.1)
+
+  var z = makeInst(at(14, 30, 0))
+  z.onInit()
+  eq("0 秒时拖尾回绕到 59 秒位置（不越界）", z.cur2L + "," + z.cur2T,
+     (z.posOf(59 * 6, 12).l + "," + z.posOf(59 * 6, 12).t))
 
   var b = makeInst(at(14, 29, 59))
   b.onInit()

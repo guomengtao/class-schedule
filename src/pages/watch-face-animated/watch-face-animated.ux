@@ -26,7 +26,9 @@
     <!-- L1 秒环：60 格静态刻度（5 的倍数加亮） -->
     <div class="dot {{ $item.c }}" for="{{ dots }}" style="left: {{ $item.l }}px; top: {{ $item.t }}px"></div>
 
-    <!-- 秒游标：每秒沿环跳一格（6°） -->
+    <!-- 秒游标：每秒沿环跳一格（6°）；后面两级渐隐拖尾表明走向 -->
+    <div class="cur3" style="left: {{ cur3L }}px; top: {{ cur3T }}px"></div>
+    <div class="cur2" style="left: {{ cur2L }}px; top: {{ cur2T }}px"></div>
     <div class="cur" style="left: {{ curL }}px; top: {{ curT }}px"></div>
 
     <!-- 环心：秒数 -->
@@ -54,6 +56,8 @@ const R = 66
 const DOT = 5      // 普通刻度边长
 const DOT_M = 7    // 5 的倍数刻度边长
 const CUR = 14     // 游标边长
+const TRAIL1 = 12  // 拖尾第 1 级（前 1 秒）
+const TRAIL2 = 10  // 拖尾第 2 级（前 2 秒）
 const WEEKS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
 
 function round1(v) {
@@ -65,6 +69,10 @@ export default {
     dots: [],
     curL: 0,
     curT: 0,
+    cur2L: 0,
+    cur2T: 0,
+    cur3L: 0,
+    cur3T: 0,
     secText: "--",
     timeH: "--",
     timeM: "--",
@@ -152,11 +160,25 @@ export default {
     if (d !== this.dateText) this.dateText = d
   },
 
-  /* 游标按极坐标落位（数据绑定 left/top，不涉及 transform） */
+  /* 游标 + 两级拖尾按极坐标落位（数据绑定 left/top，不涉及 transform） */
   placeCur(sec) {
-    const deg = sec * 6 * Math.PI / 180
-    this.curL = round1(CX + R * Math.sin(deg) - CUR / 2)
-    this.curT = round1(CY - R * Math.cos(deg) - CUR / 2)
+    const a = this.posOf(sec * 6, CUR)
+    const b = this.posOf(((sec + 59) % 60) * 6, TRAIL1)
+    const c = this.posOf(((sec + 58) % 60) * 6, TRAIL2)
+    this.curL = a.l
+    this.curT = a.t
+    this.cur2L = b.l
+    this.cur2T = b.t
+    this.cur3L = c.l
+    this.cur3T = c.t
+  },
+
+  posOf(deg, size) {
+    const rad = deg * Math.PI / 180
+    return {
+      l: round1(CX + R * Math.sin(rad) - size / 2),
+      t: round1(CY - R * Math.cos(rad) - size / 2)
+    }
   },
 
   pad(n) {
@@ -235,6 +257,23 @@ export default {
     height: 14px;
     border-radius: 7px;
     background-color: #7ec8e3;
+  }
+
+  /* 拖尾两级：越靠后越小越暗，静帧也能看出转动方向 */
+  .cur2 {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 6px;
+    background-color: #3d7f95;
+  }
+
+  .cur3 {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: #274b5c;
   }
 
   .sec {
