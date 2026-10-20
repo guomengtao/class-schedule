@@ -67,6 +67,22 @@ cmd_status() {
   fi
 }
 
+# 机型族判定（对应 vela.py 的 AVD_MODEL，防 AI 克隆体多开同类）
+#   - 原始 AVD 显式映射
+#   - 克隆体 evc-* → 去 evc- 前缀后取第一个 - 前的段（evc-xiaomi_band-buddy-1 → xiaomi_band）
+# 归并后：xiaomi_band / band-9-pro / xiaomi_band_pro / xiaomi_band_10 / 其它各自成族
+avd_family() {
+  local avd="$1" base
+  case "$avd" in
+    xiaomi_band)        echo xiaomi_band; return ;;
+    band-9-pro)         echo band-9-pro; return ;;
+    xiaomi_band_pro)    echo xiaomi_band_pro; return ;;
+    xiaomi_band_10)     echo xiaomi_band_10; return ;;
+  esac
+  base="${avd#evc-}"
+  echo "${base%%-*}"
+}
+
 stop_avd() {
   local avd="$1" pids
   pids=$(qemu_pids_for_avd "$avd")
@@ -94,6 +110,22 @@ cmd_stop() {
 cmd_start() {
   local avd="${1:-}"
   [ -z "$avd" ] && { echo "用法: $0 start <avd>"; return 1; }
+  # 铁律B：机型族单台门闩（默认开，EMU_ONE_PER_FAMILY=0 豁免）
+  #   目的：禁止「AI 自己同机型多开」——同一机型族（如手环9）整机只许 1 台。
+  #   判据只用 qemu PID 存活（可靠、不误杀）；同族已有任一在跑实例（只要是活的 qemu）→ 拒绝新开。
+  #   「死机重启/重启失败结束」不在这里做（那要单独监控活进程，不能靠门的静态探测），见 emu-start 调用方约定。
+  if [ "${EMU_ONE_PER_FAMILY:-1}" = "1" ]; then
+    local fam other
+    fam=$(avd_family "$avd")
+    for other in $(avd_names_running); do
+      [ "$other" = "$avd" ] && continue
+      [ "$(avd_family "$other")" = "$fam" ] && [ -n "$(qemu_pids_for_avd "$other")" ] && {
+        echo "[门闩] 同机型族($fam)已有在跑实例：$other（pid=$(qemu_pids_for_avd "$other" | head -1)）"
+        echo "[门闩] 每族整机只许 1 台。先 stop $other 再启 $avd；或 EMU_ONE_PER_FAMILY=0 豁免。"
+        return 1
+      }
+    done
+  fi
   # 铁律1：同 AVD 已在跑 → 复用或重启僵死
   local pids; pids=$(qemu_pids_for_avd "$avd")
   if [ -n "$pids" ]; then
