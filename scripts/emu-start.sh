@@ -3,7 +3,8 @@
 # 用法：
 #   bash scripts/emu-start.sh status
 #   bash scripts/emu-start.sh start xiaomi_band
-#   bash scripts/emu-start.sh stop  xiaomi_band|all
+#   bash scripts/emu-start.sh stop  xiaomi_band          # 只停指定一台
+#   bash scripts/emu-start.sh stop-all-dangerous         # 全停（需 EMU_CONFIRM_STOP_ALL=1，白名单仍跳过）
 #   bash scripts/emu-start.sh clean
 # 设计约定见 docs/模拟器启动稳定性方案.md（单实例 / 先探活 / 用启动器 / 带窗口 / 日志落盘）
 # v2 变更：去掉 set -u（未绑定变量硬失败）、用纯 ps/adb 文本匹配替代 lsof+awk 端口解析
@@ -12,6 +13,19 @@ LAUNCHER="$HOME/.vela/sdk/emulator/darwin-aarch64/emulator"
 ADB="$HOME/.vela/sdk/tools/adb/mac/adb"
 [ -x "$ADB" ] || ADB="$(cd "$(dirname "$0")/.." && pwd)/node_modules/@aiot-toolkit/emulator/node_modules/@miwt/adb/bin/mac/adb"
 [ -x "$ADB" ] || { echo "找不到 adb"; exit 1; }
+
+# ---------- 用户专用实例白名单（AI 的禁区）----------
+# 一行一个 AVD 名。命中白名单的实例：
+#   · 不计入机型族计数（AI 启动自己的机器不再被它挡住）
+#   · 不进出门闩提示语（避免出现「先 stop 用户那台」这类教人自伤的提示）
+#   · stop_avd 直接拒绝（AI 无法停下它）
+#   · 巡检永不掐杀
+# 2026-10-20 用户明令：evc-xiaomi_band-buddy-1 是手工专用机，AI 不得操作。
+USER_CONF="${EMU_USER_CONF:-$HOME/.vela/devops/user-instances.conf}"
+is_user_instance() {
+  [ -f "$USER_CONF" ] || return 1
+  grep -qxF "$1" "$USER_CONF" 2>/dev/null
+}
 
 # ---------- 基础探查（全部容忍失败，不用 set -u/e）----------
 qemu_pids_for_avd() { # 同 AVD 的 qemu pid 列表
@@ -29,19 +43,42 @@ stuck_deploy_pids() { # 卡死的部署 adb 客户端
 guest_alive() { # guest adb 是否响应
   timeout 6 "$ADB" -s "$1" shell echo alive 2>/dev/null | grep -q alive
 }
-serial_for_avd() { # 在 adb devices 里找属于该 AVD 的 serial；找不到先重启 adb server 再试一次
+serial_for_avd() { # 纯探测：在 adb devices 里反查属于该 AVD 的 serial
+  # 2026-10-20 改：不再 kill-server。老逻辑在探测失败时重启 adb server，
+  # 会把别人的连接一起掐断 2 秒（用户侧表现为卡死/闪退），且极易自我干扰
+  # 造成「实例在跑却认不出」的假故障。救急时可 EMU_ADB_REPAIR=1 手动开。
+  local s
   for s in $("$ADB" devices 2>/dev/null | awk '$2=="device"{print $1}' | grep '^emulator-'); do
-    if timeout 5 "$ADB" -s "$s" emu avd name 2>/dev/null | head -1 | grep -q "^$1$"; then
+    # tr -d '\r'：vela 版 adb 的 emu 输出是 CRLF，不去掉 CR 会导致永远匹配不上
+    # —— 这就是「实例在跑却 serial=未识别 → 判僵死 → 重启」的真根因（2026-10-20 实测）
+    if timeout 5 "$ADB" -s "$s" emu avd name 2>/dev/null | tr -d '\r' | head -1 | grep -q "^$1$"; then
       echo "$s"; return 0
     fi
   done
-  # 2026-09-29 实测坑：adb server 状态过期会导致「实例在跑但 devices 认不出」→ 重启 server 再试
-  "$ADB" kill-server >/dev/null 2>&1; sleep 2; "$ADB" start-server >/dev/null 2>&1; sleep 2
-  for s in $("$ADB" devices 2>/dev/null | awk '$2=="device"{print $1}' | grep '^emulator-'); do
-    if timeout 5 "$ADB" -s "$s" emu avd name 2>/dev/null | head -1 | grep -q "^$1$"; then
-      echo "$s"; return 0
-    fi
-  done
+  if [ "${EMU_ADB_REPAIR:-0}" = "1" ]; then
+    "$ADB" kill-server >/dev/null 2>&1; sleep 2; "$ADB" start-server >/dev/null 2>&1; sleep 2
+    for s in $("$ADB" devices 2>/dev/null | awk '$2=="device"{print $1}' | grep '^emulator-'); do
+      if timeout 5 "$ADB" -s "$s" emu avd name 2>/dev/null | tr -d '\r' | head -1 | grep -q "^$1$"; then
+        echo "$s"; return 0
+      fi
+    done
+  fi
+  return 1
+}
+
+resolve_serial() { # 探活：先反查，反查失败再兜底（修「实例其实活着却判未就绪」）
+  local s n nm
+  s=$(serial_for_avd "$1" 2>/dev/null)
+  [ -n "$s" ] && { echo "$s"; return 0; }
+  # 兜底：全机只有 1 台在线设备、guest 有回应、且【反查不到 AVD 名】
+  # 2026-10-20：必须要求"反查不到名字"。若反查得到名字却不是目标，说明这台是别人的实例
+  # （典型：用户手工机在 13000 段），此时绝不能认领——否则 AI 会把包推到用户机器上。
+  n=$("$ADB" devices 2>/dev/null | awk '$2=="device"{print $1}' | grep -c '^emulator-')
+  if [ "$n" = "1" ]; then
+    s=$("$ADB" devices 2>/dev/null | awk '$2=="device"{print $1}' | grep '^emulator-' | head -1)
+    nm=$(timeout 5 "$ADB" -s "$s" emu avd name 2>/dev/null | tr -d '\r' | head -1)
+    if [ -z "$nm" ] && guest_alive "$s"; then echo "$s"; return 0; fi
+  fi
   return 1
 }
 
@@ -52,7 +89,7 @@ cmd_status() {
     found=1
     for pid in $(qemu_pids_for_avd "$avd"); do
       local s="" g="否"
-      s=$(serial_for_avd "$avd" 2>/dev/null)
+      s=$(resolve_serial "$avd" 2>/dev/null)
       [ -n "$s" ] && guest_alive "$s" && g="是"
       echo "  avd=$avd pid=$pid serial=${s:-未识别} guest存活=$g"
     done
@@ -107,6 +144,11 @@ hfwd_port() {
 
 stop_avd() {
   local avd="$1" pids
+  # 白名单硬锁：AI 不得停止用户专用实例（2026-10-20 用户明令）
+  if is_user_instance "$avd" && [ "${EMU_ALLOW_USER_INSTANCE:-0}" != "1" ]; then
+    echo "[拒绝] $avd 是用户专用实例（$USER_CONF 白名单），AI 不得停止"
+    return 1
+  fi
   pids=$(qemu_pids_for_avd "$avd")
   if [ -z "$pids" ]; then echo "[无] $avd 未在跑"; return 0; fi
   for p in $pids; do kill "$p" 2>/dev/null && echo "[停] $avd pid=$p"; done
@@ -117,41 +159,65 @@ stop_avd() {
 }
 
 cmd_stop() {
+  local rc=0
   case "${1:-}" in
-    all) for a in $(avd_names_running); do stop_avd "$a"; done ;;
-    "")  echo "用法: $0 stop <avd>|all"; return 1 ;;
-    *)   stop_avd "$1" ;;
+    all)
+      # 2026-10-20：stop all 会一刀切掉所有实例（含用户手工机），默认禁用
+      echo "[拒绝] stop all 已停用：它会停掉本机所有实例（含用户专用实例）"
+      echo "[拒绝] 要只停一台请用 stop <avd>；确实要全停：stop-all-dangerous + EMU_CONFIRM_STOP_ALL=1"
+      return 1
+      ;;
+    stop-all-dangerous)
+      if [ "${EMU_CONFIRM_STOP_ALL:-0}" != "1" ]; then
+        echo "[拒绝] stop-all-dangerous 需二次确认：EMU_CONFIRM_STOP_ALL=1"
+        echo "[提示] 白名单内的用户实例仍会被跳过，不会被停"
+        return 1
+      fi
+      for a in $(avd_names_running); do stop_avd "$a" || true; done
+      ;;
+    "")  echo "用法: $0 stop <avd>|stop-all-dangerous"; return 1 ;;
+    *)   stop_avd "$1"; rc=$? ;;
   esac
   # 收尾孤儿 crashpad（父进程非 qemu 的）
   ps aux | grep crashpad_handler | grep -v grep | awk '{print $2}' | while read -r p; do
     ppid=$(ps -p "$p" -o ppid= 2>/dev/null | tr -d ' ')
     ps -p "$ppid" -o command= 2>/dev/null | grep -q qemu-system || kill "$p" 2>/dev/null
   done
+  return $rc
 }
 
 cmd_start() {
   local avd="${1:-}"
   [ -z "$avd" ] && { echo "用法: $0 start <avd>"; return 1; }
+  # 白名单硬锁：AI 不得启动用户专用实例
+  if is_user_instance "$avd" && [ "${EMU_ALLOW_USER_INSTANCE:-0}" != "1" ]; then
+    echo "[拒绝] $avd 是用户专用实例（$USER_CONF 白名单），AI 不得启动/重启"
+    return 1
+  fi
   # 铁律B：机型族单台门闩（默认开，EMU_ONE_PER_FAMILY=0 豁免）
   #   目的：禁止「AI 自己同机型多开」——同一机型族（如手环9）整机只许 1 台。
   #   判据只用 qemu PID 存活（可靠、不误杀）；同族已有任一在跑实例（只要是活的 qemu）→ 拒绝新开。
-  #   「死机重启/重启失败结束」不在这里做（那要单独监控活进程，不能靠门的静态探测），见 emu-start 调用方约定。
+  #   2026-10-20：白名单实例不计入同族、也不进提示语——否则 AI 会照着提示去停用户的机器。
   if [ "${EMU_ONE_PER_FAMILY:-1}" = "1" ]; then
-    local fam other
+    local fam other skipped=0
     fam=$(avd_family "$avd")
     for other in $(avd_names_running); do
       [ "$other" = "$avd" ] && continue
-      [ "$(avd_family "$other")" = "$fam" ] && [ -n "$(qemu_pids_for_avd "$other")" ] && {
-        echo "[门闩] 同机型族($fam)已有在跑实例：$other（pid=$(qemu_pids_for_avd "$other" | head -1)）"
-        echo "[门闩] 每族整机只许 1 台。先 stop $other 再启 $avd；或 EMU_ONE_PER_FAMILY=0 豁免。"
-        return 1
-      }
+      [ "$(avd_family "$other")" = "$fam" ] || continue
+      [ -n "$(qemu_pids_for_avd "$other")" ] || continue
+      if is_user_instance "$other"; then
+        skipped=$((skipped + 1)); continue   # 用户实例：不在 AI 管辖范围，不计入同族
+      fi
+      echo "[门闩] 同机型族($fam)已有 AI 实例在跑：$other（pid=$(qemu_pids_for_avd "$other" | head -1)）"
+      echo "[门闩] 每族只许 1 台 AI 实例。先 stop $other 再启 $avd；或 EMU_ONE_PER_FAMILY=0 豁免。"
+      [ "$skipped" -gt 0 ] && echo "[门闩] 注：同族另有 $skipped 台用户专用实例在跑，不在 AI 管辖范围，不要动它。"
+      return 1
     done
   fi
   # 铁律1：同 AVD 已在跑 → 复用或重启僵死
   local pids; pids=$(qemu_pids_for_avd "$avd")
   if [ -n "$pids" ]; then
-    local s; s=$(serial_for_avd "$avd" 2>/dev/null)
+    local s; s=$(resolve_serial "$avd" 2>/dev/null)
     if [ -n "$s" ] && guest_alive "$s"; then
       echo "[复用] $avd 已在跑且 guest 健康：$s"; return 0
     fi
@@ -173,7 +239,7 @@ cmd_start() {
   local i s
   for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do
     sleep 2
-    s=$(serial_for_avd "$avd" 2>/dev/null)
+    s=$(resolve_serial "$avd" 2>/dev/null)
     if [ -n "$s" ] && guest_alive "$s"; then
       echo "[OK] $avd → $s（guest 健康，可部署）"
       return 0
@@ -208,6 +274,7 @@ case "${1:-}" in
   status) cmd_status ;;
   start)  shift; cmd_start "$@" ;;
   stop)   shift; cmd_stop "$@" ;;
+  stop-all-dangerous) cmd_stop stop-all-dangerous ;;
   clean)  cmd_clean ;;
   *)      sed -n '2,8p' "$0" ;;
 esac
