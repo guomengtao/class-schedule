@@ -4,33 +4,33 @@
       <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">当前进度</text>
+      <text class="header-title" style="color: {{ theme.textSecondary }}">当前进度</text>
       <div if="{{ !isRoot }}" class="header-placeholder"></div>
     </div>
 
-    <div if="{{ isLoading }}" class="loading-area">
-      <text class="loading-text" style="color: {{ theme.textMuted }}">加载中...</text>
+    <!-- A 课名：整屏最大字（56px，两行后省略） -->
+    <text class="a-name" style="color: {{ nameColor }}">{{ focusName }}</text>
+
+    <!-- B 状态行：第几节 / 剩几分 / 距上课 -->
+    <text class="b-status" style="color: {{ theme.textSecondary }}">{{ statusText }}</text>
+
+    <!-- C 进度条：宽度绑定 progressPercent，别写死 -->
+    <div class="c-bar-bg" style="background-color: {{ theme.border }}">
+      <div class="c-bar-fill" style="width: {{ progressPercent }}%; background-color: {{ theme.accent }}"></div>
     </div>
 
-    <div if="{{ !isLoading && !currentClass }}" class="no-class-area">
-      <text class="no-class-icon">⏳</text>
-      <text class="no-class-text" style="color: {{ theme.textSecondary }}">{{ noClassMessage }}</text>
+    <!-- D 下一节：label + 定长时间 + 弹性课名（课名省略，整行永不溢出） -->
+    <div if="{{ nextName }}" class="d-next">
+      <text class="d-label" style="color: {{ theme.textMuted }}">{{ nextLabel }}</text>
+      <text class="d-time" style="color: {{ theme.textSecondary }}">{{ nextTime }}</text>
+      <text class="d-name" style="color: {{ theme.text }}">{{ nextName }}</text>
     </div>
 
-    <div if="{{ !isLoading && currentClass }}" class="card" style="background-color: {{ theme.card }}">
-      <text class="card-name" style="color: {{ theme.accent }}">{{ currentClass.name }}</text>
-      <text class="card-time" style="color: {{ theme.textSecondary }}">{{ currentClass.time }}</text>
-      <text class="card-location" if="{{ currentClass.location }}" style="color: {{ theme.textMuted }}">{{ currentClass.location }}</text>
+    <!-- 弹性占位：本引擎 margin-top:auto 不生效（实测时钟卡在内容下方而非贴底），用 flex:1 撑开 -->
+    <div class="spacer"></div>
 
-      <div class="progress-bar-bg" style="background-color: {{ theme.border }}">
-        <div class="progress-bar-fill" style="width: {{ progressPercent }}%; background-color: {{ theme.accent }}"></div>
-      </div>
-
-      <div class="progress-labels">
-        <text class="progress-elapsed" style="color: {{ theme.textSecondary }}">已过 {{ elapsedMinutes }} 分</text>
-        <text class="progress-remaining" style="color: {{ theme.accent }}">剩余 {{ remainingMinutes }} 分</text>
-      </div>
-    </div>
+    <!-- E 时钟：右下角小字（课名才是王，时钟只做参照） -->
+    <text class="e-clock" style="color: {{ theme.textMuted }}">{{ clockText }}</text>
   </div>
 </template>
 
@@ -39,9 +39,11 @@ import router from "@system.router"
 const database = require("../../data/database.js")
 const store = require("../../data/store.js")
 const utils = require("../../data/utils.js")
+const builtinSchedule = require("../../data/schedule.js")
 
 var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
+// "08:00 - 09:35" → {startMin, endMin}；格式不合规返回 null（脏数据不参与计算）
 function parseTimeRange(timeStr) {
   if (!timeStr) return null
   var parts = timeStr.split(" - ")
@@ -49,10 +51,37 @@ function parseTimeRange(timeStr) {
   var s1 = parts[0].trim().split(":")
   var s2 = parts[1].trim().split(":")
   if (s1.length !== 2 || s2.length !== 2) return null
-  return {
-    startMin: parseInt(s1[0]) * 60 + parseInt(s1[1]),
-    endMin: parseInt(s2[0]) * 60 + parseInt(s2[1])
+  var st = parseInt(s1[0]) * 60 + parseInt(s1[1])
+  var en = parseInt(s2[0]) * 60 + parseInt(s2[1])
+  if (isNaN(st) || isNaN(en)) return null
+  return { startMin: st, endMin: en }
+}
+
+function pad2(n) { return (n < 10 ? "0" : "") + n }
+
+// 分钟数 → "08:00"（下一节行宽只有 168，必须定长）
+function clockOf(min) {
+  var m = min % 1440
+  return pad2(Math.floor(m / 60)) + ":" + pad2(m % 60)
+}
+
+// 百分比一律夹在 0..100，脏数据不许把进度条撑出容器
+function clampPct(v) {
+  if (!(v > 0)) return 0
+  return v > 100 ? 100 : v
+}
+
+// 某天的课 → 按开始时间升序的条目；解析失败的脏数据直接丢弃
+function buildItems(classes) {
+  var out = []
+  var list = classes || []
+  for (var i = 0; i < list.length; i++) {
+    var r = parseTimeRange(list[i].time)
+    if (!r) continue
+    out.push({ id: list[i].id, name: list[i].name, time: list[i].time, startMin: r.startMin, endMin: r.endMin })
   }
+  out.sort(function(a, b) { return a.startMin - b.startMin })
+  return out
 }
 
 export default {
@@ -60,12 +89,17 @@ export default {
     iconTheme: "dark",
     fromPanel: "",
     isRoot: false,
-    isLoading: true,
-    currentClass: null,
-    noClassMessage: "",
+    state: "none",          // class | break | done | none
+    focusName: "—",         // A 区主角：当前课 / 下节课 / 放学 / 没课
+    nameColor: "#ffffff",
+    statusText: "",
     progressPercent: 0,
-    elapsedMinutes: 0,
-    remainingMinutes: 0,
+    nextLabel: "",          // 下节 | 明日
+    nextTime: "",
+    nextName: "",
+    clockText: "",
+    schedule: [],
+    tickTimer: null,
     theme: {
       bg: '#1a1a2e', card: '#16213e', cardLight: '#0f3460',
       accent: '#7ec8e3', text: '#ffffff', textSecondary: '#888899',
@@ -75,82 +109,156 @@ export default {
 
   onInit() {
     var self = this
-    // 独立首页 root 判定：由「更多首页」push 时带 fromPanel='1'；无参数即被设为首页冷启动
+    // 独立首页 root 判定：被「更多首页」push 带 fromPanel='1'；作为 root 冷启动则无此参
     self.fromPanel = (self.fromPanel === '1') ? '1' : ''
     self.isRoot = self.fromPanel !== '1'
-    store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
-    self.loadData()
-    self.timer = setInterval(function() { self.refreshProgress() }, 10000)
+    // 首帧同步出内容：先用内置课表算一遍，storage 慢/丢回调都不会停在空白帧
+    self.apply((builtinSchedule && builtinSchedule.schedule) ? builtinSchedule.schedule : [])
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+      self.tick()
+      self.loadData()
+    })
   },
 
   onShow() {
     var self = this
-    store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+    // 回前台立即重算（后台期间可能跨节），再按整分续排
+    self.tick()
   },
 
-  updateIconSrc: function(themeName) {
-    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+  onHide() {
+    // 后台不空转：清掉定时器，onShow 再补算
+    this.clearTickTimer()
+  },
+
+  /* 分钟级刷新：对齐「下一个整分」只挂一个 setTimeout。
+     课程表是分钟级事件，本页禁止 setInterval / 秒级轮询（方案 §0）。
+     「剩 N 分」与右下角时钟都按整分走，10s 轮询属于白烧电量。 */
+  scheduleNextMinute: function() {
+    var self = this
+    this.clearTickTimer()
+    var now = new Date()
+    var ms = 60000 - (now.getSeconds() * 1000)
+    if (ms < 1000) ms = 1000
+    this.tickTimer = setTimeout(function() { self.tick() }, ms)
+  },
+
+  clearTickTimer: function() {
+    if (this.tickTimer) { clearTimeout(this.tickTimer); this.tickTimer = null }
+  },
+
+  apply: function(schedule) {
+    this.schedule = schedule || []
+    this.tick()
   },
 
   loadData: function() {
     var self = this
     database.init(function() {
       database.getAllCourses(function(schedule) {
-        var todayIndex = new Date().getDay()
-        var todayName = DAY_NAMES[todayIndex]
-        var todayDay = null
-        for (var i = 0; i < schedule.length; i++) {
-          if (schedule[i].day === todayName) { todayDay = schedule[i]; break }
-        }
-        var classes = (todayDay && todayDay.classes) ? todayDay.classes.slice() : []
-        self.isLoading = false
-        self.todayClasses = classes
-        self.refreshProgress()
+        self.apply(schedule || [])
       })
     })
   },
 
-  refreshProgress: function() {
-    var self = this
+  classesOf: function(dayName) {
+    var schedule = this.schedule || []
+    for (var i = 0; i < schedule.length; i++) {
+      if (schedule[i].day === dayName) return schedule[i].classes || []
+    }
+    return []
+  },
+
+  tick: function() {
+    try {
+      this.compute()
+    } catch (e) {
+      // 计算异常不许把页面钉在旧读数上：退回「没课」让人看得懂
+      this.state = "none"
+      this.focusName = "没课"
+      this.nameColor = this.theme.textSecondary
+      this.statusText = "今天没有安排"
+      this.progressPercent = 0
+      this.nextName = ""
+      console.error("[progress] compute failed: " + e)
+    }
+    this.scheduleNextMinute()
+  },
+
+  /* 三态 + 空态：
+     class 上课中 → A 当前课名，B 第N节·剩X分，C 本节进度，D 本节之后那节
+     break 课间   → A 下节课名，B 距上课X分，C 课间进度，D 空（A 已是下节，不重复）
+     done  已放学 → A 放学，B 今天的课上完了，C 100%，D 明日首节
+     none  没课   → A 没课，B 今天没有安排，C 0%，D 明日首节（若有） */
+  compute: function() {
     var now = new Date()
     var nowMin = now.getHours() * 60 + now.getMinutes()
-    var classes = self.todayClasses || []
-    self.currentClass = null
+    this.clockText = pad2(now.getHours()) + ":" + pad2(now.getMinutes())
 
-    for (var i = 0; i < classes.length; i++) {
-      var range = parseTimeRange(classes[i].time)
-      if (!range) continue
-      if (nowMin >= range.startMin && nowMin < range.endMin) {
-        self.currentClass = classes[i]
-        var total = range.endMin - range.startMin
-        var elapsed = nowMin - range.startMin
-        var remaining = range.endMin - nowMin
-        self.progressPercent = Math.min(100, Math.round(elapsed / total * 100))
-        self.elapsedMinutes = elapsed
-        self.remainingMinutes = remaining
-        return
-      }
+    var todayItems = buildItems(this.classesOf(DAY_NAMES[now.getDay()]))
+    var tomorrowItems = buildItems(this.classesOf(DAY_NAMES[(now.getDay() + 1) % 7]))
+
+    this.nextLabel = ""
+    this.nextTime = ""
+    this.nextName = ""
+
+    var idx = -1
+    for (var i = 0; i < todayItems.length; i++) {
+      if (nowMin >= todayItems[i].startMin && nowMin < todayItems[i].endMin) { idx = i; break }
     }
 
-    var nextClass = null
-    for (var j = 0; j < classes.length; j++) {
-      var r = parseTimeRange(classes[j].time)
-      if (r && r.startMin > nowMin) {
-        if (!nextClass || r.startMin < parseTimeRange(nextClass.time).startMin) {
-          nextClass = classes[j]
-        }
+    if (idx >= 0) {
+      var cur = todayItems[idx]
+      var total = cur.endMin - cur.startMin
+      var elapsed = nowMin - cur.startMin
+      this.state = "class"
+      this.focusName = cur.name
+      this.nameColor = this.theme.accent
+      this.statusText = "第" + (idx + 1) + "节 · 剩 " + (cur.endMin - nowMin) + " 分"
+      this.progressPercent = total > 0 ? clampPct(Math.round(elapsed / total * 100)) : 100
+      if (idx + 1 < todayItems.length) {
+        var nx = todayItems[idx + 1]
+        this.nextLabel = "下节"
+        this.nextTime = clockOf(nx.startMin)
+        this.nextName = nx.name
       }
+      return
     }
-    if (nextClass) {
-      var nr = parseTimeRange(nextClass.time)
-      var waitMin = nr.startMin - nowMin
-      var waitH = Math.floor(waitMin / 60)
-      var waitM = waitMin % 60
-      self.noClassMessage = "距下节课 " + (waitH > 0 ? waitH + "时" : "") + waitM + "分"
-    } else if (classes.length > 0) {
-      self.noClassMessage = "今日课程已全部结束"
-    } else {
-      self.noClassMessage = "今天没有课"
+
+    var nextIdx = -1
+    for (var j = 0; j < todayItems.length; j++) {
+      if (todayItems[j].startMin > nowMin) { nextIdx = j; break }
+    }
+
+    if (nextIdx >= 0) {
+      var upcoming = todayItems[nextIdx]
+      this.state = "break"
+      this.focusName = upcoming.name
+      this.nameColor = this.theme.accent
+      this.statusText = "距上课 " + (upcoming.startMin - nowMin) + " 分"
+      // 课间进度 = 上节下课 → 本节上课；一天的第一节之前没有「上节」，记 0
+      var prevEnd = nextIdx > 0 ? todayItems[nextIdx - 1].endMin : nowMin
+      var span = upcoming.startMin - prevEnd
+      this.progressPercent = span > 0 ? clampPct(Math.round((nowMin - prevEnd) / span * 100)) : 0
+      return
+    }
+
+    var hadClass = todayItems.length > 0
+    this.state = hadClass ? "done" : "none"
+    this.focusName = hadClass ? "放学" : "没课"
+    this.nameColor = this.theme.textSecondary
+    this.statusText = hadClass ? "今天的课上完了" : "今天没有安排"
+    this.progressPercent = hadClass ? 100 : 0
+    if (tomorrowItems.length > 0) {
+      this.nextLabel = "明日"
+      this.nextTime = clockOf(tomorrowItems[0].startMin)
+      this.nextName = tomorrowItems[0].name
     }
   },
 
@@ -170,49 +278,109 @@ export default {
   },
 
   onDestroy() {
-    if (this.timer) { clearInterval(this.timer); this.timer = null }
+    // 双清：onHide 已清一次，销毁再兜一次
+    this.clearTickTimer()
   }
 }
 </script>
 
 <style>
-.page { flex-direction: column; width: 100%; height: 100%; padding: 44px 12px 12px 12px }
-
-.back-header { flex-direction: row; align-items: center; margin-bottom: 16px; padding: 0 4px }
-.back-btn-wrapper { width: 48px; height: 40px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0 }
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 44px 12px 12px 12px;
+}
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  height: 40px;
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+.back-btn-wrapper {
+  width: 48px;
+  height: 40px;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
 .back-btn-icon { width: 24px; height: 24px }
-.header-title { flex: 1; font-size: 28px; font-weight: bold; text-align: center; line-height: 38px }
-.header-placeholder { width: 48px; height: 48px; flex-shrink: 0 }
+.header-title {
+  flex: 1;
+  font-size: 18px;
+  line-height: 24px;
+  text-align: center;
+}
+.header-placeholder { width: 48px; height: 40px; flex-shrink: 0 }
 
-.loading-area { align-items: center; padding: 30px 0 }
-.loading-text { font-size: 22px; line-height: 30px }
+/* A 课名：56px，最多两行（3 字/行），超长两行后省略。
+   不写死 height：单行课名（放学/没课/两字科目）固定 124 会在下方留一大块空白，
+   自然高度让 1 行贴紧 B、2 行自动撑到 124；总高最坏 246 < 434，不会溢出。 */
+.a-name {
+  margin-top: 14px;
+  font-size: 56px;
+  line-height: 62px;
+  font-weight: bold;
+  lines: 2;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
 
-.no-class-area { flex-direction: column; align-items: center; padding: 40px 0 }
-.no-class-icon { font-size: 48px; margin-bottom: 12px }
-.no-class-text { font-size: 24px; line-height: 32px; text-align: center }
+/* B 状态行：只许一行，折行会把 C/D 顶出坐标 */
+.b-status {
+  margin-top: 16px;
+  height: 26px;
+  font-size: 20px;
+  line-height: 26px;
+  lines: 1;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
 
-.card { flex-direction: column; border-radius: 18px; padding: 24px 20px; margin: 8px 4px }
-.card-name { font-size: 34px; font-weight: bold; line-height: 42px; margin-bottom: 6px }
-.card-time { font-size: 24px; line-height: 32px; margin-bottom: 2px }
-.card-location { font-size: 20px; line-height: 28px; margin-bottom: 18px }
+/* C 进度条：168×10，宽度由 progressPercent 绑定 */
+.c-bar-bg {
+  margin-top: 12px;
+  width: 168px;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.c-bar-fill { height: 10px; border-radius: 5px }
 
-.progress-bar-bg { height: 14px; border-radius: 7px; margin-bottom: 10px; overflow: hidden }
-.progress-bar-fill { height: 14px; border-radius: 7px }
+/* D 下一节：label + 定长时间 + 弹性课名（课名省略，整行永不溢出） */
+.d-next {
+  margin-top: 20px;
+  height: 24px;
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+}
+.d-label { font-size: 16px; line-height: 24px; margin-right: 6px; flex-shrink: 0 }
+.d-time { font-size: 18px; line-height: 24px; margin-right: 6px; flex-shrink: 0 }
+.d-name {
+  flex: 1;
+  font-size: 18px;
+  line-height: 24px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
 
-/* 独立首页化修正：同 dual-mode——「已过 X 分」「剩余 Y 分」左右排合计超卡片宽溢出截断，改纵向堆叠 */
-.progress-labels { flex-direction: column }
-.progress-elapsed { font-size: 20px; line-height: 28px }
-.progress-remaining { font-size: 20px; line-height: 28px; font-weight: bold }
+/* E 时钟：贴底右对齐，16px 小字 */
+.spacer { flex: 1; width: 100% }
+.e-clock {
+  width: 100%;
+  text-align: right;
+  font-size: 16px;
+  line-height: 22px;
+  flex-shrink: 0;
+}
 
 @media (width >= 200px) {
   .page { padding: 44px 16px 14px 16px }
-  .card { padding: 30px 24px; border-radius: 20px }
-  .card-name { font-size: 40px; line-height: 48px }
-  .progress-bar-bg { height: 16px; border-radius: 8px }
-  .progress-bar-fill { height: 16px; border-radius: 8px }
-}
-
-@media (width >= 400px) {
-  .page { padding: 12px 20px 16px 20px }
+  .a-name { font-size: 60px; line-height: 65px }
+  .c-bar-bg { width: 100% }
 }
 </style>
