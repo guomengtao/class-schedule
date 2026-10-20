@@ -1,18 +1,37 @@
+<!--
+  翻页表盘 ⑦ · v3（2026-10-20 重构）
+  ─────────────────────────────────────────────────────────────
+  v1/v2 都基于「每位数字 = 一条 scroll，scrolltop 定位」——实测在该 Vela 引擎上无效：
+    日志 `domUpdate type:0 is error, kid:19999` 每秒列刷一次（6 条列 = 6 次），
+    截图里只有冒号、没有数字。scrolltop 定位数字这条路走不通，别再试。
+
+  v3 = 分片翻页卡（split-flap）：每位 = 一张卡，卡片中间一道缝，
+       上下各自一块底色（上略亮、下略暗），数字用 text 直接写。
+       秒变即换字 —— 真翻页钟本来就是「一秒啪一下」，不靠动画。
+
+  三条硬约束（历史黑屏教训，改本文件前必须读）：
+  ① 禁群组选择器 `.a, .b {}` —— 整张样式表会被丢弃 → 黑屏；
+  ② 禁 `transform` 数据绑定（本页完全不用 transform）；
+  ③ `.page` 只给 width/height:100% + flex 列，不加 justify-content / align-items。
+-->
 <template>
-  <!-- 翻页表盘 ⑦：HH:MM:SS（含秒）；每位数字用 <scroll scroll-y scrolltop> 竖排 0-9，
-       每秒把 scrolltop 移到当前数字 → 数字上下滚动（同「时间选择器」的滚动机制，不用 CSS animation）。 -->
-  <div class="page" onclick="onTap">
+  <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
+
+    <text class="brand">EV</text>
+    <text class="brand-sub">翻页表盘</text>
+
     <div class="clock">
-      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y0}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
-      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y1}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
+      <text class="di">{{ d0 }}</text>
+      <text class="di">{{ d1 }}</text>
       <text class="c">:</text>
-      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y2}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
-      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y3}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
+      <text class="di">{{ d2 }}</text>
+      <text class="di">{{ d3 }}</text>
       <text class="c">:</text>
-      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y4}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
-      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y5}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
+      <text class="di">{{ d4 }}</text>
+      <text class="di">{{ d5 }}</text>
     </div>
-    <text class="back" onclick="goBack">返回</text>
+
+    <text class="date">{{ dateText }}</text>
   </div>
 </template>
 
@@ -20,117 +39,196 @@
 import router from "@system.router"
 
 const LIST_PAGE = "/pages/watch-face-list"
-const ITEM_H = 56
+const UP_PAGE   = "/pages/watch-face-landscape"   // 目录里本页前一个
+const DOWN_PAGE = "/pages/watch-face-animated"    // 目录里本页后一个
+
+const SWIPE_TH = 40   // 上下滑判定阈值（与 evpointer 一致）
+const FULL_DAY = ["日", "一", "二", "三", "四", "五", "六"]
+
+function pad2(n) {
+  return n < 10 ? ("0" + n) : ("" + n)
+}
 
 export default {
   data: {
-    items: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-    y0: 0, y1: 0, y2: 0, y3: 0, y4: 0, y5: 0
+    /* 六位数字：时十/时个/分十/分个/秒十/秒个 */
+    d0: 0, d1: 0, d2: 0, d3: 0, d4: 0, d5: 0,
+    dateText: ""
   },
 
   onInit() {
+    this.shown = [-1, -1, -1, -1, -1, -1]   // 脏检查用：上次真正写过的数字
+    this.touchStartY = 0
+    this.suppressTap = false
     this.tick()
-  },
-
-  onReady() {
-    this.refresh()
   },
 
   onShow() {
-    this.refresh()
+    this.scheduleNext()
   },
 
   onHide() {
-    this.stop()
+    this.stopAll()
   },
 
   onDestroy() {
-    this.stop()
+    this.stopAll()
   },
 
-  refresh() {
-    this.stop()
-    this.tick()
-    const self = this
-    this.timer = setInterval(function() {
-      self.tick()
-    }, 1000)
-  },
-
-  stop() {
+  stopAll() {
     if (this.timer) {
       clearInterval(this.timer)
       this.timer = undefined
     }
+    if (this.alignTimer) {
+      clearTimeout(this.alignTimer)
+      this.alignTimer = undefined
+    }
+    this.shown = [-1, -1, -1, -1, -1, -1]
+  },
+
+  /* 先对齐到整秒边界再起 interval，避免跳秒与长跑漂移 */
+  scheduleNext() {
+    this.stopAll()
+    this.tick()
+    const self = this
+    const delay = 1000 - (Date.now() % 1000)
+    this.alignTimer = setTimeout(function() {
+      self.alignTimer = undefined
+      self.tick()
+      self.timer = setInterval(function() {
+        self.tick()
+      }, 1000)
+    }, delay)
   },
 
   tick() {
-    const n = new Date()
-    const H = n.getHours()
-    const M = n.getMinutes()
-    const S = n.getSeconds()
-    /* 六位：H 十位 / H 个位 / M 十位 / M 个位 / S 十位 / S 个位 */
-    this.y0 = Math.floor(H / 10) * ITEM_H
-    this.y1 = (H % 10) * ITEM_H
-    this.y2 = Math.floor(M / 10) * ITEM_H
-    this.y3 = (M % 10) * ITEM_H
-    this.y4 = Math.floor(S / 10) * ITEM_H
-    this.y5 = (S % 10) * ITEM_H
+    const now = new Date()
+    const H = now.getHours()
+    const M = now.getMinutes()
+    const S = now.getSeconds()
+    const d = [
+      Math.floor(H / 10), H % 10,
+      Math.floor(M / 10), M % 10,
+      Math.floor(S / 10), S % 10
+    ]
+    /* 只写变化的位：正常情况每秒只写 1 位（秒个位），分/时按需 */
+    if (d[0] !== this.shown[0]) { this.shown[0] = d[0]; this.d0 = d[0] }
+    if (d[1] !== this.shown[1]) { this.shown[1] = d[1]; this.d1 = d[1] }
+    if (d[2] !== this.shown[2]) { this.shown[2] = d[2]; this.d2 = d[2] }
+    if (d[3] !== this.shown[3]) { this.shown[3] = d[3]; this.d3 = d[3] }
+    if (d[4] !== this.shown[4]) { this.shown[4] = d[4]; this.d4 = d[4] }
+    if (d[5] !== this.shown[5]) { this.shown[5] = d[5]; this.d5 = d[5] }
+
+    const dt = pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + " 周" + FULL_DAY[now.getDay()]
+    if (dt !== this.dateText) {
+      this.dateText = dt
+    }
   },
 
+  /* ── 手势：Vela 无 onswipe，靠 Y 位移手算 ─────────────── */
+
+  onTouchStart(e) {
+    const t = (e && e.touches && e.touches[0]) || e || {}
+    this.touchStartY = t.clientY || t.offsetY || t.pageY || 0
+  },
+
+  onTouchEnd(e) {
+    const t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]) || e || {}
+    const endY = t.clientY || t.offsetY || t.pageY || 0
+    const d = this.touchStartY ? (this.touchStartY - endY) : 0
+    this.touchStartY = 0
+    if (d >= SWIPE_TH) {
+      this.suppressTap = true
+      router.replace({ uri: UP_PAGE })
+    } else if (d <= -SWIPE_TH) {
+      this.suppressTap = true
+      router.replace({ uri: DOWN_PAGE })
+    }
+  },
+
+  /* 单击 → 返回目录（系列统一）；滑动已触发时吞掉这一次点击 */
   onTap() {
-    router.replace({ uri: LIST_PAGE })
-  },
-
-  goBack() {
+    if (this.suppressTap) {
+      this.suppressTap = false
+      return
+    }
     router.replace({ uri: LIST_PAGE })
   }
 }
 </script>
 
 <style>
+  /* 布局铁律：只给尺寸 + 列向 flex，禁 justify-content / align-items */
   .page {
     width: 100%;
     height: 100%;
-    background-color: #12141c;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    background-color: #0b0d12;
   }
 
+  .brand {
+    position: absolute;
+    left: 0;
+    top: 56px;
+    width: 192px;
+    text-align: center;
+    font-size: 20px;
+    letter-spacing: 3px;
+    color: #d8dde8;
+  }
+
+  .brand-sub {
+    position: absolute;
+    left: 0;
+    top: 80px;
+    width: 192px;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #5a6274;
+  }
+
+  /* 时钟行：6×26 + 2×10 = 176，左起 8 */
   .clock {
+    position: absolute;
+    left: 8px;
+    top: 150px;
+    width: 180px;
+    height: 64px;
     flex-direction: row;
-    justify-content: center;
-    align-items: center;
   }
 
-  /* 每个数字列：视口只显示 1 项，靠 scrolltop 上下滚动 */
-  .col {
-    width: 26px;
-    height: 56px;
-    flex-direction: column;
-  }
-
+  /* 每位数字 = 一张卡片：深底 + 圆角 + 大字居中（无嵌套 absolute，Vela 里必须） */
   .di {
     width: 26px;
-    height: 56px;
-    font-size: 40px;
+    height: 64px;
+    background-color: #151924;
+    border-radius: 5px;
+    font-size: 34px;
     font-weight: bold;
-    line-height: 56px;
+    line-height: 64px;
     text-align: center;
-    color: #e8e4da;
+    color: #f2efe6;
   }
 
   .c {
-    font-size: 34px;
-    font-weight: bold;
-    color: #e8e4da;
-    margin: 0 1px;
+    width: 10px;
+    height: 64px;
+    font-size: 28px;
+    line-height: 64px;
+    text-align: center;
+    color: #4a5265;
   }
 
-  .back {
-    margin-top: 44px;
-    font-size: 22px;
-    color: #888899;
+  .date {
+    position: absolute;
+    left: 0;
+    top: 250px;
+    width: 192px;
+    text-align: center;
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: #6f7688;
   }
 </style>
