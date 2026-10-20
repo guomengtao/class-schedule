@@ -1,37 +1,35 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <scroll class="page-scroll" scroll-y="{{true}}">
-    <div class="page-body">
     <div class="back-header">
       <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">剩余课程</text>
+      <text class="header-title" style="color: {{ theme.textSecondary }}">剩余课程</text>
       <div if="{{ !isRoot }}" class="header-placeholder"></div>
     </div>
 
-    <div if="{{ isLoading }}" class="loading-area">
-      <text class="loading-text" style="color: {{ theme.textMuted }}">加载中...</text>
-    </div>
+    <!-- A 主数字：剩余节数 72px（130–205） -->
+    <text class="big-count" style="color: {{ theme.accent }}">{{ remainCount }}</text>
 
-    <div if="{{ !isLoading && remainingClasses.length === 0 }}" class="empty-area">
-      <text class="empty-icon">{{ allDone ? '🎉' : '📭' }}</text>
-      <text class="empty-text" style="color: {{ theme.textSecondary }}">{{ emptyMessage }}</text>
-    </div>
+    <!-- B 单位行：节 · 还有 2 小时 30 分（210–232） -->
+    <text class="unit-line" style="color: {{ theme.textSecondary }}">{{ unitText }}</text>
 
-    <div for="{{ remainingClasses }}" class="course-row">
-      <div class="course-left">
-        <text class="course-index" style="color: {{ theme.textMuted }}">{{ $idx + 1 }}</text>
-        <text class="course-name" style="color: {{ $idx === 0 ? theme.accent : theme.text }}">{{ $item.name }}</text>
+    <!-- C 分隔 168×1 -->
+    <div class="divider" style="background-color: {{ theme.border }}"></div>
+
+    <!-- D 列表：最多 4 行 × 44（250–426） -->
+    <div class="list">
+      <div for="{{ shownClasses }}" class="row">
+        <text class="row-time" style="color: {{ theme.textSecondary }}">{{ $item.timeShort }}</text>
+        <text class="row-name" style="color: {{ $item.isCurrent ? theme.accent : theme.text }}">{{ $item.name }}</text>
       </div>
-      <div class="course-right">
-        <text class="course-time" style="color: {{ theme.textSecondary }}">{{ $item.time }}</text>
-        <text class="course-location" if="{{ $item.location }}" style="color: {{ theme.textMuted }}">{{ $item.location }}</text>
+      <div if="{{ !isLoading && remainCount === 0 }}" class="empty-box">
+        <text class="empty-text" style="color: {{ theme.textMuted }}">{{ emptyMessage }}</text>
       </div>
     </div>
 
-    </div>
-    </scroll>
+    <!-- E 溢出提示（430–446） -->
+    <text if="{{ overflowCount > 0 }}" class="overflow-tip" style="color: {{ theme.textMuted }}">还有 {{ overflowCount }} 节未显示</text>
   </div>
 </template>
 
@@ -40,16 +38,47 @@ import router from "@system.router"
 const database = require("../../data/database.js")
 const store = require("../../data/store.js")
 const utils = require("../../data/utils.js")
+const builtinSchedule = require("../../data/schedule.js")
 
 var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
-function parseEndMin(timeStr) {
-  if (!timeStr) return -1
+// "08:00 - 09:35" → {startMin, endMin}；格式不合规返回 null（脏数据不参与统计）
+function parseTimeRange(timeStr) {
+  if (!timeStr) return null
   var parts = timeStr.split(" - ")
-  if (parts.length !== 2) return -1
-  var s = parts[1].trim().split(":")
-  if (s.length !== 2) return -1
-  return parseInt(s[0]) * 60 + parseInt(s[1])
+  if (parts.length !== 2) return null
+  var s1 = parts[0].trim().split(":")
+  var s2 = parts[1].trim().split(":")
+  if (s1.length !== 2 || s2.length !== 2) return null
+  var a = parseInt(s1[0]) * 60 + parseInt(s1[1])
+  var b = parseInt(s2[0]) * 60 + parseInt(s2[1])
+  if (isNaN(a) || isNaN(b) || b <= a) return null
+  return { startMin: a, endMin: b }
+}
+
+// "08:00 - 09:35" → "08:00"
+function startLabel(timeStr) {
+  if (!timeStr) return ""
+  var i = timeStr.indexOf(" - ")
+  return (i < 0 ? timeStr : timeStr.substring(0, i)).trim()
+}
+
+// P2：剩余时长舍入到 5 分钟（有剩余但不足 2.5 分时不许显示 0）
+function round5(min) {
+  if (min <= 0) return 0
+  var r = Math.round(min / 5) * 5
+  return r === 0 ? 5 : r
+}
+
+// 分钟数 → "3 小时 15 分" / "45 分"
+// 实测（192 画布 / 内容宽 168 / 20px）：含「还有」的串约 197px 必截断，
+// 故 B 行只留「节 · 」前缀 + 时长本身，最长串约 151px。
+function durationText(min) {
+  if (min <= 0) return "0 分"
+  if (min < 60) return min + " 分"
+  var h = Math.floor(min / 60)
+  var m = min % 60
+  return m === 0 ? (h + " 小时") : (h + " 小时 " + m + " 分")
 }
 
 export default {
@@ -58,9 +87,13 @@ export default {
     fromPanel: "",
     isRoot: false,
     isLoading: true,
-    remainingClasses: [],
-    allDone: false,
+    remainCount: 0,
+    unitText: "",
     emptyMessage: "今天没有课",
+    shownClasses: [],
+    overflowCount: 0,
+    schedule: [],
+    tickTimer: null,
     theme: {
       bg: '#1a1a2e', card: '#16213e', cardLight: '#0f3460',
       accent: '#7ec8e3', text: '#ffffff', textSecondary: '#888899',
@@ -70,54 +103,133 @@ export default {
 
   onInit() {
     var self = this
-    // 独立首页 root 判定：由「更多首页」push 时带 fromPanel='1'；无参数即被设为首页冷启动
+    // 独立首页 root 判定：由「更多首页」push 带 fromPanel='1'；无参数即冷启动为首页
     self.fromPanel = (self.fromPanel === '1') ? '1' : ''
     self.isRoot = self.fromPanel !== '1'
-    store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
-    self.loadData()
+    // 首帧同步出内容：storage 回调慢/丢也不许停在「加载中」
+    self.apply((builtinSchedule && builtinSchedule.schedule) ? builtinSchedule.schedule : [])
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+      self.loadData()
+    })
   },
 
   onShow() {
     var self = this
-    store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+    // 回前台立即重算（后台期间可能已跨节），再续排下一次整分
+    if (!self.isLoading) self.tick()
   },
 
-  updateIconSrc: function(themeName) {
-    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+  onHide() {
+    this.clearTickTimer()
+  },
+
+  /* 分钟级刷新：只保留一个对齐「下一个整分」的 setTimeout。
+     剩余节数/剩余时长都是分钟级事件，全页禁 setInterval（方案 §0）。 */
+  scheduleNextMinute: function() {
+    var self = this
+    this.clearTickTimer()
+    var now = new Date()
+    var ms = 60000 - (now.getSeconds() * 1000)
+    if (ms < 1000) ms = 1000
+    this.tickTimer = setTimeout(function() { self.tick() }, ms)
+  },
+
+  clearTickTimer: function() {
+    if (this.tickTimer) { clearTimeout(this.tickTimer); this.tickTimer = null }
+  },
+
+  apply: function(schedule) {
+    this.schedule = schedule || []
+    this.isLoading = false
+    this.tick()
   },
 
   loadData: function() {
     var self = this
     database.init(function() {
       database.getAllCourses(function(schedule) {
-        var todayIndex = new Date().getDay()
-        var todayName = DAY_NAMES[todayIndex]
-        var todayDay = null
-        for (var i = 0; i < schedule.length; i++) {
-          if (schedule[i].day === todayName) { todayDay = schedule[i]; break }
-        }
-        var all = (todayDay && todayDay.classes) ? todayDay.classes.slice() : []
-        var nowMin = new Date().getHours() * 60 + new Date().getMinutes()
-        var remaining = []
-        for (var j = 0; j < all.length; j++) {
-          var endMin = parseEndMin(all[j].time)
-          if (endMin < 0 || endMin > nowMin) {
-            remaining.push(all[j])
-          }
-        }
-        self.isLoading = false
-        self.remainingClasses = remaining
-        if (remaining.length === 0 && all.length > 0) {
-          self.allDone = true
-          self.emptyMessage = "今日课程已全部结束"
-        } else if (remaining.length === 0) {
-          self.emptyMessage = "今天没有课"
-        }
+        self.apply(schedule || [])
       })
     })
   },
 
-  goBack() {
+  classesOf: function(dayName) {
+    var schedule = this.schedule || []
+    for (var i = 0; i < schedule.length; i++) {
+      if (schedule[i].day === dayName) return schedule[i].classes || []
+    }
+    return []
+  },
+
+  tick: function() {
+    try {
+      this.compute()
+    } catch (e) {
+      // 算炸了也不许把页面钉在旧读数上
+      this.remainCount = 0
+      this.unitText = "节 · 数据异常"
+      this.shownClasses = []
+      this.overflowCount = 0
+      console.error("[remaining] compute failed: " + e)
+    }
+    this.scheduleNextMinute()
+  },
+
+  compute: function() {
+    var now = new Date()
+    var nowMin = now.getHours() * 60 + now.getMinutes()
+    var raw = this.classesOf(DAY_NAMES[now.getDay()])
+
+    var items = []
+    for (var i = 0; i < raw.length; i++) {
+      var r = parseTimeRange(raw[i].time)
+      if (!r) continue
+      // 已结束（含正好下课）的不算剩余
+      if (r.endMin <= nowMin) continue
+      // 正在上的课只算「剩余段」，天然不吃课间/午休（不按末节−现在串算）
+      var remainMin = r.endMin - (nowMin > r.startMin ? nowMin : r.startMin)
+      if (remainMin <= 0) continue
+      items.push({
+        id: raw[i].id,
+        name: raw[i].name,
+        timeShort: startLabel(raw[i].time),
+        startMin: r.startMin,
+        endMin: r.endMin,
+        remainMin: remainMin
+      })
+    }
+    items.sort(function(a, b) { return a.startMin - b.startMin })
+
+    var totalMin = 0
+    for (var k = 0; k < items.length; k++) totalMin += items[k].remainMin
+
+    // P1：D 区固定 4 行 × 44，超出进 E 区
+    var shown = items.slice(0, 4)
+    for (var m = 0; m < shown.length; m++) {
+      shown[m].isCurrent = nowMin >= shown[m].startMin && nowMin < shown[m].endMin
+    }
+
+    this.remainCount = items.length
+    this.overflowCount = items.length - shown.length
+    this.shownClasses = shown
+
+    if (items.length === 0) {
+      var none = raw.length === 0
+      // 空态不重复：B 只留单位「节」（读作「0 节」），说明交给 D 区一行，文案 ≤5 字防折行
+      this.emptyMessage = none ? "今天没课" : "今日已上完"
+      this.unitText = "节"
+    } else {
+      this.unitText = "节 · " + durationText(round5(totalMin))
+    }
+  },
+
+  goBack: function() {
     // 双模返回：被「更多首页」push（fromPanel）→ 回父页；作为 root 首页 → 退出应用
     if (this.fromPanel === '1') {
       router.back()
@@ -126,46 +238,162 @@ export default {
     }
   },
 
-  onBackPress() {
-    // 硬件返回键：push 态交还系统默认返回（回更多首页）；root 态退出（与默认首页 index 一致）
+  onBackPress: function() {
+    // 硬件返回键：push 态交还系统默认返回；root 态退出（与 index 一致）
     if (this.fromPanel === '1') return false
     return utils.exitApp() === true
+  },
+
+  onDestroy: function() {
+    this.clearTickTimer()
   }
 }
 </script>
 
 <style>
-.page { flex-direction: column; width: 100%; height: 100% }
-.page-scroll { flex: 1; width: 100%; flex-direction: column }
-.page-body { flex-direction: column; width: 100%; padding: 44px 12px 12px 12px }
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 44px 12px 12px 12px;
+}
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  height: 40px;
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+.back-btn-wrapper {
+  width: 48px;
+  height: 40px;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+.back-btn-icon {
+  width: 24px;
+  height: 24px;
+}
+.header-title {
+  flex: 1;
+  font-size: 18px;
+  text-align: center;
+  line-height: 26px;
+}
+.header-placeholder {
+  width: 48px;
+  height: 40px;
+  flex-shrink: 0;
+}
 
-.back-header { flex-direction: row; align-items: center; margin-bottom: 16px; padding: 0 4px }
-.back-btn-wrapper { width: 48px; height: 40px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0 }
-.back-btn-icon { width: 24px; height: 24px }
-.header-title { flex: 1; font-size: 28px; font-weight: bold; text-align: center; line-height: 38px }
-.header-placeholder { width: 48px; height: 48px; flex-shrink: 0 }
+/* A 主数字：130–205 */
+.big-count {
+  margin-top: 46px;
+  height: 75px;
+  font-size: 72px;
+  line-height: 75px;
+  font-weight: bold;
+  text-align: center;
+  flex-shrink: 0;
+}
 
-.loading-area { align-items: center; padding: 30px 0 }
-.loading-text { font-size: 22px; line-height: 30px }
+/* B 单位行：210–232
+   实测：20px 下「节 · 10 小时 55 分」需 174px > 内容宽 168px 必截断（首版实拍已见「节 · 今日课程已全」被切），
+   故降到 18px（最坏串 ≈157px），保留 20px 只给 ≥200px 屏。 */
+.unit-line {
+  margin-top: 5px;
+  height: 22px;
+  font-size: 18px;
+  line-height: 22px;
+  text-align: center;
+  /* 只许一行：B 一旦折行就会把下方 D 区顶出坐标 */
+  lines: 1;
+  flex-shrink: 0;
+}
 
-.empty-area { flex-direction: column; align-items: center; padding: 40px 0 }
-.empty-icon { font-size: 48px; margin-bottom: 12px }
-.empty-text { font-size: 24px; line-height: 32px; text-align: center }
+/* C 分隔：168×1 */
+.divider {
+  margin-top: 8px;
+  width: 168px;
+  height: 1px;
+  flex-shrink: 0;
+}
 
-.course-row { flex-direction: column; padding: 16px 12px; border-bottom-width: 1px; border-bottom-color: rgba(128,128,128,0.12) }
-.course-left { flex-direction: row; align-items: center; margin-bottom: 4px }
-.course-index { font-size: 20px; line-height: 28px; width: 28px; flex-shrink: 0 }
-.course-name { font-size: 26px; line-height: 34px; font-weight: bold }
-/* 独立首页化修正：时间+教室原为同行（row），192px 内容区 28px 缩进 + 20px 字号时间串
-   「10:00 - 10:45」+ 18px 教室必然溢出截断（实测「10:00 - 10:」+「实验/室B」错位折行）。
-   改纵向堆叠：时间独占一行完整显示，教室次行，宽度充裕不再截断 */
-.course-right { flex-direction: column; padding-left: 8px }
-.course-time { font-size: 20px; line-height: 28px }
-.course-location { font-size: 18px; line-height: 26px; margin-top: 2px }
+/* D 列表：4 × 44 = 176，250–426 */
+.list {
+  margin-top: 9px;
+  height: 176px;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.row {
+  height: 44px;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+.row-time {
+  width: 46px;
+  font-size: 16px;
+  line-height: 22px;
+  flex-shrink: 0;
+}
+.row-name {
+  flex: 1;
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: bold;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+.empty-box {
+  height: 176px;
+  justify-content: center;
+  align-items: center;
+}
+.empty-text {
+  font-size: 20px;
+  line-height: 28px;
+  text-align: center;
+}
+
+/* E 溢出提示：430–446 */
+.overflow-tip {
+  margin-top: 4px;
+  height: 16px;
+  font-size: 16px;
+  line-height: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
 
 @media (width >= 200px) {
-  .page-body { padding: 44px 16px 14px 16px }
-  .course-row { padding: 18px 14px }
-  .course-name { font-size: 28px; line-height: 36px }
+  .page { padding: 44px 16px 14px 16px; }
+  .header-title { font-size: 20px; line-height: 28px; }
+  .big-count { margin-top: 42px; height: 82px; font-size: 80px; line-height: 82px; }
+  .unit-line { font-size: 22px; line-height: 24px; height: 24px; }
+  .divider { width: 180px; }
+  .row { height: 48px; }
+  .row-time { width: 50px; font-size: 17px; }
+  .row-name { font-size: 24px; line-height: 32px; }
+  .list { height: 192px; }
+  .empty-box { height: 192px; }
+}
+
+@media (width >= 400px) {
+  .page { padding: 12px 20px 16px 20px; }
+  .header-title { font-size: 24px; line-height: 32px; }
+  .big-count { margin-top: 20px; height: 120px; font-size: 112px; line-height: 120px; }
+  .unit-line { font-size: 28px; line-height: 34px; height: 34px; }
+  .divider { width: 320px; }
+  .row { height: 64px; }
+  .row-time { width: 70px; font-size: 22px; }
+  .row-name { font-size: 30px; line-height: 40px; }
+  .list { height: 256px; }
+  .empty-box { height: 256px; }
+  .overflow-tip { font-size: 20px; line-height: 24px; height: 24px; }
 }
 </style>
