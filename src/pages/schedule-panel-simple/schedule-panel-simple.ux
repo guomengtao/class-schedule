@@ -1,37 +1,32 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <div class="back-btn-wrapper" if="{{ !isRoot }}" onclick="goBack" style="background-color: {{ theme.card }}">
+      <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">简易课表</text>
-      <div class="header-placeholder" if="{{ !isRoot }}"></div>
+      <text class="header-title" style="color: {{ theme.textSecondary }}">简易课表</text>
+      <div if="{{ !isRoot }}" class="header-placeholder"></div>
     </div>
-    <div if="{{ isLoading }}" class="loading-area">
-      <text class="loading-text" style="color: {{ theme.textMuted }}">加载中...</text>
+
+    <text class="today-title" style="color: {{ theme.accent }}">{{ todayTitle }}</text>
+
+    <div if="{{ isLoading }}" class="empty-box">
+      <text class="empty-text" style="color: {{ theme.textMuted }}">加载中...</text>
     </div>
-    <div if="{{ !isLoading && daySections.length === 0 }}" class="empty-area">
-      <text class="empty-text" style="color: {{ theme.textMuted }}">暂无课程数据</text>
+
+    <div if="{{ !isLoading && todayClasses.length === 0 }}" class="empty-box">
+      <text class="empty-text" style="color: {{ theme.textSecondary }}">今天没课</text>
     </div>
-    <scroll if="{{ !isLoading && daySections.length > 0 }}" class="scroll-body" scroll-y="true">
-      <div for="{{ daySections }}" class="day-section">
-        <div class="day-header">
-          <text class="day-name" style="color: {{ $item.isToday ? theme.accent : theme.text }}">{{ $item.dayName }}</text>
-          <text class="day-count" style="color: {{ $item.isToday ? theme.accent : theme.textMuted }}">{{ $item.classes.length }} 门课</text>
-        </div>
-        <div class="day-divider" style="background-color: {{ $item.isToday ? theme.accent : theme.border }}"></div>
-        <div for="{{ $item.classes }}" class="course-row" onclick="goToDetail($item, $item.dayName)">
-          <div class="course-accent" style="background-color: {{ theme.accent }}"></div>
-          <div class="course-body">
-            <div class="course-name-row">
-              <text class="course-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-              <text class="course-time" style="color: {{ theme.accent }}">{{ $item.time }}</text>
-            </div>
-            <text class="course-location" if="{{ $item.location }}" style="color: {{ theme.textMuted }}">{{ $item.location }}</text>
-          </div>
+
+    <div if="{{ !isLoading && todayClasses.length > 0 }}" class="list">
+      <div for="{{ todayClasses }}" class="row" onclick="goToDetail($item)">
+        <div class="dot" style="background-color: {{ $item.dotColor }}"></div>
+        <div class="row-body">
+          <text class="row-name" style="color: {{ $item.isCurrent ? theme.accent : theme.text }}">{{ $item.name }}</text>
+          <text class="row-time" style="color: {{ theme.textSecondary }}">{{ $item.timeShort }}</text>
         </div>
       </div>
-    </scroll>
+    </div>
   </div>
 </template>
 
@@ -40,29 +35,40 @@ import router from "@system.router"
 const database = require("../../data/database.js")
 const store = require("../../data/store.js")
 const utils = require("../../data/utils.js")
+const builtinSchedule = require("../../data/schedule.js")
 
-var DAY_ORDER = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+var DAY_SHORT = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
 
-function getTodayName() {
-  return DAY_ORDER[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1]
+// "08:00 - 09:35" → {startMin, endMin}；格式不合规返回 null（脏数据不参与计算）
+function parseTimeRange(timeStr) {
+  if (!timeStr) return null
+  var parts = timeStr.split(" - ")
+  if (parts.length !== 2) return null
+  var s1 = parts[0].trim().split(":")
+  var s2 = parts[1].trim().split(":")
+  if (s1.length !== 2 || s2.length !== 2) return null
+  return { startMin: parseInt(s1[0]) * 60 + parseInt(s1[1]), endMin: parseInt(s2[0]) * 60 + parseInt(s2[1]) }
 }
 
-function parseMinutes(t) {
-  if (!t) return 0
-  var i = t.indexOf(" - ")
-  if (i < 0) return 0
-  var sp = t.substring(0, i).trim().split(":")
-  if (sp.length !== 2) return 0
-  return parseInt(sp[0]) * 60 + parseInt(sp[1])
+// "08:00 - 09:35" → "08:00"（简易页只保留开始时间，行宽有限）
+function startLabel(timeStr) {
+  if (!timeStr) return ""
+  var i = timeStr.indexOf(" - ")
+  return (i < 0 ? timeStr : timeStr.substring(0, i)).trim()
 }
 
 export default {
   private: {
     iconTheme: "dark",
-    isLoading: true,
-    daySections: [],
     fromPanel: "",
     isRoot: false,
+    // isLoading 只保留给极短窗口：onInit 同步算出结果后立刻为 false
+    isLoading: true,
+    todayTitle: "",
+    todayClasses: [],
+    schedule: [],
+    tickTimer: null,
     theme: {
       bg: '#1a1a2e', card: '#16213e', cardLight: '#0f3460',
       accent: '#7ec8e3', text: '#ffffff', textSecondary: '#888899',
@@ -72,47 +78,130 @@ export default {
 
   onInit() {
     var self = this
-    // 独立首页化：root 判定（被「更多首页」push 带 fromPanel='1'；作为 root 首页冷启动则无此参）
+    // 独立首页 root 判定：被「更多首页」push 带 fromPanel='1'；作为 root 冷启动则无此参
     self.fromPanel = (self.fromPanel === '1') ? '1' : ''
     self.isRoot = self.fromPanel !== '1'
-    store.getTheme(function(t, themeName) { self.theme = t; self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark' })
-    this.loadData()
+    // 首帧同步出内容：先用内置课表算一遍，storage 慢/丢回调都不会停在「加载中」
+    self.apply((builtinSchedule && builtinSchedule.schedule) ? builtinSchedule.schedule : [])
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+      self.loadData()
+    })
   },
 
   onShow() {
     var self = this
-    store.getTheme(function(t, themeName) { self.theme = t; self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark' })
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+    // 回前台立即重算一次（后台期间可能跨节），再按分钟对齐续排
+    if (!self.isLoading) self.tick()
+  },
+
+  onHide() {
+    this.clearTickTimer()
+  },
+
+  /* 分钟级刷新：对齐「下一个整分」只挂一个 setTimeout。
+     课程表是分钟级事件，全页禁用 setInterval（方案 §0）。 */
+  scheduleNextMinute: function() {
+    var self = this
+    this.clearTickTimer()
+    var now = new Date()
+    var ms = 60000 - (now.getSeconds() * 1000)
+    if (ms < 1000) ms = 1000
+    this.tickTimer = setTimeout(function() { self.tick() }, ms)
+  },
+
+  clearTickTimer: function() {
+    if (this.tickTimer) { clearTimeout(this.tickTimer); this.tickTimer = null }
+  },
+
+  apply: function(schedule) {
+    this.schedule = schedule || []
+    this.isLoading = false
+    this.tick()
   },
 
   loadData: function() {
     var self = this
     database.init(function() {
       database.getAllCourses(function(schedule) {
-        var today = getTodayName()
-        var out = []
-        if (schedule) {
-          for (var di = 0; di < DAY_ORDER.length; di++) {
-            var dn = DAY_ORDER[di]
-            var dd = null
-            for (var s = 0; s < schedule.length; s++) {
-              if (schedule[s].day === dn) { dd = schedule[s]; break }
-            }
-            if (!dd || !dd.classes || !dd.classes.length) continue
-            var cls = dd.classes.slice()
-            cls.sort(function(a, b) { return parseMinutes(a.time) - parseMinutes(b.time) })
-            out.push({ dayName: dn, isToday: dn === today, classes: cls })
-          }
-        }
-        self.daySections = out
-        self.isLoading = false
+        self.apply(schedule || [])
       })
     })
   },
 
-  goToDetail: function(course, dayName) {
+  classesOf: function(dayName) {
+    var schedule = this.schedule || []
+    for (var i = 0; i < schedule.length; i++) {
+      if (schedule[i].day === dayName) return schedule[i].classes || []
+    }
+    return []
+  },
+
+  tick: function() {
+    try {
+      this.compute()
+    } catch (e) {
+      // 计算异常不许把页面钉在旧状态：退回空态，用户至少看得懂
+      this.todayClasses = []
+      this.todayTitle = this.titleOf(new Date())
+      console.error("[simple] compute failed: " + e)
+    }
+    this.scheduleNextMinute()
+  },
+
+  titleOf: function(now) {
+    return "今天 · " + DAY_SHORT[now.getDay()]
+  },
+
+  compute: function() {
+    var now = new Date()
+    var nowMin = now.getHours() * 60 + now.getMinutes()
+    this.todayTitle = this.titleOf(now)
+
+    var raw = this.classesOf(DAY_NAMES[now.getDay()])
+    var items = []
+    for (var i = 0; i < raw.length; i++) {
+      var r = parseTimeRange(raw[i].time)
+      if (!r) continue
+      items.push({
+        id: raw[i].id,
+        name: raw[i].name,
+        time: raw[i].time,
+        timeShort: startLabel(raw[i].time),
+        dayName: DAY_NAMES[now.getDay()],
+        startMin: r.startMin,
+        endMin: r.endMin
+      })
+    }
+    items.sort(function(a, b) { return a.startMin - b.startMin })
+
+    // 最多 5 行（B 区 5×52）
+    var top = items.slice(0, 5)
+    for (var k = 0; k < top.length; k++) {
+      var it = top[k]
+      var isPast = nowMin >= it.endMin
+      var isNow = nowMin >= it.startMin && nowMin < it.endMin
+      it.isCurrent = isNow
+      // 三色状态点：已过灰 / 当前主色 / 未到白（用 theme.text 保证浅色主题也可见）
+      it.dotColor = isPast ? this.theme.textMuted : (isNow ? this.theme.accent : this.theme.text)
+    }
+    this.todayClasses = top
+  },
+
+  goToDetail: function(course) {
+    if (!course) return
     var storage = require("@system.storage")
     storage.set({ key: "detail_classId", value: String(course.id) })
-    storage.set({ key: "detail_day", value: dayName, success: function() { router.push({ uri: "/pages/detail" }) } })
+    storage.set({
+      key: "detail_day",
+      value: course.dayName,
+      success: function() { router.push({ uri: "/pages/detail" }) }
+    })
   },
 
   goBack: function() {
@@ -127,6 +216,10 @@ export default {
   onBackPress: function() {
     if (this.fromPanel === '1') return false
     return utils.exitApp() === true
+  },
+
+  onDestroy: function() {
+    this.clearTickTimer()
   }
 }
 </script>
@@ -136,155 +229,115 @@ export default {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  padding: 44px 6px 6px 6px;
+  padding: 44px 12px 12px 12px;
 }
 .back-header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 12px;
-  padding: 0 2px;
+  height: 40px;
   flex-shrink: 0;
+  padding: 0 4px;
 }
 .back-btn-wrapper {
-  width: 40px;
-  height: 36px;
+  width: 48px;
+  height: 40px;
   border-radius: 8px;
   justify-content: center;
   align-items: center;
   flex-shrink: 0;
 }
 .back-btn-icon {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
 }
 .header-title {
   flex: 1;
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 18px;
   text-align: center;
-  line-height: 32px;
+  line-height: 26px;
 }
 .header-placeholder {
-  width: 40px;
-  height: 36px;
+  width: 48px;
+  height: 40px;
   flex-shrink: 0;
 }
-.loading-area {
+
+/* A 今日标题：130–156（header 84 + margin-top 46） */
+.today-title {
+  margin-top: 46px;
+  height: 26px;
+  font-size: 22px;
+  font-weight: bold;
+  line-height: 26px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* B 课程行：5 × 52 = 260，168–428 */
+.list {
+  flex-direction: column;
+  margin-top: 12px;
+}
+.row {
+  height: 52px;
+  flex-direction: row;
   align-items: center;
-  padding: 30px 0;
+  padding: 0 4px;
 }
-.loading-text {
-  font-size: 20px;
-  line-height: 28px;
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  margin-right: 10px;
+  flex-shrink: 0;
 }
-.empty-area {
+.row-body {
   flex: 1;
+  flex-direction: column;
+  justify-content: center;
+}
+.row-name {
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 26px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+.row-time {
+  font-size: 15px;
+  line-height: 19px;
+}
+
+/* C 空态：占据 B 区，垂直居中 */
+.empty-box {
+  height: 260px;
   justify-content: center;
   align-items: center;
 }
 .empty-text {
-  font-size: 22px;
-  line-height: 30px;
-}
-.scroll-body {
-  flex: 1;
-  flex-direction: column;
-}
-.day-section {
-  flex-direction: column;
-  margin-bottom: 10px;
-}
-.day-header {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: 4px 4px 2px 4px;
-}
-.day-name {
-  font-size: 22px;
-  font-weight: bold;
-  line-height: 30px;
-}
-.day-count {
-  font-size: 18px;
-  line-height: 26px;
-}
-.day-divider {
-  height: 2px;
-  margin: 2px 0 6px 0;
-  border-radius: 1px;
-}
-.course-row {
-  flex-direction: row;
-  align-items: stretch;
-  border-radius: 8px;
-  margin-bottom: 4px;
-  overflow: hidden;
-}
-.course-accent {
-  width: 4px;
-  flex-shrink: 0;
-  border-radius: 2px;
-  margin: 6px 0;
-}
-.course-body {
-  flex: 1;
-  flex-direction: column;
-  padding: 8px;
-}
-.course-name-row {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: baseline;
-}
-.course-name {
-  font-size: 22px;
-  font-weight: bold;
-  line-height: 30px;
-}
-.course-time {
-  font-size: 18px;
-  line-height: 26px;
-  flex-shrink: 0;
-  margin-left: 6px;
-}
-.course-location {
-  font-size: 17px;
-  line-height: 24px;
-  margin-top: 2px;
+  font-size: 24px;
+  line-height: 32px;
+  text-align: center;
 }
 
 @media (width >= 200px) {
-  .page { padding: 44px 10px 8px 10px; }
-  .back-header { margin-bottom: 16px; padding: 0 4px; }
-  .back-btn-wrapper { width: 48px; height: 40px; }
-  .back-btn-icon { width: 24px; height: 24px; }
-  .header-title { font-size: 28px; line-height: 38px; }
-  .header-placeholder { width: 48px; height: 40px; }
-  .day-name { font-size: 24px; line-height: 32px; }
-  .day-count { font-size: 20px; line-height: 28px; }
-  .course-body { padding: 10px 12px; }
-  .course-name { font-size: 24px; line-height: 32px; }
-  .course-time { font-size: 20px; line-height: 28px; }
-  .course-location { font-size: 18px; line-height: 26px; }
-  .day-section { margin-bottom: 14px; }
+  .page { padding: 44px 16px 14px 16px; }
+  .header-title { font-size: 20px; line-height: 28px; }
+  .today-title { margin-top: 44px; height: 30px; font-size: 24px; line-height: 30px; }
+  .row { height: 56px; }
+  .row-name { font-size: 22px; line-height: 28px; }
+  .row-time { font-size: 16px; line-height: 20px; }
+  .empty-box { height: 280px; }
 }
 
 @media (width >= 400px) {
-  .page { padding: 12px 16px; }
-  .back-header { margin-bottom: 20px; }
-  .header-title { font-size: 32px; line-height: 42px; }
-  .day-name { font-size: 28px; line-height: 36px; }
-  .day-count { font-size: 22px; line-height: 30px; }
-  .course-body { padding: 12px 16px; }
-  .course-name { font-size: 28px; line-height: 36px; }
-  .course-time { font-size: 22px; line-height: 30px; }
-  .course-location { font-size: 20px; line-height: 28px; }
-  .day-section { margin-bottom: 18px; }
-}
-
-@media (shape: circle) {
-  .page { padding: 30px 20px 20px 20px; }
-  .course-row { border-radius: 12px; }
+  .page { padding: 12px 20px 16px 20px; }
+  .header-title { font-size: 24px; line-height: 32px; }
+  .today-title { margin-top: 20px; height: 38px; font-size: 30px; line-height: 38px; }
+  .row { height: 64px; }
+  .row-name { font-size: 28px; line-height: 36px; }
+  .row-time { font-size: 20px; line-height: 26px; }
+  .empty-box { height: 320px; }
+  .empty-text { font-size: 28px; line-height: 36px; }
 }
 </style>

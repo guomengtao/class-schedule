@@ -296,7 +296,7 @@ ok("保留左右滑动切天：@swipe + handleSwipe + prevDay/nextDay",
 // ================================================================ 3. 简易课表
 
 console.log("")
-console.log(bold("3. 简易课表 schedule-panel-simple —— 当前方案 + 分组"))
+console.log(bold("3. 简易课表 schedule-panel-simple —— 今日 5 行极简视图"))
 
 var simpleEnv = makeEnv({ courses: MOCK_SCHEDULE })
 var simple = newInstance("simple", simpleEnv.req)
@@ -307,22 +307,18 @@ ok("数据源走当前方案，不再写死 index 0",
   simpleEnv.env.calls.filter(function (c) { return c.indexOf("getAllCoursesWithIndex") === 0 }).length === 0,
   "实际调用：" + JSON.stringify(simpleEnv.env.calls))
 
-// 2026-10-19：简易课表已从「flat list（周X 压缩 + 每条目 iconSrc）」重构为
-// 「daySections 分组」模型（见 schedule-panel-simple.ux 的 loadData），旧断言随实现更新。
-// 这段漂移此前的暴露路径：套件崩在 183 行 → 第 3 节从未跑到 → 一直没人发现。
-var sections = simple.daySections
-eq("只保留有课天（星期一2 + 星期三1 + 星期六1 → 3 天）", sections.length, 3)
-eq("分组顺序遵循 DAY_ORDER", sections[0].dayName, "星期一")
-var flatNames = []
-sections.forEach(function (s) { s.classes.forEach(function (c) { flatNames.push(c.name) }) })
-eq("全部课程拉平为 4 条（2+1+1）", flatNames.length, 4)
-eq("课程名原样保留不压缩", flatNames[0], "数学")
-ok("同一天内课程按时间升序（数学 08:00 在 语文课 10:00 前）",
-  sections[0].classes[0].name === "数学" && sections[0].classes[1].name === "语文课",
-  "实际：" + JSON.stringify(sections[0].classes.map(function (c) { return c.name + "@" + c.time })))
-ok("每条课程都带时间与 id 字段", sections.every(function (s) {
-  return s.classes.every(function (c) { return !!c.time && c.id != null })
-}))
+// 2026-10-20：简易课表已从「7 天分组 daySections + scroll」重构为
+// 「今日 5 行固定视图 + 三色状态点」。结构/字号/状态点/分钟定时器/边界态的逐条断言
+// 都在专项单测 test/schedule-panel-simple.test.js（含假时钟，确定性）。
+// 本聚合套件只保留不依赖真实时钟的源码契约，避免每周换天就红（纪律 #4）。
+var simpleSrc = readFile(PAGES.simple.file)
+var simpleCode = simpleSrc.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "")
+ok("已移除 7 天分组模型（无 daySections）", simpleSrc.indexOf("daySections") < 0)
+ok("今日 5 行固定布局：无 <scroll>", simpleSrc.indexOf("<scroll") < 0)
+ok("含今日标题与三色状态点", simpleSrc.indexOf("today-title") > 0 && simpleSrc.indexOf('class="dot"') > 0)
+ok("分钟级刷新：无 setInterval，有 scheduleNextMinute",
+  simpleCode.indexOf("setInterval") < 0 && simpleCode.indexOf("scheduleNextMinute") > 0)
+ok("今日课程模型：todayClasses（不再按天分组）", simpleSrc.indexOf("todayClasses") > 0)
 
 // ================================================================ 结果
 
