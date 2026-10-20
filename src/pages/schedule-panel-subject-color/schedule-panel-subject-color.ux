@@ -1,34 +1,30 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <scroll class="page-scroll" scroll-y="{{true}}">
-    <div class="page-body">
     <div class="back-header">
       <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">科目色卡</text>
+      <text class="header-title" style="color: {{ theme.textSecondary }}">科目色卡</text>
       <div if="{{ !isRoot }}" class="header-placeholder"></div>
     </div>
 
-    <div if="{{ isLoading }}" class="loading-area">
-      <text class="loading-text" style="color: {{ theme.textMuted }}">加载中...</text>
+    <!-- A 当前科目：色块 12×44 + 课名 40px（130–185） -->
+    <div class="now-row">
+      <div class="now-stripe" style="background-color: {{ nowColor }}"></div>
+      <text class="now-name" style="color: {{ nowActive ? theme.accent : theme.textMuted }}">{{ nowName }}</text>
     </div>
 
-    <div if="{{ !isLoading && todayClasses.length === 0 }}" class="empty-area">
-      <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
-    </div>
-
-    <div for="{{ todayClasses }}" class="course-card" style="background-color: {{ theme.card }}">
-      <div class="color-stripe" style="background-color: {{ $item.subjectColor }}"></div>
-      <div class="card-body">
-        <text class="card-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
-        <text class="card-time" style="color: {{ theme.textSecondary }}">{{ $item.time }}</text>
-        <text class="card-location" if="{{ $item.location }}" style="color: {{ theme.textMuted }}">{{ $item.location }}</text>
+    <!-- B 今日科目色卡网格：2 列 × 3 行，每格 80×72（200–432） -->
+    <div class="grid">
+      <div for="{{ gridRows }}" class="grid-row">
+        <div for="{{ $item.cells }}" class="cell" style="background-color: {{ $item.color }}">
+          <text class="cell-name">{{ $item.name }}</text>
+        </div>
       </div>
     </div>
 
-    </div>
-    </scroll>
+    <!-- C 图例（452–468） -->
+    <text class="legend" style="color: {{ theme.textMuted }}">{{ legendText }}</text>
   </div>
 </template>
 
@@ -37,9 +33,11 @@ import router from "@system.router"
 const database = require("../../data/database.js")
 const store = require("../../data/store.js")
 const utils = require("../../data/utils.js")
+const builtinSchedule = require("../../data/schedule.js")
 
 var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
+// P2 · 固定配色表：同一科跨天同色（#5 多彩课表的前置件，改色只改这张表）
 var SUBJECT_COLORS = {
   "数学": "#3498db",
   "语文": "#2ecc71",
@@ -56,13 +54,29 @@ var SUBJECT_COLORS = {
   "美术": "#ff5722",
   "体育": "#8bc34a"
 }
+var FALLBACK_COLOR = "#7f8c8d"
 
+// 子串匹配（"信息技术" 命中 "信息技术"，"体育课" 命中 "体育"）；未命中回退灰，绝不返回空
 function getSubjectColor(name) {
-  if (!name) return "#7f8c8d"
+  if (!name) return FALLBACK_COLOR
   for (var key in SUBJECT_COLORS) {
     if (name.indexOf(key) !== -1) return SUBJECT_COLORS[key]
   }
-  return "#7f8c8d"
+  return FALLBACK_COLOR
+}
+
+// "08:00 - 09:35" → {startMin, endMin}；脏数据返回 null
+function parseTimeRange(timeStr) {
+  if (!timeStr) return null
+  var parts = timeStr.split(" - ")
+  if (parts.length !== 2) return null
+  var s1 = parts[0].trim().split(":")
+  var s2 = parts[1].trim().split(":")
+  if (s1.length !== 2 || s2.length !== 2) return null
+  var a = parseInt(s1[0]) * 60 + parseInt(s1[1])
+  var b = parseInt(s2[0]) * 60 + parseInt(s2[1])
+  if (isNaN(a) || isNaN(b) || b <= a) return null
+  return { startMin: a, endMin: b }
 }
 
 export default {
@@ -71,7 +85,13 @@ export default {
     fromPanel: "",
     isRoot: false,
     isLoading: true,
-    todayClasses: [],
+    nowName: "",
+    nowColor: FALLBACK_COLOR,
+    nowActive: false,
+    gridRows: [],
+    legendText: "",
+    schedule: [],
+    tickTimer: null,
     theme: {
       bg: '#1a1a2e', card: '#16213e', cardLight: '#0f3460',
       accent: '#7ec8e3', text: '#ffffff', textSecondary: '#888899',
@@ -81,43 +101,151 @@ export default {
 
   onInit() {
     var self = this
-    // 独立首页 root 判定：由「更多首页」push 时带 fromPanel='1'；无参数即被设为首页冷启动
+    // 独立首页 root 判定：由「更多首页」push 带 fromPanel='1'；无参数即冷启动为首页
     self.fromPanel = (self.fromPanel === '1') ? '1' : ''
     self.isRoot = self.fromPanel !== '1'
-    store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
-    self.loadData()
+    // 首帧同步出内容：storage 回调慢/丢也不许停在「加载中」
+    self.apply((builtinSchedule && builtinSchedule.schedule) ? builtinSchedule.schedule : [])
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+      self.loadData()
+    })
   },
 
   onShow() {
     var self = this
-    store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+    // 回前台立即重算（后台期间可能已换课），再续排下一次整分
+    if (!self.isLoading) self.tick()
   },
 
-  updateIconSrc: function(themeName) {
-    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+  onHide() {
+    this.clearTickTimer()
+  },
+
+  /* 分钟级刷新：只挂一个对齐「下一个整分」的 setTimeout（方案 §0 禁秒级轮询） */
+  scheduleNextMinute: function() {
+    var self = this
+    this.clearTickTimer()
+    var now = new Date()
+    var ms = 60000 - (now.getSeconds() * 1000)
+    if (ms < 1000) ms = 1000
+    this.tickTimer = setTimeout(function() { self.tick() }, ms)
+  },
+
+  clearTickTimer: function() {
+    if (this.tickTimer) { clearTimeout(this.tickTimer); this.tickTimer = null }
+  },
+
+  apply: function(schedule) {
+    this.schedule = schedule || []
+    this.isLoading = false
+    this.tick()
   },
 
   loadData: function() {
     var self = this
     database.init(function() {
       database.getAllCourses(function(schedule) {
-        var todayIndex = new Date().getDay()
-        var todayName = DAY_NAMES[todayIndex]
-        var todayDay = null
-        for (var i = 0; i < schedule.length; i++) {
-          if (schedule[i].day === todayName) { todayDay = schedule[i]; break }
-        }
-        var classes = (todayDay && todayDay.classes) ? todayDay.classes.slice() : []
-        for (var j = 0; j < classes.length; j++) {
-          classes[j].subjectColor = getSubjectColor(classes[j].name)
-        }
-        self.todayClasses = classes
-        self.isLoading = false
+        self.apply(schedule || [])
       })
     })
   },
 
-  goBack() {
+  classesOf: function(dayName) {
+    var schedule = this.schedule || []
+    for (var i = 0; i < schedule.length; i++) {
+      if (schedule[i].day === dayName) return schedule[i].classes || []
+    }
+    return []
+  },
+
+  tick: function() {
+    try {
+      this.compute()
+    } catch (e) {
+      // 算炸了退回空态，不许把页面钉在旧读数上
+      this.nowName = "没课"
+      this.nowColor = FALLBACK_COLOR
+      this.nowActive = false
+      this.gridRows = []
+      this.legendText = ""
+      console.error("[subject-color] compute failed: " + e)
+    }
+    this.scheduleNextMinute()
+  },
+
+  compute: function() {
+    var now = new Date()
+    var nowMin = now.getHours() * 60 + now.getMinutes()
+    var raw = this.classesOf(DAY_NAMES[now.getDay()])
+
+    var items = []
+    for (var i = 0; i < raw.length; i++) {
+      var r = parseTimeRange(raw[i].time)
+      if (!r) continue
+      items.push({
+        name: raw[i].name,
+        time: raw[i].time,
+        startMin: r.startMin,
+        endMin: r.endMin,
+        color: getSubjectColor(raw[i].name)
+      })
+    }
+    items.sort(function(a, b) { return a.startMin - b.startMin })
+
+    // A 当前科目：正在上的那节；否则退「课间」/「已下课」/「没课」（≤3 字，40px 下不截断）
+    var current = null
+    for (var k = 0; k < items.length; k++) {
+      if (nowMin >= items[k].startMin && nowMin < items[k].endMin) { current = items[k]; break }
+    }
+    // 三态区分（实拍发现：全天课上完后仍显示「课间」是错的）
+    var hasFuture = false
+    for (var n = 0; n < items.length; n++) {
+      if (items[n].startMin > nowMin) { hasFuture = true; break }
+    }
+    if (current) {
+      this.nowName = current.name
+      this.nowColor = current.color
+      this.nowActive = true
+    } else {
+      // 没课（今天无安排）/ 课间（后面还有课）/ 已下课（今天的都上完了）
+      this.nowName = items.length === 0 ? "没课" : (hasFuture ? "课间" : "已下课")
+      this.nowColor = FALLBACK_COLOR
+      this.nowActive = false
+    }
+
+    // B 今日科目（去重，按当天首次出现顺序），最多 6 格 = 2×3
+    var subjects = []
+    var seen = {}
+    for (var m = 0; m < items.length; m++) {
+      var nm = items[m].name
+      if (seen[nm]) continue
+      seen[nm] = 1
+      subjects.push({ name: nm, color: items[m].color })
+    }
+    var shown = subjects.slice(0, 6)
+    var rows = []
+    for (var r2 = 0; r2 < shown.length; r2 += 2) {
+      rows.push({ cells: shown.slice(r2, r2 + 2) })
+    }
+    this.gridRows = rows
+
+    // C 图例
+    if (subjects.length === 0) {
+      this.legendText = "今日 0 科"
+    } else if (subjects.length > 6) {
+      this.legendText = "今日 " + subjects.length + " 科 · 显示前 6"
+    } else {
+      this.legendText = "今日 " + subjects.length + " 科"
+    }
+  },
+
+  goBack: function() {
     // 双模返回：被「更多首页」push（fromPanel）→ 回父页；作为 root 首页 → 退出应用
     if (this.fromPanel === '1') {
       router.back()
@@ -126,46 +254,149 @@ export default {
     }
   },
 
-  onBackPress() {
-    // 硬件返回键：push 态交还系统默认返回（回更多首页）；root 态退出（与默认首页 index 一致）
+  onBackPress: function() {
+    // 硬件返回键：push 态交还系统默认返回；root 态退出（与 index 一致）
     if (this.fromPanel === '1') return false
     return utils.exitApp() === true
+  },
+
+  onDestroy: function() {
+    this.clearTickTimer()
   }
 }
 </script>
 
 <style>
-.page { flex-direction: column; width: 100%; height: 100% }
-.page-scroll { flex: 1; width: 100%; flex-direction: column }
-.page-body { flex-direction: column; width: 100%; padding: 44px 12px 12px 12px }
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 44px 12px 12px 12px;
+}
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  height: 40px;
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+.back-btn-wrapper {
+  width: 48px;
+  height: 40px;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+.back-btn-icon {
+  width: 24px;
+  height: 24px;
+}
+.header-title {
+  flex: 1;
+  font-size: 18px;
+  text-align: center;
+  line-height: 26px;
+}
+.header-placeholder {
+  width: 48px;
+  height: 40px;
+  flex-shrink: 0;
+}
 
-.back-header { flex-direction: row; align-items: center; margin-bottom: 16px; padding: 0 4px }
-.back-btn-wrapper { width: 48px; height: 40px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0 }
-.back-btn-icon { width: 24px; height: 24px }
-.header-title { flex: 1; font-size: 28px; font-weight: bold; text-align: center; line-height: 38px }
-.header-placeholder { width: 48px; height: 48px; flex-shrink: 0 }
+/* A 当前科目：130–185（header 84 + margin-top 46），高 55 */
+.now-row {
+  margin-top: 46px;
+  height: 55px;
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+.now-stripe {
+  width: 12px;
+  height: 44px;
+  border-radius: 6px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+.now-name {
+  flex: 1;
+  font-size: 40px;
+  font-weight: bold;
+  line-height: 55px;
+  /* 40px 下 4 字就超 148px 可用宽，必须单行省略，不许折行把 B 区顶下去 */
+  lines: 1;
+  text-overflow: ellipsis;
+}
 
-.loading-area { align-items: center; padding: 30px 0 }
-.loading-text { font-size: 22px; line-height: 30px }
+/* B 网格：200 起，3 行 × 72 + 2×8 间距 = 232 → 200–432 */
+.grid {
+  margin-top: 15px;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.grid-row {
+  flex-direction: row;
+  justify-content: space-between;
+  width: 168px;
+  height: 72px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+/* 格宽 80（方案原写 84：2×84=168 再加间距必然溢出 168 内容宽，实测改为 80） */
+.cell {
+  width: 80px;
+  height: 72px;
+  border-radius: 12px;
+  justify-content: center;
+  align-items: center;
+  padding: 0 4px;
+}
+.cell-name {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: bold;
+  color: #ffffff;
+  text-align: center;
+  lines: 1;
+  text-overflow: ellipsis;
+}
 
-.empty-area { align-items: center; padding: 30px 0 }
-.empty-text { font-size: 22px; line-height: 30px }
-
-/* 独立首页化修正：底色原硬编码 rgba(255,255,255,0.05)，浅色主题下白叠加隐形；
-   改模板行内 theme.card（见 template），此处仅保留形状属性 */
-.course-card { flex-direction: row; border-radius: 14px; margin-bottom: 10px; overflow: hidden }
-.color-stripe { width: 8px; flex-shrink: 0 }
-.card-body { flex: 1; flex-direction: column; padding: 16px 14px }
-.card-name { font-size: 26px; font-weight: bold; line-height: 34px; margin-bottom: 4px }
-.card-time { font-size: 20px; line-height: 28px }
-.card-location { font-size: 18px; line-height: 26px; margin-top: 2px }
+/* C 图例：452–468 */
+.legend {
+  margin-top: 20px;
+  height: 16px;
+  font-size: 16px;
+  line-height: 16px;
+  text-align: center;
+  flex-shrink: 0;
+  lines: 1;
+}
 
 @media (width >= 200px) {
-  .page-body { padding: 44px 16px 14px 16px }
-  .course-card { border-radius: 16px; margin-bottom: 12px }
-  .color-stripe { width: 10px }
-  .card-body { padding: 20px 16px }
-  .card-name { font-size: 28px; line-height: 36px }
-  .card-time { font-size: 22px; line-height: 30px }
+  .page { padding: 44px 16px 14px 16px; }
+  .header-title { font-size: 20px; line-height: 28px; }
+  .now-row { margin-top: 42px; height: 60px; }
+  .now-stripe { width: 14px; height: 48px; }
+  .now-name { font-size: 44px; line-height: 60px; }
+  .grid { margin-top: 16px; }
+  .grid-row { width: 176px; height: 78px; margin-bottom: 9px; }
+  .cell { width: 84px; height: 78px; }
+  .cell-name { font-size: 20px; line-height: 26px; }
+  .legend { font-size: 17px; line-height: 18px; height: 18px; }
+}
+
+@media (width >= 400px) {
+  .page { padding: 12px 20px 16px 20px; }
+  .header-title { font-size: 24px; line-height: 32px; }
+  .now-row { margin-top: 20px; height: 90px; }
+  .now-stripe { width: 20px; height: 72px; border-radius: 10px; }
+  .now-name { font-size: 64px; line-height: 90px; }
+  .grid { margin-top: 24px; }
+  .grid-row { width: 320px; height: 110px; margin-bottom: 12px; }
+  .cell { width: 154px; height: 110px; border-radius: 16px; }
+  .cell-name { font-size: 28px; line-height: 36px; }
+  .legend { font-size: 22px; line-height: 26px; height: 26px; }
 }
 </style>
