@@ -27,6 +27,22 @@ is_user_instance() {
   grep -qxF "$1" "$USER_CONF" 2>/dev/null
 }
 
+# ---------- 端口段：物理归属判据（档2）----------
+# 用户侧 / EvEmuBuddy 起的实例跑在 12000+ 端口（实测 buddy-1 = emulator-13000）；
+# AI 侧由 emu-start 起的实例落在 555x 段。判据只看进程行里的 -port：
+#   拿不到 -port 的一律按 AI 段处理（AI 从不自己指定 -port）。
+# 好处：即使白名单文件被删/漏配，用户那台因为「物理在不同端口段」也不会被 AI 碰到。
+USER_PORT_MIN="${EMU_USER_PORT_MIN:-12000}"
+port_segment() { # 入参：端口号（可空） → user | ai
+  local p="${1:-}"
+  if [ -n "$p" ] && [ "$p" -ge "$USER_PORT_MIN" ] 2>/dev/null; then echo user; else echo ai; fi
+}
+port_of_avd() { # 该 AVD 运行实例的 -port；拿不到输出空
+  ps aux | grep qemu-system | grep -v grep | grep -- "-avd $1 " \
+    | sed -nE 's/.*-port ([0-9]+).*/\1/p' | head -1
+}
+avd_in_user_segment() { [ "$(port_segment "$(port_of_avd "$1")")" = "user" ]; }
+
 # ---------- 基础探查（全部容忍失败，不用 set -u/e）----------
 qemu_pids_for_avd() { # 同 AVD 的 qemu pid 列表
   ps aux | grep qemu-system | grep -v grep | grep -- "-avd $1 " | awk '{print $2}'
@@ -91,7 +107,7 @@ cmd_status() {
       local s="" g="否"
       s=$(resolve_serial "$avd" 2>/dev/null)
       [ -n "$s" ] && guest_alive "$s" && g="是"
-      echo "  avd=$avd pid=$pid serial=${s:-未识别} guest存活=$g"
+      echo "  avd=$avd pid=$pid serial=${s:-未识别} guest存活=$g 段=$(port_segment "$(port_of_avd "$avd")")"
     done
   done
   [ "$found" = "0" ] && echo "  （无）"
@@ -144,6 +160,11 @@ hfwd_port() {
 
 stop_avd() {
   local avd="$1" pids
+  # 档2 硬锁：跑在用户端口段的实例，物理上就不归 AI 管（白名单漏配也拦得住）
+  if avd_in_user_segment "$avd"; then
+    echo "[拒绝] $avd 在用户端口段（port=$(port_of_avd "$avd") ≥ ${USER_PORT_MIN}），AI 不得停止"
+    return 1
+  fi
   # 白名单硬锁：AI 不得停止用户专用实例（2026-10-20 用户明令）
   if is_user_instance "$avd" && [ "${EMU_ALLOW_USER_INSTANCE:-0}" != "1" ]; then
     echo "[拒绝] $avd 是用户专用实例（$USER_CONF 白名单），AI 不得停止"
@@ -189,6 +210,11 @@ cmd_stop() {
 cmd_start() {
   local avd="${1:-}"
   [ -z "$avd" ] && { echo "用法: $0 start <avd>"; return 1; }
+  # 档2 硬锁：用户端口段的实例，AI 不得启动/重启
+  if avd_in_user_segment "$avd"; then
+    echo "[拒绝] $avd 在用户端口段（port=$(port_of_avd "$avd") ≥ ${USER_PORT_MIN}），AI 不得启动/重启"
+    return 1
+  fi
   # 白名单硬锁：AI 不得启动用户专用实例
   if is_user_instance "$avd" && [ "${EMU_ALLOW_USER_INSTANCE:-0}" != "1" ]; then
     echo "[拒绝] $avd 是用户专用实例（$USER_CONF 白名单），AI 不得启动/重启"
@@ -203,14 +229,15 @@ cmd_start() {
     fam=$(avd_family "$avd")
     for other in $(avd_names_running); do
       [ "$other" = "$avd" ] && continue
-      [ "$(avd_family "$other")" = "$fam" ] || continue
       [ -n "$(qemu_pids_for_avd "$other")" ] || continue
-      if is_user_instance "$other"; then
-        skipped=$((skipped + 1)); continue   # 用户实例：不在 AI 管辖范围，不计入同族
+      # 档2：用户侧实例（端口段 或 白名单）完全不在 AI 视野——不看族、不计数、绝不提示 stop
+      if avd_in_user_segment "$other" || is_user_instance "$other"; then
+        skipped=$((skipped + 1)); continue
       fi
+      [ "$(avd_family "$other")" = "$fam" ] || continue
       echo "[门闩] 同机型族($fam)已有 AI 实例在跑：$other（pid=$(qemu_pids_for_avd "$other" | head -1)）"
       echo "[门闩] 每族只许 1 台 AI 实例。先 stop $other 再启 $avd；或 EMU_ONE_PER_FAMILY=0 豁免。"
-      [ "$skipped" -gt 0 ] && echo "[门闩] 注：同族另有 $skipped 台用户专用实例在跑，不在 AI 管辖范围，不要动它。"
+      [ "$skipped" -gt 0 ] && echo "[门闩] 注：另有 $skipped 台用户侧实例在跑（端口段≥${USER_PORT_MIN} 或白名单），不在 AI 管辖范围，不要动它。"
       return 1
     done
   fi

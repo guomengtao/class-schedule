@@ -40,6 +40,13 @@ is_user_instance() {
   grep -qxF "$1" "$USER_CONF" 2>/dev/null
 }
 
+# 端口段判定 —— 必须与 emu-start.sh 的 port_segment 保持一致（档2 物理归属判据）
+USER_PORT_MIN="${EMU_USER_PORT_MIN:-12000}"
+port_segment() { # 端口号（可空）→ user | ai
+  local p="${1:-}"
+  if [ -n "$p" ] && [ "$p" -ge "$USER_PORT_MIN" ] 2>/dev/null; then echo user; else echo ai; fi
+}
+
 # 机型族判定 —— 必须与 emu-start.sh 的 avd_family 保持一致
 avd_family() {
   local avd="$1" base
@@ -73,44 +80,50 @@ start_epoch() {
   printf '999999999'
 }
 
-# 输出：avd \t pid \t start_epoch
+# 输出：avd \t pid \t start_epoch \t port(可空)   —— 段判定交给调用方（scan 自身不过滤）
 scan() {
-  local line avd pid se p
+  local line avd pid se port
   qemu_rows | while IFS= read -r line; do
     case "$line" in *"-avd "*) ;; *) continue ;; esac
-    # 只扫 AI 端口段：用户侧 / EvEmuBuddy 实例跑在 12000+ 端口，不进巡检视野
-    if [ "${EMU_WATCHDOG_ALL_PORTS:-0}" != "1" ]; then
-      p=$(printf '%s\n' "$line" | sed -nE 's/.*-port ([0-9]+).*/\1/p')
-      if [ -n "$p" ] && [ "$p" -ge 12000 ]; then continue; fi
-    fi
     avd=$(printf '%s\n' "$line" | sed -E 's/.*-avd ([^ ]+).*/\1/')
     [ -z "$avd" ] && continue
     pid=$(printf '%s\n' "$line" | awk '{print $2}')
     case "$pid" in '' | *[!0-9]*) continue ;; esac
+    port=$(printf '%s\n' "$line" | sed -nE 's/.*-port ([0-9]+).*/\1/p')
     se=$(start_epoch "$pid")
-    printf '%s\t%s\t%s\n' "$avd" "$pid" "$se"
+    printf '%s\t%s\t%s\t%s\n' "$avd" "$pid" "$se" "$port"
   done
 }
 
 sweep() {
-  local rows fams fam group n keep keep_avd a p s killed protected
-  rows=$(scan)
-  if [ -z "$rows" ]; then
+  local rows fams fam group n keep keep_avd a p s killed
+  local all_rows line prot_rows
+  all_rows=$(scan)
+  if [ -z "$all_rows" ]; then
     say "[巡检] 没有 qemu 实例在跑"
     return 0
   fi
-  # 白名单实例（用户手工机）移出决策范围：既不计数，也永不掐杀
-  protected=$(printf '%s\n' "$rows" | while IFS=$'\t' read -r a p s; do
-    is_user_instance "$a" && printf '%s\n' "$a"
-  done)
-  rows=$(printf '%s\n' "$rows" | while IFS=$'\t' read -r a p s; do
-    is_user_instance "$a" || printf '%s\t%s\t%s\n' "$a" "$p" "$s"
-  done)
-  if [ -n "$protected" ]; then
-    for a in $protected; do say "  [保护] $a 用户专用实例，巡检跳过"; done
+  # 档2：用户端口段（≥USER_PORT_MIN）与白名单实例一律保护——不计数、不掐杀
+  rows=""; prot_rows=""
+  while IFS=$'\t' read -r a p s po; do
+    [ -z "$a" ] && continue
+    if { [ "${EMU_WATCHDOG_ALL_PORTS:-0}" != "1" ] && [ "$(port_segment "$po")" = "user" ]; } \
+       || is_user_instance "$a"; then
+      line="$a（port=${po:-无}）"
+      [ "$(port_segment "$po")" = "user" ] && line="$a（用户端口段 port=${po:-无}）"
+      prot_rows="$prot_rows$line"$'\n'
+    else
+      rows="$rows$a	$p	$s"$'\n'
+    fi
+  done <<< "$all_rows"
+  if [ -n "$prot_rows" ]; then
+    printf '%s' "$prot_rows" | while IFS= read -r line; do
+      [ -n "$line" ] && say "  [保护] $line 不在 AI 管辖范围，跳过"
+    done
   fi
+  rows=$(printf '%s' "$rows")
   if [ -z "$rows" ]; then
-    say "[巡检] 除用户专用实例外没有其它实例"
+    say "[巡检] 除被保护的实例外没有其它实例"
     return 0
   fi
   fams=$(printf '%s\n' "$rows" | while IFS=$'\t' read -r a p s; do avd_family "$a"; done | sort -u)
