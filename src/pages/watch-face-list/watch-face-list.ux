@@ -72,7 +72,7 @@
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openLandscape">
-        <text class="item-label" style="color: {{ theme.text }}">横屏表盘</text>
+        <text class="item-label" style="color: {{ theme.text }}">大字表盘</text>
         <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
