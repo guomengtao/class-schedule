@@ -358,9 +358,10 @@ function status(json) {
   console.log(`当前 deploy 锁（${LOCK_DIR}）：`)
   for (const r of rows) {
     const hbTxt = r.hbAgoMs === null ? '—' : `${fmtDur(r.hbAgoMs)}前`
+    const leaseTxt = r.mode === 'run' ? '租期 —（心跳制）' : `租期剩余 ${fmtDur(r.leftMs)}`
     console.log('')
     console.log(`  ● ${r.avd}   owner=${r.owner}   模式=${r.mode}`)
-    console.log(`    占用 ${fmtDur(r.occupiedMs)}（自 ${r.since}）  心跳 ${hbTxt}  租期剩余 ${fmtDur(r.leftMs)}  进程 ${r.pid || '—'}`)
+    console.log(`    占用 ${fmtDur(r.occupiedMs)}（自 ${r.since}）  心跳 ${hbTxt}  ${leaseTxt}  进程 ${r.pid || '—'}`)
     console.log(`    状态：${r.state}`)
     console.log(`    建议：${r.action}`)
   }
