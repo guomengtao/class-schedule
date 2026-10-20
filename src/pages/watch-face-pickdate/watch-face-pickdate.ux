@@ -6,13 +6,61 @@
     <text class="brand">EV</text>
     <text class="brand-sub">时 间 表 盘</text>
 
-    <!-- 三列原生 picker：上下滑就是系统原生滚动，不写任何手势代码 -->
-    <div class="drum" onclick="stopBubble">
-      <picker class="pick" type="text" range="{{ hours }}" selected="{{ hIdx }}" onchange="onH"></picker>
+    <!-- 三列自绘鼓轮：裁切窗口 + 9 格数字带 + 分帧推 top（真上下滚动） -->
+    <div class="drum">
+      <div class="band"></div>
+
+      <div class="col" ontouchstart="tS0" ontouchend="tE0">
+        <div class="win">
+          <div class="strip" style="top: {{ t0 }}px">
+            <text class="di">{{ a0 }}</text>
+            <text class="di">{{ a1 }}</text>
+            <text class="di">{{ a2 }}</text>
+            <text class="di">{{ a3 }}</text>
+            <text class="di di-c">{{ a4 }}</text>
+            <text class="di">{{ a5 }}</text>
+            <text class="di">{{ a6 }}</text>
+            <text class="di">{{ a7 }}</text>
+            <text class="di">{{ a8 }}</text>
+          </div>
+        </div>
+      </div>
+
       <text class="c">:</text>
-      <picker class="pick" type="text" range="{{ mins }}" selected="{{ mIdx }}" onchange="onM"></picker>
+
+      <div class="col" ontouchstart="tS1" ontouchend="tE1">
+        <div class="win">
+          <div class="strip" style="top: {{ t1 }}px">
+            <text class="di">{{ b0 }}</text>
+            <text class="di">{{ b1 }}</text>
+            <text class="di">{{ b2 }}</text>
+            <text class="di">{{ b3 }}</text>
+            <text class="di di-c">{{ b4 }}</text>
+            <text class="di">{{ b5 }}</text>
+            <text class="di">{{ b6 }}</text>
+            <text class="di">{{ b7 }}</text>
+            <text class="di">{{ b8 }}</text>
+          </div>
+        </div>
+      </div>
+
       <text class="c">:</text>
-      <picker class="pick" type="text" range="{{ secs }}" selected="{{ sIdx }}" onchange="onS"></picker>
+
+      <div class="col" ontouchstart="tS2" ontouchend="tE2">
+        <div class="win">
+          <div class="strip" style="top: {{ t2 }}px">
+            <text class="di">{{ s0 }}</text>
+            <text class="di">{{ s1 }}</text>
+            <text class="di">{{ s2 }}</text>
+            <text class="di">{{ s3 }}</text>
+            <text class="di di-c">{{ s4 }}</text>
+            <text class="di">{{ s5 }}</text>
+            <text class="di">{{ s6 }}</text>
+            <text class="di">{{ s7 }}</text>
+            <text class="di">{{ s8 }}</text>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="edge-t"></div>
@@ -33,15 +81,20 @@ const LIST_PAGE = "/pages/watch-face-list"
 const WD = ["日", "一", "二", "三", "四", "五", "六"]
 const HINT_IDLE = "上下滑调时 · 点顶部返回"
 
+/* ── 鼓轮几何（改这里必须同步改 CSS 的 .di / .win 高度） ────────── */
+const CELL_H = 50        // 每格高度
+const PAD    = 4         // 中心格上下各留 4 格，支持一次最多滚 3 格
+const N_CELL = 9         // 9 格数字带
+const BASE_TOP = 50 - CELL_H * PAD   // = -150，静止时数字带的 top
+const FRAMES = 5         // 一次滚动分 5 帧
+const STEP_MS = 40       // 5 × 40 = 200ms，肉眼能看清滚动过程
+
 function pad2(n) {
   return n < 10 ? "0" + n : "" + n
 }
 
-/* 0..n-1 的两位字符串数组，picker 的 range 要字符串 */
-function seq(n) {
-  const a = []
-  for (let i = 0; i < n; i++) a.push(pad2(i))
-  return a
+function mod(n, m) {
+  return ((n % m) + m) % m
 }
 
 function isLeap(y) {
@@ -50,27 +103,31 @@ function isLeap(y) {
 
 export default {
   data: {
-    hours: seq(24),
-    mins: seq(60),
-    secs: seq(60),
-    hIdx: 0,
-    mIdx: 0,
-    sIdx: 0,
+    /* 三列各 9 格数字带的文本 */
+    a0: "", a1: "", a2: "", a3: "", a4: "", a5: "", a6: "", a7: "", a8: "",
+    b0: "", b1: "", b2: "", b3: "", b4: "", b5: "", b6: "", b7: "", b8: "",
+    s0: "", s1: "", s2: "", s3: "", s4: "", s5: "", s6: "", s7: "", s8: "",
+    /* 三条带的 top 偏移 */
+    t0: BASE_TOP, t1: BASE_TOP, t2: BASE_TOP,
     dateText: "",
     doyText: "",
     hintText: HINT_IDLE
   },
 
   onInit() {
-    /* shown = 三列当前真实值的脏检查基准 */
-    this.shown = [-1, -1, -1]
+    this.val = [-1, -1, -1]        // 三列当前真实值
+    this.anim = [false, false, false]
+    this.tok = [0, 0, 0]           // 动画令牌（新动画顶替旧动画）
+    this.timers = []
+    this.touchY = 0
     this.manualTs = 0
-    this.tick()
+    this.syncClock(new Date(), true)
     this.align()
   },
 
-  /* 表盘可能被系统挂起，回到前台先对齐一次 */
+  /* 表盘可能被系统挂起：回来先把三条带复位到整格位置 */
   onShow() {
+    this.realign()
     this.align()
   },
 
@@ -93,60 +150,60 @@ export default {
       clearTimeout(this.alignTimer)
       this.alignTimer = undefined
     }
+    const ts = this.timers || []
+    for (let i = 0; i < ts.length; i++) clearTimeout(ts[i])
+    this.timers = []
+    /* 动画被砍断：令牌作废，标志复位，下次还能正常滚 */
+    this.tok = [this.tok[0] + 1, this.tok[1] + 1, this.tok[2] + 1]
+    this.anim = [false, false, false]
   },
 
   /* 先对齐整秒再起 interval，避免跳秒与长跑漂移 */
   align() {
     this.stopAll()
-    this.tick()
+    this.syncClock(new Date(), false)
     const self = this
     this.alignTimer = setTimeout(function() {
       self.alignTimer = undefined
-      self.tick()
+      self.syncClock(new Date(), false)
       self.timer = setInterval(function() {
-        self.tick()
+        self.syncClock(new Date(), false)
       }, 1000)
     }, 1000 - (new Date().getTime() % 1000))
   },
 
-  /* ── 走时 ───────────────────────────────────────────── */
-
-  tick() {
-    const now = new Date()
-
-    /* 手动滑动后进入 browse 态：3 秒无操作回到现在 */
-    if (this.manualTs) {
-      const left = 3 - Math.floor((now.getTime() - this.manualTs) / 1000)
-      if (left <= 0) {
-        this.manualTs = 0
-        this.syncNow(now)
-        this.setHint(HINT_IDLE)
-      } else {
-        this.setHint(left + " 秒后回到现在")
-      }
-      return
+  /* 把三条带复位到「中心格 = 当前值」的整格位置 */
+  realign() {
+    for (let i = 0; i < 3; i++) {
+      if (this.val[i] >= 0) this.jumpTo(i, this.val[i])
     }
-
-    this.syncNow(now)
   },
 
-  syncNow(now) {
-    const H = now.getHours()
-    const M = now.getMinutes()
-    const S = now.getSeconds()
+  /* ── 走时 ───────────────────────────────────────────── */
 
-    /* 脏检查：常态每秒只写 1 个字段（秒列） */
-    if (H !== this.shown[0]) {
-      this.shown[0] = H
-      this.hIdx = H
+  syncClock(now, force) {
+    /* 手拨后进入 browse 态：3 秒无操作回到现在（复位时直接落位，不滚几十格） */
+    if (this.manualTs) {
+      const left = 3 - Math.floor((now.getTime() - this.manualTs) / 1000)
+      if (left > 0) {
+        this.setHint(left + " 秒后回到现在")
+        return
+      }
+      this.manualTs = 0
+      this.setHint(HINT_IDLE)
+      force = true
     }
-    if (M !== this.shown[1]) {
-      this.shown[1] = M
-      this.mIdx = M
-    }
-    if (S !== this.shown[2]) {
-      this.shown[2] = S
-      this.sIdx = S
+
+    const v = [now.getHours(), now.getMinutes(), now.getSeconds()]
+
+    for (let i = 0; i < 3; i++) {
+      if (v[i] === this.val[i]) continue
+      if (this.anim[i]) continue                      // 正在滚，本秒跳过
+      const m = i === 0 ? 24 : 60
+      const d = mod(v[i] - (this.val[i] < 0 ? v[i] : this.val[i]), m)
+      /* 复位/刚初始化/一次跳太多格 → 直接落位，不滚 */
+      if (force || this.val[i] < 0 || d > 3) this.jumpTo(i, v[i])
+      else this.roll(i, d)
     }
 
     const dt = pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + " 周" + WD[now.getDay()]
@@ -158,31 +215,135 @@ export default {
     if (ds !== this.doyText) this.doyText = ds
   },
 
-  setHint(s) {
-    if (s !== this.hintText) this.hintText = s
+  /* ── 落位（不滚动）：重写 9 格文本 + top 归位 ─────────── */
+
+  jumpTo(col, v) {
+    this.val[col] = v
+    this.writeCells(col, v)
+    this.setTop(col, BASE_TOP)
   },
 
-  /* ── 用户手动滑动 ───────────────────────────────────── */
-
-  onH(e) { this.onManual(0, e) },
-  onM(e) { this.onManual(1, e) },
-  onS(e) { this.onManual(2, e) },
-
-  /*
-    程序写 selected 可能回环一次 change，带回的就是刚写进去的值。
-    所以"值没变就忽略"比布尔标记更稳：不会残留状态把下一次真手滑吞掉。
-  */
-  /* 鼓区吞掉点击：滑动不该被页面当成"返回目录"（同 time-picker-demo） */
-  stopBubble() {
-    return
+  writeCells(col, v) {
+    const m = col === 0 ? 24 : 60
+    const t = []
+    for (let i = 0; i < N_CELL; i++) t.push(pad2(mod(v - PAD + i, m)))
+    for (let i = 0; i < N_CELL; i++) this.setCell(col, i, t[i])
   },
 
-  onManual(i, e) {
-    const v = e && typeof e.newSelected === "number" ? e.newSelected : -1
-    if (v < 0 || v === this.shown[i]) return
-    this.shown[i] = v
+  /* 显式分支：动态属性名不保证被 Vela 观测（翻页表盘已验证） */
+  setCell(col, i, txt) {
+    if (col === 0) {
+      if (i === 0) this.a0 = txt
+      else if (i === 1) this.a1 = txt
+      else if (i === 2) this.a2 = txt
+      else if (i === 3) this.a3 = txt
+      else if (i === 4) this.a4 = txt
+      else if (i === 5) this.a5 = txt
+      else if (i === 6) this.a6 = txt
+      else if (i === 7) this.a7 = txt
+      else this.a8 = txt
+    } else if (col === 1) {
+      if (i === 0) this.b0 = txt
+      else if (i === 1) this.b1 = txt
+      else if (i === 2) this.b2 = txt
+      else if (i === 3) this.b3 = txt
+      else if (i === 4) this.b4 = txt
+      else if (i === 5) this.b5 = txt
+      else if (i === 6) this.b6 = txt
+      else if (i === 7) this.b7 = txt
+      else this.b8 = txt
+    } else {
+      if (i === 0) this.s0 = txt
+      else if (i === 1) this.s1 = txt
+      else if (i === 2) this.s2 = txt
+      else if (i === 3) this.s3 = txt
+      else if (i === 4) this.s4 = txt
+      else if (i === 5) this.s5 = txt
+      else if (i === 6) this.s6 = txt
+      else if (i === 7) this.s7 = txt
+      else this.s8 = txt
+    }
+  },
+
+  getTop(col) {
+    if (col === 0) return this.t0
+    if (col === 1) return this.t1
+    return this.t2
+  },
+
+  setTop(col, v) {
+    if (col === 0) this.t0 = v
+    else if (col === 1) this.t1 = v
+    else this.t2 = v
+  },
+
+  /* ── 滚动：把一次换数拆成 FRAMES 帧推 top ─────────────── */
+
+  roll(col, delta) {
+    if (this.anim[col]) return
+    const m = col === 0 ? 24 : 60
+    this.val[col] = mod(this.val[col] + delta, m)
+
+    const start = this.getTop(col)
+    const end = start - delta * CELL_H
+    this.anim[col] = true
+
+    const token = this.tok[col] + 1
+    this.tok[col] = token
+    const self = this
+    let k = 1
+
+    const frame = function() {
+      if (self.tok[col] !== token) return          // 被顶替 → 自杀
+      self.setTop(col, Math.round(start + (end - start) * k / FRAMES))
+      if (k < FRAMES) {
+        k = k + 1
+        self.timers.push(setTimeout(frame, STEP_MS))
+      } else {
+        /* 落定：把数字带内容整体上/下挪一格，再把 top 归位 —— 视觉无跳变 */
+        self.writeCells(col, self.val[col])
+        self.setTop(col, BASE_TOP)
+        self.anim[col] = false
+      }
+    }
+    frame()
+  },
+
+  /* ── 手势：不跟手，只按总位移定步数（与 picker 的离散滑一致）── */
+
+  tS0(e) { this.onDown(e) },
+  tS1(e) { this.onDown(e) },
+  tS2(e) { this.onDown(e) },
+  tE0(e) { this.onUp(0, e) },
+  tE1(e) { this.onUp(1, e) },
+  tE2(e) { this.onUp(2, e) },
+
+  onDown(e) {
+    const t = (e && e.touches && e.touches[0]) || e || {}
+    this.touchY = t.clientY || t.offsetY || t.pageY || 0
+  },
+
+  onUp(col, e) {
+    const t = (e && e.changedTouches && e.changedTouches[0])
+      || (e && e.touches && e.touches[0]) || e || {}
+    const y = t.clientY || t.offsetY || t.pageY || 0
+    const d = this.touchY - y
+    this.touchY = 0
+
+    const a = d < 0 ? -d : d
+    let n = 0
+    if (a >= 70) n = 3
+    else if (a >= 40) n = 2
+    else if (a >= 18) n = 1
+    if (n === 0) return                       // 位移太小 = 点击，不处理
+
     this.manualTs = new Date().getTime()
     this.setHint("3 秒后回到现在")
+    this.roll(col, d > 0 ? n : -n)
+  },
+
+  setHint(s) {
+    if (s !== this.hintText) this.hintText = s
   },
 
   /* ── 交互出口 ───────────────────────────────────────── */
@@ -203,7 +364,7 @@ export default {
     background-color: #0f1115;
   }
 
-  /* 返回热区：顶部 0~120，与鼓区完全分离 */
+  /* 返回热区：顶部 0~120，与鼓区完全分离（鼓区滑动不会误触返回） */
   .back {
     position: absolute;
     left: 0;
@@ -235,7 +396,7 @@ export default {
     color: #5a6274;
   }
 
-  /* 鼓容器：6 + 52 + 12 + 52 + 12 + 52 = 186，右留 6 */
+  /* 鼓容器：6 + 52 + 12 + 52 + 12 + 52 = 186 */
   .drum {
     position: absolute;
     left: 6px;
@@ -245,15 +406,51 @@ export default {
     flex-direction: row;
   }
 
-  /* 三列同一套参数，就是日期选择器的基础样式 */
-  .pick {
+  /* 选中行底衬：中间一格（150 高里第 2 格 = 50~100） */
+  .band {
+    position: absolute;
+    left: 0;
+    top: 50px;
+    width: 180px;
+    height: 50px;
+    background-color: #141b26;
+  }
+
+  .col {
     width: 52px;
     height: 150px;
-    font-size: 25px;
+  }
+
+  /* 裁切窗口：只露 3 格（每格 50），要跟 JS 的 CELL_H 一致 */
+  .win {
+    position: relative;
+    width: 52px;
+    height: 150px;
+    overflow: hidden;
+  }
+
+  /* 数字带：9 格，靠 top 偏移滚动 */
+  .strip {
+    position: absolute;
+    left: 0;
+    top: -150px;
+    width: 52px;
+    flex-direction: column;
+  }
+
+  .di {
+    width: 52px;
+    height: 50px;
+    font-size: 24px;
+    line-height: 50px;
+    text-align: center;
     color: #5a6470;
-    selected-font-size: 30px;
-    selected-color: #7ec8e3;
-    selected-background-color: #0f3460;
+  }
+
+  /* 中心格 = 选中（与 picker 的 selected-color / selected-font-size 对齐） */
+  .di-c {
+    font-size: 28px;
+    color: #7ec8e3;
   }
 
   .c {
@@ -265,7 +462,7 @@ export default {
     color: #4a5265;
   }
 
-  /* 鼓窗上下沿：纯装饰 1px，不覆盖触摸区（选中行 200~250） */
+  /* 鼓窗上下沿：1px，落在选中行（页 y 200~250） */
   .edge-t {
     position: absolute;
     left: 4px;
