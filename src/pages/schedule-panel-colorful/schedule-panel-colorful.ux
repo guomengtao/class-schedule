@@ -14,7 +14,7 @@
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <div class="header-center">
-        <text class="header-title" style="color: {{ theme.text }}">多彩课表</text>
+        <text class="header-title" onclick="backClick" style="color: {{ theme.text }}">多彩课表</text>
         <text class="header-day" style="color: {{ theme.textSecondary }}">{{ dayLabel }}</text>
       </div>
       <div if="{{ isRoot }}" class="header-placeholder"></div>
@@ -251,7 +251,8 @@ export default {
     if (this.fromPanel === '1') {
       router.back();
     } else {
-      utils.exitApp();
+      // 面板被当独立首页（root）时无可退返回栈，直接回「更多首页」
+      router.push({ uri: '/pages/schedule-panel' });
     }
   },
 

@@ -4,7 +4,7 @@
       <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.textSecondary }}">简易课表</text>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.textSecondary }}">简易课表</text>
       <div if="{{ !isRoot }}" class="header-placeholder"></div>
     </div>
 
@@ -205,11 +205,12 @@ export default {
   },
 
   goBack: function() {
-    // 被「更多首页」push（fromPanel）→ 回目录；作为 root 首页冷启动 → 退出应用（与 index 一致）
+    // 被「更多首页」push（fromPanel）→ 回目录；作为 root 首页冷启动 → 回「更多首页」（与 index 一致）
     if (this.fromPanel === '1') {
       router.back()
     } else {
-      utils.exitApp()
+      // 面板被当独立首页（root）时无可退返回栈，直接回「更多首页」
+      router.push({ uri: '/pages/schedule-panel' })
     }
   },
 
