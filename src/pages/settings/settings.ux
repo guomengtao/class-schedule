@@ -84,7 +84,7 @@
         <div class="row" onclick="openSchedulePanel">
           <text class="row-label" style="color: {{ theme.text }}">更多首页</text>
           <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">7 种风格</text>
+            <text class="row-hint" style="color: {{ theme.textMuted }}">课程为主 · 7 种</text>
             <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
           </div>
         </div>
@@ -95,7 +95,7 @@
       <div class="row" onclick="openWatchFaceList">
         <text class="row-label" style="color: {{ theme.text }}">表盘目录</text>
         <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">全部表盘</text>
+          <text class="row-hint" style="color: {{ theme.textMuted }}">时间为主</text>
           <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
       </div>
