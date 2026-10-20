@@ -15,15 +15,14 @@
     <div if="{{ !isLoading }}" class="center-area">
       <text if="{{ !nextClass }}" class="empty-text" style="color: {{ theme.textSecondary }}">{{ emptyMessage }}</text>
 
-      <div if="{{ nextClass }}" class="countdown-card">
-        <text class="label-text" style="color: {{ theme.textSecondary }}">{{ countdownLabel }}</text>
-        <text class="countdown-time" style="color: {{ theme.accent }}">{{ displayTime }}</text>
-
-        <div class="next-info" style="background-color: {{ theme.card }}">
-          <text class="next-name" style="color: {{ theme.text }}">{{ nextClass.name }}</text>
-          <text class="next-detail" style="color: {{ theme.textSecondary }}">{{ nextClass.time }}</text>
-          <text class="next-detail" if="{{ nextClass.location }}" style="color: {{ theme.textMuted }}">{{ nextClass.location }}</text>
-        </div>
+      <div if="{{ nextClass }}" class="card" style="background-color: {{ theme.card }}">
+        <text class="c-name" style="color: {{ theme.text }}">{{ nextClass.name }}</text>
+        <text class="c-num" style="color: {{ theme.accent }}">{{ displayTime }}</text>
+        <text class="c-unit" style="color: {{ theme.textSecondary }}">{{ countdownLabel }}</text>
+        <div class="c-div" style="background-color: {{ theme.border }}"></div>
+        <text if="{{ dayPrefix }}" class="c-day" style="color: {{ theme.textMuted }}">{{ dayPrefix }}</text>
+        <text class="c-time" style="color: {{ theme.textSecondary }}">{{ nextClass.time }}</text>
+        <text if="{{ nextClass.location }}" class="c-loc" style="color: {{ theme.textMuted }}">{{ nextClass.location }}</text>
       </div>
     </div>
   </div>
@@ -34,9 +33,11 @@ import router from "@system.router"
 const database = require("../../data/database.js")
 const store = require("../../data/store.js")
 const utils = require("../../data/utils.js")
+const builtinSchedule = require("../../data/schedule.js")
 
 var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
+// "08:00 - 09:35" → {startMin, endMin}；格式不合规返回 null（脏数据不参与计算）
 function parseTimeRange(timeStr) {
   if (!timeStr) return null
   var parts = timeStr.split(" - ")
@@ -47,16 +48,17 @@ function parseTimeRange(timeStr) {
   return { startMin: parseInt(s1[0]) * 60 + parseInt(s1[1]), endMin: parseInt(s2[0]) * 60 + parseInt(s2[1]) }
 }
 
-function pad(n) { return n < 10 ? "0" + n : String(n) }
-
 export default {
   private: {
     iconTheme: "dark",
     fromPanel: "",
     isRoot: false,
+    // isLoading 只保留给「还没算过」的极短窗口：onInit 同步算出结果后立刻为 false
     isLoading: true,
+    schedule: [],
     nextClass: null,
     countdownLabel: "",
+    dayPrefix: "",
     displayTime: "",
     emptyMessage: "今天没有课",
     theme: {
@@ -71,74 +73,144 @@ export default {
     // 独立首页 root 判定：由「更多首页」push 时带 fromPanel='1'；无参数即被设为首页冷启动
     self.fromPanel = (self.fromPanel === '1') ? '1' : ''
     self.isRoot = self.fromPanel !== '1'
-    store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
-    self.loadData()
-    self.timer = setInterval(function() { self.tick() }, 1000)
+    // 首帧直接出内容：先用内置课表同步算一遍，storage 慢/丢回调都不会停在「加载中」。
+    // 真实数据随后（几十毫秒）覆盖，用户看不到差别；storage 挂了也只是停在「和内置一致」的画面。
+    self.apply((builtinSchedule && builtinSchedule.schedule) ? builtinSchedule.schedule : [])
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+      self.loadData()
+    })
   },
 
   onShow() {
     var self = this
     store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
+    // 回前台立即重算一次（后台期间分钟可能跨了很多），再按分钟对齐续排
+    if (!self.isLoading) self.tick()
+  },
+
+  onHide() {
+    this.clearTickTimer()
   },
 
   updateIconSrc: function(themeName) {
     this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
   },
 
+  /* 分钟级刷新：对齐「下一个整分」只挂一个 setTimeout。
+     不用 setInterval(1000)——方案 §0 明确禁止秒级轮询（除秒相关页）。 */
+  scheduleNextMinute: function() {
+    var self = this
+    this.clearTickTimer()
+    var now = new Date()
+    var ms = 60000 - (now.getSeconds() * 1000)
+    if (ms < 1000) ms = 1000
+    this.tickTimer = setTimeout(function() { self.tick() }, ms)
+  },
+
+  clearTickTimer: function() {
+    if (this.tickTimer) { clearTimeout(this.tickTimer); this.tickTimer = null }
+  },
+
+  apply: function(schedule) {
+    this.schedule = schedule || []
+    this.isLoading = false
+    this.tick()
+  },
+
   loadData: function() {
     var self = this
     database.init(function() {
       database.getAllCourses(function(schedule) {
-        var todayIndex = new Date().getDay()
-        var todayName = DAY_NAMES[todayIndex]
-        var todayDay = null
-        for (var i = 0; i < schedule.length; i++) {
-          if (schedule[i].day === todayName) { todayDay = schedule[i]; break }
-        }
-        self.todayClasses = (todayDay && todayDay.classes) ? todayDay.classes.slice() : []
-        self.isLoading = false
-        self.tick()
+        self.apply(schedule || [])
       })
     })
   },
 
+  classesOf: function(dayName) {
+    var schedule = this.schedule || []
+    for (var i = 0; i < schedule.length; i++) {
+      if (schedule[i].day === dayName) return schedule[i].classes || []
+    }
+    return []
+  },
+
   tick: function() {
+    try {
+      this.compute()
+    } catch (e) {
+      // 计算异常不许把页面钉在旧状态：退回空态，用户至少看得懂
+      this.nextClass = null
+      this.emptyMessage = "数据异常"
+      console.error("[countdown] compute failed: " + e)
+    }
+    this.scheduleNextMinute()
+  },
+
+  compute: function() {
     var self = this
     var now = new Date()
     var nowMin = now.getHours() * 60 + now.getMinutes()
-    var classes = self.todayClasses || []
-    self.nextClass = null
+    var todayIdx = now.getDay()
+    var todayClasses = self.classesOf(DAY_NAMES[todayIdx])
 
-    for (var i = 0; i < classes.length; i++) {
-      var range = parseTimeRange(classes[i].time)
-      if (!range) continue
-      if (nowMin >= range.startMin && nowMin < range.endMin) {
-        self.nextClass = classes[i]
-        self.countdownLabel = "正在上课"
-        var remaining = range.endMin - nowMin
-        self.displayTime = pad(Math.floor(remaining / 60)) + ":" + pad(remaining % 60)
+    self.nextClass = null
+    self.displayTime = ""
+    self.countdownLabel = ""
+    self.dayPrefix = ""
+
+    // ① 上课中：大数字 = 距下课分钟
+    for (var i = 0; i < todayClasses.length; i++) {
+      var r = parseTimeRange(todayClasses[i].time)
+      if (r && nowMin >= r.startMin && nowMin < r.endMin) {
+        self.nextClass = todayClasses[i]
+        self.displayTime = String(r.endMin - nowMin)
+        self.countdownLabel = "分钟后下课"
         return
       }
     }
 
-    for (var j = 0; j < classes.length; j++) {
-      var r = parseTimeRange(classes[j].time)
-      if (r && r.startMin > nowMin) {
-        if (!self.nextClass || r.startMin < parseTimeRange(self.nextClass.time).startMin) {
-          self.nextClass = classes[j]
-        }
+    // ② 今天下一节未开始：大数字 = 距上课分钟（≥100 压成 99+，避免 4 位数溢出）
+    var best = null
+    var bestStart = 0
+    for (var j = 0; j < todayClasses.length; j++) {
+      var rr = parseTimeRange(todayClasses[j].time)
+      if (rr && rr.startMin > nowMin && (!best || rr.startMin < bestStart)) {
+        best = todayClasses[j]
+        bestStart = rr.startMin
       }
     }
-    if (self.nextClass) {
-      var nr = parseTimeRange(self.nextClass.time)
-      self.countdownLabel = "距下节课"
-      var wait = nr.startMin - nowMin
-      self.displayTime = pad(Math.floor(wait / 60)) + ":" + pad(wait % 60)
-    } else if (classes.length > 0) {
-      self.emptyMessage = "今日课程已全部结束"
-    } else {
-      self.emptyMessage = "今天没有课"
+    if (best) {
+      var wait = bestStart - nowMin
+      self.nextClass = best
+      self.displayTime = wait > 99 ? "99+" : String(wait)
+      self.countdownLabel = "分钟后上课"
+      return
     }
+
+    // ③ 今天已结束：往后找最近有课的一天，改用小时级（跨周末也成立）
+    for (var d = 1; d <= 7; d++) {
+      var idx = (todayIdx + d) % 7
+      var cs = self.classesOf(DAY_NAMES[idx])
+      var first = null
+      var firstStart = 0
+      for (var k = 0; k < cs.length; k++) {
+        var r3 = parseTimeRange(cs[k].time)
+        if (r3 && (!first || r3.startMin < firstStart)) { first = cs[k]; firstStart = r3.startMin }
+      }
+      if (first) {
+        var hrs = Math.floor((firstStart + d * 1440 - nowMin) / 60)
+        self.nextClass = first
+        self.displayTime = hrs > 99 ? "99+" : String(hrs)
+        self.countdownLabel = "小时后上课"
+        // 单位行只放 4 字（20px 下再多就折行），「明天 / 星期X」单独一行放在时间段上方
+        self.dayPrefix = (d === 1 ? "明天" : DAY_NAMES[idx])
+        return
+      }
+    }
+
+    self.emptyMessage = "暂无课程"
   },
 
   goBack() {
@@ -157,7 +229,7 @@ export default {
   },
 
   onDestroy() {
-    if (this.timer) { clearInterval(this.timer); this.timer = null }
+    this.clearTickTimer()
   }
 }
 </script>
@@ -165,36 +237,43 @@ export default {
 <style>
 .page { flex-direction: column; width: 100%; height: 100%; padding: 44px 12px 12px 12px }
 
-.back-header { flex-direction: row; align-items: center; margin-bottom: 20px; padding: 0 4px }
+.back-header { flex-direction: row; align-items: center; margin-bottom: 8px; padding: 0 4px }
 .back-btn-wrapper { width: 48px; height: 40px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0 }
 .back-btn-icon { width: 24px; height: 24px }
-.header-title { flex: 1; font-size: 28px; font-weight: bold; text-align: center; line-height: 38px }
-.header-placeholder { width: 48px; height: 48px; flex-shrink: 0 }
+.header-title { flex: 1; font-size: 26px; font-weight: bold; text-align: center; line-height: 36px }
+.header-placeholder { width: 48px; height: 40px; flex-shrink: 0 }
 
 .loading-area { align-items: center; padding: 30px 0 }
 .loading-text { font-size: 22px; line-height: 30px }
 
 .center-area { flex: 1; justify-content: center; align-items: center }
-.empty-text { font-size: 24px; line-height: 32px; text-align: center }
+.empty-text { font-size: 22px; line-height: 30px; text-align: center }
 
-.countdown-card { flex-direction: column; align-items: center }
-.label-text { font-size: 22px; line-height: 30px; margin-bottom: 6px; letter-spacing: 1px }
-.countdown-time { font-size: 52px; font-weight: bold; line-height: 58px; font-family: monospace; margin-bottom: 16px; letter-spacing: 1px }
-
-/* 独立首页化修正：左右 padding 24→12px，给「10:00 - 10:45」留足一行宽度（原在 192px 屏折行成 10:45 掉行） */
-.next-info { flex-direction: column; align-items: center; padding: 16px 14px; margin-top: 4px; border-radius: 14px }
-.next-name { font-size: 28px; font-weight: bold; line-height: 36px; margin-bottom: 6px }
-.next-detail { font-size: 20px; line-height: 28px; margin-top: 2px }
+/* 卡片：168×约 300，垂直居中；A 课名 / B 大数字 / C 单位 / D 时间 */
+.card { flex-direction: column; align-items: center; width: 100%; padding: 16px 10px; border-radius: 12px }
+.c-name { font-size: 26px; font-weight: bold; line-height: 34px; text-align: center; max-width: 148px; text-overflow: ellipsis; lines: 1 }
+/* 96px 等宽下「99+」宽约 159px，168 可用 → 再大就会超页宽 */
+.c-num { font-size: 96px; font-weight: bold; line-height: 104px; font-family: monospace; margin-top: 2px }
+.c-unit { font-size: 20px; line-height: 26px; letter-spacing: 1px }
+.c-div { width: 44px; height: 1px; margin: 10px 0 }
+.c-day { font-size: 18px; line-height: 24px }
+.c-time { font-size: 20px; line-height: 27px }
+.c-loc { font-size: 18px; line-height: 25px; margin-top: 2px }
 
 @media (width >= 200px) {
   .page { padding: 44px 16px 14px 16px }
-  .countdown-time { font-size: 90px; line-height: 100px; letter-spacing: 2px }
-  .next-name { font-size: 32px; line-height: 40px }
-  .next-detail { font-size: 24px; line-height: 32px }
+  .c-name { font-size: 28px; line-height: 36px; max-width: 176px }
+  .c-num { font-size: 104px; line-height: 112px }
+  .c-time { font-size: 22px; line-height: 29px }
 }
 
 @media (width >= 400px) {
   .page { padding: 12px 20px 16px 20px }
-  .countdown-time { font-size: 104px; line-height: 116px; letter-spacing: 3px }
+  .card { padding: 24px 16px }
+  .c-name { font-size: 34px; line-height: 44px; max-width: 300px }
+  .c-num { font-size: 132px; line-height: 142px }
+  .c-unit { font-size: 24px; line-height: 32px }
+  .c-time { font-size: 26px; line-height: 34px }
+  .c-loc { font-size: 22px; line-height: 30px }
 }
 </style>
