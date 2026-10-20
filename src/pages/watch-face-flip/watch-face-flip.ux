@@ -1,18 +1,20 @@
 <!--
-  翻页表盘 ⑦ · v3（2026-10-20 重构）
+  翻页表盘 ⑦ · v4（2026-10-20 重构）
   ─────────────────────────────────────────────────────────────
-  v1/v2 都基于「每位数字 = 一条 scroll，scrolltop 定位」——实测在该 Vela 引擎上无效：
-    日志 `domUpdate type:0 is error, kid:19999` 每秒列刷一次（6 条列 = 6 次），
-    截图里只有冒号、没有数字。scrolltop 定位数字这条路走不通，别再试。
+  历史（别再走回头路）：
+  v1/v2 用「scroll + scrolltop」定位数字 —— 该机制在本引擎上完全无效，
+    日志 `domUpdate type:0 is error, kid:19999` 每秒列各一次，截图里只有冒号没有数字。
 
-  v3 = 分片翻页卡（split-flap）：每位 = 一张卡，卡片中间一道缝，
-       上下各自一块底色（上略亮、下略暗），数字用 text 直接写。
-       秒变即换字 —— 真翻页钟本来就是「一秒啪一下」，不靠动画。
+  v4 = 裁切窗口 + 竖向数字带 + JS 分帧推 top：
+    每条数字 = 一个 26×64 的 overflow:hidden 窗口，里面是一条 11 项（0-9 + 副本 0）、
+    每项 64 高的数字带；改 `.strip` 的 top 即换数字。每秒把 top 分 STEPS 帧推过去，
+    中间值是真的中间位置 → 肉眼看到数字向上滚动（真滚动，不是瞬移）。
 
   三条硬约束（历史黑屏教训，改本文件前必须读）：
   ① 禁群组选择器 `.a, .b {}` —— 整张样式表会被丢弃 → 黑屏；
   ② 禁 `transform` 数据绑定（本页完全不用 transform）；
   ③ `.page` 只给 width/height:100% + flex 列，不加 justify-content / align-items。
+     absolute 子元素也必须有定位上下文，否则会叠到页面左上角。
 -->
 <template>
   <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
@@ -21,14 +23,26 @@
     <text class="brand-sub">翻页表盘</text>
 
     <div class="clock">
-      <text class="di">{{ d0 }}</text>
-      <text class="di">{{ d1 }}</text>
+      <div class="win">
+        <div class="strip" style="top: {{ p0 }}px"><text for="{{ items }}" class="di">{{ $item }}</text></div>
+      </div>
+      <div class="win">
+        <div class="strip" style="top: {{ p1 }}px"><text for="{{ items }}" class="di">{{ $item }}</text></div>
+      </div>
       <text class="c">:</text>
-      <text class="di">{{ d2 }}</text>
-      <text class="di">{{ d3 }}</text>
+      <div class="win">
+        <div class="strip" style="top: {{ p2 }}px"><text for="{{ items }}" class="di">{{ $item }}</text></div>
+      </div>
+      <div class="win">
+        <div class="strip" style="top: {{ p3 }}px"><text for="{{ items }}" class="di">{{ $item }}</text></div>
+      </div>
       <text class="c">:</text>
-      <text class="di">{{ d4 }}</text>
-      <text class="di">{{ d5 }}</text>
+      <div class="win">
+        <div class="strip" style="top: {{ p4 }}px"><text for="{{ items }}" class="di">{{ $item }}</text></div>
+      </div>
+      <div class="win">
+        <div class="strip" style="top: {{ p5 }}px"><text for="{{ items }}" class="di">{{ $item }}</text></div>
+      </div>
     </div>
 
     <text class="date">{{ dateText }}</text>
@@ -42,7 +56,11 @@ const LIST_PAGE = "/pages/watch-face-list"
 const UP_PAGE   = "/pages/watch-face-landscape"   // 目录里本页前一个
 const DOWN_PAGE = "/pages/watch-face-animated"    // 目录里本页后一个
 
+const ITEM_H   = 64   // 每格高度，必须等于 CSS .win / .di 的 height
+const STEPS    = 5    // 一次滚动分几帧（5 × 20ms ≈ 100ms）
+const STEP_MS  = 45
 const SWIPE_TH = 40   // 上下滑判定阈值（与 evpointer 一致）
+
 const FULL_DAY = ["日", "一", "二", "三", "四", "五", "六"]
 
 function pad2(n) {
@@ -51,13 +69,17 @@ function pad2(n) {
 
 export default {
   data: {
-    /* 六位数字：时十/时个/分十/分个/秒十/秒个 */
-    d0: 0, d1: 0, d2: 0, d3: 0, d4: 0, d5: 0,
+    /* 数字带：0-9 + 一个副本 0（只为 9→0 能向前滚） */
+    items: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
+    /* 六条带的 top 偏移（负数向上） */
+    p0: 0, p1: 0, p2: 0, p3: 0, p4: 0, p5: 0,
     dateText: ""
   },
 
   onInit() {
-    this.shown = [-1, -1, -1, -1, -1, -1]   // 脏检查用：上次真正写过的数字
+    this.shown = [-1, -1, -1, -1, -1, -1]   // 脏检查：上次真正滚到位的数字
+    this.tok = [0, 0, 0, 0, 0, 0]           // 每条带的动画令牌
+    this.timers = []                        // 分帧 setTimeout
     this.touchStartY = 0
     this.suppressTap = false
     this.tick()
@@ -75,6 +97,8 @@ export default {
     this.stopAll()
   },
 
+  /* ── 定时器 ───────────────────────────────────────────── */
+
   stopAll() {
     if (this.timer) {
       clearInterval(this.timer)
@@ -84,10 +108,16 @@ export default {
       clearTimeout(this.alignTimer)
       this.alignTimer = undefined
     }
+    const ts = this.timers || []
+    for (let i = 0; i < ts.length; i++) {
+      clearTimeout(ts[i])
+    }
+    this.timers = []
+    /* 分帧被砍断 → 数字带可能停在半格；shown 打回 -1，下次 tick 从实际位置重滚 */
     this.shown = [-1, -1, -1, -1, -1, -1]
   },
 
-  /* 先对齐到整秒边界再起 interval，避免跳秒与长跑漂移 */
+  /* 先对齐整秒再起 interval，避免跳秒与长跑漂移 */
   scheduleNext() {
     this.stopAll()
     this.tick()
@@ -102,6 +132,8 @@ export default {
     }, delay)
   },
 
+  /* ── 读表 ─────────────────────────────────────────────── */
+
   tick() {
     const now = new Date()
     const H = now.getHours()
@@ -112,18 +144,70 @@ export default {
       Math.floor(M / 10), M % 10,
       Math.floor(S / 10), S % 10
     ]
-    /* 只写变化的位：正常情况每秒只写 1 位（秒个位），分/时按需 */
-    if (d[0] !== this.shown[0]) { this.shown[0] = d[0]; this.d0 = d[0] }
-    if (d[1] !== this.shown[1]) { this.shown[1] = d[1]; this.d1 = d[1] }
-    if (d[2] !== this.shown[2]) { this.shown[2] = d[2]; this.d2 = d[2] }
-    if (d[3] !== this.shown[3]) { this.shown[3] = d[3]; this.d3 = d[3] }
-    if (d[4] !== this.shown[4]) { this.shown[4] = d[4]; this.d4 = d[4] }
-    if (d[5] !== this.shown[5]) { this.shown[5] = d[5]; this.d5 = d[5] }
-
+    /* 只驱动变化的位：正常每秒只动秒个位 */
+    for (let i = 0; i < 6; i++) {
+      if (d[i] === this.shown[i]) continue
+      this.shown[i] = d[i]
+      this.stepTo(i, d[i])
+    }
     const dt = pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + " 周" + FULL_DAY[now.getDay()]
     if (dt !== this.dateText) {
       this.dateText = dt
     }
+  },
+
+  /* ── top 偏移读写（显式 switch：动态属性名不保证被 Vela 观测）── */
+
+  readP(i) {
+    if (i === 0) return this.p0
+    if (i === 1) return this.p1
+    if (i === 2) return this.p2
+    if (i === 3) return this.p3
+    if (i === 4) return this.p4
+    return this.p5
+  },
+
+  writeP(i, v) {
+    if (i === 0) this.p0 = v
+    else if (i === 1) this.p1 = v
+    else if (i === 2) this.p2 = v
+    else if (i === 3) this.p3 = v
+    else if (i === 4) this.p4 = v
+    else this.p5 = v
+  },
+
+  /* ── 分帧滚动：把一次换字拆成 STEPS 帧推 top ───────────── */
+
+  stepTo(i, target) {
+    const start = this.readP(i)
+    let end = -target * ITEM_H
+    let wrap = false
+    if (end > start) {
+      /* 9→0：向前滚过副本（-10 格），落定后再瞬时归 0，视觉连续 */
+      wrap = true
+      end = -10 * ITEM_H
+    }
+    const delta = end - start
+    if (delta === 0) return
+
+    this.tok[i] = this.tok[i] + 1
+    const token = this.tok[i]
+    const self = this
+    let k = 1
+
+    const frame = function() {
+      if (self.tok[i] !== token) return       // 被新动画顶替 → 自杀
+      self.writeP(i, Math.round(start + delta * k / STEPS))
+      if (k < STEPS) {
+        k = k + 1
+        self.timers.push(setTimeout(frame, STEP_MS))
+      } else if (wrap) {
+        self.timers.push(setTimeout(function() {
+          if (self.tok[i] === token) self.writeP(i, 0)
+        }, STEP_MS))
+      }
+    }
+    frame()
   },
 
   /* ── 手势：Vela 无 onswipe，靠 Y 位移手算 ─────────────── */
@@ -194,17 +278,33 @@ export default {
     position: absolute;
     left: 8px;
     top: 150px;
-    width: 180px;
+    width: 176px;
     height: 64px;
     flex-direction: row;
   }
 
-  /* 每位数字 = 一张卡片：深底 + 圆角 + 大字居中（无嵌套 absolute，Vela 里必须） */
+  /* 裁切窗口：只露一格 64 高，数字带在里面对上滑动 */
+  .win {
+    position: relative;
+    width: 26px;
+    height: 64px;
+    overflow: hidden;
+    background-color: #151924;
+    border-radius: 5px;
+  }
+
+  /* 数字带：11 格（0-9 + 副本 0），靠 top 偏移滚动 */
+  .strip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 26px;
+    flex-direction: column;
+  }
+
   .di {
     width: 26px;
     height: 64px;
-    background-color: #151924;
-    border-radius: 5px;
     font-size: 34px;
     font-weight: bold;
     line-height: 64px;
@@ -232,3 +332,4 @@ export default {
     color: #6f7688;
   }
 </style>
+
