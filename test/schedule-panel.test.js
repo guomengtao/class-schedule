@@ -253,17 +253,23 @@ ok("同一天内按时间升序（08:00 在 10:00 前）",
   JSON.stringify(colorful.dayClasses.map(function (c) { return c.name + "@" + c.time })))
 ok("每门课带 color 字段（多彩身份：科目稳定配色）", colorful.dayClasses.every(function (c) { return !!c.color }))
 
-// 空天：切到星期二（mock 无课）→ 空态
-colorful.dayCursor = 2
+// 空天：切到一个「MOCK 无课、且不是今天」的星期 → 空态
+// 不能写死 2（星期二）：机器日期正好是星期二时，源码会正确走「今天」分支，
+// emptyHint 变成「今天暂无课程」，断言就假失败（本用例踩过）。
+var TODAY_IDX = new Date().getDay()
+var WEEK_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+var EMPTY_IDX = [0, 2, 4, 5].filter(function (d) { return d !== TODAY_IDX })[0]
+var EMPTY_NAME = WEEK_NAMES[EMPTY_IDX]
+colorful.dayCursor = EMPTY_IDX
 colorful.loadDay()
 ok("切到无课天 hasCourses=false（触发空态）", colorful.hasCourses === false)
-ok("空态文案含星期名", colorful.emptyHint.indexOf("星期二") >= 0, colorful.emptyHint)
+ok("空态文案含星期名", colorful.emptyHint.indexOf(EMPTY_NAME) >= 0, colorful.emptyHint + " / 期望含 " + EMPTY_NAME)
 
 // 配色稳定（跨实例一致）
 var colorEnv2 = makeEnv({ courses: MOCK_SCHEDULE })
 var colorful2 = newInstance("colorful", colorEnv2.req)
 colorful2.dayCursor = 1; colorful2.loadDay()
-// 实例1 此前已切到「无课天」(星期二) 做空态断言，dayClasses 已为空，需先切回星期一再比配色
+// 实例1 此前已切到「无课天」(EMPTY_NAME) 做空态断言，dayClasses 已为空，需先切回星期一再比配色
 colorful.dayCursor = 1; colorful.loadDay()
 eq("同一科目配色稳定（跨实例一致）", colorful2.dayClasses[0].color, colorful.dayClasses[0].color)
 
@@ -277,7 +283,9 @@ colorful3.dayCursor = (todayIdx + 1) % 7; colorful3.loadDay()
 ok("选中非今天时 dayLabel 仅为星期名（无前缀）", colorful3.dayLabel.indexOf("今天") < 0, colorful3.dayLabel)
 colorful3.dayCursor = 1; colorful3.loadDay()
 colorful3.nextDay()
-ok("nextDay 切到下一星期且 dayLabel 跟随", colorful3.dayCursor === 2 && colorful3.dayLabel === "星期二", colorful3.dayLabel)
+// 同理不写死「星期二」：走到的那天若正好是今天，源码会加「今天 · 」前缀（这是对的）。
+var NEXT_LABEL = (2 === TODAY_IDX) ? ("今天 · " + WEEK_NAMES[2]) : WEEK_NAMES[2]
+ok("nextDay 切到下一星期且 dayLabel 跟随", colorful3.dayCursor === 2 && colorful3.dayLabel === NEXT_LABEL, colorful3.dayLabel + " / 期望 " + NEXT_LABEL)
 colorful3.prevDay()
 eq("prevDay 回到星期一且 dayLabel 跟随", colorful3.dayCursor, 1)
 
