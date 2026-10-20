@@ -1,18 +1,20 @@
 <template>
-  <!-- 横屏表盘 ①：内容整体逆时针转 90°，时间沿长边「横铺」。
-       · 关键：时间拆成 5 个独立字符【纵向堆叠】，旋转后才沿长边(490)横向铺开，字号可接近最大。
-       · transform-origin 必须显式设为中心(px)，否则快应用默认绕左上角转=黑屏。
-       · 无可见按钮：点击整屏返回。中间冒号做跳动。 -->
   <div class="page" onclick="onTap">
-    <div class="rot">
-      <div class="line">
-        <text class="d">{{ hh0 }}</text>
-        <text class="d">{{ hh1 }}</text>
-        <text class="colon">:</text>
-        <text class="d">{{ mm0 }}</text>
-        <text class="d">{{ mm1 }}</text>
-      </div>
+    <text class="brand">EV</text>
+    <text class="sub">大字表盘</text>
+
+    <div class="row r1">
+      <text class="dg">{{ h0 }}</text>
+      <text class="dg">{{ h1 }}</text>
     </div>
+
+    <div class="row r2">
+      <text class="dg">{{ m0 }}</text>
+      <text class="dg">{{ m1 }}</text>
+    </div>
+
+    <text class="date">{{ dateText }}</text>
+    <text class="hint">轻触返回</text>
   </div>
 </template>
 
@@ -20,21 +22,21 @@
 import router from "@system.router"
 
 const LIST_PAGE = "/pages/watch-face-list"
+const FULL_DAY = ["日", "一", "二", "三", "四", "五", "六"]
+
+function pad2(n) {
+  return n < 10 ? ("0" + n) : ("" + n)
+}
 
 export default {
   data: {
-    hh0: "1",
-    hh1: "2",
-    mm0: "3",
-    mm1: "4"
+    h0: "0", h1: "0", m0: "0", m1: "0",
+    dateText: ""
   },
 
   onInit() {
+    this.shown = ["", "", "", ""]
     this.tick()
-  },
-
-  onReady() {
-    this.refresh()
   },
 
   onShow() {
@@ -49,13 +51,18 @@ export default {
     this.stop()
   },
 
+  /* 先对齐整秒再起 interval，避免跳秒与长跑漂移 */
   refresh() {
     this.stop()
     this.tick()
     const self = this
-    this.timer = setInterval(function() {
+    this.alignTimer = setTimeout(function() {
+      self.alignTimer = undefined
       self.tick()
-    }, 1000)
+      self.timer = setInterval(function() {
+        self.tick()
+      }, 1000)
+    }, 1000 - (new Date().getTime() % 1000))
   },
 
   stop() {
@@ -63,28 +70,37 @@ export default {
       clearInterval(this.timer)
       this.timer = undefined
     }
+    if (this.alignTimer) {
+      clearTimeout(this.alignTimer)
+      this.alignTimer = undefined
+    }
   },
 
   tick() {
     const n = new Date()
-    const h = this.pad(n.getHours())
-    const m = this.pad(n.getMinutes())
-    this.hh0 = h[0]
-    this.hh1 = h[1]
-    this.mm0 = m[0]
-    this.mm1 = m[1]
+    const hh = pad2(n.getHours())
+    const mm = pad2(n.getMinutes())
+    const v = [hh[0], hh[1], mm[0], mm[1]]
+    /* 脏检查：分钟没变时一位都不写 */
+    for (let i = 0; i < 4; i++) {
+      if (v[i] === this.shown[i]) continue
+      this.shown[i] = v[i]
+      this.setDigit(i, v[i])
+    }
+    const dt = pad2(n.getMonth() + 1) + "-" + pad2(n.getDate()) + " 周" + FULL_DAY[n.getDay()]
+    if (dt !== this.dateText) this.dateText = dt
   },
 
-  pad(n) {
-    return n < 10 ? "0" + n : "" + n
+  /* 显式分支：动态属性名不保证被 Vela 观测 */
+  setDigit(i, c) {
+    if (i === 0) this.h0 = c
+    else if (i === 1) this.h1 = c
+    else if (i === 2) this.m0 = c
+    else this.m1 = c
   },
 
-  /* 无可见按钮：点击整屏返回 */
   onTap() {
-    router.replace({ uri: LIST_PAGE })
-  },
-
-  goBack() {
+    this.stop()
     router.replace({ uri: LIST_PAGE })
   }
 }
@@ -98,49 +114,69 @@ export default {
     background-color: #1a1a2e;
   }
 
-  /* 绝对定位铺满 + 字面量旋转；origin 必须显式设为中心(px)。
-     旋转 -90°(逆时针)：纵向堆叠的字符旋转后从左到右 = 正确读数方向。 */
-  .rot {
+  .brand {
     position: absolute;
     left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    flex-direction: column;
+    top: 40px;
+    width: 192px;
+    text-align: center;
+    font-size: 22px;
+    letter-spacing: 3px;
+    color: #d8dde8;
+  }
+
+  .sub {
+    position: absolute;
+    left: 0;
+    top: 68px;
+    width: 192px;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #5a6274;
+  }
+
+  /* 两行超大字：每行 2 位 × 90 = 180，居中 */
+  .row {
+    position: absolute;
+    left: 0;
+    width: 192px;
+    height: 150px;
+    flex-direction: row;
     justify-content: center;
-    align-items: center;
-    transform: rotate(-90deg);
-    transform-origin: 96px 245px;
   }
 
-  /* 字符纵向堆叠（旋转后变成横向一行，沿 490 长边铺开） */
-  .line {
-    flex-direction: column;
-    align-items: center;
-  }
+  .r1 { top: 120px; }
+  .r2 { top: 262px; }
 
-  /* 字号接近最大：5 个字符总高 ≤ 490 长边 => 单字约 96 */
-  .d {
-    font-size: 96px;
+  .dg {
+    width: 90px;
+    height: 150px;
+    font-size: 150px;
     font-weight: bold;
-    line-height: 96px;
+    line-height: 150px;
+    text-align: center;
     color: #e8e4da;
   }
 
-  .colon {
-    font-size: 96px;
-    font-weight: bold;
-    line-height: 96px;
-    color: #e8e4da;
-    animation-name: kf-blink;
-    animation-duration: 1s;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
+  .date {
+    position: absolute;
+    left: 0;
+    top: 424px;
+    width: 192px;
+    text-align: center;
+    font-size: 14px;
+    letter-spacing: 1px;
+    color: #6f7688;
   }
 
-  @keyframes kf-blink {
-    0%   { opacity: 1; }
-    50%  { opacity: 0; }
-    100% { opacity: 1; }
+  .hint {
+    position: absolute;
+    left: 0;
+    top: 450px;
+    width: 192px;
+    text-align: center;
+    font-size: 11px;
+    color: #3f4655;
   }
 </style>
