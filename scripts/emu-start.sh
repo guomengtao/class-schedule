@@ -68,18 +68,18 @@ cmd_status() {
 }
 
 # 机型族判定（对应 vela.py 的 AVD_MODEL，防 AI 克隆体多开同类）
-#   - 原始 AVD 显式映射
-#   - 克隆体 evc-* → 去 evc- 前缀后取第一个 - 前的段（evc-xiaomi_band-buddy-1 → xiaomi_band）
-# 归并后：xiaomi_band / band-9-pro / xiaomi_band_pro / xiaomi_band_10 / 其它各自成族
+#   先剥 evc- 前缀，再按前缀匹配归并（长的写在前面，否则 xiaomi_band_pro 会被 xiaomi_band* 吃掉）。
+#   2026-10-20 修：原先对克隆体只取第一个 - 前的段，含连字符的族名会被截断
+#   （evc-band-9-pro-1 → band，而母体 band-9-pro → band-9-pro，两者不同族 → 门闩漏）。
 avd_family() {
   local avd="$1" base
-  case "$avd" in
-    xiaomi_band)        echo xiaomi_band; return ;;
-    band-9-pro)         echo band-9-pro; return ;;
-    xiaomi_band_pro)    echo xiaomi_band_pro; return ;;
-    xiaomi_band_10)     echo xiaomi_band_10; return ;;
-  esac
   base="${avd#evc-}"
+  case "$base" in
+    xiaomi_band_pro*) echo xiaomi_band_pro; return ;;
+    xiaomi_band_10*)  echo xiaomi_band_10;  return ;;
+    xiaomi_band*)     echo xiaomi_band;     return ;;
+    band-9-pro*)      echo band-9-pro;      return ;;
+  esac
   echo "${base%%-*}"
 }
 
