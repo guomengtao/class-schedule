@@ -83,6 +83,28 @@ avd_family() {
   echo "${base%%-*}"
 }
 
+# hostfwd 端口分配（2026-10-20 加）
+#   原实现把所有实例都绑 127.0.0.1:10055，第一台占住后第二台直接死：
+#     qemu-system-armel: Could not set up host forwarding rule 'tcp:127.0.0.1:10055-...'
+#   这跟机型无关，任意两台并存都会撞。改为按 AVD 名派生稳定端口：
+#   同名永远得同一个号（便于脚本记忆），不同名几乎不会撞；真被占就顺延。
+#   主实例 xiaomi_band 保留 10055，兼容历史习惯与已有脚本。
+hfwd_port() {
+  local avd="$1" want h n
+  case "$avd" in
+    xiaomi_band) want=10055 ;;
+    *)           want=$(( 10056 + $(printf '%s' "$avd" | cksum | awk '{print $1}') % 700 )) ;;
+  esac
+  n=0
+  while [ "$n" -lt 40 ]; do
+    if ! lsof -nP -iTCP:"$want" >/dev/null 2>&1; then
+      echo "$want"; return 0
+    fi
+    want=$(( want + 1 )); n=$(( n + 1 ))
+  done
+  echo ""; return 1
+}
+
 stop_avd() {
   local avd="$1" pids
   pids=$(qemu_pids_for_avd "$avd")
@@ -137,9 +159,15 @@ cmd_start() {
     stop_avd "$avd"
   fi
   # 铁律3/4/5：SDK 启动器、带窗口、日志落盘
-  echo "[启动] $avd（带窗口，日志 /tmp/vela_emu_${avd}.log）"
+  local hp
+  hp=$(hfwd_port "$avd")
+  if [ -z "$hp" ]; then
+    echo "[失败] $avd 没有可用 hostfwd 端口（10055-10795 全占）"
+    return 1
+  fi
+  echo "[启动] $avd（带窗口，hostfwd=$hp，日志 /tmp/vela_emu_${avd}.log）"
   nohup "$LAUNCHER" -vela -avd "$avd" -show-kernel \
-    -network-user-mode-options "hostfwd=tcp:127.0.0.1:10055-10.0.2.15:101" \
+    -network-user-mode-options "hostfwd=tcp:127.0.0.1:${hp}-10.0.2.15:101" \
     > "/tmp/vela_emu_${avd}.log" 2>&1 &
   echo "[等待] guest adb 探活（最长 60s）…"
   local i s
