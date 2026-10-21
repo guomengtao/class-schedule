@@ -22,9 +22,17 @@
 
     <!-- 日期：官方 picker 内联滚轮（type="text"，手指上下滑动选择）。
          Vela 无原生 date 控件、selector 也不支持多列级联，
-         故年/月/日各一列 picker 横向并排，取 e.newSelected（2026-10-21 改） -->
+         故年/月/日各一列 picker 横向并排，取 e.newSelected（2026-10-21 改）。
+         公历/农历是同一组三列的两种取值视图：切换只换 range 与真源，
+         不新增行、不新增页面，落盘永远是公历 dateStr。 -->
     <div class="field">
-      <text class="field-label" style="color: {{ theme.textSecondary }}">日期</text>
+      <div class="label-row">
+        <text class="field-label" style="color: {{ theme.textSecondary }}">日期</text>
+        <div class="cal-toggle" onclick="toggleCalendar" style="background-color: {{ theme.border }}">
+          <text class="cal-toggle-text" style="color: {{ theme.accent }}">{{ calendarText }}</text>
+          <text class="cal-toggle-arrow" style="color: {{ theme.textMuted }}">⇄</text>
+        </div>
+      </div>
       <div class="picker-head">
         <text class="picker-unit" style="color: {{ theme.textMuted }}">年</text>
         <text class="picker-unit" style="color: {{ theme.textMuted }}">月</text>
@@ -38,7 +46,7 @@
         <picker class="date-picker" type="text" range="{{ dayStrs }}" selected="{{ dIdx }}"
                 onchange="onDayChange"></picker>
       </div>
-      <text class="date-preview" style="color: {{ theme.accent }}">{{ dateStr }} · {{ daysText }}</text>
+      <text class="date-preview" style="color: {{ theme.accent }}">{{ previewLeft }} · {{ daysText }}</text>
     </div>
 
     <div class="action-row">
@@ -62,6 +70,7 @@ import router from "@system.router"
 var storage = require("@system.storage")
 const countdown = require("../../data/countdown.js")
 const store = require("../../data/store.js")
+const lunar = require("../../data/lunar.js")
 
 var EDIT_ID_KEY = "cd_edit_id"      // 列表页写入：要编辑的条目 id（add 模式不写）
 var NAME_RESULT_KEY = "cd_edit_name"  // chinese-input 回填本页名称用的键
@@ -77,19 +86,31 @@ export default {
     errMsg: "",
     delConfirm: false,
     delTimer: null,
-    // 日期：yearNum/monthNum/dayNum 是唯一真源，idx 与 *Strs 全是派生值
+    // ---- 日期：两套日历真源，切换时整组换算，不做实时双向同步 ----
+    // 公历真源（保存值一律由它或农历真源算出，落盘格式不变）
+    calendar: "solar",
+    calendarText: "公历",
     yearNum: 2026,
     monthNum: 1,
     dayNum: 1,
-    yMin: 2025,
-    yMax: 2031,
+    // 农历真源（只在 calendar==='lunar' 时可被用户改动）
+    lyNum: 2026,
+    lmNum: 1,
+    ldNum: 1,
+    leapFlag: false,
+    // 年范围比公历多留两档：农历腊月会落到公历次年 1 月、公历 1 月可能属上一个农历年
+    yMin: 2024,
+    yMax: 2032,
     yearStrs: [],
     monthStrs: [],
+    monthKeys: [],
     dayStrs: [],
     yIdx: 0,
     mIdx: 0,
     dIdx: 0,
     dateStr: "",
+    previewLeft: "",
+    lunarShort: "",
     daysText: "",
     canSave: false,
     theme: {
@@ -117,11 +138,12 @@ export default {
 
     // 日期默认今天
     var now = new Date()
-    self.yMin = now.getFullYear() - 1
-    self.yMax = now.getFullYear() + 5
+    self.yMin = now.getFullYear() - 2
+    self.yMax = now.getFullYear() + 6
     self.yearNum = now.getFullYear()
     self.monthNum = now.getMonth() + 1
     self.dayNum = now.getDate()
+    self.syncLunarFromSolar()   // 先备好农历真源，切模式时才有落点
     self.buildYearStrs()
     self.buildMonthStrs()
     self.buildDayStrs()
@@ -200,6 +222,8 @@ export default {
     })
   },
 
+  // 编辑回填：库里存的永远是公历，回填后顺手把农历真源也算好，
+  // 这样用户一进页面就能切「农历」看，不会丢落点
   applyDate(dateStr) {
     if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(String(dateStr))) return
     var p = String(dateStr).split("-")
@@ -210,12 +234,14 @@ export default {
     this.yearNum = Math.min(this.yMax, Math.max(this.yMin, y))
     this.monthNum = Math.min(12, Math.max(1, m))
     this.dayNum = Math.min(this.daysInMonth(this.yearNum, this.monthNum), Math.max(1, d))
+    this.syncLunarFromSolar()
     this.buildDayStrs()
+    this.clampDay()
     this.syncIdx()
     this.refreshDate()
   },
 
-  // ---- 日期：官方 picker 滚轮 ----
+  // ---- 日期：官方 picker 滚轮（公历 / 农历共用同一组三列）----
   daysInMonth(y, m) {
     if (m === 2) {
       var leap = (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0)
@@ -231,37 +257,93 @@ export default {
     this.yearStrs = arr
   },
 
+  // 月列内容随模式变：公历 1..12；农历 12 个月名，闰年多一项「闰X」。
+  // monthKeys 与 monthStrs 严格同下标，滑动时按 key 反查真正选中的月 ——
+  // 闰月让「下标 = 月份 - 1」不再成立，这是唯一不能用算术的地方
   buildMonthStrs() {
-    var arr = []
-    for (var m = 1; m <= 12; m++) arr.push(String(m))
-    this.monthStrs = arr
+    var names = []
+    var keys = []
+    var i
+    if (this.calendar === "lunar") {
+      var list = lunar.monthList(this.lyNum)
+      for (i = 0; i < list.length; i++) {
+        names.push(list[i].name)
+        keys.push({ m: list[i].m, leap: list[i].leap })
+      }
+      this.monthStrs = names
+      this.monthKeys = keys
+      return
+    }
+    for (i = 1; i <= 12; i++) names.push(String(i))
+    this.monthStrs = names
+    this.monthKeys = []
   },
 
-  // dayStrs 随年月变（闰年 2 月 29 天），每次年月变更都要重建
+  // 日列随模式 + 年月变：公历看大小月/闰年，农历看 29/30 天
   buildDayStrs() {
     var arr = []
-    var max = this.daysInMonth(this.yearNum, this.monthNum)
-    for (var d = 1; d <= max; d++) arr.push(String(d))
+    var max
+    var d
+    if (this.calendar === "lunar") {
+      max = lunar.daysInMonth(this.lyNum, this.lmNum, this.leapFlag)
+      for (d = 1; d <= max; d++) arr.push(lunar.dayName(d))
+    } else {
+      max = this.daysInMonth(this.yearNum, this.monthNum)
+      for (d = 1; d <= max; d++) arr.push(String(d))
+    }
     this.dayStrs = arr
   },
 
-  // yearNum/monthNum/dayNum 是真源，idx 一律由它们派生，防止两套状态漂移
+  // 真源只有 yearNum/… 与 lyNum/… 两套，三列索引一律派生，不留第二份状态
   syncIdx() {
+    if (this.calendar === "lunar") {
+      this.yIdx = this.lyNum - this.yMin
+      this.mIdx = this.lunarMonthIdx()
+      this.dIdx = this.ldNum - 1
+      return
+    }
     this.yIdx = this.yearNum - this.yMin
     this.mIdx = this.monthNum - 1
     this.dIdx = this.dayNum - 1
   },
 
+  lunarMonthIdx() {
+    var keys = this.monthKeys
+    if (!keys.length) return 0
+    for (var i = 0; i < keys.length; i++) {
+      if (keys[i].m === this.lmNum && keys[i].leap === this.leapFlag) return i
+    }
+    var fallback = this.lmNum - 1
+    if (fallback < 0) return 0
+    return fallback < keys.length ? fallback : keys.length - 1
+  },
+
   onYearChange(e) {
-    this.yearNum = this.yMin + Number(e.newSelected)
-    this.buildDayStrs()
+    var y = this.yMin + Number(e.newSelected)
+    if (this.calendar === "lunar") {
+      this.lyNum = y
+      this.buildMonthStrs()     // 闰月随年变，月列必须先重建
+      this.clampLunarMonth()    // 原选的闰月这年可能没有
+      this.buildDayStrs()
+    } else {
+      this.yearNum = y
+      this.buildDayStrs()       // 2 月天数随年变
+    }
     this.clampDay()
     this.syncIdx()
     this.refreshDate()
   },
 
   onMonthChange(e) {
-    this.monthNum = 1 + Number(e.newSelected)
+    var i = Number(e.newSelected)
+    if (this.calendar === "lunar") {
+      var key = this.monthKeys[i]
+      if (!key) return
+      this.lmNum = key.m
+      this.leapFlag = key.leap
+    } else {
+      this.monthNum = 1 + i
+    }
     this.buildDayStrs()
     this.clampDay()
     this.syncIdx()
@@ -269,26 +351,94 @@ export default {
   },
 
   onDayChange(e) {
-    this.dayNum = 1 + Number(e.newSelected)
+    var d = 1 + Number(e.newSelected)
+    if (this.calendar === "lunar") this.ldNum = d
+    else this.dayNum = d
     this.syncIdx()
     this.refreshDate()
   },
 
   clampDay() {
+    if (this.calendar === "lunar") {
+      var lmax = lunar.daysInMonth(this.lyNum, this.lmNum, this.leapFlag)
+      if (this.ldNum > lmax) this.ldNum = lmax
+      if (this.ldNum < 1) this.ldNum = 1
+      return
+    }
     var max = this.daysInMonth(this.yearNum, this.monthNum)
     if (this.dayNum > max) this.dayNum = max
+    if (this.dayNum < 1) this.dayNum = 1
+  },
+
+  // 换年后原选的「闰X月」可能不存在 → 退回同名正常月
+  clampLunarMonth() {
+    if (!this.leapFlag) return
+    if (!lunar.isLeapMonth(this.lyNum, this.lmNum)) this.leapFlag = false
+  },
+
+  // 公历真源 → 农历真源（单向推导，仅初始化/回填/切换时调用）
+  syncLunarFromSolar() {
+    var l = lunar.fromSolar(this.yearNum, this.monthNum, this.dayNum)
+    if (!l) return
+    this.lyNum = l.y
+    this.lmNum = l.m
+    this.ldNum = l.d
+    this.leapFlag = l.isLeap
+  },
+
+  // 切换做整组换算一次，而不是两套真源实时互相同步 ——
+  // 后者在闰月边界（该年无闰月、29↔30 天）会来回抖动
+  toggleCalendar() {
+    if (this.calendar === "lunar") {
+      var s = lunar.toSolar(this.lyNum, this.lmNum, this.ldNum, this.leapFlag)
+      if (s) {
+        this.yearNum = Math.min(this.yMax, Math.max(this.yMin, s.y))
+        this.monthNum = s.m
+        this.dayNum = s.d
+      }
+      this.calendar = "solar"
+      this.calendarText = "公历"
+    } else {
+      var l = lunar.fromSolar(this.yearNum, this.monthNum, this.dayNum)
+      if (l) {
+        this.lyNum = Math.min(this.yMax, Math.max(this.yMin, l.y))
+        this.lmNum = l.m
+        this.ldNum = l.d
+        this.leapFlag = l.isLeap
+      }
+      this.calendar = "lunar"
+      this.calendarText = "农历"
+    }
+    this.buildMonthStrs()
+    this.buildDayStrs()
+    this.clampLunarMonth()
+    this.clampDay()
+    this.syncIdx()
+    this.refreshDate()
   },
 
   pad(n) {
     return n < 10 ? "0" + n : "" + n
   },
 
+  // dateStr 永远是公历（唯一保存口径），农历只是输入时的视图
   refreshDate() {
-    this.dateStr = this.yearNum + "-" + this.pad(this.monthNum) + "-" + this.pad(this.dayNum)
+    if (this.calendar === "lunar") {
+      this.dateStr = lunar.toSolarStr(this.lyNum, this.lmNum, this.ldNum, this.leapFlag)
+      this.lunarShort = lunar.fullText(this.lyNum, this.lmNum, this.ldNum, this.leapFlag)
+      // 不加「农历」前缀：切换胶囊本身已显示「农历」，多这两个字会把
+      // 「闰六月初一 · 已过441天」顶出 168px 内容区、被 ellipsis 吃掉末尾
+      this.previewLeft = this.lunarShort
+    } else {
+      this.dateStr = this.yearNum + "-" + this.pad(this.monthNum) + "-" + this.pad(this.dayNum)
+      var l = lunar.fromSolar(this.yearNum, this.monthNum, this.dayNum)
+      this.lunarShort = l ? lunar.fullText(l.y, l.m, l.d, l.isLeap) : ""
+      this.previewLeft = this.dateStr
+    }
     var d = countdown.computeItem(this.dateStr)
-    if (d > 0) this.daysText = "剩 " + d + " 天"
+    if (d > 0) this.daysText = "剩" + d + "天"
     else if (d === 0) this.daysText = "就是今天"
-    else this.daysText = "已过 " + (-d) + " 天"
+    else this.daysText = "已过" + (-d) + "天"
     this.refreshCanSave()
   },
 
@@ -302,6 +452,11 @@ export default {
     var name = (this.title || "").replace(/^\s+|\s+$/g, "")
     if (!name) {
       this.errMsg = "请先输入名称"
+      return
+    }
+    // 农历真源若落在表范围外（1900-2099）toSolarStr 会返回空串，不能落盘
+    if (!this.dateStr) {
+      this.errMsg = "日期超出可换算范围"
       return
     }
     countdown.load(function(res) {
@@ -369,8 +524,9 @@ export default {
 
 /* ================================================================
    胶囊屏 192×490 基准（内容区 168），不依赖 media query 命中手环 9。
-   高度预算：header 42 + 名称块 70 + 日期块 140 + 保存 48 (+编辑态删除 50)
-            ≈ 300 / 490，余量充足。
+   高度预算：header 42 + 名称块 66 + 日期块（label 24 + 单位 18 + picker
+            约 160 + 预览 20）≈ 222 + 保存 58 ≈ 388 / 490。
+   农历切换按钮塞进 label 行内，不额外占高度。
    铁律：禁 @media screen and；只用 (shape: rect) 做大屏增量。
    本页不承载键盘（跳 chinese-input），因此没有 ime-host 相关样式。
    ================================================================ */
@@ -423,6 +579,42 @@ export default {
   font-size: 16px;
   line-height: 22px;
   margin-bottom: 2px;
+}
+
+/* 日期行：label 左、公历/农历切换胶囊右，高度与 label 对齐，不额外占位 */
+.label-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.label-row .field-label {
+  margin-bottom: 0;
+}
+
+.cal-toggle {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 22px;
+  border-radius: 11px;
+  flex-shrink: 0;
+}
+
+.cal-toggle-text {
+  font-size: 14px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.cal-toggle-arrow {
+  font-size: 13px;
+  line-height: 18px;
+  margin-left: 3px;
 }
 
 /* 名称行：整行 168×44 热区 */
@@ -504,12 +696,16 @@ export default {
   selected-background-color: #123a63;
 }
 
+/* 预览行：公历模式显示「2026-10-25 · 剩4天」，农历模式显示「农历九月十五 · 剩4天」。
+   加 lines:1 是因为农历名比公历长，宁可省略也不许换行把下面的保存按钮顶走 */
 .date-preview {
-  font-size: 16px;
-  line-height: 22px;
-  margin-top: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  margin-top: 2px;
   text-align: center;
   width: 100%;
+  lines: 1;
+  text-overflow: ellipsis;
 }
 
 .action-row {
