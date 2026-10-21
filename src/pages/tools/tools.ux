@@ -40,11 +40,6 @@
         <text class="item-label" style="color: {{ theme.text }}">设备信息</text>
         <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="openDatePickerDemo">
-        <text class="item-label" style="color: {{ theme.text }}">日期选择器 Demo</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-      </div>
     </div>
 
     </div>
@@ -102,10 +97,6 @@ export default {
 
   openDeviceInfo() {
     router.push({ uri: "/pages/device-info" })
-  },
-
-  openDatePickerDemo() {
-    router.push({ uri: "/pages/date-picker-demo" })
   },
 
   openVibrationLab() {

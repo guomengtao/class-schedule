@@ -478,7 +478,7 @@ export default {
 
 .picker-unit {
   width: 52px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 18px;
   text-align: center;
 }
@@ -492,14 +492,16 @@ export default {
   flex-shrink: 0;
 }
 
-/* selected-* 是 picker 的专用样式属性（官方支持），控制中间高亮行 */
+/* selected-* 是 picker 的专用样式属性（官方支持），控制中间高亮行。
+   非选中行必须大幅弱化 —— 三列各三行候选全是白字时视觉上像 3×3 九宫格
+   「三行日期」，很乱；压到接近背景的暗灰后焦点只落在中间一行（2026-10-21） */
 .date-picker {
   width: 52px;
-  font-size: 18px;
-  color: #ffffff;
+  font-size: 13px;
+  color: #3d3d5c;
   selected-font-size: 22px;
   selected-color: #7ec8e3;
-  selected-background-color: #0f3460;
+  selected-background-color: #123a63;
 }
 
 .date-preview {

@@ -151,9 +151,6 @@
       "pages/vibration-lab": {
         "component": "vibration-lab"
       },
-      "pages/date-picker-demo": {
-        "component": "date-picker-demo"
-      },
       "pages/qrcode-generator": {
         "component": "qrcode-generator"
       },
