@@ -567,17 +567,23 @@ export default {
 
 .page {
   flex-direction: column;
-  padding: 44px 10px 12px 10px;
+  padding: 38px 10px 8px 10px;
   width: 100%;
   height: 100%;
   
+}
+
+/* 滚动容器：与 activation 页同款定义（抽取时漏掉会导致正文不渲染） */
+.page-scroll {
+  flex: 1;
+  flex-direction: column;
 }
 
 .cells-grid {
   width: 100%;
   flex-direction: column;
   padding: 0px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .cells-row {
@@ -587,7 +593,7 @@ export default {
 
 .cell {
   flex: 1;
-  height: 50px;
+  height: 44px;
   border-radius: 8px;
   border-width: 1px;
   border-style: solid;
@@ -610,18 +616,18 @@ export default {
   width: 100%;
   flex-direction: column;
   padding: 0;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .keypad-row {
   flex-direction: row;
   justify-content: center;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .keypad-btn {
   width: 75px;
-  height: 50px;
+  height: 44px;
   border-radius: 8px;
   border-width: 1px;
   border-style: solid;
@@ -638,7 +644,7 @@ export default {
 
 .verify-btn {
   width: 100%;
-  height: 48px;
+  height: 44px;
   border-radius: 12px;
   justify-content: center;
   align-items: center;
