@@ -1,0 +1,178 @@
+{
+  "unauthorized": [
+    {
+      "at": 1792195651966,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/demo_js_date.js",
+      "reason": "closed"
+    },
+    {
+      "at": 1792195652092,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/demo_js_date.js",
+      "reason": "closed"
+    },
+    {
+      "at": 1792195652093,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/demo_js_date.js",
+      "reason": "closed"
+    },
+    {
+      "at": 1792195652181,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/demo_js_date.js",
+      "reason": "closed"
+    },
+    {
+      "at": 1792195652182,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/demo_js_date.js",
+      "reason": "closed"
+    },
+    {
+      "at": 1792195652241,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/demo_js_date.js",
+      "reason": "closed"
+    },
+    {
+      "at": 1792195657696,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/demo_sh_date.sh",
+      "reason": "closed"
+    },
+    {
+      "at": 1792195657733,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/demo_sh_date.sh",
+      "reason": "closed"
+    },
+    {
+      "at": 1792195657734,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/demo_sh_date.sh",
+      "reason": "closed"
+    },
+    {
+      "at": 1792195657770,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/demo_sh_date.sh",
+      "reason": "closed"
+    },
+    {
+      "at": 1792195657771,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/demo_sh_date.sh",
+      "reason": "closed"
+    },
+    {
+      "at": 1792195657800,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/demo_sh_date.sh",
+      "reason": "closed"
+    },
+    {
+      "at": 1792196043145,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/rules/project_rules.md",
+      "reason": "closed"
+    },
+    {
+      "at": 1792196043321,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/rules/project_rules.md",
+      "reason": "closed"
+    },
+    {
+      "at": 1792196043322,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/rules/project_rules.md",
+      "reason": "closed"
+    },
+    {
+      "at": 1792196043407,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/rules/project_rules.md",
+      "reason": "closed"
+    },
+    {
+      "at": 1792196043408,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/rules/project_rules.md",
+      "reason": "closed"
+    },
+    {
+      "at": 1792196043447,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/project_rules.md",
+      "reason": "closed"
+    },
+    {
+      "at": 1792196050189,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/rules/project_rules.md",
+      "reason": "closed"
+    },
+    {
+      "at": 1792196050192,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/rules/project_rules.md",
+      "reason": "closed"
+    },
+    {
+      "at": 1792196050222,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/rules/project_rules.md",
+      "reason": "closed"
+    },
+    {
+      "at": 1792196050223,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/rules/project_rules.md",
+      "reason": "closed"
+    },
+    {
+      "at": 1792196050248,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/project_rules.md",
+      "reason": "closed"
+    },
+    {
+      "at": 1792197140941,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/rules/project_rules.md",
+      "reason": "closed"
+    },
+    {
+      "at": 1792197141737,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/rules/project_rules.md.git",
+      "reason": "closed"
+    },
+    {
+      "at": 1792197150139,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/rules/project_rules.md.git",
+      "reason": "closed"
+    },
+    {
+      "at": 1792197171430,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/rules/project_rules.md.git",
+      "reason": "closed"
+    },
+    {
+      "at": 1792197181414,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/rules/project_rules.md.git",
+      "reason": "closed"
+    },
+    {
+      "at": 1792197183728,
+      "sid": "f7679918-6595-4d0d-83d5-08d2979b87bd1792163158668",
+      "file": "/Users/Banner/Documents/guomengtao/ev/class-schedule/.trae/rules/project_rules.md.git",
+      "reason": "closed"
+    }
+  ]
+}
