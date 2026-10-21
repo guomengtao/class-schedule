@@ -167,8 +167,9 @@ for f in */*.ux; do
   grep -q 'class="header-title"' "$f" && ! grep -q 'class="header-title"[^>]*onclick' "$f" && echo "标题不可返回: $f"
 done
 # ③ 绑了 onclick="goBack" 但方法没定义（点了没反应的假返回）
+#    注意两种写法都要认：简写 goBack() {} 与老写法 goBack: function() {}
 for f in */*.ux; do
-  grep -q 'onclick="goBack"' "$f" && ! grep -q "goBack(" "$f" && echo "goBack 未定义: $f"
+  grep -q 'onclick="goBack"' "$f" && ! grep -qE "goBack\s*(\(\s*\)|:\s*function)" "$f" && echo "goBack 未定义: $f"
 done
 ```
 
