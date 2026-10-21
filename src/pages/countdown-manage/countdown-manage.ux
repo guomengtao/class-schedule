@@ -9,13 +9,19 @@
       <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">倒数日</text>
     </div>
 
+    <!-- 工具栏（2026-10-21 规则 §8.4 砍内容）：原来三个元素「共N条 / 排序 / 清空」
+         加起来正好 168px 零余量，截图里「最近」和「清空」直接贴在一起。
+         现在删掉信息冗余的「共N条」（列表就在眼前，条数没有决策价值），
+         只留「排序」与「清空」两个 44px 高胶囊，中间靠 space-between 留白。
+         input[type=button] 在 Vela 里 width 不生效，故一律 div + text。 -->
     <div class="toolbar" if="{{ countdownList.length > 0 }}">
-      <text class="toolbar-count" style="color: {{ theme.textSecondary }}">共{{ countdownList.length }}条</text>
-      <text class="toolbar-sort" onclick="toggleSort" style="color: {{ theme.accent }}">
-        {{ sortRecent ? '最近' : '名称' }}
-      </text>
-      <input class="toolbar-clear" type="button" value="{{ clearAllConfirm ? '确认' : '清空' }}" onclick="clearAll"
-             style="background-color: {{ clearAllConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ clearAllConfirm ? theme.text : theme.deleteText }}" />
+      <div class="toolbar-sort-btn" onclick="toggleSort" style="background-color: {{ theme.cardLight }}">
+        <text class="toolbar-sort-text" style="color: {{ theme.accent }}">{{ sortRecent ? '最近' : '名称' }}</text>
+      </div>
+      <div class="toolbar-clear" onclick="clearAll"
+           style="background-color: {{ clearAllConfirm ? theme.deleteText : theme.deleteBg }}">
+        <text class="toolbar-clear-text" style="color: {{ clearAllConfirm ? theme.text : theme.deleteText }}">{{ clearAllConfirm ? '确认' : '清空' }}</text>
+      </div>
     </div>
 
     <scroll class="list-scroll" scroll-y="{{true}}">
@@ -280,11 +286,11 @@ export default {
 
 .toolbar {
   flex-direction: row;
-  align-items: center;
   justify-content: space-between;
-  height: 32px;
+  align-items: center;
+  width: 100%;
   padding: 0 2px;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   flex-shrink: 0;
 }
 
@@ -301,14 +307,37 @@ export default {
   margin-left: 6px;
 }
 
-.toolbar-clear {
-  width: 48px;
-  height: 30px;
-  border-radius: 15px;
+/* 排序：44 高胶囊，整块可点（原来是一行纯文字，热区只有字形那么大） */
+.toolbar-sort-btn {
+  height: 44px;
+  min-width: 76px;
+  border-radius: 22px;
+  justify-content: center;
+  align-items: center;
+  padding: 0 12px;
+}
+
+.toolbar-sort-text {
   font-size: 20px;
+  line-height: 26px;
   text-align: center;
-  line-height: 30px;
+}
+
+/* 清空：48x30 → 44 高；危险操作，与排序之间靠 space-between 拉开 */
+.toolbar-clear {
+  height: 44px;
+  min-width: 80px;
+  border-radius: 22px;
+  justify-content: center;
+  align-items: center;
+  padding: 0 12px;
   flex-shrink: 0;
+}
+
+.toolbar-clear-text {
+  font-size: 20px;
+  line-height: 26px;
+  text-align: center;
 }
 
 .list-scroll {
