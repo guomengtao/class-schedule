@@ -22,14 +22,19 @@
           <div class="cd-group-line"></div>
           <text class="cd-group-label" style="color: {{ theme.textMuted }}">已结束</text>
         </div>
+        <!-- 卡片只承载「读」：标题 / 天数 / 进度 / 日期。
+             开关、编辑、删除全部收进点击后弹出的详情层 ——
+             它们常驻时每张卡要多占 68px（40 操作排 + 28 开关行），
+             一屏从 3 条掉到 2 条，且每个卡片都是「一坨按钮」，读起来很吵。 -->
         <div class="countdown-row" style="background-color: {{ theme.card }}; opacity: {{ item.enabled ? 1 : 0.45 }}; {{ item.cardBorder }}"
-             onclick="startEdit(idx)">
+             onclick="openDetail(idx)">
           <div class="cd-head">
             <text class="cd-title" style="color: {{ theme.text }}">{{ item.title }}</text>
           </div>
           <div class="cd-summary">
             <text if="{{ item.status === 'today' }}" class="cd-today-badge">今天</text>
             <text class="cd-days" style="color: {{ item.daysColor }}">{{ item.daysText }}</text>
+            <text class="cd-more" style="color: {{ theme.textMuted }}">›</text>
           </div>
           <div class="cd-bar">
             <div class="cd-bar-track" style="background-color: {{ theme.borderLight }}">
@@ -38,20 +43,7 @@
           </div>
           <div class="cd-meta">
             <text class="cd-date" style="color: {{ theme.textSecondary }}">{{ item.dateDisplay }}</text>
-            <div class="switch-btn" onclick="toggleItem(idx)"
-                 style="background-color: {{ item.enabled ? theme.accent : theme.btnSecondary }}">
-              <text class="switch-label" style="color: {{ item.enabled ? theme.bg : theme.btnSecondaryText }}">{{ item.enabled ? 'ON' : 'OFF' }}</text>
-            </div>
-          </div>
-          <div class="cd-actions">
-            <div class="action-btn edit-btn" onclick="startEdit(idx)"
-                 style="background-color: {{ theme.accent }}">
-              <text class="btn-label" style="color: {{ theme.bg }}">编辑</text>
-            </div>
-            <div class="action-btn del-btn" onclick="deleteItem(idx)"
-                 style="background-color: {{ deleteConfirmIndex === idx ? theme.deleteText : theme.deleteBg }}">
-              <text class="btn-label" style="color: {{ deleteConfirmIndex === idx ? theme.text : theme.deleteText }}">{{ deleteConfirmIndex === idx ? '确认' : '删除' }}</text>
-            </div>
+            <text if="{{ !item.enabled }}" class="cd-off-tag" style="color: {{ theme.textMuted }}">已关闭</text>
           </div>
         </div>
       </div>
@@ -82,10 +74,16 @@
             <text class="btn-label" style="color: {{ detailDeleteConfirm ? theme.text : theme.deleteText }}">{{ detailDeleteConfirm ? '确认' : '删除' }}</text>
           </div>
         </div>
-        <div class="detail-actions">
+        <div class="detail-actions detail-switch-row">
+          <text class="detail-switch-label" style="color: {{ theme.textSecondary }}">首页显示</text>
           <div class="switch-btn detail-switch" onclick="toggleFromDetail"
                style="background-color: {{ detailItem.enabled ? theme.accent : theme.btnSecondary }}">
             <text class="switch-label" style="color: {{ detailItem.enabled ? theme.bg : theme.btnSecondaryText }}">{{ detailItem.enabled ? 'ON' : 'OFF' }}</text>
+          </div>
+        </div>
+        <div class="detail-actions">
+          <div class="action-btn detail-close" onclick="closeDetail" style="background-color: {{ theme.btnSecondary }}">
+            <text class="btn-label" style="color: {{ theme.btnSecondaryText }}">关闭</text>
           </div>
         </div>
       </div>
@@ -256,7 +254,8 @@ export default {
     this.persistList(list)
   },
 
-  loadList() {
+  // cb 可选：详情层的开关改完要在列表重排后再按下标定位，需要拿到新列表
+  loadList(cb) {
     var self = this
     countdown.load(function(res) {
       var items = res.items
@@ -264,6 +263,7 @@ export default {
       countdown.sortForDisplay(items, self.sortRecent ? "recent" : "name")
       self.decorate(items)
       self.countdownList = items
+      if (cb) cb(items)
     })
   },
 
@@ -352,12 +352,18 @@ export default {
     }, 3000)
   },
 
-  // ---- 详情态 ----
+  // ---- 详情态：卡片上所有写操作的唯一入口 ----
+  // 弧环的两个派生字段只在弹层用，故不放进 decorate（列表页不渲染弧环）
+  withArc(it) {
+    it.arcPercent = it.daysLeft < 0 ? 0 : Math.max(0, Math.min(100, Math.round(100 * (countdown.progressOf(it) || 0))))
+    it.arcColor = it.daysLeft < 0 ? this.theme.textMuted : (it.daysLeft === 0 ? "#ff7a45" : this.theme.accent)
+    return it
+  },
+
   openDetail(idx) {
     var it = this.countdownList[idx]
     if (!it) return
-    it.arcPercent = it.daysLeft < 0 ? 0 : Math.max(0, Math.min(100, Math.round(100 * (countdown.progressOf(it) || 0))))
-    it.arcColor = it.daysLeft < 0 ? this.theme.textMuted : (it.daysLeft === 0 ? "#ff7a45" : this.theme.accent)
+    this.withArc(it)
     this.detailIdx = idx
     this.detailItem = it
     this.detailDeleteConfirm = false
@@ -377,26 +383,52 @@ export default {
     if (e && e.stopPropagation) e.stopPropagation()
   },
 
+  // 详情的三个动作一律按 id 定位：列表按剩余天数重排，弹层开着这几秒里
+  // 下标随时可能指向别人（同一个坑在 3 秒删除窗口踩过，见 countdown.js findIndexById 注释）
   editFromDetail() {
-    var idx = this.detailIdx
+    var it = this.detailItem
+    if (!it) return
+    var id = it.id
     this.closeDetail()
-    this.startEdit(idx)
+    this.openForm(id)
   },
 
+  // 开关原地生效、不关弹层：用户关掉它之后往往还想顺手编辑或删除
   toggleFromDetail() {
-    var idx = this.detailIdx
-    this.closeDetail()
-    this.toggleItem(idx)
+    var self = this
+    var it = this.countdownList[this.detailIdx]
+    if (!it) return
+    var id = it.id
+    it.enabled = !it.enabled
+    countdown.save(this.countdownList, function() {
+      self.loadList(function(items) {
+        var ni = countdown.findIndexById(items, id)
+        if (ni < 0) {
+          self.closeDetail()
+          return
+        }
+        self.detailIdx = ni
+        self.detailItem = self.withArc(items[ni])
+      })
+    })
   },
 
   deleteFromDetail() {
     var self = this
+    if (!this.detailItem) return
     if (this.detailDeleteConfirm) {
-      var idx = this.detailIdx
+      var id = this.detailItem.id
       clearTimeout(this.detailTimer)
       this.detailDeleteConfirm = false
-      this.closeDetail()
-      this.deleteItem(idx)
+      countdown.load(function(res) {
+        var items = res.items || []
+        var idx = countdown.findIndexById(items, id)
+        if (idx >= 0) items.splice(idx, 1)
+        countdown.save(items, function() {
+          self.closeDetail()
+          self.loadList()
+        })
+      })
       return
     }
     this.detailDeleteConfirm = true
@@ -572,6 +604,16 @@ export default {
   font-size: 24px;
   line-height: 30px;
   font-weight: bold;
+  flex: 1;          /* 把 › 推到行尾；长天数文案自己收缩，不与箭头抢空间 */
+  min-width: 0;
+}
+
+/* 「可点开」的唯一视觉暗示。不做整卡箭头图标：192 屏上加图标会挤掉天数 */
+.cd-more {
+  font-size: 22px;
+  line-height: 30px;
+  flex-shrink: 0;
+  margin-left: 4px;
 }
 
 .cd-bar {
@@ -606,12 +648,13 @@ export default {
   min-width: 0;
 }
 
-.cd-actions {
-  flex-direction: row;
-  width: 100%;
-  height: 40px;
-  margin-top: 8px;
+/* 已关闭的卡片只留一行弱提示，替代原来常驻的 ON/OFF 开关 ——
+   开关搬到弹层后卡片少了 28px（开关行）+ 40px（操作排），一屏多看一条 */
+.cd-off-tag {
+  font-size: 15px;
+  line-height: 22px;
   flex-shrink: 0;
+  margin-left: 6px;
 }
 
 /* ⚠️ 必须用单类选择器：Vela 编译会静默丢弃 `.父 .子` 后代选择器，
@@ -764,6 +807,31 @@ export default {
 .detail-switch {
   width: 80px;
   height: 32px;
+}
+
+/* 开关行：左标签 + 右开关。原版把 ON/OFF 单独居中，看不出这开关是管什么的 */
+/* 竖排：横排时开关固定 80px 后标签只剩约 45px，「首页显示」必然折行 */
+.detail-switch-row {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.detail-switch-label {
+  font-size: 15px;
+  line-height: 20px;
+  text-align: center;
+  width: 100%;
+}
+
+/* 关闭按钮占满行宽：弹层是模态的，必须给一个明确出口。
+   只靠「点空白处」——192 屏上弹层几乎铺满，空白处只剩边距那几像素 */
+.detail-close {
+  width: 152px;
+  height: 36px;
+  border-radius: 18px;
+  margin-top: 2px;
 }
 
 /* 大屏（9 Pro / 10 Pro 336×480 等 rect 屏）只做增量：留白与按钮放大，

@@ -123,3 +123,29 @@ ev_add_task(title="任务标题", description="目标+改动范围+验收，≥5
 - MCP 未加载排查：`ev/ev-mcp/docs/ev-mcp使用帮助-读不到MCP排查.md`
 - 公共开发规范：`多人多AI统一协调开发总纲.md`
 - 本文件变更日志：git log `ev/ev-mcp/rules/trae-global-rules.md`
+---
+
+## 六、UI 硬约定：每个页面都要能返回（2026-10-21 定）
+
+**默认规则**：新增任何页面（`src/pages/*/*.ux`），顶部必须有一个**可点击的返回入口**，点了回到上一页（`router.back()`）。有顶栏就必须有标题。
+
+**豁免（只有这三类）**：
+1. 首页 / 主界面——`router.back()` 回来会直接退出应用的根页面
+2. 欢迎页 / 引导页（`welcome`）
+3. 全屏展示类（`watch-face-*` 表盘预览：整屏 absolute 布局、本就无顶栏、靠左右滑动切换）
+
+**两种实现，按顶栏形态选**：
+- 标准 `header` 顶栏 → `<div class="back-btn-wrapper"><image src="/common/icons/{{ iconTheme }}/icon_back.png">`
+- 自定义顶栏（如 `add-course-v2` 的 topbar）→ 文字箭头 `<text class="back-text" onclick="goBack">‹</text>`，宽 28px，不依赖图标资源
+
+**为什么要写进规则**：这不是审美问题。手环没有系统返回键、没有边缘手势，页面一旦没有返回入口，用户只能长按侧键重进应用。`add-course-v2` 就这样裸奔了很久。
+
+**审计命令**（新增页面后跑一次，输出为空才算合格）：
+
+```bash
+cd src/pages && for f in */*.ux; do
+  grep -q "icon_back\|goBack\|back-btn\|back-text" "$f" || echo "缺返回: $f"
+done
+```
+
+已知豁免：`welcome/welcome.ux`、9 个 `watch-face-*`。

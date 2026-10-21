@@ -2,6 +2,7 @@
   <div class="page" style="background-color: {{ theme.bg }}">
     <!-- 顶栏：进度 + 当前步标题 -->
     <div class="topbar">
+      <text class="back-text" onclick="goBack">‹</text>
       <text class="topbar-title" style="color: {{ theme.text }}">{{ stepTitle }}</text>
       <text class="topbar-step" style="color: {{ theme.textSecondary }}">{{ step }}/4</text>
     </div>
@@ -135,6 +136,11 @@ var QUICK_SLOTS = [
 ]
 
 export default {
+  // 全站页面返回约定：非首页/欢迎页必须有可点的返回入口
+  goBack() {
+    router.back()
+  },
+
   private: {
     theme: {
       bg: "#1a1a2e", card: "#16213e", cardLight: "#0f3460",
@@ -398,7 +404,16 @@ export default {
   justify-content: space-between;
   margin-bottom: 8px;
 }
+.back-text {
+  width: 28px;
+  font-size: 26px;
+  line-height: 30px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
 .topbar-title {
+  flex: 1;
   font-size: 24px;
   line-height: 30px;
   font-weight: bold;
