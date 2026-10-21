@@ -474,7 +474,7 @@ export default {
 
 .scope-hint {
   font-size: 24px;
-  line-height: 22px;
+  line-height: 32px;
   text-align: center;
   margin-top: 8px;
 }
@@ -567,7 +567,7 @@ export default {
 
 .benefit-item {
   font-size: 18px;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   line-height: 24px;
 }
 

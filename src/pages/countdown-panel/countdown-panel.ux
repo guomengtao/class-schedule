@@ -206,7 +206,7 @@ export default {
   width: 100%;
   border-radius: 12px;
   padding: 8px 10px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .cd-row {

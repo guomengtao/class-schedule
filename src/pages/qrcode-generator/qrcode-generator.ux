@@ -438,7 +438,7 @@ export default {
 .accordion-item {
   flex-direction: column;
   border-radius: 12px;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
 .accordion-header {

@@ -269,7 +269,7 @@ export default {
   height: 26px;
   font-size: 22px;
   font-weight: bold;
-  line-height: 26px;
+  line-height: 30px;
   text-align: center;
   flex-shrink: 0;
 }

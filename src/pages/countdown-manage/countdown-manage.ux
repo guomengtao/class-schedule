@@ -359,7 +359,7 @@ export default {
   flex-shrink: 0;
   border-radius: 12px;
   padding: 8px 8px;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
 .cd-head {

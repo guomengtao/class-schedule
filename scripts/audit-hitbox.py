@@ -6,6 +6,7 @@
   1. 字号  font-size < 18px            —— 硬指标，可判定，退出码 1
   2. 热区  可点元素宽或高 < 44px        —— 硬指标，可判定，退出码 1
   3. 余量  定宽子元素合计 > 168px 的横向行 —— 仅出复核清单，不判定
+  4. 留白  行高比 < 1.35 的正文类 / 条目间距 < 8px —— 可判定（间距不会被子元素压缩）
 
 维度 3 为什么只做清单：flex-shrink 会压缩定宽子元素，静态解析分不出「真溢出」
 与「被压缩」，实测 4 处命中全为等分/居中行假阳性（detail 的 7×48 七日条、
@@ -83,6 +84,8 @@ def parse_css(src):
             'h': num(r'(?<!-)height:\s*(\d+)px', b),
             'pad': 'padding' in b,
             'font': num(r'font-size:\s*(\d+)px', b),
+            'lh': num(r'line-height:\s*(\d+)px', b),
+            'mb': num(r'margin-bottom:\s*(\d+)px', b),
             'row': 'flex-direction:row' in b.replace(' ', ''),
         }
     return box
@@ -171,11 +174,43 @@ def scan_width(src, box):
     return sorted(set(out)), stat
 
 
+# ---------- 4. 留白（行高比 + 条目间距）----------
+# 这两项与维度 3 不同：line-height / margin 是父容器的显式值，不会被 flex-shrink
+# 压缩，所以可以判定。行高比只判「可能多行的正文类」——单行标题 1.33 倍不算拥挤。
+BODY = re.compile(r'(?:desc|sub|tip|hint|content|note|msg|info|bubble)$')
+# 条目堆叠类：以 item/card 结尾。网格/键盘/自定义行（grid|keypad|wv-|week-|color|dot|tpl）
+# 内部行距 4–6px 是紧凑布局的合理值，不算「卡片挨着卡片」。
+ITEM = re.compile(r'(?:item|card)$')
+GRIDISH = re.compile(r'grid|keypad|key-|wv-|week-|color|dot|tpl|cell')
+# 行高比两档：<1.20 行高比字号还小，文字必然挤在一起，无条件报；
+# 1.20–1.35 只报「可能多行」的正文类——单行按钮文字 1.30 倍配 44px 盒子是正常的，
+# 一刀切到 1.35 会产生 27 页噪音（2026-10-21 实测），把真问题淹掉。
+LH_HARD = 1.20
+LH_SOFT = 1.35
+MIN_ITEM_GAP = 8
+
+
+def scan_space(src, box):
+    lh_hits, gap_hits = set(), set()
+    for c, v in box.items():
+        fs, lh = v['font'], v['lh']
+        if fs and lh and not GRIDISH.search(c):
+            ratio = lh / fs
+            if ratio < LH_HARD or (ratio < LH_SOFT and BODY.search(c)):
+                lh_hits.add('.%s(%.2f倍 %d/%d)' % (c, ratio, lh, fs))
+        if ITEM.search(c) and not GRIDISH.search(c):
+            gap = v['mb']
+            if gap is not None and gap < MIN_ITEM_GAP:
+                gap_hits.add('.%s(%dpx)' % (c, gap))
+    return sorted(lh_hits), sorted(gap_hits)
+
+
 def main():
     pages = json.load(open(MANIFEST, encoding='utf-8'))['router']['pages']
     do = lambda k: ONLY in (None, k)
     hard_bad = 0
     soft_n = 0
+    space_bad = 0
     rows = computed = 0
     for p in pages:
         name = p.split('/')[-1]
@@ -205,8 +240,21 @@ def main():
             if h:
                 soft_n += 1
                 print('[余量] %-28s %s' % (name, ' | '.join(h)))
+        if do('space'):
+            lh, gp = scan_space(src, box)
+            if lh or gp:
+                space_bad += 1
+                msg = []
+                if lh:
+                    msg.append('行高 ' + ', '.join(lh))
+                if gp:
+                    msg.append('条目间距 ' + ', '.join(gp))
+                print('[留白] %-28s %s' % (name, ' ; '.join(msg)))
 
-    print('\n硬指标：%d 处不达标（字号<%dpx 或 热区<%dpx）' % (hard_bad, MIN_FONT, MIN_HIT))
+    print('\n硬指标（门禁）：%d 处不达标（字号<%dpx 或 热区<%dpx）' % (hard_bad, MIN_FONT, MIN_HIT))
+    if do('space'):
+        print('留白（改善项，不拦提交）：%d 个页面有行高<%.2f倍 或 条目间距<%dpx'
+              % (space_bad, LH_SOFT, MIN_ITEM_GAP))
     if do('width'):
         covered = (100.0 * computed / rows) if rows else 0.0
         print('复核清单：%d 个页面存在「定宽子元素合计 > %dpx」的横向行'

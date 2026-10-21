@@ -311,7 +311,7 @@ export default {
   flex-direction: column;
   border-radius: 10px;
   padding: 16px 14px;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   align-items: center;
 }
 

@@ -823,7 +823,7 @@ export default {
   flex-direction: column;
   width: 47%;
   padding: 10px 6px;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   border-radius: 8px;
   align-items: center;
 }
@@ -862,7 +862,7 @@ export default {
   justify-content: space-between;
   border-radius: 8px;
   padding: 10px;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
 .saved-name {
@@ -1004,7 +1004,7 @@ export default {
   flex-direction: column;
   width: 48%;
   padding: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 10px;
   border-radius: 8px;
   border: 1px solid transparent;
 }
