@@ -13,18 +13,23 @@
         <text class="status-main" style="color: {{ statusColor }}">{{ statusText }}</text>
         <text class="status-expiry" show="{{ expireTimeText }}" style="color: {{ theme.textSecondary }}">有效期 {{ expireTimeText }}</text>
       </div>
+      <!-- 购买卡：老版「激活软件·步骤1」原样上浮主页首屏。购买是第一优先级，不下单激活无从谈起 -->
+      <div class="purchase-card" style="background-color: {{ theme.card }}">
+        <text class="purchase-title" style="color: {{ theme.text }}">购买兑换码</text>
+        <text class="purchase-desc" style="color: {{ theme.textSecondary }}">爱发电购买</text>
+        <div class="purchase-qr" if="{{ afdianUrl }}">
+          <qrcode class="qr-code" value="{{ afdianUrl }}" style="color: #000000; background-color: #ffffff;"></qrcode>
+        </div>
+        <text class="qr-loading" if="{{ !afdianUrl }}" style="color: {{ theme.textMuted }}">正在生成二维码...</text>
+      </div>
+
       <div class="entry-primary" onclick="openCodePage" style="background-color: {{ theme.accent }}">
         <text class="entry-primary-text" style="color: {{ theme.bg }}">输入激活码</text>
         <text class="entry-primary-arrow" style="color: {{ theme.bg }}">›</text>
       </div>
 
       <div class="entry-secondary" onclick="openGuidePage" style="background-color: {{ theme.card }}">
-        <text class="entry-secondary-text" style="color: {{ theme.text }}">购买兑换码</text>
-        <text class="entry-secondary-arrow" style="color: {{ theme.textSecondary }}">›</text>
-      </div>
-
-      <div class="entry-secondary" onclick="openInfoPage" style="background-color: {{ theme.card }}">
-        <text class="entry-secondary-text" style="color: {{ theme.text }}">获取设备 ID</text>
+        <text class="entry-secondary-text" style="color: {{ theme.text }}">激活步骤指南</text>
         <text class="entry-secondary-arrow" style="color: {{ theme.textSecondary }}">›</text>
       </div>
 
@@ -49,6 +54,9 @@ function dlog() {
 }
 const store = require("../../data/store.js")
 const authStore = require("../../data/auth-store.js")
+const version = require("../../data/version.js")
+
+var AFDIAN_REDIRECT_URL = "https://app-auth.gudq.com/go/ev-timetable?deviceId="
 
 function formatDate(ts) {
   if (!ts) return ''
@@ -78,6 +86,10 @@ export default {
     statusText: '加载中...',
     statusColor: '#888899',
     expireTimeText: '',
+    afdianUrl: '',
+    deviceId: '',
+    deviceInfoParams: '',
+    channelParam: version.channel || ''
   },
 
   onInit() {
@@ -87,6 +99,7 @@ export default {
       self.updateIconSrc(themeName)
     })
     self.loadStatus()
+    self.fetchDeviceId()
   },
 
   onShow() {
@@ -136,6 +149,87 @@ export default {
     } catch (e) {
       dlog('[ACTIVATION] loadStatus error: ' + e)
     }
+  },
+
+  // 设备ID与购买二维码（afdianUrl 拼接逻辑与老版单页一致：deviceId + 设备信息参数 + 版本 + 渠道）
+  fetchDeviceId() {
+    var self = this
+    try {
+      var device = require("@system.device")
+      device.getDeviceId({
+        success: function(data) {
+          var raw = data.deviceId || ''
+          if (!raw || raw === 'NA' || raw === 'unknown' || raw === 'null') {
+            self._fallbackToLocalUUID()
+          } else {
+            self.deviceId = raw
+            self.updateAfdianUrl()
+            self.fetchDeviceInfo()
+          }
+        },
+        fail: function() {
+          self._fallbackToLocalUUID()
+        }
+      })
+    } catch (e) {
+      self._fallbackToLocalUUID()
+    }
+  },
+
+  _fallbackToLocalUUID() {
+    var self = this
+    var deviceUuid = require("../../utils/device-uuid.js")
+    deviceUuid.getLocalDeviceId(function(id) {
+      self.deviceId = id
+      self.updateAfdianUrl()
+      self.fetchDeviceInfo()
+    })
+  },
+
+  fetchDeviceInfo() {
+    var self = this
+    try {
+      var device = require("@system.device")
+      device.getInfo({
+        success: function(ret) {
+          var params = []
+          if (ret.model) params.push('m=' + encodeURIComponent(ret.model))
+          if (ret.product) params.push('p=' + encodeURIComponent(ret.product))
+          if (ret.osVersionCode != null) params.push('o=' + ret.osVersionCode)
+          if (ret.platformVersionCode != null) params.push('v=' + ret.platformVersionCode)
+          if (ret.deviceType) params.push('t=' + encodeURIComponent(ret.deviceType))
+          if (ret.screenShape) params.push('s=' + encodeURIComponent(ret.screenShape))
+          if (ret.screenWidth != null) params.push('w=' + ret.screenWidth)
+          if (ret.screenHeight != null) params.push('h=' + ret.screenHeight)
+          if (ret.APILevel != null) params.push('a=' + ret.APILevel)
+          if (ret.language) params.push('l=' + encodeURIComponent(ret.language))
+          self.deviceInfoParams = params.join('&')
+          self.updateAfdianUrl()
+        },
+        fail: function() {
+          self.deviceInfoParams = ''
+          self.updateAfdianUrl()
+        }
+      })
+    } catch (e) {
+      self.deviceInfoParams = ''
+      self.updateAfdianUrl()
+    }
+  },
+
+  updateAfdianUrl() {
+    var self = this
+    if (!self.deviceId || self.deviceId === '获取中...') {
+      return
+    }
+    var afd = AFDIAN_REDIRECT_URL + encodeURIComponent(self.deviceId)
+    if (self.deviceInfoParams) {
+      afd = afd + '&' + self.deviceInfoParams
+    }
+    if (self.channelParam) {
+      afd = afd + '&c=' + encodeURIComponent(self.channelParam)
+    }
+    self.afdianUrl = afd
   },
 
   openCodePage() {
@@ -236,6 +330,46 @@ export default {
   .page {
     padding: 6px 8px 8px 8px;
   }
+}
+
+/* 购买卡：老版「激活软件·步骤1」原样上浮，首屏第一优先级 */
+.purchase-card {
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 10px 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 12px;
+}
+
+.purchase-title {
+  font-size: 22px;
+  font-weight: bold;
+  line-height: 28px;
+  margin-bottom: 2px;
+}
+
+.purchase-desc {
+  font-size: 20px;
+  line-height: 26px;
+  margin-bottom: 6px;
+}
+
+.purchase-qr {
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-code {
+  width: 80px;
+  height: 80px;
+}
+
+.qr-loading {
+  font-size: 20px;
+  line-height: 26px;
+  height: 80px;
+  text-align: center;
 }
 
 .entry-primary {
