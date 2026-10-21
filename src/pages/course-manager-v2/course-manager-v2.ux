@@ -571,10 +571,10 @@ export default {
   }
         .add-btn {
     width: 64px;
-    height: 36px;
+    height: 44px;
     border-radius: 8px;
     font-size: 22px;
-    line-height: 32px;
+    line-height: 40px;
   }
   .toolbar {
     padding: 4px 0;
@@ -619,10 +619,10 @@ export default {
   }
   .action-btn {
     width: 46px;
-    height: 34px;
+    height: 44px;
     border-radius: 8px;
     font-size: 20px;
-    line-height: 30px;
+    line-height: 40px;
   }
   .empty-text {
     font-size: 22px;

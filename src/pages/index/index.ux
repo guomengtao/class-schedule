@@ -61,11 +61,15 @@
       </block>
     </div>
 
-    <div class="workday-tip-bar" if="{{ isWorkday && holidayReminderOn && !isLoading }}" style="background-color: {{ theme.cardLight }}">
+    <!-- 整条可点（2026-10-21 规则 §8.2 宁大勿小）：原来条右侧是一个 28×28 的「?」小圆钮，
+         手指根本按不准；改成整条 168×48 都是热区，右侧只留箭头作「可进」提示。
+         顺带文案可用宽度从 168−28−6 变成 168−28，不再挤。 -->
+    <div class="workday-tip-bar" if="{{ isWorkday && holidayReminderOn && !isLoading }}"
+         style="background-color: {{ theme.cardLight }}" onclick="goToWorkdayInfo">
       <!-- 方案 D4：「今天」不再硬编码（翻到未来调休日时随日期变化）；
            文案压到 ≤9 字不折行（原「今天调休，按周三课表」11 字爆宽折 3 行） -->
       <text class="workday-tip-text" style="color: {{ theme.accent }}">{{ isTodayDate ? '调休 · 按' + overrideDayName + '课表' : currentDateStr + ' 调休' }}</text>
-      <text class="workday-info-btn" style="background-color: {{ theme.card }}; color: {{ theme.textSecondary }}" onclick="goToWorkdayInfo">?</text>
+      <text class="workday-tip-arrow" style="color: {{ theme.textMuted }}">›</text>
     </div>
 
     <div class="pinned-bar" if="{{ showPinnedBar && hasPinned }}" style="background-color: {{ theme.cardLight }}">
@@ -1293,12 +1297,24 @@ export default {
   height: 28px;
 }
 
+/* 调休提示条：整条是热区（规则 §8.2），故 min-height 48 兜住点击高度，
+   space-between 让箭头贴右。原来条尾那个 28×28 的「?」圆钮已废弃
+   （.workday-info-btn 保留为历史样式，模板不再引用）。 */
 .workday-tip-bar {
   flex-direction: row;
   align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
   padding: 10px 14px;
   border-radius: 8px;
   margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.workday-tip-arrow {
+  font-size: 22px;
+  line-height: 26px;
+  margin-left: 6px;
   flex-shrink: 0;
 }
 
@@ -1364,7 +1380,7 @@ export default {
   }
   .add-btn-wrapper,
   .style-btn {
-    height: 40px;
+    height: 44px;
     border-radius: 20px;
   }
   .add-btn-icon {
@@ -1695,7 +1711,7 @@ export default {
   }
   .add-btn-wrapper {
     flex: 1;
-    height: 42px;
+    height: 44px;
     border-radius: 21px;
     margin-right: 3px;
   }
@@ -1708,7 +1724,7 @@ export default {
   }
   .style-btn {
     flex: 1;
-    height: 42px;
+    height: 44px;
     border-radius: 21px;
     font-size: 20px;
     line-height: 42px;

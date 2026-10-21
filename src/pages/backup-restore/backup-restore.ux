@@ -343,8 +343,8 @@ export default {
 }
 
 .back-btn-wrapper {
-  width: 62px;
-  height: 62px;
+  width: 44px;
+  height: 44px;
   border-radius: 31px;
   justify-content: center;
   align-items: center;
@@ -406,7 +406,7 @@ export default {
 
 .action-btn {
   flex: 1;
-  height: 32px;
+  height: 44px;
   border-radius: 16px;
   justify-content: center;
   align-items: center;
@@ -482,7 +482,7 @@ export default {
 }
 
 .dialog-btn {
-  height: 36px;
+  height: 44px;
   border-radius: 18px;
   justify-content: center;
   align-items: center;
@@ -545,7 +545,7 @@ export default {
   }
 
   .action-btn {
-    height: 36px;
+    height: 44px;
     border-radius: 18px;
   }
 
@@ -588,12 +588,12 @@ export default {
   }
 
   .action-btn {
-    height: 28px;
+    height: 44px;
     border-radius: 14px;
   }
 
   .btn-add {
-    height: 40px;
+    height: 44px;
     border-radius: 20px;
   }
 }

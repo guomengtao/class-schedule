@@ -766,14 +766,15 @@ export default {
   margin-bottom: 16px;
 }
 
+/* 加减钮：40→44（规则 §8.3 热区下限）。行高同步 36→40，字仍 24 */
 .scale-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   font-size: 24px;
   font-weight: bold;
   text-align: center;
-  line-height: 36px;
+  line-height: 40px;
 }
 
 .scale-value {
@@ -877,20 +878,20 @@ export default {
 
 .modal-btn-primary {
   width: 100%;
-  height: 42px;
+  height: 44px;
   border-radius: 21px;
   font-size: 28px;
   font-weight: bold;
   margin-bottom: 8px;
-  line-height: 42px;
+  line-height: 40px;
 }
 
 .modal-btn-secondary {
   width: 100%;
-  height: 36px;
+  height: 44px;
   border-radius: 18px;
   font-size: 28px;
-  line-height: 36px;
+  line-height: 40px;
 }
 
 @media screen and (shape: circle) {

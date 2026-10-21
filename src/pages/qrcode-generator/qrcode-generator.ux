@@ -400,7 +400,7 @@ export default {
 }
 
 .home-bar {
-  height: 40px;
+  height: 44px;
   border-radius: 10px;
   justify-content: center;
   align-items: center;
@@ -494,7 +494,7 @@ export default {
 
 .action-btn {
   flex: 1;
-  height: 40px;
+  height: 44px;
   border-radius: 8px;
   justify-content: center;
   align-items: center;
@@ -533,7 +533,7 @@ export default {
     padding: 8px;
   }
         .home-bar {
-    height: 40px;
+    height: 44px;
     margin-bottom: 6px;
   }
   .home-icon {
@@ -571,7 +571,7 @@ export default {
     line-height: 28px;
   }
   .action-btn {
-    height: 40px;
+    height: 44px;
   }
   .action-btn-text {
     font-size: 20px;
@@ -643,7 +643,7 @@ export default {
     padding: 8px;
   }
         .home-bar {
-    height: 40px;
+    height: 44px;
     margin-bottom: 6px;
   }
   .home-icon {
@@ -681,7 +681,7 @@ export default {
     line-height: 28px;
   }
   .action-btn {
-    height: 40px;
+    height: 44px;
   }
   .action-btn-text {
     font-size: 20px;

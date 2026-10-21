@@ -683,10 +683,10 @@ export default {
   }
         .add-btn {
     width: 72px;
-    height: 40px;
+    height: 44px;
     border-radius: 20px;
     font-size: 22px;
-    line-height: 36px;
+    line-height: 40px;
   }
   .clear-bar {
     display: flex;

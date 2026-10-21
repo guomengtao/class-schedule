@@ -268,7 +268,7 @@ export default {
 
 /* 顶部返回热区 ≥120px（含星期条之前的所有内容） */
 .back-header { flex-direction: row; align-items: center; height: 120px; margin-bottom: 8px; padding: 0 4px }
-.back-btn-wrapper { width: 48px; height: 40px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0 }
+.back-btn-wrapper { width: 44px; height: 44px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0 }
 .back-btn-icon { width: 24px; height: 24px }
 .header-center { flex: 1; flex-direction: column; align-items: center; justify-content: center }
 .header-title { font-size: 24px; font-weight: bold; line-height: 32px; text-align: center }

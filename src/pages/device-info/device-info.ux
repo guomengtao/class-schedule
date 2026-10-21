@@ -331,11 +331,11 @@ export default {
 
 .retry-btn {
   width: 72px;
-  height: 36px;
+  height: 44px;
   border-radius: 16px;
   font-size: 22px;
   text-align: center;
-  line-height: 32px;
+  line-height: 40px;
 }
 
 /*
@@ -363,9 +363,9 @@ export default {
     line-height: 32px;
   }
   .retry-btn {
-    height: 36px;
+    height: 44px;
     font-size: 24px;
-    line-height: 32px;
+    line-height: 40px;
   }
 }
 

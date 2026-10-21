@@ -397,12 +397,12 @@ export default {
 
 .action-btn {
   width: 100%;
-  height: 40px;
+  height: 44px;
   border-radius: 20px;
   font-size: 28px;
   font-weight: bold;
   text-align: center;
-  line-height: 36px;
+  line-height: 40px;
 }
 
 .action-btn.danger {
@@ -489,22 +489,22 @@ export default {
 
 .modal-btn-primary {
   width: 100%;
-  height: 40px;
+  height: 44px;
   border-radius: 20px;
   font-size: 28px;
   font-weight: bold;
   text-align: center;
-  line-height: 36px;
+  line-height: 40px;
   margin-bottom: 8px;
 }
 
 .modal-btn-secondary {
   width: 100%;
-  height: 36px;
+  height: 44px;
   border-radius: 18px;
   font-size: 22px;
   text-align: center;
-  line-height: 32px;
+  line-height: 40px;
 }
 
 @media (shape: circle) {
@@ -590,9 +590,9 @@ export default {
     line-height: 40px;
   }
   .modal-btn-secondary {
-    height: 38px;
+    height: 44px;
     font-size: 24px;
-    line-height: 34px;
+    line-height: 40px;
   }
   .overlay-modal {
     padding: 44px 36px 44px 36px;
@@ -689,9 +689,9 @@ export default {
     line-height: 42px;
   }
   .modal-btn-secondary {
-    height: 40px;
+    height: 44px;
     font-size: 26px;
-    line-height: 36px;
+    line-height: 40px;
   }
 }
 /* ===== 胶囊屏（192px）统一适配：解锁/高级版弹窗 =====
@@ -739,18 +739,18 @@ export default {
   }
 
   .modal-btn-primary {
-    height: 40px;
+    height: 44px;
     border-radius: 20px;
     font-size: 22px;
-    line-height: 28px;
+    line-height: 40px;
     margin-bottom: 8px;
   }
 
   .modal-btn-secondary {
-    height: 34px;
+    height: 44px;
     border-radius: 17px;
     font-size: 20px;
-    line-height: 26px;
+    line-height: 40px;
   }
 }
 </style>

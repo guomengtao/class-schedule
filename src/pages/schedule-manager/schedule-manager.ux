@@ -949,20 +949,20 @@ export default {
 
 .modal-btn-primary {
   width: 100%;
-  height: 40px;
+  height: 44px;
   border-radius: 20px;
   font-size: 22px;
   font-weight: bold;
   margin-bottom: 8px;
-  line-height: 28px;
+  line-height: 40px;
 }
 
 .modal-btn-secondary {
   width: 100%;
-  height: 34px;
+  height: 44px;
   border-radius: 17px;
   font-size: 20px;
-  line-height: 26px;
+  line-height: 40px;
 }
 
 .keyboard-area {
@@ -1010,7 +1010,7 @@ export default {
   }
   .rename-display {
     flex: 1;
-    height: 40px;
+    height: 44px;
     margin-bottom: 0;
   }
   .rename-btn-row {
@@ -1019,12 +1019,12 @@ export default {
   }
   .rename-ok-btn {
     width: 56px;
-    height: 36px;
+    height: 44px;
     margin-left: 8px;
   }
   .rename-cancel-btn {
     width: 56px;
-    height: 36px;
+    height: 44px;
     margin-left: 6px;
   }
   .item {
@@ -1046,7 +1046,7 @@ export default {
     margin-top: 10px;
   }
   .add-btn {
-    height: 42px;
+    height: 44px;
     border-radius: 10px;
   }
   .overlay-modal {
@@ -1076,16 +1076,16 @@ export default {
     line-height: 32px;
   }
   .modal-btn-primary {
-    height: 42px;
+    height: 44px;
     border-radius: 21px;
     font-size: 28px;
-    line-height: 38px;
+    line-height: 40px;
   }
   .modal-btn-secondary {
-    height: 36px;
+    height: 44px;
     border-radius: 18px;
     font-size: 24px;
-    line-height: 32px;
+    line-height: 40px;
   }
 }
 
@@ -1121,8 +1121,8 @@ export default {
   }
   .rename-display {
     font-size: 20px;
-    line-height: 28px;
-    height: 36px;
+    line-height: 40px;
+    height: 44px;
   }
   .rename-text {
     font-size: 20px;
@@ -1131,14 +1131,14 @@ export default {
   .rename-ok-btn,
   .rename-cancel-btn {
     width: 48px;
-    height: 30px;
+    height: 44px;
     font-size: 20px;
-    line-height: 28px;
+    line-height: 40px;
   }
   .add-btn {
-    height: 38px;
+    height: 44px;
     font-size: 20px;
-    line-height: 28px;
+    line-height: 40px;
   }
   .footer-actions {
     padding: 12px 0 6px 0;

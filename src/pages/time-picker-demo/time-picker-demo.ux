@@ -171,7 +171,7 @@ export default {
 .page-body { flex-direction: column; width: 100%; padding: 44px 10px 12px 10px; }
 
 .back-header { flex-direction: row; align-items: center; margin-bottom: 14px; padding: 0 4px; }
-.back-btn-wrapper { width: 48px; height: 40px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0; }
+.back-btn-wrapper { width: 44px; height: 44px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0; }
 .back-btn-icon { width: 24px; height: 24px; }
 .header-title { flex: 1; font-size: 30px; font-weight: bold; text-align: center; line-height: 40px; }
 .header-placeholder { width: 48px; height: 48px; flex-shrink: 0; }

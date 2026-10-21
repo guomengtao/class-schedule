@@ -588,23 +588,23 @@ export default {
 
 .play-btn {
   width: 80px;
-  height: 40px;
+  height: 44px;
   border-radius: 8px;
   font-size: 22px;
   font-weight: bold;
   text-align: center;
-  line-height: 34px;
+  line-height: 40px;
   margin-right: 8px;
 }
 
 .stop-btn {
   width: 80px;
-  height: 40px;
+  height: 44px;
   border-radius: 8px;
   font-size: 22px;
   font-weight: bold;
   text-align: center;
-  line-height: 34px;
+  line-height: 40px;
 }
 
 .section {
@@ -747,12 +747,12 @@ export default {
 
 .quick-btn {
   width: 58px;
-  height: 40px;
+  height: 44px;
   border-radius: 8px;
   font-size: 22px;
   font-weight: bold;
   text-align: center;
-  line-height: 34px;
+  line-height: 40px;
   margin: 0 3px;
 }
 

@@ -462,8 +462,8 @@ export default {
 }
 
 .back-btn-wrapper {
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   border-radius: 26px;
   justify-content: center;
   align-items: center;
@@ -801,7 +801,7 @@ export default {
   .prev-btn,
   .save-btn {
     width: 88px;
-    height: 42px;
+    height: 44px;
     font-size: 24px;
     line-height: 40px;
   }

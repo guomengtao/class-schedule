@@ -243,8 +243,8 @@ export default {
 }
 
 .back-btn-wrapper {
-  width: 48px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 8px;
   justify-content: center;
   align-items: center;
@@ -675,12 +675,12 @@ export default {
   }
   .back-btn-wrapper {
     width: 36px;
-    height: 36px;
+    height: 44px;
     border-radius: 18px;
   }
   .back-btn-icon {
-    width: 18px;
-    height: 18px;
+    width: 24px;
+    height: 24px;
   }
   .header-placeholder {
     width: 34px;

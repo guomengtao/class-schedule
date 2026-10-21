@@ -1064,13 +1064,13 @@ export default {
   }
   .play-btn {
     width: 88px;
-    height: 32px;
-    font-size: 20px; line-height: 28px;
+    height: 44px;
+    font-size: 20px; line-height: 40px;
   }
   .stop-btn {
     width: 68px;
-    height: 32px;
-    font-size: 20px; line-height: 28px;
+    height: 44px;
+    font-size: 20px; line-height: 40px;
   }
   .section {
     padding: 10px;
@@ -1090,8 +1090,8 @@ export default {
   }
   .quick-btn {
     width: 46px;
-    height: 28px;
-    font-size: 20px; line-height: 28px;
+    height: 44px;
+    font-size: 20px; line-height: 40px;
   }
   .preset-item {
     padding: 8px 4px;
@@ -1117,8 +1117,8 @@ export default {
     font-size: 20px; line-height: 28px;
   }
   .save-btn {
-    height: 40px;
-    font-size: 20px; line-height: 28px;
+    height: 44px;
+    font-size: 20px; line-height: 40px;
   }
 }
 
@@ -1296,13 +1296,13 @@ export default {
   }
   .play-btn {
     width: 80px;
-    height: 30px;
-    font-size: 20px; line-height: 28px;
+    height: 44px;
+    font-size: 20px; line-height: 40px;
   }
   .stop-btn {
     width: 60px;
-    height: 30px;
-    font-size: 20px; line-height: 28px;
+    height: 44px;
+    font-size: 20px; line-height: 40px;
   }
   .section {
     padding: 8px;
@@ -1322,8 +1322,8 @@ export default {
   }
   .quick-btn {
     width: 42px;
-    height: 26px;
-    font-size: 20px; line-height: 28px;
+    height: 44px;
+    font-size: 20px; line-height: 40px;
   }
   .preset-item {
     padding: 8px 4px;
@@ -1349,8 +1349,8 @@ export default {
     font-size: 20px; line-height: 28px;
   }
   .save-btn {
-    height: 36px;
-    font-size: 20px; line-height: 28px;
+    height: 44px;
+    font-size: 20px; line-height: 40px;
   }
 }
 </style>
