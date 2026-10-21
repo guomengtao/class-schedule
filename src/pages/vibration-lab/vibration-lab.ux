@@ -1081,7 +1081,7 @@ export default {
   }
   .step-btn {
     width: 40px;
-    height: 40px;
+    height: 44px;
     font-size: 20px;
   }
   .step-value {
@@ -1113,8 +1113,8 @@ export default {
   }
   .delete-btn {
     width: 28px;
-    height: 28px;
-    font-size: 20px; line-height: 28px;
+    height: 44px;
+    font-size: 20px; line-height: 40px;
   }
   .save-btn {
     height: 44px;
@@ -1313,8 +1313,8 @@ export default {
   }
   .step-btn {
     width: 32px;
-    height: 32px;
-    font-size: 20px; line-height: 28px;
+    height: 44px;
+    font-size: 20px; line-height: 40px;
   }
   .step-value {
     font-size: 20px;
@@ -1345,8 +1345,8 @@ export default {
   }
   .delete-btn {
     width: 26px;
-    height: 26px;
-    font-size: 20px; line-height: 28px;
+    height: 44px;
+    font-size: 20px; line-height: 40px;
   }
   .save-btn {
     height: 44px;

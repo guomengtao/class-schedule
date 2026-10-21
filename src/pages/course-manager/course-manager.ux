@@ -450,12 +450,12 @@ export default {
 
 .clear-btn {
   width: 64px;
-  height: 40px;
+  height: 44px;
   border-radius: 20px;
   font-size: 22px;
   font-weight: bold;
   text-align: center;
-  line-height: 36px;
+  line-height: 40px;
   flex-shrink: 0;
   margin-left: 6px;
 }
@@ -723,17 +723,17 @@ export default {
   }
   .edit-btn {
     width: 52px;
-    height: 40px;
+    height: 44px;
     border-radius: 20px;
     font-size: 22px;
-    line-height: 36px;
+    line-height: 40px;
   }
   .delete-btn {
     width: 52px;
-    height: 40px;
+    height: 44px;
     border-radius: 20px;
     font-size: 22px;
-    line-height: 36px;
+    line-height: 40px;
     margin-left: 6px;
   }
   .clear-hint {
@@ -742,10 +742,10 @@ export default {
   }
   .clear-btn {
     width: 64px;
-    height: 40px;
+    height: 44px;
     border-radius: 20px;
     font-size: 22px;
-    line-height: 36px;
+    line-height: 40px;
   }
 }
 

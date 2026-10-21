@@ -178,7 +178,7 @@ export default {
   }
 
   .back-btn-wrapper {
-    width: 40px;
+    width: 44px;
     height: 44px;
     border-radius: 20px;
   }
@@ -230,7 +230,7 @@ export default {
   }
 
   .back-btn-wrapper {
-    width: 36px;
+    width: 44px;
     height: 44px;
     border-radius: 18px;
   }

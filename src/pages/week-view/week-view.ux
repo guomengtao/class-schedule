@@ -980,7 +980,7 @@ export default {
 }
 
 .wv-cell {
-  height: 32px;
+  height: 44px;
   margin: 1px;
   border-radius: 6px;
   justify-content: center;
@@ -1137,7 +1137,7 @@ export default {
     font-size: 20px;
   }
   .wv-cell {
-    height: 28px;
+    height: 44px;
   }
   .wv-name {
     font-size: 20px;

@@ -1,5 +1,5 @@
 <template>
-  <div class="page" style="background-color: {{ theme.bg }}">
+  <scroll class="page" scroll-y="{{true}}" style="background-color: {{ theme.bg }}">
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
@@ -99,7 +99,7 @@
         <text class="save-label" style="color: {{ delConfirm ? theme.bg : theme.deleteText }}">{{ delConfirm ? '确认' : '删除' }}</text>
       </div>
     </div>
-  </div>
+  </scroll>
 </template>
 
 <script>
@@ -665,10 +665,12 @@ export default {
    本页不承载键盘（跳 chinese-input），因此没有 ime-host 相关样式。
    ================================================================ */
 
+/* 2026-10-21 规则 §8.4：颜色行两行 + 44 热区后内容变高，页面改为可滚动。
+   scroll 容器要显式高度，故 flex:1 之外补 height:100%。 */
 .page {
-  flex: 1;
-  flex-direction: column;
   width: 100%;
+  height: 100%;
+  flex-direction: column;
   padding: 16px 12px 12px 12px;
 }
 
@@ -721,7 +723,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  height: 28px;
+  min-height: 44px;
   flex-shrink: 0;
 }
 
@@ -729,13 +731,14 @@ export default {
   margin-bottom: 0;
 }
 
+/* 26 → 44：原来一个 26 高的胶囊，手环上根本点不中（规则 §8.3） */
 .cal-toggle {
   flex-direction: row;
   align-items: center;
   justify-content: center;
   width: 76px;
-  height: 26px;
-  border-radius: 13px;
+  height: 44px;
+  border-radius: 22px;
   flex-shrink: 0;
 }
 
@@ -853,20 +856,25 @@ export default {
 
 /* 颜色：6 格 × 28px = 168，正好铺满内容区。
    格子 28 是点击热区，色点 20 是视觉尺寸 —— 热区比色点大一圈才点得准。 */
+/* 6 色 ×44px 一排需要 264px，168 装不下 —— 按 §8.4 不减尺寸，改为 3 列换行：
+   3×44 + 2×8 = 148 ≤ 168。flex-wrap 项目内已有 5 处用例，可依赖。 */
 .color-row {
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
   width: 100%;
-  height: 28px;
+  margin-top: 2px;
   flex-shrink: 0;
 }
 
 .color-cell {
-  width: 28px;
-  height: 28px;
-  border-radius: 9px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   justify-content: center;
   align-items: center;
+  margin-right: 8px;
+  margin-bottom: 6px;
   flex-shrink: 0;
 }
 
@@ -907,8 +915,8 @@ export default {
 
 .switch-btn {
   width: 60px;
-  height: 26px;
-  border-radius: 13px;
+  height: 44px;
+  border-radius: 22px;
   justify-content: center;
   align-items: center;
   flex-shrink: 0;

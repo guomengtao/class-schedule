@@ -280,11 +280,11 @@ export default {
 
 .pin-chip {
   width: 110px;
-  height: 32px;
+  height: 44px;
   border-radius: 9px;
   font-size: 18px;
   text-align: center;
-  line-height: 32px;
+  line-height: 40px;
 }
 
 .loading {
