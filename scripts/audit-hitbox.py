@@ -14,7 +14,8 @@ activation 的 3×75 键盘行）。**留白这一维无法静态验收，只能
 详见 trae-global-rules.md §8.5。
 
 用法:
-  python3 scripts/audit-hitbox.py                # 三维全跑
+  python3 scripts/audit-hitbox.py                # 全跑（留白只报不拦）
+  python3 scripts/audit-hitbox.py --strict       # 留白也计入退出码（防回归，建议提交前跑）
   python3 scripts/audit-hitbox.py --only width   # 只跑某一维（font|hitbox|width）
   python3 scripts/audit-hitbox.py --min 44 --min-font 18 --avail 168
 
@@ -29,6 +30,7 @@ MIN_FONT = 18
 AVAIL = 168          # 卡片内可用横向宽度基准（192 屏 - 卡 padding）
 EDGE = 4             # 余量小于此值视为「贴边」
 ONLY = None
+STRICT = False
 
 args = sys.argv[1:]
 for i, a in enumerate(args):
@@ -41,6 +43,8 @@ for i, a in enumerate(args):
         AVAIL = int(nxt)
     elif a == '--only' and nxt:
         ONLY = nxt
+    elif a == '--strict':
+        STRICT = True
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MANIFEST = os.path.join(ROOT, 'src/manifest.json')
@@ -188,13 +192,18 @@ GRIDISH = re.compile(r'grid|keypad|key-|wv-|week-|color|dot|tpl|cell')
 LH_HARD = 1.20
 LH_SOFT = 1.35
 MIN_ITEM_GAP = 8
+# 展示型大字（≥40px，如倒计时天数 96px、进度百分比 56px）行高比字号小是
+# 卡内垂直居中的常规做法，判它只会逼人改坏布局。按字号判定，不按类名。
+BIGNUM = 40
+# 符号类（箭头 / 图标字形）不是文字段落，行高比无意义，豁免。
+ICONISH = re.compile(r'(?:arrow|icon|caret|chevron|glyph|plus|minus)$')
 
 
 def scan_space(src, box):
     lh_hits, gap_hits = set(), set()
     for c, v in box.items():
         fs, lh = v['font'], v['lh']
-        if fs and lh and not GRIDISH.search(c):
+        if fs and lh and not GRIDISH.search(c) and not ICONISH.search(c) and fs < BIGNUM:
             ratio = lh / fs
             if ratio < LH_HARD or (ratio < LH_SOFT and BODY.search(c)):
                 lh_hits.add('.%s(%.2f倍 %d/%d)' % (c, ratio, lh, fs))
@@ -261,7 +270,7 @@ def main():
               '　覆盖率 %d/%d 行 = %.0f%%' % (soft_n, AVAIL, computed, rows, covered))
         print('  ⚠️ 该维度不作判定：flex-shrink 会压缩定宽子元素，'
               '静态解析分不出「真溢出」与「被压缩」。留白须靠运行时截图人工验收。')
-    sys.exit(1 if hard_bad else 0)
+    sys.exit(1 if (hard_bad or (STRICT and space_bad)) else 0)
 
 
 if __name__ == '__main__':

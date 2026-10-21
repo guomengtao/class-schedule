@@ -784,7 +784,7 @@ export default {
 .name-arrow {
   width: 16px;
   font-size: 24px;
-  line-height: 28px;
+  line-height: 34px;
   text-align: right;
   flex-shrink: 0;
 }
@@ -848,7 +848,7 @@ export default {
 
 .date-days {
   font-size: 22px;
-  line-height: 26px;
+  line-height: 31px;
   text-align: center;
   width: 100%;
   font-weight: bold;

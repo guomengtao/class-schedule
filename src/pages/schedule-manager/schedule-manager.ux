@@ -931,7 +931,7 @@ export default {
   font-size: 18px;
   text-align: center;
   margin-bottom: 10px;
-  line-height: 25px;
+  line-height: 26px;
 }
 
 .benefit-list {

@@ -1218,7 +1218,7 @@ export default {
 
 .delete-hint {
   font-size: 22px;
-  line-height: 30px;
+  line-height: 31px;
   text-align: center;
   margin-top: 8px;
 }

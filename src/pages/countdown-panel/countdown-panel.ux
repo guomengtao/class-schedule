@@ -219,7 +219,7 @@ export default {
 /* 标题 22（列表主文字档），与天数同排：144 − 「剩 322 天」约 76 → 标题可用 68px，3 字 */
 .cd-title {
   font-size: 22px;
-  line-height: 26px;
+  line-height: 31px;
   flex-shrink: 1;
   lines: 1;
   text-overflow: ellipsis;
@@ -227,7 +227,7 @@ export default {
 
 .cd-days {
   font-size: 22px;
-  line-height: 26px;
+  line-height: 31px;
   font-weight: bold;
   flex-shrink: 0;
   margin-left: 6px;
@@ -259,7 +259,7 @@ export default {
 
 .empty-hint {
   font-size: 18px;
-  line-height: 24px;
+  line-height: 26px;
   text-align: center;
   margin-top: 4px;
 }

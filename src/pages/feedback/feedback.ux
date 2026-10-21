@@ -231,7 +231,7 @@ export default {
 
 .sec-desc {
   font-size: 22px;
-  line-height: 30px;
+  line-height: 31px;
   margin-bottom: 12px;
 }
 

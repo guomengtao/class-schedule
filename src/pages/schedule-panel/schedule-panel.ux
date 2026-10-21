@@ -139,7 +139,7 @@ export default {
    约 8 字一行，原文案要占 6 行（144px），把 7 个栏目整体压下去，故同步精简为 27 字 → 4 行。 */
 .panel-desc {
   font-size: 18px;
-  line-height: 24px;
+  line-height: 26px;
   padding: 0 4px;
   margin-bottom: 12px;
 }

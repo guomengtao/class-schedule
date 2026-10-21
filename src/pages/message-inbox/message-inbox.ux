@@ -757,7 +757,7 @@ export default {
 
 .empty-hint {
   font-size: 18px;
-  line-height: 24px;
+  line-height: 26px;
   text-align: center;
 }
 
@@ -896,7 +896,7 @@ export default {
 
 .manage-hint {
   font-size: 18px;
-  line-height: 24px;
+  line-height: 26px;
   text-align: center;
   padding: 2px 0 8px 0;
 }
