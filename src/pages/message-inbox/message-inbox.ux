@@ -630,7 +630,7 @@ export default {
 }
 
 .back-btn-wrapper {
-  width: 40px;
+  width: 36px;
   height: 36px;
   border-radius: 9px;
   justify-content: center;
@@ -643,12 +643,15 @@ export default {
   height: 20px;
 }
 
+/* 2026-10-21 规则 §七：标题 18→24（页面标题档）。
+   192 宽内容区 164：返回钮 36 + 标题 + 管理钮 44 = 标题可用 84px，
+   「留言板」3 字 ×24 = 72 ✔。为此返回钮 40→36、管理钮 52→44（「管理」2 字 ×20 = 40） */
 .header-title {
   flex: 1;
-  font-size: 18px;
+  font-size: 24px;
   font-weight: bold;
   text-align: center;
-  line-height: 26px;
+  line-height: 30px;
   lines: 1;
   text-overflow: ellipsis;
 }
@@ -660,7 +663,7 @@ export default {
 }
 
 .manage-entry {
-  width: 52px;
+  width: 44px;
   height: 36px;
   border-radius: 9px;
   justify-content: center;
@@ -669,8 +672,8 @@ export default {
 }
 
 .manage-entry-text {
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 20px;
+  line-height: 26px;
 }
 
 /* ---------- 消息区 ---------- */
@@ -696,16 +699,18 @@ export default {
   align-items: flex-end;
 }
 
+/* 时间戳是次要信息：18px（下限档）。原先 12px 在真机上等于没有 */
 .bubble-time {
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 18px;
+  line-height: 22px;
   margin-bottom: 3px;
   margin-left: 4px;
   margin-right: 4px;
 }
 
+/* 140 = 164 − 24 的左右留白余量；气泡正文 20px 后每行 6 字，比原来多 1 字 */
 .bubble {
-  max-width: 132px;
+  max-width: 140px;
   border-radius: 12px;
   padding: 7px 10px;
 }
@@ -723,14 +728,15 @@ export default {
   border-style: dashed;
 }
 
+/* 留言正文：20px 起（正文档）。14px 是这页最刺眼的问题，手环上整段读不了 */
 .bubble-text {
-  font-size: 14px;
-  line-height: 21px;
+  font-size: 20px;
+  line-height: 28px;
 }
 
 .typing-tag {
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 18px;
+  line-height: 22px;
   margin-bottom: 3px;
   margin-left: 4px;
 }
@@ -744,14 +750,14 @@ export default {
 }
 
 .empty-text {
-  font-size: 18px;
-  line-height: 28px;
+  font-size: 22px;
+  line-height: 30px;
   margin-bottom: 6px;
 }
 
 .empty-hint {
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 18px;
+  line-height: 24px;
   text-align: center;
 }
 
@@ -763,9 +769,10 @@ export default {
   padding: 4px 4px;
 }
 
+/* 「共 3 条 · 未读 1」是统计信息 → 18px；「清空」是可点击按钮 → 20px */
 .meta-text {
-  font-size: 12px;
-  line-height: 18px;
+  font-size: 18px;
+  line-height: 24px;
 }
 
 .clear-btn {
@@ -774,8 +781,8 @@ export default {
 }
 
 .clear-btn-text {
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 20px;
+  line-height: 26px;
 }
 
 /* ---------- 回复条 ---------- */
@@ -787,8 +794,8 @@ export default {
 }
 
 .phone-status {
-  font-size: 12px;
-  line-height: 18px;
+  font-size: 18px;
+  line-height: 24px;
   margin-bottom: 8px;
 }
 
@@ -818,9 +825,10 @@ export default {
   align-items: center;
 }
 
+/* 短语是「一点即发送」的主操作文字 → 20px；40px 行高装得下 26 行高 */
 .phrase-text {
-  font-size: 15px;
-  line-height: 22px;
+  font-size: 20px;
+  line-height: 26px;
   lines: 1;
   text-overflow: ellipsis;
 }
@@ -834,8 +842,8 @@ export default {
 }
 
 .write-text {
-  font-size: 15px;
-  line-height: 22px;
+  font-size: 20px;
+  line-height: 26px;
 }
 
 /* ---------- 短语管理（点按展开式） ---------- */
@@ -863,8 +871,8 @@ export default {
 }
 
 .phrase-item-text {
-  font-size: 15px;
-  line-height: 22px;
+  font-size: 20px;
+  line-height: 26px;
 }
 
 .phrase-ops {
@@ -882,13 +890,13 @@ export default {
 }
 
 .phrase-op-text {
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 20px;
+  line-height: 26px;
 }
 
 .manage-hint {
-  font-size: 12px;
-  line-height: 18px;
+  font-size: 18px;
+  line-height: 24px;
   text-align: center;
   padding: 2px 0 8px 0;
 }
@@ -902,8 +910,8 @@ export default {
 }
 
 .add-btn-text {
-  font-size: 15px;
-  line-height: 22px;
+  font-size: 20px;
+  line-height: 26px;
 }
 
 @media (shape: circle) {
@@ -911,7 +919,7 @@ export default {
     padding: 44px 36px 44px 36px;
   }
   .bubble {
-    max-width: 110px;
+    max-width: 116px;
   }
 }
 
@@ -920,7 +928,7 @@ export default {
     padding: 30px 14px 14px 14px;
   }
   .bubble {
-    max-width: 132px;
+    max-width: 140px;
   }
 }
 </style>

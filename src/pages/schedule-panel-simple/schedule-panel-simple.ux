@@ -304,9 +304,10 @@ export default {
   lines: 1;
   text-overflow: ellipsis;
 }
+/* 时间：2026-10-21 规则 §七 抬到 18/22。行高不变——课名 26 + 时间 22 = 48 ≤ 52 */
 .row-time {
-  font-size: 15px;
-  line-height: 19px;
+  font-size: 18px;
+  line-height: 22px;
 }
 
 /* C 空态：占据 B 区，垂直居中 */
@@ -327,7 +328,7 @@ export default {
   .today-title { margin-top: 44px; height: 30px; font-size: 24px; line-height: 30px; }
   .row { height: 56px; }
   .row-name { font-size: 22px; line-height: 28px; }
-  .row-time { font-size: 16px; line-height: 20px; }
+  .row-time { font-size: 20px; line-height: 24px; }
   .empty-box { height: 280px; }
 }
 

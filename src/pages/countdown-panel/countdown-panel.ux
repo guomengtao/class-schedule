@@ -1,0 +1,295 @@
+<!-- 倒数日 · 独立首页栏目（2026-10-21 方案 A）
+     为什么不塞进 index.ux：首页的垂直预算已经被「日期行 + 日导航头 + 状态条 + 课程列表 +
+     底部按钮」占满（模板里留着一条记录：为省 39px 把自定义内容条整块删掉了）。
+     再塞一张条数无上限的卡片列表，只会把「今天上什么课」压下去，属于稀释核心信息，
+     而收益只是「少点一次」。所以按「多彩课表 / 简易课表」同一套做法，
+     做成可从「更多首页」进入、也可被设为独立首页的面板页 —— index.ux 零改动。
+
+     本页只读：点卡片进编辑页（新增/改/删/开关全在 countdown-edit 里），
+     所以这里不带任何常驻按钮，一屏能放 4–5 条。
+     数据口径：只显示 enabled=true 的条目 —— 这正是编辑页「首页显示」开关的消费者。 -->
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="back-header">
+      <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="backClick" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" onclick="backClick" style="color: {{ theme.text }}">倒数日</text>
+      <div if="{{ !isRoot }}" class="header-placeholder"></div>
+    </div>
+
+    <scroll class="list-area" scroll-y="{{ true }}">
+      <block for="{{ list }}">
+        <div class="cd-card" onclick="openItem($item.id)"
+             style="{{ $item.cardBg }}; {{ $item.cardBorder }}">
+          <div class="cd-row">
+            <text class="cd-title" style="color: {{ theme.text }}">{{ $item.title }}</text>
+            <text class="cd-days" style="color: {{ $item.daysColor }}">{{ $item.daysText }}</text>
+          </div>
+          <div class="cd-row">
+            <text class="cd-date" style="color: {{ theme.textSecondary }}">{{ $item.dateDisplay }}</text>
+            <text if="{{ $item.lunarLine }}" class="cd-lunar" style="color: {{ $item.lunarColor }}">{{ $item.lunarLine }}</text>
+          </div>
+        </div>
+      </block>
+
+      <div if="{{ !list.length }}" class="empty-box">
+        <text class="empty-text" style="color: {{ theme.textSecondary }}">{{ emptyText }}</text>
+        <text class="empty-hint" style="color: {{ theme.textMuted }}">{{ emptyHint }}</text>
+      </div>
+
+      <!-- 唯一常驻按钮：进管理页。没有它，条目全关掉后本页就是个死胡同 -->
+      <div class="mg-btn" onclick="openManage" style="background-color: {{ theme.card }}">
+        <text class="mg-text" style="color: {{ theme.accent }}">管理全部</text>
+      </div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const storage = require("@system.storage")
+const countdown = require("../../data/countdown.js")
+const store = require("../../data/store.js")
+
+export default {
+  private: {
+    iconTheme: "dark",
+    fromPanel: "",
+    isRoot: false,
+    list: [],
+    emptyText: "暂无倒数日",
+    emptyHint: "到「管理全部」里添加",
+    theme: {
+      bg: "#1a1a2e",
+      card: "#16213e",
+      accent: "#7ec8e3",
+      text: "#ffffff",
+      textSecondary: "#888899",
+      textMuted: "#555566",
+      border: "#0f3460"
+    }
+  },
+
+  onInit() {
+    var self = this
+    // 与其它面板页同一套 root 判定：被「更多首页」push 时带 fromPanel='1'
+    self.fromPanel = (self.fromPanel === '1') ? '1' : ''
+    self.isRoot = self.fromPanel !== '1'
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.isLight = (themeName === 'light' || themeName === 'warm')
+      self.iconTheme = self.isLight ? 'light' : 'dark'
+      self.loadList()
+    })
+  },
+
+  onShow() {
+    // 从编辑页返回必须重读：标题/日期/颜色/开关都可能被改过
+    this.loadList()
+  },
+
+  loadList() {
+    var self = this
+    countdown.load(function(res) {
+      var all = res.items || []
+      countdown.recompute(all)
+      // 开关的语义在这里落地：只把 enabled=true 的条目搬上面板
+      var shown = []
+      for (var i = 0; i < all.length; i++) {
+        if (all[i].enabled) shown.push(all[i])
+      }
+      countdown.sortForDisplay(shown, "recent")
+      self.decorate(shown)
+      self.list = shown
+      self.emptyText = all.length ? "没有开启显示的条目" : "暂无倒数日"
+      self.emptyHint = all.length ? "到「管理全部」里打开「首页显示」" : "到「管理全部」里添加"
+    })
+  },
+
+  // 派生字段只在本页用：色块底/描边/天数色/农历行，全部由 item 选的颜色的派生
+  decorate(items) {
+    var light = this.isLight
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i]
+      var hex = countdown.colorOf(it)
+      var textColor = countdown.adaptColor(hex, light)
+      it.cardBg = "background-color: " + countdown.tintColor(hex, light ? 0.13 : 0.18)
+      it.cardBorder = "border: 1px solid " + countdown.tintColor(hex, light ? 0.5 : 0.62)
+      if (it.daysLeft < 0) {
+        it.daysText = "已过 " + (-it.daysLeft) + " 天"
+        it.daysColor = this.theme.textMuted
+        it.lunarColor = this.theme.textMuted
+      } else {
+        it.daysText = it.daysLeft === 0 ? "就是今天" : "剩 " + it.daysLeft + " 天"
+        it.daysColor = textColor
+        it.lunarColor = textColor
+      }
+      it.lunarLine = (it.cal === "lunar" && it.lunarText) ? ("农历" + it.lunarText) : ""
+    }
+  },
+
+  // 按 id 进编辑页：列表随时重排，下标不可靠（与 manage 的 openForm 同一口径）
+  openItem(id) {
+    var go = function() { router.push({ uri: "/pages/countdown-edit" }) }
+    storage.set({ key: "cd_edit_id", value: String(id), success: go, fail: go })
+  },
+
+  openManage() {
+    router.push({ uri: "/pages/countdown-manage" })
+  },
+
+  backClick() {
+    if (this.fromPanel === '1') {
+      router.back()
+    } else {
+      // 作为独立首页（root）时没有返回栈，退回「更多首页」
+      router.push({ uri: "/pages/schedule-panel" })
+    }
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 44px 12px 12px 12px;
+}
+
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+.back-btn-wrapper {
+  width: 40px;
+  height: 36px;
+  border-radius: 9px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.back-btn-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* 页面标题 24px（规则 §七 标题档）；164 内容区里「倒数日」3 字 = 72px */
+.header-title {
+  flex: 1;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 32px;
+}
+
+.header-placeholder {
+  width: 40px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.list-area {
+  flex: 1;
+  flex-direction: column;
+}
+
+/* 卡片 64px：标题行 26 + 日期行 22 + 上下内边距 16。一屏 4 张 + 管理按钮 */
+.cd-card {
+  flex-direction: column;
+  width: 100%;
+  border-radius: 12px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+
+.cd-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* 标题 22（列表主文字档），与天数同排：144 − 「剩 322 天」约 76 → 标题可用 68px，3 字 */
+.cd-title {
+  font-size: 22px;
+  line-height: 26px;
+  flex-shrink: 1;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.cd-days {
+  font-size: 22px;
+  line-height: 26px;
+  font-weight: bold;
+  flex-shrink: 0;
+  margin-left: 6px;
+}
+
+.cd-date {
+  font-size: 18px;
+  line-height: 22px;
+}
+
+.cd-lunar {
+  font-size: 18px;
+  line-height: 22px;
+  flex-shrink: 0;
+  margin-left: 6px;
+}
+
+.empty-box {
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 6px 10px 6px;
+}
+
+.empty-text {
+  font-size: 22px;
+  line-height: 30px;
+  text-align: center;
+}
+
+.empty-hint {
+  font-size: 18px;
+  line-height: 24px;
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* 管理入口：贴着列表末尾，不抢首屏 */
+.mg-btn {
+  height: 40px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.mg-text {
+  font-size: 20px;
+  line-height: 26px;
+}
+
+@media (width >= 200px) {
+  .page { padding: 44px 16px 14px 16px; }
+  .cd-title { font-size: 24px; line-height: 28px; }
+  .cd-days { font-size: 24px; line-height: 28px; }
+  .cd-card { padding: 10px 12px; }
+}
+
+@media (width >= 400px) {
+  .page { padding: 12px 20px 16px 20px; }
+  .cd-title { font-size: 28px; line-height: 34px; }
+  .cd-days { font-size: 28px; line-height: 34px; }
+  .cd-date { font-size: 20px; line-height: 26px; }
+  .cd-lunar { font-size: 20px; line-height: 26px; }
+}
+</style>

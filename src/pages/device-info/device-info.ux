@@ -258,8 +258,10 @@ export default {
   padding: 6px 0;
 }
 
+/* 2026-10-21 规则 §七：14px → 18px。标签都是 4–5 字（设备型号/屏幕分辨率），
+   18px 下最宽 90px，值仍独占整行 164px，两行成对的结构不变 */
 .lbl {
-  font-size: 14px;
+  font-size: 18px;
   letter-spacing: 1px;
 }
 
@@ -339,7 +341,7 @@ export default {
 /*
  * 胶囊屏（9 标准版 192×490，r96 标准跑道形）：
  *   安全区 y≥38 / 侧边 14px / 内容宽 164px
- *   字号全局统一：标签 14px、值 18px，两行成对，
+ *   字号全局统一：标签 18px、值 18px，两行成对，
  *   长值自动换行，不截断
  */
 @media screen and (shape: pill-shaped) {

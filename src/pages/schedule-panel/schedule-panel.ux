@@ -16,7 +16,7 @@
           <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">更多首页</text>
         </div>
 
-        <text class="panel-desc" style="color: {{ theme.textMuted }}">这里的每个栏目都是一个独立的课表首页，可长期当作首页使用；默认首页不受影响。</text>
+        <text class="panel-desc" style="color: {{ theme.textMuted }}">每个栏目都可当独立首页长期使用，默认首页不受影响。</text>
 
         <div class="section" style="background-color: {{ theme.card }}">
           <block for="{{ items }}">
@@ -134,10 +134,12 @@ export default {
   line-height: 36px;
 }
 
-/* 目录页定位说明（「更多首页」改名配套）：14px/20px 行高、次要色，164px 宽约 11 字一行自动折 3 行 */
+/* 目录页定位说明（「更多首页」改名配套）：18px/24px 行高、次要色。
+   2026-10-21 按规则 §七 抬字号：14px 真实手环上不可读。抬到 18 后 156px 宽
+   约 8 字一行，原文案要占 6 行（144px），把 7 个栏目整体压下去，故同步精简为 27 字 → 4 行。 */
 .panel-desc {
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 18px;
+  line-height: 24px;
   padding: 0 4px;
   margin-bottom: 12px;
 }

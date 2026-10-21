@@ -272,21 +272,23 @@ export default {
 .back-btn-icon { width: 24px; height: 24px }
 .header-center { flex: 1; flex-direction: column; align-items: center; justify-content: center }
 .header-title { font-size: 24px; font-weight: bold; line-height: 32px; text-align: center }
-.header-day { font-size: 15px; line-height: 20px; text-align: center; margin-top: 2px; lines: 1 }
+.header-day { font-size: 18px; line-height: 22px; text-align: center; margin-top: 2px; lines: 1 }
 .header-placeholder { width: 48px; height: 40px; flex-shrink: 0 }
 
 /* 切天箭头：替代 @swipe 手势（drag 会被本引擎误判成点击 → 跳页）。
-   20×20 是算出来的：7×16 + 2×20 = 152 ≤ 168，再大就挤爆星期条（实拍踩过）。 */
-.arrow-btn { width: 20px; height: 20px; border-radius: 5px; justify-content: center; align-items: center; flex-shrink: 0 }
-.arrow-icon { font-size: 15px; line-height: 18px; text-align: center; font-weight: bold }
+   几何是算出来的（2026-10-21 字号抬到 18 后重算）：
+   星期条 7 格 ×18 + 箭头 2×20 = 166 ≤ 168，剩 2px 余量；
+   高度 20→26 是为了装下 18px 字的 22 行高，否则箭头字形被裁。 */
+.arrow-btn { width: 20px; height: 26px; border-radius: 5px; justify-content: center; align-items: center; flex-shrink: 0 }
+.arrow-icon { font-size: 18px; line-height: 22px; text-align: center; font-weight: bold }
 
 .empty-hint { flex: 1; align-items: center; justify-content: center; font-size: 22px; line-height: 30px; text-align: center }
 
-/* A 星期条：130–158，7 格各 16px（7×16 + 2×28 箭头 + 间距 = 168） */
+/* A 星期条：130–158，7 格各 18px（7×18 + 2×20 箭头 = 166 ≤ 168） */
 .week-strip { flex-direction: row; justify-content: space-between; align-items: center; height: 28px; flex-shrink: 0 }
-.week-cell { width: 16px; height: 28px; justify-content: center; align-items: center }
+.week-cell { width: 18px; height: 28px; justify-content: center; align-items: center }
 .week-cell.is-current { border-bottom-width: 2px; border-bottom-style: solid; border-bottom-color: #7ec8e3 }
-.week-text { font-size: 15px; line-height: 20px; text-align: center }
+.week-text { font-size: 18px; line-height: 22px; text-align: center }
 
 /* B 课表格：3 列 × 5 行，格 52×56，列间距 6（3×52+2×6=168）。
    行高 56 是算出来的：页头 44+120+8=172 → 星期条 28 → 网格起点 200；5×64=320 会到 520 **超出 490**，
@@ -295,7 +297,9 @@ export default {
 .grid-row { flex-direction: row; justify-content: space-between; height: 56px; margin-bottom: 0 }
 .grid-cell { width: 52px; height: 56px; border-radius: 8px; padding: 3px; justify-content: flex-start; align-items: center; box-sizing: border-box }
 .grid-cell.is-now { border-width: 2px; border-style: solid; border-color: #7ec8e3 }
-.cell-name { font-size: 15px; line-height: 17px; text-align: center; lines: 2; text-overflow: ellipsis; width: 100% }
+/* 格内课名：18/20，2 行 = 40 + padding 6 = 46 ≤ 格高 56；格宽 52 − padding 6 = 46，
+   18px 汉字每行 2 字，4 字课名正好两行（再长由 ellipsis 收）。 */
+.cell-name { font-size: 18px; line-height: 20px; text-align: center; lines: 2; text-overflow: ellipsis; width: 100% }
 
 
 /* 宽屏 / 大屏断点：等比放大，比例不变 */
@@ -303,8 +307,8 @@ export default {
   .page { padding: 44px 16px 14px 16px }
   .header-title { font-size: 28px; line-height: 36px }
   .arrow-btn { width: 24px; height: 24px }
-  .week-cell { width: 20px; height: 32px }
+  .week-cell { width: 22px; height: 32px }
   .grid-cell { width: 60px; height: 64px }
-  .cell-name { font-size: 17px; line-height: 19px }
+  .cell-name { font-size: 20px; line-height: 22px }
 }
 </style>
