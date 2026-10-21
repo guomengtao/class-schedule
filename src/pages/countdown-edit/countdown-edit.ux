@@ -1,127 +1,92 @@
-<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-
-    <!-- ============ 表单态（进页默认形态，此时键盘子树不建） ============ -->
-    <div class="form-wrap" if="{{ mode === 'form' }}">
-      <div class="header">
-        <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-          <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
-        </div>
-        <text class="header-title" style="color: {{ theme.text }}">{{ pageTitle }}</text>
+    <div class="header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
+      <text class="header-title" style="color: {{ theme.text }}">{{ pageTitle }}</text>
+    </div>
 
-      <!-- 名称：整行热区，点击就地弹键盘（不跳页） -->
-      <div class="field">
-        <text class="field-label" style="color: {{ theme.textSecondary }}">名称</text>
-        <div class="name-row" onclick="openKeyboard" style="background-color: {{ theme.card }}">
-          <text class="name-value" if="{{ title.length }}" style="color: {{ theme.text }}">{{ title }}</text>
-          <text class="name-placeholder" if="{{ !title.length }}" style="color: {{ theme.textMuted }}">点此输入名称</text>
-          <text class="name-arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
-        <text class="err-text" if="{{ errMsg.length }}" style="color: {{ theme.deleteText }}">{{ errMsg }}</text>
+    <!-- 名称：跳统一的中文输入页（全项目只有这一个输入页、只打一份词典），
+         本页不再内嵌 input-method 组件 —— 多一个宿主就多一份崩溃面，
+         且页面 bundle 会平白膨胀（2026-10-21 决策变更，撤销方案 B） -->
+    <div class="field">
+      <text class="field-label" style="color: {{ theme.textSecondary }}">名称</text>
+      <div class="name-row" onclick="openInputPage" style="background-color: {{ theme.card }}">
+        <text class="name-value" if="{{ title.length }}" style="color: {{ theme.text }}">{{ title }}</text>
+        <text class="name-placeholder" if="{{ !title.length }}" style="color: {{ theme.textMuted }}">点此输入名称</text>
+        <text class="name-arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
+      <text class="err-text" if="{{ errMsg.length }}" style="color: {{ theme.deleteText }}">{{ errMsg }}</text>
+    </div>
 
-      <!-- 日期：页内三列步进器，取代全屏 picker 页 -->
-      <div class="field">
-        <text class="field-label" style="color: {{ theme.textSecondary }}">日期</text>
-        <div class="stepper" style="background-color: {{ theme.card }}">
-          <div class="step-col">
-            <div class="step-btn" onclick="decYear" style="background-color: {{ theme.keyBg }}">
-              <text class="step-sign" style="color: {{ theme.accent }}">−</text>
-            </div>
-            <text class="step-val" style="color: {{ theme.text }}">{{ yearNum }}</text>
-            <div class="step-btn" onclick="incYear" style="background-color: {{ theme.keyBg }}">
-              <text class="step-sign" style="color: {{ theme.accent }}">＋</text>
-            </div>
+    <!-- 日期：页内三列步进器，取代全屏 picker 页 -->
+    <div class="field">
+      <text class="field-label" style="color: {{ theme.textSecondary }}">日期</text>
+      <div class="stepper" style="background-color: {{ theme.card }}">
+        <div class="step-col">
+          <div class="step-btn" onclick="decYear" style="background-color: {{ theme.keyBg }}">
+            <text class="step-sign" style="color: {{ theme.accent }}">−</text>
           </div>
-          <div class="step-col">
-            <div class="step-btn" onclick="decMonth" style="background-color: {{ theme.keyBg }}">
-              <text class="step-sign" style="color: {{ theme.accent }}">−</text>
-            </div>
-            <text class="step-val" style="color: {{ theme.text }}">{{ monthNum }}</text>
-            <div class="step-btn" onclick="incMonth" style="background-color: {{ theme.keyBg }}">
-              <text class="step-sign" style="color: {{ theme.accent }}">＋</text>
-            </div>
-          </div>
-          <div class="step-col">
-            <div class="step-btn" onclick="decDay" style="background-color: {{ theme.keyBg }}">
-              <text class="step-sign" style="color: {{ theme.accent }}">−</text>
-            </div>
-            <text class="step-val" style="color: {{ theme.text }}">{{ dayNum }}</text>
-            <div class="step-btn" onclick="incDay" style="background-color: {{ theme.keyBg }}">
-              <text class="step-sign" style="color: {{ theme.accent }}">＋</text>
-            </div>
+          <text class="step-val" style="color: {{ theme.text }}">{{ yearNum }}</text>
+          <div class="step-btn" onclick="incYear" style="background-color: {{ theme.keyBg }}">
+            <text class="step-sign" style="color: {{ theme.accent }}">＋</text>
           </div>
         </div>
-        <text class="date-preview" style="color: {{ theme.accent }}">{{ dateStr }} · {{ daysText }}</text>
-      </div>
-
-      <div class="action-row">
-        <div class="save-btn" onclick="doSave" style="background-color: {{ canSave ? theme.accent : theme.btnSecondary }}">
-          <text class="save-label" style="color: {{ canSave ? theme.bg : theme.btnSecondaryText }}">保存</text>
+        <div class="step-col">
+          <div class="step-btn" onclick="decMonth" style="background-color: {{ theme.keyBg }}">
+            <text class="step-sign" style="color: {{ theme.accent }}">−</text>
+          </div>
+          <text class="step-val" style="color: {{ theme.text }}">{{ monthNum }}</text>
+          <div class="step-btn" onclick="incMonth" style="background-color: {{ theme.keyBg }}">
+            <text class="step-sign" style="color: {{ theme.accent }}">＋</text>
+          </div>
+        </div>
+        <div class="step-col">
+          <div class="step-btn" onclick="decDay" style="background-color: {{ theme.keyBg }}">
+            <text class="step-sign" style="color: {{ theme.accent }}">−</text>
+          </div>
+          <text class="step-val" style="color: {{ theme.text }}">{{ dayNum }}</text>
+          <div class="step-btn" onclick="incDay" style="background-color: {{ theme.keyBg }}">
+            <text class="step-sign" style="color: {{ theme.accent }}">＋</text>
+          </div>
         </div>
       </div>
+      <text class="date-preview" style="color: {{ theme.accent }}">{{ dateStr }} · {{ daysText }}</text>
+    </div>
 
-      <div class="action-row" if="{{ mode === 'edit' }}">
-        <div class="del-btn" onclick="doDelete" style="background-color: {{ delConfirm ? theme.deleteText : theme.deleteBg }}">
-          <text class="save-label" style="color: {{ delConfirm ? theme.bg : theme.deleteText }}">{{ delConfirm ? '确认删除' : '删除' }}</text>
-        </div>
+    <div class="action-row">
+      <div class="save-btn" onclick="doSave" style="background-color: {{ canSave ? theme.accent : theme.btnSecondary }}">
+        <text class="save-label" style="color: {{ canSave ? theme.bg : theme.btnSecondaryText }}">保存</text>
       </div>
     </div>
 
-    <!-- ============ 键盘态（点名称行后进入，表单整块不渲染） ============ -->
-    <div class="typing-wrap" if="{{ mode === 'typing' }}">
-      <div class="header">
-        <div class="back-btn-wrapper" onclick="closeKeyboard" style="background-color: {{ theme.card }}">
-          <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
-        </div>
-        <text class="header-title" style="color: {{ theme.text }}">名称</text>
-      </div>
-
-      <div class="input-display" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
-        <text class="input-text" if="{{ title.length }}" style="color: {{ theme.text }}">{{ title }}</text>
-        <text class="input-placeholder" if="{{ !title.length }}" style="color: {{ theme.textMuted }}">输入名称（≤{{ maxLen }}字）</text>
-        <div class="cursor" style="background-color: {{ theme.text }}"></div>
-      </div>
-
-      <!-- 宿主容器规则（D1）：普通 div + flex:1 + flex-direction:column + width:100%
-           禁止 scroll 包裹（会让键盘内部 absolute 定位退化到内容宽、塌缩到左下角） -->
-      <div class="ime-host">
-        <input-method
-          hide="{{ false }}"
-          keyboardtype="QWERTY"
-          maxlength="{{ maxLen }}"
-          vibratemode="short"
-          screentype="{{ screenType }}"
-          dictionarypath="/components/InputMethod/assets/dictionary/"
-          oncomplete="onCharacter"
-          ondelete="onDeleteChar"
-        ></input-method>
+    <!-- 编辑态删除：原判据写的是 mode==='edit'，而 mode 只有 form/typing，
+         恒为假 → 编辑页从来没有删除入口。改按 editId 判断（2026-10-21 修） -->
+    <div class="action-row" if="{{ editId.length }}">
+      <div class="del-btn" onclick="doDelete" style="background-color: {{ delConfirm ? theme.deleteText : theme.deleteBg }}">
+        <text class="save-label" style="color: {{ delConfirm ? theme.bg : theme.deleteText }}">{{ delConfirm ? '确认删除' : '删除' }}</text>
       </div>
     </div>
-
   </div>
 </template>
 
 <script>
 import router from "@system.router"
-import device from "@system.device"
 var storage = require("@system.storage")
 const countdown = require("../../data/countdown.js")
 const store = require("../../data/store.js")
 
 var EDIT_ID_KEY = "cd_edit_id"      // 列表页写入：要编辑的条目 id（add 模式不写）
+var NAME_RESULT_KEY = "cd_edit_name"  // chinese-input 回填本页名称用的键
 var DELAY_MS = 5000                 // 删除二次确认窗口
 
 export default {
   private: {
-    mode: "form",            // form | typing
     pageTitle: "添加倒数日",
     editId: "",
     title: "",
     maxLen: "6",
-    screenType: "pill-shaped",
     iconTheme: "dark",
     errMsg: "",
     delConfirm: false,
@@ -157,24 +122,6 @@ export default {
       self.theme = t
       self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
     })
-    try {
-      device.getInfo({
-        success: function(data) {
-          var shape = data.screenShape || ""
-          if (shape === "capsule") shape = "pill-shaped"
-          // 实测（2026-10-21，模拟器 evc-xiaomi_band-buddy-1）：device.getInfo 可能不返
-          // screenShape，此时若沿用旧兜底 "circle"，组件会按 480×321 圆表布局渲染，
-          // 在 192 宽屏上右侧被裁掉一半（只看得见 QWE/ASD/ZX）。改为按屏宽推断：
-          // 本产品 192×490 为胶囊屏，≥400 宽才视为老圆屏。
-          if (shape !== "rect" && shape !== "pill-shaped" && shape !== "circle") {
-            var w = data.screenWidth || data.width || 0
-            shape = (w && w >= 400) ? "circle" : "pill-shaped"
-          }
-          self.screenType = shape
-        },
-        fail: function() {}
-      })
-    } catch (e) {}
 
     // 日期默认今天
     var now = new Date()
@@ -203,6 +150,43 @@ export default {
         self.pageTitle = "添加倒数日"
       }
     })
+  },
+
+  onShow() {
+    // 从 chinese-input 返回时回填；其它情况读不到值，保持原样
+    this.drainName()
+  },
+
+  drainName() {
+    var self = this
+    storage.get({
+      key: NAME_RESULT_KEY,
+      success: function(data) {
+        if (data !== null && data !== undefined) {
+          self.title = String(data)
+          self.errMsg = ""
+          self.refreshCanSave()
+          // 立即清掉，避免下次进页误用上一次的结果
+          storage.delete({ key: NAME_RESULT_KEY, success: function() {}, fail: function() {} })
+        }
+      },
+      fail: function() {}
+    })
+  },
+
+  // 跳统一输入页：参数走 storage，返回键单独指定，避免与其它调用方串值
+  openInputPage() {
+    var self = this
+    var max = this.maxLen
+    storage.set({ key: "chinese_input_title", value: "输入名称", success: function() {} })
+    storage.set({ key: "chinese_input_placeholder", value: "输入名称（≤" + max + "字）", success: function() {} })
+    storage.set({ key: "chinese_input_value", value: self.title, success: function() {} })
+    storage.set({ key: "chinese_input_maxlen", value: max, success: function() {} })
+    storage.set({ key: "chinese_input_return_key", value: NAME_RESULT_KEY, success: function() {
+      router.push({ uri: "/pages/chinese-input" })
+    }, fail: function() {
+      router.push({ uri: "/pages/chinese-input" })
+    }})
   },
 
   loadItem(id) {
@@ -297,42 +281,7 @@ export default {
   },
 
   refreshCanSave() {
-    this.canSave = this.title.replace(/\s/g, "").length > 0
-  },
-
-  // ---- 两态切换 ----
-  openKeyboard() {
-    this.mode = "typing"
-  },
-
-  closeKeyboard() {
-    this.mode = "form"
-    this.refreshCanSave()
-  },
-
-  // ---- 键盘事件边界（D3）：任何异常都退回表单态，保证用户有出路 ----
-  onCharacter(e) {
-    try {
-      if (e && e.detail && e.detail.content) {
-        var max = parseInt(this.maxLen) || 6
-        if (this.title.length < max) {
-          this.title = this.title + e.detail.content
-          this.errMsg = ""
-        }
-      }
-    } catch (err) {
-      this.mode = "form"
-    }
-  },
-
-  onDeleteChar() {
-    try {
-      if (this.title.length > 0) {
-        this.title = this.title.slice(0, this.title.length - 1)
-      }
-    } catch (err) {
-      this.mode = "form"
-    }
+    this.canSave = String(this.title || "").replace(/\s/g, "").length > 0
   },
 
   // ---- 保存 ----
@@ -345,7 +294,7 @@ export default {
     }
     countdown.load(function(res) {
       var items = res.items || []
-      if (self.mode === "form" && self.editId) {
+      if (self.editId) {
         var idx = countdown.findIndexById(items, self.editId)
         if (idx >= 0) {
           items[idx].title = name
@@ -408,9 +357,10 @@ export default {
 
 /* ================================================================
    胶囊屏 192×490 基准（内容区 168），不依赖 media query 命中手环 9。
-   高度预算：header 42 + 名称块 70 + 日期块 140 + 保存 48 (+编辑态删除 56)
-            ≈ 300 / 490，余量充足；键盘态 42 + 50 + 305 = 397 / 490。
+   高度预算：header 42 + 名称块 70 + 日期块 140 + 保存 48 (+编辑态删除 50)
+            ≈ 300 / 490，余量充足。
    铁律：禁 @media screen and；只用 (shape: rect) 做大屏增量。
+   本页不承载键盘（跳 chinese-input），因此没有 ime-host 相关样式。
    ================================================================ */
 
 .page {
@@ -418,18 +368,6 @@ export default {
   flex-direction: column;
   width: 100%;
   padding: 24px 12px 12px 12px;
-}
-
-.form-wrap {
-  flex: 1;
-  flex-direction: column;
-  width: 100%;
-}
-
-.typing-wrap {
-  flex: 1;
-  flex-direction: column;
-  width: 100%;
 }
 
 .header {
@@ -594,43 +532,6 @@ export default {
   font-size: 20px;
   line-height: 26px;
   text-align: center;
-}
-
-/* ---- 键盘态 ---- */
-.input-display {
-  flex-direction: row;
-  align-items: center;
-  width: 100%;
-  min-height: 44px;
-  padding: 0 10px;
-  border-radius: 10px;
-  border-width: 2px;
-  margin-bottom: 4px;
-  flex-shrink: 0;
-}
-
-.input-text {
-  font-size: 22px;
-  line-height: 28px;
-  margin-right: 2px;
-}
-
-.input-placeholder {
-  font-size: 16px;
-  line-height: 22px;
-}
-
-.cursor {
-  width: 2px;
-  height: 24px;
-  flex-shrink: 0;
-}
-
-/* D1 宿主规则：普通 div，显式满宽满高，不用 scroll 包裹 */
-.ime-host {
-  flex: 1;
-  flex-direction: column;
-  width: 100%;
 }
 
 /* 大屏增量：只放大热区，不改字号体系 */

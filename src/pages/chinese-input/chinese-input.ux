@@ -5,7 +5,9 @@
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">{{ pageTitle }}</text>
+      <!-- 标题即返回热区：flex:1 已铺满 header 中间整段（约 192-48-48=96 宽 × 48 高），
+           比左上角 32px 小图标好按得多，手环窄屏上尤其明显（2026-10-21 加） -->
+      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">{{ pageTitle }}</text>
       <div class="header-placeholder"></div>
     </div>
 
@@ -214,7 +216,7 @@ export default {
 }
 
 .back-btn-wrapper {
-  width: 48px;
+  width: 36px;
   height: 48px;
   border-radius: 10px;
   justify-content: center;
@@ -223,24 +225,29 @@ export default {
 }
 
 .back-btn-icon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
 }
 
+/* 标题同时是返回热区。字号从 26 降到 20：192 屏上 header 中间只剩
+   192-8(padding)-36-36 ≈ 112px，26px 字号只够 3 字，「添加倒数日」会被
+   截成「添加...」，用户点它返回时看不见完整标题。 */
 .header-title {
   flex: 1;
-  font-size: 26px;
+  font-size: 20px;
   font-weight: bold;
   text-align: center;
-  line-height: 34px;
+  line-height: 26px;
+  padding: 11px 4px;
   lines: 1;
   text-overflow: ellipsis;
 }
 
+/* 与左侧返回按钮等宽，否则标题会整体偏左；同宽才能真居中 */
 .header-placeholder {
-  width: 0;
-  height: 0;
-  margin: 0;
+  width: 36px;
+  height: 48px;
+  flex-shrink: 0;
 }
 
 .input-display {
@@ -264,8 +271,10 @@ export default {
   align-items: center;
 }
 
+/* 24 → 18：调用方会传「输入名称（≤6字）」这类长提示，24px 在 168 宽里
+   会折成两行把输入框撑高，18px 一行放得下 */
 .input-placeholder {
-  font-size: 24px;
+  font-size: 18px;
 }
 
 .input-char {
