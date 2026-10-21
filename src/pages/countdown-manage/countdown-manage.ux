@@ -25,13 +25,16 @@
           <text class="cd-group-label" style="color: {{ theme.textMuted }}">已结束</text>
         </div>
         <!-- 卡片只承载「读」：标题 / 天数 / 进度 / 日期。
-             开关、编辑、删除全部收进点击后弹出的详情层 ——
-             它们常驻时每张卡要多占 68px（40 操作排 + 28 开关行），
-             一屏从 3 条掉到 2 条，且每个卡片都是「一坨按钮」，读起来很吵。
-             2026-10-21：底色/描边/天数/进度条全部取用户选的颜色（item 级），
+             开关、编辑、删除一律不进列表卡：它们常驻时每张卡要多占 68px
+             （40 操作排 + 28 开关行），一屏从 3 条掉到 2 条，
+             且每个卡片都是「一坨按钮」，读起来很吵。
+             2026-10-21 二审：原来的「点卡片弹详情层再点编辑」已删 ——
+             一次点击进不了的层级就是多余层级，卡片点击直接进编辑页，
+             删除与「首页显示」开关都在编辑页里，弹层的存在只为多一层。
+             底色/描边/天数/进度条全部取用户选的颜色（item 级），
              让「生日」「考试」「出行」在列表里一眼分得开。 -->
         <div class="countdown-row" style="{{ item.cardBg }}; opacity: {{ item.enabled ? 1 : 0.5 }}; {{ item.cardBorder }}"
-             onclick="openDetail(idx)">
+             onclick="openForm(item.id)">
           <div class="cd-head">
             <text class="cd-title" style="color: {{ theme.text }}">{{ item.title }}</text>
             <text if="{{ !item.enabled }}" class="cd-off-tag" style="color: {{ theme.textMuted }}">已关闭</text>
@@ -57,49 +60,6 @@
         <text class="btn-label" style="color: {{ theme.bg }}">+ 添加倒数日</text>
       </div>
     </scroll>
-
-    <!-- 详情弹层：模态，只保留一个显式出口（右上角 ×）。
-         改版前是「删除 | 关闭」两个并排文字按钮，加上点遮罩也能关 —— 三个出口
-         语义全打架，点哪个都像"离开"，删除的二次确认还挤在同一行，误删过。
-         现在：编辑 = 大按钮，删除 = 垃圾桶图标（形状与 × 完全不同，
-         不再和"关闭"长得像一对），关闭只剩 × 一个。 -->
-    <div if="{{ detailVisible }}" class="detail-mask" onclick="closeDetail">
-      <div class="detail-panel" style="background-color: {{ theme.card }}" onclick="detailStop($event)">
-        <div class="detail-close" onclick="closeDetail">
-          <text class="detail-close-x" style="color: {{ theme.textSecondary }}">×</text>
-        </div>
-        <div class="detail-arc-wrap">
-          <progress class="detail-arc" type="arc" percent="{{ detailItem.arcPercent }}"
-                    color="{{ detailItem.arcColor }}" backgroundcolor="{{ theme.borderLight }}" stroke-width="12" />
-          <div class="detail-arc-center">
-            <text class="detail-arc-num" style="color: {{ detailItem.daysColor }}">{{ detailItem.daysText }}</text>
-          </div>
-        </div>
-        <text class="detail-title" style="color: {{ theme.text }}">{{ detailItem.title }}</text>
-        <text class="detail-date" style="color: {{ theme.textSecondary }}">{{ detailItem.dateDisplay }}</text>
-        <text if="{{ detailItem.lunarLine }}" class="detail-date" style="color: {{ theme.textMuted }}">{{ detailItem.lunarLine }}</text>
-        <div class="detail-actions">
-          <div class="action-btn detail-edit" onclick="editFromDetail"
-               style="background-color: {{ theme.accent }}">
-            <text class="btn-label" style="color: {{ theme.bg }}">编辑</text>
-          </div>
-          <div class="detail-del-btn" onclick="deleteFromDetail"
-               style="background-color: {{ detailDeleteConfirm ? theme.deleteText : theme.deleteBg }}">
-            <image if="{{ !detailDeleteConfirm }}" class="detail-del-icon"
-                   src="/common/icons/{{ iconTheme }}/icon_trash.png"></image>
-            <text if="{{ detailDeleteConfirm }}" class="detail-del-confirm"
-                  style="color: {{ theme.text }}">确认</text>
-          </div>
-        </div>
-        <div class="detail-actions detail-switch-row">
-          <text class="detail-switch-label" style="color: {{ theme.textSecondary }}">首页显示</text>
-          <div class="switch-btn detail-switch" onclick="toggleFromDetail"
-               style="background-color: {{ detailItem.enabled ? theme.accent : theme.btnSecondary }}">
-            <text class="switch-label" style="color: {{ detailItem.enabled ? theme.bg : theme.btnSecondaryText }}">{{ detailItem.enabled ? 'ON' : 'OFF' }}</text>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -108,9 +68,6 @@ import router from "@system.router"
 var storage = require("@system.storage")
 const countdown = require("../../data/countdown.js")
 const store = require("../../data/store.js")
-
-var NAME_RETURN_KEY = "countdown_name_result"
-var DATE_RETURN_KEY = "countdown_date_result"
 
 export default {
   private: {
@@ -136,20 +93,7 @@ export default {
     countdownList: [],
     sortRecent: true,
     clearAllConfirm: false,
-    deleteConfirmIndex: -1,
-    deleteTimer: null,
-    clearTimer: null,
-    isCapsule: false,
-    flowMode: "idle",
-    flowStep: "idle",
-    editIdx: -1,
-    pendingTitle: "",
-    pendingDate: "",
-    detailVisible: false,
-    detailIdx: -1,
-    detailItem: null,
-    detailDeleteConfirm: false,
-    detailTimer: null
+    clearTimer: null
   },
 
   onInit() {
@@ -161,69 +105,19 @@ export default {
       self.iconTheme = self.isLight ? 'light' : 'dark'
       self.loadList()
     })
-    try {
-      var device = require("@system.device")
-      device.getInfo({
-        success: function(data) {
-          var shape = data.screenShape || ""
-          if (shape === "capsule" || shape === "pill-shaped") self.isCapsule = true
-        },
-        fail: function() {}
-      })
-    } catch (e) {}
   },
 
   onShow() {
-    var self = this
-    // 旧三段式接力的残留消费（flowStep 恒为 idle，实际不生效），保留仅为兼容历史跳转
-    this.drainName()
-    this.drainDate()
-    // 2026-10-21：从 countdown-edit 表单页返回后必须重读数据，否则新增/编辑不可见
+    // 2026-10-21：从 countdown-edit 表单页返回后必须重读数据，否则新增/编辑不可见。
+    // 原来的 drainName/drainDate（旧三段式接力的返回键消费）已删：
+    // flowStep 恒为 idle，它们只是每次进页白跑两次 storage.get。
     this.loadList()
   },
 
-  drainName: function() {
-    var self = this
-    storage.get({
-      key: NAME_RETURN_KEY,
-      success: function(data) {
-        if (self.flowStep === "await_name" && data !== undefined && data !== null && data !== "") {
-          storage.delete({ key: NAME_RETURN_KEY, fail: function() {} })
-          self.pendingTitle = String(data).trim()
-          self.flowStep = "await_date"
-          self.openDatePage()
-        } else {
-          if (self.flowStep === "await_name") self.flowStep = "idle"
-        }
-      },
-      fail: function() {
-        if (self.flowStep === "await_name") self.flowStep = "idle"
-      }
-    })
-  },
-
-  drainDate: function() {
-    var self = this
-    storage.get({
-      key: DATE_RETURN_KEY,
-      success: function(data) {
-        if (self.flowStep === "await_date" && data && /^\d{4}-\d{2}-\d{2}$/.test(String(data))) {
-          storage.delete({ key: DATE_RETURN_KEY, fail: function() {} })
-          self.pendingDate = String(data)
-          self.finalizeFlow()
-        } else {
-          if (self.flowStep === "await_date") self.flowStep = "idle"
-        }
-      },
-      fail: function() {
-        if (self.flowStep === "await_date") self.flowStep = "idle"
-      }
-    })
-  },
-
   // 2026-10-21 改版：添加/编辑统一进 countdown-edit 表单页（进入即表单，0 跳转）。
+  // 列表卡片的点击直接走这里（不再经过详情弹层）。
   // 旧的「chinese-input → countdown-date」三段式接力（flowStep 状态机 + 5 个 storage 键）
-  // 已停用：任一步返回都会丢数据，且用户感知为「点了没反应」。
+  // 已整体删除：任一步返回都会丢数据，且用户感知为「点了没反应」。
   openForm(id) {
     var uri = "/pages/countdown-edit"
     var go = function() { router.push({ uri: uri }) }
@@ -239,43 +133,9 @@ export default {
     this.openForm("")
   },
 
-  startEdit(idx) {
-    var item = this.countdownList[idx]
-    if (!item) return
-    this.openForm(item.id)
-  },
-
-  openDatePage() {
-    var self = this
-    var preset = ""
-    if (this.flowMode === "edit" && this.editIdx >= 0 && this.countdownList[this.editIdx]) {
-      preset = this.countdownList[this.editIdx].date || ""
-    }
-    storage.set({ key: "cd_date_preset", value: preset, success: function() {} })
-    storage.set({ key: "cd_date_return_key", value: DATE_RETURN_KEY, success: function() {
-      router.push({ uri: "/pages/countdown-date" })
-    }})
-  },
-
-  finalizeFlow() {
-    var self = this
-    var list = this.countdownList.slice()
-    if (this.flowMode === "add") {
-      list.push({ id: countdown.newId(), title: this.pendingTitle, date: this.pendingDate, enabled: true, createdAt: Date.now() })
-    } else if (this.flowMode === "edit") {
-      var it = list[this.editIdx]
-      if (it) {
-        it.title = this.pendingTitle
-        if (this.pendingDate) it.date = this.pendingDate
-      }
-    }
-    this.flowMode = "idle"
-    this.flowStep = "idle"
-    this.persistList(list)
-  },
-
-  // cb 可选：详情层的开关改完要在列表重排后再按下标定位，需要拿到新列表
-  loadList(cb) {
+  // 列表只读，重排/重算后不再需要回调定位 —— 弹层的「原地保持下标」随着
+  // 弹层一起删了（曾用 cb 把重排后的新下标回填给 detailIdx）
+  loadList() {
     var self = this
     countdown.load(function(res) {
       var items = res.items
@@ -283,7 +143,6 @@ export default {
       countdown.sortForDisplay(items, self.sortRecent ? "recent" : "name")
       self.decorate(items)
       self.countdownList = items
-      if (cb) cb(items)
     })
   },
 
@@ -306,12 +165,10 @@ export default {
         it.daysText = "已过 " + (-d) + " 天"
         it.daysColor = this.theme.textMuted
         it.barBg = "background-color: " + this.theme.textMuted
-        it.arcColor = this.theme.textMuted
       } else {
         it.daysText = it.status === "today" ? "剩 0 天" : "剩 " + d + " 天"
         it.daysColor = textColor
         it.barBg = "background-color: " + textColor
-        it.arcColor = textColor
       }
       // 农历行：只有当初用农历录入的条目才有；已结束的条目跟着天数一起褪色
       it.lunarLine = (it.cal === "lunar" && it.lunarText) ? ("农历" + it.lunarText) : ""
@@ -329,29 +186,6 @@ export default {
     countdown.save(list, function() {
       self.loadList()
     })
-  },
-
-  toggleItem(idx) {
-    var list = this.countdownList.slice()
-    if (list[idx]) list[idx].enabled = !list[idx].enabled
-    this.persistList(list)
-  },
-
-  deleteItem(idx) {
-    var self = this
-    if (this.deleteConfirmIndex === idx) {
-      var list = this.countdownList.slice()
-      list.splice(idx, 1)
-      this.persistList(list)
-      clearTimeout(this.deleteTimer)
-      this.deleteConfirmIndex = -1
-      return
-    }
-    this.deleteConfirmIndex = idx
-    clearTimeout(this.deleteTimer)
-    this.deleteTimer = setTimeout(function() {
-      self.deleteConfirmIndex = -1
-    }, 3000)
   },
 
   toggleSort() {
@@ -377,108 +211,14 @@ export default {
     }, 3000)
   },
 
-  // ---- 详情态：卡片上所有写操作的唯一入口 ----
-  // 弧环的两个派生字段只在弹层用，故不放进 decorate（列表页不渲染弧环）
-  withArc(it) {
-    it.arcPercent = it.daysLeft < 0 ? 0 : Math.max(0, Math.min(100, Math.round(100 * (countdown.progressOf(it) || 0))))
-    it.arcColor = it.daysLeft < 0 ? this.theme.textMuted : countdown.adaptColor(countdown.colorOf(it), this.isLight)
-    return it
-  },
-
-  openDetail(idx) {
-    var it = this.countdownList[idx]
-    if (!it) return
-    this.withArc(it)
-    this.detailIdx = idx
-    this.detailItem = it
-    this.detailDeleteConfirm = false
-    this.detailVisible = true
-  },
-
-  closeDetail() {
-    if (this.detailVisible) {
-      this.detailVisible = false
-      this.detailIdx = -1
-      this.detailItem = null
-      this.detailDeleteConfirm = false
-    }
-  },
-
-  detailStop(e) {
-    if (e && e.stopPropagation) e.stopPropagation()
-  },
-
-  // 详情的三个动作一律按 id 定位：列表按剩余天数重排，弹层开着这几秒里
-  // 下标随时可能指向别人（同一个坑在 3 秒删除窗口踩过，见 countdown.js findIndexById 注释）
-  editFromDetail() {
-    var it = this.detailItem
-    if (!it) return
-    var id = it.id
-    this.closeDetail()
-    this.openForm(id)
-  },
-
-  // 开关原地生效、不关弹层：用户关掉它之后往往还想顺手编辑或删除
-  toggleFromDetail() {
-    var self = this
-    var it = this.countdownList[this.detailIdx]
-    if (!it) return
-    var id = it.id
-    it.enabled = !it.enabled
-    countdown.save(this.countdownList, function() {
-      self.loadList(function(items) {
-        var ni = countdown.findIndexById(items, id)
-        if (ni < 0) {
-          self.closeDetail()
-          return
-        }
-        self.detailIdx = ni
-        self.detailItem = self.withArc(items[ni])
-      })
-    })
-  },
-
-  deleteFromDetail() {
-    var self = this
-    if (!this.detailItem) return
-    if (this.detailDeleteConfirm) {
-      var id = this.detailItem.id
-      clearTimeout(this.detailTimer)
-      this.detailDeleteConfirm = false
-      countdown.load(function(res) {
-        var items = res.items || []
-        var idx = countdown.findIndexById(items, id)
-        if (idx >= 0) items.splice(idx, 1)
-        countdown.save(items, function() {
-          self.closeDetail()
-          self.loadList()
-        })
-      })
-      return
-    }
-    this.detailDeleteConfirm = true
-    clearTimeout(this.detailTimer)
-    this.detailTimer = setTimeout(function() {
-      self.detailDeleteConfirm = false
-    }, 3000)
-  },
-
   goBack() {
     router.back()
   },
 
   onDestroy() {
-    if (this.deleteTimer) {
-      clearTimeout(this.deleteTimer)
-      this.deleteTimer = null
-    }
     if (this.clearTimer) {
       clearTimeout(this.clearTimer)
       this.clearTimer = null
-    }
-    if (this.detailTimer) {
-      clearTimeout(this.detailTimer)
-      this.detailTimer = null
     }
     this.countdownList = null
     this.theme = null
@@ -677,20 +417,13 @@ export default {
   margin-top: 1px;
 }
 
-/* 已关闭的卡片只留一行弱提示，替代原来常驻的 ON/OFF 开关 ——
-   开关搬到弹层后卡片少了 28px（开关行）+ 40px（操作排），一屏多看一条 */
+/* 已关闭的卡片只留一行弱提示（整卡同时降到 0.5 透明度）——
+   ON/OFF 开关本身在编辑页，列表页不承载任何写操作 */
 .cd-off-tag {
   font-size: 18px;
   line-height: 30px;
   flex-shrink: 0;
   margin-left: 6px;
-}
-
-/* ⚠️ 必须用单类选择器：Vela 编译会静默丢弃 `.父 .子` 后代选择器，
-   写了不生效也不报错 —— 之前 width 从 68 改到 72 毫无反应就是这个原因。
-   卡片内可用宽度 = 168 − padding 8×2 = 152 → 72 + 8 + 72 */
-.del-btn {
-  margin-left: 8px;
 }
 
 .cd-group-divider {
@@ -713,32 +446,6 @@ export default {
   flex-shrink: 0;
 }
 
-.switch-btn {
-  width: 52px;
-  height: 28px;
-  border-radius: 14px;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.switch-label {
-  font-size: 18px;
-  line-height: 24px;
-  text-align: center;
-}
-
-/* 按钮一律 div + text：Vela 里 input[type=button] 的 width 不生效（宽度只跟文案走），
-   热区调不动。div 宽高完全可控，onclick 一样能点。 */
-.action-btn {
-  width: 72px;
-  height: 40px;
-  border-radius: 20px;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 0;
-}
-
 .btn-label {
   font-size: 20px;
   line-height: 24px;
@@ -751,156 +458,6 @@ export default {
   text-align: center;
   width: 100%;
   margin-top: 40px;
-}
-
-.detail-mask {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  /* 192×490 上面板高约 280：靠 flex 居中会整体下沉把操作排推出屏幕，
-     故改为顶部对齐 + 固定上留白，保证「编辑/删除/开关」始终可见 */
-  justify-content: flex-start;
-  align-items: center;
-  padding-top: 34px;
-  background-color: rgba(0, 0, 0, 0.6);
-}
-
-/* 184 = 屏宽 192 − 左右各 4；内容区 168，正好容下 72 + 8 + 72 的操作排 */
-.detail-panel {
-  position: relative;
-  flex-direction: column;
-  align-items: center;
-  width: 184px;
-  border-radius: 14px;
-  padding: 18px 8px 14px 8px;
-}
-
-.detail-arc-wrap {
-  width: 120px;
-  height: 120px;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-}
-
-.detail-arc {
-  width: 120px;
-  height: 120px;
-}
-
-.detail-arc-center {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 120px;
-  height: 120px;
-  justify-content: center;
-  align-items: center;
-}
-
-/* 弧环内径约 96px：「已过 999 天」这类最长文案也要放得下，故 22px */
-.detail-arc-num {
-  font-size: 24px;
-  line-height: 30px;
-  font-weight: bold;
-}
-
-/* 详情标题同样不设 lines：完整换行显示 */
-.detail-title {
-  font-size: 22px;
-  line-height: 28px;
-  margin-top: 10px;
-  width: 100%;
-  text-align: center;
-}
-
-.detail-date {
-  font-size: 20px;
-  line-height: 26px;
-  margin-top: 2px;
-}
-
-.detail-actions {
-  flex-direction: row;
-  justify-content: center;
-  width: 100%;
-  margin-top: 8px;
-}
-
-/* 编辑是主操作，给足宽度；删除退成图标钮。
-   96 + 10 + 56 = 162 ≤ 内容区 168 */
-.detail-edit {
-  width: 96px;
-  height: 44px;
-  border-radius: 22px;
-}
-
-/* 删除：垃圾桶图标 + 56×44 圆钮。图标形状与右上角 × 完全不同，
-   不会再被读成第二个「关闭」；确认态换成「确认」两字并转红底，
-   位置、形状都不变，避免"按钮跳位"导致误点 */
-.detail-del-btn {
-  width: 56px;
-  height: 44px;
-  border-radius: 22px;
-  justify-content: center;
-  align-items: center;
-  margin-left: 10px;
-}
-
-.detail-del-icon {
-  width: 24px;
-  height: 24px;
-}
-
-.detail-del-confirm {
-  font-size: 20px;
-  line-height: 26px;
-  text-align: center;
-}
-
-/* 同样必须单类选择器（后代选择器会被丢弃） */
-.detail-switch {
-  width: 80px;
-  height: 32px;
-}
-
-/* 开关行：左标签 + 右开关。原版把 ON/OFF 单独居中，看不出这开关是管什么的 */
-/* 竖排：横排时开关固定 80px 后标签只剩约 45px，「首页显示」必然折行 */
-.detail-switch-row {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin-top: 6px;
-}
-
-.detail-switch-label {
-  font-size: 20px;
-  line-height: 26px;
-  text-align: center;
-  width: 100%;
-}
-
-/* 关闭：右上角 ×，唯一显式出口。
-   为什么不再放一个整行「关闭」按钮：它和「删除」并排时都是文字按钮、
-   底色也接近，用户分不清哪个是"退出"哪个是"删掉"。× 在位置（右上）
-   和形状（叉）上都与垃圾桶区分开，且不再多占 38px 竖向空间。
-   热区 32×32 比字形大一圈，手环上点得中。 */
-.detail-close {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 32px;
-  height: 32px;
-  justify-content: center;
-  align-items: center;
-}
-
-.detail-close-x {
-  font-size: 26px;
-  line-height: 32px;
-  text-align: center;
 }
 
 /* 大屏（9 Pro / 10 Pro 336×480 等 rect 屏）只做增量：留白与按钮放大，
