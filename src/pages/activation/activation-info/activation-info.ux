@@ -1,0 +1,353 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <!-- 返回键固定：放 scroll 外，长历史滚动时不被带走 -->
+    <div class="header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">激活信息</text>
+      <div class="header-placeholder"></div>
+    </div>
+    <scroll class="page-scroll" scroll-y="{{true}}">
+      <div class="version-row">
+        <text class="version-text" style="color: {{ theme.textMuted }}">版本 v{{ versionText }}</text>
+      </div>
+
+      <div class="device-card">
+        <div class="device-info-row">
+          <text class="device-info-label" style="color: {{ theme.textSecondary }}">设备ID</text>
+          <text class="device-info-value" style="color: {{ theme.accent }}">{{ deviceIdDisplay }}</text>
+        </div>
+        <div class="device-info-row">
+          <text class="device-info-label" style="color: {{ theme.textSecondary }}">安装</text>
+          <text class="device-info-value" style="color: {{ theme.text }}">{{ installTimeText }}</text>
+        </div>
+        <div class="device-info-row" if="{{ expireTimeText }}">
+          <text class="device-info-label" style="color: {{ theme.textSecondary }}">到期</text>
+          <text class="device-info-value" style="color: {{ theme.text }}">{{ expireTimeText }}</text>
+        </div>
+      </div>
+
+      <text class="section-title" style="color: {{ theme.text }}">激活历史</text>
+      <div class="history-list">
+        <div for="{{ historyList }}" class="history-item">
+          <div class="history-row">
+            <div class="history-left">
+              <text class="history-date" style="color: {{ theme.textSecondary }}">{{ $item.date }}</text>
+              <text class="history-type" style="color: {{ theme.text }}">{{ $item.type }}</text>
+              <text class="history-code" if="{{ $item.activationCode }}" style="font-size: 20px; color: {{ theme.textMuted }}">激活码: {{ $item.activationCode }}</text>
+              <text class="history-code" if="{{ $item.redeemCode }}" style="font-size: 20px; color: {{ theme.textMuted }}">兑换码: {{ $item.redeemCode }}</text>
+            </div>
+            <div class="history-right">
+              <text class="history-duration" style="color: {{ theme.accent }}">{{ $item.duration }}</text>
+              <text class="history-status" style="color: {{ $item.status === '成功' ? '#27ae60' : '#e74c3c' }}">{{ $item.status }}</text>
+            </div>
+          </div>
+          <div class="history-divider"></div>
+        </div>
+        <div class="history-empty" if="{{ historyList.length === 0 }}">
+          <text class="history-empty-text" style="color: {{ theme.textMuted }}">无记录</text>
+        </div>
+      </div>
+
+      <div class="bottom-spacer"></div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../../data/store.js")
+const authStore = require("../../../data/auth-store.js")
+const version = require("../../../data/version.js")
+
+var DEBUG = false
+function dlog() {
+  if (DEBUG) console.log.apply(console, arguments)
+}
+
+function formatDate(ts) {
+  if (!ts) return ''
+  var d = new Date(ts)
+  var y = d.getFullYear()
+  var m = String(d.getMonth() + 1)
+  if (m.length < 2) m = '0' + m
+  var day = String(d.getDate())
+  if (day.length < 2) day = '0' + day
+  return y + '-' + m + '-' + day
+}
+
+export default {
+  private: {
+    iconTheme: "dark",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a'
+    },
+    versionText: '',
+    historyList: [],
+    installTimeText: '',
+    expireTimeText: '',
+    deviceId: '',
+    deviceIdDisplay: '获取中...'
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
+    self.versionText = version.versionName
+    self.fetchDeviceId()
+    self.loadStatus()
+    self.loadHistory()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
+    // 从子页返回时历史可能已新增，重读一次
+    self.loadStatus()
+    self.loadHistory()
+  },
+
+  updateIconSrc: function(themeName) {
+    this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  loadStatus() {
+    var self = this
+    try {
+      authStore.getFullStatus(function(status) {
+        if (status.installTime) {
+          self.installTimeText = formatDate(status.installTime)
+        }
+        if (status.isPermanent) {
+          self.expireTimeText = '永久有效'
+        } else if (status.expireAt) {
+          self.expireTimeText = formatDate(status.expireAt)
+        } else {
+          self.expireTimeText = ''
+        }
+      })
+    } catch (e) {
+      dlog('[ACTIVATION-INFO] loadStatus error: ' + e)
+    }
+  },
+
+  loadHistory() {
+    var self = this
+    try {
+      authStore.getHistory(function(history) {
+        self.historyList = history || []
+      })
+    } catch (e) {
+      dlog('[ACTIVATION-INFO] loadHistory error: ' + e)
+    }
+  },
+
+  fetchDeviceId() {
+    var self = this
+    try {
+      var device = require("@system.device")
+      device.getDeviceId({
+        success: function(data) {
+          var raw = data.deviceId || ''
+          if (!raw || raw === 'NA' || raw === 'unknown' || raw === 'null') {
+            self._fallbackToLocalUUID()
+          } else {
+            self.deviceId = raw
+            self.deviceIdDisplay = raw.slice(-6)
+          }
+        },
+        fail: function() {
+          self._fallbackToLocalUUID()
+        }
+      })
+    } catch (e) {
+      self._fallbackToLocalUUID()
+    }
+  },
+
+  _fallbackToLocalUUID() {
+    var self = this
+    var deviceUuid = require("../../../utils/device-uuid.js")
+    deviceUuid.getLocalDeviceId(function(id) {
+      self.deviceId = id
+      self.deviceIdDisplay = id.slice(-6)
+    })
+  }
+}
+</script>
+
+<style>
+@import '../../../common/header.css';
+
+.page {
+  flex-direction: column;
+  padding: 44px 10px 12px 10px;
+  width: 100%;
+  height: 100%;
+}
+
+.header-title {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+/* 本页滚动容器：缺此定义会导致 scroll 无高度约束、正文整体不渲染 */
+.page-scroll {
+  flex: 1;
+  flex-direction: column;
+}
+
+.version-row {
+  flex-direction: row;
+  padding: 4px 4px 8px 4px;
+}
+
+.version-text {
+  font-size: 22px;
+}
+
+.device-card {
+  width: 100%;
+  flex-direction: column;
+  padding: 10px 0 12px 0;
+  margin-bottom: 10px;
+}
+
+/* 标签在上、值在下：胶囊屏可用宽约 162px，横排 label+日期 会超宽挤爆 */
+.device-info-row {
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 6px 4px;
+}
+
+.device-info-label {
+  font-size: 20px;
+  line-height: 26px;
+  margin-bottom: 2px;
+}
+
+.device-info-value {
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 30px;
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  padding-left: 4px;
+}
+
+.history-list {
+  width: 100%;
+  flex-direction: column;
+  padding-bottom: 6px;
+}
+
+.history-item {
+  flex-direction: column;
+  padding: 8px 4px;
+}
+
+.history-row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-divider {
+  height: 1px;
+  background-color: rgba(255,255,255,0.05);
+  margin-top: 8px;
+  width: 100%;
+}
+
+.history-left {
+  flex-direction: column;
+}
+
+.history-date {
+  font-size: 20px;
+  line-height: 26px;
+  margin-bottom: 4px;
+}
+
+.history-type {
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: bold;
+}
+
+.history-right {
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.history-duration {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.history-status {
+  font-size: 20px;
+  line-height: 26px;
+}
+
+.history-empty {
+  padding: 16px;
+  align-items: center;
+}
+
+.history-empty-text {
+  font-size: 22px;
+}
+
+.bottom-spacer {
+  height: 24px;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+}
+
+@media (shape: pill-shaped) {
+  .page {
+    padding: 30px 16px 30px 16px;
+  }
+
+  .header-title {
+    font-size: 22px;
+    line-height: 30px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 6px 8px 8px 8px;
+  }
+}
+</style>
