@@ -731,7 +731,7 @@ export default {
   }
 
   .benefit-item {
-    font-size: 17px;
+    font-size: 18px;
     line-height: 24px;
     margin-bottom: 6px;
     lines: 1;

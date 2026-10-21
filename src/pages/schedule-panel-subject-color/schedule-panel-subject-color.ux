@@ -364,12 +364,12 @@ export default {
   text-overflow: ellipsis;
 }
 
-/* C 图例：452–468 */
+/* C 图例：452–472（原 452–468）—— 18px 字配 20 行高，仍在 490 内 */
 .legend {
   margin-top: 20px;
-  height: 16px;
-  font-size: 16px;
-  line-height: 16px;
+  height: 20px;
+  font-size: 18px;
+  line-height: 20px;
   text-align: center;
   flex-shrink: 0;
   lines: 1;
@@ -385,7 +385,7 @@ export default {
   .grid-row { width: 176px; height: 78px; margin-bottom: 9px; }
   .cell { width: 84px; height: 78px; }
   .cell-name { font-size: 20px; line-height: 26px; }
-  .legend { font-size: 17px; line-height: 18px; height: 18px; }
+  .legend { font-size: 20px; line-height: 22px; height: 22px; }
 }
 
 @media (width >= 400px) {

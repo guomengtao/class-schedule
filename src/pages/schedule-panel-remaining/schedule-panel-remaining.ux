@@ -336,9 +336,10 @@ export default {
   padding: 0 4px;
   flex-shrink: 0;
 }
+/* 时间列：18px 后「08:00」约 45px，宽度 46→50 才不折行 */
 .row-time {
-  width: 46px;
-  font-size: 16px;
+  width: 50px;
+  font-size: 18px;
   line-height: 22px;
   flex-shrink: 0;
 }
@@ -361,12 +362,12 @@ export default {
   text-align: center;
 }
 
-/* E 溢出提示：430–446 */
+/* E 溢出提示：430–450（原 430–446）—— 18px 字配 20 行高，仍在 490 内 */
 .overflow-tip {
   margin-top: 4px;
-  height: 16px;
-  font-size: 16px;
-  line-height: 16px;
+  height: 20px;
+  font-size: 18px;
+  line-height: 20px;
   text-align: center;
   flex-shrink: 0;
 }
@@ -378,7 +379,7 @@ export default {
   .unit-line { font-size: 22px; line-height: 24px; height: 24px; }
   .divider { width: 180px; }
   .row { height: 48px; }
-  .row-time { width: 50px; font-size: 17px; }
+  .row-time { width: 54px; font-size: 20px; }
   .row-name { font-size: 24px; line-height: 32px; }
   .list { height: 192px; }
   .empty-box { height: 192px; }

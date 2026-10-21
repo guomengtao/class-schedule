@@ -359,7 +359,9 @@ export default {
   align-items: center;
   flex-shrink: 0;
 }
-.d-label { font-size: 16px; line-height: 24px; margin-right: 6px; flex-shrink: 0 }
+/* 2026-10-21 规则 §七：16 → 18。行宽 168 里「开始时间 + 节次 + 课名」，
+   课名本来就有 ellipsis，标签多出的 8px 从课名那里让 */
+.d-label { font-size: 18px; line-height: 24px; margin-right: 6px; flex-shrink: 0 }
 .d-time { font-size: 18px; line-height: 24px; margin-right: 6px; flex-shrink: 0 }
 .d-name {
   flex: 1;
@@ -374,8 +376,8 @@ export default {
 .e-clock {
   width: 100%;
   text-align: right;
-  font-size: 16px;
-  line-height: 22px;
+  font-size: 18px;
+  line-height: 24px;
   flex-shrink: 0;
 }
 
