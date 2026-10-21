@@ -1,0 +1,680 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <scroll class="page-scroll" scroll-y="{{true}}">
+      <div class="header">
+        <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+          <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+        </div>
+        <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">输入激活码</text>
+        <div class="header-placeholder"></div>
+      </div>
+
+        <div class="cells-grid">
+          <div class="cells-row">
+            <div class="cell {{ cursor === 0 ? 'cell-active' : '' }}" onclick="onCellClick(0)" style="background-color: {{ cursor === 0 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 0 ? theme.bg : theme.text }}">{{ cell0 !== null ? cell0 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 1 ? 'cell-active' : '' }}" onclick="onCellClick(1)" style="background-color: {{ cursor === 1 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 1 ? theme.bg : theme.text }}">{{ cell1 !== null ? cell1 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 2 ? 'cell-active' : '' }}" onclick="onCellClick(2)" style="background-color: {{ cursor === 2 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 2 ? theme.bg : theme.text }}">{{ cell2 !== null ? cell2 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 3 ? 'cell-active' : '' }}" onclick="onCellClick(3)" style="background-color: {{ cursor === 3 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 3 ? theme.bg : theme.text }}">{{ cell3 !== null ? cell3 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 4 ? 'cell-active' : '' }}" onclick="onCellClick(4)" style="background-color: {{ cursor === 4 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 4 ? theme.bg : theme.text }}">{{ cell4 !== null ? cell4 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 5 ? 'cell-active' : '' }}" onclick="onCellClick(5)" style="background-color: {{ cursor === 5 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 5 ? theme.bg : theme.text }}">{{ cell5 !== null ? cell5 : '-' }}</text>
+            </div>
+          </div>
+          <div class="cells-row">
+            <div class="cell {{ cursor === 6 ? 'cell-active' : '' }}" onclick="onCellClick(6)" style="background-color: {{ cursor === 6 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 6 ? theme.bg : theme.text }}">{{ cell6 !== null ? cell6 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 7 ? 'cell-active' : '' }}" onclick="onCellClick(7)" style="background-color: {{ cursor === 7 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 7 ? theme.bg : theme.text }}">{{ cell7 !== null ? cell7 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 8 ? 'cell-active' : '' }}" onclick="onCellClick(8)" style="background-color: {{ cursor === 8 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 8 ? theme.bg : theme.text }}">{{ cell8 !== null ? cell8 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 9 ? 'cell-active' : '' }}" onclick="onCellClick(9)" style="background-color: {{ cursor === 9 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 9 ? theme.bg : theme.text }}">{{ cell9 !== null ? cell9 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 10 ? 'cell-active' : '' }}" onclick="onCellClick(10)" style="background-color: {{ cursor === 10 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 10 ? theme.bg : theme.text }}">{{ cell10 !== null ? cell10 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 11 ? 'cell-active' : '' }}" onclick="onCellClick(11)" style="background-color: {{ cursor === 11 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 11 ? theme.bg : theme.text }}">{{ cell11 !== null ? cell11 : '-' }}</text>
+            </div>
+          </div>
+          <div class="cells-row">
+            <div class="cell {{ cursor === 12 ? 'cell-active' : '' }}" onclick="onCellClick(12)" style="background-color: {{ cursor === 12 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 12 ? theme.bg : theme.text }}">{{ cell12 !== null ? cell12 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 13 ? 'cell-active' : '' }}" onclick="onCellClick(13)" style="background-color: {{ cursor === 13 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 13 ? theme.bg : theme.text }}">{{ cell13 !== null ? cell13 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 14 ? 'cell-active' : '' }}" onclick="onCellClick(14)" style="background-color: {{ cursor === 14 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 14 ? theme.bg : theme.text }}">{{ cell14 !== null ? cell14 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 15 ? 'cell-active' : '' }}" onclick="onCellClick(15)" style="background-color: {{ cursor === 15 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 15 ? theme.bg : theme.text }}">{{ cell15 !== null ? cell15 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 16 ? 'cell-active' : '' }}" onclick="onCellClick(16)" style="background-color: {{ cursor === 16 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 16 ? theme.bg : theme.text }}">{{ cell16 !== null ? cell16 : '-' }}</text>
+            </div>
+            <div class="cell {{ cursor === 17 ? 'cell-active' : '' }}" onclick="onCellClick(17)" style="background-color: {{ cursor === 17 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+              <text class="cell-text" style="color: {{ cursor === 17 ? theme.bg : theme.text }}">{{ cell17 !== null ? cell17 : '-' }}</text>
+            </div>
+          </div>
+        </div>
+
+        <div class="keypad">
+          <div class="keypad-row">
+            <div class="keypad-btn" onclick="onKeyPress(1)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">1</text>
+            </div>
+            <div class="keypad-btn" onclick="onKeyPress(2)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">2</text>
+            </div>
+            <div class="keypad-btn" onclick="onKeyPress(3)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">3</text>
+            </div>
+          </div>
+          <div class="keypad-row">
+            <div class="keypad-btn" onclick="onKeyPress(4)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">4</text>
+            </div>
+            <div class="keypad-btn" onclick="onKeyPress(5)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">5</text>
+            </div>
+            <div class="keypad-btn" onclick="onKeyPress(6)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">6</text>
+            </div>
+          </div>
+          <div class="keypad-row">
+            <div class="keypad-btn" onclick="onKeyPress(7)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">7</text>
+            </div>
+            <div class="keypad-btn" onclick="onKeyPress(8)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">8</text>
+            </div>
+            <div class="keypad-btn" onclick="onKeyPress(9)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">9</text>
+            </div>
+          </div>
+          <div class="keypad-row">
+            <div class="keypad-btn keypad-clear" onclick="onClear" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: #e74c3c">C</text>
+            </div>
+            <div class="keypad-btn" onclick="onKeyPress(0)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: {{ theme.text }}">0</text>
+            </div>
+            <div class="keypad-btn keypad-delete" onclick="onDelete" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+              <text class="keypad-text" style="color: #e74c3c">←</text>
+            </div>
+          </div>
+        </div>
+
+        <div class="verify-btn" onclick="doVerify" style="background-color: {{ theme.accent }}">
+          <text class="verify-btn-text" style="color: {{ theme.bg }}">验证</text>
+        </div>
+
+        <div class="result-box" show="{{ verifyResult }}" style="background-color: {{ theme.bg }}; border-color: {{ verifySuccess ? theme.accent : '#e74c3c' }}">
+          <text class="result-label" style="color: {{ theme.textSecondary }}">验证结果</text>
+          <text class="result-code" style="color: {{ verifySuccess ? theme.accent : '#e74c3c' }}">{{ verifyResult }}</text>
+          <text class="result-detail" show="{{ verifyDetail }}" style="color: {{ theme.textSecondary }}">{{ verifyDetail }}</text>
+        </div>
+
+      <div class="bottom-spacer"></div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import prompt from "@system.prompt"
+
+// 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
+var DEBUG = false
+function dlog() {
+  if (DEBUG) console.log.apply(console, arguments)
+}
+import vibrator from "@system.vibrator"
+const store = require("../../../data/store.js")
+const authStore = require("../../../data/auth-store.js")
+const version = require("../../../data/version.js")
+const crypto = require("../../../lib/crypto.js")
+
+var ACTIVATION_URL = "https://app-auth.gudq.com/activate.html?deviceId="
+var AFDIAN_REDIRECT_URL = "https://app-auth.gudq.com/go/ev-timetable?deviceId="
+
+function doVibrate() {
+  try {
+    vibrator.vibrate({ mode: "short" })
+  } catch (e) {}
+}
+
+function formatDate(ts) {
+  if (!ts) return ''
+  var d = new Date(ts)
+  var y = d.getFullYear()
+  var m = String(d.getMonth() + 1)
+  if (m.length < 2) m = '0' + m
+  var day = String(d.getDate())
+  if (day.length < 2) day = '0' + day
+  return y + '-' + m + '-' + day
+}
+
+export default {
+  private: {
+    iconTheme: "dark",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a'
+    },
+    statusText: '加载中...',
+    statusColor: '#888899',
+    statusDetail: '',
+    historyList: [],
+    installTimeText: '',
+    expireTimeText: '',
+    afdianUrl: '',
+    apkQrText: '',
+    deviceId: '',
+    deviceIdDisplay: '获取中...',
+    qrText: '',
+    cell0: null, cell1: null, cell2: null, cell3: null,
+    cell4: null, cell5: null, cell6: null, cell7: null,
+    cell8: null, cell9: null, cell10: null, cell11: null,
+    cell12: null, cell13: null, cell14: null, cell15: null,
+    cell16: null, cell17: null,
+    cursor: 0,
+    verifyResult: '',
+    verifyDetail: '',
+    verifySuccess: false,
+    versionText: '',
+    deviceInfoParams: '',
+    channelParam: version.channel || ''
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
+    self.versionText = version.versionName
+    self.fetchDeviceId()
+    self.loadStatus()
+    self.loadHistory()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
+  },
+
+  updateIconSrc: function(themeName) {
+    this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
+  },
+
+  loadStatus() {
+    var self = this
+    try {
+      authStore.getFullStatus(function(status) {
+        self.statusText = status.displayStatus || status.text
+        self.statusColor = status.color
+
+        if (status.isPermanent) {
+          self.statusText = '高级版'
+          self.statusColor = 'green'
+        } else if (status.isActivated && status.isExpired) {
+          self.statusText = '高级版'
+          self.statusColor = 'red'
+        } else if (status.isActivated && status.isExpiring) {
+          self.statusText = '高级版'
+          self.statusColor = '#e67e22'
+        } else if (status.isActivated) {
+          self.statusText = '高级版'
+          self.statusColor = 'green'
+        } else {
+          self.statusText = '标准版'
+          self.statusColor = 'gray'
+        }
+
+        self.statusDetail = status.expireText || ''
+
+        if (status.installTime) {
+          self.installTimeText = formatDate(status.installTime)
+        }
+        if (status.isPermanent) {
+          self.expireTimeText = '永久有效'
+        } else if (status.expireAt) {
+          self.expireTimeText = formatDate(status.expireAt)
+        } else {
+          self.expireTimeText = ''
+        }
+      })
+    } catch (e) {
+      dlog('[ACTIVATION] loadStatus error: ' + e)
+    }
+  },
+
+  loadHistory() {
+    var self = this
+    try {
+      authStore.getHistory(function(history) {
+        self.historyList = history || []
+      })
+    } catch (e) {
+      dlog('[ACTIVATION] loadHistory error: ' + e)
+    }
+  },
+
+  fetchDeviceId() {
+    var self = this
+    try {
+      var device = require("@system.device")
+      device.getDeviceId({
+        success: function(data) {
+          var raw = data.deviceId || ''
+          if (!raw || raw === 'NA' || raw === 'unknown' || raw === 'null') {
+            self._fallbackToLocalUUID()
+          } else {
+            self.deviceId = raw
+            self.deviceIdDisplay = raw.slice(-6)
+            self.updateQrText()
+            self.fetchDeviceInfo()
+          }
+        },
+        fail: function() {
+          self._fallbackToLocalUUID()
+        }
+      })
+    } catch (e) {
+      self._fallbackToLocalUUID()
+    }
+  },
+
+  _fallbackToLocalUUID() {
+    var self = this
+    var deviceUuid = require("../../../utils/device-uuid.js")
+    deviceUuid.getLocalDeviceId(function(id) {
+      self.deviceId = id
+      self.deviceIdDisplay = id.slice(-6)
+      self.updateQrText()
+      self.fetchDeviceInfo()
+    })
+  },
+
+  fetchDeviceInfo() {
+    var self = this
+    try {
+      var device = require("@system.device")
+      device.getInfo({
+        success: function(ret) {
+          var params = []
+          if (ret.model) params.push('m=' + encodeURIComponent(ret.model))
+          if (ret.product) params.push('p=' + encodeURIComponent(ret.product))
+          if (ret.osVersionCode != null) params.push('o=' + ret.osVersionCode)
+          if (ret.platformVersionCode != null) params.push('v=' + ret.platformVersionCode)
+          if (ret.deviceType) params.push('t=' + encodeURIComponent(ret.deviceType))
+          if (ret.screenShape) params.push('s=' + encodeURIComponent(ret.screenShape))
+          if (ret.screenWidth != null) params.push('w=' + ret.screenWidth)
+          if (ret.screenHeight != null) params.push('h=' + ret.screenHeight)
+          if (ret.APILevel != null) params.push('a=' + ret.APILevel)
+          if (ret.language) params.push('l=' + encodeURIComponent(ret.language))
+          self.deviceInfoParams = params.join('&')
+          self.updateQrText()
+        },
+        fail: function() {
+          self.deviceInfoParams = ''
+          self.updateQrText()
+        }
+      })
+    } catch (e) {
+      self.deviceInfoParams = ''
+      self.updateQrText()
+    }
+  },
+
+  updateQrText() {
+    var self = this
+    if (self.deviceId && self.deviceId !== '获取中...') {
+      var qr = ACTIVATION_URL + encodeURIComponent(self.deviceId)
+      if (self.deviceInfoParams) {
+        qr = qr + '&' + self.deviceInfoParams
+      }
+      if (self.versionText) {
+        qr = qr + '&r=' + encodeURIComponent(self.versionText)
+      }
+      if (self.channelParam) {
+        qr = qr + '&c=' + encodeURIComponent(self.channelParam)
+      }
+      if (qr.length > 200 && self.channelParam) {
+        qr = ACTIVATION_URL + encodeURIComponent(self.deviceId) + '&c=' + encodeURIComponent(self.channelParam)
+        if (self.versionText) {
+          var tmp = qr + '&r=' + encodeURIComponent(self.versionText)
+          if (tmp.length <= 200) qr = tmp
+        }
+      }
+      self.qrText = qr
+
+      var afd = AFDIAN_REDIRECT_URL + encodeURIComponent(self.deviceId)
+      if (self.deviceInfoParams) {
+        afd = afd + '&' + self.deviceInfoParams
+      }
+      if (self.versionText) {
+        afd = afd + '&r=' + encodeURIComponent(self.versionText)
+      }
+      if (self.channelParam) {
+        afd = afd + '&c=' + encodeURIComponent(self.channelParam)
+      }
+      self.afdianUrl = afd
+
+      // 步骤2「快速激活」：安卓同步器下载页（带 deviceId/版本/渠道追踪，服务端漏斗可见）
+      var APK_DL_URL = 'https://app-auth.gudq.com/apk-download.html?deviceId='
+      var apk = APK_DL_URL + encodeURIComponent(self.deviceId)
+      if (self.versionText) {
+        apk = apk + '&r=' + encodeURIComponent(self.versionText)
+      }
+      if (self.channelParam) {
+        apk = apk + '&c=' + encodeURIComponent(self.channelParam)
+      } else {
+        apk = apk + '&c=band-premium'
+      }
+      self.apkQrText = apk
+    }
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  onCellClick(index) {
+    doVibrate()
+    this.cursor = index
+  },
+
+  onKeyPress(digit) {
+    doVibrate()
+    var idx = this.cursor
+    this['cell' + idx] = digit
+    if (this.cursor < 17) {
+      this.cursor = this.cursor + 1
+    }
+  },
+
+  onDelete() {
+    doVibrate()
+    var idx = this.cursor
+    if (this['cell' + idx] === null || this['cell' + idx] === undefined) {
+      if (this.cursor > 0) {
+        this.cursor = this.cursor - 1
+        idx = this.cursor
+      }
+    }
+    this['cell' + idx] = null
+    if (this.cursor > 0) {
+      this.cursor = this.cursor - 1
+    }
+  },
+
+  onClear() {
+    doVibrate()
+    for (var i = 0; i < 18; i++) {
+      this['cell' + i] = null
+    }
+    this.cursor = 0
+  },
+
+  doVerify() {
+    var code = ''
+    for (var i = 0; i < 18; i++) {
+      var val = this['cell' + i]
+      if (val === null || val === undefined) {
+        this.verifySuccess = false
+        this.verifyResult = '请输入完整的18位激活码'
+        this.verifyDetail = ''
+        prompt.showToast({ message: '请输入完整的18位激活码' })
+        return
+      }
+      code += val
+    }
+
+    var deviceId = this.deviceId
+
+    if (!deviceId || deviceId.indexOf('获取失败') >= 0 || deviceId.indexOf('未知') >= 0 || deviceId.indexOf('不可用') >= 0) {
+      this.verifySuccess = false
+      this.verifyResult = '无法获取设备ID'
+      this.verifyDetail = ''
+      prompt.showToast({ message: '无法获取设备ID' })
+      return
+    }
+
+    var self = this
+
+    authStore.verifyMasterCode(code, deviceId, function(masterResult) {
+      if (masterResult.success) {
+        self.verifySuccess = true
+        self.verifyResult = '激活成功 - ' + masterResult.duration + ' 天'
+        self.verifyDetail = ''
+
+        authStore.markActivated(masterResult.duration, code, '', function(success) {
+          if (success) {
+            prompt.showToast({ message: masterResult.message || '激活成功' })
+            self.loadStatus()
+            self.loadHistory()
+          } else {
+            self.verifySuccess = false
+            self.verifyResult = '激活失败'
+            self.verifyDetail = '保存激活状态失败，请重试'
+            prompt.showToast({ message: '保存失败，请重试' })
+          }
+        })
+        return
+      }
+
+      if (masterResult.blockReason === 'not_expired') {
+        self.verifySuccess = false
+        self.verifyResult = masterResult.reason
+        self.verifyDetail = '您的授权仍在有效期内，无需使用万能码'
+        prompt.showToast({ message: masterResult.reason })
+        return
+      }
+
+      if (masterResult.blockReason === 'limit_reached') {
+        self.verifySuccess = false
+        self.verifyResult = masterResult.reason
+        self.verifyDetail = ''
+        prompt.showToast({ message: masterResult.reason })
+        return
+      }
+
+      var decrypted = crypto.decryptActivationCode(code)
+      if (!decrypted || !decrypted.valid) {
+        self.verifySuccess = false
+        self.verifyResult = decrypted ? decrypted.reason : '无效的激活码'
+        self.verifyDetail = ''
+        prompt.showToast({ message: '无效的激活码' })
+        return
+      }
+
+      var deviceIdLast4 = deviceId.substring(deviceId.length - 4)
+      if (decrypted.deviceId !== deviceIdLast4) {
+        self.verifySuccess = false
+        self.verifyResult = '设备ID不匹配'
+        self.verifyDetail = '激活码设备ID: ' + decrypted.deviceId + ' | 本机设备ID后4位: ' + deviceIdLast4
+        prompt.showToast({ message: '设备ID不匹配' })
+        return
+      }
+
+      authStore.loadUsedRedeemCodes(function(usedRedeemList) {
+        if (usedRedeemList.indexOf(decrypted.redeemCode) !== -1) {
+          self.verifySuccess = false
+          self.verifyResult = '兑换码已被使用'
+          self.verifyDetail = '兑换码 ' + decrypted.redeemCode + ' 已被使用过，每个兑换码只能兑换一次'
+          prompt.showToast({ message: '该兑换码已被使用' })
+          return
+        }
+
+        var months = parseInt(decrypted.months, 10)
+
+        var isPermanent = months === 99
+        var days = isPermanent ? -1 : months * 30
+        var durationLabel = isPermanent ? '永久' : (months + ' 个月')
+
+        self.verifySuccess = true
+        self.verifyResult = '激活成功 - ' + (isPermanent ? '永久高级版 ✓' : (months + ' 个月'))
+        self.verifyDetail = isPermanent ? '' : ('有效期: ' + months + ' 个月')
+
+        authStore.markActivated(days, code, decrypted.redeemCode, function(success) {
+          if (success) {
+            authStore.saveUsedCode(code)
+            authStore.saveUsedRedeemCode(decrypted.redeemCode)
+            prompt.showToast({ message: '激活成功，' + durationLabel })
+            self.loadStatus()
+            self.loadHistory()
+          } else {
+            self.verifySuccess = false
+            self.verifyResult = '激活失败'
+            self.verifyDetail = '保存激活状态失败，请重试'
+            prompt.showToast({ message: '保存失败，请重试' })
+          }
+        })
+      })
+    })
+  }
+}
+</script>
+
+<style>
+@import '../../../common/header.css';
+
+.page {
+  flex-direction: column;
+  padding: 44px 10px 12px 10px;
+  width: 100%;
+  height: 100%;
+  
+}
+
+.cells-grid {
+  width: 100%;
+  flex-direction: column;
+  padding: 0px;
+  margin-bottom: 12px;
+}
+
+.cells-row {
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.cell {
+  flex: 1;
+  height: 50px;
+  border-radius: 8px;
+  border-width: 1px;
+  border-style: solid;
+  margin: 0px;
+  justify-content: center;
+  align-items: center;
+}
+
+.cell-active {
+  border-width: 2px;
+}
+
+.cell-text {
+  font-size: 32px;
+  font-weight: bold;
+  line-height: 40px;
+}
+
+.keypad {
+  width: 100%;
+  flex-direction: column;
+  padding: 0;
+  margin-bottom: 12px;
+}
+
+.keypad-row {
+  flex-direction: row;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.keypad-btn {
+  width: 75px;
+  height: 50px;
+  border-radius: 8px;
+  border-width: 1px;
+  border-style: solid;
+  justify-content: center;
+  align-items: center;
+  margin-left: 12px;
+  margin-right: 12px;
+}
+
+.keypad-text {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.verify-btn {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  justify-content: center;
+  align-items: center;
+  align-self: center;
+}
+
+.verify-btn-text {
+  font-size: 30px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.result-box {
+  flex-direction: column;
+  border-radius: 8px;
+  border-width: 2px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.result-label {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+.result-code {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.result-detail {
+  font-size: 24px;
+}
+
+.bottom-spacer {
+  height: 24px;
+}
+</style>

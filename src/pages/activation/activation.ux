@@ -16,6 +16,10 @@
           <text class="status-detail-line" style="color: {{ theme.textMuted }}">{{ statusDetail }}</text>
         </div>
       </div>
+      <div class="entry-primary" onclick="openCodePage" style="background-color: {{ theme.accent }}">
+        <text class="entry-primary-text" style="color: {{ theme.bg }}">输入激活码</text>
+        <text class="entry-primary-arrow" style="color: {{ theme.bg }}">›</text>
+      </div>
 
       <text class="section-title" style="color: {{ theme.text }}">激活软件</text>
 
@@ -91,131 +95,6 @@
       <div class="step-header">
           <div class="step-badge" style="background-color: {{ theme.accent }}">
             <text class="step-badge-text" style="color: {{ theme.bg }}">4</text>
-          </div>
-          <text class="step-title" style="color: {{ theme.text }}">手工激活 · 输入激活码</text>
-        </div>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">输入激活码</text>
-
-        <div class="cells-grid">
-          <div class="cells-row">
-            <div class="cell {{ cursor === 0 ? 'cell-active' : '' }}" onclick="onCellClick(0)" style="background-color: {{ cursor === 0 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 0 ? theme.bg : theme.text }}">{{ cell0 !== null ? cell0 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 1 ? 'cell-active' : '' }}" onclick="onCellClick(1)" style="background-color: {{ cursor === 1 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 1 ? theme.bg : theme.text }}">{{ cell1 !== null ? cell1 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 2 ? 'cell-active' : '' }}" onclick="onCellClick(2)" style="background-color: {{ cursor === 2 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 2 ? theme.bg : theme.text }}">{{ cell2 !== null ? cell2 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 3 ? 'cell-active' : '' }}" onclick="onCellClick(3)" style="background-color: {{ cursor === 3 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 3 ? theme.bg : theme.text }}">{{ cell3 !== null ? cell3 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 4 ? 'cell-active' : '' }}" onclick="onCellClick(4)" style="background-color: {{ cursor === 4 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 4 ? theme.bg : theme.text }}">{{ cell4 !== null ? cell4 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 5 ? 'cell-active' : '' }}" onclick="onCellClick(5)" style="background-color: {{ cursor === 5 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 5 ? theme.bg : theme.text }}">{{ cell5 !== null ? cell5 : '-' }}</text>
-            </div>
-          </div>
-          <div class="cells-row">
-            <div class="cell {{ cursor === 6 ? 'cell-active' : '' }}" onclick="onCellClick(6)" style="background-color: {{ cursor === 6 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 6 ? theme.bg : theme.text }}">{{ cell6 !== null ? cell6 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 7 ? 'cell-active' : '' }}" onclick="onCellClick(7)" style="background-color: {{ cursor === 7 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 7 ? theme.bg : theme.text }}">{{ cell7 !== null ? cell7 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 8 ? 'cell-active' : '' }}" onclick="onCellClick(8)" style="background-color: {{ cursor === 8 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 8 ? theme.bg : theme.text }}">{{ cell8 !== null ? cell8 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 9 ? 'cell-active' : '' }}" onclick="onCellClick(9)" style="background-color: {{ cursor === 9 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 9 ? theme.bg : theme.text }}">{{ cell9 !== null ? cell9 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 10 ? 'cell-active' : '' }}" onclick="onCellClick(10)" style="background-color: {{ cursor === 10 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 10 ? theme.bg : theme.text }}">{{ cell10 !== null ? cell10 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 11 ? 'cell-active' : '' }}" onclick="onCellClick(11)" style="background-color: {{ cursor === 11 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 11 ? theme.bg : theme.text }}">{{ cell11 !== null ? cell11 : '-' }}</text>
-            </div>
-          </div>
-          <div class="cells-row">
-            <div class="cell {{ cursor === 12 ? 'cell-active' : '' }}" onclick="onCellClick(12)" style="background-color: {{ cursor === 12 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 12 ? theme.bg : theme.text }}">{{ cell12 !== null ? cell12 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 13 ? 'cell-active' : '' }}" onclick="onCellClick(13)" style="background-color: {{ cursor === 13 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 13 ? theme.bg : theme.text }}">{{ cell13 !== null ? cell13 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 14 ? 'cell-active' : '' }}" onclick="onCellClick(14)" style="background-color: {{ cursor === 14 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 14 ? theme.bg : theme.text }}">{{ cell14 !== null ? cell14 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 15 ? 'cell-active' : '' }}" onclick="onCellClick(15)" style="background-color: {{ cursor === 15 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 15 ? theme.bg : theme.text }}">{{ cell15 !== null ? cell15 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 16 ? 'cell-active' : '' }}" onclick="onCellClick(16)" style="background-color: {{ cursor === 16 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 16 ? theme.bg : theme.text }}">{{ cell16 !== null ? cell16 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 17 ? 'cell-active' : '' }}" onclick="onCellClick(17)" style="background-color: {{ cursor === 17 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 17 ? theme.bg : theme.text }}">{{ cell17 !== null ? cell17 : '-' }}</text>
-            </div>
-          </div>
-        </div>
-
-        <div class="keypad">
-          <div class="keypad-row">
-            <div class="keypad-btn" onclick="onKeyPress(1)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">1</text>
-            </div>
-            <div class="keypad-btn" onclick="onKeyPress(2)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">2</text>
-            </div>
-            <div class="keypad-btn" onclick="onKeyPress(3)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">3</text>
-            </div>
-          </div>
-          <div class="keypad-row">
-            <div class="keypad-btn" onclick="onKeyPress(4)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">4</text>
-            </div>
-            <div class="keypad-btn" onclick="onKeyPress(5)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">5</text>
-            </div>
-            <div class="keypad-btn" onclick="onKeyPress(6)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">6</text>
-            </div>
-          </div>
-          <div class="keypad-row">
-            <div class="keypad-btn" onclick="onKeyPress(7)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">7</text>
-            </div>
-            <div class="keypad-btn" onclick="onKeyPress(8)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">8</text>
-            </div>
-            <div class="keypad-btn" onclick="onKeyPress(9)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">9</text>
-            </div>
-          </div>
-          <div class="keypad-row">
-            <div class="keypad-btn keypad-clear" onclick="onClear" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: #e74c3c">C</text>
-            </div>
-            <div class="keypad-btn" onclick="onKeyPress(0)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">0</text>
-            </div>
-            <div class="keypad-btn keypad-delete" onclick="onDelete" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: #e74c3c">←</text>
-            </div>
-          </div>
-        </div>
-
-        <div class="verify-btn" onclick="doVerify" style="background-color: {{ theme.accent }}">
-          <text class="verify-btn-text" style="color: {{ theme.bg }}">验证</text>
-        </div>
-
-        <div class="result-box" show="{{ verifyResult }}" style="background-color: {{ theme.bg }}; border-color: {{ verifySuccess ? theme.accent : '#e74c3c' }}">
-          <text class="result-label" style="color: {{ theme.textSecondary }}">验证结果</text>
-          <text class="result-code" style="color: {{ verifySuccess ? theme.accent : '#e74c3c' }}">{{ verifyResult }}</text>
-          <text class="result-detail" show="{{ verifyDetail }}" style="color: {{ theme.textSecondary }}">{{ verifyDetail }}</text>
-        </div>
-
       <text class="section-title" style="color: {{ theme.text }}">历史</text>
       <div class="history-list">
         <div for="{{ historyList }}" class="history-item">
@@ -526,6 +405,9 @@ export default {
     }
   },
 
+  openCodePage() {
+    router.push({ uri: 'pages/activation/activation-code' });
+  },
   goBack() {
     router.back()
   },
@@ -1113,5 +995,27 @@ export default {
   .page {
     padding: 6px 8px 8px 8px;
   }
+}
+
+.entry-primary {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 168px;
+  min-height: 56px;
+  padding: 0 16px;
+  border-radius: 28px;
+  margin-bottom: 12px;
+}
+
+.entry-primary-text {
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 34px;
+}
+
+.entry-primary-arrow {
+  font-size: 28px;
+  line-height: 34px;
 }
 </style>
