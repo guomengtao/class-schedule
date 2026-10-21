@@ -4,7 +4,7 @@
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">选择日期</text>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">选择日期</text>
     </div>
 
     <text class="preview-text" style="color: {{ theme.accent }}">{{ resultStr }}</text>
@@ -37,6 +37,12 @@ const store = require("../../data/store.js")
 var RESULT_KEY = "countdown_date_result"
 
 export default {
+  // 2026-10-21 补：模板里的返回按钮与标题都绑了 goBack，但本页从来没有这个方法，
+  // 之前点返回是完全没反应的（手环上只能长按侧键重进）
+  goBack() {
+    router.back()
+  },
+
   private: {
     iconTheme: "dark",
     theme: {

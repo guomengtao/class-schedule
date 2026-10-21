@@ -138,17 +138,45 @@ ev_add_task(title="任务标题", description="目标+改动范围+验收，≥5
 - 标准 `header` 顶栏 → `<div class="back-btn-wrapper"><image src="/common/icons/{{ iconTheme }}/icon_back.png">`
 - 自定义顶栏（如 `add-course-v2` 的 topbar）→ 文字箭头 `<text class="back-text" onclick="goBack">‹</text>`，宽 28px，不依赖图标资源
 
-**为什么要写进规则**：这不是审美问题。手环没有系统返回键、没有边缘手势，页面一旦没有返回入口，用户只能长按侧键重进应用。`add-course-v2` 就这样裸奔了很久。
+### 6.1 标题本身就是返回热区（2026-10-21 追加）
 
-**审计命令**（新增页面后跑一次，输出为空才算合格）：
+顶栏标题**必须也绑 `onclick="goBack"`**，与左侧箭头连成一片热区：
+
+```html
+<text class="header-title" onclick="goBack" style="color: {{ theme.text }}">{{ pageTitle }}</text>
+```
+
+三条理由：
+
+1. **热区**：192×490 的屏，箭头只有 28–32px 宽，拇指和指甲盖极容易打偏。标题在它旁边且宽得多，等于把返回热区放大 2–4 倍。
+2. **直觉**：用户默认「点标题回上级」，这是移动端的普遍心智，不需要教。
+3. **零成本**：不加 DOM、不加样式、不改布局，只多一个属性。
+
+**真实案例（本次修）**：`countdown-date.ux` 的返回按钮**绑了 `goBack`，但页面里根本没有这个方法** —— 按钮画得再标准，点了也完全没反应。所以审计不能只查「文件里有没有 goBack 这个词」（模板里的 `onclick` 也算命中），必须查**方法是否真的定义了**。
+
+### 6.2 审计命令（三项都要为空）
 
 ```bash
-cd src/pages && for f in */*.ux; do
-  grep -q "icon_back\|goBack\|back-btn\|back-text" "$f" || echo "缺返回: $f"
+cd src/pages
+# ① 有顶栏但没有返回入口
+for f in */*.ux; do
+  grep -q 'class="header-title"' "$f" && ! grep -q "icon_back\|goBack\|back-btn\|back-text" "$f" && echo "缺返回入口: $f"
+done
+# ② 标题没绑返回（本次全站补齐的项）
+for f in */*.ux; do
+  grep -q 'class="header-title"' "$f" && ! grep -q 'class="header-title"[^>]*onclick' "$f" && echo "标题不可返回: $f"
+done
+# ③ 绑了 onclick="goBack" 但方法没定义（点了没反应的假返回）
+for f in */*.ux; do
+  grep -q 'onclick="goBack"' "$f" && ! grep -q "goBack(" "$f" && echo "goBack 未定义: $f"
 done
 ```
 
-已知豁免：`welcome/welcome.ux`、9 个 `watch-face-*`。
+**当前状态（2026-10-21）**：三项审计全部为空。一次性给 30 个已有 `goBack` 的页面补了标题点击（`add-course`、`tools`、`statistics`、`schedule-manager` 等），另给 `countdown-date` 补上缺失的 `goBack` 方法。新增页面必须一次做对，**不允许「先画按钮、后补方法」**。
+
+**为什么要写进规则**：这不是审美问题。手环没有系统返回键、没有边缘手势，页面一旦没有返回入口，用户只能长按侧键重进应用。`add-course-v2` 就这样裸奔了很久。
+
+已知豁免：`welcome/welcome.ux`、9 个 `watch-face-*`（无顶栏、整屏展示）。
 
 ---
 

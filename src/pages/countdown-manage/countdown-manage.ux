@@ -4,7 +4,9 @@
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">倒数日</text>
+      <!-- 标题同样可点返回：手环屏小，返回热区越大越好，
+           且用户直觉就是「点标题回上级」（2026-10-21 全站规则） -->
+      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">倒数日</text>
     </div>
 
     <div class="toolbar" if="{{ countdownList.length > 0 }}">
@@ -56,8 +58,16 @@
       </div>
     </scroll>
 
+    <!-- 详情弹层：模态，只保留一个显式出口（右上角 ×）。
+         改版前是「删除 | 关闭」两个并排文字按钮，加上点遮罩也能关 —— 三个出口
+         语义全打架，点哪个都像"离开"，删除的二次确认还挤在同一行，误删过。
+         现在：编辑 = 大按钮，删除 = 垃圾桶图标（形状与 × 完全不同，
+         不再和"关闭"长得像一对），关闭只剩 × 一个。 -->
     <div if="{{ detailVisible }}" class="detail-mask" onclick="closeDetail">
       <div class="detail-panel" style="background-color: {{ theme.card }}" onclick="detailStop($event)">
+        <div class="detail-close" onclick="closeDetail">
+          <text class="detail-close-x" style="color: {{ theme.textSecondary }}">×</text>
+        </div>
         <div class="detail-arc-wrap">
           <progress class="detail-arc" type="arc" percent="{{ detailItem.arcPercent }}"
                     color="{{ detailItem.arcColor }}" backgroundcolor="{{ theme.borderLight }}" stroke-width="12" />
@@ -67,14 +77,18 @@
         </div>
         <text class="detail-title" style="color: {{ theme.text }}">{{ detailItem.title }}</text>
         <text class="detail-date" style="color: {{ theme.textSecondary }}">{{ detailItem.dateDisplay }}</text>
+        <text if="{{ detailItem.lunarLine }}" class="detail-date" style="color: {{ theme.textMuted }}">{{ detailItem.lunarLine }}</text>
         <div class="detail-actions">
           <div class="action-btn detail-edit" onclick="editFromDetail"
                style="background-color: {{ theme.accent }}">
             <text class="btn-label" style="color: {{ theme.bg }}">编辑</text>
           </div>
-          <div class="action-btn detail-del" onclick="deleteFromDetail"
+          <div class="detail-del-btn" onclick="deleteFromDetail"
                style="background-color: {{ detailDeleteConfirm ? theme.deleteText : theme.deleteBg }}">
-            <text class="btn-label" style="color: {{ detailDeleteConfirm ? theme.text : theme.deleteText }}">{{ detailDeleteConfirm ? '确认' : '删除' }}</text>
+            <image if="{{ !detailDeleteConfirm }}" class="detail-del-icon"
+                   src="/common/icons/{{ iconTheme }}/icon_trash.png"></image>
+            <text if="{{ detailDeleteConfirm }}" class="detail-del-confirm"
+                  style="color: {{ theme.text }}">确认</text>
           </div>
         </div>
         <div class="detail-actions detail-switch-row">
@@ -82,11 +96,6 @@
           <div class="switch-btn detail-switch" onclick="toggleFromDetail"
                style="background-color: {{ detailItem.enabled ? theme.accent : theme.btnSecondary }}">
             <text class="switch-label" style="color: {{ detailItem.enabled ? theme.bg : theme.btnSecondaryText }}">{{ detailItem.enabled ? 'ON' : 'OFF' }}</text>
-          </div>
-        </div>
-        <div class="detail-actions">
-          <div class="action-btn detail-close" onclick="closeDetail" style="background-color: {{ theme.btnSecondary }}">
-            <text class="btn-label" style="color: {{ theme.btnSecondaryText }}">关闭</text>
           </div>
         </div>
       </div>
@@ -760,6 +769,7 @@ export default {
 
 /* 184 = 屏宽 192 − 左右各 4；内容区 168，正好容下 72 + 8 + 72 的操作排 */
 .detail-panel {
+  position: relative;
   flex-direction: column;
   align-items: center;
   width: 184px;
@@ -819,8 +829,35 @@ export default {
   margin-top: 8px;
 }
 
-.detail-del {
-  margin-left: 8px;
+/* 编辑是主操作，给足宽度；删除退成图标钮。
+   96 + 10 + 56 = 162 ≤ 内容区 168 */
+.detail-edit {
+  width: 96px;
+  height: 44px;
+  border-radius: 22px;
+}
+
+/* 删除：垃圾桶图标 + 56×44 圆钮。图标形状与右上角 × 完全不同，
+   不会再被读成第二个「关闭」；确认态换成「确认」两字并转红底，
+   位置、形状都不变，避免"按钮跳位"导致误点 */
+.detail-del-btn {
+  width: 56px;
+  height: 44px;
+  border-radius: 22px;
+  justify-content: center;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.detail-del-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.detail-del-confirm {
+  font-size: 20px;
+  line-height: 26px;
+  text-align: center;
 }
 
 /* 同样必须单类选择器（后代选择器会被丢弃） */
@@ -845,13 +882,25 @@ export default {
   width: 100%;
 }
 
-/* 关闭按钮占满行宽：弹层是模态的，必须给一个明确出口。
-   只靠「点空白处」——192 屏上弹层几乎铺满，空白处只剩边距那几像素 */
+/* 关闭：右上角 ×，唯一显式出口。
+   为什么不再放一个整行「关闭」按钮：它和「删除」并排时都是文字按钮、
+   底色也接近，用户分不清哪个是"退出"哪个是"删掉"。× 在位置（右上）
+   和形状（叉）上都与垃圾桶区分开，且不再多占 38px 竖向空间。
+   热区 32×32 比字形大一圈，手环上点得中。 */
 .detail-close {
-  width: 152px;
-  height: 36px;
-  border-radius: 18px;
-  margin-top: 2px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  justify-content: center;
+  align-items: center;
+}
+
+.detail-close-x {
+  font-size: 26px;
+  line-height: 32px;
+  text-align: center;
 }
 
 /* 大屏（9 Pro / 10 Pro 336×480 等 rect 屏）只做增量：留白与按钮放大，

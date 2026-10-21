@@ -4,7 +4,8 @@
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">{{ pageTitle }}</text>
+      <!-- 标题同样可点返回：与左侧箭头一起构成返回热区（2026-10-21 全站规则） -->
+      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">{{ pageTitle }}</text>
     </div>
 
     <!-- 名称：跳统一的中文输入页（全项目只有这一个输入页、只打一份词典），

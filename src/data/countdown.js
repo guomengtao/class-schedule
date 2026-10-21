@@ -84,6 +84,45 @@ function newId() {
   return "cd-" + Date.now() + "-" + Math.floor(Math.random() * 10000) + "-" + seq
 }
 
+// ===== 新装机演示数据 =====
+// 为什么内置一条：全新安装打开倒数日是「暂无倒数日」一片空白，用户不知道这栏目
+// 能干什么，也不会去点「+ 添加」试。演示条目必须一条就把卖点讲完，所以选
+// 「农历生日」—— 它同时展示三件事：农历录入、卡片上的农历行回显、颜色色块。
+//
+// 这里只放「农历八月初八」预先换算好的公历表（2026-2040，lunardate 算出），
+// 不引入 lunar.js：为一条演示数据让 countdown.js 背上 5.5KB 农历表，
+// 会把首页日程面板的 jsc 一起拖大，代价和收益完全不成比例。
+var DEMO_LUNAR_TEXT = "八月初八"
+var DEMO_LUNAR_SOLAR = [
+  "2026-09-18", "2027-09-08", "2028-09-26", "2029-09-15", "2030-09-05",
+  "2031-09-24", "2032-09-12", "2033-09-01", "2034-09-20", "2035-09-09",
+  "2036-09-27", "2037-09-17", "2038-09-06", "2039-09-25", "2040-09-13"
+]
+
+// 取「今天之后最近的八月初八」；表用尽则取最后一条（至少不会变成已过期的负数）
+function demoItems() {
+  var today = todayStartMs()
+  var pick = ""
+  for (var i = 0; i < DEMO_LUNAR_SOLAR.length; i++) {
+    var t = parseDate(DEMO_LUNAR_SOLAR[i])
+    if (t && t.getTime() >= today) {
+      pick = DEMO_LUNAR_SOLAR[i]
+      break
+    }
+  }
+  if (!pick) pick = DEMO_LUNAR_SOLAR[DEMO_LUNAR_SOLAR.length - 1]
+  return [normalizeItem({
+    id: "cd-demo-birthday",
+    title: "我的生日",
+    date: pick,
+    cal: "lunar",
+    lunarText: DEMO_LUNAR_TEXT,
+    color: "#dd6a94",
+    enabled: true,
+    createdAt: Date.now()
+  })]
+}
+
 function emptyObject() {
   return { version: 2, items: [] }
 }
@@ -213,19 +252,47 @@ function sortByTitle(list) {
 
 // 读取：优先 v2；无 v2 或 v2 无有效数据时，回落读旧 v1 键并迁移归档
 function load(cb) {
+  // 全新安装：种一条演示数据并落盘，回调用 source:"demo" 标记。
+  // 必须先写进存储再回调，否则下一次 load 又会重复种一遍。
+  function freshInstall() {
+    var items = demoItems()
+    var seed = emptyObject()
+    seed.items = items
+    storage.set({
+      key: V2_KEY,
+      value: JSON.stringify(seed),
+      success: function() {
+        cb({ version: 2, items: items, source: "demo" })
+      },
+      fail: function() {
+        cb({ version: 2, items: items, source: "demo" })
+      }
+    })
+  }
+
   // 读旧 v1 并迁移到 v2（归档删除旧键）
   function migrateOld() {
     storage.get({
       key: OLD_KEY,
       success: function(oldData) {
         var items = []
+        var hadOld = false
         if (oldData) {
           try {
             var arr = JSON.parse(oldData)
             items = (Array.isArray(arr) ? arr : []).map(normalizeItem)
+            hadOld = true
           } catch (e2) {
             items = []
           }
+        }
+        // 键不存在时 Vela 的 storage.get 可能回调 success("") 而不是 fail()，
+        // 所以判据放在「值是否为空」上，而不是放在回调分支上。
+        // hadOld 为假 = 这台机器从来没有过倒数日数据 = 全新安装 → 种演示。
+        // 用户自己清空全部时写的是 {items: []}（键存在、值非空），走不到这里。
+        if (!hadOld && items.length === 0) {
+          freshInstall()
+          return
         }
         var obj = emptyObject()
         obj.items = items
@@ -249,7 +316,7 @@ function load(cb) {
         })
       },
       fail: function() {
-        cb(emptyObject())
+        freshInstall()
       }
     })
   }

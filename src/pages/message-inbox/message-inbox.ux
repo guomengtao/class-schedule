@@ -7,7 +7,7 @@
         <div class="back-btn-wrapper" onclick="toggleManage" style="background-color: {{ theme.card }}">
           <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
         </div>
-        <text class="header-title" style="color: {{ theme.text }}">短语管理</text>
+        <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">短语管理</text>
         <div class="header-placeholder"></div>
       </div>
 
@@ -45,7 +45,7 @@
         <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
           <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
         </div>
-        <text class="header-title" style="color: {{ theme.text }}">留言板</text>
+        <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">留言板</text>
         <div class="manage-entry" onclick="toggleManage" style="background-color: {{ theme.card }}">
           <text class="manage-entry-text" style="color: {{ theme.accent }}">管理</text>
         </div>
