@@ -1,0 +1,394 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">激活指南</text>
+      <div class="header-placeholder"></div>
+    </div>
+    <scroll class="page-scroll" scroll-y="{{true}}">
+
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-badge" style="background-color: {{ theme.accent }}">
+            <text class="step-badge-text" style="color: {{ theme.bg }}">1</text>
+          </div>
+          <text class="step-title" style="color: {{ theme.text }}">购买兑换码</text>
+        </div>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">爱发电购买</text>
+      </div>
+
+      <div class="qr-section qr-section-full">
+        <qrcode class="qr-code" value="{{ afdianUrl }}" style="color: #000000; background-color: #ffffff;"></qrcode>
+        <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码购买</text>
+      </div>
+
+      <div class="step-arrow" style="color: {{ theme.textMuted }}"><text>▼</text></div>
+
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-badge" style="background-color: {{ theme.accent }}">
+            <text class="step-badge-text" style="color: {{ theme.bg }}">2</text>
+          </div>
+          <text class="step-title" style="color: {{ theme.text }}">快速激活</text>
+        </div>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">安卓手机</text>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">扫码下载 Ev课程表同步器</text>
+      </div>
+
+      <div class="qr-section qr-section-full" if="{{ apkQrText }}">
+        <qrcode class="qr-code" value="{{ apkQrText }}" style="color: #000000; background-color: #ffffff;"></qrcode>
+        <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码下载同步器</text>
+      </div>
+
+      <div class="qr-section" if="{{ !apkQrText }}">
+        <text class="qr-loading" style="color: {{ theme.textMuted }}">正在生成二维码...</text>
+      </div>
+
+      <div class="step-card">
+        <text class="step-desc" style="color: {{ theme.accent }}">不下载同步器？</text>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">可通过以下步骤手工激活：</text>
+      </div>
+
+      <div class="step-arrow" style="color: {{ theme.textMuted }}"><text>▼</text></div>
+
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-badge" style="background-color: {{ theme.accent }}">
+            <text class="step-badge-text" style="color: {{ theme.bg }}">3</text>
+          </div>
+          <text class="step-title" style="color: {{ theme.text }}">手工激活</text>
+        </div>
+        <text class="step-desc" style="color: {{ theme.textSecondary }}">扫码获取激活码</text>
+        <div class="device-row">
+          <text class="device-label" style="color: {{ theme.textSecondary }}">设备ID</text>
+          <text class="device-value" style="color: {{ theme.accent }}">{{ deviceIdDisplay }}</text>
+        </div>
+      </div>
+
+      <div class="qr-section qr-section-full" if="{{ qrText }}">
+        <qrcode class="qr-code" value="{{ qrText }}" style="color: #000000; background-color: #ffffff;"></qrcode>
+        <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码兑换</text>
+      </div>
+
+      <div class="qr-section" if="{{ !qrText }}">
+        <text class="qr-loading" style="color: {{ theme.textMuted }}">正在生成二维码...</text>
+      </div>
+
+      <div class="bottom-spacer"></div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../../data/store.js")
+const version = require("../../../data/version.js")
+
+var ACTIVATION_URL = "https://app-auth.gudq.com/activate.html?deviceId="
+var AFDIAN_REDIRECT_URL = "https://app-auth.gudq.com/go/ev-timetable?deviceId="
+var APK_DL_URL = "https://app-auth.gudq.com/apk-download.html?deviceId="
+
+export default {
+  private: {
+    iconTheme: "dark",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a'
+    },
+    afdianUrl: '',
+    apkQrText: '',
+    qrText: '',
+    deviceId: '',
+    deviceIdDisplay: '获取中...',
+    deviceInfoParams: '',
+    versionText: '',
+    channelParam: version.channel || ''
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
+    // 必须先有版本号，updateQrText 会把它拼进二维码参数
+    self.versionText = version.versionName
+    self.fetchDeviceId()
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
+  },
+
+  updateIconSrc: function(themeName) {
+    this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  fetchDeviceId() {
+    var self = this
+    try {
+      var device = require("@system.device")
+      device.getDeviceId({
+        success: function(data) {
+          var raw = data.deviceId || ''
+          if (!raw || raw === 'NA' || raw === 'unknown' || raw === 'null') {
+            self._fallbackToLocalUUID()
+          } else {
+            self.deviceId = raw
+            self.deviceIdDisplay = raw.slice(-6)
+            self.updateQrText()
+            self.fetchDeviceInfo()
+          }
+        },
+        fail: function() {
+          self._fallbackToLocalUUID()
+        }
+      })
+    } catch (e) {
+      self._fallbackToLocalUUID()
+    }
+  },
+
+  _fallbackToLocalUUID() {
+    var self = this
+    var deviceUuid = require("../../../utils/device-uuid.js")
+    deviceUuid.getLocalDeviceId(function(id) {
+      self.deviceId = id
+      self.deviceIdDisplay = id.slice(-6)
+      self.updateQrText()
+      self.fetchDeviceInfo()
+    })
+  },
+
+  fetchDeviceInfo() {
+    var self = this
+    try {
+      var device = require("@system.device")
+      device.getInfo({
+        success: function(ret) {
+          var params = []
+          if (ret.model) params.push('m=' + encodeURIComponent(ret.model))
+          if (ret.product) params.push('p=' + encodeURIComponent(ret.product))
+          if (ret.osVersionCode != null) params.push('o=' + ret.osVersionCode)
+          if (ret.platformVersionCode != null) params.push('v=' + ret.platformVersionCode)
+          if (ret.deviceType) params.push('t=' + encodeURIComponent(ret.deviceType))
+          if (ret.screenShape) params.push('s=' + encodeURIComponent(ret.screenShape))
+          if (ret.screenWidth != null) params.push('w=' + ret.screenWidth)
+          if (ret.screenHeight != null) params.push('h=' + ret.screenHeight)
+          if (ret.APILevel != null) params.push('a=' + ret.APILevel)
+          if (ret.language) params.push('l=' + encodeURIComponent(ret.language))
+          self.deviceInfoParams = params.join('&')
+          self.updateQrText()
+        },
+        fail: function() {
+          self.deviceInfoParams = ''
+          self.updateQrText()
+        }
+      })
+    } catch (e) {
+      self.deviceInfoParams = ''
+      self.updateQrText()
+    }
+  },
+
+  updateQrText() {
+    var self = this
+    if (self.deviceId && self.deviceId !== '获取中...') {
+      var qr = ACTIVATION_URL + encodeURIComponent(self.deviceId)
+      if (self.deviceInfoParams) {
+        qr = qr + '&' + self.deviceInfoParams
+      }
+      if (self.versionText) {
+        qr = qr + '&r=' + encodeURIComponent(self.versionText)
+      }
+      if (self.channelParam) {
+        qr = qr + '&c=' + encodeURIComponent(self.channelParam)
+      }
+      if (qr.length > 200 && self.channelParam) {
+        qr = ACTIVATION_URL + encodeURIComponent(self.deviceId) + '&c=' + encodeURIComponent(self.channelParam)
+        if (self.versionText) {
+          var tmp = qr + '&r=' + encodeURIComponent(self.versionText)
+          if (tmp.length <= 200) qr = tmp
+        }
+      }
+      self.qrText = qr
+
+      var afd = AFDIAN_REDIRECT_URL + encodeURIComponent(self.deviceId)
+      if (self.deviceInfoParams) {
+        afd = afd + '&' + self.deviceInfoParams
+      }
+      if (self.versionText) {
+        afd = afd + '&r=' + encodeURIComponent(self.versionText)
+      }
+      if (self.channelParam) {
+        afd = afd + '&c=' + encodeURIComponent(self.channelParam)
+      }
+      self.afdianUrl = afd
+
+      // 步骤2「快速激活」：安卓同步器下载页（带 deviceId/版本/渠道追踪，服务端漏斗可见）
+      var apk = APK_DL_URL + encodeURIComponent(self.deviceId)
+      if (self.versionText) {
+        apk = apk + '&r=' + encodeURIComponent(self.versionText)
+      }
+      if (self.channelParam) {
+        apk = apk + '&c=' + encodeURIComponent(self.channelParam)
+      } else {
+        apk = apk + '&c=band-premium'
+      }
+      self.apkQrText = apk
+    }
+  }
+}
+</script>
+
+<style>
+@import '../../../common/header.css';
+
+.page {
+  flex-direction: column;
+  padding: 44px 10px 12px 10px;
+  width: 100%;
+  height: 100%;
+}
+
+.header-title {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+/* 本页滚动容器：缺此定义会导致 scroll 无高度约束、正文整体不渲染 */
+.page-scroll {
+  flex: 1;
+  flex-direction: column;
+}
+
+.step-card {
+  width: 100%;
+  flex-direction: column;
+  padding: 12px 0;
+  margin-bottom: 8px;
+}
+
+.step-header {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.step-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  justify-content: center;
+  align-items: center;
+  margin-right: 6px;
+}
+
+.step-badge-text {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.step-title {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.step-desc {
+  font-size: 22px;
+  line-height: 32px;
+  margin-bottom: 10px;
+}
+
+.step-arrow {
+  font-size: 28px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.device-row {
+  flex-direction: row;
+  align-items: center;
+  padding: 10px 0;
+  margin-bottom: 10px;
+}
+
+.device-label {
+  font-size: 22px;
+  width: 80px;
+}
+
+.device-value {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.qr-section {
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.qr-section-full {
+  width: 100%;
+}
+
+.qr-code {
+  width: 100%;
+  height: auto;
+}
+
+.qr-label {
+  font-size: 22px;
+  margin-top: 8px;
+}
+
+.qr-loading {
+  font-size: 22px;
+  padding: 20px 0;
+}
+
+.bottom-spacer {
+  height: 30px;
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+}
+
+@media (shape: pill-shaped) {
+  .page {
+    padding: 30px 16px 30px 16px;
+  }
+
+  .header-title {
+    font-size: 22px;
+    line-height: 30px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 6px 8px 8px 8px;
+  }
+}
+</style>

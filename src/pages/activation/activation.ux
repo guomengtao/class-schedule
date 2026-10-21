@@ -21,80 +21,11 @@
         <text class="entry-primary-arrow" style="color: {{ theme.bg }}">›</text>
       </div>
 
-      <text class="section-title" style="color: {{ theme.text }}">激活软件</text>
-
-      <div class="step-card">
-        <div class="step-header">
-          <div class="step-badge" style="background-color: {{ theme.accent }}">
-            <text class="step-badge-text" style="color: {{ theme.bg }}">1</text>
-          </div>
-          <text class="step-title" style="color: {{ theme.text }}">购买高级版兑换码</text>
-        </div>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">爱发电购买</text>
+      <div class="entry-secondary" onclick="openGuidePage" style="background-color: {{ theme.card }}">
+        <text class="entry-secondary-text" style="color: {{ theme.text }}">购买兑换码</text>
+        <text class="entry-secondary-arrow" style="color: {{ theme.textSecondary }}">›</text>
       </div>
 
-      <div class="qr-section qr-section-full">
-        <qrcode class="qr-code" value="{{ afdianUrl }}" style="color: #000000; background-color: #ffffff;"></qrcode>
-        <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码购买</text>
-      </div>
-
-      <div class="step-arrow" style="color: {{ theme.textMuted }}"><text>▼</text></div>
-
-      <div class="step-card">
-        <div class="step-header">
-          <div class="step-badge" style="background-color: {{ theme.accent }}">
-            <text class="step-badge-text" style="color: {{ theme.bg }}">2</text>
-          </div>
-          <text class="step-title" style="color: {{ theme.text }}">快速激活</text>
-        </div>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">安卓手机</text>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">扫码下载 Ev课程表同步器</text>
-      </div>
-
-      <div class="qr-section qr-section-full" if="{{ apkQrText }}">
-        <qrcode class="qr-code" value="{{ apkQrText }}" style="color: #000000; background-color: #ffffff;"></qrcode>
-        <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码下载同步器</text>
-      </div>
-
-      <div class="qr-section" if="{{ !apkQrText }}">
-        <text class="qr-loading" style="color: {{ theme.textMuted }}">正在生成二维码...</text>
-      </div>
-
-      <div class="step-card">
-        <text class="step-desc" style="color: {{ theme.accent }}">不下载同步器？</text>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">可通过以下步骤手工激活：</text>
-      </div>
-
-      <div class="step-arrow" style="color: {{ theme.textMuted }}"><text>▼</text></div>
-
-      <div class="step-card">
-        <div class="step-header">
-          <div class="step-badge" style="background-color: {{ theme.accent }}">
-            <text class="step-badge-text" style="color: {{ theme.bg }}">3</text>
-          </div>
-          <text class="step-title" style="color: {{ theme.text }}">手工激活 · 获取激活码</text>
-        </div>
-        <text class="step-desc" style="color: {{ theme.textSecondary }}">扫码获取</text>
-        <div class="device-row">
-          <text class="device-label" style="color: {{ theme.textSecondary }}">设备ID</text>
-          <text class="device-value" style="color: {{ theme.accent }}">{{ deviceIdDisplay }}</text>
-        </div>
-      </div>
-
-      <div class="qr-section qr-section-full" if="{{ qrText }}">
-        <qrcode class="qr-code" value="{{ qrText }}" style="color: #000000; background-color: #ffffff;"></qrcode>
-        <text class="qr-label" style="color: {{ theme.textSecondary }}">扫码兑换</text>
-      </div>
-
-      <div class="qr-section" if="{{ !qrText }}">
-        <text class="qr-loading" style="color: {{ theme.textMuted }}">正在生成二维码...</text>
-      </div>
-
-      <div class="step-arrow" style="color: {{ theme.textMuted }}"><text>▼</text></div>
-
-      <div class="step-header">
-          <div class="step-badge" style="background-color: {{ theme.accent }}">
-            <text class="step-badge-text" style="color: {{ theme.bg }}">4</text>
       <text class="section-title" style="color: {{ theme.text }}">历史</text>
       <div class="history-list">
         <div for="{{ historyList }}" class="history-item">
@@ -193,23 +124,9 @@ export default {
     historyList: [],
     installTimeText: '',
     expireTimeText: '',
-    afdianUrl: '',
-    apkQrText: '',
     deviceId: '',
     deviceIdDisplay: '获取中...',
-    qrText: '',
-    cell0: null, cell1: null, cell2: null, cell3: null,
-    cell4: null, cell5: null, cell6: null, cell7: null,
-    cell8: null, cell9: null, cell10: null, cell11: null,
-    cell12: null, cell13: null, cell14: null, cell15: null,
-    cell16: null, cell17: null,
-    cursor: 0,
-    verifyResult: '',
-    verifyDetail: '',
-    verifySuccess: false,
     versionText: '',
-    deviceInfoParams: '',
-    channelParam: version.channel || ''
   },
 
   onInit() {
@@ -301,8 +218,6 @@ export default {
           } else {
             self.deviceId = raw
             self.deviceIdDisplay = raw.slice(-6)
-            self.updateQrText()
-            self.fetchDeviceInfo()
           }
         },
         fail: function() {
@@ -320,90 +235,10 @@ export default {
     deviceUuid.getLocalDeviceId(function(id) {
       self.deviceId = id
       self.deviceIdDisplay = id.slice(-6)
-      self.updateQrText()
-      self.fetchDeviceInfo()
     })
   },
 
-  fetchDeviceInfo() {
-    var self = this
-    try {
-      var device = require("@system.device")
-      device.getInfo({
-        success: function(ret) {
-          var params = []
-          if (ret.model) params.push('m=' + encodeURIComponent(ret.model))
-          if (ret.product) params.push('p=' + encodeURIComponent(ret.product))
-          if (ret.osVersionCode != null) params.push('o=' + ret.osVersionCode)
-          if (ret.platformVersionCode != null) params.push('v=' + ret.platformVersionCode)
-          if (ret.deviceType) params.push('t=' + encodeURIComponent(ret.deviceType))
-          if (ret.screenShape) params.push('s=' + encodeURIComponent(ret.screenShape))
-          if (ret.screenWidth != null) params.push('w=' + ret.screenWidth)
-          if (ret.screenHeight != null) params.push('h=' + ret.screenHeight)
-          if (ret.APILevel != null) params.push('a=' + ret.APILevel)
-          if (ret.language) params.push('l=' + encodeURIComponent(ret.language))
-          self.deviceInfoParams = params.join('&')
-          self.updateQrText()
-        },
-        fail: function() {
-          self.deviceInfoParams = ''
-          self.updateQrText()
-        }
-      })
-    } catch (e) {
-      self.deviceInfoParams = ''
-      self.updateQrText()
-    }
-  },
 
-  updateQrText() {
-    var self = this
-    if (self.deviceId && self.deviceId !== '获取中...') {
-      var qr = ACTIVATION_URL + encodeURIComponent(self.deviceId)
-      if (self.deviceInfoParams) {
-        qr = qr + '&' + self.deviceInfoParams
-      }
-      if (self.versionText) {
-        qr = qr + '&r=' + encodeURIComponent(self.versionText)
-      }
-      if (self.channelParam) {
-        qr = qr + '&c=' + encodeURIComponent(self.channelParam)
-      }
-      if (qr.length > 200 && self.channelParam) {
-        qr = ACTIVATION_URL + encodeURIComponent(self.deviceId) + '&c=' + encodeURIComponent(self.channelParam)
-        if (self.versionText) {
-          var tmp = qr + '&r=' + encodeURIComponent(self.versionText)
-          if (tmp.length <= 200) qr = tmp
-        }
-      }
-      self.qrText = qr
-
-      var afd = AFDIAN_REDIRECT_URL + encodeURIComponent(self.deviceId)
-      if (self.deviceInfoParams) {
-        afd = afd + '&' + self.deviceInfoParams
-      }
-      if (self.versionText) {
-        afd = afd + '&r=' + encodeURIComponent(self.versionText)
-      }
-      if (self.channelParam) {
-        afd = afd + '&c=' + encodeURIComponent(self.channelParam)
-      }
-      self.afdianUrl = afd
-
-      // 步骤2「快速激活」：安卓同步器下载页（带 deviceId/版本/渠道追踪，服务端漏斗可见）
-      var APK_DL_URL = 'https://app-auth.gudq.com/apk-download.html?deviceId='
-      var apk = APK_DL_URL + encodeURIComponent(self.deviceId)
-      if (self.versionText) {
-        apk = apk + '&r=' + encodeURIComponent(self.versionText)
-      }
-      if (self.channelParam) {
-        apk = apk + '&c=' + encodeURIComponent(self.channelParam)
-      } else {
-        apk = apk + '&c=band-premium'
-      }
-      self.apkQrText = apk
-    }
-  },
 
   openCodePage() {
     router.push({ uri: 'pages/activation/activation-code' });
@@ -412,159 +247,8 @@ export default {
     router.back()
   },
 
-  onCellClick(index) {
-    doVibrate()
-    this.cursor = index
-  },
-
-  onKeyPress(digit) {
-    doVibrate()
-    var idx = this.cursor
-    this['cell' + idx] = digit
-    if (this.cursor < 17) {
-      this.cursor = this.cursor + 1
-    }
-  },
-
-  onDelete() {
-    doVibrate()
-    var idx = this.cursor
-    if (this['cell' + idx] === null || this['cell' + idx] === undefined) {
-      if (this.cursor > 0) {
-        this.cursor = this.cursor - 1
-        idx = this.cursor
-      }
-    }
-    this['cell' + idx] = null
-    if (this.cursor > 0) {
-      this.cursor = this.cursor - 1
-    }
-  },
-
-  onClear() {
-    doVibrate()
-    for (var i = 0; i < 18; i++) {
-      this['cell' + i] = null
-    }
-    this.cursor = 0
-  },
-
-  doVerify() {
-    var code = ''
-    for (var i = 0; i < 18; i++) {
-      var val = this['cell' + i]
-      if (val === null || val === undefined) {
-        this.verifySuccess = false
-        this.verifyResult = '请输入完整的18位激活码'
-        this.verifyDetail = ''
-        prompt.showToast({ message: '请输入完整的18位激活码' })
-        return
-      }
-      code += val
-    }
-
-    var deviceId = this.deviceId
-
-    if (!deviceId || deviceId.indexOf('获取失败') >= 0 || deviceId.indexOf('未知') >= 0 || deviceId.indexOf('不可用') >= 0) {
-      this.verifySuccess = false
-      this.verifyResult = '无法获取设备ID'
-      this.verifyDetail = ''
-      prompt.showToast({ message: '无法获取设备ID' })
-      return
-    }
-
-    var self = this
-
-    authStore.verifyMasterCode(code, deviceId, function(masterResult) {
-      if (masterResult.success) {
-        self.verifySuccess = true
-        self.verifyResult = '激活成功 - ' + masterResult.duration + ' 天'
-        self.verifyDetail = ''
-
-        authStore.markActivated(masterResult.duration, code, '', function(success) {
-          if (success) {
-            prompt.showToast({ message: masterResult.message || '激活成功' })
-            self.loadStatus()
-            self.loadHistory()
-          } else {
-            self.verifySuccess = false
-            self.verifyResult = '激活失败'
-            self.verifyDetail = '保存激活状态失败，请重试'
-            prompt.showToast({ message: '保存失败，请重试' })
-          }
-        })
-        return
-      }
-
-      if (masterResult.blockReason === 'not_expired') {
-        self.verifySuccess = false
-        self.verifyResult = masterResult.reason
-        self.verifyDetail = '您的授权仍在有效期内，无需使用万能码'
-        prompt.showToast({ message: masterResult.reason })
-        return
-      }
-
-      if (masterResult.blockReason === 'limit_reached') {
-        self.verifySuccess = false
-        self.verifyResult = masterResult.reason
-        self.verifyDetail = ''
-        prompt.showToast({ message: masterResult.reason })
-        return
-      }
-
-      var decrypted = crypto.decryptActivationCode(code)
-      if (!decrypted || !decrypted.valid) {
-        self.verifySuccess = false
-        self.verifyResult = decrypted ? decrypted.reason : '无效的激活码'
-        self.verifyDetail = ''
-        prompt.showToast({ message: '无效的激活码' })
-        return
-      }
-
-      var deviceIdLast4 = deviceId.substring(deviceId.length - 4)
-      if (decrypted.deviceId !== deviceIdLast4) {
-        self.verifySuccess = false
-        self.verifyResult = '设备ID不匹配'
-        self.verifyDetail = '激活码设备ID: ' + decrypted.deviceId + ' | 本机设备ID后4位: ' + deviceIdLast4
-        prompt.showToast({ message: '设备ID不匹配' })
-        return
-      }
-
-      authStore.loadUsedRedeemCodes(function(usedRedeemList) {
-        if (usedRedeemList.indexOf(decrypted.redeemCode) !== -1) {
-          self.verifySuccess = false
-          self.verifyResult = '兑换码已被使用'
-          self.verifyDetail = '兑换码 ' + decrypted.redeemCode + ' 已被使用过，每个兑换码只能兑换一次'
-          prompt.showToast({ message: '该兑换码已被使用' })
-          return
-        }
-
-        var months = parseInt(decrypted.months, 10)
-
-        var isPermanent = months === 99
-        var days = isPermanent ? -1 : months * 30
-        var durationLabel = isPermanent ? '永久' : (months + ' 个月')
-
-        self.verifySuccess = true
-        self.verifyResult = '激活成功 - ' + (isPermanent ? '永久高级版 ✓' : (months + ' 个月'))
-        self.verifyDetail = isPermanent ? '' : ('有效期: ' + months + ' 个月')
-
-        authStore.markActivated(days, code, decrypted.redeemCode, function(success) {
-          if (success) {
-            authStore.saveUsedCode(code)
-            authStore.saveUsedRedeemCode(decrypted.redeemCode)
-            prompt.showToast({ message: '激活成功，' + durationLabel })
-            self.loadStatus()
-            self.loadHistory()
-          } else {
-            self.verifySuccess = false
-            self.verifyResult = '激活失败'
-            self.verifyDetail = '保存激活状态失败，请重试'
-            prompt.showToast({ message: '保存失败，请重试' })
-          }
-        })
-      })
-    })
+  openGuidePage() {
+    router.push({ uri: 'pages/activation/activation-guide' })
   }
 }
 </script>
@@ -730,192 +414,35 @@ export default {
   font-weight: bold;
 }
 
-.step-card {
-  width: 100%;
-  flex-direction: column;
-  padding: 18px 0;
-  margin-bottom: 8px;
-}
 
-.step-header {
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 10px;
-}
 
-.step-badge {
-  width: 32px;
-  height: 32px;
-  border-radius: 16px;
-  justify-content: center;
-  align-items: center;
-  margin-right: 10px;
-}
 
-.step-badge-text {
-  font-size: 24px;
-  font-weight: bold;
-}
 
-.step-title {
-  font-size: 32px;
-  font-weight: bold;
-}
 
-.step-desc {
-  font-size: 28px;
-  line-height: 40px;
-  margin-bottom: 14px;
-}
 
-.step-arrow {
-  font-size: 28px;
-  text-align: center;
-  margin-bottom: 8px;
-}
 
-.device-row {
-  flex-direction: row;
-  align-items: center;
-  padding: 10px 0;
-  margin-bottom: 10px;
-}
 
-.device-label {
-  font-size: 28px;
-  width: 80px;
-}
 
-.device-value {
-  font-size: 32px;
-  font-weight: bold;
-}
 
-.qr-section {
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 10px;
-}
 
-.qr-section-full {
-  width: 100%;
-}
 
-.qr-code {
-  width: 100%;
-  height: auto;
-}
 
-.qr-label {
-  font-size: 24px;
-  margin-top: 8px;
-}
 
-.qr-loading {
-  font-size: 28px;
-  padding: 20px 0;
-}
 
-.cells-grid {
-  width: 100%;
-  flex-direction: column;
-  padding: 0px;
-  margin-bottom: 12px;
-}
 
-.cells-row {
-  flex-direction: row;
-  justify-content: space-between;
-}
 
-.cell {
-  flex: 1;
-  height: 50px;
-  border-radius: 8px;
-  border-width: 1px;
-  border-style: solid;
-  margin: 0px;
-  justify-content: center;
-  align-items: center;
-}
 
-.cell-active {
-  border-width: 2px;
-}
 
-.cell-text {
-  font-size: 32px;
-  font-weight: bold;
-  line-height: 40px;
-}
 
-.keypad {
-  width: 100%;
-  flex-direction: column;
-  padding: 0;
-  margin-bottom: 12px;
-}
 
-.keypad-row {
-  flex-direction: row;
-  justify-content: center;
-  margin-bottom: 4px;
-}
 
-.keypad-btn {
-  width: 75px;
-  height: 50px;
-  border-radius: 8px;
-  border-width: 1px;
-  border-style: solid;
-  justify-content: center;
-  align-items: center;
-  margin-left: 12px;
-  margin-right: 12px;
-}
 
-.keypad-text {
-  font-size: 28px;
-  font-weight: bold;
-}
 
-.verify-btn {
-  width: 100%;
-  height: 48px;
-  border-radius: 12px;
-  justify-content: center;
-  align-items: center;
-  align-self: center;
-}
 
-.verify-btn-text {
-  font-size: 30px;
-  font-weight: bold;
-  text-align: center;
-}
 
-.result-box {
-  flex-direction: column;
-  border-radius: 8px;
-  border-width: 2px;
-  padding: 12px;
-  margin-top: 12px;
-}
 
-.result-label {
-  font-size: 28px;
-  margin-bottom: 6px;
-}
 
-.result-code {
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 6px;
-}
 
-.result-detail {
-  font-size: 24px;
-}
 
 .bottom-spacer {
   height: 30px;
@@ -952,43 +479,7 @@ export default {
     width: 36px;
   }
 
-  .cell {
-    height: 56px;
-    border-radius: 10px;
-  }
-  .cell-text {
-    font-size: 38px;
-  }
-  .keypad {
-    padding: 0;
-  }
-  .keypad-row {
-    margin-bottom: 0;
-  }
-  .keypad-btn {
-    flex: 1;
-    height: 56px;
-    border-radius: 8px;
-    margin-left: 0;
-    margin-right: 0;
-  }
-  .keypad-text {
-    font-size: 32px;
-  }
-  .verify-btn {
-    width: 100%;
-    height: 56px;
-    justify-content: center;
-    align-items: center;
-    align-self: center;
-    border-radius: 14px;
-  }
 
-  .verify-btn-text {
-    font-size: 34px;
-    font-weight: bold;
-    text-align: center;
-  }
 }
 
 @media (shape: rect) {
@@ -1017,5 +508,26 @@ export default {
 .entry-primary-arrow {
   font-size: 28px;
   line-height: 34px;
+}
+
+.entry-secondary {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 168px;
+  min-height: 56px;
+  padding: 0 16px;
+  border-radius: 28px;
+  margin-bottom: 12px;
+}
+
+.entry-secondary-text {
+  font-size: 22px;
+  line-height: 30px;
+}
+
+.entry-secondary-arrow {
+  font-size: 26px;
+  line-height: 30px;
 }
 </style>

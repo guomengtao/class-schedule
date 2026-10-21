@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.9.10",
-  "versionCode": 1471,
+  "versionName": "1.9.11",
+  "versionCode": 1472,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
@@ -144,6 +144,9 @@
       },
       "pages/activation/activation-code": {
         "component": "activation-code"
+      },
+      "pages/activation/activation-guide": {
+        "component": "activation-guide"
       },
       "pages/device-info": {
         "component": "device-info"
