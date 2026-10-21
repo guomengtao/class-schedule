@@ -72,7 +72,7 @@
           </div>
         </div>
 
-        <div class="keypad">
+        <div class="keypad" style="display: {{ verifyResult ? 'none' : 'flex' }}">
           <div class="keypad-row">
             <div class="keypad-btn" onclick="onKeyPress(1)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
               <text class="keypad-text" style="color: {{ theme.text }}">1</text>
@@ -119,17 +119,21 @@
           </div>
         </div>
 
-        <div class="verify-btn" onclick="doVerify" style="background-color: {{ theme.accent }}">
+        <div class="verify-btn" onclick="doVerify" style="background-color: {{ theme.accent }}; display: {{ verifyResult ? 'none' : 'flex' }}">
           <text class="verify-btn-text" style="color: {{ theme.bg }}">验证</text>
         </div>
 
-        <div class="result-box" show="{{ verifyResult }}" style="background-color: {{ theme.bg }}; border-color: {{ verifySuccess ? theme.accent : '#e74c3c' }}">
+        <div class="result-box" if="{{ verifyResult }}" style="background-color: {{ theme.bg }}; border-color: {{ verifySuccess ? theme.accent : '#e74c3c' }}">
           <text class="result-label" style="color: {{ theme.textSecondary }}">验证结果</text>
           <text class="result-code" style="color: {{ verifySuccess ? theme.accent : '#e74c3c' }}">{{ verifyResult }}</text>
           <text class="result-detail" show="{{ verifyDetail }}" style="color: {{ theme.textSecondary }}">{{ verifyDetail }}</text>
         </div>
 
-      <div class="bottom-spacer"></div>
+        <div class="retry-btn" onclick="onRetry" style="background-color: {{ theme.bg }}; border-color: #e74c3c; display: {{ showRetry ? 'flex' : 'none' }}">
+          <text class="retry-btn-text" style="color: #e74c3c">重新输入</text>
+        </div>
+
+      <div class="bottom-spacer" if="{{ !verifyResult }}"></div>
     </scroll>
   </div>
 </template>
@@ -203,6 +207,7 @@ export default {
     verifyResult: '',
     verifyDetail: '',
     verifySuccess: false,
+    showRetry: false,
     versionText: '',
     deviceInfoParams: '',
     channelParam: version.channel || ''
@@ -405,6 +410,21 @@ export default {
     router.back()
   },
 
+  onRetry() {
+    doVibrate()
+    this.verifyResult = ''
+    this.verifyDetail = ''
+    this.verifySuccess = false
+    this.showRetry = false
+  },
+
+  setResult(success, result, detail) {
+    this.verifySuccess = success
+    this.verifyResult = result
+    this.verifyDetail = detail || ''
+    this.showRetry = !success
+  },
+
   onCellClick(index) {
     doVibrate()
     this.cursor = index
@@ -447,9 +467,7 @@ export default {
     for (var i = 0; i < 18; i++) {
       var val = this['cell' + i]
       if (val === null || val === undefined) {
-        this.verifySuccess = false
-        this.verifyResult = '请输入完整的18位激活码'
-        this.verifyDetail = ''
+        this.setResult(false, '请输入完整的18位激活码', '')
         prompt.showToast({ message: '请输入完整的18位激活码' })
         return
       }
@@ -459,9 +477,7 @@ export default {
     var deviceId = this.deviceId
 
     if (!deviceId || deviceId.indexOf('获取失败') >= 0 || deviceId.indexOf('未知') >= 0 || deviceId.indexOf('不可用') >= 0) {
-      this.verifySuccess = false
-      this.verifyResult = '无法获取设备ID'
-      this.verifyDetail = ''
+      this.setResult(false, '无法获取设备ID', '')
       prompt.showToast({ message: '无法获取设备ID' })
       return
     }
@@ -470,9 +486,7 @@ export default {
 
     authStore.verifyMasterCode(code, deviceId, function(masterResult) {
       if (masterResult.success) {
-        self.verifySuccess = true
-        self.verifyResult = '激活成功 - ' + masterResult.duration + ' 天'
-        self.verifyDetail = ''
+        self.setResult(true, '激活成功 - ' + masterResult.duration + ' 天', '')
 
         authStore.markActivated(masterResult.duration, code, '', function(success) {
           if (success) {
@@ -480,9 +494,7 @@ export default {
             self.loadStatus()
             self.loadHistory()
           } else {
-            self.verifySuccess = false
-            self.verifyResult = '激活失败'
-            self.verifyDetail = '保存激活状态失败，请重试'
+            self.setResult(false, '激活失败', '保存激活状态失败，请重试')
             prompt.showToast({ message: '保存失败，请重试' })
           }
         })
@@ -490,44 +502,34 @@ export default {
       }
 
       if (masterResult.blockReason === 'not_expired') {
-        self.verifySuccess = false
-        self.verifyResult = masterResult.reason
-        self.verifyDetail = '您的授权仍在有效期内，无需使用万能码'
+        self.setResult(false, masterResult.reason, '您的授权仍在有效期内，无需使用万能码')
         prompt.showToast({ message: masterResult.reason })
         return
       }
 
       if (masterResult.blockReason === 'limit_reached') {
-        self.verifySuccess = false
-        self.verifyResult = masterResult.reason
-        self.verifyDetail = ''
+        self.setResult(false, masterResult.reason, '')
         prompt.showToast({ message: masterResult.reason })
         return
       }
 
       var decrypted = crypto.decryptActivationCode(code)
       if (!decrypted || !decrypted.valid) {
-        self.verifySuccess = false
-        self.verifyResult = decrypted ? decrypted.reason : '无效的激活码'
-        self.verifyDetail = ''
+        self.setResult(false, decrypted ? decrypted.reason : '无效的激活码', '')
         prompt.showToast({ message: '无效的激活码' })
         return
       }
 
       var deviceIdLast4 = deviceId.substring(deviceId.length - 4)
       if (decrypted.deviceId !== deviceIdLast4) {
-        self.verifySuccess = false
-        self.verifyResult = '设备ID不匹配'
-        self.verifyDetail = '激活码设备ID: ' + decrypted.deviceId + ' | 本机设备ID后4位: ' + deviceIdLast4
+        self.setResult(false, '设备ID不匹配', '激活码设备ID: ' + decrypted.deviceId + ' | 本机设备ID后4位: ' + deviceIdLast4)
         prompt.showToast({ message: '设备ID不匹配' })
         return
       }
 
       authStore.loadUsedRedeemCodes(function(usedRedeemList) {
         if (usedRedeemList.indexOf(decrypted.redeemCode) !== -1) {
-          self.verifySuccess = false
-          self.verifyResult = '兑换码已被使用'
-          self.verifyDetail = '兑换码 ' + decrypted.redeemCode + ' 已被使用过，每个兑换码只能兑换一次'
+          self.setResult(false, '兑换码已被使用', '兑换码 ' + decrypted.redeemCode + ' 已被使用过，每个兑换码只能兑换一次')
           prompt.showToast({ message: '该兑换码已被使用' })
           return
         }
@@ -538,9 +540,7 @@ export default {
         var days = isPermanent ? -1 : months * 30
         var durationLabel = isPermanent ? '永久' : (months + ' 个月')
 
-        self.verifySuccess = true
-        self.verifyResult = '激活成功 - ' + (isPermanent ? '永久高级版 ✓' : (months + ' 个月'))
-        self.verifyDetail = isPermanent ? '' : ('有效期: ' + months + ' 个月')
+        self.setResult(true, '激活成功 - ' + (isPermanent ? '永久高级版 ✓' : (months + ' 个月')), isPermanent ? '' : ('有效期: ' + months + ' 个月'))
 
         authStore.markActivated(days, code, decrypted.redeemCode, function(success) {
           if (success) {
@@ -550,9 +550,7 @@ export default {
             self.loadStatus()
             self.loadHistory()
           } else {
-            self.verifySuccess = false
-            self.verifyResult = '激活失败'
-            self.verifyDetail = '保存激活状态失败，请重试'
+            self.setResult(false, '激活失败', '保存激活状态失败，请重试')
             prompt.showToast({ message: '保存失败，请重试' })
           }
         })
@@ -657,27 +655,45 @@ export default {
   text-align: center;
 }
 
+.retry-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  border-width: 2px;
+  border-style: solid;
+  justify-content: center;
+  align-items: center;
+  align-self: center;
+  margin-top: 10px;
+}
+
+.retry-btn-text {
+  font-size: 28px;
+  font-weight: bold;
+  text-align: center;
+}
+
 .result-box {
   flex-direction: column;
   border-radius: 8px;
   border-width: 2px;
-  padding: 12px;
-  margin-top: 12px;
+  padding: 8px;
+  margin-top: 8px;
 }
 
 .result-label {
-  font-size: 28px;
+  font-size: 22px;
   margin-bottom: 6px;
 }
 
 .result-code {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: bold;
   margin-bottom: 6px;
 }
 
 .result-detail {
-  font-size: 24px;
+  font-size: 20px;
 }
 
 .bottom-spacer {
