@@ -8,7 +8,7 @@
     </div>
 
     <div class="toolbar" if="{{ countdownList.length > 0 }}">
-      <text class="toolbar-count" style="color: {{ theme.textSecondary }}">{{ countdownList.length }}个倒数日</text>
+      <text class="toolbar-count" style="color: {{ theme.textSecondary }}">共{{ countdownList.length }}条</text>
       <text class="toolbar-sort" onclick="toggleSort" style="color: {{ theme.accent }}">
         {{ sortRecent ? '最近' : '名称' }}
       </text>
@@ -25,11 +25,14 @@
         <!-- 卡片只承载「读」：标题 / 天数 / 进度 / 日期。
              开关、编辑、删除全部收进点击后弹出的详情层 ——
              它们常驻时每张卡要多占 68px（40 操作排 + 28 开关行），
-             一屏从 3 条掉到 2 条，且每个卡片都是「一坨按钮」，读起来很吵。 -->
-        <div class="countdown-row" style="background-color: {{ theme.card }}; opacity: {{ item.enabled ? 1 : 0.45 }}; {{ item.cardBorder }}"
+             一屏从 3 条掉到 2 条，且每个卡片都是「一坨按钮」，读起来很吵。
+             2026-10-21：底色/描边/天数/进度条全部取用户选的颜色（item 级），
+             让「生日」「考试」「出行」在列表里一眼分得开。 -->
+        <div class="countdown-row" style="{{ item.cardBg }}; opacity: {{ item.enabled ? 1 : 0.5 }}; {{ item.cardBorder }}"
              onclick="openDetail(idx)">
           <div class="cd-head">
             <text class="cd-title" style="color: {{ theme.text }}">{{ item.title }}</text>
+            <text if="{{ !item.enabled }}" class="cd-off-tag" style="color: {{ theme.textMuted }}">已关闭</text>
           </div>
           <div class="cd-summary">
             <text if="{{ item.status === 'today' }}" class="cd-today-badge">今天</text>
@@ -41,10 +44,10 @@
               <div class="cd-bar-fill" style="width: {{ item.fillPx }}px; {{ item.barBg }}"></div>
             </div>
           </div>
-          <div class="cd-meta">
-            <text class="cd-date" style="color: {{ theme.textSecondary }}">{{ item.dateDisplay }}</text>
-            <text if="{{ !item.enabled }}" class="cd-off-tag" style="color: {{ theme.textMuted }}">已关闭</text>
-          </div>
+          <text class="cd-date" style="color: {{ theme.textSecondary }}">{{ item.dateDisplay }}</text>
+          <!-- 当年用农历录入的条目，多给一行农历：生日/中秋这类日期
+               用户脑子里存的是「八月十五」，不是 2026-09-25 -->
+          <text if="{{ item.lunarLine }}" class="cd-lunar" style="color: {{ item.lunarColor }}">{{ item.lunarLine }}</text>
         </div>
       </div>
       <text if="{{ countdownList.length === 0 }}" class="empty-text" style="color: {{ theme.textMuted }}">暂无倒数日</text>
@@ -95,6 +98,7 @@
 import router from "@system.router"
 var storage = require("@system.storage")
 const countdown = require("../../data/countdown.js")
+const store = require("../../data/store.js")
 
 var NAME_RETURN_KEY = "countdown_name_result"
 var DATE_RETURN_KEY = "countdown_date_result"
@@ -102,6 +106,7 @@ var DATE_RETURN_KEY = "countdown_date_result"
 export default {
   private: {
     iconTheme: "dark",
+    isLight: false,
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -140,7 +145,13 @@ export default {
 
   onInit() {
     var self = this
-    this.loadList()
+    // 主题必须先读：色块的淡底与文字提亮/压暗都按深浅主题算
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.isLight = (themeName === 'light' || themeName === 'warm')
+      self.iconTheme = self.isLight ? 'light' : 'dark'
+      self.loadList()
+    })
     try {
       var device = require("@system.device")
       device.getInfo({
@@ -267,32 +278,37 @@ export default {
     })
   },
 
-  // 为排序后的列表逐条附展示字段：状态/文字/颜色/进度条填充/分组分隔/渐变/高亮
+  // 为排序后的列表逐条附展示字段：状态/文字/颜色/进度条填充/分组分隔/高亮
   decorate(items) {
     var prevGroup = -1
+    var light = this.isLight
     for (var i = 0; i < items.length; i++) {
       var it = items[i]
       it.status = countdown.statusOf(it)
       var d = it.daysLeft
+      // 色块三件套：底（低透明淡色）+ 描边 + 文字，全部由 item 颜色派生。
+      // 不直接拿 hex 当文字色：中间调在深色主题上发灰、在浅色主题上发白，
+      // adaptColor 按主题提亮/压暗 32%，两种主题都能当天数色用（2026-10-21）
+      var hex = countdown.colorOf(it)
+      var textColor = countdown.adaptColor(hex, light)
+      it.cardBg = "background-color: " + countdown.tintColor(hex, light ? 0.13 : 0.18)
+      it.cardBorder = "border: 1px solid " + countdown.tintColor(hex, light ? 0.5 : 0.62)
       if (it.status === "done") {
         it.daysText = "已过 " + (-d) + " 天"
-        it.daysColor = this.theme.deleteText
+        it.daysColor = this.theme.textMuted
         it.barBg = "background-color: " + this.theme.textMuted
-        it.barColor = this.theme.textMuted
-      } else if (it.status === "today") {
-        it.daysText = "剩 0 天"
-        it.daysColor = "#ff7a45"
-        it.barBg = "background-image: linear-gradient(90deg, #ff7a45, #ffc199)"
-        it.barColor = "#ff7a45"
+        it.arcColor = this.theme.textMuted
       } else {
-        it.daysText = "剩 " + d + " 天"
-        it.daysColor = it.daysLeft >= 100 ? this.theme.textSecondary : this.theme.accent
-        it.barBg = "background-image: linear-gradient(90deg, " + this.theme.accent + ", #c2e8f5)"
-        it.barColor = this.theme.accent
+        it.daysText = it.status === "today" ? "剩 0 天" : "剩 " + d + " 天"
+        it.daysColor = textColor
+        it.barBg = "background-color: " + textColor
+        it.arcColor = textColor
       }
+      // 农历行：只有当初用农历录入的条目才有；已结束的条目跟着天数一起褪色
+      it.lunarLine = (it.cal === "lunar" && it.lunarText) ? ("农历" + it.lunarText) : ""
+      it.lunarColor = it.status === "done" ? this.theme.textMuted : textColor
       var p = countdown.progressOf(it)
-      it.fillPx = Math.max(6, Math.round(112 * p))
-      it.cardBorder = it.status === "today" ? "border: 1px solid rgba(255,122,69,0.55)" : "border: 1px solid transparent"
+      it.fillPx = Math.max(6, Math.round(146 * p))
       var g = it.status === "done" ? 1 : 0
       it.showDivider = (i > 0 && g !== prevGroup)
       prevGroup = g
@@ -356,7 +372,7 @@ export default {
   // 弧环的两个派生字段只在弹层用，故不放进 decorate（列表页不渲染弧环）
   withArc(it) {
     it.arcPercent = it.daysLeft < 0 ? 0 : Math.max(0, Math.min(100, Math.round(100 * (countdown.progressOf(it) || 0))))
-    it.arcColor = it.daysLeft < 0 ? this.theme.textMuted : (it.daysLeft === 0 ? "#ff7a45" : this.theme.accent)
+    it.arcColor = it.daysLeft < 0 ? this.theme.textMuted : countdown.adaptColor(countdown.colorOf(it), this.isLight)
     return it
   },
 
@@ -517,32 +533,32 @@ export default {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  height: 30px;
+  height: 32px;
   padding: 0 2px;
   margin-bottom: 6px;
   flex-shrink: 0;
 }
 
 .toolbar-count {
-  font-size: 16px;
-  line-height: 22px;
+  font-size: 20px;
+  line-height: 26px;
   flex-shrink: 0;
 }
 
 .toolbar-sort {
-  font-size: 16px;
-  line-height: 22px;
+  font-size: 20px;
+  line-height: 26px;
   flex-shrink: 0;
   margin-left: 6px;
 }
 
 .toolbar-clear {
-  width: 44px;
-  height: 26px;
-  border-radius: 13px;
-  font-size: 16px;
+  width: 48px;
+  height: 30px;
+  border-radius: 15px;
+  font-size: 20px;
   text-align: center;
-  line-height: 26px;
+  line-height: 30px;
   flex-shrink: 0;
 }
 
@@ -569,16 +585,18 @@ export default {
 }
 
 .cd-head {
-  flex-direction: column;
+  flex-direction: row;
+  align-items: flex-start;
   width: 100%;
   flex-shrink: 0;
 }
 
 /* 标题独占整行，且不设 lines —— 长标题自然换行，绝不出现省略号或被裁切 */
 .cd-title {
-  font-size: 22px;
-  line-height: 28px;
-  width: 100%;
+  font-size: 24px;
+  line-height: 30px;
+  flex: 1;
+  min-width: 0;
 }
 
 .cd-summary {
@@ -590,8 +608,8 @@ export default {
 }
 
 .cd-today-badge {
-  font-size: 16px;
-  line-height: 20px;
+  font-size: 18px;
+  line-height: 22px;
   color: #ffffff;
   background-color: #ff7a45;
   border-radius: 6px;
@@ -601,8 +619,8 @@ export default {
 }
 
 .cd-days {
-  font-size: 24px;
-  line-height: 30px;
+  font-size: 26px;
+  line-height: 32px;
   font-weight: bold;
   flex: 1;          /* 把 › 推到行尾；长天数文案自己收缩，不与箭头抢空间 */
   min-width: 0;
@@ -610,8 +628,8 @@ export default {
 
 /* 「可点开」的唯一视觉暗示。不做整卡箭头图标：192 屏上加图标会挤掉天数 */
 .cd-more {
-  font-size: 22px;
-  line-height: 30px;
+  font-size: 24px;
+  line-height: 32px;
   flex-shrink: 0;
   margin-left: 4px;
 }
@@ -634,25 +652,27 @@ export default {
   border-radius: 3px;
 }
 
-.cd-meta {
-  flex-direction: row;
-  align-items: center;
+.cd-date {
+  font-size: 20px;
+  line-height: 26px;
   width: 100%;
   margin-top: 4px;
 }
 
-.cd-date {
-  font-size: 16px;
-  line-height: 22px;
-  flex: 1;
-  min-width: 0;
+/* 农历行：与公历日期同号同位置，只靠颜色区分主次。
+   20px 下「农历八月十五」= 120px，内容区 152px，放得下不换行 */
+.cd-lunar {
+  font-size: 20px;
+  line-height: 26px;
+  width: 100%;
+  margin-top: 1px;
 }
 
 /* 已关闭的卡片只留一行弱提示，替代原来常驻的 ON/OFF 开关 ——
    开关搬到弹层后卡片少了 28px（开关行）+ 40px（操作排），一屏多看一条 */
 .cd-off-tag {
-  font-size: 15px;
-  line-height: 22px;
+  font-size: 18px;
+  line-height: 30px;
   flex-shrink: 0;
   margin-left: 6px;
 }
@@ -678,8 +698,8 @@ export default {
 }
 
 .cd-group-label {
-  font-size: 16px;
-  line-height: 22px;
+  font-size: 20px;
+  line-height: 26px;
   margin-left: 6px;
   flex-shrink: 0;
 }
@@ -694,8 +714,8 @@ export default {
 }
 
 .switch-label {
-  font-size: 15px;
-  line-height: 20px;
+  font-size: 18px;
+  line-height: 24px;
   text-align: center;
 }
 
@@ -772,8 +792,8 @@ export default {
 
 /* 弧环内径约 96px：「已过 999 天」这类最长文案也要放得下，故 22px */
 .detail-arc-num {
-  font-size: 22px;
-  line-height: 28px;
+  font-size: 24px;
+  line-height: 30px;
   font-weight: bold;
 }
 
@@ -787,8 +807,8 @@ export default {
 }
 
 .detail-date {
-  font-size: 16px;
-  line-height: 22px;
+  font-size: 20px;
+  line-height: 26px;
   margin-top: 2px;
 }
 
@@ -819,8 +839,8 @@ export default {
 }
 
 .detail-switch-label {
-  font-size: 15px;
-  line-height: 20px;
+  font-size: 20px;
+  line-height: 26px;
   text-align: center;
   width: 100%;
 }

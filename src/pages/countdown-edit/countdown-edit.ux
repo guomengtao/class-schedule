@@ -46,20 +46,42 @@
         <picker class="date-picker" type="text" range="{{ dayStrs }}" selected="{{ dIdx }}"
                 onchange="onDayChange"></picker>
       </div>
-      <text class="date-preview" style="color: {{ theme.accent }}">{{ previewLeft }} · {{ daysText }}</text>
+      <text class="date-preview" style="color: {{ theme.textSecondary }}">{{ previewLeft }}</text>
+      <text class="date-days" style="color: {{ daysTextColor }}">{{ daysText }}</text>
     </div>
 
-    <div class="action-row">
+    <!-- 颜色：6 个固定色（不做自由取色，手环一列卡片色相一多就没区分度）。
+         选中态用「格子淡色底」表示，不用描边 —— Vela 的 border-* 分属性写法不可靠，
+         统一走 background-color 最稳。 -->
+    <div class="field">
+      <div class="label-row">
+        <text class="field-label" style="color: {{ theme.textSecondary }}">颜色</text>
+        <text class="color-name" style="color: {{ colorNameColor }}">{{ colorName }}</text>
+      </div>
+      <div class="color-row">
+        <div for="{{ (i, c) in colorList }}" class="color-cell" onclick="pickColor(i)"
+             style="background-color: {{ c.cellBg }}">
+          <div class="color-dot" style="background-color: {{ c.hex }}"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 新增态：保存占满整行 -->
+    <div class="action-row" if="{{ !editId.length }}">
       <div class="save-btn" onclick="doSave" style="background-color: {{ canSave ? theme.accent : theme.btnSecondary }}">
         <text class="save-label" style="color: {{ canSave ? theme.bg : theme.btnSecondaryText }}">保存</text>
       </div>
     </div>
 
-    <!-- 编辑态删除：原判据写的是 mode==='edit'，而 mode 只有 form/typing，
-         恒为假 → 编辑页从来没有删除入口。改按 editId 判断（2026-10-21 修） -->
+    <!-- 编辑态：保存 | 删除 并排（80 + 8 + 80 = 168）。
+         删除判据按 editId：原写法 mode==='edit' 恒为假，编辑页从来没有删除入口。
+         两行叠放会超出 490 屏高把删除顶出屏幕，故并排。 -->
     <div class="action-row" if="{{ editId.length }}">
+      <div class="save-btn2" onclick="doSave" style="background-color: {{ canSave ? theme.accent : theme.btnSecondary }}">
+        <text class="save-label" style="color: {{ canSave ? theme.bg : theme.btnSecondaryText }}">保存</text>
+      </div>
       <div class="del-btn" onclick="doDelete" style="background-color: {{ delConfirm ? theme.deleteText : theme.deleteBg }}">
-        <text class="save-label" style="color: {{ delConfirm ? theme.bg : theme.deleteText }}">{{ delConfirm ? '确认删除' : '删除' }}</text>
+        <text class="save-label" style="color: {{ delConfirm ? theme.bg : theme.deleteText }}">{{ delConfirm ? '确认' : '删除' }}</text>
       </div>
     </div>
   </div>
@@ -83,6 +105,7 @@ export default {
     title: "",
     maxLen: "6",
     iconTheme: "dark",
+    isLight: false,
     errMsg: "",
     delConfirm: false,
     delTimer: null,
@@ -112,7 +135,13 @@ export default {
     previewLeft: "",
     lunarShort: "",
     daysText: "",
+    daysTextColor: "#7ec8e3",
     canSave: false,
+    // ---- 颜色 ----
+    colorList: [],
+    colorIdx: 0,
+    colorName: "",
+    colorNameColor: "#7ec8e3",
     theme: {
       bg: '#1a1a2e',
       card: '#16213e',
@@ -133,8 +162,13 @@ export default {
     var self = this
     store.getTheme(function(t, themeName) {
       self.theme = t
-      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+      self.isLight = (themeName === 'light' || themeName === 'warm')
+      self.iconTheme = self.isLight ? 'light' : 'dark'
+      self.refreshColorCells()   // 选中格的淡色底按主题算，主题回来要重刷
     })
+
+    // 颜色：默认第一档（海蓝），旧数据没有 color 字段就落这里
+    this.applyColor(0)
 
     // 日期默认今天
     var now = new Date()
@@ -215,6 +249,23 @@ export default {
         if (String(items[i].id) === String(id)) {
           self.title = items[i].title || ""
           self.applyDate(items[i].date)
+          // 颜色：按 hex 反查调色板下标；旧数据无 color → 保持默认第一档
+          var hex = countdown.normalizeColor(items[i].color)
+          if (hex) {
+            for (var c = 0; c < countdown.COLORS.length; c++) {
+              if (countdown.COLORS[c].hex === hex) { self.applyColor(c); break }
+            }
+          }
+          // 当初用农历录入的，编辑时直接开在农历视图 —— 否则用户改完一保存，
+          // 卡片上那行农历就悄悄没了（cal 被写成 solar）
+          if (items[i].cal === "lunar") {
+            self.calendar = "lunar"
+            self.calendarText = "农历"
+            self.buildMonthStrs()
+            self.buildDayStrs()
+            self.syncIdx()
+            self.refreshDate()
+          }
           break
         }
       }
@@ -436,10 +487,52 @@ export default {
       this.previewLeft = this.dateStr
     }
     var d = countdown.computeItem(this.dateStr)
-    if (d > 0) this.daysText = "剩" + d + "天"
-    else if (d === 0) this.daysText = "就是今天"
-    else this.daysText = "已过" + (-d) + "天"
+    if (d > 0) {
+      this.daysText = "剩 " + d + " 天"
+      this.daysTextColor = this.theme.accent
+    } else if (d === 0) {
+      this.daysText = "就是今天"
+      this.daysTextColor = "#ff7a45"
+    } else {
+      this.daysText = "已过 " + (-d) + " 天"
+      this.daysTextColor = this.theme.deleteText
+    }
     this.refreshCanSave()
+  },
+
+  // ---- 颜色 ----
+  // 选中态的视觉只靠「格子淡色底 + 色点本身」，不做描边/对勾：
+  // 192 屏上一圈描边会把 28px 的格子挤成 22px，反而更难点。
+  applyColor(idx) {
+    var arr = countdown.COLORS
+    if (idx < 0 || idx >= arr.length) idx = 0
+    this.colorIdx = idx
+    this.colorName = arr[idx].name
+    this.colorNameColor = countdown.adaptColor(arr[idx].hex, this.isLight)
+    this.refreshColorCells()
+  },
+
+  pickColor(i) {
+    this.applyColor(i)
+  },
+
+  // 供列表页读的落盘值（空串表示用主题色，兼容没有 color 字段的旧数据）
+  colorValue() {
+    var c = countdown.COLORS[this.colorIdx]
+    return c ? c.hex : ""
+  },
+
+  refreshColorCells() {
+    var arr = countdown.COLORS
+    var out = []
+    for (var i = 0; i < arr.length; i++) {
+      out.push({
+        hex: arr[i].hex,
+        name: arr[i].name,
+        cellBg: i === this.colorIdx ? countdown.tintColor(arr[i].hex, this.isLight ? 0.22 : 0.32) : "transparent"
+      })
+    }
+    this.colorList = out
   },
 
   refreshCanSave() {
@@ -461,17 +554,31 @@ export default {
     }
     countdown.load(function(res) {
       var items = res.items || []
+      // 落盘三件套：date 永远是公历；cal/lunarText 只决定卡片上多不多一行农历；
+      // color 存调色板 hex（空串=跟随主题色）
+      var patch = {
+        date: self.dateStr,
+        cal: self.calendar === "lunar" ? "lunar" : "solar",
+        lunarText: self.calendar === "lunar" ? self.lunarShort : "",
+        color: self.colorValue()
+      }
       if (self.editId) {
         var idx = countdown.findIndexById(items, self.editId)
         if (idx >= 0) {
           items[idx].title = name
-          items[idx].date = self.dateStr
+          items[idx].date = patch.date
+          items[idx].cal = patch.cal
+          items[idx].lunarText = patch.lunarText
+          items[idx].color = patch.color
         }
       } else {
         items.push({
           id: countdown.newId(),
           title: name,
-          date: self.dateStr,
+          date: patch.date,
+          cal: patch.cal,
+          lunarText: patch.lunarText,
+          color: patch.color,
           enabled: true,
           createdAt: Date.now()
         })
@@ -535,7 +642,7 @@ export default {
   flex: 1;
   flex-direction: column;
   width: 100%;
-  padding: 24px 12px 12px 12px;
+  padding: 16px 12px 12px 12px;
 }
 
 .header {
@@ -562,8 +669,8 @@ export default {
 
 .header-title {
   flex: 1;
-  font-size: 20px;
-  line-height: 26px;
+  font-size: 24px;
+  line-height: 30px;
   margin-left: 8px;
   lines: 1;
   text-overflow: ellipsis;
@@ -576,8 +683,8 @@ export default {
 }
 
 .field-label {
-  font-size: 16px;
-  line-height: 22px;
+  font-size: 20px;
+  line-height: 26px;
   margin-bottom: 2px;
 }
 
@@ -587,7 +694,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  height: 24px;
+  height: 28px;
   flex-shrink: 0;
 }
 
@@ -599,21 +706,21 @@ export default {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  width: 62px;
-  height: 22px;
-  border-radius: 11px;
+  width: 76px;
+  height: 26px;
+  border-radius: 13px;
   flex-shrink: 0;
 }
 
 .cal-toggle-text {
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 20px;
+  line-height: 24px;
   text-align: center;
 }
 
 .cal-toggle-arrow {
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 18px;
+  line-height: 24px;
   margin-left: 3px;
 }
 
@@ -630,31 +737,31 @@ export default {
 
 .name-value {
   flex: 1;
-  font-size: 20px;
-  line-height: 26px;
+  font-size: 22px;
+  line-height: 28px;
   lines: 1;
   text-overflow: ellipsis;
 }
 
 .name-placeholder {
   flex: 1;
-  font-size: 16px;
-  line-height: 26px;
+  font-size: 20px;
+  line-height: 28px;
   lines: 1;
   text-overflow: ellipsis;
 }
 
 .name-arrow {
-  width: 14px;
-  font-size: 22px;
-  line-height: 26px;
+  width: 16px;
+  font-size: 24px;
+  line-height: 28px;
   text-align: right;
   flex-shrink: 0;
 }
 
 .err-text {
-  font-size: 15px;
-  line-height: 20px;
+  font-size: 20px;
+  line-height: 26px;
   margin-top: 2px;
 }
 
@@ -664,14 +771,16 @@ export default {
   flex-direction: row;
   justify-content: space-around;
   width: 100%;
-  height: 18px;
+  height: 26px;
   flex-shrink: 0;
 }
 
+/* 单位字（年/月/日）曾经 13px——模拟器上勉强，真机上等于没有。
+   18px 是「装饰性提示」档，与列里非选中行同号，视觉成组。 */
 .picker-unit {
   width: 52px;
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 18px;
+  line-height: 26px;
   text-align: center;
 }
 
@@ -689,23 +798,62 @@ export default {
    「三行日期」，很乱；压到接近背景的暗灰后焦点只落在中间一行（2026-10-21） */
 .date-picker {
   width: 52px;
-  font-size: 13px;
+  font-size: 18px;
   color: #3d3d5c;
   selected-font-size: 22px;
   selected-color: #7ec8e3;
   selected-background-color: #123a63;
 }
 
-/* 预览行：公历模式显示「2026-10-25 · 剩4天」，农历模式显示「农历九月十五 · 剩4天」。
-   加 lines:1 是因为农历名比公历长，宁可省略也不许换行把下面的保存按钮顶走 */
+/* 预览两行：第一行日期（公历 2026-09-25 / 农历 八月十五），第二行剩余天数。
+   合并成一行在 20px 下放不下（10 个半角 + 6 个汉字 ≈ 183px > 168px），
+   曾经用 lines:1 省略，结果「已过453天」被吃成「已过4…」—— 宁可多一行也不截断 */
 .date-preview {
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 20px;
+  line-height: 26px;
   margin-top: 2px;
   text-align: center;
   width: 100%;
-  lines: 1;
-  text-overflow: ellipsis;
+}
+
+.date-days {
+  font-size: 22px;
+  line-height: 28px;
+  text-align: center;
+  width: 100%;
+  font-weight: bold;
+}
+
+/* 颜色：6 格 × 28px = 168，正好铺满内容区。
+   格子 28 是点击热区，色点 20 是视觉尺寸 —— 热区比色点大一圈才点得准。 */
+.color-row {
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  height: 30px;
+  flex-shrink: 0;
+}
+
+.color-cell {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.color-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+}
+
+/* 选中的颜色名放右端，既是反馈也是色盲用户的唯一可靠标识 */
+.color-name {
+  font-size: 18px;
+  line-height: 22px;
+  flex-shrink: 0;
 }
 
 .action-row {
@@ -724,12 +872,22 @@ export default {
   align-items: center;
 }
 
-.del-btn {
-  width: 168px;
-  height: 40px;
-  border-radius: 20px;
+/* 编辑态两键并排：80 + 8 + 80 = 168，与卡片内容区同宽 */
+.save-btn2 {
+  width: 80px;
+  height: 44px;
+  border-radius: 22px;
   justify-content: center;
   align-items: center;
+}
+
+.del-btn {
+  width: 80px;
+  height: 44px;
+  border-radius: 22px;
+  justify-content: center;
+  align-items: center;
+  margin-left: 8px;
 }
 
 .save-label {
@@ -760,8 +918,12 @@ export default {
     border-radius: 26px;
   }
 
+  .save-btn2 {
+    width: 144px;
+  }
+
   .del-btn {
-    width: 296px;
+    width: 144px;
   }
 }
 </style>

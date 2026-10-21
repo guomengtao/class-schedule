@@ -11,8 +11,72 @@ var OLD_KEY = "countdownDays"
 
 var seq = 0
 
+// ===== 颜色：倒数日色块的唯一来源 =====
+// 为什么固定 6 个而不是自由取色：手环只有一列卡片、屏宽 192，色相一多就互相吃掉
+// 区分度；6 个足够表达分类（生日/节日/考试/出行/缴费/纪念），且每个都在深色与
+// 浅色主题下经过 adaptColor() 校正，保证当天数文字级别仍然清晰。
+// hex 取中间调：偏浅在浅色主题糊、偏深在深色主题糊，两头都留了可调空间。
+var COLORS = [
+  { id: "blue", name: "海蓝", hex: "#4aa3d8" },
+  { id: "mint", name: "薄荷", hex: "#3aa87a" },
+  { id: "amber", name: "暖橙", hex: "#e0894a" },
+  { id: "rose", name: "玫瑰", hex: "#dd6a94" },
+  { id: "violet", name: "紫罗", hex: "#9179d6" },
+  { id: "gold", name: "金黄", hex: "#c9a13c" }
+]
+
+// 未选色时回落主题强调色（与改动前视觉一致，旧数据不会突然变色）
+var DEFAULT_COLOR = "#7ec8e3"
+
 function dlog() {
   // 发布态关闭日志，避免手环上字符串拼接开销
+}
+
+// ---- 颜色工具 ----
+// 自写两位 hex 解析，不用 parseInt(radix)：与 lunar.js 同口径，精简引擎上更保险
+function hex2(s, i) {
+  var hi = s.charCodeAt(i)
+  var lo = s.charCodeAt(i + 1)
+  hi = hi < 58 ? hi - 48 : hi - 87
+  lo = lo < 58 ? lo - 48 : lo - 87
+  return hi * 16 + lo
+}
+
+function rgbOf(hex) {
+  var s = String(hex || "").replace("#", "")
+  if (s.length !== 6) return null
+  return { r: hex2(s, 0), g: hex2(s, 2), b: hex2(s, 4) }
+}
+
+// 只接受调色板内的值：手输/旧数据/被改过的存储一律回落默认色
+function normalizeColor(hex) {
+  var s = String(hex || "").toLowerCase()
+  for (var i = 0; i < COLORS.length; i++) {
+    if (COLORS[i].hex.toLowerCase() === s) return COLORS[i].hex
+  }
+  return ""
+}
+
+function colorOf(item) {
+  return normalizeColor(item && item.color) || DEFAULT_COLOR
+}
+
+// 色块底色（低透明度）：叠在页面底色上，深浅主题都只留一层薄色
+function tintColor(hex, alpha) {
+  var c = rgbOf(hex) || rgbOf(DEFAULT_COLOR)
+  return "rgba(" + c.r + "," + c.g + "," + c.b + "," + alpha + ")"
+}
+
+// 文字/进度条用色：深色主题往白提亮、浅色主题往黑压暗，
+// 让「金黄」「海蓝」这类中间调在两种主题下都能当正文色用
+function adaptColor(hex, isLight) {
+  var c = rgbOf(hex) || rgbOf(DEFAULT_COLOR)
+  var t = 0.32
+  var target = isLight ? 0 : 255
+  var r = Math.round(c.r + (target - c.r) * t)
+  var g = Math.round(c.g + (target - c.g) * t)
+  var b = Math.round(c.b + (target - c.b) * t)
+  return "rgb(" + r + "," + g + "," + b + ")"
 }
 
 function newId() {
@@ -33,6 +97,13 @@ function normalizeItem(it) {
   o.enabled = (it && it.enabled !== undefined && it.enabled !== null) ? !!it.enabled : true
   // 进度口径：createdAt 存在则保留，否则按「目标日 − 90 天」回填（兼容 v1 迁移/旧数据）
   o.createdAt = (it && it.createdAt && isFinite(Number(it.createdAt))) ? Number(it.createdAt) : backfillCreatedAt(o.date)
+  // 输入时用的日历：只影响卡片上要不要多显示一行农历，落盘 date 永远是公历
+  o.cal = (it && it.cal === "lunar") ? "lunar" : "solar"
+  // 农历文案是保存那一刻的快照（如「八月十五」）。不在展示页现算，
+  // 是为了让倒数日列表页不必背 5.5KB 的农历表 —— 日期只会在编辑页改，
+  // 那里本来就有 lunar.js，改完顺手刷新快照，不会漂移。
+  o.lunarText = (o.cal === "lunar" && it && it.lunarText) ? String(it.lunarText) : ""
+  o.color = normalizeColor(it && it.color)
   return o
 }
 
@@ -246,6 +317,12 @@ function upsert(items, item) {
 module.exports = {
   V2_KEY: V2_KEY,
   OLD_KEY: OLD_KEY,
+  COLORS: COLORS,
+  DEFAULT_COLOR: DEFAULT_COLOR,
+  normalizeColor: normalizeColor,
+  colorOf: colorOf,
+  tintColor: tintColor,
+  adaptColor: adaptColor,
   findIndexById: findIndexById,
   upsert: upsert,
   newId: newId,
