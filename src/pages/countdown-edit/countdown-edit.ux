@@ -20,37 +20,23 @@
       <text class="err-text" if="{{ errMsg.length }}" style="color: {{ theme.deleteText }}">{{ errMsg }}</text>
     </div>
 
-    <!-- 日期：页内三列步进器，取代全屏 picker 页 -->
+    <!-- 日期：官方 picker 内联滚轮（type="text"，手指上下滑动选择）。
+         Vela 无原生 date 控件、selector 也不支持多列级联，
+         故年/月/日各一列 picker 横向并排，取 e.newSelected（2026-10-21 改） -->
     <div class="field">
       <text class="field-label" style="color: {{ theme.textSecondary }}">日期</text>
-      <div class="stepper" style="background-color: {{ theme.card }}">
-        <div class="step-col">
-          <div class="step-btn" onclick="decYear" style="background-color: {{ theme.keyBg }}">
-            <text class="step-sign" style="color: {{ theme.accent }}">−</text>
-          </div>
-          <text class="step-val" style="color: {{ theme.text }}">{{ yearNum }}</text>
-          <div class="step-btn" onclick="incYear" style="background-color: {{ theme.keyBg }}">
-            <text class="step-sign" style="color: {{ theme.accent }}">＋</text>
-          </div>
-        </div>
-        <div class="step-col">
-          <div class="step-btn" onclick="decMonth" style="background-color: {{ theme.keyBg }}">
-            <text class="step-sign" style="color: {{ theme.accent }}">−</text>
-          </div>
-          <text class="step-val" style="color: {{ theme.text }}">{{ monthNum }}</text>
-          <div class="step-btn" onclick="incMonth" style="background-color: {{ theme.keyBg }}">
-            <text class="step-sign" style="color: {{ theme.accent }}">＋</text>
-          </div>
-        </div>
-        <div class="step-col">
-          <div class="step-btn" onclick="decDay" style="background-color: {{ theme.keyBg }}">
-            <text class="step-sign" style="color: {{ theme.accent }}">−</text>
-          </div>
-          <text class="step-val" style="color: {{ theme.text }}">{{ dayNum }}</text>
-          <div class="step-btn" onclick="incDay" style="background-color: {{ theme.keyBg }}">
-            <text class="step-sign" style="color: {{ theme.accent }}">＋</text>
-          </div>
-        </div>
+      <div class="picker-head">
+        <text class="picker-unit" style="color: {{ theme.textMuted }}">年</text>
+        <text class="picker-unit" style="color: {{ theme.textMuted }}">月</text>
+        <text class="picker-unit" style="color: {{ theme.textMuted }}">日</text>
+      </div>
+      <div class="picker-row" style="background-color: {{ theme.card }}">
+        <picker class="date-picker" type="text" range="{{ yearStrs }}" selected="{{ yIdx }}"
+                onchange="onYearChange"></picker>
+        <picker class="date-picker" type="text" range="{{ monthStrs }}" selected="{{ mIdx }}"
+                onchange="onMonthChange"></picker>
+        <picker class="date-picker" type="text" range="{{ dayStrs }}" selected="{{ dIdx }}"
+                onchange="onDayChange"></picker>
       </div>
       <text class="date-preview" style="color: {{ theme.accent }}">{{ dateStr }} · {{ daysText }}</text>
     </div>
@@ -91,12 +77,18 @@ export default {
     errMsg: "",
     delConfirm: false,
     delTimer: null,
-    // 日期步进器状态
+    // 日期：yearNum/monthNum/dayNum 是唯一真源，idx 与 *Strs 全是派生值
     yearNum: 2026,
     monthNum: 1,
     dayNum: 1,
     yMin: 2025,
     yMax: 2031,
+    yearStrs: [],
+    monthStrs: [],
+    dayStrs: [],
+    yIdx: 0,
+    mIdx: 0,
+    dIdx: 0,
     dateStr: "",
     daysText: "",
     canSave: false,
@@ -130,6 +122,10 @@ export default {
     self.yearNum = now.getFullYear()
     self.monthNum = now.getMonth() + 1
     self.dayNum = now.getDate()
+    self.buildYearStrs()
+    self.buildMonthStrs()
+    self.buildDayStrs()
+    self.syncIdx()
     self.refreshDate()
 
     // 编辑模式：读 id 后回填
@@ -214,10 +210,12 @@ export default {
     this.yearNum = Math.min(this.yMax, Math.max(this.yMin, y))
     this.monthNum = Math.min(12, Math.max(1, m))
     this.dayNum = Math.min(this.daysInMonth(this.yearNum, this.monthNum), Math.max(1, d))
+    this.buildDayStrs()
+    this.syncIdx()
     this.refreshDate()
   },
 
-  // ---- 日期步进 ----
+  // ---- 日期：官方 picker 滚轮 ----
   daysInMonth(y, m) {
     if (m === 2) {
       var leap = (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0)
@@ -227,38 +225,52 @@ export default {
     return 31
   },
 
-  decYear() {
-    if (this.yearNum > this.yMin) this.yearNum = this.yearNum - 1
-    this.clampDay()
-    this.refreshDate()
+  buildYearStrs() {
+    var arr = []
+    for (var y = this.yMin; y <= this.yMax; y++) arr.push(String(y))
+    this.yearStrs = arr
   },
 
-  incYear() {
-    if (this.yearNum < this.yMax) this.yearNum = this.yearNum + 1
-    this.clampDay()
-    this.refreshDate()
+  buildMonthStrs() {
+    var arr = []
+    for (var m = 1; m <= 12; m++) arr.push(String(m))
+    this.monthStrs = arr
   },
 
-  decMonth() {
-    if (this.monthNum > 1) this.monthNum = this.monthNum - 1
-    this.clampDay()
-    this.refreshDate()
-  },
-
-  incMonth() {
-    if (this.monthNum < 12) this.monthNum = this.monthNum + 1
-    this.clampDay()
-    this.refreshDate()
-  },
-
-  decDay() {
-    if (this.dayNum > 1) this.dayNum = this.dayNum - 1
-    this.refreshDate()
-  },
-
-  incDay() {
+  // dayStrs 随年月变（闰年 2 月 29 天），每次年月变更都要重建
+  buildDayStrs() {
+    var arr = []
     var max = this.daysInMonth(this.yearNum, this.monthNum)
-    if (this.dayNum < max) this.dayNum = this.dayNum + 1
+    for (var d = 1; d <= max; d++) arr.push(String(d))
+    this.dayStrs = arr
+  },
+
+  // yearNum/monthNum/dayNum 是真源，idx 一律由它们派生，防止两套状态漂移
+  syncIdx() {
+    this.yIdx = this.yearNum - this.yMin
+    this.mIdx = this.monthNum - 1
+    this.dIdx = this.dayNum - 1
+  },
+
+  onYearChange(e) {
+    this.yearNum = this.yMin + Number(e.newSelected)
+    this.buildDayStrs()
+    this.clampDay()
+    this.syncIdx()
+    this.refreshDate()
+  },
+
+  onMonthChange(e) {
+    this.monthNum = 1 + Number(e.newSelected)
+    this.buildDayStrs()
+    this.clampDay()
+    this.syncIdx()
+    this.refreshDate()
+  },
+
+  onDayChange(e) {
+    this.dayNum = 1 + Number(e.newSelected)
+    this.syncIdx()
     this.refreshDate()
   },
 
@@ -454,46 +466,40 @@ export default {
   margin-top: 2px;
 }
 
-/* 三列步进器：52×3 + 间距 6×2 = 168，正好铺满内容区 */
-.stepper {
+/* 日期：官方 picker 内联滚轮。高度由组件滚轮决定（实测约 160px），
+   不设 height —— 硬压会裁掉上下候选项，滚动手感变差 */
+.picker-head {
   flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
+  justify-content: space-around;
   width: 100%;
-  height: 96px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.picker-unit {
+  width: 52px;
+  font-size: 14px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.picker-row {
+  flex-direction: row;
+  justify-content: space-around;
+  width: 100%;
   border-radius: 10px;
   padding: 0 2px;
   flex-shrink: 0;
 }
 
-.step-col {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+/* selected-* 是 picker 的专用样式属性（官方支持），控制中间高亮行 */
+.date-picker {
   width: 52px;
-  flex-shrink: 0;
-}
-
-.step-btn {
-  width: 48px;
-  height: 26px;
-  border-radius: 8px;
-  justify-content: center;
-  align-items: center;
-}
-
-.step-sign {
-  font-size: 20px;
-  line-height: 24px;
-  text-align: center;
-}
-
-.step-val {
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: bold;
-  text-align: center;
-  margin: 2px 0;
+  font-size: 18px;
+  color: #ffffff;
+  selected-font-size: 22px;
+  selected-color: #7ec8e3;
+  selected-background-color: #0f3460;
 }
 
 .date-preview {
@@ -544,17 +550,10 @@ export default {
     height: 52px;
   }
 
-  .stepper {
-    height: 108px;
-  }
-
-  .step-col {
+  /* 大屏只放宽列宽，picker 高度由组件滚轮决定，不干预 */
+  .picker-unit,
+  .date-picker {
     width: 88px;
-  }
-
-  .step-btn {
-    width: 80px;
-    height: 30px;
   }
 
   .save-btn {
