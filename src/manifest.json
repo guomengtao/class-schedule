@@ -82,6 +82,9 @@
       "pages/countdown-manage": {
         "component": "countdown-manage"
       },
+      "pages/countdown-edit": {
+        "component": "countdown-edit"
+      },
       "pages/schedule-manager": {
         "component": "schedule-manager"
       },

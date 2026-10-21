@@ -23,7 +23,7 @@
           <text class="cd-group-label" style="color: {{ theme.textMuted }}">已结束</text>
         </div>
         <div class="countdown-row" style="background-color: {{ theme.card }}; opacity: {{ item.enabled ? 1 : 0.45 }}; {{ item.cardBorder }}"
-             onclick="openDetail(idx)">
+             onclick="startEdit(idx)">
           <div class="cd-head">
             <text class="cd-title" style="color: {{ theme.text }}">{{ item.title }}</text>
           </div>
@@ -157,8 +157,11 @@ export default {
 
   onShow() {
     var self = this
+    // 旧三段式接力的残留消费（flowStep 恒为 idle，实际不生效），保留仅为兼容历史跳转
     this.drainName()
     this.drainDate()
+    // 2026-10-21：从 countdown-edit 表单页返回后必须重读数据，否则新增/编辑不可见
+    this.loadList()
   },
 
   drainName: function() {
@@ -200,38 +203,28 @@ export default {
     })
   },
 
+  // 2026-10-21 改版：添加/编辑统一进 countdown-edit 表单页（进入即表单，0 跳转）。
+  // 旧的「chinese-input → countdown-date」三段式接力（flowStep 状态机 + 5 个 storage 键）
+  // 已停用：任一步返回都会丢数据，且用户感知为「点了没反应」。
+  openForm(id) {
+    var uri = "/pages/countdown-edit"
+    var go = function() { router.push({ uri: uri }) }
+    storage.set({
+      key: "cd_edit_id",
+      value: id ? String(id) : "",
+      success: go,
+      fail: go
+    })
+  },
+
   startAdd() {
-    var self = this
-    this.flowMode = "add"
-    this.flowStep = "await_name"
-    this.editIdx = -1
-    this.pendingTitle = ""
-    this.pendingDate = ""
-    storage.set({ key: "chinese_input_title", value: "添加倒数日", success: function() {} })
-    storage.set({ key: "chinese_input_placeholder", value: "输入名称（≤6字）", success: function() {} })
-    storage.set({ key: "chinese_input_value", value: "", success: function() {} })
-    storage.set({ key: "chinese_input_maxlen", value: "6", success: function() {} })
-    storage.set({ key: "chinese_input_return_key", value: NAME_RETURN_KEY, success: function() {
-      router.push({ uri: "/pages/chinese-input" })
-    }})
+    this.openForm("")
   },
 
   startEdit(idx) {
-    var self = this
     var item = this.countdownList[idx]
     if (!item) return
-    this.flowMode = "edit"
-    this.flowStep = "await_name"
-    this.editIdx = idx
-    this.pendingTitle = item.title || ""
-    this.pendingDate = ""
-    storage.set({ key: "chinese_input_title", value: "编辑名称", success: function() {} })
-    storage.set({ key: "chinese_input_placeholder", value: "输入新名称（≤6字）", success: function() {} })
-    storage.set({ key: "chinese_input_value", value: item.title || "", success: function() {} })
-    storage.set({ key: "chinese_input_maxlen", value: "6", success: function() {} })
-    storage.set({ key: "chinese_input_return_key", value: NAME_RETURN_KEY, success: function() {
-      router.push({ uri: "/pages/chinese-input" })
-    }})
+    this.openForm(item.id)
   },
 
   openDatePage() {

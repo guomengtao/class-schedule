@@ -219,9 +219,35 @@ function save(items, cb) {
   })
 }
 
+// 按 id 定位条目下标；找不到返回 -1。
+// 存在理由：列表落盘后会按剩余天数重排，任何基于数组下标的延迟操作
+// （二次确认删除、3 秒窗口内的编辑）都会指向错误条目。
+function findIndexById(items, id) {
+  if (!items || !items.length) return -1
+  var target = String(id)
+  for (var i = 0; i < items.length; i++) {
+    if (String(items[i].id) === target) return i
+  }
+  return -1
+}
+
+// 按 id 存在则更新、不存在则追加，返回新数组（不原地改）
+function upsert(items, item) {
+  var list = (items || []).slice()
+  var idx = findIndexById(list, item && item.id)
+  if (idx >= 0) {
+    list[idx] = item
+  } else {
+    list.push(item)
+  }
+  return list
+}
+
 module.exports = {
   V2_KEY: V2_KEY,
   OLD_KEY: OLD_KEY,
+  findIndexById: findIndexById,
+  upsert: upsert,
   newId: newId,
   load: load,
   save: save,

@@ -1,0 +1,661 @@
+<import name="input-method" src="../../components/InputMethod/InputMethod.ux"></import>
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+
+    <!-- ============ 表单态（进页默认形态，此时键盘子树不建） ============ -->
+    <div class="form-wrap" if="{{ mode === 'form' }}">
+      <div class="header">
+        <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+          <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+        </div>
+        <text class="header-title" style="color: {{ theme.text }}">{{ pageTitle }}</text>
+      </div>
+
+      <!-- 名称：整行热区，点击就地弹键盘（不跳页） -->
+      <div class="field">
+        <text class="field-label" style="color: {{ theme.textSecondary }}">名称</text>
+        <div class="name-row" onclick="openKeyboard" style="background-color: {{ theme.card }}">
+          <text class="name-value" if="{{ title.length }}" style="color: {{ theme.text }}">{{ title }}</text>
+          <text class="name-placeholder" if="{{ !title.length }}" style="color: {{ theme.textMuted }}">点此输入名称</text>
+          <text class="name-arrow" style="color: {{ theme.textMuted }}">›</text>
+        </div>
+        <text class="err-text" if="{{ errMsg.length }}" style="color: {{ theme.deleteText }}">{{ errMsg }}</text>
+      </div>
+
+      <!-- 日期：页内三列步进器，取代全屏 picker 页 -->
+      <div class="field">
+        <text class="field-label" style="color: {{ theme.textSecondary }}">日期</text>
+        <div class="stepper" style="background-color: {{ theme.card }}">
+          <div class="step-col">
+            <div class="step-btn" onclick="decYear" style="background-color: {{ theme.keyBg }}">
+              <text class="step-sign" style="color: {{ theme.accent }}">−</text>
+            </div>
+            <text class="step-val" style="color: {{ theme.text }}">{{ yearNum }}</text>
+            <div class="step-btn" onclick="incYear" style="background-color: {{ theme.keyBg }}">
+              <text class="step-sign" style="color: {{ theme.accent }}">＋</text>
+            </div>
+          </div>
+          <div class="step-col">
+            <div class="step-btn" onclick="decMonth" style="background-color: {{ theme.keyBg }}">
+              <text class="step-sign" style="color: {{ theme.accent }}">−</text>
+            </div>
+            <text class="step-val" style="color: {{ theme.text }}">{{ monthNum }}</text>
+            <div class="step-btn" onclick="incMonth" style="background-color: {{ theme.keyBg }}">
+              <text class="step-sign" style="color: {{ theme.accent }}">＋</text>
+            </div>
+          </div>
+          <div class="step-col">
+            <div class="step-btn" onclick="decDay" style="background-color: {{ theme.keyBg }}">
+              <text class="step-sign" style="color: {{ theme.accent }}">−</text>
+            </div>
+            <text class="step-val" style="color: {{ theme.text }}">{{ dayNum }}</text>
+            <div class="step-btn" onclick="incDay" style="background-color: {{ theme.keyBg }}">
+              <text class="step-sign" style="color: {{ theme.accent }}">＋</text>
+            </div>
+          </div>
+        </div>
+        <text class="date-preview" style="color: {{ theme.accent }}">{{ dateStr }} · {{ daysText }}</text>
+      </div>
+
+      <div class="action-row">
+        <div class="save-btn" onclick="doSave" style="background-color: {{ canSave ? theme.accent : theme.btnSecondary }}">
+          <text class="save-label" style="color: {{ canSave ? theme.bg : theme.btnSecondaryText }}">保存</text>
+        </div>
+      </div>
+
+      <div class="action-row" if="{{ mode === 'edit' }}">
+        <div class="del-btn" onclick="doDelete" style="background-color: {{ delConfirm ? theme.deleteText : theme.deleteBg }}">
+          <text class="save-label" style="color: {{ delConfirm ? theme.bg : theme.deleteText }}">{{ delConfirm ? '确认删除' : '删除' }}</text>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 键盘态（点名称行后进入，表单整块不渲染） ============ -->
+    <div class="typing-wrap" if="{{ mode === 'typing' }}">
+      <div class="header">
+        <div class="back-btn-wrapper" onclick="closeKeyboard" style="background-color: {{ theme.card }}">
+          <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+        </div>
+        <text class="header-title" style="color: {{ theme.text }}">名称</text>
+      </div>
+
+      <div class="input-display" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+        <text class="input-text" if="{{ title.length }}" style="color: {{ theme.text }}">{{ title }}</text>
+        <text class="input-placeholder" if="{{ !title.length }}" style="color: {{ theme.textMuted }}">输入名称（≤{{ maxLen }}字）</text>
+        <div class="cursor" style="background-color: {{ theme.text }}"></div>
+      </div>
+
+      <!-- 宿主容器规则（D1）：普通 div + flex:1 + flex-direction:column + width:100%
+           禁止 scroll 包裹（会让键盘内部 absolute 定位退化到内容宽、塌缩到左下角） -->
+      <div class="ime-host">
+        <input-method
+          hide="{{ false }}"
+          keyboardtype="QWERTY"
+          maxlength="{{ maxLen }}"
+          vibratemode="short"
+          screentype="{{ screenType }}"
+          dictionarypath="/components/InputMethod/assets/dictionary/"
+          oncomplete="onCharacter"
+          ondelete="onDeleteChar"
+        ></input-method>
+      </div>
+    </div>
+
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import device from "@system.device"
+var storage = require("@system.storage")
+const countdown = require("../../data/countdown.js")
+const store = require("../../data/store.js")
+
+var EDIT_ID_KEY = "cd_edit_id"      // 列表页写入：要编辑的条目 id（add 模式不写）
+var DELAY_MS = 5000                 // 删除二次确认窗口
+
+export default {
+  private: {
+    mode: "form",            // form | typing
+    pageTitle: "添加倒数日",
+    editId: "",
+    title: "",
+    maxLen: "6",
+    screenType: "pill-shaped",
+    iconTheme: "dark",
+    errMsg: "",
+    delConfirm: false,
+    delTimer: null,
+    // 日期步进器状态
+    yearNum: 2026,
+    monthNum: 1,
+    dayNum: 1,
+    yMin: 2025,
+    yMax: 2031,
+    dateStr: "",
+    daysText: "",
+    canSave: false,
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      keyBg: '#1a1a3e',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      btnSecondary: '#333355',
+      btnSecondaryText: '#a0a0b0',
+      deleteBg: '#2a1a3e',
+      deleteText: '#e08080'
+    }
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+    try {
+      device.getInfo({
+        success: function(data) {
+          var shape = data.screenShape || "circle"
+          if (shape === "capsule") shape = "pill-shaped"
+          self.screenType = shape
+        },
+        fail: function() {}
+      })
+    } catch (e) {}
+
+    // 日期默认今天
+    var now = new Date()
+    self.yMin = now.getFullYear() - 1
+    self.yMax = now.getFullYear() + 5
+    self.yearNum = now.getFullYear()
+    self.monthNum = now.getMonth() + 1
+    self.dayNum = now.getDate()
+    self.refreshDate()
+
+    // 编辑模式：读 id 后回填
+    storage.get({
+      key: EDIT_ID_KEY,
+      success: function(data) {
+        if (data) {
+          self.editId = String(data)
+          self.pageTitle = "编辑倒数日"
+          self.loadItem(self.editId)
+        } else {
+          self.editId = ""
+          self.pageTitle = "添加倒数日"
+        }
+      },
+      fail: function() {
+        self.editId = ""
+        self.pageTitle = "添加倒数日"
+      }
+    })
+  },
+
+  loadItem(id) {
+    var self = this
+    countdown.load(function(res) {
+      var items = res.items || []
+      for (var i = 0; i < items.length; i++) {
+        if (String(items[i].id) === String(id)) {
+          self.title = items[i].title || ""
+          self.applyDate(items[i].date)
+          break
+        }
+      }
+      self.refreshCanSave()
+    })
+  },
+
+  applyDate(dateStr) {
+    if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(String(dateStr))) return
+    var p = String(dateStr).split("-")
+    var y = parseInt(p[0], 10)
+    var m = parseInt(p[1], 10)
+    var d = parseInt(p[2], 10)
+    if (isNaN(y) || isNaN(m) || isNaN(d)) return
+    this.yearNum = Math.min(this.yMax, Math.max(this.yMin, y))
+    this.monthNum = Math.min(12, Math.max(1, m))
+    this.dayNum = Math.min(this.daysInMonth(this.yearNum, this.monthNum), Math.max(1, d))
+    this.refreshDate()
+  },
+
+  // ---- 日期步进 ----
+  daysInMonth(y, m) {
+    if (m === 2) {
+      var leap = (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0)
+      return leap ? 29 : 28
+    }
+    if (m === 4 || m === 6 || m === 9 || m === 11) return 30
+    return 31
+  },
+
+  decYear() {
+    if (this.yearNum > this.yMin) this.yearNum = this.yearNum - 1
+    this.clampDay()
+    this.refreshDate()
+  },
+
+  incYear() {
+    if (this.yearNum < this.yMax) this.yearNum = this.yearNum + 1
+    this.clampDay()
+    this.refreshDate()
+  },
+
+  decMonth() {
+    if (this.monthNum > 1) this.monthNum = this.monthNum - 1
+    this.clampDay()
+    this.refreshDate()
+  },
+
+  incMonth() {
+    if (this.monthNum < 12) this.monthNum = this.monthNum + 1
+    this.clampDay()
+    this.refreshDate()
+  },
+
+  decDay() {
+    if (this.dayNum > 1) this.dayNum = this.dayNum - 1
+    this.refreshDate()
+  },
+
+  incDay() {
+    var max = this.daysInMonth(this.yearNum, this.monthNum)
+    if (this.dayNum < max) this.dayNum = this.dayNum + 1
+    this.refreshDate()
+  },
+
+  clampDay() {
+    var max = this.daysInMonth(this.yearNum, this.monthNum)
+    if (this.dayNum > max) this.dayNum = max
+  },
+
+  pad(n) {
+    return n < 10 ? "0" + n : "" + n
+  },
+
+  refreshDate() {
+    this.dateStr = this.yearNum + "-" + this.pad(this.monthNum) + "-" + this.pad(this.dayNum)
+    var d = countdown.computeItem(this.dateStr)
+    if (d > 0) this.daysText = "剩 " + d + " 天"
+    else if (d === 0) this.daysText = "就是今天"
+    else this.daysText = "已过 " + (-d) + " 天"
+    this.refreshCanSave()
+  },
+
+  refreshCanSave() {
+    this.canSave = this.title.replace(/\s/g, "").length > 0
+  },
+
+  // ---- 两态切换 ----
+  openKeyboard() {
+    this.mode = "typing"
+  },
+
+  closeKeyboard() {
+    this.mode = "form"
+    this.refreshCanSave()
+  },
+
+  // ---- 键盘事件边界（D3）：任何异常都退回表单态，保证用户有出路 ----
+  onCharacter(e) {
+    try {
+      if (e && e.detail && e.detail.content) {
+        var max = parseInt(this.maxLen) || 6
+        if (this.title.length < max) {
+          this.title = this.title + e.detail.content
+          this.errMsg = ""
+        }
+      }
+    } catch (err) {
+      this.mode = "form"
+    }
+  },
+
+  onDeleteChar() {
+    try {
+      if (this.title.length > 0) {
+        this.title = this.title.slice(0, this.title.length - 1)
+      }
+    } catch (err) {
+      this.mode = "form"
+    }
+  },
+
+  // ---- 保存 ----
+  doSave() {
+    var self = this
+    var name = (this.title || "").replace(/^\s+|\s+$/g, "")
+    if (!name) {
+      this.errMsg = "请先输入名称"
+      return
+    }
+    countdown.load(function(res) {
+      var items = res.items || []
+      if (self.mode === "form" && self.editId) {
+        var idx = countdown.findIndexById(items, self.editId)
+        if (idx >= 0) {
+          items[idx].title = name
+          items[idx].date = self.dateStr
+        }
+      } else {
+        items.push({
+          id: countdown.newId(),
+          title: name,
+          date: self.dateStr,
+          enabled: true,
+          createdAt: Date.now()
+        })
+      }
+      countdown.save(items, function() {
+        router.back()
+      })
+    })
+  },
+
+  // ---- 删除（页内二次确认 5 秒） ----
+  doDelete() {
+    var self = this
+    if (!this.editId) return
+    if (this.delConfirm) {
+      countdown.load(function(res) {
+        var items = res.items || []
+        var idx = countdown.findIndexById(items, self.editId)
+        if (idx >= 0) items.splice(idx, 1)
+        countdown.save(items, function() {
+          clearTimeout(self.delTimer)
+          router.back()
+        })
+      })
+      return
+    }
+    this.delConfirm = true
+    clearTimeout(this.delTimer)
+    this.delTimer = setTimeout(function() {
+      self.delConfirm = false
+    }, DELAY_MS)
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  onDestroy() {
+    if (this.delTimer) {
+      clearTimeout(this.delTimer)
+      this.delTimer = null
+    }
+    this.theme = null
+  }
+}
+</script>
+
+<style>
+@import '../../common/header.css';
+
+/* ================================================================
+   胶囊屏 192×490 基准（内容区 168），不依赖 media query 命中手环 9。
+   高度预算：header 42 + 名称块 70 + 日期块 140 + 保存 48 (+编辑态删除 56)
+            ≈ 300 / 490，余量充足；键盘态 42 + 50 + 305 = 397 / 490。
+   铁律：禁 @media screen and；只用 (shape: rect) 做大屏增量。
+   ================================================================ */
+
+.page {
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  padding: 24px 12px 12px 12px;
+}
+
+.form-wrap {
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+}
+
+.typing-wrap {
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+}
+
+.header {
+  flex-direction: row;
+  align-items: center;
+  height: 34px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.back-btn-wrapper {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.back-btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.header-title {
+  flex: 1;
+  font-size: 20px;
+  line-height: 26px;
+  margin-left: 8px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.field {
+  flex-direction: column;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.field-label {
+  font-size: 16px;
+  line-height: 22px;
+  margin-bottom: 2px;
+}
+
+/* 名称行：整行 168×44 热区 */
+.name-row {
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  height: 44px;
+  border-radius: 10px;
+  padding: 0 10px;
+  flex-shrink: 0;
+}
+
+.name-value {
+  flex: 1;
+  font-size: 20px;
+  line-height: 26px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.name-placeholder {
+  flex: 1;
+  font-size: 16px;
+  line-height: 26px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+.name-arrow {
+  width: 14px;
+  font-size: 22px;
+  line-height: 26px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.err-text {
+  font-size: 15px;
+  line-height: 20px;
+  margin-top: 2px;
+}
+
+/* 三列步进器：52×3 + 间距 6×2 = 168，正好铺满内容区 */
+.stepper {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 96px;
+  border-radius: 10px;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+.step-col {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  flex-shrink: 0;
+}
+
+.step-btn {
+  width: 48px;
+  height: 26px;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.step-sign {
+  font-size: 20px;
+  line-height: 24px;
+  text-align: center;
+}
+
+.step-val {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: bold;
+  text-align: center;
+  margin: 2px 0;
+}
+
+.date-preview {
+  font-size: 16px;
+  line-height: 22px;
+  margin-top: 4px;
+  text-align: center;
+  width: 100%;
+}
+
+.action-row {
+  flex-direction: row;
+  justify-content: center;
+  width: 100%;
+  margin-top: 10px;
+  flex-shrink: 0;
+}
+
+.save-btn {
+  width: 168px;
+  height: 48px;
+  border-radius: 24px;
+  justify-content: center;
+  align-items: center;
+}
+
+.del-btn {
+  width: 168px;
+  height: 40px;
+  border-radius: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+.save-label {
+  font-size: 20px;
+  line-height: 26px;
+  text-align: center;
+}
+
+/* ---- 键盘态 ---- */
+.input-display {
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border-width: 2px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.input-text {
+  font-size: 22px;
+  line-height: 28px;
+  margin-right: 2px;
+}
+
+.input-placeholder {
+  font-size: 16px;
+  line-height: 22px;
+}
+
+.cursor {
+  width: 2px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+/* D1 宿主规则：普通 div，显式满宽满高，不用 scroll 包裹 */
+.ime-host {
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* 大屏增量：只放大热区，不改字号体系 */
+@media (shape: rect) {
+  .page {
+    padding: 24px 20px 12px 20px;
+  }
+
+  .name-row {
+    height: 52px;
+  }
+
+  .stepper {
+    height: 108px;
+  }
+
+  .step-col {
+    width: 88px;
+  }
+
+  .step-btn {
+    width: 80px;
+    height: 30px;
+  }
+
+  .save-btn {
+    width: 296px;
+    height: 52px;
+    border-radius: 26px;
+  }
+
+  .del-btn {
+    width: 296px;
+  }
+}
+</style>
