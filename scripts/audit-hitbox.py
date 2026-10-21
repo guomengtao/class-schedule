@@ -22,8 +22,31 @@ def num(pat, body):
     return int(m.group(1)) if m else None
 
 
+def strip_media(s):
+    """去掉 @media 块：媒体查询是特定屏型的增量覆盖，不该拿来判主档是否达标。
+    不去掉会把「主档 44 / 小屏档 36」误报成不达标（2026-10-21 首页切天钮踩过）。"""
+    res, i, n = [], 0, len(s)
+    while i < n:
+        if s.startswith('@media', i):
+            j = s.find('{', i)
+            if j < 0:
+                break
+            depth, k = 1, j + 1
+            while k < n and depth > 0:
+                if s[k] == '{':
+                    depth += 1
+                elif s[k] == '}':
+                    depth -= 1
+                k += 1
+            i = k
+        else:
+            res.append(s[i])
+            i += 1
+    return ''.join(res)
+
+
 def scan(path):
-    src = open(path, encoding='utf-8').read()
+    src = strip_media(open(path, encoding='utf-8').read())
     # class -> (w, h, has_padding)
     box = {}
     for m in re.finditer(r'\.([\w-]+)\s*\{([^}]*)\}', src):

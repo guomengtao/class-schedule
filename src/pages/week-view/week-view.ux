@@ -1081,7 +1081,7 @@ export default {
   flex-shrink: 0;
   justify-content: center;
   align-items: center;
-  height: 36px;
+  height: 44px;
   padding: 0 10px;
   margin: 0 3px;
   border-radius: 18px;

@@ -11,48 +11,48 @@
     </div>
 
     <div class="section section-first" style="background-color: {{ theme.card }}">
-      <div class="item-row">
+      <div class="item-row" onclick="toggleQuickAdd">
         <text class="item-label" style="color: {{ theme.text }}">快速添加</text>
-        <div class="switch-track" style="background-color: {{ showQuickAdd ? theme.accent : theme.border }}" onclick="toggleQuickAdd">
+        <div class="switch-track" style="background-color: {{ showQuickAdd ? theme.accent : theme.border }}">
           <div class="switch-thumb" style="left: {{ showQuickAdd ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
         </div>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row item-row-last">
+      <div class="item-row item-row-last" onclick="toggleStatusBar">
         <text class="item-label" style="color: {{ theme.text }}">课程提醒</text>
-        <div class="switch-track" style="background-color: {{ showStatusBar ? theme.accent : theme.border }}" onclick="toggleStatusBar">
+        <div class="switch-track" style="background-color: {{ showStatusBar ? theme.accent : theme.border }}">
           <div class="switch-thumb" style="left: {{ showStatusBar ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
         </div>
       </div>
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
-      <div class="item-row">
+      <div class="item-row" onclick="toggleDayNavZong">
         <text class="item-label" style="color: {{ theme.text }}">总课程</text>
-        <div class="switch-track" style="background-color: {{ showDayNavZong ? theme.accent : theme.border }}" onclick="toggleDayNavZong">
+        <div class="switch-track" style="background-color: {{ showDayNavZong ? theme.accent : theme.border }}">
           <div class="switch-thumb" style="left: {{ showDayNavZong ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
         </div>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row">
+      <div class="item-row" onclick="toggleDayNavJin">
         <text class="item-label" style="color: {{ theme.text }}">今日</text>
-        <div class="switch-track" style="background-color: {{ showDayNavJin ? theme.accent : theme.border }}" onclick="toggleDayNavJin">
+        <div class="switch-track" style="background-color: {{ showDayNavJin ? theme.accent : theme.border }}">
           <div class="switch-thumb" style="left: {{ showDayNavJin ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
         </div>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row item-row-last">
+      <div class="item-row item-row-last" onclick="toggleDayNavMing">
         <text class="item-label" style="color: {{ theme.text }}">明日</text>
-        <div class="switch-track" style="background-color: {{ showDayNavMing ? theme.accent : theme.border }}" onclick="toggleDayNavMing">
+        <div class="switch-track" style="background-color: {{ showDayNavMing ? theme.accent : theme.border }}">
           <div class="switch-thumb" style="left: {{ showDayNavMing ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
         </div>
       </div>
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
-      <div class="item-row">
+      <div class="item-row" onclick="toggleCustomContent">
         <text class="item-label" style="color: {{ theme.text }}">自定义</text>
-        <div class="switch-track" style="background-color: {{ showCustomContent ? theme.accent : theme.border }}" onclick="toggleCustomContent">
+        <div class="switch-track" style="background-color: {{ showCustomContent ? theme.accent : theme.border }}">
           <div class="switch-thumb" style="left: {{ showCustomContent ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
         </div>
       </div>
@@ -91,9 +91,9 @@
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
-      <div class="item-row">
+      <div class="item-row" onclick="togglePinnedBar">
         <text class="item-label" style="color: {{ theme.text }}">钉首页</text>
-        <div class="switch-track" style="background-color: {{ showPinnedBar ? theme.accent : theme.border }}" onclick="togglePinnedBar">
+        <div class="switch-track" style="background-color: {{ showPinnedBar ? theme.accent : theme.border }}">
           <div class="switch-thumb" style="left: {{ showPinnedBar ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
         </div>
       </div>
@@ -393,6 +393,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 12px 0;
+  min-height: 44px;
 }
 
 .row-divider {

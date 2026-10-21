@@ -279,7 +279,18 @@ export default {
    几何是算出来的（2026-10-21 字号抬到 18 后重算）：
    星期条 7 格 ×18 + 箭头 2×20 = 166 ≤ 168，剩 2px 余量；
    高度 20→26 是为了装下 18px 字的 22 行高，否则箭头字形被裁。 */
-.arrow-btn { width: 20px; height: 26px; border-radius: 5px; justify-content: center; align-items: center; flex-shrink: 0 }
+/* 热区外扩（2026-10-21 规则 §8.3）：视觉仍是 20×26 的小箭头，
+   但可点区域做到 44×44。星期条总宽不能变（7×18 + 2×20 = 166 ≤ 168），
+   所以用负 margin 把多出来的 24×18 让给热区、不占布局。 */
+.arrow-btn {
+  width: 44px;
+  height: 44px;
+  margin: -9px -12px;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
 .arrow-icon { font-size: 18px; line-height: 22px; text-align: center; font-weight: bold }
 
 .empty-hint { flex: 1; align-items: center; justify-content: center; font-size: 22px; line-height: 30px; text-align: center }
