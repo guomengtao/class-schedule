@@ -160,8 +160,16 @@ export default {
     try {
       device.getInfo({
         success: function(data) {
-          var shape = data.screenShape || "circle"
+          var shape = data.screenShape || ""
           if (shape === "capsule") shape = "pill-shaped"
+          // 实测（2026-10-21，模拟器 evc-xiaomi_band-buddy-1）：device.getInfo 可能不返
+          // screenShape，此时若沿用旧兜底 "circle"，组件会按 480×321 圆表布局渲染，
+          // 在 192 宽屏上右侧被裁掉一半（只看得见 QWE/ASD/ZX）。改为按屏宽推断：
+          // 本产品 192×490 为胶囊屏，≥400 宽才视为老圆屏。
+          if (shape !== "rect" && shape !== "pill-shaped" && shape !== "circle") {
+            var w = data.screenWidth || data.width || 0
+            shape = (w && w >= 400) ? "circle" : "pill-shaped"
+          }
           self.screenType = shape
         },
         fail: function() {}
