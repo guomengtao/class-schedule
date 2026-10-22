@@ -11,7 +11,7 @@
       <!-- 状态卡只留 2 行：状态 + 有效期。版本号移到 info 页，去掉重复的到期文案 -->
       <div class="status-card">
         <text class="status-main" style="color: {{ statusColor }}">{{ statusText }}</text>
-        <text class="status-expiry" show="{{ expireTimeText }}" style="color: {{ theme.textSecondary }}">有效期 {{ expireTimeText }}</text>
+        <text class="status-expiry" show="{{ expireTimeText }}" style="color: {{ theme.textSecondary }}">{{ expireTimeText }}</text>
       </div>
       <!-- 购买卡：老版「激活软件·步骤1」原样上浮主页首屏。购买是第一优先级，不下单激活无从谈起 -->
       <div class="purchase-card" style="background-color: {{ theme.card }}">
@@ -34,7 +34,7 @@
       </div>
 
       <div class="entry-footer" onclick="openInfoPage">
-        <text class="entry-footer-text" style="color: {{ theme.textSecondary }}">激活历史 · 设备信息</text>
+        <text class="entry-footer-text" style="color: {{ theme.textSecondary }}">历史 · 设备信息</text>
         <text class="entry-footer-arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
 
@@ -426,7 +426,7 @@ export default {
 }
 
 .entry-footer-text {
-  font-size: 22px;
+  font-size: 20px;
   line-height: 28px;
 }
 
