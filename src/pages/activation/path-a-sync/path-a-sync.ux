@@ -1,0 +1,223 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">快速激活</text>
+    </div>
+
+    <!-- 进度分母明确：用户随时知道还差几步 -->
+    <text class="progress" style="color: {{ theme.accent }}">方式 A · 2 / 2 步</text>
+
+    <text class="lead" style="color: {{ theme.textSecondary }}">安卓手机扫码，安装 Ev课程表同步器</text>
+
+    <div class="qr-box" style="background-color: {{ theme.card }}">
+      <div class="qr-wrap" if="{{ qrUrl }}">
+        <qrcode class="qr-code" value="{{ qrUrl }}" style="color: #000000; background-color: #ffffff;"></qrcode>
+      </div>
+      <text class="qr-loading" if="{{ !qrUrl }}" style="color: {{ theme.textMuted }}">正在生成二维码...</text>
+    </div>
+
+    <!-- 终态提示，不是「下一步」：A 到此结束，避免把用户误导入 B -->
+    <div class="done-box" style="background-color: {{ theme.card }}">
+      <text class="done-title" style="color: {{ theme.accent }}">装完自动激活</text>
+      <text class="done-sub" style="color: {{ theme.textSecondary }}">同步器会自动识别本机设备 ID 并完成激活，无需其他操作</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const ctx = require("../shared/activation-context.js")
+
+export default {
+  private: {
+    iconTheme: "dark",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a'
+    },
+    qrUrl: ''
+  },
+
+  onInit() {
+    var self = this
+    ctx.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
+    ctx.getIdentity(function(deviceId, infoParams) {
+      self.qrUrl = ctx.apkUrl(deviceId, infoParams)
+    })
+  },
+
+  onShow() {
+    var self = this
+    ctx.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
+  },
+
+  updateIconSrc(themeName) {
+    this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 10px 12px 10px;
+  width: 100%;
+  height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+  height: 40px;
+  margin-bottom: 6px;
+}
+
+.back-btn-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.back-btn-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.header-title {
+  flex: 1;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 32px;
+}
+
+.progress {
+  font-size: 14px;
+  line-height: 19px;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.lead {
+  font-size: 15px;
+  line-height: 20px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.qr-box {
+  width: 100%;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.qr-wrap {
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background-color: #ffffff;
+  border-radius: 6px;
+}
+
+.qr-code {
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+}
+
+.qr-loading {
+  font-size: 15px;
+  line-height: 20px;
+  height: 140px;
+  text-align: center;
+}
+
+.done-box {
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 10px 10px 10px;
+  border-radius: 12px;
+  margin-top: auto;
+}
+
+.done-title {
+  font-size: 17px;
+  font-weight: bold;
+  line-height: 22px;
+  margin-bottom: 3px;
+}
+
+.done-sub {
+  font-size: 13px;
+  line-height: 18px;
+  text-align: center;
+}
+
+@media (shape: pill-shaped) {
+  .page {
+    padding: 24px 16px 20px 16px;
+  }
+
+  .header {
+    height: 36px;
+  }
+
+  .back-btn-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+  }
+
+  .back-btn-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .header-title {
+    font-size: 20px;
+    line-height: 26px;
+  }
+
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 8px 8px 10px 8px;
+  }
+}
+</style>

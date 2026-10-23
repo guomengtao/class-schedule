@@ -151,6 +151,15 @@
       "pages/activation/activation-info": {
         "component": "activation-info"
       },
+      "pages/activation/step-purchase": {
+        "component": "step-purchase"
+      },
+      "pages/activation/path-a-sync": {
+        "component": "path-a-sync"
+      },
+      "pages/activation/path-b-redeem": {
+        "component": "path-b-redeem"
+      },
       "pages/device-info": {
         "component": "device-info"
       },

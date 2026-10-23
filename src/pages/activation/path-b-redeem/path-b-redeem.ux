@@ -1,0 +1,246 @@
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">获取激活码</text>
+    </div>
+
+    <text class="progress" style="color: {{ theme.textSecondary }}">方式 B · 2 / 3 步</text>
+
+    <text class="lead" style="color: {{ theme.textSecondary }}">扫码获取激活码</text>
+
+    <div class="dev-row" style="background-color: {{ theme.card }}">
+      <text class="dev-label" style="color: {{ theme.textMuted }}">设备 ID</text>
+      <text class="dev-value" style="color: {{ theme.text }}">{{ deviceIdText }}</text>
+    </div>
+
+    <div class="qr-box" style="background-color: {{ theme.card }}">
+      <div class="qr-wrap" if="{{ qrUrl }}">
+        <qrcode class="qr-code" value="{{ qrUrl }}" style="color: #000000; background-color: #ffffff;"></qrcode>
+      </div>
+      <text class="qr-loading" if="{{ !qrUrl }}" style="color: {{ theme.textMuted }}">正在生成二维码...</text>
+    </div>
+
+    <div class="btn" onclick="goInput" style="background-color: {{ theme.accent }}">
+      <text class="btn-text" style="color: {{ theme.bg }}">去输入激活码</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const ctx = require("../shared/activation-context.js")
+
+export default {
+  private: {
+    iconTheme: "dark",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a'
+    },
+    deviceIdText: '获取中...',
+    qrUrl: ''
+  },
+
+  onInit() {
+    var self = this
+    ctx.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
+    ctx.getIdentity(function(deviceId, infoParams) {
+      self.deviceIdText = deviceId || '未知'
+      self.qrUrl = ctx.redeemUrl(deviceId, infoParams)
+    })
+  },
+
+  onShow() {
+    var self = this
+    ctx.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
+  },
+
+  updateIconSrc(themeName) {
+    this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
+  },
+
+  goInput() {
+    router.push({ uri: 'pages/activation/activation-code' })
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  padding: 44px 10px 12px 10px;
+  width: 100%;
+  height: 100%;
+}
+
+.header {
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+  height: 40px;
+  margin-bottom: 4px;
+}
+
+.back-btn-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.back-btn-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.header-title {
+  flex: 1;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 32px;
+}
+
+.progress {
+  font-size: 14px;
+  line-height: 19px;
+  text-align: center;
+  margin-bottom: 2px;
+}
+
+.lead {
+  font-size: 14px;
+  line-height: 19px;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+/* 32 位设备 ID 在 192px 宽下必然折行：允许 2 行，不缩字号、不加省略号 */
+.dev-row {
+  width: 100%;
+  flex-direction: column;
+  padding: 5px 10px 6px 10px;
+  border-radius: 10px;
+  margin-bottom: 7px;
+}
+
+.dev-label {
+  font-size: 12px;
+  line-height: 16px;
+  margin-bottom: 1px;
+}
+
+.dev-value {
+  font-size: 13px;
+  line-height: 17px;
+  lines: 2;
+}
+
+.qr-box {
+  width: 100%;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 0;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.qr-wrap {
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background-color: #ffffff;
+  border-radius: 6px;
+}
+
+.qr-code {
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+}
+
+.qr-loading {
+  font-size: 15px;
+  line-height: 20px;
+  height: 132px;
+  text-align: center;
+}
+
+.btn {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 22px;
+  justify-content: center;
+  align-items: center;
+  margin-top: auto;
+}
+
+.btn-text {
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 24px;
+}
+
+@media (shape: pill-shaped) {
+  .page {
+    padding: 24px 16px 20px 16px;
+  }
+
+  .header {
+    height: 34px;
+    margin-bottom: 2px;
+  }
+
+  .back-btn-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+  }
+
+  .back-btn-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .header-title {
+    font-size: 19px;
+    line-height: 24px;
+  }
+
+}
+
+@media (shape: circle) {
+  .page {
+    padding: 44px 36px 44px 36px;
+  }
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 8px 8px 10px 8px;
+  }
+}
+</style>
