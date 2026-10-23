@@ -5,7 +5,7 @@
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">安卓激活</text>
+      <text class="header-title" style="color: {{ theme.text }}">安卓</text>
     </div>
 
     <text class="progress" style="color: {{ theme.accent }}">第1步 共2步</text>
@@ -210,7 +210,8 @@ export default {
   }
 
   .header-title {
-    line-height: 38px;
+    font-size: 24px;
+    line-height: 32px;
   }
 }
 

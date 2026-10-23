@@ -4,7 +4,7 @@
       <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" onclick="goBack" style="color: {{ theme.textSecondary }}">剩余课程</text>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.textSecondary }}">剩余</text>
       <div if="{{ !isRoot }}" class="header-placeholder"></div>
     </div>
 
@@ -266,8 +266,8 @@ export default {
   padding: 0 4px;
 }
 .back-btn-wrapper {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
   justify-content: center;
   align-items: center;
@@ -279,13 +279,13 @@ export default {
 }
 .header-title {
   flex: 1;
-  font-size: 18px;
+  font-size: 24px;
   text-align: center;
-  line-height: 26px;
+  line-height: 32px;
 }
 .header-placeholder {
-  width: 48px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
 }
 
@@ -374,7 +374,7 @@ export default {
 
 @media (width >= 200px) {
   .page { padding: 44px 16px 14px 16px; }
-  .header-title { font-size: 20px; line-height: 28px; }
+  .header-title { font-size: 28px; line-height: 36px; }
   .big-count { margin-top: 42px; height: 82px; font-size: 80px; line-height: 82px; }
   .unit-line { font-size: 22px; line-height: 24px; height: 24px; }
   .divider { width: 180px; }
@@ -387,7 +387,7 @@ export default {
 
 @media (width >= 400px) {
   .page { padding: 12px 20px 16px 20px; }
-  .header-title { font-size: 24px; line-height: 32px; }
+  .header-title { font-size: 30px; line-height: 38px; }
   .big-count { margin-top: 20px; height: 120px; font-size: 112px; line-height: 120px; }
   .unit-line { font-size: 28px; line-height: 34px; height: 34px; }
   .divider { width: 320px; }

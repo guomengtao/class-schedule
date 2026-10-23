@@ -598,10 +598,10 @@ export default {
   flex-direction: column;
 }
 
-/* 公共 header.css 的 pill 档把标题压到 18px，低于 ev-six 24px 硬下限，本页覆盖 */
+/* 标题 24px：与公共 header.css 手环档一致（ev-six 下限档，4 字 @24 = 96px） */
 .header-title {
-  font-size: 28px;
-  line-height: 34px;
+  font-size: 24px;
+  line-height: 32px;
 }
 
 /* 输入格：每行 6 个（与 ev-six 六位置对齐），高 32 保持竖向呼吸 */

@@ -5,7 +5,7 @@
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">Header Demo 1</text>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">样例1</text>
       <div class="header-placeholder"></div>
     </div>
 

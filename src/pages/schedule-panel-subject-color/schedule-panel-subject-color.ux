@@ -4,7 +4,7 @@
       <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" onclick="goBack" style="color: {{ theme.textSecondary }}">科目色卡</text>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.textSecondary }}">色卡</text>
       <div if="{{ !isRoot }}" class="header-placeholder"></div>
     </div>
 
@@ -282,8 +282,8 @@ export default {
   padding: 0 4px;
 }
 .back-btn-wrapper {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
   justify-content: center;
   align-items: center;
@@ -295,13 +295,13 @@ export default {
 }
 .header-title {
   flex: 1;
-  font-size: 18px;
+  font-size: 24px;
   text-align: center;
-  line-height: 26px;
+  line-height: 32px;
 }
 .header-placeholder {
-  width: 48px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
 }
 
@@ -377,7 +377,7 @@ export default {
 
 @media (width >= 200px) {
   .page { padding: 44px 16px 14px 16px; }
-  .header-title { font-size: 20px; line-height: 28px; }
+  .header-title { font-size: 28px; line-height: 36px; }
   .now-row { margin-top: 42px; height: 60px; }
   .now-stripe { width: 14px; height: 48px; }
   .now-name { font-size: 44px; line-height: 60px; }
@@ -390,7 +390,7 @@ export default {
 
 @media (width >= 400px) {
   .page { padding: 12px 20px 16px 20px; }
-  .header-title { font-size: 24px; line-height: 32px; }
+  .header-title { font-size: 30px; line-height: 38px; }
   .now-row { margin-top: 20px; height: 90px; }
   .now-stripe { width: 20px; height: 72px; border-radius: 10px; }
   .now-name { font-size: 64px; line-height: 90px; }

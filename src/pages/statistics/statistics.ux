@@ -5,7 +5,7 @@
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">课程统计</text>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">统计</text>
       <div class="header-placeholder"></div>
     </div>
 
@@ -432,8 +432,8 @@ export default {
   
   
   .header-title {
-    font-size: 20px;
-    line-height: 28px;
+    font-size: 24px;
+    line-height: 32px;
     text-align: center;
     flex: 1;
   }

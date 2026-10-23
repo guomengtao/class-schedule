@@ -4,7 +4,7 @@
       <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" onclick="goBack" style="color: {{ theme.textSecondary }}">当前进度</text>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.textSecondary }}">进度</text>
       <div if="{{ !isRoot }}" class="header-placeholder"></div>
     </div>
 
@@ -300,8 +300,8 @@ export default {
   padding: 0 4px;
 }
 .back-btn-wrapper {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
   justify-content: center;
   align-items: center;
@@ -310,11 +310,11 @@ export default {
 .back-btn-icon { width: 24px; height: 24px }
 .header-title {
   flex: 1;
-  font-size: 18px;
-  line-height: 24px;
+  font-size: 24px;
+  line-height: 32px;
   text-align: center;
 }
-.header-placeholder { width: 48px; height: 40px; flex-shrink: 0 }
+.header-placeholder { width: 36px; height: 36px; flex-shrink: 0 }
 
 /* A 课名：56px，最多两行（3 字/行），超长两行后省略。
    不写死 height：单行课名（放学/没课/两字科目）固定 124 会在下方留一大块空白，

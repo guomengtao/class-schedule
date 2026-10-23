@@ -128,10 +128,10 @@ export default {
    故降到 26px 并去掉右侧等宽占位（占位 48px 会把标题压到 64px，直接两行）。 */
 .header-title {
   flex: 1;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: bold;
   text-align: center;
-  line-height: 36px;
+  line-height: 32px;
 }
 
 /* 目录页定位说明（「更多首页」改名配套）：18px/24px 行高、次要色。

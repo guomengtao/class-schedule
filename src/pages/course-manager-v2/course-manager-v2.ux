@@ -4,7 +4,7 @@
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">课程管理</text>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">课程</text>
       <input class="add-btn" if="{{ !isCapsule }}" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       <div class="header-placeholder" if="{{ isCapsule }}"></div>
     </div>

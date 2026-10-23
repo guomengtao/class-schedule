@@ -4,7 +4,7 @@
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">Anim Test</text>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">动画</text>
       <div class="header-placeholder"></div>
     </div>
 
@@ -72,8 +72,8 @@ export default {
 }
 
 .back-btn-wrapper {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
   justify-content: center;
   align-items: center;
@@ -87,17 +87,17 @@ export default {
 
 .header-title {
   flex: 1;
-  font-size: 30px;
+  font-size: 24px;
   font-weight: bold;
   text-align: center;
-  line-height: 40px;
+  line-height: 32px;
   lines: 1;
   text-overflow: ellipsis;
 }
 
 .header-placeholder {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
 }
 

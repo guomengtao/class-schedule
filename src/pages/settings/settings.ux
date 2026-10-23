@@ -617,9 +617,9 @@ export default {
 
 .header-title-row {
   flex: 1;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: bold;
-  line-height: 34px;
+  line-height: 32px;
 }
 
 .group {

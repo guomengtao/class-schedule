@@ -4,7 +4,7 @@
       <div class="back-btn-wrapper {{ isCapsule ? 'back-btn-cap' : '' }}" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon {{ isCapsule ? 'back-icon-cap' : '' }}" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title {{ isCapsule ? 'header-title-cap' : '' }}" style="color: {{ theme.text }}">课程管理</text>
+      <text class="header-title {{ isCapsule ? 'header-title-cap' : '' }}" style="color: {{ theme.text }}">课程</text>
       <input class="add-btn" if="{{ !isCapsule }}" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
       <div class="header-placeholder {{ isCapsule ? 'placeholder-cap' : '' }}" if="{{ isCapsule }}"></div>
     </div>
@@ -395,7 +395,7 @@ export default {
 }
 
 .header-placeholder {
-  width: 44px;
+  width: 36px;
   flex-shrink: 0;
 }
 
@@ -563,8 +563,8 @@ export default {
 }
 
 .header-title-cap {
-  font-size: 20px;
-  line-height: 28px;
+  font-size: 24px;
+  line-height: 32px;
 }
 
 .placeholder-cap {
@@ -577,8 +577,8 @@ export default {
    ================================================================ */
 @media (width >= 200px) {
   .header-title-cap {
-    font-size: 22px;
-    line-height: 30px;
+    font-size: 28px;
+    line-height: 36px;
   }
   .course-name {
     font-size: 24px;
@@ -606,7 +606,7 @@ export default {
     padding: 6px 12px 16px 12px;
   }
   .header-placeholder {
-    width: 48px;
+    width: 36px;
   }
   .add-btn {
     width: 80px;

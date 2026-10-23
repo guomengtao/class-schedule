@@ -115,7 +115,7 @@ var DELAY_MS = 5000                 // 删除二次确认窗口
 
 export default {
   private: {
-    pageTitle: "添加倒数日",
+    pageTitle: "添加",
     editId: "",
     title: "",
     maxLen: "6",
@@ -207,11 +207,11 @@ export default {
       success: function(data) {
         if (data) {
           self.editId = String(data)
-          self.pageTitle = "编辑倒数日"
+          self.pageTitle = "编辑"
           self.loadItem(self.editId)
         } else {
           self.editId = ""
-          self.pageTitle = "添加倒数日"
+          self.pageTitle = "添加"
         }
       },
       fail: function() {

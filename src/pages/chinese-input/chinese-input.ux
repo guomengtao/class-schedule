@@ -234,10 +234,10 @@ export default {
    截成「添加...」，用户点它返回时看不见完整标题。 */
 .header-title {
   flex: 1;
-  font-size: 20px;
+  font-size: 24px;
   font-weight: bold;
   text-align: center;
-  line-height: 26px;
+  line-height: 32px;
   padding: 11px 4px;
   lines: 1;
   text-overflow: ellipsis;

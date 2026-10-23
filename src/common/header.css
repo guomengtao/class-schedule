@@ -19,12 +19,15 @@
   flex-shrink: 0;
 }
 
+/* 标题字号全项目统一 24px（四档字号表的次级档，也是 24px 绝对下限）：
+ * 手环可读性的底线值，不允许任何页面再写 18/20/22。
+ * 大屏（rect / circle）在下方媒体查询里放大到 30px，属同一档的上浮，不算新档。 */
 .header-title {
   flex: 1;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: bold;
   text-align: center;
-  line-height: 34px;
+  line-height: 32px;
   lines: 1;
   text-overflow: ellipsis;
 }
@@ -111,27 +114,21 @@
   }
 }
 
-/* ====== Capsule Screen (192px width, ~160px content) ====== */
-/* Title area: content_width(160) - 36px(back) - 34px(placeholder) = 90px */
-/* 5 Chinese chars at 18px = 90px, fits (震动自定义等5字标题完整) */
+/* ====== Capsule Screen (192px width) ====== */
+/* 标题可用宽 = 192 − 侧 padding 8 − 返回键 36 − 占位 36 = 112px
+ * 24px × 4 汉字 = 96px 放得下（余 16px）；5 汉字 = 120px 必溢出
+ * 所以：标题一律 ≤4 字、24px；返回键与占位必须等宽，否则标题偏心
+ *
+ * 坑：页面自己写的 `.header-placeholder { width: 48px }` 会盖掉这里的单类规则
+ * （同特异性，页面后加载）。quickapp 不支持 !important，复合选择器在 1.9.23/1.9.24
+ * 实测会把进页搞黑屏，所以只能逐页把页面里的 48 改成 36。 */
 @media screen and (shape: pill-shaped) {
   .header-title {
-    font-size: 18px;
-    line-height: 26px;
-  }
-
-  .back-btn-wrapper {
-    width: 36px;
-    height: 36px;
-    border-radius: 18px;
-  }
-
-  .back-btn-icon {
-    width: 18px;
-    height: 18px;
+    font-size: 24px;
+    line-height: 32px;
   }
 
   .header-placeholder {
-    width: 34px;
+    width: 36px;
   }
 }
