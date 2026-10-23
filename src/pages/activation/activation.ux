@@ -8,23 +8,20 @@
       <text class="header-title" style="color: {{ theme.text }}">高级版</text>
     </div>
 
-    <!-- 状态：3 个位置 @44px，卡内近乎占满。副标不带分隔符（原「未激活 · 待解锁」= 7.1 位置） -->
-    <div class="status-card" style="background-color: {{ theme.card }}">
+    <!-- 状态区：去掉卡片底色，裸大字 + 宽行高。与下方卡片形成「裸文 vs 卡片」层级，不花一个位置 -->
+    <div class="status">
       <text class="status-main" style="color: {{ statusColor }}">{{ statusText }}</text>
       <text class="status-sub" style="color: {{ theme.textSecondary }}">{{ statusSub }}</text>
     </div>
 
-    <!-- 未激活：购买入口（无序号徽标 —— 「1」是四步错觉的残留）+ A/B 二选一。已激活整体收起 -->
+    <!-- 未激活：购买入口 + A/B 二选一（无序号徽标、无分隔符、无分组标签） -->
     <block if="{{ !isActivated }}">
-      <div class="buy-row" onclick="openPurchase" style="background-color: {{ theme.card }}">
+      <div class="buy-row" onclick="openPurchase" style="background-color: {{ theme.cardLight }}">
         <text class="buy-text" style="color: {{ theme.text }}">购买兑换码</text>
-        <text class="row-arrow" style="color: {{ theme.textSecondary }}">›</text>
+        <text class="row-arrow" style="color: {{ theme.accent }}">›</text>
       </div>
 
-      <!-- 7 个位置 @24px = 168px，正好铺满。原「激活方式 · 二选一」= 8.1 位置 -->
-      <text class="section-label" style="color: {{ theme.textMuted }}">激活方式二选一</text>
-
-      <!-- A 路：「A 扫码激活」= 0.55+0.3+4 = 4.85 位置 @28px ≈ 150px，加箭头正好占满 -->
+      <!-- A/B 紧贴（间距 10）与其他组间距（14/12）形成节奏，「二选一」由布局表达，不用文字占位置 -->
       <div class="path-card" onclick="openPathA" style="background-color: {{ theme.card }}">
         <div class="path-head">
           <text class="path-key" style="color: {{ theme.accent }}">A</text>
@@ -44,10 +41,12 @@
       </div>
     </block>
 
-    <!-- 7 个位置 @24px 铺满，无箭头（箭头会顶到 8 位置） -->
-    <div class="info-row" onclick="openInfoPage">
-      <text class="info-text" style="color: {{ theme.textSecondary }}">历史与设备信息</text>
-    </div>
+    <!-- 已激活：仅剩一个低频入口，用 margin-top:auto 推到底，中间留白自然分布 -->
+    <block if="{{ isActivated }}">
+      <div class="info-row" onclick="openInfoPage">
+        <text class="info-text" style="color: {{ theme.textSecondary }}">历史与设备信息</text>
+      </div>
+    </block>
   </div>
 </template>
 
@@ -167,10 +166,12 @@ export default {
 </script>
 
 <style>
-/* 六字真言：内容宽 192-24 = 168px。6 位置 @28px = 168px；7 位置 @24px = 168px */
+/* 位置是硬约束（宽度），行高是弹性约束（高度）。
+   行高一路上调到 1.36~1.42 换呼吸感；字号一档没降。
+   内容宽 168px = 6 位置 @28px = 7 位置 @24px。 */
 .page {
   flex-direction: column;
-  padding: 44px 12px 12px 12px;
+  padding: 32px 12px 16px 12px;
   width: 100%;
   height: 100%;
 }
@@ -179,13 +180,13 @@ export default {
   flex-direction: row;
   width: 100%;
   align-items: center;
-  height: 40px;
-  margin-bottom: 6px;
+  height: 36px;
+  margin-bottom: 12px;
 }
 
 .back-btn-wrapper {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
   justify-content: center;
   align-items: center;
@@ -193,77 +194,70 @@ export default {
 }
 
 .back-btn-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
-/* 关键：不设 lines / text-overflow，标题靠 flex 吃满剩余宽度 */
+/* 不设 lines / text-overflow，标题靠 flex 吃满剩余宽度 */
 .header-title {
   flex: 1;
-  font-size: 30px;
+  font-size: 28px;
   font-weight: bold;
   text-align: center;
-  line-height: 36px;
+  line-height: 34px;
 }
 
-.status-card {
-  width: 100%;
+/* 状态区：无卡片底色，靠留白和层级区分，不与下方卡片抢视觉重量 */
+.status {
   flex-direction: column;
-  align-items: center;
-  padding: 8px 8px 10px 8px;
-  border-radius: 12px;
-  margin-bottom: 12px;
+  width: 100%;
+  margin-bottom: 14px;
 }
 
-/* 44px × 3 字 = 132px，卡内 152px，余 20px —— 全页最大字号，状态是第一焦点 */
+/* 44px × 3 字 = 132/168px。行高 60 = 1.36 倍，字不再贴顶贴底 */
 .status-main {
   font-size: 44px;
   font-weight: bold;
-  line-height: 52px;
+  line-height: 60px;
 }
 
 .status-sub {
   font-size: 24px;
-  line-height: 28px;
+  line-height: 34px;
+  margin-top: 4px;
 }
 
-/* 原「1 购买兑换码」：删掉序号徽标，5 字 @28px + 箭头 = 占满 156px */
+/* 主操作：亮一档底色（cardLight），与 A/B 卡（card）拉开层级，不加边框不加图标 */
 .buy-row {
   flex-direction: row;
   align-items: center;
   width: 100%;
-  min-height: 44px;
+  min-height: 58px;
   padding: 0 6px;
-  border-radius: 12px;
-  margin-bottom: 8px;
+  border-radius: 14px;
+  margin-bottom: 12px;
 }
 
 .buy-text {
   flex: 1;
   font-size: 28px;
   font-weight: bold;
-  line-height: 34px;
+  line-height: 38px;
 }
 
 .row-arrow {
   font-size: 24px;
-  line-height: 28px;
+  line-height: 34px;
   flex-shrink: 0;
 }
 
-.section-label {
-  font-size: 24px;
-  line-height: 28px;
-  margin-bottom: 4px;
-}
-
-/* 路径卡：删掉 A/B 圆形徽标，改为行首半角字母（0.55 位置），省下 30px 全给标题 */
+/* 路径卡：上下 11px 内边距 + 38px 标题行 + 34px 副标行 = 100px，卡内不挤 */
 .path-card {
   width: 100%;
   flex-direction: column;
-  padding: 6px 8px 7px 8px;
-  border-radius: 12px;
-  margin-bottom: 8px;
+  padding: 11px 8px;
+  border-radius: 14px;
+  margin-bottom: 10px;
 }
 
 .path-head {
@@ -275,7 +269,7 @@ export default {
 .path-key {
   font-size: 28px;
   font-weight: bold;
-  line-height: 32px;
+  line-height: 38px;
   flex-shrink: 0;
   margin-right: 8px;
 }
@@ -284,52 +278,37 @@ export default {
   flex: 1;
   font-size: 28px;
   font-weight: bold;
-  line-height: 32px;
+  line-height: 38px;
 }
 
 .path-sub {
   font-size: 24px;
-  line-height: 28px;
-  margin-top: 2px;
+  line-height: 34px;
+  margin-top: 6px;
 }
 
+/* 已激活态：单入口推到底，空白自然落在中间，不硬填 */
 .info-row {
   flex-direction: row;
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 34px;
+  min-height: 40px;
   margin-top: auto;
 }
 
 .info-text {
   font-size: 24px;
-  line-height: 28px;
+  line-height: 34px;
 }
 
 @media (shape: pill-shaped) {
   .page {
-    padding: 26px 12px 20px 12px;
-  }
-
-  .header {
-    height: 36px;
-    margin-bottom: 6px;
-  }
-
-  .back-btn-wrapper {
-    width: 36px;
-    height: 36px;
-    border-radius: 18px;
-  }
-
-  .back-btn-icon {
-    width: 18px;
-    height: 18px;
+    padding: 26px 12px 18px 12px;
   }
 
   .status-main {
-    line-height: 50px;
+    line-height: 58px;
   }
 }
 
