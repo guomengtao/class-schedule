@@ -1,28 +1,29 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
+    <!-- 标题 4 字 @30px 承担「安卓」这一路径信息，正文因此不必再写「安卓」 -->
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">快速激活</text>
+      <text class="header-title" style="color: {{ theme.text }}">安卓激活</text>
     </div>
 
-    <!-- 进度分母明确：用户随时知道还差几步 -->
-    <text class="progress" style="color: {{ theme.accent }}">方式 A · 2 / 2 步</text>
+    <text class="progress" style="color: {{ theme.accent }}">第1步 共2步</text>
 
-    <text class="lead" style="color: {{ theme.textSecondary }}">安卓手机扫码，安装 Ev课程表同步器</text>
+    <text class="lead" style="color: {{ theme.textSecondary }}">扫码安装同步器</text>
 
     <div class="qr-box" style="background-color: {{ theme.card }}">
       <div class="qr-wrap" if="{{ qrUrl }}">
         <qrcode class="qr-code" value="{{ qrUrl }}" style="color: #000000; background-color: #ffffff;"></qrcode>
       </div>
-      <text class="qr-loading" if="{{ !qrUrl }}" style="color: {{ theme.textMuted }}">正在生成二维码...</text>
+      <text class="qr-loading" if="{{ !qrUrl }}" style="color: {{ theme.textMuted }}">正在生成</text>
     </div>
 
-    <!-- 终态提示，不是「下一步」：A 到此结束，避免把用户误导入 B -->
+    <!-- 终态提示，不是「下一步」：A 到此结束，避免把用户误导入 B。
+         卡片左右 padding 8 会吃掉 16px → 内容宽只剩 152px，故标题 4 字、副标 6 字 -->
     <div class="done-box" style="background-color: {{ theme.card }}">
-      <text class="done-title" style="color: {{ theme.accent }}">装完自动激活</text>
-      <text class="done-sub" style="color: {{ theme.textSecondary }}">同步器会自动识别本机设备 ID 并完成激活，无需其他操作</text>
+      <text class="done-title" style="color: {{ theme.accent }}">自动激活</text>
+      <text class="done-sub" style="color: {{ theme.textSecondary }}">无需输兑换码</text>
     </div>
   </div>
 </template>
@@ -78,6 +79,8 @@ export default {
 </script>
 
 <style>
+/* ev-six：字号只用 30/28/24；横向 padding 页面 10、卡片 8。
+   高度预算：header 46 + 进度 38 + 说明 40 + 二维码 198 + 终态卡 93 = 415 / 434 */
 .page {
   flex-direction: column;
   padding: 44px 10px 12px 10px;
@@ -107,28 +110,31 @@ export default {
   height: 20px;
 }
 
+/* 4 字 @30 = 120px，header 可用 132px */
 .header-title {
   flex: 1;
-  font-size: 24px;
+  font-size: 30px;
   font-weight: bold;
   text-align: center;
-  line-height: 32px;
+  line-height: 40px;
 }
 
 .progress {
-  font-size: 14px;
-  line-height: 19px;
+  font-size: 24px;
+  line-height: 34px;
   text-align: center;
   margin-bottom: 4px;
 }
 
+/* 7 字 @24 = 168px 满行 */
 .lead {
-  font-size: 15px;
-  line-height: 20px;
+  font-size: 24px;
+  line-height: 34px;
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
+/* 152 + 白边 16 = 168px；容器禁压缩，否则码体被挤扁扫不出 */
 .qr-box {
   width: 100%;
   flex-shrink: 0;
@@ -148,47 +154,48 @@ export default {
 }
 
 .qr-code {
-  width: 140px;
-  height: 140px;
+  width: 152px;
+  height: 152px;
   flex-shrink: 0;
 }
 
 .qr-loading {
-  font-size: 15px;
-  line-height: 20px;
-  height: 140px;
+  font-size: 24px;
+  line-height: 34px;
+  height: 168px;
   text-align: center;
 }
 
+/* 终态卡推到底：内容少时让空白自然落在中间，不硬填 */
 .done-box {
   width: 100%;
   flex-direction: column;
   align-items: center;
-  padding: 8px 10px 10px 10px;
+  padding: 10px 8px 12px 8px;
   border-radius: 12px;
   margin-top: auto;
 }
 
 .done-title {
-  font-size: 17px;
+  font-size: 28px;
   font-weight: bold;
-  line-height: 22px;
-  margin-bottom: 3px;
+  line-height: 38px;
+  margin-bottom: 2px;
 }
 
 .done-sub {
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 24px;
+  line-height: 34px;
   text-align: center;
 }
 
 @media (shape: pill-shaped) {
   .page {
-    padding: 24px 16px 20px 16px;
+    padding: 24px 12px 20px 12px;
   }
 
   .header {
-    height: 36px;
+    height: 38px;
   }
 
   .back-btn-wrapper {
@@ -203,10 +210,8 @@ export default {
   }
 
   .header-title {
-    font-size: 20px;
-    line-height: 26px;
+    line-height: 38px;
   }
-
 }
 
 @media (shape: circle) {
