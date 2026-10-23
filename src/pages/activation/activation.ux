@@ -18,7 +18,6 @@
     <block if="{{ !isActivated }}">
       <div class="buy-row" onclick="openPurchase" style="background-color: {{ theme.cardLight }}">
         <text class="buy-text" style="color: {{ theme.text }}">购买兑换码</text>
-        <text class="row-arrow" style="color: {{ theme.accent }}">›</text>
       </div>
 
       <!-- A/B 紧贴（间距 10）与其他组间距（14/12）形成节奏，「二选一」由布局表达，不用文字占位置 -->
@@ -26,7 +25,6 @@
         <div class="path-head">
           <text class="path-key" style="color: {{ theme.accent }}">A</text>
           <text class="path-title" style="color: {{ theme.text }}">扫码激活</text>
-          <text class="row-arrow" style="color: {{ theme.textSecondary }}">›</text>
         </div>
         <text class="path-sub" style="color: {{ theme.accent }}">安卓 2 步</text>
       </div>
@@ -35,7 +33,6 @@
         <div class="path-head">
           <text class="path-key" style="color: {{ theme.textSecondary }}">B</text>
           <text class="path-title" style="color: {{ theme.text }}">手工激活</text>
-          <text class="row-arrow" style="color: {{ theme.textSecondary }}">›</text>
         </div>
         <text class="path-sub" style="color: {{ theme.textSecondary }}">全平台 3 步</text>
       </div>
@@ -245,11 +242,7 @@ export default {
   line-height: 38px;
 }
 
-.row-arrow {
-  font-size: 24px;
-  line-height: 34px;
-  flex-shrink: 0;
-}
+/* 全页无导航箭头：官方链接本身就是「点击即进」，加 › 只是装饰又白占 0.5 位置 */
 
 /* 路径卡：上下 11px 内边距 + 38px 标题行 + 34px 副标行 = 100px，卡内不挤 */
 .path-card {
