@@ -38,10 +38,10 @@
 
     <div class="section" style="background-color: {{ theme.card }}">
       <text class="sec-title" style="color: {{ theme.text }}">QQ 群</text>
-      <text class="sec-desc" style="color: {{ theme.textMuted }}">加群交流与获取更新，备注「课程表用户」</text>
+      <text class="sec-desc" style="color: {{ theme.textMuted }}">群号与加群暗号统一在反馈网页查看，手机打开下方网址</text>
       <div class="qq-row">
-        <text class="qq-num" style="color: {{ theme.text }}">936886288</text>
-        <div class="copy-btn" onclick="copyGroup" style="background-color: {{ theme.accent }}">
+        <text class="qq-url" style="color: {{ theme.text }}">{{ feedbackUrlShort }}</text>
+        <div class="copy-btn" onclick="copyUrl" style="background-color: {{ theme.accent }}">
           <text class="copy-text" style="color: #ffffff">复制</text>
         </div>
       </div>
@@ -115,14 +115,15 @@ export default {
     this.feedbackUrlShort = "app-auth.gudq.com/feedback.html"
   },
 
-  copyGroup() {
+  copyUrl() {
+    var url = "https://app-auth.gudq.com/feedback.html"
     clipboard.set({
-      text: "936886288",
+      text: url,
       success: function () {
-        prompt.showToast({ message: "群号已复制" })
+        prompt.showToast({ message: "网址已复制，请在手机打开" })
       },
       fail: function () {
-        prompt.showToast({ message: "请手动记下群号 936886288" })
+        prompt.showToast({ message: "请手动记下 " + url })
       }
     })
   },
@@ -263,6 +264,13 @@ export default {
   font-weight: bold;
   letter-spacing: 1px;
   line-height: 38px;
+}
+
+.qq-url {
+  flex: 1;
+  font-size: 20px;
+  line-height: 28px;
+  word-break: break-all;
 }
 
 .copy-btn {
