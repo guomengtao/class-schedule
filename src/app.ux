@@ -13,57 +13,12 @@ function dlog() {
   if (DEBUG) console.log.apply(console, arguments)
 }
 
-var resident = null
-
-try {
-  resident = require("@system.resident")
-} catch (e) {
-  dlog("[BACKGROUND] resident not available: " + e)
-}
-
-function startResident() {
-  if (!resident) {
-    return
-  }
-  try {
-    resident.start({
-      message: "课程表后台运行中",
-      success: function() {
-        dlog("[BACKGROUND] resident started")
-      },
-      fail: function(data, code) {
-        dlog("[BACKGROUND] resident start fail: " + code)
-      }
-    })
-  } catch (e) {
-    dlog("[BACKGROUND] resident error: " + e)
-  }
-}
-
-function stopResident() {
-  if (!resident) {
-    return
-  }
-  try {
-    resident.stop({
-      success: function() {
-        dlog("[BACKGROUND] resident stopped")
-      },
-      fail: function(data, code) {
-        dlog("[BACKGROUND] resident stop fail: " + code)
-      }
-    })
-  } catch (e) {
-    dlog("[BACKGROUND] resident error: " + e)
-  }
-}
-
-// 后台常驻控制暴露到全局：实验室页开关要能即时 start/stop。
-// 模块会被打成多份副本，globalThis 是唯一跨副本通道（同 __evSyncPhoneSeenTs 思路）。
-globalThis.__evResidentControl = {
-  start: startResident,
-  stop: stopResident
-}
+// 2026-10-23：整段移除 @system.resident 常驻保活。
+// 起因：手环上任意页面息屏后第二次抬腕「闪一下即回首页」——全应用 76 个页面中
+// 38 个今日零改动、且不含 header.css 的页面同样复现，证明问题在应用级后台机制。
+// 移除理由：常驻 start 失败时只走 dlog，而 DEBUG=false 会吞掉日志，界面无任何反馈，
+// 属不可观测风险；先摘掉常驻做对照实验，验证「待不住」是否由它引起。
+// 备注：globalThis.__evResidentControl 全仓无调用方，一并移除不留兼容层。
 
 var interconnect = null
 
@@ -1197,27 +1152,13 @@ export default {
     migrateFontScale()
     migrateBuiltinHolidays()
     runDefaults()
-    // 自动常驻保活：走 initBackgroundRunning 的配置分支（评审 M1）——
-    // 默认开启保持"开箱即常驻"，用户显式关闭后不再被冷启动重新拉起
-    this.initBackgroundRunning()
+    // 2026-10-23：原先此处 this.initBackgroundRunning() 拉起 @system.resident，
+    // 已整段移除（见文件顶部注释），用于观察「息屏第二次抬腕回首页」是否消失。
     initSyncReceiver()
   },
 
-  initBackgroundRunning() {
-    store.getBackgroundRunningConfig(function(config) {
-      // 键名统一为 enabled（storage-tables 登记的 columns 也是 enabled）。
-      // 修 bug 前这里读的是 config.running，与默认值 {enabled:...} 对不上，
-      // 导致判断恒真：常驻默认开启且没有任何开关能关掉。
-      // 现在：仅当用户显式关闭（enabled === false）时不拉起，其余保持开箱即常驻。
-      if (config && config.enabled === false) {
-        return
-      }
-      startResident()
-    })
-  },
-
   onDestroy() {
-    // 不再主动 stopResident：保持常驻以持续接收同步消息（如需停止由系统或用户决定）
+    // 常驻保活已移除，无需收尾
   }
 }
 </script>
