@@ -25,21 +25,8 @@
       <div class="row" onclick="toggleTheme">
         <text class="row-label" style="color: {{ theme.text }}">主题配色</text>
       </div>
-      <div class="row" onclick="toggleFontSize">
-        <text class="row-label" style="color: {{ theme.text }}">课程字号</text>
-      </div>
-      <!-- 字号调节面板：默认收起，用 display 绑定而非 if（本工程 if 多兄弟节点会整页白屏） -->
-      <div class="size-panel" style="display: {{ showFontSize ? 'flex' : 'none' }}">
-        <div class="scale-row">
-          <input class="scale-btn" type="button" value="−" onclick="decreaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
-          <text class="scale-value" style="color: {{ theme.accent }}">{{ displaySize }}px</text>
-          <input class="scale-btn" type="button" value="+" onclick="increaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
-        </div>
-        <div class="preview-box" style="background-color: {{ theme.cardLight }}">
-          <text class="preview-text" style="font-size: {{ previewDisplaySize }}px; color: {{ theme.text }}">数学 08:00</text>
-        </div>
-        <text class="scope-hint" style="color: {{ theme.textMuted }}">仅首页</text>
-      </div>
+      <!-- 课程字号已迁至「首页设置」（pages/homepage-settings），本页不再持有字号入口，
+           避免同一份 baseFontSize 出现两处可改（2026-10-23） -->
     </div>
 
     <!-- 课表 -->
@@ -115,7 +102,11 @@
 
     <unlock-dialog id="unlockDialog"></unlock-dialog>
 
-    <div class="overlay-modal" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: {{ showPremiumDialog ? 'flex' : 'none' }}" onclick="dismissPremiumDialog">
+    <!-- 显隐一律用 if（与重构前一致，真机验证过可用）。
+         2026-10-23 那次重构把它改成 display:none→flex，手环上点「主题配色」就不弹了：
+         Vela 真机对隐藏节点的 un-hide 不重绘。此处禁止改回 display / top 位移方案
+         （top:100% 挪出屏幕在模拟器上直接失效，实测被当成 0 处理）。 -->
+    <div class="overlay-modal" if="{{ showPremiumDialog }}" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%" onclick="dismissPremiumDialog">
       <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
         <text class="modal-title" style="color: {{ theme.accent }}">解锁功能</text>
         <text class="modal-desc" style="color: {{ theme.textSecondary }}">永久解锁</text>
@@ -126,7 +117,7 @@
       </div>
     </div>
 
-    <div class="theme-drawer" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: {{ showTheme ? 'flex' : 'none' }}" onclick="closeThemeDrawer">
+    <div class="theme-drawer" if="{{ showTheme }}" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%" onclick="closeThemeDrawer">
       <div class="theme-drawer-panel" style="position: absolute; left: 0; bottom: 0; width: 100%; background-color: {{ theme.card }}" onclick="stopBubble">
         <div class="drawer-handle" style="background-color: {{ theme.border }}"></div>
         <text class="drawer-title" style="color: {{ theme.text }}">主题配色</text>
@@ -154,16 +145,11 @@ import router from "@system.router"
 const store = require("../../data/store.js")
 const version = require("../../data/version.js")
 
-const sizeLevels = [20, 28, 36, 48, 62, 76]
-
 var exitConfirmTimer = null
 
 export default {
   private: {
     nickname: "",
-    displaySize: 48,
-    previewClassSize: 48,
-    previewDisplaySize: 32,
     hideWeekend: true,
     theme: {
       bg: '#1a1a2e',
@@ -193,7 +179,6 @@ export default {
     versionText: "",
     versionCode: 0,
     showPremiumDialog: false,
-    showFontSize: false,
     showTheme: false,
     exitConfirm: false
   },
@@ -211,10 +196,6 @@ export default {
       self.updateIconSrc(name)
     })
 
-    store.getBaseFontSize(function(size) {
-      self.displaySize = size
-      self.updatePreviews()
-    }, true)
     this.loadNickname()
     this.loadHideWeekend()
     this.versionText = version.versionName
@@ -231,43 +212,6 @@ export default {
 
   updateIconSrc: function(themeName) {
     this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
-  },
-
-  updatePreviews() {
-    var norm = Math.round(this.displaySize * 32 / 48)
-    if (norm < 20) norm = 20
-    if (norm > 40) norm = 40
-    norm = Math.round(norm / 4) * 4
-    this.previewDisplaySize = Math.min(norm, 40)
-    this.previewClassSize = this.previewDisplaySize
-  },
-
-  setSize(size) {
-    this.displaySize = size
-    store.setBaseFontSize(size)
-    this.updatePreviews()
-  },
-
-  decreaseFont() {
-    for (var i = sizeLevels.length - 1; i >= 0; i--) {
-      if (sizeLevels[i] < this.displaySize) {
-        this.setSize(sizeLevels[i])
-        return
-      }
-    }
-  },
-
-  increaseFont() {
-    for (var i = 0; i < sizeLevels.length; i++) {
-      if (sizeLevels[i] > this.displaySize) {
-        this.setSize(sizeLevels[i])
-        return
-      }
-    }
-  },
-
-  toggleFontSize() {
-    this.showFontSize = !this.showFontSize
   },
 
   selectTheme(themeKey) {
@@ -588,56 +532,6 @@ export default {
   border-radius: 9px;
   position: absolute;
   top: 2px;
-}
-
-/* ---- 课程字号面板 ---- */
-.size-panel {
-  flex-direction: column;
-  padding: 2px 0 4px 0;
-}
-
-.scale-row {
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 8px;
-}
-
-.scale-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  font-size: 28px;
-  font-weight: bold;
-  text-align: center;
-  line-height: 40px;
-}
-
-.scale-value {
-  font-size: 28px;
-  font-weight: bold;
-  width: 92px;
-  text-align: center;
-  line-height: 38px;
-}
-
-.preview-box {
-  border-radius: 10px;
-  padding: 8px;
-  align-items: center;
-  justify-content: center;
-}
-
-.preview-text {
-  font-weight: bold;
-  text-align: center;
-}
-
-.scope-hint {
-  font-size: 24px;
-  line-height: 34px;
-  text-align: center;
-  margin-top: 4px;
 }
 
 /* ---- 页脚 ---- */
