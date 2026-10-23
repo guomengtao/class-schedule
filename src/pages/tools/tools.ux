@@ -10,35 +10,28 @@
       <div class="header-placeholder"></div>
     </div>
 
+    <!-- 行标签一律 ≤4 字：页面 padding 12 + 卡片 padding 8 后可用 152px，
+         实测 28px 汉字宽 ≈1.33×字号，4 字 = 149px 贴边、5 字 = 186px 必被裁掉最后一字。
+         2026-10-23 修：「震动自定义」「二维码生成」「工作日信息」原来都是 5 字，真机截图里被裁成 4 字。
+         同时按手册红线 6 去掉行尾 › 箭头（箭头不承载信息，还吃掉半个字宽），可点性靠卡片底色。 -->
     <div class="section" style="background-color: {{ theme.card }}">
       <div class="item-row" onclick="openCountdownManage">
         <text class="item-label" style="color: {{ theme.text }}">倒数日</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openVibrationLab">
-        <text class="item-label" style="color: {{ theme.text }}">震动自定义</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        <text class="item-label" style="color: {{ theme.text }}">震动调试</text>
       </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openQRCodeGenerator">
-        <text class="item-label" style="color: {{ theme.text }}">二维码生成</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        <text class="item-label" style="color: {{ theme.text }}">二维码</text>
       </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openWorkdayInfo">
-        <text class="item-label" style="color: {{ theme.text }}">工作日信息</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
+        <text class="item-label" style="color: {{ theme.text }}">工作日</text>
       </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openStatistics">
         <text class="item-label" style="color: {{ theme.text }}">数据统计</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openDeviceInfo">
         <text class="item-label" style="color: {{ theme.text }}">设备信息</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
     </div>
 
@@ -142,17 +135,18 @@ export default {
   flex-direction: column;
 }
 
+/* 192px 宽 · 可用宽 = 192 − 12×2 = 168；卡片内 = 168 − 8×2 = 152px
+ * 旧值 padding 44px 10px / 卡片 18px 14px → 卡片内只剩 144px，5 字标签必裁 */
 .page-body {
   flex-direction: column;
   width: 100%;
-  padding: 44px 10px 12px 10px;
+  padding: 44px 12px 12px 12px;
 }
 
 .back-header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 14px;
-  padding: 0 4px;
+  margin-bottom: 10px;
 }
 
 .back-btn-wrapper {
@@ -186,40 +180,46 @@ export default {
 .section {
   width: 100%;
   flex-direction: column;
-  border-radius: 12px;
-  padding: 18px 14px;
-  margin-bottom: 14px;
+  border-radius: 14px;
+  padding: 10px 8px;
+  margin-bottom: 10px;
 }
 
+/* 行高 46px = 38(行高) + 4×2；行间靠 8px 纵向间距分隔，不用分隔线 */
 .item-row {
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
+  width: 100%;
+  padding: 4px 0;
+  min-height: 46px;
 }
 
 .item-label {
   font-size: 28px;
   line-height: 38px;
-}
-
-.arrow {
-  font-size: 28px;
   flex-shrink: 0;
-  line-height: 38px;
 }
 
-.row-divider {
-  height: 1px;
-  margin: 6px 0;
+/* 方屏 / 圆屏：只放大留白与字号档位，不引入第五档字号 */
+@media screen and (shape: rect) {
+  .page-body {
+    padding: 40px 20px 16px 20px;
+  }
+
+  .item-label {
+    font-size: 30px;
+    line-height: 40px;
+  }
 }
 
-@media (width >= 360) {
-  .page-body { padding: 44px 20px 24px 20px; }
-  .item-row { padding: 16px 0; }
-}
+@media screen and (shape: circle) {
+  .page-body {
+    padding: 56px 40px 32px 40px;
+  }
 
-@media (width >= 480) {
-  .page-body { padding: 44px 48px 24px 48px; }
+  .item-label {
+    font-size: 30px;
+    line-height: 40px;
+  }
 }
 </style>
