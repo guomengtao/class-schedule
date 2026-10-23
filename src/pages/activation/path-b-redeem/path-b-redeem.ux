@@ -9,7 +9,7 @@
 
     <text class="progress" style="color: {{ theme.textSecondary }}">方式 B · 2 / 3 步</text>
 
-    <text class="lead" style="color: {{ theme.textSecondary }}">扫码获取激活码</text>
+    <text class="lead" style="color: {{ theme.text }}">扫码取激活码</text>
 
     <div class="dev-row" onclick="retryId" style="background-color: {{ theme.card }}">
       <text class="dev-label" style="color: {{ theme.textMuted }}">设备 ID</text>
@@ -144,8 +144,9 @@ export default {
 }
 
 .lead {
-  font-size: 18px;
-  line-height: 19px;
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: bold;
   text-align: center;
   margin-bottom: 6px;
 }
