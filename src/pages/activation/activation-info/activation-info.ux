@@ -8,48 +8,36 @@
       <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">信息</text>
       <div class="header-placeholder"></div>
     </div>
-    <scroll class="page-scroll" scroll-y="{{true}}">
-      <div class="version-row">
-        <text class="version-text" style="color: {{ theme.textMuted }}">版本 v{{ versionText }}</text>
-      </div>
 
-      <div class="device-card">
-        <div class="device-info-row">
-          <text class="device-info-label" style="color: {{ theme.textSecondary }}">设备ID</text>
-          <text class="device-info-value" style="color: {{ theme.accent }}">{{ deviceIdDisplay }}</text>
+    <scroll class="page-scroll" scroll-y="{{true}}">
+      <div class="info-list">
+        <div class="info-row">
+          <text class="info-label" style="color: {{ theme.textSecondary }}">设备</text>
+          <text class="info-value" style="color: {{ theme.accent }}">{{ deviceIdDisplay }}</text>
         </div>
-        <div class="device-info-row">
-          <text class="device-info-label" style="color: {{ theme.textSecondary }}">安装</text>
-          <text class="device-info-value" style="color: {{ theme.text }}">{{ installTimeText }}</text>
+        <div class="info-row">
+          <text class="info-label" style="color: {{ theme.textSecondary }}">安装</text>
+          <text class="info-value" style="color: {{ theme.text }}">{{ installText }}</text>
         </div>
-        <div class="device-info-row" if="{{ expireTimeText }}">
-          <text class="device-info-label" style="color: {{ theme.textSecondary }}">到期</text>
-          <text class="device-info-value" style="color: {{ theme.text }}">{{ expireTimeText }}</text>
+        <div class="info-row" if="{{ expireText }}">
+          <text class="info-label" style="color: {{ theme.textSecondary }}">到期</text>
+          <text class="info-value" style="color: {{ theme.text }}">{{ expireText }}</text>
         </div>
       </div>
 
       <text class="section-title" style="color: {{ theme.text }}">激活历史</text>
+
       <div class="history-list">
         <div for="{{ historyList }}" class="history-item">
-          <div class="history-row">
-            <div class="history-left">
-              <text class="history-date" style="color: {{ theme.textSecondary }}">{{ $item.date }}</text>
-              <text class="history-type" style="color: {{ theme.text }}">{{ $item.type }}</text>
-              <text class="history-code" if="{{ $item.activationCode }}" style="font-size: 20px; color: {{ theme.textMuted }}">激活码: {{ $item.activationCode }}</text>
-              <text class="history-code" if="{{ $item.redeemCode }}" style="font-size: 20px; color: {{ theme.textMuted }}">兑换码: {{ $item.redeemCode }}</text>
-            </div>
-            <div class="history-right">
-              <text class="history-duration" style="color: {{ theme.accent }}">{{ $item.duration }}</text>
-              <text class="history-status" style="color: {{ $item.status === '成功' ? '#27ae60' : '#e74c3c' }}">{{ $item.status }}</text>
-            </div>
-          </div>
-          <div class="history-divider"></div>
+          <text class="history-date" style="color: {{ theme.textSecondary }}">{{ $item.dateShort }}</text>
+          <text class="history-meta" style="color: {{ theme.text }}">{{ $item.metaLine }}</text>
         </div>
         <div class="history-empty" if="{{ historyList.length === 0 }}">
-          <text class="history-empty-text" style="color: {{ theme.textMuted }}">无记录</text>
+          <text class="history-empty-text" style="color: {{ theme.textSecondary }}">还没有记录</text>
         </div>
       </div>
 
+      <text class="version-text" style="color: {{ theme.textSecondary }}">v{{ versionText }}</text>
       <div class="bottom-spacer"></div>
     </scroll>
   </div>
@@ -66,15 +54,48 @@ function dlog() {
   if (DEBUG) console.log.apply(console, arguments)
 }
 
-function formatDate(ts) {
+var DAY_MS = 86400000
+
+/* 安装日期：年内 M月D日；跨年 YY年M月（省掉日，否则 24px 下超 7 位置） */
+function formatInstall(ts) {
   if (!ts) return ''
   var d = new Date(ts)
   var y = d.getFullYear()
-  var m = String(d.getMonth() + 1)
-  if (m.length < 2) m = '0' + m
-  var day = String(d.getDate())
-  if (day.length < 2) day = '0' + day
-  return y + '-' + m + '-' + day
+  var m = d.getMonth() + 1
+  var day = d.getDate()
+  if (y === new Date().getFullYear()) return m + '月' + day + '日'
+  return (y % 100) + '年' + m + '月'
+}
+
+/* 到期：用相对天数，绝对日期在 24px 下放不下（26年12月1日 = 6.75 位置 + 标签 2 位置） */
+function formatExpire(ts, isPermanent) {
+  if (isPermanent) return '永久有效'
+  if (!ts) return '未激活'
+  var days = Math.ceil((ts - Date.now()) / DAY_MS)
+  if (days < 0) return '已过期' + (-days) + '天'
+  if (days === 0) return '今天到期'
+  return '还有' + days + '天'
+}
+
+/* 历史日期：优先 timestamp；老数据只有 date 字符串 "2026-10-23 14:32" */
+function formatHistoryDate(item) {
+  if (item && item.timestamp) {
+    var d = new Date(item.timestamp)
+    return (d.getMonth() + 1) + '月' + d.getDate() + '日'
+  }
+  var s = item && item.date ? item.date : ''
+  if (s.length >= 10) {
+    return parseInt(s.slice(5, 7), 10) + '月' + parseInt(s.slice(8, 10), 10) + '日'
+  }
+  return ''
+}
+
+/* 历史副行：激活 30天 —— 码一律不上正文（18 位远超 7 位置） */
+function buildMetaLine(item) {
+  var type = (item && item.type) ? item.type : '激活'
+  var dur = (item && item.duration) ? item.duration : ''
+  if (!dur) return type
+  return type + ' ' + dur
 }
 
 export default {
@@ -93,10 +114,10 @@ export default {
     },
     versionText: '',
     historyList: [],
-    installTimeText: '',
-    expireTimeText: '',
+    installText: '',
+    expireText: '',
     deviceId: '',
-    deviceIdDisplay: '获取中...'
+    deviceIdDisplay: '获取中'
   },
 
   onInit() {
@@ -135,14 +156,14 @@ export default {
     try {
       authStore.getFullStatus(function(status) {
         if (status.installTime) {
-          self.installTimeText = formatDate(status.installTime)
+          self.installText = formatInstall(status.installTime)
         }
         if (status.isPermanent) {
-          self.expireTimeText = '永久有效'
+          self.expireText = '永久有效'
         } else if (status.expireAt) {
-          self.expireTimeText = formatDate(status.expireAt)
+          self.expireText = formatExpire(status.expireAt, false)
         } else {
-          self.expireTimeText = ''
+          self.expireText = '未激活'
         }
       })
     } catch (e) {
@@ -154,7 +175,15 @@ export default {
     var self = this
     try {
       authStore.getHistory(function(history) {
-        self.historyList = history || []
+        var raw = history || []
+        var out = []
+        for (var i = 0; i < raw.length; i++) {
+          out.push({
+            dateShort: formatHistoryDate(raw[i]),
+            metaLine: buildMetaLine(raw[i])
+          })
+        }
+        self.historyList = out
       })
     } catch (e) {
       dlog('[ACTIVATION-INFO] loadHistory error: ' + e)
@@ -188,8 +217,8 @@ export default {
     var self = this
     var deviceUuid = require("../../../utils/device-uuid.js")
     deviceUuid.getLocalDeviceId(function(id) {
-      self.deviceId = id
-      self.deviceIdDisplay = id.slice(-6)
+      self.deviceId = id || ''
+      self.deviceIdDisplay = id ? id.slice(-6) : '未取到'
     })
   }
 }
@@ -198,15 +227,18 @@ export default {
 <style>
 @import '../../../common/header.css';
 
+/* 192px 宽 · 可用宽 = 192 − 12×2 = 168px = 7 位置（1 位置 = 24px）
+ * 本页所有行都按 7 位置核算过，不留横向余量之外的 padding */
 .page {
   flex-direction: column;
-  padding: 44px 10px 12px 10px;
+  padding: 44px 12px 12px 12px;
   width: 100%;
   height: 100%;
 }
 
+/* 公共 header.css 的 pill 档已是 24px，这里只钉住 base 档不回落 */
 .header-title {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: bold;
 }
 
@@ -216,116 +248,85 @@ export default {
   flex-direction: column;
 }
 
-.version-row {
-  flex-direction: row;
-  padding: 4px 4px 8px 4px;
-}
-
-.version-text {
-  font-size: 22px;
-}
-
-.device-card {
-  width: 100%;
+/* ---- 设备段：标签在上 / 值在下 ----
+ * 横排不可行：实测汉字渲染宽 ≈ 1.33 × font-size，24px 下「设备」两字就吃 64px，
+ * 剩 104px 放不下「10月23日」(≈117px) / 「••44c78」(≈90px 临界)。
+ * 竖排后值可独占 168px 全宽，所有字段都不折行、不压缩。 */
+.info-list {
   flex-direction: column;
-  padding: 10px 0 12px 0;
-  margin-bottom: 10px;
+  padding: 2px 0 0 0;
+  margin-bottom: 14px;
 }
 
-/* 标签在上、值在下：胶囊屏可用宽约 162px，横排 label+日期 会超宽挤爆 */
-.device-info-row {
+.info-row {
   flex-direction: column;
   align-items: flex-start;
-  padding: 6px 4px;
+  padding: 4px 0;
 }
 
-.device-info-label {
-  font-size: 20px;
-  line-height: 26px;
-  margin-bottom: 2px;
-}
-
-.device-info-value {
+.info-label {
   font-size: 24px;
-  font-weight: bold;
   line-height: 30px;
+  flex-shrink: 0;
 }
 
-.section-title {
+.info-value {
   font-size: 24px;
+  line-height: 34px;
   font-weight: bold;
+  flex-shrink: 0;
+}
+
+/* ---- 历史段 ---- */
+.section-title {
+  font-size: 28px;
+  line-height: 38px;
+  font-weight: bold;
+  padding-left: 2px;
   margin-bottom: 6px;
-  padding-left: 4px;
 }
 
 .history-list {
   width: 100%;
   flex-direction: column;
-  padding-bottom: 6px;
 }
 
+/* 不用 border-bottom：quickapp 里单独写 border-bottom 会被渲染成四边都有框，
+ * 观感像给每条记录套了个卡片。分隔靠 8px 纵向间距。 */
 .history-item {
   flex-direction: column;
-  padding: 8px 4px;
-}
-
-.history-row {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.history-divider {
-  height: 1px;
-  background-color: rgba(255,255,255,0.05);
-  margin-top: 8px;
-  width: 100%;
-}
-
-.history-left {
-  flex-direction: column;
+  padding: 6px 0;
 }
 
 .history-date {
-  font-size: 20px;
-  line-height: 26px;
-  margin-bottom: 4px;
-}
-
-.history-type {
   font-size: 24px;
-  line-height: 30px;
+  line-height: 34px;
+}
+
+.history-meta {
+  font-size: 24px;
+  line-height: 34px;
   font-weight: bold;
-}
-
-.history-right {
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.history-duration {
-  font-size: 22px;
-  line-height: 28px;
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.history-status {
-  font-size: 20px;
-  line-height: 26px;
 }
 
 .history-empty {
-  padding: 16px;
-  align-items: center;
+  padding: 10px 0 0 2px;
+  align-items: flex-start;
 }
 
 .history-empty-text {
-  font-size: 22px;
+  font-size: 24px;
+  line-height: 34px;
+}
+
+.version-text {
+  font-size: 24px;
+  line-height: 34px;
+  padding: 12px 0 0 2px;
 }
 
 .bottom-spacer {
-  height: 24px;
+  height: 12px;
 }
 
 @media (shape: circle) {
@@ -336,7 +337,7 @@ export default {
 
 @media (shape: pill-shaped) {
   .page {
-    padding: 30px 16px 30px 16px;
+    padding: 30px 12px 22px 12px;
   }
 
   .header-title {
