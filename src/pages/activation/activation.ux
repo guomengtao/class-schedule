@@ -23,7 +23,7 @@
         <text class="row-arrow" style="color: {{ theme.textSecondary }}">›</text>
       </div>
 
-      <text class="section-label" style="color: {{ theme.textMuted }}">选择激活方式 · 二选一</text>
+      <text class="section-label" style="color: {{ theme.textMuted }}">激活方式 · 二选一</text>
 
       <div class="path-card" onclick="openPathA" style="background-color: {{ theme.card }}">
         <div class="path-head">
@@ -31,10 +31,9 @@
             <text class="path-badge-text" style="color: {{ theme.bg }}">A</text>
           </div>
           <text class="path-title" style="color: {{ theme.text }}">扫码激活</text>
-          <text class="path-tag" style="color: {{ theme.accent }}">推荐</text>
           <text class="row-arrow" style="color: {{ theme.textSecondary }}">›</text>
         </div>
-        <text class="path-sub" style="color: {{ theme.accent }}">安卓 · 2 步</text>
+        <text class="path-sub" style="color: {{ theme.accent }}">安卓 · 2 步 · 推荐</text>
       </div>
 
       <div class="path-card" onclick="openPathB" style="background-color: {{ theme.card }}">
@@ -88,8 +87,8 @@ export default {
       borderLight: '#2a2a5a'
     },
     isActivated: false,
-    statusText: '标准版',
-    statusSub: '未激活 · 解锁全部功能',
+    statusText: '高级版',
+    statusSub: '未激活 · 待解锁',
     statusColor: '#888899'
   },
 
@@ -141,13 +140,13 @@ export default {
           self.statusColor = 'green'
         } else {
           self.statusText = '标准版'
-          self.statusSub = '未激活 · 解锁全部功能'
+          self.statusSub = '未激活 · 待解锁'
           self.statusColor = 'gray'
         }
       })
     } catch (e) {
       self.statusText = '标准版'
-      self.statusSub = '未激活 · 解锁全部功能'
+      self.statusSub = '未激活 · 待解锁'
     }
   },
 
@@ -218,9 +217,9 @@ export default {
   width: 100%;
   flex-direction: column;
   align-items: center;
-  padding: 6px 8px 8px 8px;
+  padding: 10px 8px 12px 8px;
   border-radius: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
 }
 
 .status-main {
@@ -230,7 +229,7 @@ export default {
 }
 
 .status-sub {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 20px;
 }
 
@@ -263,19 +262,19 @@ export default {
 
 .buy-text {
   flex: 1;
-  font-size: 19px;
+  font-size: 20px;
   line-height: 24px;
 }
 
 .row-arrow {
-  font-size: 20px;
+  font-size: 22px;
   line-height: 24px;
   flex-shrink: 0;
   margin-left: 2px;
 }
 
 .section-label {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 20px;
   padding-left: 2px;
   margin-bottom: 6px;
@@ -314,7 +313,7 @@ export default {
 
 .path-title {
   flex: 1;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   line-height: 22px;
 }
@@ -327,7 +326,7 @@ export default {
 }
 
 .path-sub {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 19px;
   margin-top: 2px;
 }
@@ -368,17 +367,17 @@ export default {
   }
 
   .header-title {
-    font-size: 24px;
+    font-size: 26px;
     line-height: 30px;
   }
 
   .status-main {
-    font-size: 24px;
+    font-size: 26px;
     line-height: 30px;
   }
 
   .status-sub {
-    font-size: 14px;
+    font-size: 16px;
     line-height: 19px;
   }
 }

@@ -11,7 +11,7 @@
 
     <text class="lead" style="color: {{ theme.textSecondary }}">扫码获取激活码</text>
 
-    <div class="dev-row" style="background-color: {{ theme.card }}">
+    <div class="dev-row" onclick="retryId" style="background-color: {{ theme.card }}">
       <text class="dev-label" style="color: {{ theme.textMuted }}">设备 ID</text>
       <text class="dev-value" style="color: {{ theme.text }}">{{ deviceIdText }}</text>
     </div>
@@ -47,7 +47,7 @@ export default {
       border: '#0f3460',
       borderLight: '#2a2a5a'
     },
-    deviceIdText: '获取中...',
+    deviceIdText: '获取中…',
     qrUrl: ''
   },
 
@@ -58,7 +58,7 @@ export default {
       self.updateIconSrc(themeName)
     })
     ctx.getIdentity(function(deviceId, infoParams) {
-      self.deviceIdText = deviceId || '未知'
+      self.deviceIdText = self.formatId(deviceId)
       self.qrUrl = ctx.redeemUrl(deviceId, infoParams)
     })
   },
@@ -69,6 +69,19 @@ export default {
       self.theme = t
       self.updateIconSrc(themeName)
     })
+  },
+
+  // 只展示末 4 位：用户不直接使用完整 ID，只需确认「取到了」
+  // 取不到时必须显式提示，隐藏就等于让用户看不到问题
+  formatId(id) {
+    if (!id) return '未获取 · 点此重试'
+    var s = String(id)
+    if (s.length <= 4) return '••' + s
+    return '••' + s.substring(s.length - 4)
+  },
+
+  retryId() {
+    router.replace({ uri: 'pages/activation/path-b-redeem' })
   },
 
   updateIconSrc(themeName) {
@@ -124,38 +137,41 @@ export default {
 }
 
 .progress {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 19px;
   text-align: center;
   margin-bottom: 2px;
 }
 
 .lead {
-  font-size: 14px;
+  font-size: 18px;
   line-height: 19px;
   text-align: center;
   margin-bottom: 6px;
 }
 
-/* 32 位设备 ID 在 192px 宽下必然折行：允许 2 行，不缩字号、不加省略号 */
+/* 只展示末 4 位后，ID 行可回到单行，字号得以升到 16px */
 .dev-row {
   width: 100%;
-  flex-direction: column;
-  padding: 5px 10px 6px 10px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
   border-radius: 10px;
-  margin-bottom: 7px;
+  margin-bottom: 8px;
 }
 
 .dev-label {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 16px;
   margin-bottom: 1px;
 }
 
 .dev-value {
-  font-size: 13px;
-  line-height: 17px;
-  lines: 2;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: bold;
+  flex-shrink: 0;
 }
 
 .qr-box {
@@ -177,15 +193,15 @@ export default {
 }
 
 .qr-code {
-  width: 140px;
-  height: 140px;
+  width: 152px;
+  height: 152px;
   flex-shrink: 0;
 }
 
 .qr-loading {
-  font-size: 15px;
-  line-height: 20px;
-  height: 132px;
+  font-size: 16px;
+  line-height: 22px;
+  height: 152px;
   text-align: center;
 }
 
@@ -199,14 +215,14 @@ export default {
 }
 
 .btn-text {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   line-height: 24px;
 }
 
 @media (shape: pill-shaped) {
   .page {
-    padding: 24px 16px 20px 16px;
+    padding: 24px 12px 20px 12px;
   }
 
   .header {
@@ -226,7 +242,7 @@ export default {
   }
 
   .header-title {
-    font-size: 19px;
+    font-size: 24px;
     line-height: 24px;
   }
 
