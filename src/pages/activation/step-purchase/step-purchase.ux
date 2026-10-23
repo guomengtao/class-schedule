@@ -1,25 +1,26 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
+    <!-- 标题 2 字 @30：原「购买兑换码」5 字 @24 在 header 132px 里只能压字号 -->
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">购买兑换码</text>
+      <text class="header-title" style="color: {{ theme.text }}">购买</text>
     </div>
 
-    <text class="lead" style="color: {{ theme.textSecondary }}">用手机扫码，在爱发电购买兑换码</text>
+    <text class="lead" style="color: {{ theme.textSecondary }}">扫码买兑换码</text>
 
     <div class="qr-box" style="background-color: {{ theme.card }}">
       <div class="qr-wrap" if="{{ qrUrl }}">
         <qrcode class="qr-code" value="{{ qrUrl }}" style="color: #000000; background-color: #ffffff;"></qrcode>
       </div>
-      <text class="qr-loading" if="{{ !qrUrl }}" style="color: {{ theme.textMuted }}">正在生成二维码...</text>
+      <text class="qr-loading" if="{{ !qrUrl }}" style="color: {{ theme.textMuted }}">正在生成</text>
     </div>
 
-    <text class="hint" style="color: {{ theme.textMuted }}">付款后回到这里，选择激活方式</text>
+    <text class="hint" style="color: {{ theme.textSecondary }}">付款后回到此页</text>
 
     <div class="btn" onclick="goBack" style="background-color: {{ theme.accent }}">
-      <text class="btn-text" style="color: {{ theme.bg }}">已购买 · 去激活</text>
+      <text class="btn-text" style="color: {{ theme.bg }}">已购买去激活</text>
     </div>
   </div>
 </template>
@@ -75,6 +76,8 @@ export default {
 </script>
 
 <style>
+/* ev-six：字号只用 30/28/24；横向 padding 页面 10、卡片 8。
+   高度预算：header 48 + 说明 42 + 二维码 196 + 提示 44 + 按钮 58 = 388 / 434 */
 .page {
   flex-direction: column;
   padding: 44px 10px 12px 10px;
@@ -106,19 +109,21 @@ export default {
 
 .header-title {
   flex: 1;
-  font-size: 24px;
+  font-size: 30px;
   font-weight: bold;
   text-align: center;
-  line-height: 32px;
+  line-height: 40px;
 }
 
+/* 7 字 @24 = 168px，正好满行 */
 .lead {
-  font-size: 15px;
-  line-height: 20px;
+  font-size: 24px;
+  line-height: 34px;
   text-align: center;
   margin-bottom: 8px;
 }
 
+/* 152 + 白边 16 = 168px；容器禁压缩，否则码体被挤扁扫不出 */
 .qr-box {
   width: 100%;
   flex-shrink: 0;
@@ -138,47 +143,47 @@ export default {
 }
 
 .qr-code {
-  width: 140px;
-  height: 140px;
+  width: 152px;
+  height: 152px;
   flex-shrink: 0;
 }
 
 .qr-loading {
-  font-size: 15px;
-  line-height: 20px;
-  height: 140px;
+  font-size: 24px;
+  line-height: 34px;
+  height: 168px;
   text-align: center;
 }
 
 .hint {
-  font-size: 14px;
-  line-height: 19px;
+  font-size: 24px;
+  line-height: 34px;
   text-align: center;
   margin-bottom: 10px;
 }
 
 .btn {
   width: 100%;
-  min-height: 44px;
-  border-radius: 22px;
+  min-height: 58px;
+  border-radius: 14px;
   justify-content: center;
   align-items: center;
   margin-top: auto;
 }
 
 .btn-text {
-  font-size: 18px;
+  font-size: 28px;
   font-weight: bold;
-  line-height: 24px;
+  line-height: 38px;
 }
 
 @media (shape: pill-shaped) {
   .page {
-    padding: 26px 16px 20px 16px;
+    padding: 24px 12px 20px 12px;
   }
 
   .header {
-    height: 36px;
+    height: 38px;
     margin-bottom: 6px;
   }
 
@@ -194,10 +199,8 @@ export default {
   }
 
   .header-title {
-    font-size: 20px;
-    line-height: 26px;
+    line-height: 38px;
   }
-
 }
 
 @media (shape: circle) {
