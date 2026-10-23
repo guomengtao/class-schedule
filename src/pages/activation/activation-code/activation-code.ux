@@ -5,142 +5,147 @@
         <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
           <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
         </div>
-        <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">输入激活码</text>
+        <!-- 标题 3 字 @28px：公共 header.css 的 18px 低于 ev-six 24px 下限，本页覆盖 -->
+        <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">激活码</text>
         <div class="header-placeholder"></div>
       </div>
 
-        <div class="cells-grid">
-          <div class="cells-row">
-            <div class="cell {{ cursor === 0 ? 'cell-active' : '' }}" onclick="onCellClick(0)" style="background-color: {{ cursor === 0 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 0 ? theme.bg : theme.text }}">{{ cell0 !== null ? cell0 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 1 ? 'cell-active' : '' }}" onclick="onCellClick(1)" style="background-color: {{ cursor === 1 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 1 ? theme.bg : theme.text }}">{{ cell1 !== null ? cell1 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 2 ? 'cell-active' : '' }}" onclick="onCellClick(2)" style="background-color: {{ cursor === 2 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 2 ? theme.bg : theme.text }}">{{ cell2 !== null ? cell2 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 3 ? 'cell-active' : '' }}" onclick="onCellClick(3)" style="background-color: {{ cursor === 3 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 3 ? theme.bg : theme.text }}">{{ cell3 !== null ? cell3 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 4 ? 'cell-active' : '' }}" onclick="onCellClick(4)" style="background-color: {{ cursor === 4 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 4 ? theme.bg : theme.text }}">{{ cell4 !== null ? cell4 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 5 ? 'cell-active' : '' }}" onclick="onCellClick(5)" style="background-color: {{ cursor === 5 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 5 ? theme.bg : theme.text }}">{{ cell5 !== null ? cell5 : '-' }}</text>
-            </div>
+      <!-- 18 位码：3 行 × 6 位，正好一行 6 个位置（ev-six） -->
+      <div class="cells-grid" style="display: {{ verifySuccess ? 'none' : 'flex' }}">
+        <div class="cells-row">
+          <div class="cell {{ cursor === 0 ? 'cell-active' : '' }}" onclick="onCellClick(0)" style="background-color: {{ cursor === 0 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 0 ? theme.bg : theme.text }}">{{ cell0 !== null ? cell0 : '-' }}</text>
           </div>
-          <div class="cells-row">
-            <div class="cell {{ cursor === 6 ? 'cell-active' : '' }}" onclick="onCellClick(6)" style="background-color: {{ cursor === 6 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 6 ? theme.bg : theme.text }}">{{ cell6 !== null ? cell6 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 7 ? 'cell-active' : '' }}" onclick="onCellClick(7)" style="background-color: {{ cursor === 7 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 7 ? theme.bg : theme.text }}">{{ cell7 !== null ? cell7 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 8 ? 'cell-active' : '' }}" onclick="onCellClick(8)" style="background-color: {{ cursor === 8 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 8 ? theme.bg : theme.text }}">{{ cell8 !== null ? cell8 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 9 ? 'cell-active' : '' }}" onclick="onCellClick(9)" style="background-color: {{ cursor === 9 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 9 ? theme.bg : theme.text }}">{{ cell9 !== null ? cell9 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 10 ? 'cell-active' : '' }}" onclick="onCellClick(10)" style="background-color: {{ cursor === 10 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 10 ? theme.bg : theme.text }}">{{ cell10 !== null ? cell10 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 11 ? 'cell-active' : '' }}" onclick="onCellClick(11)" style="background-color: {{ cursor === 11 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 11 ? theme.bg : theme.text }}">{{ cell11 !== null ? cell11 : '-' }}</text>
-            </div>
+          <div class="cell {{ cursor === 1 ? 'cell-active' : '' }}" onclick="onCellClick(1)" style="background-color: {{ cursor === 1 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 1 ? theme.bg : theme.text }}">{{ cell1 !== null ? cell1 : '-' }}</text>
           </div>
-          <div class="cells-row">
-            <div class="cell {{ cursor === 12 ? 'cell-active' : '' }}" onclick="onCellClick(12)" style="background-color: {{ cursor === 12 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 12 ? theme.bg : theme.text }}">{{ cell12 !== null ? cell12 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 13 ? 'cell-active' : '' }}" onclick="onCellClick(13)" style="background-color: {{ cursor === 13 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 13 ? theme.bg : theme.text }}">{{ cell13 !== null ? cell13 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 14 ? 'cell-active' : '' }}" onclick="onCellClick(14)" style="background-color: {{ cursor === 14 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 14 ? theme.bg : theme.text }}">{{ cell14 !== null ? cell14 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 15 ? 'cell-active' : '' }}" onclick="onCellClick(15)" style="background-color: {{ cursor === 15 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 15 ? theme.bg : theme.text }}">{{ cell15 !== null ? cell15 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 16 ? 'cell-active' : '' }}" onclick="onCellClick(16)" style="background-color: {{ cursor === 16 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 16 ? theme.bg : theme.text }}">{{ cell16 !== null ? cell16 : '-' }}</text>
-            </div>
-            <div class="cell {{ cursor === 17 ? 'cell-active' : '' }}" onclick="onCellClick(17)" style="background-color: {{ cursor === 17 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
-              <text class="cell-text" style="color: {{ cursor === 17 ? theme.bg : theme.text }}">{{ cell17 !== null ? cell17 : '-' }}</text>
-            </div>
+          <div class="cell {{ cursor === 2 ? 'cell-active' : '' }}" onclick="onCellClick(2)" style="background-color: {{ cursor === 2 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 2 ? theme.bg : theme.text }}">{{ cell2 !== null ? cell2 : '-' }}</text>
+          </div>
+          <div class="cell {{ cursor === 3 ? 'cell-active' : '' }}" onclick="onCellClick(3)" style="background-color: {{ cursor === 3 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 3 ? theme.bg : theme.text }}">{{ cell3 !== null ? cell3 : '-' }}</text>
+          </div>
+          <div class="cell {{ cursor === 4 ? 'cell-active' : '' }}" onclick="onCellClick(4)" style="background-color: {{ cursor === 4 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 4 ? theme.bg : theme.text }}">{{ cell4 !== null ? cell4 : '-' }}</text>
+          </div>
+          <div class="cell {{ cursor === 5 ? 'cell-active' : '' }}" onclick="onCellClick(5)" style="background-color: {{ cursor === 5 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 5 ? theme.bg : theme.text }}">{{ cell5 !== null ? cell5 : '-' }}</text>
           </div>
         </div>
-
-        <div class="keypad" style="display: {{ verifyResult ? 'none' : 'flex' }}">
-          <div class="keypad-row">
-            <div class="keypad-btn" onclick="onKeyPress(1)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">1</text>
-            </div>
-            <div class="keypad-btn" onclick="onKeyPress(2)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">2</text>
-            </div>
-            <div class="keypad-btn" onclick="onKeyPress(3)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">3</text>
-            </div>
+        <div class="cells-row">
+          <div class="cell {{ cursor === 6 ? 'cell-active' : '' }}" onclick="onCellClick(6)" style="background-color: {{ cursor === 6 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 6 ? theme.bg : theme.text }}">{{ cell6 !== null ? cell6 : '-' }}</text>
           </div>
-          <div class="keypad-row">
-            <div class="keypad-btn" onclick="onKeyPress(4)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">4</text>
-            </div>
-            <div class="keypad-btn" onclick="onKeyPress(5)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">5</text>
-            </div>
-            <div class="keypad-btn" onclick="onKeyPress(6)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">6</text>
-            </div>
+          <div class="cell {{ cursor === 7 ? 'cell-active' : '' }}" onclick="onCellClick(7)" style="background-color: {{ cursor === 7 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 7 ? theme.bg : theme.text }}">{{ cell7 !== null ? cell7 : '-' }}</text>
           </div>
-          <div class="keypad-row">
-            <div class="keypad-btn" onclick="onKeyPress(7)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">7</text>
-            </div>
-            <div class="keypad-btn" onclick="onKeyPress(8)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">8</text>
-            </div>
-            <div class="keypad-btn" onclick="onKeyPress(9)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">9</text>
-            </div>
+          <div class="cell {{ cursor === 8 ? 'cell-active' : '' }}" onclick="onCellClick(8)" style="background-color: {{ cursor === 8 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 8 ? theme.bg : theme.text }}">{{ cell8 !== null ? cell8 : '-' }}</text>
           </div>
-          <div class="keypad-row">
-            <div class="keypad-btn keypad-clear" onclick="onClear" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: #e74c3c">C</text>
-            </div>
-            <div class="keypad-btn" onclick="onKeyPress(0)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: {{ theme.text }}">0</text>
-            </div>
-            <div class="keypad-btn keypad-delete" onclick="onDelete" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
-              <text class="keypad-text" style="color: #e74c3c">←</text>
-            </div>
+          <div class="cell {{ cursor === 9 ? 'cell-active' : '' }}" onclick="onCellClick(9)" style="background-color: {{ cursor === 9 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 9 ? theme.bg : theme.text }}">{{ cell9 !== null ? cell9 : '-' }}</text>
+          </div>
+          <div class="cell {{ cursor === 10 ? 'cell-active' : '' }}" onclick="onCellClick(10)" style="background-color: {{ cursor === 10 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 10 ? theme.bg : theme.text }}">{{ cell10 !== null ? cell10 : '-' }}</text>
+          </div>
+          <div class="cell {{ cursor === 11 ? 'cell-active' : '' }}" onclick="onCellClick(11)" style="background-color: {{ cursor === 11 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 11 ? theme.bg : theme.text }}">{{ cell11 !== null ? cell11 : '-' }}</text>
           </div>
         </div>
-
-        <div class="verify-btn" onclick="doVerify" style="background-color: {{ theme.accent }}; display: {{ verifyResult ? 'none' : 'flex' }}">
-          <text class="verify-btn-text" style="color: {{ theme.bg }}">验证</text>
+        <div class="cells-row">
+          <div class="cell {{ cursor === 12 ? 'cell-active' : '' }}" onclick="onCellClick(12)" style="background-color: {{ cursor === 12 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 12 ? theme.bg : theme.text }}">{{ cell12 !== null ? cell12 : '-' }}</text>
+          </div>
+          <div class="cell {{ cursor === 13 ? 'cell-active' : '' }}" onclick="onCellClick(13)" style="background-color: {{ cursor === 13 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 13 ? theme.bg : theme.text }}">{{ cell13 !== null ? cell13 : '-' }}</text>
+          </div>
+          <div class="cell {{ cursor === 14 ? 'cell-active' : '' }}" onclick="onCellClick(14)" style="background-color: {{ cursor === 14 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 14 ? theme.bg : theme.text }}">{{ cell14 !== null ? cell14 : '-' }}</text>
+          </div>
+          <div class="cell {{ cursor === 15 ? 'cell-active' : '' }}" onclick="onCellClick(15)" style="background-color: {{ cursor === 15 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 15 ? theme.bg : theme.text }}">{{ cell15 !== null ? cell15 : '-' }}</text>
+          </div>
+          <div class="cell {{ cursor === 16 ? 'cell-active' : '' }}" onclick="onCellClick(16)" style="background-color: {{ cursor === 16 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 16 ? theme.bg : theme.text }}">{{ cell16 !== null ? cell16 : '-' }}</text>
+          </div>
+          <div class="cell {{ cursor === 17 ? 'cell-active' : '' }}" onclick="onCellClick(17)" style="background-color: {{ cursor === 17 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
+            <text class="cell-text" style="color: {{ cursor === 17 ? theme.bg : theme.text }}">{{ cell17 !== null ? cell17 : '-' }}</text>
+          </div>
         </div>
+      </div>
 
-        <div class="result-box" if="{{ verifyResult }}" style="background-color: {{ theme.bg }}; border-color: {{ verifySuccess ? theme.accent : '#e74c3c' }}">
-          <text class="result-label" style="color: {{ theme.textSecondary }}">验证结果</text>
-          <text class="result-code" style="color: {{ verifySuccess ? theme.accent : '#e74c3c' }}">{{ verifyResult }}</text>
-          <text class="result-detail" show="{{ verifyDetail }}" style="color: {{ theme.textSecondary }}">{{ verifyDetail }}</text>
+      <!-- 内联状态条：唯一的提示通道，固定高度，永不覆盖输入 -->
+      <div class="status-strip" style="background-color: {{ theme.card }}; display: {{ verifySuccess ? 'none' : 'flex' }}">
+        <text class="status-text" style="color: {{ hintColor }}">{{ hintText }}</text>
+      </div>
+
+      <div class="keypad" style="display: {{ verifySuccess ? 'none' : 'flex' }}">
+        <div class="keypad-row">
+          <div class="keypad-btn" onclick="onKeyPress(1)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+            <text class="keypad-text" style="color: {{ theme.text }}">1</text>
+          </div>
+          <div class="keypad-btn" onclick="onKeyPress(2)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+            <text class="keypad-text" style="color: {{ theme.text }}">2</text>
+          </div>
+          <div class="keypad-btn" onclick="onKeyPress(3)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+            <text class="keypad-text" style="color: {{ theme.text }}">3</text>
+          </div>
         </div>
-
-        <div class="retry-btn" onclick="onRetry" style="background-color: {{ theme.bg }}; border-color: #e74c3c; display: {{ showRetry ? 'flex' : 'none' }}">
-          <text class="retry-btn-text" style="color: #e74c3c">重新输入</text>
+        <div class="keypad-row">
+          <div class="keypad-btn" onclick="onKeyPress(4)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+            <text class="keypad-text" style="color: {{ theme.text }}">4</text>
+          </div>
+          <div class="keypad-btn" onclick="onKeyPress(5)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+            <text class="keypad-text" style="color: {{ theme.text }}">5</text>
+          </div>
+          <div class="keypad-btn" onclick="onKeyPress(6)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+            <text class="keypad-text" style="color: {{ theme.text }}">6</text>
+          </div>
         </div>
+        <div class="keypad-row">
+          <div class="keypad-btn" onclick="onKeyPress(7)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+            <text class="keypad-text" style="color: {{ theme.text }}">7</text>
+          </div>
+          <div class="keypad-btn" onclick="onKeyPress(8)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+            <text class="keypad-text" style="color: {{ theme.text }}">8</text>
+          </div>
+          <div class="keypad-btn" onclick="onKeyPress(9)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+            <text class="keypad-text" style="color: {{ theme.text }}">9</text>
+          </div>
+        </div>
+        <div class="keypad-row">
+          <div class="keypad-btn" onclick="onClear" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+            <text class="keypad-text" style="color: #e74c3c">C</text>
+          </div>
+          <div class="keypad-btn" onclick="onKeyPress(0)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+            <text class="keypad-text" style="color: {{ theme.text }}">0</text>
+          </div>
+          <div class="keypad-btn" onclick="onDelete" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
+            <text class="keypad-text" style="color: #e74c3c">←</text>
+          </div>
+        </div>
+      </div>
 
-      <div class="bottom-spacer" if="{{ !verifyResult }}"></div>
+      <div class="verify-btn" onclick="doVerify" style="background-color: {{ theme.accent }}; display: {{ verifySuccess ? 'none' : 'flex' }}">
+        <text class="verify-btn-text" style="color: {{ theme.bg }}">验证</text>
+      </div>
+
+      <!-- 成功态：键盘与输入区整体退场，给结果留出全部空间 -->
+      <div class="done-box" style="display: {{ verifySuccess ? 'flex' : 'none' }}">
+        <text class="done-title" style="color: {{ theme.accent }}">已激活</text>
+        <text class="done-sub" style="color: {{ theme.textSecondary }}">{{ doneSub }}</text>
+        <div class="done-btn" onclick="goBack" style="background-color: {{ theme.accent }}">
+          <text class="done-btn-text" style="color: {{ theme.bg }}">完成</text>
+        </div>
+      </div>
+
+      <div class="bottom-spacer"></div>
     </scroll>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
-import prompt from "@system.prompt"
 
 // 日志开关：发布态关闭，避免手环上字符串拼接与 IPC 开销
 var DEBUG = false
@@ -204,10 +209,11 @@ export default {
     cell12: null, cell13: null, cell14: null, cell15: null,
     cell16: null, cell17: null,
     cursor: 0,
-    verifyResult: '',
-    verifyDetail: '',
+    // 内联状态条：唯一的提示通道（原 prompt.showToast 会浮在输入格之上）
+    hintText: '共需18位',
+    hintColor: '#888899',
     verifySuccess: false,
-    showRetry: false,
+    doneSub: '',
     versionText: '',
     deviceInfoParams: '',
     channelParam: version.channel || ''
@@ -410,19 +416,43 @@ export default {
     router.back()
   },
 
-  onRetry() {
-    doVibrate()
-    this.verifyResult = ''
-    this.verifyDetail = ''
-    this.verifySuccess = false
-    this.showRetry = false
+  // ---------- 提示：只有一条通道，就是输入格下方的内联状态条 ----------
+  filledCount() {
+    var n = 0
+    for (var i = 0; i < 18; i++) {
+      var v = this['cell' + i]
+      if (v !== null && v !== undefined) n++
+    }
+    return n
   },
 
-  setResult(success, result, detail) {
-    this.verifySuccess = success
-    this.verifyResult = result
-    this.verifyDetail = detail || ''
-    this.showRetry = !success
+  // 正常态提示：告诉用户还差多少、什么时候可以验证
+  refreshHint() {
+    var n = this.filledCount()
+    if (n >= 18) {
+      this.hintText = '可以验证了'
+      this.hintColor = this.theme.accent
+    } else if (n === 0) {
+      this.hintText = '共需18位'
+      this.hintColor = this.theme.textSecondary
+    } else {
+      this.hintText = '已输' + n + '位'
+      this.hintColor = this.theme.textSecondary
+    }
+  },
+
+  // 失败态：文字换成红色短句 + 长震动。不弹 toast，不隐藏键盘，不打断输入
+  showError(text) {
+    this.hintText = text
+    this.hintColor = '#e74c3c'
+    try {
+      vibrator.vibrate({ mode: 'long' })
+    } catch (e) {}
+  },
+
+  succeed(sub) {
+    this.verifySuccess = true
+    this.doneSub = sub || ''
   },
 
   onCellClick(index) {
@@ -437,6 +467,7 @@ export default {
     if (this.cursor < 17) {
       this.cursor = this.cursor + 1
     }
+    this.refreshHint()
   },
 
   onDelete() {
@@ -452,6 +483,7 @@ export default {
     if (this.cursor > 0) {
       this.cursor = this.cursor - 1
     }
+    this.refreshHint()
   },
 
   onClear() {
@@ -460,6 +492,7 @@ export default {
       this['cell' + i] = null
     }
     this.cursor = 0
+    this.refreshHint()
   },
 
   doVerify() {
@@ -467,8 +500,8 @@ export default {
     for (var i = 0; i < 18; i++) {
       var val = this['cell' + i]
       if (val === null || val === undefined) {
-        this.setResult(false, '请输入完整的18位激活码', '')
-        prompt.showToast({ message: '请输入完整的18位激活码' })
+        // 不再报「请输入完整的18位激活码」（11 字，两行且浮层遮挡），只报还差几位
+        this.showError('还差' + (18 - this.filledCount()) + '位')
         return
       }
       code += val
@@ -477,8 +510,7 @@ export default {
     var deviceId = this.deviceId
 
     if (!deviceId || deviceId.indexOf('获取失败') >= 0 || deviceId.indexOf('未知') >= 0 || deviceId.indexOf('不可用') >= 0) {
-      this.setResult(false, '无法获取设备ID', '')
-      prompt.showToast({ message: '无法获取设备ID' })
+      this.showError('未取到设备号')
       return
     }
 
@@ -486,51 +518,45 @@ export default {
 
     authStore.verifyMasterCode(code, deviceId, function(masterResult) {
       if (masterResult.success) {
-        self.setResult(true, '激活成功 - ' + masterResult.duration + ' 天', '')
-
         authStore.markActivated(masterResult.duration, code, '', function(success) {
           if (success) {
-            prompt.showToast({ message: masterResult.message || '激活成功' })
+            var d = masterResult.duration
+            self.succeed(d > 0 ? ('有效期' + d + '天') : '永久有效')
             self.loadStatus()
             self.loadHistory()
           } else {
-            self.setResult(false, '激活失败', '保存激活状态失败，请重试')
-            prompt.showToast({ message: '保存失败，请重试' })
+            self.showError('保存失败')
           }
         })
         return
       }
 
       if (masterResult.blockReason === 'not_expired') {
-        self.setResult(false, masterResult.reason, '您的授权仍在有效期内，无需使用万能码')
-        prompt.showToast({ message: masterResult.reason })
+        self.showError('有效期未过')
         return
       }
 
       if (masterResult.blockReason === 'limit_reached') {
-        self.setResult(false, masterResult.reason, '')
-        prompt.showToast({ message: masterResult.reason })
+        self.showError('次数已用完')
         return
       }
 
       var decrypted = crypto.decryptActivationCode(code)
       if (!decrypted || !decrypted.valid) {
-        self.setResult(false, decrypted ? decrypted.reason : '无效的激活码', '')
-        prompt.showToast({ message: '无效的激活码' })
+        self.showError('激活码无效')
         return
       }
 
       var deviceIdLast4 = deviceId.substring(deviceId.length - 4)
       if (decrypted.deviceId !== deviceIdLast4) {
-        self.setResult(false, '设备ID不匹配', '激活码设备ID: ' + decrypted.deviceId + ' | 本机设备ID后4位: ' + deviceIdLast4)
-        prompt.showToast({ message: '设备ID不匹配' })
+        dlog('[ACTIVATION] device mismatch: code=' + decrypted.deviceId + ' local=' + deviceIdLast4)
+        self.showError('设备不匹配')
         return
       }
 
       authStore.loadUsedRedeemCodes(function(usedRedeemList) {
         if (usedRedeemList.indexOf(decrypted.redeemCode) !== -1) {
-          self.setResult(false, '兑换码已被使用', '兑换码 ' + decrypted.redeemCode + ' 已被使用过，每个兑换码只能兑换一次')
-          prompt.showToast({ message: '该兑换码已被使用' })
+          self.showError('兑换码已用')
           return
         }
 
@@ -538,20 +564,16 @@ export default {
 
         var isPermanent = months === 99
         var days = isPermanent ? -1 : months * 30
-        var durationLabel = isPermanent ? '永久' : (months + ' 个月')
-
-        self.setResult(true, '激活成功 - ' + (isPermanent ? '永久高级版 ✓' : (months + ' 个月')), isPermanent ? '' : ('有效期: ' + months + ' 个月'))
 
         authStore.markActivated(days, code, decrypted.redeemCode, function(success) {
           if (success) {
             authStore.saveUsedCode(code)
             authStore.saveUsedRedeemCode(decrypted.redeemCode)
-            prompt.showToast({ message: '激活成功，' + durationLabel })
+            self.succeed(isPermanent ? '永久有效' : ('有效期' + months + '个月'))
             self.loadStatus()
             self.loadHistory()
           } else {
-            self.setResult(false, '激活失败', '保存激活状态失败，请重试')
-            prompt.showToast({ message: '保存失败，请重试' })
+            self.showError('保存失败')
           }
         })
       })
@@ -568,7 +590,6 @@ export default {
   padding: 38px 10px 8px 10px;
   width: 100%;
   height: 100%;
-  
 }
 
 /* 滚动容器：与 activation 页同款定义（抽取时漏掉会导致正文不渲染） */
@@ -577,25 +598,32 @@ export default {
   flex-direction: column;
 }
 
+/* 公共 header.css 的 pill 档把标题压到 18px，低于 ev-six 24px 硬下限，本页覆盖 */
+.header-title {
+  font-size: 28px;
+  line-height: 34px;
+}
+
+/* 输入格：每行 6 个（与 ev-six 六位置对齐），高 32 保持竖向呼吸 */
 .cells-grid {
   width: 100%;
   flex-direction: column;
-  padding: 0px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .cells-row {
   flex-direction: row;
   justify-content: space-between;
+  margin-bottom: 4px;
 }
 
 .cell {
   flex: 1;
-  height: 44px;
-  border-radius: 8px;
+  height: 32px;
+  border-radius: 6px;
   border-width: 1px;
   border-style: solid;
-  margin: 0px;
+  margin: 0 2px;
   justify-content: center;
   align-items: center;
 }
@@ -605,34 +633,51 @@ export default {
 }
 
 .cell-text {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: bold;
-  line-height: 40px;
+  line-height: 30px;
 }
 
+/* 状态条：占位固定 28px，报错只换颜色不换高度，因此永不挤压、永不遮挡 */
+.status-strip {
+  width: 100%;
+  height: 28px;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.status-text {
+  font-size: 24px;
+  line-height: 28px;
+  text-align: center;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+
+/* 键盘：flex:1 三等分，与上方 6 格同宽，不再靠 12px 外边距挤成一小团 */
 .keypad {
   width: 100%;
   flex-direction: column;
-  padding: 0;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .keypad-row {
   flex-direction: row;
-  justify-content: center;
+  justify-content: space-between;
   margin-bottom: 3px;
 }
 
 .keypad-btn {
-  width: 75px;
-  height: 44px;
+  flex: 1;
+  height: 40px;
   border-radius: 8px;
   border-width: 1px;
   border-style: solid;
+  margin: 0 2px;
   justify-content: center;
   align-items: center;
-  margin-left: 12px;
-  margin-right: 12px;
 }
 
 .keypad-text {
@@ -655,48 +700,43 @@ export default {
   text-align: center;
 }
 
-.retry-btn {
+/* 成功态 */
+.done-box {
   width: 100%;
-  height: 44px;
-  border-radius: 12px;
-  border-width: 2px;
-  border-style: solid;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  align-self: center;
-  margin-top: 10px;
+  margin-top: 100px;
 }
 
-.retry-btn-text {
-  font-size: 28px;
+.done-title {
+  font-size: 44px;
+  line-height: 56px;
   font-weight: bold;
   text-align: center;
 }
 
-.result-box {
-  flex-direction: column;
-  border-radius: 8px;
-  border-width: 2px;
-  padding: 8px;
-  margin-top: 8px;
-}
-
-.result-label {
-  font-size: 22px;
-  margin-bottom: 6px;
-}
-
-.result-code {
+.done-sub {
   font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 6px;
+  line-height: 34px;
+  margin-top: 6px;
+  text-align: center;
 }
 
-.result-detail {
-  font-size: 20px;
+.done-btn {
+  width: 100%;
+  height: 46px;
+  border-radius: 12px;
+  margin-top: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+.done-btn-text {
+  font-size: 28px;
+  font-weight: bold;
 }
 
 .bottom-spacer {
-  height: 24px;
+  height: 8px;
 }
 </style>
