@@ -1,197 +1,124 @@
 <import name="unlock-dialog" src="../../components/unlock-dialog"></import>
 <template>
-  <div class="settings-page" style="background-color: {{ theme.bg }}">
+  <div class="page" style="background-color: {{ theme.bg }}">
     <scroll class="settings-scroll" scroll-y="{{true}}">
-    <div class="settings-body">
-    <!-- 小屏（胶囊/手环9）：大圆返回按钮，标题居中下方 -->
-    <div class="back-header-capsule" if="{{ isCapsule }}">
-      <div class="back-btn-capsule" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon-capsule" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+    <div class="page-body">
+
+    <!-- 统一 header（全项目同一骨架：36px 返回键 / 24px 居中标题 / 36px 占位）
+         旧版这里是自造的双套 header（胶囊屏「返回键独占一行 + 标题在下方」），
+         既与全项目不一致，又多吃掉 88px 垂直预算，已删除。 -->
+    <div class="back-header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title-capsule" onclick="goBack" style="color: {{ theme.text }}">设置</text>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">设置</text>
+      <div class="header-placeholder"></div>
     </div>
 
-    <!-- 大屏（10Pro/方屏）：返回+标题同行，整行可点返回 -->
-    <div class="back-header-row" if="{{ !isCapsule }}" onclick="goBack">
-      <image class="back-btn-icon-row" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
-      <text class="header-title-row" style="color: {{ theme.text }}">设置</text>
-    </div>
-
+    <!-- 个人 -->
     <div class="group" style="background-color: {{ theme.card }}">
-      <div class="group-title-row" onclick="toggleGroup('personal')">
-        <text class="group-title" style="color: {{ theme.text }}">个人</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">{{ showPersonal ? 'v' : '›' }}</text>
+      <text class="group-title" style="color: {{ theme.textSecondary }}">个人</text>
+      <div class="row info-row" onclick="openNicknameEdit">
+        <text class="info-label" style="color: {{ theme.textSecondary }}">我的昵称</text>
+        <text class="info-value" style="color: {{ nickname ? theme.text : theme.textMuted }}">{{ nickname ? nickname : '未设置' }}</text>
       </div>
-      <div if="{{ showPersonal }}" style="flex-direction: column">
-        <div class="row nickname-row" onclick="openNicknameEdit">
-          <text class="row-label nickname-label" style="color: {{ theme.text }}">昵称</text>
-          <div class="row-right nickname-value-wrap">
-            <text class="row-value nickname-value" if="{{ nickname }}" style="color: {{ theme.accent }}">{{ nickname }}</text>
-            <text class="row-hint" if="{{ !nickname }}" style="color: {{ theme.textMuted }}">点击设置</text>
-            <text class="arrow nickname-arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
+      <div class="row" onclick="toggleTheme">
+        <text class="row-label" style="color: {{ theme.text }}">主题配色</text>
+      </div>
+      <div class="row" onclick="toggleFontSize">
+        <text class="row-label" style="color: {{ theme.text }}">课程字号</text>
+      </div>
+      <!-- 字号调节面板：默认收起，用 display 绑定而非 if（本工程 if 多兄弟节点会整页白屏） -->
+      <div class="size-panel" style="display: {{ showFontSize ? 'flex' : 'none' }}">
+        <div class="scale-row">
+          <input class="scale-btn" type="button" value="−" onclick="decreaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
+          <text class="scale-value" style="color: {{ theme.accent }}">{{ displaySize }}px</text>
+          <input class="scale-btn" type="button" value="+" onclick="increaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
         </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="toggleTheme">
-          <text class="row-label" style="color: {{ theme.text }}">主题配色</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">深蓝 ████</text>
-          </div>
+        <div class="preview-box" style="background-color: {{ theme.cardLight }}">
+          <text class="preview-text" style="font-size: {{ previewDisplaySize }}px; color: {{ theme.text }}">数学 08:00</text>
         </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="toggleFontSize">
-          <text class="row-label" style="color: {{ theme.text }}">课程字号</text>
-          <div class="row-right">
-            <text class="size-indicator" style="color: {{ theme.textMuted }}">{{ displaySize }}px</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">{{ showFontSize ? 'v' : '›' }}</text>
-          </div>
-        </div>
-        <div if="{{ showFontSize }}" class="font-size-body">
-          <div class="scale-row">
-            <input class="scale-btn" type="button" value="−" onclick="decreaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
-            <text class="scale-value" style="color: {{ theme.accent }}">{{ displaySize }}px</text>
-            <input class="scale-btn" type="button" value="+" onclick="increaseFont" style="background-color: {{ theme.border }}; color: {{ theme.text }}" />
-          </div>
-          <div class="preview-box" style="background-color: {{ theme.cardLight }}">
-            <text class="preview-text" style="font-size: {{ previewDisplaySize }}px; color: {{ theme.text }}">数学 08:00</text>
-          </div>
-          <text class="scope-hint" style="color: {{ theme.textMuted }}">仅影响首页课程卡片，其他页面为固定字号</text>
+        <text class="scope-hint" style="color: {{ theme.textMuted }}">仅首页</text>
+      </div>
+    </div>
+
+    <!-- 课表 -->
+    <div class="group" style="background-color: {{ theme.card }}">
+      <text class="group-title" style="color: {{ theme.textSecondary }}">课表</text>
+      <div class="row" onclick="openHomepageSettings">
+        <text class="row-label" style="color: {{ theme.text }}">首页设置</text>
+      </div>
+      <div class="row" onclick="openSchedulePanel">
+        <text class="row-label" style="color: {{ theme.text }}">更多首页</text>
+      </div>
+      <div class="row" onclick="toggleHideWeekend">
+        <text class="row-label" style="color: {{ theme.text }}">周末</text>
+        <!-- 开关亮 = 显示周末课程（hideWeekend 为 true 时开关灭） -->
+        <div class="switch-track" style="background-color: {{ hideWeekend ? theme.border : theme.accent }}">
+          <div class="switch-thumb" style="left: {{ hideWeekend ? '2px' : '20px' }}; background-color: {{ theme.bg }}"></div>
         </div>
       </div>
     </div>
 
+    <!-- 工具：旧版把「表盘 / 工具 / 手机遥控」塞进一张无标题的卡片，
+         和上面的分组混在一起看不出归属，这里补上分组标题 -->
     <div class="group" style="background-color: {{ theme.card }}">
-      <div class="group-title-row" onclick="toggleGroup('schedule')">
-        <text class="group-title" style="color: {{ theme.text }}">课表</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">{{ showSchedule ? 'v' : '›' }}</text>
-      </div>
-      <div if="{{ showSchedule }}" style="flex-direction: column">
-        <div class="row" onclick="openHomepageSettings">
-          <text class="row-label" style="color: {{ theme.text }}">首页设置</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">栏目 · 时间</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
-        </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="toggleHideWeekend">
-          <text class="row-label" style="color: {{ theme.text }}">隐藏周末</text>
-          <div class="switch-track" style="background-color: {{ hideWeekend ? theme.accent : theme.border }}">
-            <div class="switch-thumb" style="left: {{ hideWeekend ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
-          </div>
-        </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="openSchedulePanel">
-          <text class="row-label" style="color: {{ theme.text }}">更多首页</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">课程为主 · 7 种</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="group" style="background-color: {{ theme.card }}">
+      <text class="group-title" style="color: {{ theme.textSecondary }}">工具</text>
       <div class="row" onclick="openWatchFaceList">
-        <text class="row-label" style="color: {{ theme.text }}">表盘目录</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">时间为主</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
+        <text class="row-label" style="color: {{ theme.text }}">表盘样式</text>
       </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
       <div class="row" onclick="openTools">
-        <text class="row-label" style="color: {{ theme.text }}">工具</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">倒数日 · 震动等</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
+        <text class="row-label" style="color: {{ theme.text }}">常用工具</text>
       </div>
-      <div class="divider" style="background-color: {{ theme.border }}"></div>
       <div class="row" onclick="openPhoneRemote">
         <text class="row-label" style="color: {{ theme.text }}">手机遥控</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">找手机 · 静音 · 手电等</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
       </div>
     </div>
 
+    <!-- 数据 -->
     <div class="group" style="background-color: {{ theme.card }}">
-      <div class="group-title-row" onclick="toggleGroup('data')">
-        <text class="group-title" style="color: {{ theme.text }}">数据</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">{{ showData ? 'v' : '›' }}</text>
+      <text class="group-title" style="color: {{ theme.textSecondary }}">数据</text>
+      <div class="row" onclick="openBackupRestore">
+        <text class="row-label" style="color: {{ theme.text }}">备份恢复</text>
       </div>
-      <div if="{{ showData }}" style="flex-direction: column">
-        <div class="row" onclick="openBackupRestore">
-          <text class="row-label" style="color: {{ theme.text }}">备份与恢复</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">云端备份</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
-        </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="openResetData">
-          <text class="row-label" style="color: {{ theme.deleteText }}">重置数据</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">清空课程</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
-        </div>
+      <div class="row" onclick="openResetData">
+        <text class="row-label" style="color: {{ theme.deleteText }}">重置数据</text>
       </div>
     </div>
 
+    <!-- 关于 -->
     <div class="group" style="background-color: {{ theme.card }}">
-      <div class="group-title-row" onclick="toggleGroup('about')">
-        <text class="group-title" style="color: {{ theme.text }}">关于</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">{{ showAbout ? 'v' : '›' }}</text>
+      <text class="group-title" style="color: {{ theme.textSecondary }}">关于</text>
+      <div class="row" onclick="openActivation">
+        <text class="row-label" style="color: {{ theme.text }}">高级版本</text>
       </div>
-      <div if="{{ showAbout }}" style="flex-direction: column">
-        <div class="row" onclick="openActivation">
-          <text class="row-label" style="color: {{ theme.text }}">高级版</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">解锁全功能</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
-        </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="openFeedback">
-          <text class="row-label" style="color: {{ theme.text }}">反馈</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">常见问题</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
-        </div>
-        <div class="divider" style="background-color: {{ theme.border }}"></div>
-        <div class="row" onclick="openDonate">
-          <text class="row-label" style="color: {{ theme.text }}">打赏支持</text>
-          <div class="row-right">
-            <text class="row-hint" style="color: {{ theme.textMuted }}">鼓励开发者</text>
-            <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-          </div>
-        </div>
+      <div class="row" onclick="openFeedback">
+        <text class="row-label" style="color: {{ theme.text }}">意见反馈</text>
+      </div>
+      <div class="row" onclick="openDonate">
+        <text class="row-label" style="color: {{ theme.text }}">打赏支持</text>
+      </div>
+      <div class="row" onclick="goToWelcome">
+        <text class="row-label" style="color: {{ theme.text }}">欢迎页面</text>
       </div>
     </div>
 
     <div class="settings-footer">
-      <text class="version-text" style="color: {{ theme.text }}">v{{ versionText }}</text>
-      <text class="welcome-link" onclick="goToWelcome" style="color: {{ theme.accent }}">欢迎页</text>
+      <text class="version-text" style="color: {{ theme.textMuted }}">v{{ versionText }}</text>
       <input class="exit-app-btn" type="button"
-             value="{{ exitConfirm ? '再点一次退出' : '退出应用' }}"
+             value="{{ exitConfirm ? '再点确认' : '退出应用' }}"
              onclick="handleExitApp"
-             style="background-color: {{ theme.cardLight }}; color: {{ exitConfirm ? theme.deleteText : theme.textSecondary }}" />
-      <text class="exit-app-hint" if="{{ exitConfirm }}" style="color: {{ theme.textMuted }}">3 秒内再点一次即退出</text>
+             style="background-color: {{ theme.card }}; color: {{ exitConfirm ? theme.deleteText : theme.text }}" />
     </div>
     </div>
     </scroll>
 
     <unlock-dialog id="unlockDialog"></unlock-dialog>
 
-    <div class="overlay-modal" if="{{ showPremiumDialog }}" onclick="dismissPremiumDialog"
-         style="position: absolute; left: 0; top: 0; width: 100%; height: 100%">
+    <div class="overlay-modal" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: {{ showPremiumDialog ? 'flex' : 'none' }}" onclick="dismissPremiumDialog">
       <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
-        <text class="modal-title" style="color: {{ theme.accent }}">解锁高级版</text>
-        <text class="modal-desc" style="color: {{ theme.textSecondary }}">多课表管理 · 云备份恢复 · 自定义主题，一次性解锁永久使用</text>
+        <text class="modal-title" style="color: {{ theme.accent }}">解锁功能</text>
+        <text class="modal-desc" style="color: {{ theme.textSecondary }}">永久解锁</text>
         <input class="modal-btn-primary" type="button" value="立即解锁" onclick="goToPremium"
                style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
         <input class="modal-btn-secondary" type="button" value="取消" onclick="dismissPremiumDialog"
@@ -199,19 +126,18 @@
       </div>
     </div>
 
-    <div class="theme-drawer" if="{{ showTheme }}" onclick="closeThemeDrawer"
-         style="position: absolute; left: 0; top: 0; width: 100%; height: 100%">
+    <div class="theme-drawer" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: {{ showTheme ? 'flex' : 'none' }}" onclick="closeThemeDrawer">
       <div class="theme-drawer-panel" style="position: absolute; left: 0; bottom: 0; width: 100%; background-color: {{ theme.card }}" onclick="stopBubble">
         <div class="drawer-handle" style="background-color: {{ theme.border }}"></div>
         <text class="drawer-title" style="color: {{ theme.text }}">主题配色</text>
         <div class="theme-row">
-          <div for="{{ themesRow1 }}" class="theme-item {{ currentThemeKey === $item.key ? 'active' : '' }}" onclick="selectTheme($item.key)" style="border-color: {{ currentThemeKey === $item.key ? theme.accent : 'transparent' }}">
+          <div for="{{ themesRow1 }}" class="theme-item" onclick="selectTheme($item.key)" style="border-color: {{ currentThemeKey === $item.key ? theme.accent : 'transparent' }}">
             <div class="theme-dot" style="background-color: {{ $item.accent }}"></div>
             <text class="theme-name" style="color: {{ currentThemeKey === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.name }}</text>
           </div>
         </div>
         <div class="theme-row">
-          <div for="{{ themesRow2 }}" class="theme-item {{ currentThemeKey === $item.key ? 'active' : '' }}" onclick="selectTheme($item.key)" style="border-color: {{ currentThemeKey === $item.key ? theme.accent : 'transparent' }}">
+          <div for="{{ themesRow2 }}" class="theme-item" onclick="selectTheme($item.key)" style="border-color: {{ currentThemeKey === $item.key ? theme.accent : 'transparent' }}">
             <div class="theme-dot" style="background-color: {{ $item.accent }}"></div>
             <text class="theme-name" style="color: {{ currentThemeKey === $item.key ? theme.accent : theme.textSecondary }}">{{ $item.name }}</text>
           </div>
@@ -227,27 +153,13 @@
 import router from "@system.router"
 const store = require("../../data/store.js")
 const version = require("../../data/version.js")
-const device = require("@system.device")
 
 const sizeLevels = [20, 28, 36, 48, 62, 76]
 
 var exitConfirmTimer = null
-var isCapsuleScreen = false
-var settingsInstance = null
-
-device.getInfo({
-  success: function(data) {
-    var shape = data.screenShape || ""
-    isCapsuleScreen = (shape === "capsule" || shape === "pill-shaped")
-    if (settingsInstance) {
-      settingsInstance.isCapsule = isCapsuleScreen
-    }
-  }
-})
 
 export default {
   private: {
-    isCapsule: false,
     nickname: "",
     displaySize: 48,
     previewClassSize: 48,
@@ -283,16 +195,10 @@ export default {
     showPremiumDialog: false,
     showFontSize: false,
     showTheme: false,
-    showPersonal: false,
-    showSchedule: false,
-    showData: false,
-    showAbout: false,
     exitConfirm: false
   },
 
   onInit() {
-    settingsInstance = this
-    this.isCapsule = isCapsuleScreen
     var self = this
     this.themes = store.getAvailableThemes ? store.getAvailableThemes() : []
     var mid = Math.ceil(this.themes.length / 2)
@@ -433,10 +339,6 @@ export default {
     this.showTheme = false
   },
 
-  toggleGroup(group) {
-    this['show' + group.charAt(0).toUpperCase() + group.slice(1)] = !this['show' + group.charAt(0).toUpperCase() + group.slice(1)]
-  },
-
   openNicknameEdit() {
     var storage = require("@system.storage")
     storage.set({ key: "chinese_input_title", value: "编辑昵称", success: function() {} })
@@ -546,7 +448,13 @@ export default {
 </script>
 
 <style>
-.settings-page {
+@import '../../common/header.css';
+
+/* 192px 宽 · 内容宽 = 192 − 12×2 = 168；卡片内可用 = 168 − 8×2 = 152px
+ * 实测汉字渲染宽 ≈ 1.33 × 字号：28px 的 4 字 = 149px（贴边单行），5 字 = 186px 必裁。
+ * → 本页所有行标签一律 ≤4 字；不设导航箭头（手册红线 6），可点性靠卡片底色。
+ * 旧版页面 padding 上下 8px、卡片 padding 18px、行 padding 12px，一屏只放得下 5 个条目。 */
+.page {
   position: absolute;
   left: 0;
   top: 0;
@@ -558,13 +466,6 @@ export default {
   box-sizing: border-box;
 }
 
-.settings-body {
-  flex-direction: column;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 8px 8px 12px 8px;
-}
-
 .settings-scroll {
   flex: 1;
   flex-direction: column;
@@ -572,207 +473,141 @@ export default {
   box-sizing: border-box;
 }
 
-.back-header-capsule {
+.page-body {
   flex-direction: column;
-  align-items: center;
-  margin-bottom: 12px;
-  padding: 0 4px;
+  width: 100%;
+  padding: 44px 12px 12px 12px;
+  box-sizing: border-box;
 }
 
-.back-btn-capsule {
-  width: 48px;
-  height: 48px;
-  border-radius: 24px;
+/* ---- header：与全项目同一骨架 ---- */
+.back-header {
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.back-btn-wrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   justify-content: center;
   align-items: center;
   flex-shrink: 0;
 }
 
-.back-btn-icon-capsule {
-  width: 32px;
-  height: 32px;
+.back-btn-icon {
+  width: 24px;
+  height: 24px;
 }
 
-.header-title-capsule {
-  font-size: 24px;
-  font-weight: bold;
-  text-align: center;
-  line-height: 34px;
-  margin-top: 6px;
-}
-
-.back-header-row {
-  flex-direction: row;
-  align-items: center;
-  padding: 2px 4px;
-  margin-bottom: 8px;
-}
-
-.back-btn-icon-row {
-  width: 28px;
-  height: 28px;
-  margin-right: 8px;
-  flex-shrink: 0;
-}
-
-.header-title-row {
+.header-title {
   flex: 1;
   font-size: 24px;
   font-weight: bold;
+  text-align: center;
   line-height: 32px;
 }
 
+.header-placeholder {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+/* ---- 分组卡片 ---- */
 .group {
   flex-direction: column;
+  width: 100%;
   border-radius: 14px;
-  padding: 18px 8px;
-  margin-bottom: 18px;
+  padding: 10px 8px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
 }
 
 .group-title {
   font-size: 28px;
   font-weight: bold;
-  opacity: 0.8;
   line-height: 38px;
+  padding-left: 2px;
+  margin-bottom: 2px;
+  flex-shrink: 0;
 }
 
-.group-title-row {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-}
-
-.font-size-body {
-  flex-direction: column;
-}
-
+/* 行高 46px：38(行高) + 4×2(padding) 已满足 44px 热区下限；
+ * 行与行之间靠这 8px 纵向间距分隔，不写 border（border-bottom 会被渲染成四边框） */
 .row {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
-  min-height: 44px;
-}
-
-.nickname-row {
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 14px 0;
-  width: 100%; /* 手环铁律：div 宽度默认随内容收缩，列表项必须显式满宽，否则热区塌到左下角 */
-}
-.nickname-label {
-  line-height: 36px;
-  margin-bottom: 2px;
-}
-.nickname-value-wrap {
-  flex-direction: row;
-  align-items: center;
   width: 100%;
-}
-.nickname-value {
-  line-height: 38px;
-}
-.nickname-arrow {
-  margin-left: 4px;
+  padding: 4px 0;
+  min-height: 46px;
+  box-sizing: border-box;
 }
 
 .row-label {
   font-size: 28px;
+  line-height: 38px;
   flex-shrink: 0;
-  line-height: 38px;
 }
 
-.row-right {
-  flex-direction: row;
-  align-items: center;
-  flex-shrink: 1;
-  overflow: hidden;
+/* 信息行竖排（手册 #13）：标签 24px 灰在上 / 值 28px 亮在下
+ * 横排不行：28px 的「我的昵称」就吃 149px，剩下的放不下任何昵称值 */
+.info-row {
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-.row-value {
-  font-size: 28px;
-  margin-right: 6px;
-  line-height: 38px;
-}
-
-.row-hint {
-  display: none;
+.info-label {
   font-size: 24px;
-  margin-right: 6px;
-  line-height: 38px;
-}
-
-.size-indicator {
-  display: none;
-  font-size: 24px;
-  margin-right: 6px;
-  line-height: 32px;
+  line-height: 34px;
   flex-shrink: 0;
 }
 
-.arrow {
+.info-value {
   font-size: 28px;
-  flex-shrink: 0;
   line-height: 38px;
-}
-
-.divider {
-  height: 1px;
-  margin: 6px 0;
+  font-weight: bold;
+  width: 100%;
+  lines: 2;
 }
 
 .switch-track {
-  width: 44px;
-  height: 24px;
-  border-radius: 12px;
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
   flex-shrink: 0;
   position: relative;
 }
 
 .switch-thumb {
-  width: 20px;
-  height: 20px;
-  border-radius: 10px;
+  width: 18px;
+  height: 18px;
+  border-radius: 9px;
   position: absolute;
   top: 2px;
 }
 
-.theme-item {
+/* ---- 课程字号面板 ---- */
+.size-panel {
   flex-direction: column;
-  align-items: center;
-  flex: 1;
-  padding: 12px 0;
-  border-radius: 8px;
-  border: 2px solid transparent;
-}
-
-.theme-dot {
-  width: 26px;
-  height: 26px;
-  border-radius: 13px;
-}
-
-.theme-name {
-  font-size: 28px;
-  margin-top: 4px;
-  text-align: center;
-  line-height: 38px;
+  padding: 2px 0 4px 0;
 }
 
 .scale-row {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
-/* 加减钮：40→44（规则 §8.3 热区下限）。行高同步 36→40，字仍 24 */
 .scale-btn {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
   text-align: center;
   line-height: 40px;
@@ -781,14 +616,14 @@ export default {
 .scale-value {
   font-size: 28px;
   font-weight: bold;
-  width: 72px;
+  width: 92px;
   text-align: center;
   line-height: 38px;
 }
 
 .preview-box {
-  border-radius: 8px;
-  padding: 12px;
+  border-radius: 10px;
+  padding: 8px;
   align-items: center;
   justify-content: center;
 }
@@ -802,272 +637,201 @@ export default {
   font-size: 24px;
   line-height: 34px;
   text-align: center;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
-.version-text {
-  font-size: 28px;
-  text-align: center;
-  font-weight: bold;
-  width: 100%;
-  padding-top: 14px;
-  padding-bottom: 8px;
-  line-height: 36px;
-}
-
+/* ---- 页脚 ---- */
 .settings-footer {
   flex-direction: column;
   align-items: center;
   width: 100%;
 }
 
-.welcome-link {
-  font-size: 28px;
+.version-text {
+  font-size: 24px;
+  line-height: 34px;
   text-align: center;
-  padding-bottom: 20px;
-  line-height: 38px;
+  width: 100%;
+  padding: 2px 0 10px 0;
 }
 
 .exit-app-btn {
   width: 100%;
-  height: 48px;
-  border-radius: 24px;
-  font-size: 26px;
+  height: 46px;
+  border-radius: 23px;
+  font-size: 28px;
   text-align: center;
   border-width: 0;
-  margin-top: 4px;
-  margin-bottom: 20px;
-  line-height: 48px;
+  line-height: 46px;
 }
 
-.exit-app-hint {
-  font-size: 22px;
-  text-align: center;
-  padding-bottom: 16px;
-  line-height: 31px;
-}
-
+/* ---- 高级版弹窗 ---- */
 .overlay-modal {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  z-index: 1100;
 }
 
 .modal-card {
-  width: 80%;
+  width: 92%;
   border-radius: 16px;
-  padding: 20px 18px;
+  padding: 16px 10px;
   flex-direction: column;
   align-items: center;
+  box-sizing: border-box;
 }
 
 .modal-title {
-  font-size: 30px;
+  font-size: 28px;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
   text-align: center;
-  line-height: 40px;
+  line-height: 38px;
 }
 
 .modal-desc {
   font-size: 24px;
   text-align: center;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   line-height: 34px;
 }
 
 .modal-btn-primary {
   width: 100%;
-  height: 44px;
-  border-radius: 21px;
+  height: 46px;
+  border-radius: 23px;
   font-size: 28px;
   font-weight: bold;
   margin-bottom: 8px;
-  line-height: 40px;
+  line-height: 46px;
 }
 
 .modal-btn-secondary {
   width: 100%;
-  height: 44px;
-  border-radius: 18px;
+  height: 46px;
+  border-radius: 23px;
   font-size: 28px;
-  line-height: 40px;
+  line-height: 46px;
 }
 
-@media screen and (shape: circle) {
-  .settings-body {
-    padding: 44px 36px 44px 36px;
-  }
-  .back-header-capsule {
-    margin-bottom: 8px;
-    padding: 0 20px;
-    justify-content: center;
-  }
-  .back-btn-capsule {
-    width: 52px;
-    height: 52px;
-  }
-  .back-btn-icon-capsule {
-    width: 32px;
-    height: 32px;
-  }
-  .header-title-capsule {
-    font-size: 30px;
-    line-height: 40px;
-  }
-  .back-btn-icon-row {
-    width: 32px;
-    height: 32px;
-    margin-right: 12px;
-  }
-  .header-title-row {
-    font-size: 30px;
-    line-height: 40px;
-  }
-  .row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .row-right {
-    margin-top: 6px;
-  }
-  .row-label {
-    font-size: 28px;
-    line-height: 38px;
-  }
-  .row-hint {
-    font-size: 24px;
-    line-height: 32px;
-  }
-  .version-text {
-    font-size: 20px;
-    line-height: 28px;
-  }
-  .exit-app-btn {
-    height: 48px;
-    border-radius: 24px;
-    font-size: 22px;
-    line-height: 48px;
-  }
-  .exit-app-hint {
-    font-size: 18px;
-    line-height: 26px;
-  }
-}
-
-@media (shape: capsule) {
-  .settings-body {
-    padding: 8px 8px 12px 8px;
-  }
-}
-
-@media (shape: rect) {
-  .settings-body {
-    padding: 6px 6px 6px 6px;
-  }
-}
-
-@media (width >= 200px) {
-  .settings-body {
-    padding: 8px 8px 12px 8px;
-  }
-  .back-header-row {
-    padding: 2px 0;
-    margin-bottom: 6px;
-  }
-  .back-btn-icon-row {
-    width: 28px;
-    height: 28px;
-    margin-right: 8px;
-  }
-  .header-title-row {
-    font-size: 26px;
-    line-height: 34px;
-  }
-  .theme-drawer-panel {
-    padding: 8px 12px 16px 12px;
-  }
-  .drawer-title {
-    font-size: 24px;
-    line-height: 30px;
-  }
-  .theme-dot {
-    width: 24px;
-    height: 24px;
-  }
-  .theme-name {
-    font-size: 22px;
-    line-height: 30px;
-  }
-  .drawer-done {
-    height: 42px;
-    font-size: 24px;
-  }
-}
-
-@media (width >= 400px) {
-  .settings-body {
-    padding: 4px 8px 4px 8px;
-  }
-  .back-header-row {
-    padding: 2px 0;
-    margin-bottom: 4px;
-  }
-  .back-btn-icon-row {
-    width: 32px;
-    height: 32px;
-    margin-right: 12px;
-  }
-  .header-title-row {
-    font-size: 30px;
-    line-height: 40px;
-  }
-  .row-label {
-    font-size: 28px;
-    line-height: 38px;
-  }
-  .row-hint {
-    display: flex;
-    font-size: 24px;
-    line-height: 32px;
-  }
-  .size-indicator {
-    display: flex;
-  }
-}
-
+/* ---- 主题抽屉 ---- */
 .theme-drawer {
-  background-color: rgba(0, 0, 0, 0.45);
+  background-color: rgba(0, 0, 0, 0.55);
   z-index: 1200;
+  flex-direction: column;
+  justify-content: flex-end;
 }
+
 .theme-drawer-panel {
   border-radius: 20px 20px 0 0;
-  padding: 10px 14px 18px 14px;
+  padding: 10px 12px 16px 12px;
   flex-direction: column;
   align-items: center;
+  box-sizing: border-box;
 }
+
 .drawer-handle {
   width: 44px;
   height: 6px;
   border-radius: 3px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
+
 .drawer-title {
   font-size: 28px;
-  line-height: 36px;
+  line-height: 38px;
   text-align: center;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
+
 .theme-row {
   flex-direction: row;
   width: 100%;
 }
+
+.theme-item {
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  padding: 8px 0;
+  border-radius: 10px;
+  border: 2px solid transparent;
+}
+
+.theme-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+}
+
+.theme-name {
+  font-size: 24px;
+  margin-top: 2px;
+  text-align: center;
+  line-height: 34px;
+}
+
 .drawer-done {
   width: 100%;
   height: 46px;
   border-radius: 23px;
-  font-size: 26px;
-  margin-top: 10px;
+  font-size: 28px;
+  margin-top: 8px;
+  line-height: 46px;
+}
+
+/* ---- 方屏 / 圆屏：只放大字号与留白，不引入第五档字号 ---- */
+@media screen and (shape: rect) {
+  .page-body {
+    padding: 40px 20px 16px 20px;
+  }
+
+  .row-label {
+    font-size: 30px;
+    line-height: 40px;
+  }
+
+  .group-title {
+    font-size: 30px;
+    line-height: 40px;
+  }
+
+  .info-value {
+    font-size: 30px;
+    line-height: 40px;
+  }
+
+  .header-title {
+    font-size: 30px;
+    line-height: 40px;
+  }
+}
+
+@media screen and (shape: circle) {
+  .page-body {
+    padding: 56px 40px 32px 40px;
+  }
+
+  .row-label {
+    font-size: 30px;
+    line-height: 40px;
+  }
+
+  .group-title {
+    font-size: 30px;
+    line-height: 40px;
+  }
+
+  .info-value {
+    font-size: 30px;
+    line-height: 40px;
+  }
+
+  .header-title {
+    font-size: 30px;
+    line-height: 40px;
+  }
 }
 </style>
