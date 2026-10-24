@@ -111,27 +111,17 @@ export default {
 }
 
 .back-btn-wrapper {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
+  width: 36px; height: 36px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0;
 }
 
 .back-btn-icon {
-  width: 24px;
-  height: 24px;
+  width: 24px; height: 24px;
 }
 
 /* 标题居中：192 宽屏减去返回钮后仅剩 ~120px，4 个汉字 28px 必然折行，
    故降到 26px 并去掉右侧等宽占位（占位 48px 会把标题压到 64px，直接两行）。 */
 .header-title {
-  flex: 1;
-  font-size: 24px;
-  font-weight: bold;
-  text-align: center;
-  line-height: 32px;
+  flex: 1; font-size: 24px; font-weight: bold; text-align: center; line-height: 32px; lines: 1;
 }
 
 /* 目录页定位说明（「更多首页」改名配套）：18px/24px 行高、次要色。

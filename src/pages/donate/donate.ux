@@ -133,11 +133,7 @@ export default {
 @import '../../common/header.css';
 
 .header-title {
-  font-size: 32px;
-  font-weight: bold;
-  line-height: 42px;
-  lines: 1;
-  text-overflow: ellipsis;
+  flex: 1; font-size: 24px; font-weight: bold; text-align: center; line-height: 32px; lines: 1;
 }
 
 .page-root {

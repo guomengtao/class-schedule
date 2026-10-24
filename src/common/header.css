@@ -21,7 +21,9 @@
 
 /* 标题字号全项目统一 24px（四档字号表的次级档，也是 24px 绝对下限）：
  * 手环可读性的底线值，不允许任何页面再写 18/20/22。
- * 大屏（rect / circle）在下方媒体查询里放大到 30px，属同一档的上浮，不算新档。 */
+ * 大屏（rect / circle）在下方媒体查询里放大到 30px，属同一档的上浮，不算新档。
+ * 标题一律 ≤4 汉字（2026-10-24 裁定）：24px × 4 = 96px，可用宽 112px 放得下。
+ * 不加 text-overflow: ellipsis —— ev-six 禁「…」，超长标题应改文案而非省略。 */
 .header-title {
   flex: 1;
   font-size: 24px;
@@ -29,19 +31,20 @@
   text-align: center;
   line-height: 32px;
   lines: 1;
-  text-overflow: ellipsis;
 }
 
+/* 返回键 36×36 / 占位 36×36：两者必须等宽，否则标题偏心。
+ * 2026-10-24 由 48→36 收敛，与 settings 页既有骨架对齐。 */
 .header-placeholder {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
 }
 
 .back-btn-wrapper {
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   justify-content: center;
   align-items: center;
   flex-shrink: 0;

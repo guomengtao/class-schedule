@@ -683,26 +683,15 @@ export default {
 }
 
 .back-btn-wrapper {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
+  width: 36px; height: 36px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0;
 }
 
 .back-btn-icon {
-  width: 24px;
-  height: 24px;
+  width: 24px; height: 24px;
 }
 
 .header-title {
-  flex: 1;
-  font-size: 24px;
-  line-height: 30px;
-  margin-left: 8px;
-  lines: 1;
-  text-overflow: ellipsis;
+  flex: 1; font-size: 24px; font-weight: bold; text-align: center; line-height: 32px; lines: 1;
 }
 
 .field {

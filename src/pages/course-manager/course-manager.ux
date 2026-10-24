@@ -5,25 +5,13 @@
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">课程</text>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">课程</text>
       <div class="header-placeholder"></div>
     </div>
 
-    <!-- 胶囊屏：清除与添加合并为一行工具栏（方案A，省一整行竖向空间） -->
-    <div class="toolbar-cap" if="{{ isCapsule }}">
-      <div class="clear-group" if="{{ courseList.length > 0 }}">
-        <text class="clear-hint" style="color: {{ theme.deleteText }}">{{ clearAllConfirm ? '再次点击确认' : '清除全部' }}</text>
-        <input class="clear-btn" type="button" value="{{ clearAllConfirm ? '确认' : '清除' }}" onclick="clearAllCourses" style="background-color: {{ clearAllConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ clearAllConfirm ? theme.text : theme.deleteText }}" />
-      </div>
-      <input class="add-btn-cap" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-    </div>
-
-    <!-- 内容区操作行（规则②）：左清除（有课程时）/ 右添加（常驻），不占用头部空间 -->
-    <div class="action-bar" if="{{ !isCapsule }}">
-      <div class="clear-group" if="{{ courseList.length > 0 }}">
-        <text class="clear-hint" style="color: {{ theme.deleteText }}">{{ clearAllConfirm ? '再次点击确认' : '清除全部' }}</text>
-        <input class="clear-btn" type="button" value="{{ clearAllConfirm ? '确认' : '清除' }}" onclick="clearAllCourses" style="background-color: {{ clearAllConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ clearAllConfirm ? theme.text : theme.deleteText }}" />
-      </div>
+    <!-- 内容区操作行（规则②）：左清空（有课程时）/ 右添加（常驻）。全屏型共用一套，不再按 isCapsule 分叉 -->
+    <div class="action-bar">
+      <input class="clear-btn" if="{{ courseList.length > 0 }}" type="button" value="{{ clearAllConfirm ? '确认' : '清空' }}" onclick="clearAllCourses" style="background-color: {{ clearAllConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ clearAllConfirm ? theme.text : theme.deleteText }}" />
       <input class="add-btn" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
@@ -42,7 +30,7 @@
           <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}" onclick="deleteCourse($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === $idx ? theme.text : theme.deleteText }}" />
         </div>
       </div>
-      <text if="{{ courseList.length === 0 }}" class="empty-hint" style="color: {{ theme.textMuted }}; text-align: center; padding: 40px 10px;">{{ isCapsule ? '暂无课程，点击上方 + 添加' : '暂无课程，点击下方 + 添加' }}</text>
+      <text if="{{ courseList.length === 0 }}" class="empty-hint" style="color: {{ theme.textMuted }}; text-align: center; padding: 40px 10px;">暂无课程，点击下方 + 添加</text>
     </scroll>
 
     <div class="undo-bar" if="{{ undoVisible }}" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
@@ -413,31 +401,11 @@ export default {
   font-weight: bold;
   text-align: center;
   line-height: 36px;
-  flex-shrink: 0;
-}
+  flex-shrink: 0;}
 
 /* ---- 胶囊屏（手环9 / 10 Pro）工具栏：清除 + 添加 ---- */
-.toolbar-cap {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  height: 48px;
-  margin-bottom: 6px;
-}
 
-.clear-group {
-  flex-direction: row;
-  align-items: center;
-}
 
-.add-btn-cap {
-  width: 72px;
-  height: 48px;
-  border-radius: 14px;
-  font-size: 22px;
-  line-height: 48px;
-  flex-shrink: 0;
-}
 
 .action-bar {
   flex-direction: row;
@@ -448,23 +416,16 @@ export default {
   flex-shrink: 0;
 }
 
-.clear-hint {
-  font-size: 20px;
-  flex: 1;
-  line-height: 28px;
-}
 
 .clear-btn {
-  width: 64px;
-  height: 44px;
-  border-radius: 20px;
+  width: 76px;
+  height: 36px;
+  border-radius: 18px;
   font-size: 22px;
   font-weight: bold;
   text-align: center;
-  line-height: 40px;
-  flex-shrink: 0;
-  margin-left: 6px;
-}
+  line-height: 36px;
+  flex-shrink: 0;}
 
 .course-list-scroll {
   flex: 1;
@@ -556,43 +517,14 @@ export default {
   margin-left: 10px;
 }
 
-/* ---- 手环9 返回按钮 + 标题（胶囊 header） ---- */
-.back-btn-cap {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-}
-
-.back-icon-cap {
-  width: 20px;
-  height: 20px;
-}
-
-.header-title-cap {
-  font-size: 24px;
-  line-height: 32px;
-}
-
-.placeholder-cap {
-  width: 40px;
-}
-
 /* ================================================================
    宽度断点：手环 10 / 胶囊屏大号（width >= 200px，内容区 ~180px）
    在 base 基础上「增量」调整。
    ================================================================ */
 @media (width >= 200px) {
-  .header-title-cap {
-    font-size: 28px;
-    line-height: 36px;
-  }
   .course-name {
     font-size: 24px;
     line-height: 32px;
-  }
-  .clear-hint {
-    font-size: 22px;
-    line-height: 30px;
   }
   .clear-btn {
     width: 64px;
@@ -620,10 +552,6 @@ export default {
     border-radius: 22px;
     font-size: 24px;
     line-height: 40px;
-  }
-  .clear-hint {
-    font-size: 24px;
-    line-height: 32px;
   }
   .clear-btn {
     width: 64px;
@@ -684,9 +612,6 @@ export default {
   .page {
     padding: 38px 36px 44px 36px;
   }
-  .toolbar-cap {
-    display: none;
-  }
         .add-btn {
     width: 72px;
     height: 44px;
@@ -694,7 +619,7 @@ export default {
     font-size: 22px;
     line-height: 40px;
   }
-  .clear-bar {
+  .action-bar {
     display: flex;
   }
   .course-item {
@@ -741,10 +666,6 @@ export default {
     font-size: 22px;
     line-height: 40px;
     margin-left: 6px;
-  }
-  .clear-hint {
-    font-size: 22px;
-    line-height: 30px;
   }
   .clear-btn {
     width: 64px;
