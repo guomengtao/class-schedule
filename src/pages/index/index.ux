@@ -1,6 +1,9 @@
 <template>
   <div id="schedule-page" class="schedule-page" style="background-color: {{ theme.bg }}">
-    <div class="date-row" if="{{ !isLoading }}">
+    <!-- 第一行兼作「回今天」：点击无论当前在哪天都回到今天（已在今天则无操作）。
+         热区靠 .date-row 高度撑到 44px，文字用 align-items:flex-start 顶对齐，
+         视觉位置与改动前完全一致，不额外占可见高度（空白由 class-list 的 flex:1 吸收）。 -->
+    <div class="date-row" if="{{ !isLoading }}" onclick="goToToday">
       <text class="date-text" style="color: {{ theme.textSecondary }}">{{ topLabel }}</text>
     </div>
 
@@ -862,6 +865,10 @@ export default {
 
 .date-row {
   padding: 0;
+  /* 44px 是手环触控热区下限；文字顶对齐（flex-start），
+     故 30→44 只向下加高、文字不动，视觉零变化 */
+  height: 44px;
+  align-items: flex-start;
   flex-shrink: 0;
 }
 

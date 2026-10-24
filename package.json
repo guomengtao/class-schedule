@@ -1,6 +1,6 @@
 {
   "name": "class",
-  "version": "1.9.37",
+  "version": "1.9.39",
   "description": "",
   "engines": {
     "node": ">=8.10"
