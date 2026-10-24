@@ -46,12 +46,16 @@
           <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
         </div>
         <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">留言板</text>
-        <div class="manage-entry" onclick="toggleManage" style="background-color: {{ theme.card }}">
-          <text class="manage-entry-text" style="color: {{ theme.accent }}">管理</text>
-        </div>
+        <div class="header-placeholder"></div>
       </div>
 
       <scroll class="list-area">
+        <!-- 「管理」从头部移入内容区（ev-six 规则②：头部只留返回键 + 居中标题） -->
+        <div class="manage-bar">
+          <div class="manage-entry" onclick="toggleManage" style="background-color: {{ theme.card }}">
+            <text class="manage-entry-text" style="color: {{ theme.accent }}">管理</text>
+          </div>
+        </div>
         <!-- 手机消息：白气泡靠左 -->
         <div class="chat-area" if="{{ messages.length > 0 }}">
           <block for="{{ messages }}">
@@ -630,17 +634,17 @@ export default {
 }
 
 .back-btn-wrapper {
-  width: 44px;
-  height: 44px;
-  border-radius: 9px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   justify-content: center;
   align-items: center;
   flex-shrink: 0;
 }
 
 .back-btn-icon {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
 }
 
 /* 2026-10-21 规则 §七：标题 18→24（页面标题档）。
@@ -651,29 +655,35 @@ export default {
   font-size: 24px;
   font-weight: bold;
   text-align: center;
-  line-height: 30px;
-  lines: 1;
-  text-overflow: ellipsis;
+  line-height: 32px;
 }
 
 .header-placeholder {
-  width: 40px;
+  width: 36px;
   height: 36px;
   flex-shrink: 0;
 }
 
+/* 原头部「管理」入口的内容区容器：右对齐一行，不占标题空间 */
+.manage-bar {
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+
 .manage-entry {
-  width: 44px;
+  /* 24px 字号下「管理」两字 = 48px，44px 容器会折行；扩到 64px 留出呼吸 */
+  width: 64px;
   height: 44px;
-  border-radius: 9px;
+  border-radius: 8px;
   justify-content: center;
   align-items: center;
   flex-shrink: 0;
 }
 
 .manage-entry-text {
-  font-size: 20px;
-  line-height: 26px;
+  font-size: 24px;
+  line-height: 32px;
 }
 
 /* ---------- 消息区 ---------- */

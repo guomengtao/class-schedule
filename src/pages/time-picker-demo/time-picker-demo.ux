@@ -173,7 +173,7 @@ export default {
 .back-header { flex-direction: row; align-items: center; margin-bottom: 14px; padding: 0 4px; }
 .back-btn-wrapper { width: 36px; height: 36px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0; }
 .back-btn-icon { width: 24px; height: 24px; }
-.header-title { flex: 1; font-size: 30px; font-weight: bold; text-align: center; line-height: 40px; }
+.header-title { flex: 1; font-size: 24px; font-weight: bold; text-align: center; line-height: 32px; }
 .header-placeholder { width: 36px; height: 36px; flex-shrink: 0; }
 
 .demo-tip { font-size: 24px; line-height: 32px; text-align: center; margin: 20px 0; }
