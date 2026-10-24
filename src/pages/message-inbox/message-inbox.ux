@@ -17,7 +17,7 @@
             <!-- 默认态：整行就是一个短语按钮，热区足够大 -->
             <div class="phrase-row-full" onclick="tapPhraseRow($idx)"
                  style="background-color: {{ expandedIdx === $idx ? theme.accentBg : 'transparent' }}; border-color: {{ expandedIdx === $idx ? theme.accent : 'transparent' }}">
-              <text class="phrase-item-text" lines="1" text-overflow="ellipsis"
+              <text class="phrase-item-text" lines="1"
                     style="color: {{ expandedIdx === $idx ? theme.accent : theme.text }}">{{ $item }}</text>
             </div>
             <!-- 展开态：编辑 / 删除，等宽热区 -->
@@ -31,11 +31,11 @@
             </div>
           </div>
         </div>
-        <text class="manage-hint" style="color: {{ theme.textMuted }}">点短语展开操作 · 长按消息置顶</text>
+        <text class="manage-hint" style="color: {{ theme.textMuted }}">点短语展开</text>
       </scroll>
 
       <div class="add-btn" onclick="phraseAdd" style="background-color: {{ theme.accent }}">
-        <text class="add-btn-text" style="color: {{ theme.bg }}">＋ 新增短语</text>
+        <text class="add-btn-text" style="color: {{ theme.bg }}">新增短语</text>
       </div>
     </block>
 
@@ -61,7 +61,7 @@
           <block for="{{ messages }}">
             <!-- 对方正在输入：虚线预显示气泡（未发送也能看到） -->
             <div class="bubble-row left" if="{{ peerTypingActive && $item.isLastPhone }}">
-              <text class="typing-tag" style="color: {{ theme.accent }}">对方正在输入</text>
+              <text class="typing-tag" style="color: {{ theme.accent }}">正在输入</text>
               <div class="bubble phone-bubble draft-bubble" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
                 <text class="bubble-text" style="color: {{ theme.textMuted }}">{{ peerTyping }}</text>
               </div>
@@ -78,12 +78,13 @@
 
         <div class="empty-state" if="{{ messages.length === 0 && !peerTypingActive }}">
           <text class="empty-text" style="color: {{ theme.textMuted }}">暂无留言</text>
-          <text class="empty-hint" style="color: {{ theme.textMuted }}">手机端发送的留言会显示在这里</text>
+          <text class="empty-hint" style="color: {{ theme.textMuted }}">手机端可见</text>
         </div>
       </scroll>
 
       <div class="meta-row" if="{{ messages.length > 0 }}">
-        <text class="meta-text" style="color: {{ theme.textMuted }}">共 {{ messages.length }} 条 · 未读 {{ unread }}</text>
+        <text class="meta-text" if="{{ unread > 0 }}" style="color: {{ theme.textMuted }}">未读{{ unread }}</text>
+        <text class="meta-text" if="{{ unread <= 0 }}"></text>
         <div class="clear-btn" onclick="clearAll" style="background-color: {{ theme.deleteBg }}">
           <text class="clear-btn-text" style="color: {{ theme.deleteText }}">清空</text>
         </div>
@@ -92,15 +93,17 @@
       <div class="reply-bar" style="background-color: {{ theme.card }}">
         <text class="phone-status" onclick="statusTap" style="color: {{ phoneStatusColor }}">{{ phoneStatus }}</text>
         <div class="phrase-row" style="background-color: {{ theme.cardLight }}">
-          <text class="phrase-arrow" style="color: {{ theme.textMuted }}">‹</text>
-          <swiper class="phrase-swiper" index="{{ phraseIdx }}" loop="false" onchange="onPhraseSwipe">
-            <div class="phrase-slide" for="{{ phrases }}" onclick="sendCurrent">
+          <!-- 2026-10-24：原 <swiper> 在 Vela 上只渲染出指示点、短语文字全空（全项目仅此一处用 swiper），
+               改成横向 scroll + 点哪条发哪条：交互从「横滑翻页再点」变成「直接点」，符合 ev-six 一点即发。 -->
+          <scroll class="phrase-scroll" scroll-x="true">
+            <div class="phrase-chip" for="{{ phrases }}" onclick="sendIdx($idx)"
+                 style="background-color: transparent">
               <text class="phrase-text" style="color: {{ theme.accent }}">{{ $item }}</text>
             </div>
-          </swiper>
+          </scroll>
         </div>
         <div class="write-btn" onclick="writeReply" style="background-color: {{ theme.accent }}">
-          <text class="write-text" style="color: {{ theme.bg }}">自己写…</text>
+          <text class="write-text" style="color: {{ theme.bg }}">自己写</text>
         </div>
       </div>
     </block>
@@ -229,7 +232,7 @@ export default {
       return
     }
     var txt = String(d.text || "")
-    this.peerTyping = txt.length > 0 ? txt : "正在输入…"
+    this.peerTyping = txt.length > 0 ? txt : "正在输入"
     this.peerTypingActive = true
   },
 
@@ -431,17 +434,12 @@ export default {
 
   // ======================= 回复 =======================
 
-  /** 横滑选择：swiper 的 onchange 带回当前页索引 */
-  onPhraseSwipe(e) {
-    if (e && typeof e.index === "number") {
-      this.phraseIdx = e.index
+  /** 点按某条短语：直接发回手机（原来要点开横滑页再点，多一步） */
+  sendIdx(idx) {
+    var p = this.phrases[idx]
+    if (p) {
+      this.sendPhrase(p)
     }
-  },
-
-  /** 点按当前短语：直接发回手机 */
-  sendCurrent() {
-    var p = this.phrases[this.phraseIdx]
-    this.sendPhrase(p)
   },
 
   /** 点快捷短语：直接发回手机（保留方法名：单测依赖） */
@@ -495,16 +493,16 @@ export default {
     }
     var d = Date.now() - ts
     if (d < 60000) {
-      this.phoneStatus = "手机在线 · 刚刚确认"
+      this.phoneStatus = "在线 刚刚"
       this.phoneStatusColor = "#8fd6a0"
     } else if (d < 3600000) {
-      this.phoneStatus = "手机在线 · " + Math.floor(d / 60000) + "分钟前"
+      this.phoneStatus = "在线 " + Math.floor(d / 60000) + "分钟"
       this.phoneStatusColor = "#8fd6a0"
     } else {
       var t = new Date(ts)
       var hh = ("0" + t.getHours()).slice(-2)
       var mm = ("0" + t.getMinutes()).slice(-2)
-      this.phoneStatus = "手机在线 · " + hh + ":" + mm
+      this.phoneStatus = "在线 " + hh + ":" + mm
       this.phoneStatusColor = "#8fd6a0"
     }
   },
@@ -629,7 +627,6 @@ export default {
   flex-direction: row;
   align-items: center;
   margin-bottom: 10px;
-  padding: 0 2px;
 }
 
 .back-btn-wrapper {
@@ -710,18 +707,19 @@ export default {
 
 /* 时间戳是次要信息：18px（下限档）。原先 12px 在真机上等于没有 */
 .bubble-time {
-  font-size: 18px;
-  line-height: 22px;
+  font-size: 24px;
+  line-height: 28px;
   margin-bottom: 3px;
   margin-left: 4px;
   margin-right: 4px;
 }
 
-/* 140 = 164 − 24 的左右留白余量；气泡正文 20px 后每行 6 字，比原来多 1 字 */
+/* 152 = 内容区 164 − 12 余量；正文 24px 下文字区 132，每行 5 汉字（≤6 P 铁律 1）。
+   气泡是段落不是菜单行，允许自然换行（铁律 6 只约束单行信息行）。 */
 .bubble {
-  max-width: 140px;
+  max-width: 152px;
   border-radius: 12px;
-  padding: 7px 10px;
+  padding: 8px 10px;
 }
 
 .phone-bubble {
@@ -737,15 +735,15 @@ export default {
   border-style: dashed;
 }
 
-/* 留言正文：20px 起（正文档）。14px 是这页最刺眼的问题，手环上整段读不了 */
+/* 留言正文 24px（铁律 3：任何行不得低于 24） */
 .bubble-text {
-  font-size: 20px;
-  line-height: 28px;
+  font-size: 24px;
+  line-height: 32px;
 }
 
 .typing-tag {
-  font-size: 18px;
-  line-height: 22px;
+  font-size: 24px;
+  line-height: 28px;
   margin-bottom: 3px;
   margin-left: 4px;
 }
@@ -754,19 +752,19 @@ export default {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding-top: 56px;
-  padding-bottom: 40px;
+  padding-top: 40px;
+  padding-bottom: 30px;
 }
 
 .empty-text {
-  font-size: 22px;
-  line-height: 30px;
+  font-size: 24px;
+  line-height: 32px;
   margin-bottom: 6px;
 }
 
 .empty-hint {
-  font-size: 18px;
-  line-height: 26px;
+  font-size: 24px;
+  line-height: 32px;
   text-align: center;
 }
 
@@ -778,20 +776,21 @@ export default {
   padding: 4px 4px;
 }
 
-/* 「共 3 条 · 未读 1」是统计信息 → 18px；「清空」是可点击按钮 → 20px */
+/* 统计行 24px（铁律 3 下限）；「3条 未读1」去 · 后 5 P，与「清空」同排不挤 */
 .meta-text {
-  font-size: 18px;
-  line-height: 24px;
+  flex: 1;
+  font-size: 24px;
+  line-height: 32px;
 }
 
 .clear-btn {
-  padding: 5px 14px;
+  padding: 4px 10px;
   border-radius: 8px;
 }
 
 .clear-btn-text {
-  font-size: 20px;
-  line-height: 26px;
+  font-size: 24px;
+  line-height: 30px;
 }
 
 /* ---------- 回复条 ---------- */
@@ -803,43 +802,39 @@ export default {
 }
 
 .phone-status {
-  font-size: 18px;
-  line-height: 24px;
+  font-size: 24px;
+  line-height: 32px;
   margin-bottom: 8px;
 }
 
+/* 短语条满宽 144px，24px 下每条 5 字以内一屏能看到 2~3 条 */
 .phrase-row {
   flex-direction: row;
   align-items: center;
   border-radius: 10px;
-  height: 40px;
+  height: 48px;
 }
 
-.phrase-arrow {
-  font-size: 18px;
-  width: 26px;
-  text-align: center;
+.phrase-scroll {
+  width: 100%;
+  height: 48px;
+}
+
+.phrase-chip {
+  height: 48px;
+  padding: 0 14px;
+  margin-right: 6px;
+  justify-content: center;
+  align-items: center;
   flex-shrink: 0;
 }
 
-.phrase-swiper {
-  flex: 1;
-  height: 40px;
-}
-
-.phrase-slide {
-  width: 100%;
-  height: 44px;
-  justify-content: center;
-  align-items: center;
-}
-
-/* 短语是「一点即发送」的主操作文字 → 20px；40px 行高装得下 26 行高 */
+/* 短语是「一点即发送」的主操作 → 24px；去 text-overflow（ev-six 禁「…」），
+   超长只能靠 PHRASE_MAX_LEN=5 从源头约束，不靠省略号遮丑 */
 .phrase-text {
-  font-size: 20px;
-  line-height: 26px;
+  font-size: 24px;
+  line-height: 32px;
   lines: 1;
-  text-overflow: ellipsis;
 }
 
 .write-btn {
@@ -851,8 +846,8 @@ export default {
 }
 
 .write-text {
-  font-size: 20px;
-  line-height: 26px;
+  font-size: 24px;
+  line-height: 30px;
 }
 
 /* ---------- 短语管理（点按展开式） ---------- */
@@ -880,8 +875,8 @@ export default {
 }
 
 .phrase-item-text {
-  font-size: 20px;
-  line-height: 26px;
+  font-size: 24px;
+  line-height: 32px;
 }
 
 .phrase-ops {
@@ -899,13 +894,13 @@ export default {
 }
 
 .phrase-op-text {
-  font-size: 20px;
-  line-height: 26px;
+  font-size: 24px;
+  line-height: 30px;
 }
 
 .manage-hint {
-  font-size: 18px;
-  line-height: 26px;
+  font-size: 24px;
+  line-height: 32px;
   text-align: center;
   padding: 2px 0 8px 0;
 }
@@ -919,8 +914,8 @@ export default {
 }
 
 .add-btn-text {
-  font-size: 20px;
-  line-height: 26px;
+  font-size: 24px;
+  line-height: 30px;
 }
 
 @media (shape: circle) {

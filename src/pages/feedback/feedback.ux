@@ -11,25 +11,16 @@
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
+      <!-- 只留版本一行（2026-10-24 用户裁定）：发布渠道与设备型号不给用户看。
+           两者仍随反馈链接上报（?ch= / ?m=），排查用得到，但没有展示价值。 -->
       <div class="item-row">
-        <text class="item-label" style="color: {{ theme.text }}">当前版本</text>
+        <text class="item-label" style="color: {{ theme.text }}">版本</text>
         <text class="item-value" style="color: {{ theme.textMuted }}">v{{ versionName }}</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row">
-        <text class="item-label" style="color: {{ theme.text }}">发布渠道</text>
-        <text class="item-value" style="color: {{ theme.textMuted }}">{{ channel }}</text>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row">
-        <text class="item-label" style="color: {{ theme.text }}">设备型号</text>
-        <text class="item-value" style="color: {{ theme.textMuted }}">{{ deviceModel }}</text>
       </div>
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
       <text class="sec-title" style="color: {{ theme.text }}">扫码反馈</text>
-      <text class="sec-desc" style="color: {{ theme.textMuted }}">手机扫码提交反馈</text>
       <div class="qr-wrapper" style="background-color: #ffffff">
         <qrcode value="{{ feedbackUrl }}" style="color: #000000; background-color: #ffffff; width: 120px; height: 120px;"></qrcode>
       </div>
@@ -37,11 +28,11 @@
 
     <div class="section" style="background-color: {{ theme.card }}">
       <text class="sec-title" style="color: {{ theme.text }}">QQ 群</text>
-      <text class="sec-desc" style="color: {{ theme.textMuted }}">群号与暗号见网页</text>
+      <text class="sec-desc" style="color: {{ theme.textMuted }}">群号在网页</text>
       <!-- ev-six 第 11 条：页面不展示 URL 正文（手环上 30+ 字符必然折成 5 行残句）。
            链接只保留在复制按钮背后，用户点一下就到手机端。 -->
       <div class="copy-btn" onclick="copyUrl" style="background-color: {{ theme.accent }}">
-        <text class="copy-text" style="color: #ffffff">复制反馈链接</text>
+        <text class="copy-text" style="color: #ffffff">复制链接</text>
       </div>
     </div>
 
@@ -198,9 +189,10 @@ export default {
 }
 
 .item-row {
-  /* 两行制：192px 宽屏放不下「当前版本 v1.9.41」这种 label+value 同行（104+84=188 > 140） */
-  flex-direction: column;
-  align-items: flex-start;
+  /* 单行制：「版本 v1.9.41」= 2 汉字 + 8 字符 ≈136px < 164px 满宽，可同行（ev-six 铁律 #5 占满） */
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
   padding: 8px 0;
 }
 
@@ -214,9 +206,12 @@ export default {
   line-height: 34px;
 }
 
-.row-divider {
-  width: 100%;
-  height: 1px;
+.sec-desc {
+  /* 24px 下限；「群号在网页」5 字 = 120px，留足余量不折行（ev-six 铁律 6） */
+  font-size: 24px;
+  line-height: 32px;
+  margin-bottom: 10px;
+  text-align: center;
 }
 
 .sec-title {
@@ -224,13 +219,6 @@ export default {
   font-weight: bold;
   margin-bottom: 6px;
   line-height: 36px;
-}
-
-.sec-desc {
-  font-size: 22px;
-  line-height: 31px;
-  margin-bottom: 12px;
-  text-align: center;
 }
 
 .qr-wrapper {
@@ -279,8 +267,8 @@ export default {
 }
 
 .faq-a {
-  font-size: 22px;
-  line-height: 30px;
+  font-size: 24px;
+  line-height: 32px;
   text-align: center;
 }
 

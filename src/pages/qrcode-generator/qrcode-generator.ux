@@ -16,7 +16,7 @@
       <text class="add-btn-text" style="color: {{ theme.accent }}">＋ 添加二维码</text>
     </div>
 
-    <div class="list-area">
+    <scroll class="list-area" scroll-y="true">
       <div class="accordion-item" for="{{ items }}" style="background-color: {{ theme.card }}">
         <div class="accordion-header" onclick="toggleItem($idx)">
           <text class="item-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
@@ -27,7 +27,6 @@
           <div class="qr-wrapper" style="background-color: #ffffff">
             <qrcode value="{{ $item.content }}" style="color: #000000; background-color: #ffffff; width: {{ qrSize }}px; height: {{ qrSize }}px;"></qrcode>
           </div>
-          <text class="content-text" style="color: {{ theme.textSecondary }}">{{ $item.content }}</text>
           <div class="action-row">
             <div class="action-btn edit-btn" onclick="startEdit($idx)" style="background-color: {{ theme.cardLight }}">
               <text class="action-btn-text" style="color: {{ theme.accent }}">编辑</text>
@@ -40,9 +39,9 @@
       </div>
 
       <div class="empty-state" if="{{ items.length === 0 }}">
-        <text class="empty-text" style="color: {{ theme.textMuted }}">暂无二维码，点击上方添加</text>
+        <text class="empty-text" style="color: {{ theme.textMuted }}">暂无二维码</text>
       </div>
-    </div>
+    </scroll>
   </div>
 </template>
 
@@ -53,6 +52,8 @@ const store = require("../../data/store.js")
 var STORAGE_KEY = "qrcode_items_list"
 var DEFAULT_ITEM = { id: "demo_wechat", name: "微信打赏", content: "wxp://f2f0i7FYfQ5xBhxQtXDwsQpkyGZLB7UsjrRjsrXn02Qx8NQHjn8WlZEnozT2BURX_JRy" }
 var loadingStorage = false
+/** 首次进页自动展开标记：只在本页实例第一次渲染时展开，用户手动收起后不再强制弹开 */
+var autoExpanded = false
 
 function generateId() {
   return "qrc_" + Date.now() + "_" + Math.floor(Math.random() * 10000)
@@ -154,7 +155,8 @@ export default {
       self.theme = t
       self.updateIconSrc(themeName)
     })
-    this.loadItems()
+    // 首屏默认展开第一条二维码：进页即见码，不用先点一下「▼」
+    this.loadItems(!autoExpanded)
     this.checkAddResult()
     this.checkEditResult()
   },
@@ -178,7 +180,7 @@ export default {
         var w = info.screenWidth || 192
         var pagePad = w > 300 ? 24 : 16
         var bodyPad = 0
-        var wrapperPad = 12
+        var wrapperPad = 24
         var size = w - pagePad - bodyPad - wrapperPad
         if (size < 100) size = 100
         if (size > 320) size = 320
@@ -190,9 +192,15 @@ export default {
     })
   },
 
-  loadItems() {
+  loadItems(autoExpand) {
     var self = this
-    loadItems(function(arr) { self.items = arr })
+    loadItems(function(arr) {
+      if (autoExpand && arr.length > 0) {
+        arr[0].expanded = true
+        autoExpanded = true
+      }
+      self.items = arr
+    })
   },
 
   startAdd() {
@@ -453,7 +461,6 @@ export default {
   font-weight: bold;
   line-height: 34px;
   lines: 1;
-  text-overflow: ellipsis;
 }
 
 .item-arrow {
@@ -475,16 +482,6 @@ export default {
   margin-bottom: 8px;
   align-items: center;
   justify-content: center;
-}
-
-.content-text {
-  font-size: 20px;
-  line-height: 28px;
-  lines: 3;
-  text-overflow: ellipsis;
-  text-align: center;
-  margin-bottom: 8px;
-  width: 100%;
 }
 
 .action-row {
@@ -566,10 +563,6 @@ export default {
     padding: 6px;
     margin-bottom: 8px;
   }
-  .content-text {
-    font-size: 20px;
-    line-height: 28px;
-  }
   .action-btn {
     height: 44px;
   }
@@ -621,10 +614,6 @@ export default {
     padding: 8px;
     margin-bottom: 10px;
   }
-  .content-text {
-    font-size: 22px;
-    line-height: 30px;
-  }
   .action-btn {
     height: 44px;
   }
@@ -675,10 +664,6 @@ export default {
   .qr-wrapper {
     padding: 6px;
     margin-bottom: 8px;
-  }
-  .content-text {
-    font-size: 20px;
-    line-height: 28px;
   }
   .action-btn {
     height: 44px;
