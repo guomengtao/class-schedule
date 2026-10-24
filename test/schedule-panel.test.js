@@ -180,7 +180,7 @@ var tabsData = loadTabsData(PAGES.panel.data)
 var entries = tabsData[0].groupList[0].caseList
 
 ok("data.js 载入成功且只有一章一组", tabsData.length === 1 && tabsData[0].groupList.length === 1)
-eq("7 个栏目入口", entries.length, 7)
+eq("8 个栏目入口", entries.length, 8)
 
 var badPrefix = entries.filter(function (e) { return e.path.indexOf("/pages/") !== 0 })
 ok("所有 path 都带 /pages/ 前缀（官方 demo 页 key 无此前缀，漏写则链接全死）",
