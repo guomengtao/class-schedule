@@ -27,29 +27,6 @@
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
-      <div class="item-row" onclick="toggleDayNavZong">
-        <text class="item-label" style="color: {{ theme.text }}">总课程</text>
-        <div class="switch-track" style="background-color: {{ showDayNavZong ? theme.accent : theme.border }}">
-          <div class="switch-thumb" style="left: {{ showDayNavZong ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
-        </div>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row" onclick="toggleDayNavJin">
-        <text class="item-label" style="color: {{ theme.text }}">今日</text>
-        <div class="switch-track" style="background-color: {{ showDayNavJin ? theme.accent : theme.border }}">
-          <div class="switch-thumb" style="left: {{ showDayNavJin ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
-        </div>
-      </div>
-      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
-      <div class="item-row item-row-last" onclick="toggleDayNavMing">
-        <text class="item-label" style="color: {{ theme.text }}">明日</text>
-        <div class="switch-track" style="background-color: {{ showDayNavMing ? theme.accent : theme.border }}">
-          <div class="switch-thumb" style="left: {{ showDayNavMing ? '22px' : '2px' }}; background-color: {{ theme.bg }}"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section" style="background-color: {{ theme.card }}">
       <div class="item-row" onclick="toggleCustomContent">
         <text class="item-label" style="color: {{ theme.text }}">自定义</text>
         <div class="switch-track" style="background-color: {{ showCustomContent ? theme.accent : theme.border }}">
@@ -148,9 +125,6 @@ export default {
     customContent: "",
     showStatusBar: true,
     showPinnedBar: true,
-    showDayNavZong: true,
-    showDayNavJin: true,
-    showDayNavMing: true,
     displaySize: 48,
     showFontSize: false,
     showDialog: false
@@ -191,9 +165,6 @@ export default {
       self.customContent = settings.customContent || ""
       self.showStatusBar = settings.showStatusBar !== false
       self.showPinnedBar = settings.showPinnedBar !== false
-      self.showDayNavZong = settings.showDayNavZong !== false
-      self.showDayNavJin = settings.showDayNavJin !== false
-      self.showDayNavMing = settings.showDayNavMing !== false
     })
     // 课程字号真实数据源是 baseFontSize（settings.ux 同源），不是 homepage_settings.displaySize
     store.getBaseFontSize(function(size) {
@@ -206,10 +177,7 @@ export default {
       showCustomContent: this.showCustomContent,
       customContent: this.customContent,
       showStatusBar: this.showStatusBar,
-      showPinnedBar: this.showPinnedBar,
-      showDayNavZong: this.showDayNavZong,
-      showDayNavJin: this.showDayNavJin,
-      showDayNavMing: this.showDayNavMing
+      showPinnedBar: this.showPinnedBar
     })
   },
   checkAndShowOverlay() {
@@ -227,10 +195,7 @@ export default {
       showCustomContent: this.showCustomContent,
       customContent: this.customContent,
       showStatusBar: this.showStatusBar,
-      showPinnedBar: this.showPinnedBar,
-      showDayNavZong: this.showDayNavZong,
-      showDayNavJin: this.showDayNavJin,
-      showDayNavMing: this.showDayNavMing
+      showPinnedBar: this.showPinnedBar
     }, function() { router.back() })
   },
 
@@ -266,27 +231,6 @@ export default {
     var self = this
     this.requirePremium(function() {
       self.showPinnedBar = !self.showPinnedBar
-      self.saveSettings()
-    })
-  },
-  toggleDayNavZong() {
-    var self = this
-    this.requirePremium(function() {
-      self.showDayNavZong = !self.showDayNavZong
-      self.saveSettings()
-    })
-  },
-  toggleDayNavJin() {
-    var self = this
-    this.requirePremium(function() {
-      self.showDayNavJin = !self.showDayNavJin
-      self.saveSettings()
-    })
-  },
-  toggleDayNavMing() {
-    var self = this
-    this.requirePremium(function() {
-      self.showDayNavMing = !self.showDayNavMing
       self.saveSettings()
     })
   },

@@ -12,14 +12,16 @@
         <image class="nav-btn-img" src="/common/icons/{{ iconTheme }}/icon_arrow_left.png"></image>
       </div>
       <text class="day-title" style="font-size: {{ dayTitleSize }}px; color: {{ dayTitleColor || theme.text }}">{{ dayDisplayText }}</text>
+      <!-- 方屏：总/今/明 三枚汉字圆钮保留在 header 内（方屏横向放得下，只留图标界面太空）。
+           三枚按钮的显隐开关已随胶囊屏三圆化一并移除，此处固定常显。 -->
       <div class="day-nav-btns" if="{{ !isCapsule }}">
-        <div class="day-nav-circle" onclick="goToWeekView" if="{{ showDayNavZong }}" style="background-color: {{ theme.cardLight }}">
+        <div class="day-nav-circle" onclick="goToWeekView" style="background-color: {{ theme.cardLight }}">
           <text class="day-nav-text" style="color: {{ theme.accent }}">总</text>
         </div>
-        <div class="day-nav-circle" onclick="goToToday" if="{{ showDayNavJin }}" style="background-color: {{ theme.cardLight }}">
+        <div class="day-nav-circle" onclick="goToToday" style="background-color: {{ theme.cardLight }}">
           <text class="day-nav-text" style="color: {{ theme.accent }}">今</text>
         </div>
-        <div class="day-nav-circle" onclick="goToTomorrow" if="{{ showDayNavMing }}" style="background-color: {{ theme.cardLight }}">
+        <div class="day-nav-circle" onclick="goToTomorrow" style="background-color: {{ theme.cardLight }}">
           <text class="day-nav-text" style="color: {{ theme.accent }}">明</text>
         </div>
       </div>
@@ -28,18 +30,9 @@
       </div>
     </div>
 
-    <!-- Capsule screen: overflow day-nav buttons moved below header -->
-    <div class="nav-toolbar" if="{{ isCapsule && (showDayNavZong || showDayNavJin || showDayNavMing) }}">
-      <div class="day-nav-circle" onclick="goToWeekView" if="{{ showDayNavZong }}" style="background-color: {{ theme.cardLight }}">
-        <text class="day-nav-text" style="color: {{ theme.accent }}">总</text>
-      </div>
-      <div class="day-nav-circle" onclick="goToToday" if="{{ showDayNavJin }}" style="background-color: {{ theme.cardLight }}">
-        <text class="day-nav-text" style="color: {{ theme.accent }}">今</text>
-      </div>
-      <div class="day-nav-circle" onclick="goToTomorrow" if="{{ showDayNavMing }}" style="background-color: {{ theme.cardLight }}">
-        <text class="day-nav-text" style="color: {{ theme.accent }}">明</text>
-      </div>
-    </div>
+    <!-- 胶囊屏原先在 header 下方单独占一行放「总/今/明」的 nav-toolbar 已删除（整行 52px）：
+         「总」下沉到底部三圆中间位，「今」由顶部 date-row 热区取代，「明」等价于右箭头。
+         省下的 52px 全部还给课程列表。 -->
 
     <!-- 方案 D2：独立自定义内容条删除（省 39px 垂直预算），
          该能力保留在数据层，后续并入课程列表末尾或周视图 -->
@@ -154,13 +147,22 @@
 
     <!-- 方案 D8：切换课表独立行移到最末（在 添加/设置 两钮之下），
          仍保持独立一行，避免 192px 屏把切换钮压成孤立图标 -->
+    <!-- 底部按钮区（方案 D9）：
+         胶囊屏＝三个同形圆钮 [添加][总][设置]，左操作/中视图/右设置，直径 48、间距 8；
+         方屏保持原样＝[添加课程][设置] 两条长条（横向放得下，只留图标界面太空）。 -->
     <div class="bottom-buttons">
       <div class="add-btn-wrapper" onclick="openAddCoursePage"
            style="background-color: transparent; border-width: 2px; border-color: {{ theme.accent }}">
         <image class="add-btn-icon" src="/common/icons/{{ iconTheme }}/icon_plus.png"></image>
         <text class="add-btn-label" if="{{ !isCapsule }}" style="color: {{ theme.accent }}">添加课程</text>
       </div>
-      <input class="style-btn" type="button" value="设置" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }};" />
+      <div class="bottom-mid-btn" if="{{ isCapsule }}" onclick="goToWeekView" style="background-color: {{ theme.cardLight }}">
+        <image class="bottom-mid-icon" src="/common/icons/{{ iconTheme }}/icon_week.png"></image>
+      </div>
+      <div class="set-btn-circle" if="{{ isCapsule }}" onclick="openSettings" style="background-color: {{ theme.cardLight }}">
+        <image class="bottom-mid-icon" src="/common/icons/{{ iconTheme }}/icon_gear.png"></image>
+      </div>
+      <input class="style-btn" type="button" value="设置" if="{{ !isCapsule }}" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }};" />
     </div>
     <div class="schedule-indicator" onclick="openScheduleManager" style="background-color: {{ theme.cardLight }}">
       <image class="schedule-swap-icon" src="/common/icons/{{ iconTheme }}/icon_swap.png"></image>
@@ -315,9 +317,6 @@ export default {
     showStatusBar: true,
     statusBarSetting: true,
     showPinnedBar: true,
-    showDayNavZong: true,
-    showDayNavJin: true,
-    showDayNavMing: true,
     pinnedPages: [],
     hasPinned: false,
     currentClasses: [],
@@ -657,9 +656,6 @@ export default {
       self.showQuickAdd = settings.showQuickAdd !== false
       self.statusBarSetting = settings.showStatusBar !== false
       self.showPinnedBar = settings.showPinnedBar !== false
-      self.showDayNavZong = settings.showDayNavZong !== false
-      self.showDayNavJin = settings.showDayNavJin !== false
-      self.showDayNavMing = settings.showDayNavMing !== false
       self.showCustomContent = settings.showCustomContent || false
       self.customContent = settings.customContent || ""
     }, true)
@@ -905,13 +901,9 @@ export default {
 }
 
 .nav-toolbar {
+  /* 已废弃：胶囊屏「总/今/明」整行下沉到底部三圆，此规则仅保留占位说明，
+     新代码不要再引用 .nav-toolbar。 */
   flex-direction: row;
-  justify-content: space-around;
-  align-items: center;
-  height: 48px;
-  margin-bottom: 4px;
-  flex-shrink: 0;
-  padding: 0 4px;
 }
 
 .day-nav-circle {
@@ -1259,6 +1251,22 @@ export default {
   margin-right: 0;
 }
 
+/* 底部三圆（胶囊屏专用）：中位「总」与右侧「设置」与左位「添加」同径 48，
+   图标统一 24px，视觉重量与 ＋ 对齐；方屏不渲染这两枚。 */
+.bottom-mid-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.set-btn-circle {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  justify-content: center;
+  align-items: center;
+}
+
 .week-indicator {
   padding: 12px 8px;
   align-items: center;
@@ -1443,18 +1451,8 @@ export default {
     flex: 1;
     lines: 1;
   }
-  /* 胶囊屏下「总 / 今 / 明」已移到 header 下方的 nav-toolbar，不再与标题抢宽度，
-     48×3 + 间距 = 150px < 160px 内容区，可提到规范的 48px */
-  .day-nav-circle {
-    width: 48px;
-    height: 48px;
-    border-radius: 24px;
-    margin-left: 2px;
-  }
-  .day-nav-text {
-    font-size: 20px;
-    line-height: 28px;
-  }
+  /* 胶囊屏 header 里不放「总/今/明」（day-nav-btns 由 !isCapsule 关闭），
+     三枚已下沉到底部三圆，故此处不再给 .day-nav-circle / .day-nav-text 做胶囊覆盖。 */
   .custom-content-text {
     font-size: 20px;
     line-height: 28px;
@@ -1528,12 +1526,14 @@ export default {
   .quick-add-tag-text {
     font-size: 20px;
   }
+  /* 胶囊屏底部三圆：48+48+48 = 144，内容区 160 → 两处各留 8px 由 space-between 分配，
+     因此三枚都不带 margin-right，保证左右对称。 */
   .add-btn-wrapper {
     flex: 0 0 48px;
     width: 48px;
     height: 48px;
     border-radius: 24px;
-    margin-right: 4px;
+    margin-right: 0;
     justify-content: center;
     align-items: center;
   }
@@ -1544,24 +1544,16 @@ export default {
   .add-btn-label {
     display: none;
   }
-  /* 胶囊屏底部三件套：＋(48) + ⇄(48) + 设置(flex) 一排，高 48px */
   .bottom-mid-btn {
     flex: 0 0 48px;
     width: 48px;
     height: 48px;
     border-radius: 24px;
-    margin-right: 4px;
+    margin-right: 0;
   }
   .bottom-mid-btn .week-swap-icon {
     width: 24px;
     height: 24px;
-  }
-  .style-btn {
-    flex: 1;
-    height: 48px;
-    border-radius: 24px;
-    font-size: 20px;
-    line-height: 48px;
   }
   /* 胶囊屏：课程名独占一行（或与短教室名同行），时间独占一行，教室长时另起一行 */
   .class-card-body {
