@@ -1,11 +1,11 @@
 <template>
   <div class="page-root" style="background-color: #1a1a2e">
     <div class="header">
-      <div class="back-btn" onclick="goBack" style="background-color: #16213e">
-        <image class="back-icon" src="/common/icons/dark/icon_back.png"></image>
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: #16213e">
+        <image class="back-btn-icon" src="/common/icons/dark/icon_back.png"></image>
       </div>
-      <text class="title" style="color: #ffffff">步骤7 条件渲染</text>
-      <div class="ph"></div>
+      <text class="header-title" onclick="goBack" style="color: #ffffff">步骤7 条件渲染</text>
+      <div class="header-placeholder"></div>
     </div>
 
     <div class="stage" style="background-color: #173252">
@@ -52,25 +52,27 @@ export default {
   align-items: center;
   margin-bottom: 8px;
 }
-.back-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 24px;
+.back-btn-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 20px;
   justify-content: center;
   align-items: center;
 }
-.back-icon {
+.back-btn-icon {
   width: 24px;
   height: 24px;
 }
-.title {
-  font-size: 26px;
+.header-title {
+  font-size: 30px;
   font-weight: bold;
   text-align: center;
   flex: 1;
+  line-height: 40px;
+  lines: 1;
 }
-.ph {
-  width: 48px;
+.header-placeholder {
+  width: 44px;
 }
 .stage {
   width: 100%;

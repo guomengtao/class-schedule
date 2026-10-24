@@ -1,3 +1,8 @@
+<!-- 调休规则说明页（2026-10-24 瘦身）
+     原版 6 段 20 行说明（规则二/补充说明/产品设计/胶囊屏适配），在 192px 屏上
+     24px 正文每行只放得下 6 个汉字，等于让用户滚 4 屏去读「本页怎么适配」这种自述。
+     现在只留三类信息：规则是什么 → 各校不一样怎么办 → 官方依据在哪。
+     字号守四档（44/30/28/24）：标题 28、正文 24，不再出现 18/20/22。 -->
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header" style="background-color: {{ theme.bg }}">
@@ -11,47 +16,24 @@
     <scroll class="scroll-area" scroll-y="true">
       <div class="content-area">
         <div class="info-section" style="background-color: {{ theme.card }}">
-          <text class="section-title" style="color: {{ theme.accent }}">规则一：对应挪用日（内置标准）</text>
-          <text class="info-text" style="color: {{ theme.text }}">这是全国多数公办中小学沿用的规则，也是我们内置 targetWeekDay 的设定依据。</text>
-          <text class="info-em" style="color: {{ theme.textSecondary }}">核心逻辑：假期里占用了星期几的工作日，调休那天就补星期几的课。</text>
-          <text class="info-text" style="color: {{ theme.text }}">假期之前的调休 → 补假期开头第一个工作日的课</text>
-          <text class="info-text" style="color: {{ theme.text }}">假期之后的调休 → 补假期最后一个工作日的课</text>
-          <text class="info-em" style="color: {{ theme.textSecondary }}">示例：2026年春节占用了周一和周五</text>
-          <text class="info-text" style="color: {{ theme.text }}">2月14日（周六）补班 → 上周一的课</text>
-          <text class="info-text" style="color: {{ theme.text }}">2月28日（周六）补班 → 上周五的课</text>
+          <text class="section-title" style="color: {{ theme.accent }}">补课规则</text>
+          <text class="info-text" style="color: {{ theme.text }}">假期占周几，补课就上周几</text>
+          <text class="info-sub" style="color: {{ theme.textSecondary }}">2/14 补周一</text>
+          <text class="info-sub" style="color: {{ theme.textSecondary }}">2/28 补周五</text>
         </div>
 
         <div class="info-section" style="background-color: {{ theme.card }}">
-          <text class="section-title" style="color: {{ theme.accent }}">规则二：周末顺推</text>
-          <text class="info-text" style="color: {{ theme.text }}">很多中小学为了降低记忆成本，执行更简单的固定规则：</text>
-          <text class="info-text" style="color: {{ theme.text }}">星期六调休上班 → 一律上周一的课</text>
-          <text class="info-text" style="color: {{ theme.text }}">星期日调休上班 → 一律上周二的课</text>
-          <text class="info-text" style="color: {{ theme.textSecondary }}">规则简单好记，在区县、乡镇级学校很普遍。</text>
+          <text class="section-title" style="color: {{ theme.accent }}">各校不同</text>
+          <text class="info-text" style="color: {{ theme.text }}">有的学校周六补周一</text>
+          <text class="info-text" style="color: {{ theme.text }}">周日补周二，高校多不调休</text>
+          <text class="info-sub" style="color: {{ theme.textSecondary }}">可自定义覆盖</text>
         </div>
 
         <div class="info-section" style="background-color: {{ theme.card }}">
-          <text class="section-title" style="color: {{ theme.accent }}">补充说明</text>
-          <text class="info-text" style="color: {{ theme.text }}">大学无统一标准：高校自主权高，很多不执行调休补课。</text>
-          <text class="info-text" style="color: {{ theme.text }}">地方差异普遍存在：部分地区有地方性规定，如周六统一补周五的课。</text>
-        </div>
-
-        <div class="info-section" style="background-color: {{ theme.card }}">
-          <text class="section-title" style="color: {{ theme.accent }}">产品设计</text>
-          <text class="info-text" style="color: {{ theme.text }}">内置采用「对应挪用日」规则，覆盖最多数公办中小学用户。</text>
-          <text class="info-text" style="color: {{ theme.text }}">自定义优先：正因为全国无统一标准，支持用自定义日期覆盖内置映射，适配不同学校的特殊安排。</text>
-          <text class="info-text" style="color: {{ theme.text }}">首页表现：调休日显示「今天调休，按XX课表」并按 targetWeekDay 自动加载对应课程；假期则展示祝福卡片。</text>
-        </div>
-
-        <div class="info-section" style="background-color: {{ theme.card }}">
-          <text class="section-title" style="color: {{ theme.accent }}">官方来源</text>
-          <text class="info-text" style="color: {{ theme.text }}">《国务院办公厅关于2026年部分节假日安排的通知》</text>
-          <text class="info-text" style="color: {{ theme.textSecondary }}">国办发明电〔2025〕7号 · 2025年11月4日发布</text>
-          <text class="info-text" style="color: {{ theme.textSecondary }}">索引号：000014349/2025-00087 · 中国政府网</text>
-        </div>
-
-        <div class="info-section" style="background-color: {{ theme.card }}">
-          <text class="section-title" style="color: {{ theme.accent }}">胶囊屏适配</text>
-          <text class="info-text" style="color: {{ theme.textSecondary }}">优先适配胶囊屏（shape: capsule），192px 窄屏上自动精简布局，字号和间距按媒体查询缩放，确保舒适阅读。</text>
+          <text class="section-title" style="color: {{ theme.accent }}">官方依据</text>
+          <text class="info-text" style="color: {{ theme.text }}">国办发明电</text>
+          <text class="info-sub" style="color: {{ theme.textSecondary }}">〔2025〕7号</text>
+          <text class="info-sub" style="color: {{ theme.textSecondary }}">2025-11-04 中国政府网</text>
         </div>
       </div>
     </scroll>
@@ -97,7 +79,7 @@ export default {
   flex-direction: column;
 }
 
-/* ── 胶囊屏优先（默认） ── */
+/* ── 胶囊屏（默认） ── */
 .header {
   flex-direction: row;
   align-items: center;
@@ -130,33 +112,33 @@ export default {
 .content-area {
   width: 100%;
   flex-direction: column;
-  padding: 4px 8px 32px 8px;
+  padding: 4px 8px 20px 8px;
 }
 
 .info-section {
   flex-direction: column;
-  padding: 14px 12px;
-  margin-bottom: 14px;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 12px;
 }
 
+/* 段标题 28：四档里的次级档，靠字号而不靠分隔符区分层级 */
 .section-title {
-  font-size: 18px;
+  font-size: 28px;
+  line-height: 38px;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
-/* 2026-10-21 规则 §七：正文 17 → 20（这页是纯说明文字，没有别的信息载体，
-   17px 在真机上读起来吃力）；行高 26 直接沿用，20px 配 26 仍在 1.3 倍内 */
 .info-text {
-  font-size: 20px;
-  line-height: 26px;
-  margin-bottom: 8px;
+  font-size: 24px;
+  line-height: 34px;
 }
 
-.info-em {
-  font-size: 20px;
-  line-height: 26px;
-  margin-bottom: 8px;
+.info-sub {
+  font-size: 24px;
+  line-height: 34px;
+  margin-top: 2px;
 }
 
 /* ── 方屏/大屏 ── */
@@ -177,37 +159,36 @@ export default {
   }
 
   .header-title {
-    font-size: 28px;
+    font-size: 30px;
   }
 
   .header-placeholder {
-    width: 40px;
+    width: 44px;
   }
 
   .content-area {
-    padding: 6px 14px 40px 14px;
+    padding: 6px 14px 28px 14px;
   }
 
   .info-section {
-    padding: 18px;
-    margin-bottom: 18px;
+    padding: 16px;
+    margin-bottom: 16px;
   }
 
   .section-title {
-    font-size: 20px;
-    margin-bottom: 12px;
+    font-size: 30px;
+    line-height: 40px;
+    margin-bottom: 8px;
   }
 
   .info-text {
-    font-size: 18px;
-    line-height: 30px;
-    margin-bottom: 10px;
+    font-size: 28px;
+    line-height: 40px;
   }
 
-  .info-em {
-    font-size: 18px;
-    line-height: 28px;
-    margin-bottom: 10px;
+  .info-sub {
+    font-size: 28px;
+    line-height: 40px;
   }
 }
 
@@ -233,12 +214,11 @@ export default {
   }
 
   .header-placeholder {
-    width: 36px;
-    height: 36px;
+    width: 44px;
   }
 
   .content-area {
-    padding: 4px 12px 28px 12px;
+    padding: 4px 12px 24px 12px;
   }
 
   .info-section {
@@ -247,20 +227,18 @@ export default {
   }
 
   .section-title {
-    font-size: 20px;
-    margin-bottom: 8px;
+    font-size: 28px;
+    line-height: 38px;
   }
 
   .info-text {
-    font-size: 20px;
-    line-height: 24px;
-    margin-bottom: 6px;
+    font-size: 24px;
+    line-height: 34px;
   }
 
-  .info-em {
-    font-size: 20px;
-    line-height: 24px;
-    margin-bottom: 6px;
+  .info-sub {
+    font-size: 24px;
+    line-height: 34px;
   }
 }
 </style>

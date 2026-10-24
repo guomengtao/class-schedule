@@ -20,16 +20,17 @@
 
     <scroll class="list-area" scroll-y="{{ true }}">
       <block for="{{ list }}">
+        <!-- 三行竖排（2026-10-24）：标题独占一行。原来「标题 + 剩 X 天」同排时，
+             148px 内宽被天数占掉 ~98px，标题只剩 2~3 字，长一点就被 text-overflow
+             截成「高考倒…」——ev-six 第 8 条禁「…」。现在标题拿满宽换行显示，
+             天数下沉第二行做主角，日期与农历各占一行副信息（拼成一行时
+             「农历八月初八」会被挤出一个孤字掉到第二行）。 -->
         <div class="cd-card" onclick="openItem($item.id)"
              style="{{ $item.cardBg }}; {{ $item.cardBorder }}">
-          <div class="cd-row">
-            <text class="cd-title" style="color: {{ theme.text }}">{{ $item.title }}</text>
-            <text class="cd-days" style="color: {{ $item.daysColor }}">{{ $item.daysText }}</text>
-          </div>
-          <div class="cd-row">
-            <text class="cd-date" style="color: {{ theme.textSecondary }}">{{ $item.dateDisplay }}</text>
-            <text if="{{ $item.lunarLine }}" class="cd-lunar" style="color: {{ $item.lunarColor }}">{{ $item.lunarLine }}</text>
-          </div>
+          <text class="cd-title" style="color: {{ theme.text }}">{{ $item.title }}</text>
+          <text class="cd-days" style="color: {{ $item.daysColor }}">{{ $item.daysText }}</text>
+          <text class="cd-sub" style="color: {{ theme.textSecondary }}">{{ $item.dateDisplay }}</text>
+          <text if="{{ $item.lunarLine }}" class="cd-sub" style="color: {{ theme.textSecondary }}">{{ $item.lunarLine }}</text>
         </div>
       </block>
 
@@ -188,7 +189,9 @@ export default {
   flex-direction: column;
 }
 
-/* 卡片 64px：标题行 26 + 日期行 22 + 上下内边距 16。一屏 4 张 + 管理按钮 */
+/* 卡片：标题 32 + 天数 38 + 副信息 32 + 内边距 16 = 118px，一屏 3 张。
+   比原来的 64px 矮卡少了 2 张，但那是 24px 字号底线的必然代价 —— 标准里
+   「需要更小时，说明内容该删，而不是字该缩」，本页没有可删的内容载体。 */
 .cd-card {
   flex-direction: column;
   width: 100%;
@@ -197,87 +200,69 @@ export default {
   margin-bottom: 10px;
 }
 
-.cd-row {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
+/* 标题 24：独占一行、允许换行。不设 lines、不设 text-overflow —— 长标题宁可让
+   卡片长高，也不截成「…」（ev-six 第 8 条）。148px 内宽 ÷ 24 ≈ 6 字一行 */
+.cd-title {
+  font-size: 24px;
+  line-height: 32px;
   width: 100%;
 }
 
-/* 标题 22（列表主文字档），与天数同排：144 − 「剩 322 天」约 76 → 标题可用 68px，3 字 */
-.cd-title {
-  font-size: 22px;
-  line-height: 31px;
-  flex-shrink: 1;
-  lines: 1;
-  text-overflow: ellipsis;
-}
-
+/* 天数 28：卡片主角，单独一行才够大 */
 .cd-days {
-  font-size: 22px;
-  line-height: 31px;
+  font-size: 28px;
+  line-height: 38px;
   font-weight: bold;
-  flex-shrink: 0;
-  margin-left: 6px;
 }
 
-.cd-date {
-  font-size: 18px;
-  line-height: 22px;
-}
-
-.cd-lunar {
-  font-size: 18px;
-  line-height: 22px;
-  flex-shrink: 0;
-  margin-left: 6px;
+/* 日期 + 农历拼成一行副信息，24px 底线 */
+.cd-sub {
+  font-size: 24px;
+  line-height: 32px;
 }
 
 .empty-box {
   flex-direction: column;
   align-items: center;
-  padding: 30px 6px 10px 6px;
+  padding: 20px 6px 10px 6px;
 }
 
 .empty-text {
-  font-size: 22px;
-  line-height: 30px;
+  font-size: 24px;
+  line-height: 32px;
   text-align: center;
 }
 
 .empty-hint {
-  font-size: 18px;
-  line-height: 26px;
+  font-size: 24px;
+  line-height: 32px;
   text-align: center;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 /* 管理入口：贴着列表末尾，不抢首屏 */
 .mg-btn {
-  height: 44px;
+  height: 48px;
   border-radius: 10px;
   justify-content: center;
   align-items: center;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .mg-text {
-  font-size: 20px;
-  line-height: 26px;
+  font-size: 24px;
+  line-height: 32px;
 }
 
 @media (width >= 200px) {
   .page { padding: 44px 16px 14px 16px; }
-  .cd-title { font-size: 24px; line-height: 28px; }
-  .cd-days { font-size: 24px; line-height: 28px; }
   .cd-card { padding: 10px 12px; }
 }
 
 @media (width >= 400px) {
   .page { padding: 12px 20px 16px 20px; }
-  .cd-title { font-size: 28px; line-height: 34px; }
-  .cd-days { font-size: 28px; line-height: 34px; }
-  .cd-date { font-size: 20px; line-height: 26px; }
-  .cd-lunar { font-size: 20px; line-height: 26px; }
+  .cd-card { padding: 12px 14px; }
+  .cd-title { font-size: 28px; line-height: 38px; }
+  .cd-days { font-size: 30px; line-height: 42px; }
 }
 </style>
