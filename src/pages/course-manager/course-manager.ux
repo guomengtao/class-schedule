@@ -1,12 +1,12 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
+    <!-- 头部统一骨架（ev-six 规则①②③）：返回键 36 + 居中标题 24px + 等宽占位 36，不放其他按钮 -->
     <div class="header">
-      <div class="back-btn-wrapper {{ isCapsule ? 'back-btn-cap' : '' }}" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon {{ isCapsule ? 'back-icon-cap' : '' }}" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title {{ isCapsule ? 'header-title-cap' : '' }}" style="color: {{ theme.text }}">课程</text>
-      <input class="add-btn" if="{{ !isCapsule }}" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-      <div class="header-placeholder {{ isCapsule ? 'placeholder-cap' : '' }}" if="{{ isCapsule }}"></div>
+      <text class="header-title" style="color: {{ theme.text }}">课程</text>
+      <div class="header-placeholder"></div>
     </div>
 
     <!-- 胶囊屏：清除与添加合并为一行工具栏（方案A，省一整行竖向空间） -->
@@ -18,9 +18,13 @@
       <input class="add-btn-cap" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
-    <div class="clear-bar" if="{{ courseList.length > 0 && !isCapsule }}">
-      <text class="clear-hint" style="color: {{ theme.deleteText }}">{{ clearAllConfirm ? '再次点击确认' : '清除全部' }}</text>
-      <input class="clear-btn" type="button" value="{{ clearAllConfirm ? '确认' : '清除' }}" onclick="clearAllCourses" style="background-color: {{ clearAllConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ clearAllConfirm ? theme.text : theme.deleteText }}" />
+    <!-- 内容区操作行（规则②）：左清除（有课程时）/ 右添加（常驻），不占用头部空间 -->
+    <div class="action-bar" if="{{ !isCapsule }}">
+      <div class="clear-group" if="{{ courseList.length > 0 }}">
+        <text class="clear-hint" style="color: {{ theme.deleteText }}">{{ clearAllConfirm ? '再次点击确认' : '清除全部' }}</text>
+        <input class="clear-btn" type="button" value="{{ clearAllConfirm ? '确认' : '清除' }}" onclick="clearAllCourses" style="background-color: {{ clearAllConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ clearAllConfirm ? theme.text : theme.deleteText }}" />
+      </div>
+      <input class="add-btn" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
     <scroll class="course-list-scroll" scroll-y="{{true}}">
@@ -38,7 +42,7 @@
           <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}" onclick="deleteCourse($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === $idx ? theme.text : theme.deleteText }}" />
         </div>
       </div>
-      <text if="{{ courseList.length === 0 }}" class="empty-hint" style="color: {{ theme.textMuted }}; text-align: center; padding: 40px 10px;">{{ isCapsule ? '暂无课程，点击上方 + 添加' : '暂无课程，点击右上角 + 添加' }}</text>
+      <text if="{{ courseList.length === 0 }}" class="empty-hint" style="color: {{ theme.textMuted }}; text-align: center; padding: 40px 10px;">{{ isCapsule ? '暂无课程，点击上方 + 添加' : '暂无课程，点击下方 + 添加' }}</text>
     </scroll>
 
     <div class="undo-bar" if="{{ undoVisible }}" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
@@ -400,14 +404,15 @@ export default {
 }
 
 /* ---- 方屏（Watch6 / rect）用右上角 "+ 添加" ---- */
+/* 添加按钮已移到内容区：与 36px 返回键同档高度，宽度容下「+ 添加」4 字符 */
 .add-btn {
-  width: 80px;
-  height: 48px;
-  border-radius: 24px;
-  font-size: 22px;
+  width: 76px;
+  height: 36px;
+  border-radius: 18px;
+  font-size: 24px;
   font-weight: bold;
   text-align: center;
-  line-height: 48px;
+  line-height: 36px;
   flex-shrink: 0;
 }
 
@@ -434,11 +439,12 @@ export default {
   flex-shrink: 0;
 }
 
-.clear-bar {
+.action-bar {
   flex-direction: row;
   align-items: center;
-  padding: 4px 0;
-  margin-bottom: 4px;
+  justify-content: space-between;
+  padding: 2px 0;
+  margin-bottom: 6px;
   flex-shrink: 0;
 }
 
