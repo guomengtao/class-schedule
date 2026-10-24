@@ -229,7 +229,10 @@ ok("已无折叠开关 toggleGroup", panelSrc.indexOf("toggleGroup") < 0)
 ok("宽屏断点适配保留（@media width >= 360 / 480）",
   panelSrc.indexOf("@media (width >= 360)") >= 0 && panelSrc.indexOf("@media (width >= 480)") >= 0)
 ok("header 标题渲染为「更多首页」", panelSrc.indexOf(">更多首页</text>") >= 0)
-ok("header 下方有定位说明文案（含「默认首页不受影响」）", panelSrc.indexOf("默认首页不受影响") >= 0)
+// 2026-10-24 真机反馈：头部说明文案删除（192px 屏上多两行废话，把 8 个栏目往下压），
+// 断言反过来钉住「不许再长回来」
+ok("header 下方不再有定位说明文案（真机反馈删除）", panelSrc.indexOf("默认首页不受影响") < 0)
+ok("栏目行不再带行尾 › 箭头（ev-six 禁行内导航箭头）", panelSrc.indexOf(">›<") < 0)
 
 // ================================================================ 2. 多彩课表（7天×5节固定网格）
 
