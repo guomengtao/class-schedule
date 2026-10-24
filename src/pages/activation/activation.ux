@@ -6,6 +6,7 @@
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">高级版</text>
+        <div class="header-placeholder"></div>
     </div>
 
     <!-- 状态区：去掉卡片底色，裸大字 + 宽行高。与下方卡片形成「裸文 vs 卡片」层级，不花一个位置 -->
@@ -203,6 +204,13 @@ export default {
   text-align: center;
   line-height: 32px;
 }
+
+.header-placeholder {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
 
 /* 状态区：无卡片底色，靠留白和层级区分，不与下方卡片抢视觉重量 */
 .status {

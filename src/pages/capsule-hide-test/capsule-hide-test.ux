@@ -100,7 +100,11 @@ export default {
   padding: 8px 16px 16px 16px;
 }
 .back-header { flex-direction: row; align-items: center; margin-bottom: 12px; }
-.back-btn { width: 48px; height: 36px; border-radius: 8px; font-size: 20px; text-align: center; flex-shrink: 0; }
+.back-btn {
+  /* 头部返回键统一 36×36 / 字号 24（ev-six 头部三要素），与 back-btn-wrapper 同档 */
+  width: 36px; height: 36px; border-radius: 8px;
+  font-size: 24px; line-height: 36px; text-align: center; flex-shrink: 0;
+}
 
 .info-bar {
   flex-direction: row; align-items: center;

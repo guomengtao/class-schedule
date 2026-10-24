@@ -14,6 +14,7 @@
             <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
           </div>
           <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">更多首页</text>
+        <div class="header-placeholder"></div>
         </div>
 
         <text class="panel-desc" style="color: {{ theme.textMuted }}">每个栏目都可当独立首页长期使用，默认首页不受影响。</text>
@@ -123,6 +124,13 @@ export default {
 .header-title {
   flex: 1; font-size: 24px; font-weight: bold; text-align: center; line-height: 32px; lines: 1;
 }
+
+.header-placeholder {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
 
 /* 目录页定位说明（「更多首页」改名配套）：18px/24px 行高、次要色。
    2026-10-21 按规则 §七 抬字号：14px 真实手环上不可读。抬到 18 后 156px 宽

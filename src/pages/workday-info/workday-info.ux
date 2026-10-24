@@ -229,11 +229,12 @@ export default {
   }
 
   .header-title {
-    font-size: 18px;
+    font-size: 30px;
   }
 
   .header-placeholder {
     width: 36px;
+    height: 36px;
   }
 
   .content-area {

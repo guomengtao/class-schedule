@@ -6,6 +6,7 @@
       </div>
       <!-- 标题同样可点返回：与左侧箭头一起构成返回热区（2026-10-21 全站规则） -->
       <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">{{ pageTitle }}</text>
+        <div class="header-placeholder"></div>
     </div>
 
     <!-- 名称：跳统一的中文输入页（全项目只有这一个输入页、只打一份词典），
@@ -693,6 +694,13 @@ export default {
 .header-title {
   flex: 1; font-size: 24px; font-weight: bold; text-align: center; line-height: 32px; lines: 1;
 }
+
+.header-placeholder {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
 
 .field {
   flex-direction: column;

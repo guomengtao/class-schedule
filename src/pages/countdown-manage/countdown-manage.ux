@@ -7,6 +7,7 @@
       <!-- 标题同样可点返回：手环屏小，返回热区越大越好，
            且用户直觉就是「点标题回上级」（2026-10-21 全站规则） -->
       <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">倒数日</text>
+        <div class="header-placeholder"></div>
     </div>
 
     <!-- 工具栏（2026-10-21 规则 §8.4 砍内容）：原来三个元素「共N条 / 排序 / 清空」
@@ -265,6 +266,13 @@ export default {
 .header-title {
   font-size: 24px;
   line-height: 32px; text-align: center;}
+
+.header-placeholder {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
 
 .page {
   flex: 1;
