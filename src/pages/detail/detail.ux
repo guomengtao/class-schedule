@@ -297,12 +297,12 @@ export default {
     storage.get({
       key: "detail_classId",
       success: function(val) {
-        self.classId = val || ""
+        self.classId = val || self.classId || ""
         classIdLoaded = true
         tryLoadCourses()
       },
       fail: function() {
-        self.classId = ""
+        self.classId = self.classId || ""
         classIdLoaded = true
         tryLoadCourses()
       }
@@ -310,14 +310,14 @@ export default {
     storage.get({
       key: "detail_day",
       success: function(val) {
-        self.day = val || ""
+        self.day = val || self.day || ""
         if (!self.day) { self.setDefaultDay() }
         dayLoaded = true
         tryLoadCourses()
       },
       fail: function() {
-        self.day = ""
-        self.setDefaultDay()
+        self.day = self.day || ""
+        if (!self.day) { self.setDefaultDay() }
         dayLoaded = true
         tryLoadCourses()
       }
