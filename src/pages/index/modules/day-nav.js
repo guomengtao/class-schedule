@@ -20,6 +20,16 @@ function formatDateShort(d) {
   return pad(d.getMonth() + 1) + "-" + pad(d.getDate())
 }
 
+// 顶部第一行用中文月日：10月25日。比 10-25 更易读，也不会和时分混淆。
+function formatDateCn(d) {
+  return (d.getMonth() + 1) + "月" + d.getDate() + "日"
+}
+
+function formatClock(d) {
+  var t = d || new Date()
+  return pad(t.getHours()) + ":" + pad(t.getMinutes())
+}
+
 function getRealTodayIndex() {
   return new Date().getDay()
 }
@@ -36,12 +46,41 @@ function updateDayDisplay(instance) {
     : instance.currentDay
 }
 
+// 顶部第一行：看今天 → 当前时分（12:16）；切到别的日期 → 中文月日（10月25日）。
+// 二者宽度接近（5~6 字符），胶囊屏顶部圆弧下可用宽约 103px，切换时不跳动。
+function updateTopLabel(instance) {
+  var label = instance.isTodayDate
+    ? formatClock()
+    : formatDateCn(instance.currentDate || new Date())
+  if (instance.topLabel !== label) {
+    instance.topLabel = label
+  }
+}
+
+// 顶部时间要跟着真实分钟走，但只在页面可见时计时：
+// onShow 启动、onHide/onDestroy 清除，禁止页面外空转。
+function startClock(instance) {
+  stopClock(instance)
+  updateTopLabel(instance)
+  instance._clockTimer = setInterval(function() {
+    updateTopLabel(instance)
+  }, 20000)
+}
+
+function stopClock(instance) {
+  if (instance._clockTimer) {
+    clearInterval(instance._clockTimer)
+    instance._clockTimer = null
+  }
+}
+
 function syncDayFromDate(instance, d) {
   instance.currentDayIndex = d.getDay()
   instance.currentDay = fullDayNames[instance.currentDayIndex]
   instance.currentDateStr = formatDateShort(d)
   instance.isTodayDate = sameDate(d, new Date())
   updateDayDisplay(instance)
+  updateTopLabel(instance)
 }
 
 function persistDateToHoliday(instance, d) {
@@ -77,6 +116,12 @@ function init(instance) {
     updateDayDisplay(instance)
   }
 
+  // index.ux 的 goToTomorrow 直接改 currentDateStr/isTodayDate，不走 syncDayFromDate，
+  // 所以单独给一个刷新入口。
+  instance.updateTopLabel = function() {
+    updateTopLabel(instance)
+  }
+
   instance.prevDay = function() {
     var self = instance
     self.currentDate.setDate(self.currentDate.getDate() - 1)
@@ -110,4 +155,4 @@ function init(instance) {
   }
 }
 
-module.exports = { init: init }
+module.exports = { init: init, startClock: startClock, stopClock: stopClock }
