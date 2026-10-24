@@ -156,7 +156,7 @@
         <image class="add-btn-icon" src="/common/icons/{{ iconTheme }}/icon_plus.png"></image>
         <text class="add-btn-label" if="{{ !isCapsule }}" style="color: {{ theme.accent }}">添加课程</text>
       </div>
-      <div class="bottom-mid-btn" if="{{ isCapsule }}" onclick="goToWeekView" style="background-color: {{ theme.cardLight }}">
+      <div class="set-btn-circle" if="{{ isCapsule }}" onclick="goToWeekView" style="background-color: {{ theme.cardLight }}">
         <image class="bottom-mid-icon" src="/common/icons/{{ iconTheme }}/icon_week.png"></image>
       </div>
       <div class="set-btn-circle" if="{{ isCapsule }}" onclick="openSettings" style="background-color: {{ theme.cardLight }}">
