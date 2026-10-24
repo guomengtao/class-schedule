@@ -324,7 +324,7 @@ export default {
 }
 
 .header-title {
-  flex: 1; font-size: 24px; font-weight: bold; text-align: center; line-height: 32px; lines: 1;
+  flex: 1; font-size: 28px; font-weight: bold; text-align: center; line-height: 36px; lines: 1;
 }
 
 .stats-scroll-wrapper {

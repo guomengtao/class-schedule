@@ -297,24 +297,23 @@ export default {
   align-items: center;
   height: 40px;
   flex-shrink: 0;
-  padding: 0 4px;
 }
 .back-btn-wrapper {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
   justify-content: center;
   align-items: center;
   flex-shrink: 0;
 }
-.back-btn-icon { width: 24px; height: 24px }
+.back-btn-icon { width: 22px; height: 22px }
 .header-title {
   flex: 1;
-  font-size: 24px;
-  line-height: 32px;
+  font-size: 28px;
+  line-height: 36px;
   text-align: center;
 }
-.header-placeholder { width: 36px; height: 36px; flex-shrink: 0 }
+.header-placeholder { width: 30px; height: 30px; flex-shrink: 0 }
 
 /* A 课名：56px，最多两行（3 字/行），超长两行后省略。
    不写死 height：单行课名（放学/没课/两字科目）固定 124 会在下方留一大块空白，

@@ -183,8 +183,8 @@ export default {
 }
 
 .back-btn-wrapper {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
   justify-content: center;
   align-items: center;
@@ -192,22 +192,22 @@ export default {
 }
 
 .back-btn-icon {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
 }
 
 /* 不设 lines / text-overflow，标题靠 flex 吃满剩余宽度 */
 .header-title {
   flex: 1;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
   text-align: center;
-  line-height: 32px;
+  line-height: 36px;
 }
 
 .header-placeholder {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
 }
 

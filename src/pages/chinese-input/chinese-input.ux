@@ -216,23 +216,23 @@ export default {
 }
 
 .back-btn-wrapper {
-  width: 36px; height: 36px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0;
+  width: 30px; height: 30px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0;
 }
 
 .back-btn-icon {
-  width: 24px; height: 24px;
+  width: 22px; height: 22px;
 }
 
 /* 标题同时是返回热区。字号从 26 降到 20：192 屏上 header 中间只剩
    192-8(padding)-36-36 ≈ 112px，26px 字号只够 3 字，「添加倒数日」会被
    截成「添加...」，用户点它返回时看不见完整标题。 */
 .header-title {
-  flex: 1; font-size: 24px; font-weight: bold; text-align: center; line-height: 32px; lines: 1;
+  flex: 1; font-size: 28px; font-weight: bold; text-align: center; line-height: 36px; lines: 1;
 }
 
 /* 与左侧返回按钮等宽，否则标题会整体偏左；同宽才能真居中 */
 .header-placeholder {
-  width: 36px; height: 36px; flex-shrink: 0;
+  width: 30px; height: 30px; flex-shrink: 0;
 }
 
 .input-display {

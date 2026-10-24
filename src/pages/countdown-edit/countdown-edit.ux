@@ -17,7 +17,6 @@
       <div class="name-row" onclick="openInputPage" style="background-color: {{ theme.card }}">
         <text class="name-value" if="{{ title.length }}" style="color: {{ theme.text }}">{{ title }}</text>
         <text class="name-placeholder" if="{{ !title.length }}" style="color: {{ theme.textMuted }}">点此输入名称</text>
-        <text class="name-arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <text class="err-text" if="{{ errMsg.length }}" style="color: {{ theme.deleteText }}">{{ errMsg }}</text>
     </div>
@@ -684,20 +683,20 @@ export default {
 }
 
 .back-btn-wrapper {
-  width: 36px; height: 36px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0;
+  width: 30px; height: 30px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0;
 }
 
 .back-btn-icon {
-  width: 24px; height: 24px;
+  width: 22px; height: 22px;
 }
 
 .header-title {
-  flex: 1; font-size: 24px; font-weight: bold; text-align: center; line-height: 32px; lines: 1;
+  flex: 1; font-size: 28px; font-weight: bold; text-align: center; line-height: 36px; lines: 1;
 }
 
 .header-placeholder {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
 }
 

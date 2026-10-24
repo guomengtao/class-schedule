@@ -238,7 +238,7 @@ export default {
 
 /* 公共 header.css 的 pill 档已是 24px，这里只钉住 base 档不回落 */
 .header-title {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
 }
 

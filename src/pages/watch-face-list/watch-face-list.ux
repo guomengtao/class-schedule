@@ -13,82 +13,66 @@
     <div class="section" style="background-color: {{ theme.card }}">
       <div class="item-row" onclick="openWatchFace">
         <text class="item-label" style="color: {{ theme.text }}">经典表盘</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openWatchFaceVibrate">
         <text class="item-label" style="color: {{ theme.text }}">方形机械表盘</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openWatchFaceFont">
         <text class="item-label" style="color: {{ theme.text }}">字体表盘</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openWatchFaceRandom">
         <text class="item-label" style="color: {{ theme.text }}">无框机械表盘</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openWatchFaceClass">
         <text class="item-label" style="color: {{ theme.text }}">课程表盘</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openWatchFaceGold">
         <text class="item-label" style="color: {{ theme.text }}">机械表盘</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openEvPointer">
         <text class="item-label" style="color: {{ theme.text }}">EV指针</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openWatchFaceMetal">
         <text class="item-label" style="color: {{ theme.text }}">仿古金属表盘</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openColorful">
         <text class="item-label" style="color: {{ theme.text }}">彩色表盘</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openBackground">
         <text class="item-label" style="color: {{ theme.text }}">背景表盘</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openGradient">
         <text class="item-label" style="color: {{ theme.text }}">渐变表盘</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openFunctional">
         <text class="item-label" style="color: {{ theme.text }}">功能表盘</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openLandscape">
         <text class="item-label" style="color: {{ theme.text }}">大字表盘</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openFlip">
         <text class="item-label" style="color: {{ theme.text }}">翻页表盘</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openAnimated">
         <text class="item-label" style="color: {{ theme.text }}">动画表盘</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openPickDate">
         <text class="item-label" style="color: {{ theme.text }}">日期选择器表盘</text>
-        <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
       </div>
     </div>
 
@@ -237,12 +221,11 @@ export default {
   flex-direction: row;
   align-items: center;
   margin-bottom: 14px;
-  padding: 0 4px;
 }
 
 .back-btn-wrapper {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
   justify-content: center;
   align-items: center;
@@ -250,21 +233,21 @@ export default {
 }
 
 .back-btn-icon {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
 }
 
 .header-title {
   flex: 1;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
   text-align: center;
-  line-height: 32px;
+  line-height: 36px;
 }
 
 .header-placeholder {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
 }
 

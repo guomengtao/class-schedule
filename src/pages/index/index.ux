@@ -65,7 +65,6 @@
       <!-- 方案 D4：「今天」不再硬编码（翻到未来调休日时随日期变化）；
            文案压到 ≤9 字不折行（原「今天调休，按周三课表」11 字爆宽折 3 行） -->
       <text class="workday-tip-text" style="color: {{ theme.accent }}">{{ isTodayDate ? '调休 · 按' + overrideDayName + '课表' : currentDateStr + ' 调休' }}</text>
-      <text class="workday-tip-arrow" style="color: {{ theme.textMuted }}">›</text>
     </div>
 
     <div class="pinned-bar" if="{{ showPinnedBar && hasPinned }}" style="background-color: {{ theme.cardLight }}">
@@ -151,10 +150,18 @@
          胶囊屏＝三个同形圆钮 [添加][总][设置]，左操作/中视图/右设置，直径 48、间距 8；
          方屏保持原样＝[添加课程][设置] 两条长条（横向放得下，只留图标界面太空）。 -->
     <div class="bottom-buttons">
-      <div class="add-btn-wrapper" onclick="openAddCoursePage"
+      <!-- 胶囊屏三钮同径同底（真机反馈 2026-10-24：加号原来带 2px accent 描边、
+           底色透明，视觉上比左右两枚「大一号」）。现在三枚都是 48 圆 + cardLight 底，
+           只有图标不同：＋ / 周视图 / 齿轮。 -->
+      <div class="add-btn-wrapper" if="{{ isCapsule }}" onclick="openAddCoursePage"
+           style="background-color: {{ theme.cardLight }}">
+        <image class="add-btn-icon" src="/common/icons/{{ iconTheme }}/icon_plus.png"></image>
+      </div>
+      <!-- 方屏保留描边长条：横向放得下「+ 添加课程」文字，描边是唯一的轮廓来源 -->
+      <div class="add-btn-wrapper" if="{{ !isCapsule }}" onclick="openAddCoursePage"
            style="background-color: transparent; border-width: 2px; border-color: {{ theme.accent }}">
         <image class="add-btn-icon" src="/common/icons/{{ iconTheme }}/icon_plus.png"></image>
-        <text class="add-btn-label" if="{{ !isCapsule }}" style="color: {{ theme.accent }}">添加课程</text>
+        <text class="add-btn-label" style="color: {{ theme.accent }}">添加课程</text>
       </div>
       <div class="set-btn-circle" if="{{ isCapsule }}" onclick="goToWeekView" style="background-color: {{ theme.cardLight }}">
         <image class="bottom-mid-icon" src="/common/icons/{{ iconTheme }}/icon_week.png"></image>
@@ -1424,31 +1431,38 @@ export default {
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
+  /* 顶部留白按真机反馈收紧（2026-10-24）：原 30px 顶部 + 44px 日期行 + 48px 头部
+     = 122px 才见到第一张课卡，屏高 490 下白扔掉 1/4。现 18 + 26 + 40 = 84px。
+     日期行热区跟着收到 26px（用户口径：热区够用就行，不要多）。 */
   .schedule-page {
-    padding: 30px 16px 30px 16px;
+    padding: 10px 16px 14px 16px;
   }
   .header {
-    padding: 2px 0;
-    margin-bottom: 4px;
+    padding: 0;
+    margin-bottom: 2px;
   }
-  /* 胶囊屏 header 横向要放 ◀ 标题 [总] ▶，192px 物理宽下
-     3×48px 会把标题挤没，故取 44px 作为物理上限 */
-  /* 胶囊屏 header 实际只有 ◀ + 标题 + ▶（总/今/明已移到 nav-toolbar），
-     48×2 = 96px，标题仍有 64px（单字 26px 绰绰有余），可提到 48px */
+  .date-row {
+    height: 24px;
+  }
+  .date-text {
+    font-size: 22px;
+    line-height: 24px;
+  }
   .nav-btn-circle {
-    width: 48px;
-    height: 48px;
-    border-radius: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
   }
   .nav-btn-img {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
   }
   .day-title {
-    font-size: 26px;
+    font-size: 28px;
     font-weight: bold;
     text-align: center;
     flex: 1;
+    line-height: 36px;
     lines: 1;
   }
   /* 胶囊屏 header 里不放「总/今/明」（day-nav-btns 由 !isCapsule 关闭），

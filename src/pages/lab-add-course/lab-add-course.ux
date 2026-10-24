@@ -462,11 +462,11 @@ export default {
 }
 
 .back-btn-wrapper {
-  width: 36px; height: 36px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0;
+  width: 30px; height: 30px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0;
 }
 
 .back-btn-icon {
-  width: 24px; height: 24px;
+  width: 22px; height: 22px;
 }
 
 .title {

@@ -600,8 +600,8 @@ export default {
 
 /* 标题 24px：与公共 header.css 手环档一致（ev-six 下限档，4 字 @24 = 96px） */
 .header-title {
-  font-size: 24px;
-  line-height: 32px;
+  font-size: 28px;
+  line-height: 36px;
 }
 
 /* 输入格：每行 6 个（与 ev-six 六位置对齐），高 32 保持竖向呼吸 */

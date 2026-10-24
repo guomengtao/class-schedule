@@ -17,13 +17,10 @@
         <div class="header-placeholder"></div>
         </div>
 
-        <text class="panel-desc" style="color: {{ theme.textMuted }}">每个栏目都可当独立首页长期使用，默认首页不受影响。</text>
-
         <div class="section" style="background-color: {{ theme.card }}">
           <block for="{{ items }}">
             <div class="item-row" @click="route($item.path)">
               <text class="item-label" style="color: {{ theme.text }}">{{ $item.name }}</text>
-              <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
             </div>
           </block>
         </div>
@@ -100,47 +97,37 @@ export default {
 .page-body {
   flex-direction: column;
   width: 100%;
-  /* 44px 顶部留白避开状态栏，左右 12px 与兄弟面板页一致 */
-  padding: 44px 12px 12px 12px;
+  /* 44px 顶部留白避开状态栏。左右 8px（原 12px）：28px 标题 4 字约 107px，
+     12px 内边距只剩 104px，会把「更多首页」切成 3.5 字（真机反馈 2026-10-24）。 */
+  padding: 44px 8px 12px 8px;
 }
 
 .back-header {
   flex-direction: row;
   align-items: center;
   margin-bottom: 12px;
-  padding: 0 4px;
 }
 
 .back-btn-wrapper {
-  width: 36px; height: 36px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0;
+  width: 30px; height: 30px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0;
 }
 
 .back-btn-icon {
-  width: 24px; height: 24px;
+  width: 22px; height: 22px;
 }
 
 /* 标题居中：192 宽屏减去返回钮后仅剩 ~120px，4 个汉字 28px 必然折行，
    故降到 26px 并去掉右侧等宽占位（占位 48px 会把标题压到 64px，直接两行）。 */
 .header-title {
-  flex: 1; font-size: 24px; font-weight: bold; text-align: center; line-height: 32px; lines: 1;
+  flex: 1; font-size: 28px; font-weight: bold; text-align: center; line-height: 36px; lines: 1;
 }
 
 .header-placeholder {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
 }
 
-
-/* 目录页定位说明（「更多首页」改名配套）：18px/24px 行高、次要色。
-   2026-10-21 按规则 §七 抬字号：14px 真实手环上不可读。抬到 18 后 156px 宽
-   约 8 字一行，原文案要占 6 行（144px），把 7 个栏目整体压下去，故同步精简为 27 字 → 4 行。 */
-.panel-desc {
-  font-size: 18px;
-  line-height: 26px;
-  padding: 0 4px;
-  margin-bottom: 12px;
-}
 
 /* 单张卡片承载 7 个栏目：整块成组，比原来一串散落的蓝色下划线链接干净 */
 .section {
@@ -152,7 +139,6 @@ export default {
 
 .item-row {
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
   /* 6px 上下 + 38px 行高 = 50px/行 × 7 行 + 卡片内边距 + 头部 = 478px，稳稳落在一屏内 */
   padding: 6px 0;
@@ -163,17 +149,10 @@ export default {
   line-height: 38px;
 }
 
-.arrow {
-  font-size: 28px;
-  line-height: 38px;
-  flex-shrink: 0;
-}
-
 @media (width >= 360) {
   .page-body { padding: 44px 16px 16px 16px; }
   .item-row { padding: 10px 0; }
   .item-label { font-size: 32px; line-height: 44px; }
-  .arrow { font-size: 32px; line-height: 44px; }
 }
 
 @media (width >= 480) {

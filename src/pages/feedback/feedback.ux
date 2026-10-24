@@ -29,37 +29,35 @@
 
     <div class="section" style="background-color: {{ theme.card }}">
       <text class="sec-title" style="color: {{ theme.text }}">扫码反馈</text>
-      <text class="sec-desc" style="color: {{ theme.textMuted }}">手机扫码打开反馈页，可提交截图与联系方式</text>
+      <text class="sec-desc" style="color: {{ theme.textMuted }}">手机扫码提交反馈</text>
       <div class="qr-wrapper" style="background-color: #ffffff">
-        <qrcode value="{{ feedbackUrl }}" style="color: #000000; background-color: #ffffff; width: 160px; height: 160px;"></qrcode>
+        <qrcode value="{{ feedbackUrl }}" style="color: #000000; background-color: #ffffff; width: 120px; height: 120px;"></qrcode>
       </div>
-      <text class="qr-url" style="color: {{ theme.textMuted }}">{{ feedbackUrlShort }}</text>
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
       <text class="sec-title" style="color: {{ theme.text }}">QQ 群</text>
-      <text class="sec-desc" style="color: {{ theme.textMuted }}">群号与加群暗号统一在反馈网页查看，手机打开下方网址</text>
-      <div class="qq-row">
-        <text class="qq-url" style="color: {{ theme.text }}">{{ feedbackUrlShort }}</text>
-        <div class="copy-btn" onclick="copyUrl" style="background-color: {{ theme.accent }}">
-          <text class="copy-text" style="color: #ffffff">复制</text>
-        </div>
+      <text class="sec-desc" style="color: {{ theme.textMuted }}">群号与暗号见网页</text>
+      <!-- ev-six 第 11 条：页面不展示 URL 正文（手环上 30+ 字符必然折成 5 行残句）。
+           链接只保留在复制按钮背后，用户点一下就到手机端。 -->
+      <div class="copy-btn" onclick="copyUrl" style="background-color: {{ theme.accent }}">
+        <text class="copy-text" style="color: #ffffff">复制反馈链接</text>
       </div>
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
       <text class="sec-title" style="color: {{ theme.text }}">常见问题</text>
       <div class="faq-item">
-        <text class="faq-q" style="color: {{ theme.text }}">课程不显示？</text>
-        <text class="faq-a" style="color: {{ theme.textMuted }}">检查周课表是否勾选了对应星期，确认课程时间未冲突</text>
+        <text class="faq-q" style="color: {{ theme.text }}">课程不显示</text>
+        <text class="faq-a" style="color: {{ theme.textMuted }}">查周课表勾选</text>
       </div>
       <div class="faq-item">
-        <text class="faq-q" style="color: {{ theme.text }}">如何备份数据？</text>
-        <text class="faq-a" style="color: {{ theme.textMuted }}">设置 → 数据备份，登录后即可云端备份与恢复</text>
+        <text class="faq-q" style="color: {{ theme.text }}">备份与恢复</text>
+        <text class="faq-a" style="color: {{ theme.textMuted }}">设置里可备份</text>
       </div>
       <div class="faq-item">
-        <text class="faq-q" style="color: {{ theme.text }}">如何切换主题？</text>
-        <text class="faq-a" style="color: {{ theme.textMuted }}">设置 → 主题配色，高级版用户可解锁全部 6 款主题</text>
+        <text class="faq-q" style="color: {{ theme.text }}">主题怎么换</text>
+        <text class="faq-a" style="color: {{ theme.textMuted }}">设置里换主题</text>
       </div>
     </div>
 
@@ -161,12 +159,11 @@ export default {
   flex-direction: row;
   align-items: center;
   margin-bottom: 14px;
-  padding: 0 4px;
 }
 
 .back-btn-wrapper {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
   justify-content: center;
   align-items: center;
@@ -174,21 +171,21 @@ export default {
 }
 
 .back-btn-icon {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
 }
 
 .header-title {
   flex: 1;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
   text-align: center;
-  line-height: 32px;
+  line-height: 36px;
 }
 
 .header-placeholder {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
 }
 
@@ -201,16 +198,15 @@ export default {
 }
 
 .item-row {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
+  /* 两行制：192px 宽屏放不下「当前版本 v1.9.41」这种 label+value 同行（104+84=188 > 140） */
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 8px 0;
 }
 
 .item-label {
-  font-size: 26px;
-  line-height: 36px;
-  flex-shrink: 0;
+  font-size: 24px;
+  line-height: 32px;
 }
 
 .item-value {
@@ -234,29 +230,18 @@ export default {
   font-size: 22px;
   line-height: 31px;
   margin-bottom: 12px;
+  text-align: center;
 }
 
 .qr-wrapper {
-  width: 176px;
-  height: 176px;
+  /* 132px = 内容区 140px − 8px 余量：原 176px 直接顶出卡片（真机反馈「歪的」） */
+  width: 132px;
+  height: 132px;
   border-radius: 10px;
   justify-content: center;
   align-items: center;
   align-self: center;
   margin-bottom: 8px;
-}
-
-.qr-url {
-  font-size: 18px;
-  line-height: 26px;
-  text-align: center;
-  word-break: break-all;
-}
-
-.qq-row {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
 }
 
 .qq-num {
@@ -266,21 +251,19 @@ export default {
   line-height: 38px;
 }
 
-.qq-url {
-  flex: 1;
-  font-size: 20px;
-  line-height: 28px;
-  word-break: break-all;
-}
-
 .copy-btn {
-  padding: 8px 14px;
-  border-radius: 8px;
+  /* 整行按钮：URL 文本删除后，按钮就是这一栏唯一的操作入口，行内小胶囊太弱 */
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 8px;
 }
 
 .copy-text {
-  font-size: 22px;
-  line-height: 30px;
+  font-size: 26px;
+  line-height: 34px;
 }
 
 .faq-item {
@@ -298,6 +281,7 @@ export default {
 .faq-a {
   font-size: 22px;
   line-height: 30px;
+  text-align: center;
 }
 
 /* ================================================================
@@ -341,6 +325,7 @@ export default {
   .faq-a {
     font-size: 24px;
     line-height: 32px;
+    text-align: center;
   }
 }
 

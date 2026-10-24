@@ -98,7 +98,6 @@
               <text class="phrase-text" style="color: {{ theme.accent }}">{{ $item }}</text>
             </div>
           </swiper>
-          <text class="phrase-arrow" style="color: {{ theme.textMuted }}">›</text>
         </div>
         <div class="write-btn" onclick="writeReply" style="background-color: {{ theme.accent }}">
           <text class="write-text" style="color: {{ theme.bg }}">自己写…</text>
@@ -634,8 +633,8 @@ export default {
 }
 
 .back-btn-wrapper {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
   justify-content: center;
   align-items: center;
@@ -643,8 +642,8 @@ export default {
 }
 
 .back-btn-icon {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
 }
 
 /* 2026-10-21 规则 §七：标题 18→24（页面标题档）。
@@ -652,15 +651,15 @@ export default {
    「留言板」3 字 ×24 = 72 ✔。为此返回钮 40→36、管理钮 52→44（「管理」2 字 ×20 = 40） */
 .header-title {
   flex: 1;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
   text-align: center;
-  line-height: 32px;
+  line-height: 36px;
 }
 
 .header-placeholder {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
 }
 

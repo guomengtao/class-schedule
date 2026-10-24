@@ -567,8 +567,8 @@ export default {
   margin: 0;
 }
 .header-title {
-  font-size: 24px;
-  line-height: 32px;
+  font-size: 28px;
+  line-height: 36px;
   flex: 1;
   min-width: 0;
   text-align: center;

@@ -366,14 +366,14 @@ export default {
    否则 header.css 的 lines:1 + ellipsis 会把它切成「自定…」 */
 .header-title {
   flex: 1;
-  font-size: 24px;
-  line-height: 32px;
+  font-size: 28px;
+  line-height: 36px;
   text-align: center;
 }
 
 .header-placeholder {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
 }
 

@@ -6,80 +6,46 @@
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" style="color: {{ theme.text }}">遥控</text>
+      <text class="header-title" style="color: {{ theme.text }}">手机遥控</text>
       <div class="header-placeholder"></div>
     </div>
 
     <div class="section" style="background-color: {{ theme.card }}">
       <div class="row" onclick="cmdFindPhone">
         <text class="row-label" style="color: {{ theme.text }}">找手机</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">响铃 30 秒</text>
-        </div>
       </div>
       <div class="row" onclick="cmdPhoneStatus">
         <text class="row-label" style="color: {{ theme.text }}">手机状态</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">电量 / 连接</text>
-        </div>
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
       <div class="row" onclick="cmdMute">
-        <text class="row-label" style="color: {{ theme.text }}">静音 / 振动</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">切换响铃模式</text>
-        </div>
+        <text class="row-label" style="color: {{ theme.text }}">静音振动</text>
       </div>
       <div class="row" onclick="cmdCountdown">
-        <text class="row-label" style="color: {{ theme.text }}">倒计时 5 分钟</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">手机端提醒</text>
-        </div>
+        <text class="row-label" style="color: {{ theme.text }}">五分钟倒计</text>
       </div>
       <div class="row" onclick="cmdFlashlight">
         <text class="row-label" style="color: {{ theme.text }}">手电筒</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">开关手电</text>
-        </div>
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
       <div class="row" onclick="cmdWeather">
         <text class="row-label" style="color: {{ theme.text }}">查天气</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">定位取天气</text>
-        </div>
       </div>
       <div class="row" onclick="cmdNavHome">
         <text class="row-label" style="color: {{ theme.text }}">导航回家</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">打开地图</text>
-        </div>
       </div>
       <div class="row" onclick="cmdNavWork">
-        <text class="row-label" style="color: {{ theme.text }}">导航去公司</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">打开地图</text>
-        </div>
+        <text class="row-label" style="color: {{ theme.text }}">去公司</text>
       </div>
       <div class="divider" style="background-color: {{ theme.border }}"></div>
       <div class="row" onclick="cmdWord">
         <text class="row-label" style="color: {{ theme.text }}">问单词</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">手机查词</text>
-        </div>
       </div>
       <div class="row" onclick="sendChatTest">
-        <text class="row-label" style="color: {{ theme.text }}">发消息到手机</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">聊天 PoC</text>
-        </div>
+        <text class="row-label" style="color: {{ theme.text }}">发消息</text>
       </div>
       <div class="row" onclick="openMessageInbox">
         <text class="row-label" style="color: {{ theme.accent }}">留言板</text>
-        <div class="row-right">
-          <text class="row-hint" style="color: {{ theme.textMuted }}">查看消息</text>
-          <text class="arrow" style="color: {{ theme.textMuted }}">›</text>
-        </div>
       </div>
     </div>
 
@@ -215,12 +181,11 @@ export default {
   flex-direction: row;
   align-items: center;
   margin-bottom: 14px;
-  padding: 0 4px;
 }
 
 .back-btn-wrapper {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
   justify-content: center;
   align-items: center;
@@ -228,21 +193,21 @@ export default {
 }
 
 .back-btn-icon {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
 }
 
 .header-title {
   flex: 1;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
   text-align: center;
-  line-height: 32px;
+  line-height: 36px;
 }
 
 .header-placeholder {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
 }
 
@@ -255,32 +220,14 @@ export default {
 }
 
 .row {
+  /* 单行制：只留命令名（ev-six「需要更小时说明内容该删，而不是字该缩」）。
+     原「label 28px + hint 24px」两段文字挤在 140px 里，hint 被 overflow 切掉。 */
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
+  padding: 12px 0;
 }
 
 .row-label {
-  font-size: 28px;
-  flex-shrink: 0;
-  line-height: 38px;
-}
-
-.row-right {
-  flex-direction: row;
-  align-items: center;
-  flex-shrink: 1;
-  overflow: hidden;
-}
-
-.row-hint {
-  font-size: 24px;
-  margin-right: 6px;
-  line-height: 38px;
-}
-
-.arrow {
   font-size: 28px;
   flex-shrink: 0;
   line-height: 38px;
