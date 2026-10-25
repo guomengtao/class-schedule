@@ -1,25 +1,46 @@
 <template>
   <div class="page" onclick="onTap">
-    <text class="brand">EV</text>
-    <text class="sub">大字表盘</text>
+    <!-- ===== 192×490（手环 9）：原绝对定位版，一个像素都不改 ===== -->
+    <text if="{{ !wide }}" class="brand">EV</text>
+    <text if="{{ !wide }}" class="sub">大字表盘</text>
 
-    <div class="row r1">
+    <div if="{{ !wide }}" class="row r1">
       <text class="dg">{{ h0 }}</text>
       <text class="dg">{{ h1 }}</text>
     </div>
 
-    <div class="row r2">
+    <div if="{{ !wide }}" class="row r2">
       <text class="dg">{{ m0 }}</text>
       <text class="dg">{{ m1 }}</text>
     </div>
 
-    <text class="date">{{ dateText }}</text>
-    <text class="hint">轻触返回</text>
+    <text if="{{ !wide }}" class="date">{{ dateText }}</text>
+    <text if="{{ !wide }}" class="hint">轻触返回</text>
+
+    <!-- ===== 宽屏（10Pro 336×480 起）：4 位数字并成一行吃满宽度 + 整体垂直居中 =====
+         192 屏两行数字受「屏高」限制（490 高只能放两行 150px），再放大就溢出；
+         而 336 屏是「宽而矮」（480 高），继续两行 = 左右各留 72px 空白、纵向还挤。
+         故宽屏把「时分」并成一行：4×81 + 12 间距 = 336 满宽，主数字 146px 不受高度限制。
+         时与分之间只用 12px 空隙区分（ev-six 第 5 条：分隔靠排版，不靠符号）。 -->
+    <div if="{{ wide }}" class="wrap">
+      <text class="w-brand">EV</text>
+      <text class="w-sub">大字表盘</text>
+      <div class="w-row">
+        <text class="w-dg">{{ h0 }}</text>
+        <text class="w-dg">{{ h1 }}</text>
+        <div class="w-gap"></div>
+        <text class="w-dg">{{ m0 }}</text>
+        <text class="w-dg">{{ m1 }}</text>
+      </div>
+      <text class="w-date">{{ dateText }}</text>
+      <text class="w-hint">轻触返回</text>
+    </div>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
+import device from "@system.device"
 
 const LIST_PAGE = "/pages/watch-face-list"
 const FULL_DAY = ["日", "一", "二", "三", "四", "五", "六"]
@@ -31,12 +52,25 @@ function pad2(n) {
 export default {
   data: {
     h0: "0", h1: "0", m0: "0", m1: "0",
-    dateText: ""
+    dateText: "",
+    wide: false
   },
 
   onInit() {
     this.shown = ["", "", "", ""]
+    this.fitScreen()
     this.tick()
+  },
+
+  /* 屏宽 ≥300 → 宽屏版式（10Pro 336 起）。读不到就按 192 基准渲染，绝不白屏。 */
+  fitScreen() {
+    const self = this
+    device.getInfo({
+      success: function(d) {
+        if (d && d.screenWidth >= 300) self.wide = true
+      },
+      fail: function() {}
+    })
   },
 
   onShow() {
@@ -178,5 +212,72 @@ export default {
     text-align: center;
     font-size: 11px;
     color: #3f4655;
+  }
+
+  /* ===== 宽屏（10Pro 336×480 起）版式 =====
+     ev-six 约束：可读文字只用 24/28/30/44 四档，24 为绝对下限。
+     192 版里的 22/14/11px 在宽屏一律抬到 24 档（11px 在手环上≈显示器 3px 脚注，等于没有）。
+     主数字 146px 属「表盘图形本体」，不套四档——套 44 档就不是表盘了。 */
+  .wrap {
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .w-brand {
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: 6px;
+    color: #d8dde8;
+  }
+
+  .w-sub {
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: 2px;
+    margin-top: 2px;
+    color: #8a93a8;
+  }
+
+  .w-row {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 14px;
+  }
+
+  /* 位宽不写死：数字字形宽度随字号变化，写死 81px 会让 146px 的「1」「0」溢到框外被裁。
+     不设 width = 由字形撑开，行容器居中。
+     字号 126 按**最坏字宽**反算（「8/0」宽约 0.6F）：4×0.6×126 + 14 = 316 ≤ 320 安全区，
+     实测 148 时遇到宽字形会把两端数字裁掉，故不取更满的值。 */
+  .w-dg {
+    height: 168px;
+    font-size: 126px;
+    font-weight: bold;
+    line-height: 168px;
+    text-align: center;
+    color: #e8e4da;
+  }
+
+  .w-gap {
+    width: 14px;
+    height: 168px;
+  }
+
+  .w-date {
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: 1px;
+    color: #8a93a8;
+  }
+
+  .w-hint {
+    font-size: 24px;
+    line-height: 32px;
+    margin-top: 4px;
+    color: #6f7688;
   }
 </style>
