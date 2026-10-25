@@ -1,35 +1,30 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+      <div class="back-btn-wrapper" onclick="goBack"
+           style="background-color: {{ theme.card }}; display: {{ isRoot ? 'none' : 'flex' }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" onclick="goBack" style="color: {{ theme.textSecondary }}">剩余</text>
-      <div if="{{ !isRoot }}" class="header-placeholder"></div>
+      <div class="header-placeholder" style="display: {{ isRoot ? 'none' : 'flex' }}"></div>
     </div>
 
-    <!-- A 主数字：剩余节数 72px（130–205） -->
-    <text class="big-count" style="color: {{ theme.accent }}">{{ remainCount }}</text>
+    <!-- A 主信息：剩余节数（字号封顶 44，单位跟数字同排，省一行） -->
+    <text class="big-count" style="color: {{ theme.accent }}">{{ bigText }}</text>
 
-    <!-- B 单位行：节 · 还有 2 小时 30 分（210–232） -->
+    <!-- B 副信息：剩余总时长；空态时这里直接说结论，D 区不再重复 -->
     <text class="unit-line" style="color: {{ theme.textSecondary }}">{{ unitText }}</text>
 
-    <!-- C 分隔 168×1 -->
-    <div class="divider" style="background-color: {{ theme.border }}"></div>
-
-    <!-- D 列表：最多 4 行 × 44（250–426） -->
+    <!-- D 列表：最多 4 行，行高 44（触控下限）。不写死容器高，行数少就自然收紧 -->
     <div class="list">
       <div for="{{ shownClasses }}" class="row">
         <text class="row-time" style="color: {{ theme.textSecondary }}">{{ $item.timeShort }}</text>
         <text class="row-name" style="color: {{ $item.isCurrent ? theme.accent : theme.text }}">{{ $item.name }}</text>
       </div>
-      <div if="{{ !isLoading && remainCount === 0 }}" class="empty-box">
-        <text class="empty-text" style="color: {{ theme.textMuted }}">{{ emptyMessage }}</text>
-      </div>
     </div>
 
-    <!-- E 溢出提示（430–446） -->
-    <text if="{{ overflowCount > 0 }}" class="overflow-tip" style="color: {{ theme.textMuted }}">还有 {{ overflowCount }} 节未显示</text>
+    <!-- E 溢出提示：只报条数，13 字长句在 168px 上必然折行 -->
+    <text class="overflow-tip" style="color: {{ theme.textMuted }}; display: {{ hasOverflow ? 'flex' : 'none' }}">{{ overflowText }}</text>
   </div>
 </template>
 
@@ -42,7 +37,7 @@ const builtinSchedule = require("../../data/schedule.js")
 
 var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
-// "08:00 - 09:35" → {startMin, endMin}；格式不合规返回 null（脏数据不参与统计）
+// "08:00 - 09:35" 解析成 {startMin, endMin}；格式不合规返回 null（脏数据不参与统计）
 function parseTimeRange(timeStr) {
   if (!timeStr) return null
   var parts = timeStr.split(" - ")
@@ -56,7 +51,7 @@ function parseTimeRange(timeStr) {
   return { startMin: a, endMin: b }
 }
 
-// "08:00 - 09:35" → "08:00"
+// "08:00 - 09:35" 取开始时刻 "08:00"
 function startLabel(timeStr) {
   if (!timeStr) return ""
   var i = timeStr.indexOf(" - ")
@@ -70,9 +65,8 @@ function round5(min) {
   return r === 0 ? 5 : r
 }
 
-// 分钟数 → "3 小时 15 分" / "45 分"
-// 实测（192 画布 / 内容宽 168 / 20px）：含「还有」的串约 197px 必截断，
-// 故 B 行只留「节 · 」前缀 + 时长本身，最长串约 151px。
+// 分钟数取成 "3 小时 15 分" / "45 分"。
+// 24px 下最坏串「10 小时 55 分」= 165px ≤ 168px，所以这里不能再加「还剩」前缀（加 3 字就 216px）。
 function durationText(min) {
   if (min <= 0) return "0 分"
   if (min < 60) return min + " 分"
@@ -88,10 +82,13 @@ export default {
     isRoot: false,
     isLoading: true,
     remainCount: 0,
-    unitText: "",
-    emptyMessage: "今天没有课",
+    bigText: "0 节",        // A 区：剩余节数带单位
+    unitText: "",           // B 区：剩余总时长，或空态结论
+    emptyMessage: "今天没课",
     shownClasses: [],
     overflowCount: 0,
+    hasOverflow: false,
+    overflowText: "",
     schedule: [],
     tickTimer: null,
     theme: {
@@ -173,9 +170,12 @@ export default {
     } catch (e) {
       // 算炸了也不许把页面钉在旧读数上
       this.remainCount = 0
-      this.unitText = "节 · 数据异常"
+      this.bigText = "0 节"
+      this.unitText = "数据异常"
       this.shownClasses = []
       this.overflowCount = 0
+      this.hasOverflow = false
+      this.overflowText = ""
       console.error("[remaining] compute failed: " + e)
     }
     this.scheduleNextMinute()
@@ -192,7 +192,7 @@ export default {
       if (!r) continue
       // 已结束（含正好下课）的不算剩余
       if (r.endMin <= nowMin) continue
-      // 正在上的课只算「剩余段」，天然不吃课间/午休（不按末节−现在串算）
+      // 正在上的课只算「剩余段」，天然不吃课间/午休（不按末节减现在串算）
       var remainMin = r.endMin - (nowMin > r.startMin ? nowMin : r.startMin)
       if (remainMin <= 0) continue
       items.push({
@@ -209,28 +209,30 @@ export default {
     var totalMin = 0
     for (var k = 0; k < items.length; k++) totalMin += items[k].remainMin
 
-    // P1：D 区固定 4 行 × 44，超出进 E 区
+    // P1：D 区最多 4 行，超出进 E 区
     var shown = items.slice(0, 4)
     for (var m = 0; m < shown.length; m++) {
       shown[m].isCurrent = nowMin >= shown[m].startMin && nowMin < shown[m].endMin
     }
 
     this.remainCount = items.length
+    this.bigText = items.length + " 节"
     this.overflowCount = items.length - shown.length
+    this.hasOverflow = this.overflowCount > 0
+    this.overflowText = "还有 " + this.overflowCount + " 节"
     this.shownClasses = shown
 
     if (items.length === 0) {
-      var none = raw.length === 0
-      // 空态不重复：B 只留单位「节」（读作「0 节」），说明交给 D 区一行，文案 ≤5 字防折行
-      this.emptyMessage = none ? "今天没课" : "今日已上完"
-      this.unitText = "节"
+      // 空态不重复：B 区直接说结论，D 区不再摆一行字
+      this.emptyMessage = raw.length === 0 ? "今天没课" : "今日已上完"
+      this.unitText = this.emptyMessage
     } else {
-      this.unitText = "节 · " + durationText(round5(totalMin))
+      this.unitText = durationText(round5(totalMin))
     }
   },
 
   goBack: function() {
-    // 双模返回：被「更多首页」push（fromPanel）→ 回父页；作为 root 首页 → 回「更多首页」
+    // 双模返回：被「更多首页」push（fromPanel）则回父页；作为 root 首页则回「更多首页」
     if (this.fromPanel === '1') {
       router.back()
     } else {
@@ -279,8 +281,9 @@ export default {
 .header-title {
   flex: 1;
   font-size: 28px;
-  text-align: center;
   line-height: 36px;
+  text-align: center;
+  lines: 1;
 }
 .header-placeholder {
   width: 30px;
@@ -288,43 +291,31 @@ export default {
   flex-shrink: 0;
 }
 
-/* A 主数字：130–205 */
+/* A 剩余节数：44px 是四档上限，「5 节」= 22 + 7 + 58.5 ≈ 88px，居中 */
 .big-count {
-  margin-top: 46px;
-  height: 75px;
-  font-size: 72px;
-  line-height: 75px;
+  margin-top: 18px;
+  font-size: 44px;
+  line-height: 60px;
   font-weight: bold;
   text-align: center;
-  flex-shrink: 0;
-}
-
-/* B 单位行：210–232
-   实测：20px 下「节 · 10 小时 55 分」需 174px > 内容宽 168px 必截断（首版实拍已见「节 · 今日课程已全」被切），
-   故降到 18px（最坏串 ≈157px），保留 20px 只给 ≥200px 屏。 */
-.unit-line {
-  margin-top: 5px;
-  height: 22px;
-  font-size: 18px;
-  line-height: 22px;
-  text-align: center;
-  /* 只许一行：B 一旦折行就会把下方 D 区顶出坐标 */
   lines: 1;
   flex-shrink: 0;
 }
 
-/* C 分隔：168×1 */
-.divider {
-  margin-top: 8px;
-  width: 168px;
-  height: 1px;
+/* B 剩余总时长：最坏「10 小时 55 分」165px ≤ 168px，只许一行 */
+.unit-line {
+  margin-top: 4px;
+  font-size: 24px;
+  line-height: 34px;
+  text-align: center;
+  lines: 1;
   flex-shrink: 0;
 }
 
-/* D 列表：4 × 44 = 176，250–426 */
+/* D 列表：4 行 × 44（44 也是触控最小热区）。容器不写死高度，行数少就自然收紧，
+   否则 1 节课时列表底下会空出 132px，再把溢出提示顶到屏幕中间 */
 .list {
-  margin-top: 9px;
-  height: 176px;
+  margin-top: 16px;
   flex-direction: column;
   flex-shrink: 0;
 }
@@ -332,69 +323,37 @@ export default {
   height: 44px;
   flex-direction: row;
   align-items: center;
-  padding: 0 4px;
   flex-shrink: 0;
 }
-/* 时间列：18px 后「08:00」约 45px，宽度 46→50 才不折行 */
+/* 时间列：「08:00」24px 实测 60px，给 62px 才不折行；再留 8px 与课名分开
+   （不留就只有 2px 缝，实测截图里「16:40物理」糊成一片） */
 .row-time {
-  width: 50px;
-  font-size: 18px;
-  line-height: 22px;
+  width: 62px;
+  margin-right: 8px;
+  font-size: 24px;
+  line-height: 34px;
   flex-shrink: 0;
 }
+/* 课名剩 98px = 3 个 24px 汉字（96px，2 字科名余裕，3 字刚好贴边） */
 .row-name {
   flex: 1;
-  font-size: 22px;
-  line-height: 30px;
+  font-size: 24px;
+  line-height: 34px;
   font-weight: bold;
   lines: 1;
-  text-overflow: ellipsis;
-}
-.empty-box {
-  height: 176px;
-  justify-content: center;
-  align-items: center;
-}
-.empty-text {
-  font-size: 20px;
-  line-height: 28px;
-  text-align: center;
 }
 
-/* E 溢出提示：430–450（原 430–446）—— 18px 字配 20 行高，仍在 490 内 */
+/* E 溢出提示：只报条数（「还有 3 节」= 122px），长句在 168px 上必折行 */
 .overflow-tip {
-  margin-top: 4px;
-  height: 20px;
-  font-size: 18px;
-  line-height: 26px;
+  width: 100%;
+  font-size: 24px;
+  line-height: 34px;
   text-align: center;
   flex-shrink: 0;
 }
 
 @media (width >= 200px) {
-  .page { padding: 44px 16px 14px 16px; }
-  .header-title { font-size: 28px; line-height: 36px; }
-  .big-count { margin-top: 42px; height: 82px; font-size: 80px; line-height: 82px; }
-  .unit-line { font-size: 22px; line-height: 24px; height: 24px; }
-  .divider { width: 180px; }
-  .row { height: 48px; }
-  .row-time { width: 54px; font-size: 20px; }
-  .row-name { font-size: 24px; line-height: 32px; }
-  .list { height: 192px; }
-  .empty-box { height: 192px; }
-}
-
-@media (width >= 400px) {
-  .page { padding: 12px 20px 16px 20px; }
-  .header-title { font-size: 30px; line-height: 38px; }
-  .big-count { margin-top: 20px; height: 120px; font-size: 112px; line-height: 120px; }
-  .unit-line { font-size: 28px; line-height: 34px; height: 34px; }
-  .divider { width: 320px; }
-  .row { height: 64px; }
-  .row-time { width: 70px; font-size: 22px; }
-  .row-name { font-size: 30px; line-height: 40px; }
-  .list { height: 256px; }
-  .empty-box { height: 256px; }
-  .overflow-tip { font-size: 20px; line-height: 24px; height: 24px; }
+  .page { padding: 44px 16px 12px 16px; }
+  .row-time { width: 72px; }
 }
 </style>

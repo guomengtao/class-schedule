@@ -74,13 +74,13 @@ var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四"
 // 2026-10-20 是星期二（固定时钟 → 可复现）
 function T(hhmmss, day) { return new Date("2026-10-" + (day || 20) + "T" + hhmmss + "+08:00").getTime() }
 
-// 粗略字宽估算（校准依据：实测「节 · 今日课程已全」8 字被 168px 截断，
-// 即全角 ≈ 1.0em、半角 ≈ 0.55em、空格 ≈ 0.3em）。用来在单测里拦住「文案变长撑爆一行」。
+// 字宽估算：全角 1.33em（手册 §4.0 实测校准）、半角 0.5em（数字实测 0.44，取 0.5 留余量）、
+// 空格 0.3em。旧版按全角 1.0em 算，比真机窄 25%，「节 · 今日课程已全」那种行就是那样被放行的。
 function estW(s, fs) {
   var w = 0
   for (var i = 0; i < s.length; i++) {
     var c = s.charCodeAt(i)
-    w += (c === 32) ? 0.3 * fs : (c > 127 ? 1.0 * fs : 0.55 * fs)
+    w += (c === 32) ? 0.3 * fs : (c > 127 ? 1.33 * fs : 0.5 * fs)
   }
   return w
 }
@@ -173,31 +173,30 @@ console.log("\n\x1b[1m剩余课程栏目 · 单元测试\x1b[0m\n\x1b[2m  " + UX
 console.log("\n[1] 结构 / 禁区")
 truthy("模板含 A 主数字 .big-count", /class="big-count"/.test(TPL))
 truthy("模板含 B 单位行 .unit-line", /class="unit-line"/.test(TPL))
-truthy("模板含 C 分隔 .divider", /class="divider"/.test(TPL))
+truthy("无装饰分隔线 .divider（手册禁装饰边框，分隔靠 6~8px 间距）", !/class="divider"/.test(TPL))
 truthy("模板含 D 列表 for=shownClasses", /for="\{\{ shownClasses \}\}"/.test(TPL))
 truthy("模板含 E 溢出提示", /class="overflow-tip"/.test(TPL))
-truthy("A→B→C→D→E 顺序正确",
+truthy("A→B→D→E 顺序正确",
   TPL.indexOf("big-count") < TPL.indexOf("unit-line") &&
-  TPL.indexOf("unit-line") < TPL.indexOf("divider") &&
-  TPL.indexOf("divider") < TPL.indexOf("shownClasses") &&
+  TPL.indexOf("unit-line") < TPL.indexOf("shownClasses") &&
   TPL.indexOf("shownClasses") < TPL.indexOf("overflow-tip"))
 truthy("无 <scroll>（D 区固定 4 行）", !/<scroll/.test(TPL))
 truthy("全页无 setInterval（分钟级）", !/setInterval/.test(CODE))
 truthy("无 @keyframes（本页不做动画）", !/@keyframes/.test(STYLE))
 truthy("style 无数据绑定 {{ }}", !/\{\{[^}]*\}\}/.test(STYLE))
-eq("A 主数字 72px", (/\.big-count \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "72")
-eq("B 单位行 18px（20px 实测溢出）", (/\.unit-line \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "18")
-eq("C 分隔宽 168", (/\.divider \{[\s\S]*?width: (\d+)px/.exec(STYLE) || [])[1], "168")
-eq("C 分隔高 1", (/\.divider \{[\s\S]*?height: (\d+)px/.exec(STYLE) || [])[1], "1")
+eq("A 主数字 44px（四档上限，不是 72）", (/\.big-count \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "44")
+eq("B 副信息 24px（出 12~23 禁区）", (/\.unit-line \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "24")
 eq("D 行高 44", (/\.row \{[\s\S]*?height: (\d+)px/.exec(STYLE) || [])[1], "44")
-eq("D 容器高 176（4×44）", (/\.list \{[\s\S]*?height: (\d+)px/.exec(STYLE) || [])[1], "176")
-eq("D 课名 22px", (/\.row-name \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "22")
-eq("E 溢出提示 16px", (/\.overflow-tip \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "16")
-truthy("课名单行省略不换行", /lines:\s*1/.test(STYLE) && /text-overflow:\s*ellipsis/.test(STYLE))
+truthy("D 容器不写死高度（行数少就收紧，别把提示条顶到屏幕中间）", !/\.list \{[^}]*?height:/.test(STYLE))
+eq("D 课名 24px", (/\.row-name \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "24")
+eq("E 溢出提示 24px", (/\.overflow-tip \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "24")
+truthy("课名单行但不省略号（红线 8 禁 ellipsis）", /\.row-name \{[\s\S]*?lines:\s*1/.test(STYLE) && !/text-overflow/.test(STYLE))
 truthy("B 单位行只许一行（折行会顶飞 D 区）", /\.unit-line \{[\s\S]*?lines:\s*1/.test(STYLE))
-truthy("B 行最坏串「节 · 10 小时 55 分」18px 估算 ≤168 不截断", estW("节 · 10 小时 55 分", 18) <= 168)
-truthy("B 行空态「节」不超宽", estW("节", 18) <= 168)
-truthy("D 空态「今日已上完」18px 估算 ≤168 不折行", estW("今日已上完", 18) <= 168)
+truthy("B 行最坏串「10 小时 55 分」24px = " + Math.round(estW("10 小时 55 分", 24)) + " ≤168 不截断", estW("10 小时 55 分", 24) <= 168)
+truthy("A 区最坏「12 节」44px = " + Math.round(estW("12 节", 44)) + " ≤168", estW("12 节", 44) <= 168)
+truthy("空态「今日已上完」24px = " + Math.round(estW("今日已上完", 24)) + " ≤168", estW("今日已上完", 24) <= 168)
+truthy("E 区「还有 3 节」24px = " + Math.round(estW("还有 3 节", 24)) + " ≤168", estW("还有 3 节", 24) <= 168)
+truthy("D 行课名可用宽 98px ≥3 个 24px 汉字（时间列 62 + 间隙 8）", 168 - 62 - 8 >= estW("自习课", 24))
 
 /* 2. 7 节：填满 4 行 + 溢出 3 */
 console.log("\n[2] 7 节（早 07:00）")
@@ -209,14 +208,15 @@ eq("溢出 3 节", a.overflowCount, 3)
 eq("列表首行 08:00", a.shownClasses[0].timeShort, "08:00")
 eq("列表末行 11:00（不是第 7 节 15:00）", a.shownClasses[3].timeShort, "11:00")
 eq("非今日（明天体育）不混入", a.shownClasses.filter(function(c) { return c.name === "体育" }).length, 0)
-eq("总时长 7×45=315 → 5 小时 15 分", a.unitText, "节 · 5 小时 15 分")
+eq("总时长 7×45=315 → 5 小时 15 分", a.unitText, "5 小时 15 分")
+eq("A 区带单位「7 节」", a.bigText, "7 节")
 
 /* 3. 正在上的课只算剩余段（不吃课间/午休） */
 console.log("\n[3] 剩余时长口径（正在上 / 跨午休）")
 var b = makeInst(T("10:30:00"))
 b.onInit()
 eq("10:30 剩余 5 节（英语仍在上）", b.remainCount, 5)
-eq("英语只算剩余 15 分：15+45×4=195 → 3 小时 15 分", b.unitText, "节 · 3 小时 15 分")
+eq("英语只算剩余 15 分：15+45×4=195 → 3 小时 15 分", b.unitText, "3 小时 15 分")
 eq("正在上的英语标记 isCurrent", b.shownClasses[0].isCurrent, true)
 eq("已上完的语文不再出现", b.shownClasses.filter(function(c) { return c.name === "语文" }).length, 0)
 
@@ -225,7 +225,7 @@ c4.onInit()
 eq("4 节正好填满 D 区", c4.shownClasses.length, 4)
 eq("4 节无溢出", c4.overflowCount, 0)
 // 若按「末节结束 − 现在」串算 = 15:45-10:00 = 345 分（5 小时 45 分），会把午休算进去
-eq("跨午休不串算：4×45=180 → 3 小时", c4.unitText, "节 · 3 小时")
+eq("跨午休不串算：4×45=180 → 3 小时", c4.unitText, "3 小时")
 
 /* 4. 0 节 / 1 节 */
 console.log("\n[4] 0 节 / 1 节")
@@ -233,13 +233,14 @@ var d = makeInst(T("20:00:00"))
 d.onInit()
 eq("20:00 剩余 0 节", d.remainCount, 0)
 eq("列表 0 行", d.shownClasses.length, 0)
-eq("全上完的单位行只留「节」（说明交给 D 区，不重复）", d.unitText, "节")
+eq("全上完时 B 区直接说结论（D 区不再重复）", d.unitText, "今日已上完")
+eq("全上完 A 区仍是 0 节", d.bigText, "0 节")
 eq("全上完的空态文案", d.emptyMessage, "今日已上完")
 
 var e = makeInst(T("09:00:00"), { schedule: [{ day: OTHER, classes: [{ id: "9", name: "体育", time: "08:00 - 08:45" }] }] })
 e.onInit()
 eq("今天没课 → 0 节", e.remainCount, 0)
-eq("今天没课的单位行只留「节」", e.unitText, "节")
+eq("今天没课 B 区说「今天没课」", e.unitText, "今天没课")
 eq("今天没课的空态文案", e.emptyMessage, "今天没课")
 
 var f = makeInst(T("14:00:00"), { schedule: FIX1 })
@@ -247,24 +248,24 @@ f.onInit()
 eq("1 节（脏时间已剔除）", f.remainCount, 1)
 eq("只有 1 行", f.shownClasses.length, 1)
 eq("1 节无溢出", f.overflowCount, 0)
-eq("45 分 → 还有 45 分", f.unitText, "节 · 45 分")
+eq("45 分 → 还有 45 分", f.unitText, "45 分")
 
 /* 5. P2 舍入到 5 分钟 */
 console.log("\n[5] 舍入到 5 分钟")
 var g = makeInst(T("10:33:00"))
 g.onInit()
 // 英语剩 12 分 + 45×4 = 192 → 舍到 190 → 3 小时 10 分
-eq("192 分舍入到 190 → 3 小时 10 分", g.unitText, "节 · 3 小时 10 分")
+eq("192 分舍入到 190 → 3 小时 10 分", g.unitText, "3 小时 10 分")
 
 var h = makeInst(T("10:44:00"))
 h.onInit()
 // 英语剩 1 分 + 45×4 = 181 → 对「总时长」取整 → 180 → 3 小时（舍入只发生一次，不逐节取整）
-eq("181 分舍入到 180 → 3 小时", h.unitText, "节 · 3 小时")
+eq("181 分舍入到 180 → 3 小时", h.unitText, "3 小时")
 
 // 真正的 0 值兜底：全场只剩 1 分钟时，不许显示「0 分」
 var h2 = makeInst(T("10:44:00"), { schedule: [{ day: TODAY, classes: [{ id: "t", name: "英语", time: "10:00 - 10:45" }] }] })
 h2.onInit()
-eq("总剩余 1 分 → 兜底 5 分（不显示 0）", h2.unitText, "节 · 5 分")
+eq("总剩余 1 分 → 兜底 5 分（不显示 0）", h2.unitText, "5 分")
 
 /* 6. 分钟级刷新 / 定时器唯一 */
 console.log("\n[6] 分钟级刷新")
@@ -301,7 +302,32 @@ eq("首帧就挂好分钟级定时器", j.__timers.pending(), 1)
 var k = makeInst(T("07:00:00"), { dbGet: false, builtin: [] })
 k.onInit()
 eq("内置课表也空时退化为 0 节而非卡住", k.remainCount, 0)
-eq("空数据时单位行只留「节」且不卡住", k.unitText, "节")
+eq("空数据时 B 区说「今天没课」且不卡住", k.unitText, "今天没课")
+
+/* 8. ev-six 硬指标 */
+console.log("\n[8] ev-six 硬指标")
+var sizes = (STYLE.match(/font-size:\s*(\d+)px/g) || []).map(function(v) { return parseInt(v.replace(/\D/g, ""), 10) })
+var TIERS = { 24: 1, 28: 1, 30: 1, 44: 1 }
+truthy("font-size 只出现四档 44/28/30/24（实见 " + sizes.join(",") + "）", sizes.every(function(v) { return TIERS[v] }))
+truthy("无 12~23px 字号", sizes.every(function(v) { return v < 12 || v > 23 }))
+truthy("模板与脚本均无 · 分隔符（红线 4）", !/·/.test(TPL) && !/·/.test(CODE))
+truthy("全页无 if= 条件渲染（事故案例 11）", !/\bif=/.test(TPL))
+truthy("返回键与占位改 display 绑定", /display: \{\{ isRoot \? 'none' : 'flex' \}\}/.test(TPL))
+truthy("溢出提示改 display 绑定", /display: \{\{ hasOverflow \? 'flex' : 'none' \}\}/.test(TPL))
+var padDecl = (/\.page \{[\s\S]*?padding: ([^;]+);/.exec(STYLE) || [])[1] || ""
+var pv = padDecl.split(/\s+/).map(function(x) { return parseInt(x, 10) })
+eq("页面左右 padding 均为 12", [pv[1], pv[3]].join(","), "12,12")
+function cssNum(sel, prop) {
+  var re = new RegExp("\\." + sel + " \\{[\\s\\S]*?" + prop + ": (\\d+)px")
+  var m = re.exec(STYLE)
+  return m ? parseInt(m[1], 10) : NaN
+}
+var stack = pv[0] + cssNum("back-header", "height")
+  + cssNum("big-count", "margin-top") + cssNum("big-count", "line-height")
+  + cssNum("unit-line", "margin-top") + cssNum("unit-line", "line-height")
+  + cssNum("list", "margin-top") + 4 * cssNum("row", "height")
+  + cssNum("overflow-tip", "line-height")
+truthy("最坏栈高 " + stack + "px ≤440（4 行 + 溢出提示仍不进胶囊圆弧）", stack <= 440)
 
 console.log("\n" + (fail === 0
   ? "\x1b[32m✔ 全部 " + pass + " 项通过\x1b[0m"
