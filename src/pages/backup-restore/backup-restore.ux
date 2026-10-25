@@ -1,3 +1,5 @@
+<import name="unlock-dialog" src="../../components/unlock-dialog"></import>
+
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="header">
@@ -52,6 +54,9 @@
         </div>
       </div>
     </div>
+
+    <unlock-dialog id="unlockDialog"></unlock-dialog>
+
   </div>
 </template>
 
@@ -60,7 +65,6 @@ import router from "@system.router"
 var storage = require("@system.storage")
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
-
 var BACKUP_LIST_KEY = "backup_list"
 var MAX_BACKUPS = 20
 
@@ -145,6 +149,35 @@ export default {
   },
 
   createBackup() {
+    var self = this
+    store.isPremiumUnlocked(function(unlocked) {
+      if (!unlocked) {
+        self.showUpgradeDialog()
+        return
+      }
+      self.doCreateBackup()
+    })
+  },
+
+  showUpgradeDialog() {
+    // unlock-dialog 组件注册可能晚于页面回调，失败则短重试（同 statistics.ux 写法）
+    var opts = {
+      title: "解锁备份",
+      description: "备份与恢复是高级版功能",
+      benefits: ["多份数据备份", "一键恢复课表", "防止数据丢失", "永久使用"],
+      cancelText: "继续使用标准版"
+    }
+    var tries = 5
+    var tryShow = function() {
+      if (!store.showUnlockDialog(opts) && tries > 0) {
+        tries--
+        setTimeout(tryShow, 400)
+      }
+    }
+    tryShow()
+  },
+
+  doCreateBackup() {
     var self = this
     var backupData = {}
     var total = DATA_KEYS.length
