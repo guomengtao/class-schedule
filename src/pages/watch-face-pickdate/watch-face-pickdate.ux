@@ -3,74 +3,74 @@
 
     <div class="back" onclick="onTap"></div>
 
-    <text class="brand">EV</text>
-    <text class="brand-sub">时 间 表 盘</text>
+    <text class="brand {{ brandCls }}">EV</text>
+    <text class="brand-sub {{ subCls }}">时 间 表 盘</text>
 
     <!-- 三列自绘鼓轮：裁切窗口 + 9 格数字带 + 分帧推 top（真上下滚动） -->
-    <div class="drum">
-      <div class="band"></div>
+    <div class="drum {{ drumCls }}">
+      <div class="band {{ bandCls }}"></div>
 
-      <div class="col" ontouchstart="tS0" ontouchend="tE0">
-        <div class="win">
-          <div class="strip" style="top: {{ t0 }}px">
-            <text class="di">{{ a0 }}</text>
-            <text class="di">{{ a1 }}</text>
-            <text class="di">{{ a2 }}</text>
-            <text class="di">{{ a3 }}</text>
-            <text class="di di-c">{{ a4 }}</text>
-            <text class="di">{{ a5 }}</text>
-            <text class="di">{{ a6 }}</text>
-            <text class="di">{{ a7 }}</text>
-            <text class="di">{{ a8 }}</text>
+      <div class="col {{ cellCls }}" ontouchstart="tS0" ontouchend="tE0">
+        <div class="win {{ cellCls }}">
+          <div class="strip {{ stripCls }}" style="top: {{ t0 }}px">
+            <text class="di {{ diCls }}">{{ a0 }}</text>
+            <text class="di {{ diCls }}">{{ a1 }}</text>
+            <text class="di {{ diCls }}">{{ a2 }}</text>
+            <text class="di {{ diCls }}">{{ a3 }}</text>
+            <text class="di di-c {{ diCCls }}">{{ a4 }}</text>
+            <text class="di {{ diCls }}">{{ a5 }}</text>
+            <text class="di {{ diCls }}">{{ a6 }}</text>
+            <text class="di {{ diCls }}">{{ a7 }}</text>
+            <text class="di {{ diCls }}">{{ a8 }}</text>
           </div>
         </div>
       </div>
 
-      <text class="c">:</text>
+      <text class="c {{ cCls }}">:</text>
 
-      <div class="col" ontouchstart="tS1" ontouchend="tE1">
-        <div class="win">
-          <div class="strip" style="top: {{ t1 }}px">
-            <text class="di">{{ b0 }}</text>
-            <text class="di">{{ b1 }}</text>
-            <text class="di">{{ b2 }}</text>
-            <text class="di">{{ b3 }}</text>
-            <text class="di di-c">{{ b4 }}</text>
-            <text class="di">{{ b5 }}</text>
-            <text class="di">{{ b6 }}</text>
-            <text class="di">{{ b7 }}</text>
-            <text class="di">{{ b8 }}</text>
+      <div class="col {{ cellCls }}" ontouchstart="tS1" ontouchend="tE1">
+        <div class="win {{ cellCls }}">
+          <div class="strip {{ stripCls }}" style="top: {{ t1 }}px">
+            <text class="di {{ diCls }}">{{ b0 }}</text>
+            <text class="di {{ diCls }}">{{ b1 }}</text>
+            <text class="di {{ diCls }}">{{ b2 }}</text>
+            <text class="di {{ diCls }}">{{ b3 }}</text>
+            <text class="di di-c {{ diCCls }}">{{ b4 }}</text>
+            <text class="di {{ diCls }}">{{ b5 }}</text>
+            <text class="di {{ diCls }}">{{ b6 }}</text>
+            <text class="di {{ diCls }}">{{ b7 }}</text>
+            <text class="di {{ diCls }}">{{ b8 }}</text>
           </div>
         </div>
       </div>
 
-      <text class="c">:</text>
+      <text class="c {{ cCls }}">:</text>
 
-      <div class="col" ontouchstart="tS2" ontouchend="tE2">
-        <div class="win">
-          <div class="strip" style="top: {{ t2 }}px">
-            <text class="di">{{ s0 }}</text>
-            <text class="di">{{ s1 }}</text>
-            <text class="di">{{ s2 }}</text>
-            <text class="di">{{ s3 }}</text>
-            <text class="di di-c">{{ s4 }}</text>
-            <text class="di">{{ s5 }}</text>
-            <text class="di">{{ s6 }}</text>
-            <text class="di">{{ s7 }}</text>
-            <text class="di">{{ s8 }}</text>
+      <div class="col {{ cellCls }}" ontouchstart="tS2" ontouchend="tE2">
+        <div class="win {{ cellCls }}">
+          <div class="strip {{ stripCls }}" style="top: {{ t2 }}px">
+            <text class="di {{ diCls }}">{{ s0 }}</text>
+            <text class="di {{ diCls }}">{{ s1 }}</text>
+            <text class="di {{ diCls }}">{{ s2 }}</text>
+            <text class="di {{ diCls }}">{{ s3 }}</text>
+            <text class="di di-c {{ diCCls }}">{{ s4 }}</text>
+            <text class="di {{ diCls }}">{{ s5 }}</text>
+            <text class="di {{ diCls }}">{{ s6 }}</text>
+            <text class="di {{ diCls }}">{{ s7 }}</text>
+            <text class="di {{ diCls }}">{{ s8 }}</text>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="edge-t"></div>
-    <div class="edge-b"></div>
+    <div class="edge-t {{ edgeTCls }}"></div>
+    <div class="edge-b {{ edgeBCls }}"></div>
 
-    <text class="date">{{ dateText }}</text>
-    <div class="hr"></div>
-    <text class="doy">{{ doyText }}</text>
+    <text class="date {{ dateCls }}">{{ dateText }}</text>
+    <div class="hr {{ hrCls }}"></div>
+    <text class="doy {{ doyCls }}">{{ doyText }}</text>
 
-    <text class="hint">{{ hintText }}</text>
+    <text class="hint {{ hintCls }}">{{ hintText }}</text>
   </div>
 </template>
 
@@ -81,11 +81,14 @@ const LIST_PAGE = "/pages/watch-face-list"
 const WD = ["日", "一", "二", "三", "四", "五", "六"]
 const HINT_IDLE = "上下滑调时 · 点顶部返回"
 
-/* ── 鼓轮几何（改这里必须同步改 CSS 的 .di / .win 高度） ────────── */
-const CELL_H = 50        // 每格高度
+/* ── 鼓轮几何（改这里必须同步改 CSS 的 .di / .win 高度） ──────────
+   宽屏（336×480）由 fitScreen() 就地改写 CELL_H = 62，BASE_TOP 随之重算。
+   ⚠ BASE_TOP 的第一项必须是 CELL_H 本身，不能写成字面量 50：
+     静止位置 = 中心格顶 − PAD 格，中心格顶 = CELL_H，所以 = CELL_H×(1−PAD)。 */
+let CELL_H = 50          // 每格高度
 const PAD    = 4         // 中心格上下各留 4 格，支持一次最多滚 3 格
 const N_CELL = 9         // 9 格数字带
-const BASE_TOP = 50 - CELL_H * PAD   // = -150，静止时数字带的 top
+let BASE_TOP = CELL_H - CELL_H * PAD   // = -150，静止时数字带的 top
 const FRAMES = 5         // 一次滚动分 5 帧
 const STEP_MS = 40       // 5 × 40 = 200ms，肉眼能看清滚动过程
 
@@ -111,7 +114,25 @@ export default {
     t0: BASE_TOP, t1: BASE_TOP, t2: BASE_TOP,
     dateText: "",
     doyText: "",
-    hintText: HINT_IDLE
+    hintText: HINT_IDLE,
+
+    /* 宽屏（336×480）类：fitScreen 命中时置为 "w-*"，192 屏保持空串 → 零回归。
+       必须混写 class="原类 {{ xCls }}"，纯动态 class 会丢父类样式。 */
+    brandCls: "",
+    subCls: "",
+    drumCls: "",
+    bandCls: "",
+    cellCls: "",      /* .col 与 .win 共用（两者宽高相同） */
+    stripCls: "",     /* 数字带容器宽度须跟随 .di，否则 column flex 会按容器裁 */
+    diCls: "",
+    diCCls: "",       /* 中心格单值 "w-di-c"，不用多类值，避免动态值带空格 */
+    cCls: "",
+    edgeTCls: "",
+    edgeBCls: "",
+    dateCls: "",
+    hrCls: "",
+    doyCls: "",
+    hintCls: ""
   },
 
   onInit() {
@@ -123,6 +144,45 @@ export default {
     this.manualTs = 0
     this.syncClock(new Date(), true)
     this.align()
+    this.fitScreen()               // 本仓 onReady 可能不触发，屏宽判定从 onInit 起
+  },
+
+  /* 宽屏判定：只有 336×480 命中，192×490 静默返回 → 像素零回归。
+     本页几何量分散在 JS（CELL_H / BASE_TOP）与 CSS（.di 高 / .win 高）两侧，
+     必须成对改；只改一侧的表现是「数字被裁」或「中心格不是当前值」。 */
+  fitScreen() {
+    const self = this
+    try {
+      const dev = require("@system.device")
+      dev.getInfo({
+        success: function(d) {
+          const w = d && d.screenWidth ? d.screenWidth : 0
+          if (w < 300) return
+          CELL_H = 62
+          BASE_TOP = CELL_H - CELL_H * PAD       // -186（= 62 − 248）
+          /* 三条带是 data 字段，改常量不会自动跟，必须手动复位 */
+          self.t0 = BASE_TOP
+          self.t1 = BASE_TOP
+          self.t2 = BASE_TOP
+          self.brandCls = "w-brand"
+          self.subCls = "w-sub"
+          self.drumCls = "w-drum"
+          self.bandCls = "w-band"
+          self.cellCls = "w-cell"
+          self.stripCls = "w-strip"
+          self.diCls = "w-di"
+          self.diCCls = "w-di-c"
+          self.cCls = "w-c"
+          self.edgeTCls = "w-edge-t"
+          self.edgeBCls = "w-edge-b"
+          self.dateCls = "w-date"
+          self.hrCls = "w-hr"
+          self.doyCls = "w-doy"
+          self.hintCls = "w-hint"
+        },
+        fail: function() {}
+      })
+    } catch (e) {}
   },
 
   /* 表盘可能被系统挂起：回来先把三条带复位到整格位置 */
@@ -486,16 +546,17 @@ export default {
     left: 0;
     top: 300px;
     width: 192px;
-    height: 18px;
-    font-size: 13px;
+    height: 30px;
+    font-size: 24px;
     text-align: center;
     color: #98a1aa;
   }
 
+  /* 提到 24px 后 date 占 300–330，细线必须让到 334，否则压在字上 */
   .hr {
     position: absolute;
     left: 76px;
-    top: 324px;
+    top: 334px;
     width: 40px;
     height: 1px;
     background-color: #2b3138;
@@ -504,22 +565,115 @@ export default {
   .doy {
     position: absolute;
     left: 0;
-    top: 336px;
+    top: 338px;
     width: 192px;
-    height: 14px;
-    font-size: 9px;
+    height: 30px;
+    font-size: 24px;
     text-align: center;
-    color: #4d545c;
+    color: #7e8791;
   }
 
+  /* 192 屏例外：这句提示 12 个字，24px 需要约 288px > 192 会被裁成「上下滑调时 · 点」。
+     实测 192 宽下 15px 是极限（12 字 × 15 ≈ 188），取 14px 留余量；
+     336 屏由 .w-hint 提到 24px（12 × 24 = 288 < 336）。 */
   .hint {
     position: absolute;
     left: 0;
     top: 452px;
     width: 192px;
-    height: 14px;
-    font-size: 9px;
+    height: 20px;
+    font-size: 14px;
     text-align: center;
-    color: #343b43;
+    color: #6f7781;
+  }
+
+  /* ══ 宽屏 336×480 覆盖块（全部单类，Vela 不支持后代选择器）══
+     几何咬合（任何一处不同步 = 数字被裁 / 中心格错位）：
+       JS CELL_H 62  =  .w-di 高 62  =  .w-di 行高 62
+       .w-cell 高 186 = 3 × 62（裁切窗只露 3 格）
+     横向：3 × 72 + 2 × 16 = 248，left = (336 − 248) / 2 = 44，中心 168。 */
+  .w-brand {
+    top: 40px;
+    width: 100%;
+    height: 30px;
+    font-size: 26px;
+  }
+  .w-sub {
+    top: 74px;
+    width: 100%;
+    height: 20px;
+    font-size: 18px;
+  }
+  .w-drum {
+    left: 44px;
+    top: 120px;
+    width: 248px;
+    height: 186px;
+  }
+  /* 选中行底衬：鼓内第 2 格（62 ~ 124），对应页 y 182 ~ 244 */
+  .w-band {
+    top: 62px;
+    width: 248px;
+    height: 62px;
+  }
+  .w-cell {
+    width: 72px;
+    height: 186px;
+  }
+  .w-strip {
+    width: 72px;
+  }
+  .w-di {
+    width: 72px;
+    height: 62px;
+    font-size: 30px;
+    line-height: 62px;
+  }
+  /* 中心格：单值类，四条属性写全（不依赖 w-di 叠加，避免动态值带空格解析风险） */
+  .w-di-c {
+    width: 72px;
+    height: 62px;
+    font-size: 38px;
+    line-height: 62px;
+  }
+  .w-c {
+    width: 16px;
+    height: 186px;
+    font-size: 34px;
+    line-height: 186px;
+  }
+  /* 上下沿线：鼓顶 120 + 1 格 = 182，再加 1 格底 = 243（1px 线） */
+  .w-edge-t {
+    left: 42px;
+    top: 182px;
+    width: 252px;
+  }
+  .w-edge-b {
+    left: 42px;
+    top: 243px;
+    width: 252px;
+  }
+  .w-date {
+    top: 322px;
+    width: 100%;
+    height: 30px;
+    font-size: 24px;
+  }
+  .w-hr {
+    left: 138px;
+    top: 356px;
+    width: 60px;
+  }
+  .w-doy {
+    top: 360px;
+    width: 100%;
+    height: 30px;
+    font-size: 24px;
+  }
+  .w-hint {
+    top: 440px;
+    width: 100%;
+    height: 30px;
+    font-size: 24px;
   }
 </style>
