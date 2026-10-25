@@ -1,28 +1,32 @@
-<!-- UI/实现来源：早期沿用 open-vela-learning 官方 sample（home/index.ux），
-     2026-10-17 UI 整理：原样式 padding 60px 80px 在 192 宽屏上左右各吃掉 80px，7 个栏目被压成
-     一条窄柱；.link 的 margin-left:23px 又被后面的 margin:5px 0 简写覆盖（等于没缩进）；
-     行高 40px 装 30px 字，行间距全靠全局 text 规则，视觉松散不成组。
-     现改为对标 pages/tools/tools.ux 的标准样式：状态栏留白 + 返回钮/居中标题头部 + 单张卡片内
-     7 行（行 + 箭头 ›），配色全部走 store.getTheme 的 theme 变量，深浅主题自动适配。
+<!-- 「更多首页」目录页：data.js 的 tabsData 展平成 8 个栏目入口。
+     2026-10-17 首轮整理（原 padding 60 80 把 7 栏压成窄柱）。
+     2026-10-25 按 ev-six 六位准则重排（evtask-D-evclass-sche-261025-5aqmfh），修三处实测违规：
+     ① 标题原「更多首页」4 字 @28px 实宽 149px，头部可用宽只有 116px（192−8×2−30−30），
+        必折行 → 文案删字改「栏目」2 字 = 75px，余 33px；
+     ② 卡片左右 padding 14px + 页面 8px，条目名 4 字 @28 需 149px，容器仅 148px，贴边裁字
+        → 页面 12px / 卡片 8px，容器回 152px（余 3px，手册 §4.1 认可的贴边配置）；
+     ③ 行 padding 6px + 行高 38 = 50px/行，8 行 + 头部 + 留白 = 518px 超 490 屏，末项被切
+        → 行 padding 3px（44px/行，恰好等于触控最小热区），整页 468px，一屏放下 8 项。
+     可点性靠底色（红线 9）：整张卡是 card 二级底，行内不再叠符号；行内无箭头、无分隔符。
      逻辑与数据源未动：仍是 data.js 的 tabsData，route/goBack 行为不变。 -->
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <scroll class="page-scroll" scroll-y="{{ true }}">
       <div class="page-body">
-        <div class="back-header">
+        <!-- 头部固定 3 元素：返回键 30 + 居中标题（≤3 字）+ 等宽占位 30 -->
+        <div class="header">
           <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
             <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
           </div>
-          <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">更多首页</text>
-        <div class="header-placeholder"></div>
+          <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">栏目</text>
+          <div class="header-placeholder"></div>
         </div>
 
+        <!-- 单张卡承载 8 个栏目：整块成组，比一串散落的链接干净；行与行靠 44px 行距分层 -->
         <div class="section" style="background-color: {{ theme.card }}">
-          <block for="{{ items }}">
-            <div class="item-row" @click="route($item.path)">
-              <text class="item-label" style="color: {{ theme.text }}">{{ $item.name }}</text>
-            </div>
-          </block>
+          <div class="item-row" for="{{ items }}" onclick="route($item.path)">
+            <text class="item-label" style="color: {{ theme.text }}">{{ $item.name }}</text>
+          </div>
         </div>
       </div>
     </scroll>
@@ -31,7 +35,7 @@
 
 <script>
 import router from '@system.router'
-// 数据源沿用 data.js 的 tabsData（更多首页一章一组 7 个栏目）；此处只做「章节 → 平铺列表」的展平。
+// 数据源沿用 data.js 的 tabsData（更多首页一章一组 8 个栏目）；此处只做「章节 → 平铺列表」的展平。
 import { tabsData } from './data.js'
 
 const store = require('../../data/store.js')
@@ -94,18 +98,17 @@ export default {
   flex-direction: column;
 }
 
+/* 页面左右 12px（内容宽 168px），顶部 44px 避开状态栏。 */
 .page-body {
   flex-direction: column;
   width: 100%;
-  /* 44px 顶部留白避开状态栏。左右 8px（原 12px）：28px 标题 4 字约 107px，
-     12px 内边距只剩 104px，会把「更多首页」切成 3.5 字（真机反馈 2026-10-24）。 */
-  padding: 44px 8px 12px 8px;
+  padding: 44px 12px 12px 12px;
 }
 
-.back-header {
+.header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .back-btn-wrapper {
@@ -116,8 +119,7 @@ export default {
   width: 22px; height: 22px;
 }
 
-/* 标题居中：192 宽屏减去返回钮后仅剩 ~120px，4 个汉字 28px 必然折行，
-   故降到 26px 并去掉右侧等宽占位（占位 48px 会把标题压到 64px，直接两行）。 */
+/* 标题可用宽 = 192 − 12×2 − 30 − 30 = 108px；2 字 @28 = 75px，余 33px。 */
 .header-title {
   flex: 1; font-size: 28px; font-weight: bold; text-align: center; line-height: 36px; lines: 1;
 }
@@ -128,20 +130,21 @@ export default {
   flex-shrink: 0;
 }
 
-
-/* 单张卡片承载 7 个栏目：整块成组，比原来一串散落的蓝色下划线链接干净 */
+/* 卡片左右 padding 8px（≤8 合规）：行内可用 152px，4 字 @28 = 149px，余 3px。 */
 .section {
   width: 100%;
   flex-direction: column;
   border-radius: 14px;
-  padding: 10px 14px;
+  padding: 10px 8px;
 }
 
+/* 行高 38 + 上下 3px = 44px/行（触控最小热区）；8 行 352px，整页 468px，一屏不滚。 */
 .item-row {
   flex-direction: row;
   align-items: center;
-  /* 6px 上下 + 38px 行高 = 50px/行 × 7 行 + 卡片内边距 + 头部 = 478px，稳稳落在一屏内 */
-  padding: 6px 0;
+  width: 100%;
+  min-height: 44px;
+  padding: 3px 0;
 }
 
 .item-label {
@@ -151,13 +154,13 @@ export default {
 
 @media (width >= 360) {
   .page-body { padding: 44px 16px 16px 16px; }
-  .item-row { padding: 10px 0; }
-  .item-label { font-size: 32px; line-height: 44px; }
+  .item-row { min-height: 52px; padding: 7px 0; }
+  .item-label { font-size: 30px; line-height: 40px; }
 }
 
 @media (width >= 480) {
   .page-body { padding: 44px 40px 24px 40px; }
-  .item-row { padding: 14px 0; }
-  .section { border-radius: 18px; padding: 14px 20px; }
+  .item-row { min-height: 60px; padding: 10px 0; }
+  .section { border-radius: 18px; padding: 14px 12px; }
 }
 </style>

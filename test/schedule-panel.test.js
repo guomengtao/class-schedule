@@ -228,11 +228,88 @@ ok("已无折叠开关 toggleGroup", panelSrc.indexOf("toggleGroup") < 0)
 // 旧断言随实现更新（不改源码——那是别人的有意重构）。
 ok("宽屏断点适配保留（@media width >= 360 / 480）",
   panelSrc.indexOf("@media (width >= 360)") >= 0 && panelSrc.indexOf("@media (width >= 480)") >= 0)
-ok("header 标题渲染为「更多首页」", panelSrc.indexOf(">更多首页</text>") >= 0)
+// 2026-10-25 按 ev-six 重排（evtask-D-evclass-sche-261025-5aqmfh）：标题原「更多首页」4 字
+// @28px 实宽 149px，头部可用宽仅 108~116px，必折行 → 文案删字改「栏目」2 字。
+ok("header 标题渲染为「栏目」", panelSrc.indexOf(">栏目</text>") >= 0)
 // 2026-10-24 真机反馈：头部说明文案删除（192px 屏上多两行废话，把 8 个栏目往下压），
 // 断言反过来钉住「不许再长回来」
 ok("header 下方不再有定位说明文案（真机反馈删除）", panelSrc.indexOf("默认首页不受影响") < 0)
 ok("栏目行不再带行尾 › 箭头（ev-six 禁行内导航箭头）", panelSrc.indexOf(">›<") < 0)
+
+// ---------------------------------------------------------------- ev-six 六位准则回归
+// 为什么用「解析 CSS 数值 + 算预算」而不是逐条 grep 字面量：这三类违规（标题超宽、条目裁字、
+// 整页超高）都是**数值越界**，肉眼看不出来、只有真机才露馅（本页 2026-10-25 之前三处全中）。
+// 断死算式，以后谁调 padding / 行高都会立刻红。
+
+var baseSrc = panelSrc.split("@media")[0]
+
+function cssNum(sel, prop) {
+  var m = baseSrc.match(new RegExp("\\" + sel + "\\s*\\{[^}]*?" + prop + "\\s*:\\s*([\\d.]+)px"))
+  return m ? parseFloat(m[1]) : null
+}
+function pad4(sel) {
+  var m = baseSrc.match(new RegExp("\\" + sel + "\\s*\\{[^}]*?padding:\\s*([\\d.]+)px\\s+([\\d.]+)px\\s+([\\d.]+)px\\s+([\\d.]+)px"))
+  return m ? [parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3]), parseFloat(m[4])] : null
+}
+function pad2(sel) {
+  var m = baseSrc.match(new RegExp("\\" + sel + "\\s*\\{[^}]*?padding:\\s*([\\d.]+)px\\s+([\\d.]+)px"))
+  return m ? [parseFloat(m[1]), parseFloat(m[2])] : null
+}
+
+var SCREEN_W = 192
+var SCREEN_H = 490
+var CHAR_K = 1.33 // 1 汉字渲染宽 ≈ 1.33 × 字号（手册 §4.1 实测）
+var BACK_BTN = 30
+var ITEM_COUNT = entries.length
+
+// ① 标题宽度：可用宽 = 屏宽 − 页面左右 padding − 返回键 − 等宽占位
+var bodyPad = pad4(".page-body")
+ok(".page-body 用四值 padding（44px 顶留状态栏）", !!bodyPad, "解析失败，检查是否被改成简写以外写法")
+var titleM = panelSrc.match(/class="header-title"[^>]*>([^<]+)</)
+var titleText = titleM ? titleM[1] : ""
+var titleW = titleText.length * CHAR_K * 28
+var titleAvailW = SCREEN_W - (bodyPad ? bodyPad[1] * 2 : 0) - BACK_BTN * 2
+ok("标题「" + titleText + "」" + titleText.length + " 字 @28px 实宽 " + Math.round(titleW) + "px ≤ 可用宽 " + titleAvailW + "px",
+  titleW <= titleAvailW && titleText.length > 0,
+  "超宽即折行裁字：改文案（≤3 字）而不是缩字号")
+
+// ② 条目宽度：卡片内宽 = 屏宽 − 页面左右 padding − 卡片左右 padding，需容下最长条目名
+var secPad = pad2(".section")
+ok("卡片左右 padding ≤ 8px（红线 4）", !!secPad && secPad[1] <= 8, "实际 " + (secPad ? secPad[1] : "?") + "px")
+var innerW = SCREEN_W - (bodyPad ? bodyPad[1] * 2 : 0) - (secPad ? secPad[1] * 2 : 0)
+var longest = entries.reduce(function (a, e) { return e.name.length > a.length ? e.name : a }, "")
+var longestW = longest.length * CHAR_K * 28
+ok("条目名最长「" + longest + "」" + longest.length + " 字 @28px 实宽 " + Math.round(longestW) + "px ≤ 卡片内宽 " + innerW + "px",
+  longestW <= innerW,
+  "超宽即被裁字（容器是硬的，字号是软的）")
+
+// ③ 纵向预算：整页高 ≤ 屏高，8 个栏目必须一屏放下（末项被切＝等于没有）
+var rowMinH = cssNum(".item-row", "min-height")
+var rowPadY = (function () {
+  var m = baseSrc.match(/\.item-row\s*\{[^}]*?padding:\s*([\d.]+)px\s+([\d.]+)px/)
+  return m ? parseFloat(m[1]) : 0
+})()
+var headerMb = cssNum(".header", "margin-bottom")
+var totalH = (bodyPad ? bodyPad[0] + bodyPad[2] : 0) + BACK_BTN + (headerMb || 0) +
+  (secPad ? secPad[0] * 2 : 0) + ITEM_COUNT * (rowMinH || 0)
+ok("整页高 " + totalH + "px ≤ " + SCREEN_H + "px（" + ITEM_COUNT + " 项一屏放下，不压字号不靠滚动）",
+  totalH <= SCREEN_H,
+  "超了就删字/拆页，不缩字号")
+ok("行高 ≥ 44px 触控最小热区（min-height " + rowMinH + "px）", (rowMinH || 0) >= 44)
+
+// ④ 字号只认四档 44 / 30 / 28 / 24；禁 12~23px
+var fontSizes = (panelSrc.match(/font-size:\s*(\d+)px/g) || []).map(function (s) { return parseInt(s.replace(/\D/g, ""), 10) })
+var illegalFont = fontSizes.filter(function (n) { return [44, 30, 28, 24].indexOf(n) < 0 })
+ok("font-size 只出现四档（无 12~23px）", illegalFont.length === 0, "违规值：" + illegalFont.join(", "))
+
+// ⑤ 禁分隔符 / 行内箭头：只看模板文本节点，path 里的 / 不算
+var tplText = panelSrc.slice(panelSrc.indexOf("<template>"), panelSrc.indexOf("</template>"))
+  .replace(/\{\{[^}]*\}\}/g, "")
+var banned = ["·", "›", "→", "…"].filter(function (ch) { return tplText.indexOf(ch) >= 0 })
+ok("模板文本节点无 · › → … 等禁字符（红线 4/5/8）", banned.length === 0, "命中：" + banned.join(" "))
+
+// ⑥ 事件绑定用 Vela 原生 onclick，不用 Vue 的 @click（@click 在本项目只有 chinese-input 一例）
+ok("列表行用 onclick 而非 @click（Vela 原生事件语法）", panelSrc.indexOf("@click") < 0)
 
 // ================================================================ 2. 多彩课表（7天×5节固定网格）
 
