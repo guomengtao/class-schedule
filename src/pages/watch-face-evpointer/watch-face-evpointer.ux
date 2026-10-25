@@ -21,11 +21,11 @@
   <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
 
     <!-- 顶部品牌 -->
-    <text class="brand">EV</text>
-    <text class="brand-sub">指针表盘</text>
+    <text class="brand {{ brandCls }}">EV</text>
+    <text class="brand-sub {{ bsubCls }}">指针表盘</text>
 
     <!-- 表盘 -->
-    <div class="dial-wrap">
+    <div class="dial-wrap {{ dialCls }}">
       <!-- 青铜表壳：三层同心色阶造厚度（不用渐变） -->
       <div class="ring-outer"></div>
       <div class="ring-mid"></div>
@@ -70,9 +70,9 @@
     </div>
 
     <!-- 底部：日期 / 数字时间 / 返回提示 -->
-    <text class="date-line">{{dateText}}</text>
-    <text class="time-line">{{timeText}}</text>
-    <text class="back">轻触返回</text>
+    <text class="date-line {{ dateCls }}">{{dateText}}</text>
+    <text class="time-line {{ timeCls }}">{{timeText}}</text>
+    <text class="back {{ backCls }}">轻触返回</text>
   </div>
 </template>
 
@@ -95,6 +95,13 @@ function stepClass(deg) {
 
 export default {
   data: {
+    /* 宽屏类名：192 屏全空；336×480 由 fitScreen 填（w<300 直接 return） */
+    brandCls: "",
+    bsubCls: "",
+    dialCls: "",
+    dateCls: "",
+    timeCls: "",
+    backCls: "",
     hourCls: "r0",
     minuteCls: "r0",
     secondCls: "r0",
@@ -106,8 +113,35 @@ export default {
   },
 
   onInit() {
+    this.fitScreen()
     this.syncHands()
     this.tick()
+  },
+
+  /* ── 宽屏探针：手环10Pro 336×480 专用 ──
+     ① 用「页内 require」而非顶部 import —— 同一模块两种引入方式会互相干扰，
+        import 出的绑定取不到、调用静默抛错（被 catch 吞），表现是宽屏类全空。
+     ② 从 onInit 调起 —— watch-face-functional 实测 onReady 不触发；本页 onShow
+        也会 syncHands+tick，所以 onReady 死了照样走针，别被这个假象骗。
+     192 屏 w<300 直接 return，6 个类全空 = 逐字节零回归。 */
+  fitScreen() {
+    const self = this
+    try {
+      const dev = require("@system.device")
+      dev.getInfo({
+        success: function (d) {
+          const w = d && d.screenWidth ? d.screenWidth : 0
+          if (w < 300) return
+          self.brandCls = "w-brand"
+          self.bsubCls = "w-bsub"
+          self.dialCls = "w-dial"
+          self.dateCls = "w-date"
+          self.timeCls = "w-time"
+          self.backCls = "w-back"
+        },
+        fail: function () {}
+      })
+    } catch (e) {}
   },
 
   onReady() {
@@ -396,7 +430,7 @@ export default {
     top: 360px;
     width: 192px;
     text-align: center;
-    font-size: 13px;
+    font-size: 24px;
     color: #b9a86f;
   }
 
@@ -416,7 +450,61 @@ export default {
     top: 444px;
     width: 192px;
     text-align: center;
-    font-size: 12px;
+    font-size: 24px;
     color: #6f6650;
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     手环10Pro 336×480 宽屏档
+     · 全部单类选择器 —— Vela 不支持后代选择器
+       （给宽屏类加页面前缀的写法会退化成单类，样式套到所有屏上）
+     · 绝不碰 `.page` —— 页面头部铁律：加 flex 对齐会与
+       absolute 子元素共同触发黑屏
+     ════════════════════════════════════════════════════════════ */
+  .w-brand {
+    top: 18px;
+    width: 100%;
+    font-size: 28px;
+    letter-spacing: 6px;
+  }
+
+  .w-bsub {
+    top: 46px;
+    width: 100%;
+    font-size: 24px;
+    letter-spacing: 3px;
+  }
+
+  /* 盘体整体放大 1.5：32 个盘内节点零改动，
+     圆心/半径/刻度角/针长比例天然全部正确。
+     transform-origin 默认 0 0（左上）→ left/top 即视觉左上，不用算中心补偿。
+     横向 184*1.5=276，(336-276)/2=30；盘心 = (30+138, 78+138) = (168,216)。 */
+  .w-dial {
+    left: 30px;
+    top: 78px;
+    transform: scale(1.5);
+  }
+
+  .w-date {
+    top: 362px;
+    width: 100%;
+    font-size: 24px;
+  }
+
+  /* 时间 52px 而非 56：盘底 354 到屏底 480 只有 126px 要装三行
+     （日期 ink 22 + 时间 ink 40 + 返回 ink 19 = 81），56px 会把
+     「轻触返回」压到 07:04 的下沿上（实测两组 ink 相连成 67px 一段）。 */
+  .w-time {
+    top: 388px;
+    width: 100%;
+    font-size: 52px;
+  }
+
+  /* top 446 + 提亮：原 #6f6650 在 24px 上对比度不足，几乎看不见 */
+  .w-back {
+    top: 446px;
+    width: 100%;
+    font-size: 24px;
+    color: #9a8f72;
   }
 </style>
