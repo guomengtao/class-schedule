@@ -1,24 +1,69 @@
 <template>
   <!--
-    渐变表盘 ③ · 数字呈渐变色
-    骨架照经典表盘 watch-face.ux（已验证不黑屏）：flex 居中 + absolute overlay 面板。
-    渐变的实现：**逐字符取渐变色带上的 5 档色**（H H : M M），视觉即一条渐变。
-    刻意不用 linear-gradient / transition 等未实测属性，全部走「颜色数据绑定」，零黑屏风险。
+    渐变表盘 ③ · 色带流动
+    ─────────────────────────────────────────────────────────
+    这一版不是「加宽屏分支」，是重做：
+      ① 背景 12 条色带分层（探针实测 Vela 不支持 linear-gradient，
+         background-image 完全无渲染，故用色带插值模拟渐变）
+      ② 文字五档取自同一条 7 锚点色带（H H : M M），色相连续变化
+      ③ 秒进度条：宽度 = 秒/60，每秒变化，画面不再是「一分钟动一次」
+      ④ 排版三层：EV 品牌 / 主时间 / 日期 + 进度 + 操作
+    192×490 与 336×480 走同一骨架，仅字号与间距两套常量。
   -->
   <div class="page" onclick="onTap">
-    <div class="clock">
-      <text class="digit" style="color: {{ c0 }}">{{ d0 }}</text>
-      <text class="digit" style="color: {{ c1 }}">{{ d1 }}</text>
-      <text class="colon" style="color: {{ cColon }}">:</text>
-      <text class="digit" style="color: {{ c2 }}">{{ d2 }}</text>
-      <text class="digit" style="color: {{ c3 }}">{{ d3 }}</text>
+    <!-- ===== 背景色带：12 条均分铺满，颜色 = 主色 22% 混深底，保证文字对比度 =====
+         onclick 挂在这一层：绝对定位层会吞掉下层点击，不挂就点不回去了 -->
+    <div class="bg" onclick="onTap">
+      <div for="{{ bars }}" class="bg-bar" style="background-color: {{ $item }}"></div>
     </div>
-    <text class="btn-color" onclick="openPanel">渐变</text>
-    <text class="back" onclick="goBack">返回</text>
 
-    <!-- 渐变色带选择面板 -->
+    <!-- ===== 192×490（手环 9）：原字号 60 不动，靠层次与背景提升品质 ===== -->
+    <div if="{{ !wide }}" class="stack s-stack">
+      <text class="s-brand">EV</text>
+      <div class="s-clock">
+        <text class="s-digit" style="color: {{ c0 }}">{{ d0 }}</text>
+        <text class="s-digit" style="color: {{ c1 }}">{{ d1 }}</text>
+        <text class="s-colon" style="color: {{ cColon }}">:</text>
+        <text class="s-digit" style="color: {{ c2 }}">{{ d2 }}</text>
+        <text class="s-digit" style="color: {{ c3 }}">{{ d3 }}</text>
+      </div>
+      <text class="s-date">{{ dateText }}</text>
+      <div class="s-track">
+        <div class="s-bar" style="width: {{ barW }}px; background-color: {{ barColor }}"></div>
+      </div>
+      <div class="s-acts">
+        <text class="s-act" style="color: {{ cAct }}" onclick="openPanel">渐变</text>
+        <div class="s-div"></div>
+        <text class="s-act2" onclick="goBack">返回</text>
+      </div>
+    </div>
+
+    <!-- ===== 336×480（手环 10Pro）：主时间 104px =====
+         104 由最坏字宽反算：4×0.6×104 + 冒号 0.35×96 + 间隙 6×4 ≈ 308 ≤ 316（336 减两侧各 10）。
+         116 会到 343 直接溢出，故不取更满。 -->
+    <div if="{{ wide }}" class="stack w-stack">
+      <text class="w-brand">EV</text>
+      <div class="w-clock">
+        <text class="w-digit" style="color: {{ c0 }}">{{ d0 }}</text>
+        <text class="w-digit" style="color: {{ c1 }}">{{ d1 }}</text>
+        <text class="w-colon" style="color: {{ cColon }}">:</text>
+        <text class="w-digit" style="color: {{ c2 }}">{{ d2 }}</text>
+        <text class="w-digit" style="color: {{ c3 }}">{{ d3 }}</text>
+      </div>
+      <text class="w-date">{{ dateText }}</text>
+      <div class="w-track">
+        <div class="w-bar" style="width: {{ barW }}px; background-color: {{ barColor }}"></div>
+      </div>
+      <div class="w-acts">
+        <text class="w-act" style="color: {{ cAct }}" onclick="openPanel">渐变</text>
+        <div class="w-div"></div>
+        <text class="w-act2" onclick="goBack">返回</text>
+      </div>
+    </div>
+
+    <!-- ===== 色带选择面板（两屏共用一份，宽度动态）===== -->
     <div class="mask" if="{{ showPanel }}" onclick="closePanel">
-      <div class="panel">
+      <div class="panel" style="width: {{ panelW }}px">
         <text class="p-title">渐变色带</text>
         <text class="p-item" style="color: {{ pal0Color }}" onclick="pick(0)">晚霞</text>
         <text class="p-item" style="color: {{ pal1Color }}" onclick="pick(1)">海洋</text>
@@ -32,32 +77,107 @@
 
 <script>
 import router from "@system.router"
+import device from "@system.device"
 
 const storage = require("@system.storage")
 
 const LIST_PAGE = "/pages/watch-face-list"
 const GRAD_KEY = "wf_gradient_theme"
+const DAY = ["日", "一", "二", "三", "四", "五", "六"]
 
-/* 4 条渐变色带：每条 5 档（H H : M M），从浅到深、色相平滑过渡 */
+/* 4 条渐变色带 × 7 个锚点，色相平滑过渡。
+   背景 12 条按锚点线性插值取色；文字 5 位取锚点 0 / 1 / 3 / 5 / 6。 */
 const RAMPS = [
-  { colors: ["#ffd166", "#ff9a3c", "#ff5f6d", "#c44b9b", "#7b2ff7"] }, // 晚霞
-  { colors: ["#7ee8fa", "#4fc3f7", "#2196f3", "#3f51b5", "#7e57c2"] }, // 海洋
-  { colors: ["#d9f99d", "#a3e635", "#4ade80", "#22c55e", "#059669"] }, // 森林
-  { colors: ["#a7ffeb", "#64ffda", "#18ffff", "#40c4ff", "#b388ff"] }  // 极光
+  ["#ffd166", "#ffab5e", "#ff7a45", "#ff5f6d", "#c44b9b", "#9b3fd0", "#7b2ff7"], // 晚霞
+  ["#7ee8fa", "#4fc3f7", "#2196f3", "#5c6bc0", "#3f51b5", "#6a4fc7", "#7e57c2"], // 海洋
+  ["#d9f99d", "#b4ec6f", "#7fd94a", "#4ade80", "#22c55e", "#12a862", "#059669"], // 森林
+  ["#a7ffeb", "#64ffda", "#3de8d0", "#18ffff", "#40c4ff", "#7fa8ff", "#b388ff"]  // 极光
 ]
+
+const BAR_N = 48
+const BASE = "#12111c"   // 深底：背景色带 = 深底 与 主色 按比例混合
+/* 上亮下暗：顶部主色 36%、底部 14%。
+   纯色相变化（亮度恒定）在深底上看不出「渐变」，只会像换了个色调；
+   叠加亮度梯度后才有光从上方打下来的方向感。 */
+const TONE_TOP = 0.36
+const TONE_BOT = 0.14
+
+function pad2(n) {
+  return n < 10 ? ("0" + n) : ("" + n)
+}
+
+function h2r(h) {
+  return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]
+}
+
+function c2(n) {
+  const v = Math.max(0, Math.min(255, Math.round(n)))
+  const s = v.toString(16)
+  return s.length < 2 ? ("0" + s) : s
+}
+
+/* k=0 取 a，k=1 取 b */
+function mixHex(a, b, k) {
+  if (k <= 0) return a
+  if (k >= 1) return b
+  const A = h2r(a)
+  const B = h2r(b)
+  return "#" + c2(A[0] + (B[0] - A[0]) * k) + c2(A[1] + (B[1] - A[1]) * k) + c2(A[2] + (B[2] - A[2]) * k)
+}
+
+/* t: 0..1 沿色带取色 */
+function rampAt(stops, t) {
+  const n = stops.length - 1
+  const x = t * n
+  if (x <= 0) return stops[0]
+  if (x >= n) return stops[n]
+  const i = Math.floor(x)
+  return mixHex(stops[i], stops[i + 1], x - i)
+}
 
 export default {
   data: {
     d0: "0", d1: "0", d2: "0", d3: "0",
-    c0: "#ffd166", c1: "#ff9a3c", cColon: "#ff5f6d", c2: "#c44b9b", c3: "#7b2ff7",
+    /* 文字色（晚霞初始） */
+    c0: "#ffd166", c1: "#ffab5e", cColon: "#ff5f6d", c2: "#9b3fd0", c3: "#7b2ff7",
+    cAct: "#ffd166",
+    /* 面板里四个色带名各自的预览色 */
     pal0Color: "#ffd166", pal1Color: "#7ee8fa", pal2Color: "#d9f99d", pal3Color: "#a7ffeb",
+    /* 背景色带（首帧给深色，避免闪白） */
+    bars: ["#2e2618", "#2e2618", "#2e2618", "#2e2618", "#2e2618", "#2e2618",
+           "#2e2618", "#2e2618", "#2e2618", "#2e2618", "#2e2618", "#2e2618"],
+    barW: 0,
+    barColor: "#ff5f6d",
+    dateText: "--",
+    wide: false,
+    panelW: 240,
     showPanel: false,
     suppressTap: false
   },
 
   onInit() {
+    this.maxBar = 140          // 进度条满格宽度，宽屏在 fitScreen 里改 288
+    this.fitScreen()
     this.loadTheme()
     this.tick()
+  },
+
+  /* 屏宽 ≥300 → 宽屏版式。读不到按 192 渲染，绝不白屏。 */
+  fitScreen() {
+    const self = this
+    try {
+      device.getInfo({
+        success: function(d) {
+          if (d && d.screenWidth >= 300) {
+            self.wide = true
+            self.maxBar = 288
+            self.panelW = 284
+            self.tick()
+          }
+        },
+        fail: function() {}
+      })
+    } catch (e) {}
   },
 
   onReady() {
@@ -76,13 +196,18 @@ export default {
     this.stop()
   },
 
+  /* 先对齐整秒再起 interval：进度条按秒推进，漂移会看出「忽快忽慢」 */
   refresh() {
     this.stop()
     this.tick()
     const self = this
-    this.timer = setInterval(function() {
+    this.alignTimer = setTimeout(function() {
+      self.alignTimer = undefined
       self.tick()
-    }, 1000)
+      self.timer = setInterval(function() {
+        self.tick()
+      }, 1000)
+    }, 1000 - (new Date().getTime() % 1000))
   },
 
   stop() {
@@ -90,30 +215,49 @@ export default {
       clearInterval(this.timer)
       this.timer = undefined
     }
+    if (this.alignTimer) {
+      clearTimeout(this.alignTimer)
+      this.alignTimer = undefined
+    }
   },
 
   tick() {
-    const now = new Date()
-    const h = this.pad(now.getHours())
-    const m = this.pad(now.getMinutes())
-    if (h[0] !== this.d0) this.d0 = h[0]
-    if (h[1] !== this.d1) this.d1 = h[1]
-    if (m[0] !== this.d2) this.d2 = m[0]
-    if (m[1] !== this.d3) this.d3 = m[1]
+    const n = new Date()
+    const hh = pad2(n.getHours())
+    const mm = pad2(n.getMinutes())
+    if (hh[0] !== this.d0) this.d0 = hh[0]
+    if (hh[1] !== this.d1) this.d1 = hh[1]
+    if (mm[0] !== this.d2) this.d2 = mm[0]
+    if (mm[1] !== this.d3) this.d3 = mm[1]
+
+    const dt = pad2(n.getMonth() + 1) + "-" + pad2(n.getDate()) + " 周" + DAY[n.getDay()]
+    if (dt !== this.dateText) this.dateText = dt
+
+    const w = Math.round(n.getSeconds() / 60 * (this.maxBar || 140))
+    if (w !== this.barW) this.barW = w
   },
 
-  pad(n) {
-    return n < 10 ? "0" + n : "" + n
+  /* 整条色带数组一次性替换：for 渲染会整段重建，避免逐条赋值漏项。
+     条数 48 时每步色差 <8 RGB、条高 11px，肉眼已看不出分界。 */
+  setBars(stops) {
+    const out = []
+    for (let k = 0; k < BAR_N; k++) {
+      const t = k / (BAR_N - 1)
+      out.push(mixHex(BASE, rampAt(stops, t), TONE_TOP - (TONE_TOP - TONE_BOT) * t))
+    }
+    this.bars = out
   },
 
   applyTheme(i) {
-    const r = RAMPS[i] || RAMPS[0]
-    const c = r.colors
-    this.c0 = c[0]
-    this.c1 = c[1]
-    this.cColon = c[2]
-    this.c2 = c[3]
-    this.c3 = c[4]
+    const stops = RAMPS[i] || RAMPS[0]
+    this.c0 = stops[0]
+    this.c1 = stops[1]
+    this.cColon = stops[3]
+    this.c2 = stops[5]
+    this.c3 = stops[6]
+    this.cAct = stops[0]
+    this.barColor = stops[3]
+    this.setBars(stops)
   },
 
   loadTheme() {
@@ -176,77 +320,234 @@ export default {
 
 <style>
   .page {
+    position: relative;
     width: 100%;
     height: 100%;
-    background-color: #14131f;
+    background-color: #12111c;
     flex-direction: column;
     justify-content: center;
     align-items: center;
   }
 
-  .clock {
-    flex-direction: row;
+  /* ===== 背景色带：48 条纵向均分，11×48=528 ≥ 两屏屏高（490/480），末条溢出被裁 =====
+     必须显式 flex-direction: column —— Vela 的 div 默认是 row，
+     不写就会把色带横排挤成顶部一条（首版实测踩到）。 */
+  .bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+  }
+
+  .bg-bar {
+    width: 100%;
+    height: 11px;
+  }
+
+  /* ===== 两屏共用骨架 ===== */
+  .stack {
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
   }
 
-  .digit {
+  /* 上下留白靠 flex 居中自然等分。原版留白 66%，这一版内容占 ~50%，
+     不再额外加 padding —— 加了会让上下不平衡（实测：底部比顶部多空 20px）。 */
+  .s-stack { padding-bottom: 0; }
+  .w-stack { padding-bottom: 0; }
+
+  /* ===== 192×490 =====
+     ev-six：可读文字 24px 为绝对下限（原版 22px 不合规，这次统一抬到 24）。
+     主时间 60px 属表盘图形本体，不套四档——套 44 就不是表盘了。 */
+  .s-brand {
+    font-size: 24px;
+    line-height: 28px;
+    letter-spacing: 4px;
+    color: #cfd4e0;
+  }
+
+  .s-clock {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+  }
+
+  .s-digit {
     font-size: 60px;
+    line-height: 68px;
     font-weight: bold;
   }
 
-  .colon {
-    font-size: 56px;
+  .s-colon {
+    font-size: 54px;
+    line-height: 68px;
     font-weight: bold;
     margin: 0 2px;
   }
 
-  .btn-color {
-    margin-top: 36px;
-    font-size: 22px;
-    color: #7ec8e3;
+  .s-date {
+    font-size: 24px;
+    line-height: 28px;
+    letter-spacing: 1px;
+    margin-top: 10px;
+    color: #b9bdc9;
   }
 
-  .back {
-    margin-top: 14px;
-    font-size: 22px;
-    color: #888899;
+  .s-track {
+    width: 140px;
+    height: 4px;
+    border-radius: 2px;
+    margin-top: 16px;
+    background-color: rgba(255, 255, 255, 0.12);
+    flex-direction: row;
   }
 
+  .s-bar {
+    height: 4px;
+    border-radius: 2px;
+  }
+
+  .s-acts {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 40px;
+  }
+
+  .s-act {
+    font-size: 24px;
+    line-height: 28px;
+  }
+
+  .s-act2 {
+    font-size: 24px;
+    line-height: 28px;
+    color: #8a90a0;
+  }
+
+  /* 分隔靠排版（1px 竖线），不用「|」「/」等符号 —— ev-six 第 5 条 */
+  .s-div {
+    width: 1px;
+    height: 20px;
+    margin: 0 18px;
+    background-color: rgba(255, 255, 255, 0.22);
+  }
+
+  /* ===== 336×480（10Pro）=====
+     ev-six：宽屏可读文字 24/28 两档，24 为下限。主时间 104px 属图形本体，豁免。 */
+  .w-brand {
+    font-size: 28px;
+    line-height: 32px;
+    letter-spacing: 6px;
+    color: #cfd4e0;
+  }
+
+  .w-clock {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 24px;
+  }
+
+  .w-digit {
+    font-size: 104px;
+    line-height: 116px;
+    font-weight: bold;
+  }
+
+  .w-colon {
+    font-size: 96px;
+    line-height: 116px;
+    font-weight: bold;
+    margin: 0 6px;
+  }
+
+  .w-date {
+    font-size: 28px;
+    line-height: 32px;
+    letter-spacing: 2px;
+    margin-top: 12px;
+    color: #b9bdc9;
+  }
+
+  .w-track {
+    width: 288px;
+    height: 6px;
+    border-radius: 3px;
+    margin-top: 18px;
+    background-color: rgba(255, 255, 255, 0.12);
+    flex-direction: row;
+  }
+
+  .w-bar {
+    height: 6px;
+    border-radius: 3px;
+  }
+
+  .w-acts {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 44px;
+  }
+
+  .w-act {
+    font-size: 28px;
+    line-height: 32px;
+  }
+
+  .w-act2 {
+    font-size: 28px;
+    line-height: 32px;
+    color: #8a90a0;
+  }
+
+  .w-div {
+    width: 1px;
+    height: 24px;
+    margin: 0 22px;
+    background-color: rgba(255, 255, 255, 0.22);
+  }
+
+  /* ===== 色带选择面板（两屏共用）===== */
   .mask {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.62);
     justify-content: center;
     align-items: center;
   }
 
   .panel {
-    width: 240px;
     flex-direction: column;
     align-items: center;
-    background-color: #16213e;
-    border-radius: 12px;
+    background-color: #1b1a26;
+    border-radius: 14px;
     padding: 16px 0 12px 0;
   }
 
   .p-title {
-    font-size: 22px;
+    font-size: 24px;
     color: #ffffff;
     margin-bottom: 6px;
   }
 
   .p-item {
-    font-size: 26px;
+    font-size: 28px;
     padding: 7px 0;
   }
 
   .p-cancel {
     margin-top: 8px;
-    font-size: 22px;
+    font-size: 24px;
     color: #888899;
   }
 </style>

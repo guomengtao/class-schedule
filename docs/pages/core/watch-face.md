@@ -4,6 +4,9 @@
 - 截图: watch-face.png（组级占位；各变体可补 `watch-face-<variant>.png`）
 
 > 本篇为组级文档，覆盖 `watch-face` 及全部 16 个 `watch-face-*` 变体。EvEmuPreview 角标显示的「表盘·总览（组级）」即来源于此，不代表每个变体都有独立文档。
+>
+> **已有专属主文档的变体**（角标精确命中，不走组级回退）：`watch-face-gradient`（2026-10-25 起，见 `watch-face-gradient.md`）。
+> 逐步补齐中：彩色、背景表盘随后。
 
 ## 功能说明
 
@@ -16,17 +19,17 @@
 | `watch-face` | 表盘·基础 | 默认布局，时间 + 下一节课 |
 | `watch-face-class` | 表盘·课程 | 突出当前/最近一节课程卡片 |
 | `watch-face-list` | 表盘·列表 | 当日全天课程纵向列表 |
-| `watch-face-colorful` | 表盘·多彩 | 按科目色块渲染 |
+| `watch-face-colorful` | 表盘·多彩 | 5 个字符各一色（糖果/霓虹/马卡龙/冷色 4 套），**不涉及科目数据** |
 | `watch-face-gold` | 表盘·金色 | 金色质感主题 |
 | `watch-face-metal` | 表盘·金属 | 金属拉丝质感主题 |
-| `watch-face-gradient` | 表盘·渐变 | 渐变背景主题 |
+| `watch-face-gradient` | 表盘·渐变 | 逐字符色带 + 48 条背景色带纵向渐变 + 秒进度条（4 套色带） |
 | `watch-face-flip` | 表盘·翻页 | 翻页时钟动效 |
 | `watch-face-animated` | 表盘·动效 | 持续轻动效（注意低端设备掉帧） |
 | `watch-face-vibrate` | 表盘·震动 | 整点/课前震动联动 |
 | `watch-face-random` | 表盘·随机 | 每次亮屏随机样式 |
 | `watch-face-evpointer` | 表盘·指针 | 指针式表盘叠加课程 |
 | `watch-face-font` | 表盘·字体 | 字号/字重变体 |
-| `watch-face-background` | 表盘·背景 | 自定义背景图 |
+| `watch-face-background` | 表盘·背景 | 6 套整页底色可切换，**不支持自定义图片** |
 | `watch-face-functional` | 表盘·功能 | 带快捷操作入口 |
 | `watch-face-landscape` | 表盘·横屏 | 横屏布局（适配特定表型） |
 | `watch-face-pickdate` | 表盘·日期 | 强调日期/星期 |
