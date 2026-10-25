@@ -396,7 +396,8 @@ var simpleSrc = readFile(PAGES.simple.file)
 var simpleCode = simpleSrc.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "")
 ok("已移除 7 天分组模型（无 daySections）", simpleSrc.indexOf("daySections") < 0)
 ok("今日 5 行固定布局：无 <scroll>", simpleSrc.indexOf("<scroll") < 0)
-ok("含今日标题与三色状态点", simpleSrc.indexOf("today-title") > 0 && simpleSrc.indexOf('class="dot"') > 0)
+ok("含今日标题，状态靠行底色而非 8px 圆点（ev-six 红线 9）",
+  simpleSrc.indexOf("today-title") > 0 && simpleSrc.indexOf("progressOngoing") > 0 && simpleSrc.indexOf('class="dot"') < 0)
 ok("分钟级刷新：无 setInterval，有 scheduleNextMinute",
   simpleCode.indexOf("setInterval") < 0 && simpleCode.indexOf("scheduleNextMinute") > 0)
 ok("今日课程模型：todayClasses（不再按天分组）", simpleSrc.indexOf("todayClasses") > 0)

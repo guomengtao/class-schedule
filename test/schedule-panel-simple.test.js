@@ -77,7 +77,7 @@ function T(hhmm, day) { var d = day || 20; return new Date("2026-10-" + d + "T" 
 var DOW = new Date(T("08:00")).getDay()
 var TODAY = DAY_NAMES[DOW]
 var OTHER = DAY_NAMES[(DOW + 1) % 7]
-var TITLE = "今天 · " + DAY_SHORT[DOW]
+var TITLE = "今天 " + DAY_SHORT[DOW]  // ev-six 红线 4：不用 · 分隔
 
 // 故意打乱顺序，验证升序排序
 var FIXTURE = [
@@ -145,15 +145,15 @@ console.log("\n\x1b[1m简易课表栏目 · 单元测试\x1b[0m\n\x1b[2m  " + UX
 console.log("\n[1] 结构 / 禁区")
 truthy("模板含 A 今日标题", /class="today-title"/.test(TPL))
 truthy("模板含 B 课程行 for 循环", /for="\{\{ todayClasses \}\}"/.test(TPL))
-truthy("模板含状态点", /class="dot"/.test(TPL))
+truthy("状态改由行底色承载（已无 8px 圆点）", !/class="dot"/.test(TPL) && /progressOngoing/.test(TPL))
 truthy("A 在 B 之前（标题在上、列表在下）", TPL.indexOf("today-title") < TPL.indexOf("todayClasses"))
 truthy("无 <scroll>（固定 5 行不滚动）", !/<scroll/.test(TPL))
 truthy("全页无 setInterval（分钟级）", !/setInterval/.test(CODE))
 truthy("无 @keyframes（本页不做动画）", !/@keyframes/.test(STYLE))
 truthy("style 无数据绑定 {{ }}", !/\{\{[^}]*\}\}/.test(STYLE))
-eq("行高 52px", (/\.row \{[\s\S]*?height: (\d+)px/.exec(STYLE) || [])[1], "52")
-eq("今日标题 22px", (/\.today-title \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "22")
-truthy("课名单行省略", /text-overflow:\s*ellipsis/.test(STYLE))
+eq("行高 56px（≥44px 触控热区，5 行 280px 不进底部圆弧）", (/\.row \{[\s\S]*?height: (\d+)px/.exec(STYLE) || [])[1], "56")
+eq("今日标题 24px（四档内的次级档）", (/\.today-title \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "24")
+truthy("无 text-overflow: ellipsis（红线 8 禁省略号）", !/text-overflow:\s*ellipsis/.test(STYLE))
 
 /* 2. 数据 / 标题 */
 console.log("\n[2] 数据 / 标题")
@@ -163,7 +163,7 @@ eq("标题按当天星期推导", a.todayTitle, TITLE)
 eq("今日课程 5 行（正好填满 B 区）", a.todayClasses.length, 5)
 eq("按开始时间升序：首行语文", a.todayClasses[0].name, "语文")
 eq("按开始时间升序：末行化学", a.todayClasses[4].name, "化学")
-eq("timeShort 只取开始时间", a.todayClasses[0].timeShort, "08:00")
+eq("timeShort 只取开始时间且去前导零（8:00 省 13px 给课名）", a.todayClasses[0].timeShort, "8:00")
 eq("非今日（明天）的课不混入", a.todayClasses.filter(function(c) { return c.name === "体育" }).length, 0)
 
 /* 3. 三色状态点 */

@@ -1,30 +1,43 @@
+<!-- 简易课表：今日课程单行列表，5 行固定、不滚动、分钟级刷新。
+     2026-10-25 按 ev-six 六位准则重排（evtask-D-evclass-sche-261025-veq7rw）：
+     ① 字号归四档：课名 20/22px、时间 18/20px、日期标题 22px 全在红线 2 的 12~23px 禁区
+        改为课名 28、时间与日期标题 24（行高 38 / 34）；
+     ② 布局由「上下两行（课名+时间）」改为**单行左右两列**：两行结构在四档字号下行高 38+34=72px，
+        5 行 360px 会让末行掉进胶囊屏底部圆弧（y>438 内容宽已不足 168px），故改单行 56px×5=280px；
+     ③ 删 8px 三色状态点（15mm 屏上几乎不可辨，且吃掉 16px 课名宽度），状态改由**行底色 + 字色**
+        承载（ev-six 红线 9：可点性与状态都靠底色，不靠符号）：当前课 progressOngoing 淡主色底 + accent 字，
+        已过课 textMuted 字，未到课 text 字；
+     ④ 日期标题原用点号分隔「今天 周日」，去掉点号（红线 4 禁分隔符）；
+     ⑤ 去掉 text-overflow: ellipsis（红线 8 禁省略号），超宽自然裁但不出现「…」；
+     ⑥ 5 处 if 条件渲染改 display 绑定（事故案例 11：多个兄弟节点 if 会整页白屏）；
+     ⑦ 时间由 08:00 缩为 8:00（省 13px 给课名），只保留开始时刻。
+     数据与计算逻辑未变：仍是 database.getAllCourses + 当日筛选 + 分钟级 tick。 -->
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <div class="back-header">
-      <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+    <div class="header">
+      <div class="back-btn-wrapper" style="display: {{ isRoot ? 'none' : 'flex' }}; background-color: {{ theme.card }}"
+           onclick="goBack">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" onclick="goBack" style="color: {{ theme.textSecondary }}">简易</text>
-      <div if="{{ !isRoot }}" class="header-placeholder"></div>
+      <div class="header-placeholder" style="display: {{ isRoot ? 'none' : 'flex' }}"></div>
     </div>
 
     <text class="today-title" style="color: {{ theme.accent }}">{{ todayTitle }}</text>
 
-    <div if="{{ isLoading }}" class="empty-box">
-      <text class="empty-text" style="color: {{ theme.textMuted }}">加载中...</text>
+    <div class="empty-box" style="display: {{ isLoading ? 'flex' : 'none' }}">
+      <text class="empty-text" style="color: {{ theme.textMuted }}">加载中</text>
     </div>
 
-    <div if="{{ !isLoading && todayClasses.length === 0 }}" class="empty-box">
+    <div class="empty-box" style="display: {{ !isLoading && todayClasses.length === 0 ? 'flex' : 'none' }}">
       <text class="empty-text" style="color: {{ theme.textSecondary }}">今天没课</text>
     </div>
 
-    <div if="{{ !isLoading && todayClasses.length > 0 }}" class="list">
-      <div for="{{ todayClasses }}" class="row" onclick="goToDetail($item)">
-        <div class="dot" style="background-color: {{ $item.dotColor }}"></div>
-        <div class="row-body">
-          <text class="row-name" style="color: {{ $item.isCurrent ? theme.accent : theme.text }}">{{ $item.name }}</text>
-          <text class="row-time" style="color: {{ theme.textSecondary }}">{{ $item.timeShort }}</text>
-        </div>
+    <div class="list" style="display: {{ !isLoading && todayClasses.length > 0 ? 'flex' : 'none' }}; background-color: {{ theme.card }}">
+      <div for="{{ todayClasses }}" class="row" onclick="goToDetail($item)"
+           style="background-color: {{ $item.isCurrent ? theme.progressOngoing : 'transparent' }}">
+        <text class="row-name" style="color: {{ $item.isPast ? theme.textMuted : ($item.isCurrent ? theme.accent : theme.text) }}">{{ $item.name }}</text>
+        <text class="row-time" style="color: {{ theme.textSecondary }}">{{ $item.timeShort }}</text>
       </div>
     </div>
   </div>
@@ -40,7 +53,7 @@ const builtinSchedule = require("../../data/schedule.js")
 var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 var DAY_SHORT = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
 
-// "08:00 - 09:35" → {startMin, endMin}；格式不合规返回 null（脏数据不参与计算）
+// "08:00 - 09:35" 解析成 {startMin, endMin}；格式不合规返回 null（脏数据不参与计算）
 function parseTimeRange(timeStr) {
   if (!timeStr) return null
   var parts = timeStr.split(" - ")
@@ -51,11 +64,13 @@ function parseTimeRange(timeStr) {
   return { startMin: parseInt(s1[0]) * 60 + parseInt(s1[1]), endMin: parseInt(s2[0]) * 60 + parseInt(s2[1]) }
 }
 
-// "08:00 - 09:35" → "08:00"（简易页只保留开始时间，行宽有限）
+// "08:00 - 09:35" 取开始时刻为 "8:00"（去前导零：单行布局里时间与课名抢同一条 168px，
+// 少一个字符就多给课名 13px；分钟信息保留，8:00 与 08:00 语义一致）
 function startLabel(timeStr) {
   if (!timeStr) return ""
   var i = timeStr.indexOf(" - ")
-  return (i < 0 ? timeStr : timeStr.substring(0, i)).trim()
+  var head = (i < 0 ? timeStr : timeStr.substring(0, i)).trim()
+  return head.replace(/^0/, "")
 }
 
 export default {
@@ -155,7 +170,8 @@ export default {
   },
 
   titleOf: function(now) {
-    return "今天 · " + DAY_SHORT[now.getDay()]
+    // 不用点号分隔（ev-six 红线 4）；空格断句，4 字 + 空格约 136px < 168px
+    return "今天 " + DAY_SHORT[now.getDay()]
   },
 
   compute: function() {
@@ -180,14 +196,16 @@ export default {
     }
     items.sort(function(a, b) { return a.startMin - b.startMin })
 
-    // 最多 5 行（B 区 5×52）
+    // 最多 5 行（单行 56px × 5 = 280px，整页 430px，末行 y≈410 仍在胶囊屏安全区内）
     var top = items.slice(0, 5)
     for (var k = 0; k < top.length; k++) {
       var it = top[k]
       var isPast = nowMin >= it.endMin
       var isNow = nowMin >= it.startMin && nowMin < it.endMin
+      it.isPast = isPast
       it.isCurrent = isNow
-      // 三色状态点：已过灰 / 当前主色 / 未到白（用 theme.text 保证浅色主题也可见）
+      // 三态仍保留 dotColor（供其他复用方/单测读），但本页渲染改用 isPast/isCurrent
+      // ——8px 点在 15mm 屏上不可辨，状态交给行底色与字色表达（ev-six 红线 9）。
       it.dotColor = isPast ? this.theme.textMuted : (isNow ? this.theme.accent : this.theme.text)
     }
     this.todayClasses = top
@@ -205,7 +223,7 @@ export default {
   },
 
   goBack: function() {
-    // 被「更多首页」push（fromPanel）→ 回目录；作为 root 首页冷启动 → 回「更多首页」（与 index 一致）
+    // 被「更多首页」push（fromPanel）则回目录；作为 root 首页冷启动则回「更多首页」（与 index 一致）
     if (this.fromPanel === '1') {
       router.back()
     } else {
@@ -226,16 +244,20 @@ export default {
 </script>
 
 <style>
+/* 纵向预算（192×490 胶囊屏）：
+   顶 44 + 头部 30 + 日期 34 + 间距 6 + 列表(8+5×56+8) + 底 12 = 430px
+   末行底边 y≈410，仍在安全线 y=438 以上（y>438 后内容宽不足 168px，会被圆弧挤压）。 */
 .page {
   flex-direction: column;
   width: 100%;
   height: 100%;
   padding: 44px 12px 12px 12px;
 }
-.back-header {
+
+.header {
   flex-direction: row;
   align-items: center;
-  height: 40px;
+  height: 30px;
   flex-shrink: 0;
 }
 .back-btn-wrapper {
@@ -250,11 +272,13 @@ export default {
   width: 22px;
   height: 22px;
 }
+/* 标题「简易」2 字 @28 = 75px，头部可用宽 108px */
 .header-title {
   flex: 1;
   font-size: 28px;
   text-align: center;
   line-height: 36px;
+  lines: 1;
 }
 .header-placeholder {
   width: 30px;
@@ -262,83 +286,72 @@ export default {
   flex-shrink: 0;
 }
 
-/* A 今日标题：130–156（header 84 + margin-top 46） */
+/* 日期行「今天 周日」= 4 汉字 + 1 空格 ≈ 136px，居中；24px 为次级信息档 */
 .today-title {
-  margin-top: 46px;
-  height: 26px;
-  font-size: 22px;
+  margin-top: 6px;
+  font-size: 24px;
   font-weight: bold;
-  line-height: 30px;
+  line-height: 34px;
   text-align: center;
   flex-shrink: 0;
 }
 
-/* B 课程行：5 × 52 = 260，168–428 */
+/* 列表：单张卡（三级底色的第二级），行高 56px ≥ 44px 触控热区 */
 .list {
   flex-direction: column;
-  margin-top: 12px;
+  margin-top: 6px;
+  border-radius: 14px;
+  padding: 8px;
 }
+/* 单行左右两列：课名 flex 占左（可用 ≈91px ≈ 2.4 汉字 @28），时间右对齐贴边。
+   课上中整行 progressOngoing 淡主色底（模板内联），已过课字色 textMuted。 */
 .row {
-  height: 52px;
   flex-direction: row;
   align-items: center;
-  padding: 0 4px;
-}
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-  margin-right: 10px;
-  flex-shrink: 0;
-}
-.row-body {
-  flex: 1;
-  flex-direction: column;
-  justify-content: center;
+  width: 100%;
+  height: 56px;
+  border-radius: 10px;
 }
 .row-name {
-  font-size: 20px;
+  flex: 1;
+  font-size: 28px;
   font-weight: bold;
-  line-height: 26px;
+  line-height: 38px;
   lines: 1;
-  text-overflow: ellipsis;
 }
-/* 时间：2026-10-21 规则 §七 抬到 18/22。行高不变——课名 26 + 时间 22 = 48 ≤ 52 */
+/* 时间 24px：与课名同排但降一档，形成主次；不设省略号（红线 8） */
 .row-time {
-  font-size: 18px;
-  line-height: 22px;
+  font-size: 24px;
+  line-height: 34px;
+  flex-shrink: 0;
 }
 
-/* C 空态：占据 B 区，垂直居中 */
+/* 空态/加载态：占列表同高，垂直居中，避免页面塌成一条 */
 .empty-box {
-  height: 260px;
+  margin-top: 6px;
+  height: 296px;
   justify-content: center;
   align-items: center;
 }
 .empty-text {
   font-size: 24px;
-  line-height: 32px;
+  line-height: 34px;
   text-align: center;
 }
 
-@media (width >= 200px) {
+@media (width >= 240px) {
   .page { padding: 44px 16px 14px 16px; }
-  .header-title { font-size: 28px; line-height: 36px; }
-  .today-title { margin-top: 44px; height: 30px; font-size: 24px; line-height: 30px; }
-  .row { height: 56px; }
-  .row-name { font-size: 22px; line-height: 28px; }
-  .row-time { font-size: 20px; line-height: 24px; }
-  .empty-box { height: 280px; }
+  .row { height: 60px; }
+  .empty-box { height: 316px; }
 }
 
 @media (width >= 400px) {
-  .page { padding: 12px 20px 16px 20px; }
-  .header-title { font-size: 30px; line-height: 38px; }
-  .today-title { margin-top: 20px; height: 38px; font-size: 30px; line-height: 38px; }
-  .row { height: 64px; }
-  .row-name { font-size: 28px; line-height: 36px; }
-  .row-time { font-size: 20px; line-height: 26px; }
-  .empty-box { height: 320px; }
-  .empty-text { font-size: 28px; line-height: 36px; }
+  .page { padding: 44px 20px 16px 20px; }
+  .header-title { font-size: 30px; line-height: 40px; }
+  .today-title { font-size: 28px; line-height: 38px; }
+  .row { height: 68px; }
+  .row-name { font-size: 30px; line-height: 40px; }
+  .row-time { font-size: 24px; line-height: 34px; }
+  .empty-box { height: 356px; }
 }
 </style>
