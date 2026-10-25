@@ -1,6 +1,6 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <!-- 头部统一骨架（ev-six 规则①②③）：返回键 36 + 居中标题 24px + 等宽占位 36，不放其他按钮 -->
+    <!-- 头部统一骨架（ev-six 规则①②③）：返回键 30 + 居中标题 28px + 等宽占位 30，不放其他按钮 -->
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
@@ -9,42 +9,42 @@
       <div class="header-placeholder"></div>
     </div>
 
-    <!-- 内容区操作行（规则②）：左清空（有课程时）/ 右添加（常驻）。全屏型共用一套，不再按 isCapsule 分叉 -->
+    <!-- 操作行：左清空（有课时才显示）/ 右添加（常驻）。两键各 76/84 宽，中间留 8px 呼吸 -->
     <div class="action-bar">
-      <input class="clear-btn" if="{{ courseList.length > 0 }}" type="button" value="{{ clearAllConfirm ? '确认' : '清空' }}" onclick="clearAllCourses" style="background-color: {{ clearAllConfirm ? theme.deleteText : theme.deleteBg }}; color: {{ clearAllConfirm ? theme.text : theme.deleteText }}" />
-      <input class="add-btn" type="button" value="+ 添加" onclick="startAdd" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+      <input class="clear-btn" type="button" value="清空" onclick="clearAllCourses"
+             style="display: {{ courseList.length > 0 ? 'flex' : 'none' }}; background-color: {{ clearAllConfirm ? theme.deleteText : theme.card }}; color: {{ clearAllConfirm ? theme.bg : theme.textSecondary }}" />
+      <input class="add-btn" type="button" value="+ 添加" onclick="startAdd"
+             style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
 
+    <!-- ev-six 第 6 条：删掉圆形序号徽标（占 1.0P 只给顺序不给信息，排序本就按时间）。
+         单行卡片 = 左侧可点的课名区（cardLight 亮底＝可点性线索）+ 右侧删除键 38px。
+         原设计上下两层（序号/课名 + 编辑/删除两个 56×48 按钮）单屏只能放 3 项，现为 6 项。 -->
     <scroll class="course-list-scroll" scroll-y="{{true}}">
       <div for="{{ courseList }}" class="course-item" style="background-color: {{ theme.card }}">
-        <div class="item-main">
-          <div class="item-index" style="background-color: {{ theme.accent }}">
-            <text class="index-text">{{ $idx + 1 }}</text>
-          </div>
+        <div class="item-main" onclick="startRename($idx)" style="background-color: {{ theme.cardLight }}">
           <text class="course-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
         </div>
-        <div class="item-actions">
-          <!-- 确认态下隐藏"编辑"并改显提示，既给出明确文案，也避免误触相邻按钮 -->
-          <text class="item-del-hint" if="{{ deleteConfirmIndex === $idx }}" style="color: {{ theme.deleteText }}">再点确认</text>
-          <input class="edit-btn" if="{{ deleteConfirmIndex !== $idx }}" type="button" value="编辑" onclick="startRename($idx)" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-          <input class="delete-btn" type="button" value="{{ deleteConfirmIndex === $idx ? '确认' : '删除' }}" onclick="deleteCourse($idx)" style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === $idx ? theme.text : theme.deleteText }}" />
-        </div>
+        <!-- 确认态：底色切 deleteText（亮红），字色切 bg 保证对比；文案恒定「删」，靠颜色表达主次 -->
+        <input class="del-btn" type="button" value="删" onclick="deleteCourse($idx)"
+               style="background-color: {{ deleteConfirmIndex === $idx ? theme.deleteText : theme.deleteBg }}; color: {{ deleteConfirmIndex === $idx ? theme.bg : theme.deleteText }}" />
       </div>
-      <text if="{{ courseList.length === 0 }}" class="empty-hint" style="color: {{ theme.textMuted }}; text-align: center; padding: 40px 10px;">暂无课程，点击下方 + 添加</text>
+      <text class="empty-hint" style="display: {{ courseList.length === 0 ? 'flex' : 'none' }}; color: {{ theme.textMuted }}">暂无课程，点上方添加</text>
     </scroll>
 
-    <div class="undo-bar" if="{{ undoVisible }}" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
-      <text class="undo-msg" style="color: {{ theme.text }}">{{ undoMessage }}</text>
-      <input class="undo-btn" type="button" value="撤销" onclick="undoDelete" style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
+    <!-- ev-six 第 13 条：禁用 prompt.showToast（系统浮层固定弹上部，会压住内容）。
+         全部提示走这条底部内联条：高度固定 52px，只换文案与按钮显隐，不换高度。 -->
+    <div class="tip-bar" style="display: {{ tipVisible ? 'flex' : 'none' }}; background-color: {{ theme.card }}; border-color: {{ theme.borderLight }}">
+      <text class="tip-msg" style="color: {{ theme.text }}">{{ tipText }}</text>
+      <input class="tip-btn" type="button" value="撤销" onclick="undoDelete"
+             style="display: {{ canUndo ? 'flex' : 'none' }}; background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
-import prompt from "@system.prompt"
 const store = require("../../data/store.js")
-const device = require("@system.device")
 
 var COURSE_KEY = "course_preset_list"
 
@@ -87,15 +87,17 @@ export default {
       progressDone: 'rgba(74,138,154,0.25)'
     },
     courseList: [],
-    isCapsule: false,
     editingIndex: -1,
     isAdding: false,
     clearAllConfirm: false,
     deleteConfirmIndex: -1,
-    undoVisible: false,
-    undoMessage: "",
-    undoBackup: null,
-    undoTimer: null
+    tipVisible: false,
+    tipText: "",
+    canUndo: false,
+    tipTimer: null,
+    deleteTimer: null,
+    clearTimer: null,
+    undoBackup: null
   },
 
   sortByTime: function(list) {
@@ -113,13 +115,6 @@ export default {
 
   onInit() {
     var self = this
-    device.getInfo({
-      success: function(data) {
-        var shape = data.screenShape || ""
-        self.isCapsule = (shape === "capsule" || shape === "pill-shaped")
-      },
-      fail: function() {}
-    })
     store.getTheme(function(t, themeName) {
       self.theme = t
       self.updateIconSrc(themeName)
@@ -133,8 +128,10 @@ export default {
       self.theme = t
       self.updateIconSrc(themeName)
     })
-    this.loadCourses()
 
+    // 顺序关键：先看有没有从 chinese-input 带回的改名/新增结果。
+    // 有则直接处理（内存 courseList 已是最新），**不能再调 loadCourses**——
+    // 否则异步 storage.get 带着旧列表返回，会把刚改好的名字覆盖回去。
     var storage = require("@system.storage")
     storage.get({
       key: "chinese_input_result",
@@ -142,9 +139,13 @@ export default {
         if (data !== undefined && data !== null && data !== "") {
           self.processInputResult(data)
           storage.delete({ key: "chinese_input_result", fail: function() {} })
+        } else {
+          self.loadCourses()
         }
       },
-      fail: function() {}
+      fail: function() {
+        self.loadCourses()
+      }
     })
   },
 
@@ -183,11 +184,33 @@ export default {
     })
   },
 
+  // 底部内联提示条：canUndo=true 时带撤销按钮并延长到 5s，普通提示 3.5s
+  showTip(text, canUndo) {
+    this.tipText = text
+    this.canUndo = !!canUndo
+    this.tipVisible = true
+    var self = this
+    if (this.tipTimer) clearTimeout(this.tipTimer)
+    this.tipTimer = setTimeout(function() {
+      self.hideTip()
+    }, canUndo ? 5000 : 3500)
+  },
+
+  hideTip() {
+    if (this.tipTimer) {
+      clearTimeout(this.tipTimer)
+      this.tipTimer = null
+    }
+    this.tipVisible = false
+    this.canUndo = false
+  },
+
   startRename(idx) {
     var item = this.courseList[idx]
     if (!item) return
     this.editingIndex = idx
     this.isAdding = false
+    this.deleteConfirmIndex = -1
     var storage = require("@system.storage")
     storage.set({ key: "chinese_input_title", value: "重命名课程", success: function() {} })
     storage.set({ key: "chinese_input_value", value: item.name || "", success: function() {} })
@@ -200,6 +223,7 @@ export default {
   startAdd() {
     this.isAdding = true
     this.editingIndex = -1
+    this.deleteConfirmIndex = -1
     var storage = require("@system.storage")
     storage.set({ key: "chinese_input_title", value: "添加课程", success: function() {} })
     storage.set({ key: "chinese_input_value", value: "", success: function() {} })
@@ -231,13 +255,13 @@ export default {
     }
     for (var i = 0; i < this.courseList.length; i++) {
       if (i !== idx && this.courseList[i].name === newName) {
-        prompt.showToast({ message: "名称已存在", duration: 300 })
+        this.showTip("名称已存在", false)
         return
       }
     }
     this.courseList[idx].name = newName
     this.saveCourses()
-    prompt.showToast({ message: "已更新", duration: 300 })
+    this.showTip("已改名", false)
   },
 
   doAddCourse(newName) {
@@ -248,7 +272,7 @@ export default {
     }
     for (var i = 0; i < this.courseList.length; i++) {
       if (this.courseList[i].name === newName) {
-        prompt.showToast({ message: "名称已存在", duration: 300 })
+        this.showTip("名称已存在", false)
         this.isAdding = false
         return
       }
@@ -262,7 +286,7 @@ export default {
     this.courseList = this.sortByTime(this.courseList)
     this.saveCourses()
     this.isAdding = false
-    prompt.showToast({ message: "已添加", duration: 300 })
+    this.showTip("已添加", false)
   },
 
   deleteCourse(idx) {
@@ -270,12 +294,12 @@ export default {
     if (this.deleteConfirmIndex !== idx) {
       this.deleteConfirmIndex = idx
       var self = this
-      // 确认超时后必须给出显式反馈，否则用户再点会误以为"点了没反应"
+      if (this.deleteTimer) clearTimeout(this.deleteTimer)
+      this.showTip("再点一次删除", false)
       this.deleteTimer = setTimeout(function() {
         self.deleteConfirmIndex = -1
         self.deleteTimer = null
-        prompt.showToast({ message: "已取消删除" })
-      }, 8000)
+      }, 5000)
       return
     }
     if (this.deleteTimer) {
@@ -288,30 +312,12 @@ export default {
     this.courseList.splice(idx, 1)
     this.deleteConfirmIndex = -1
     this.saveCourses()
-    this.showUndo("课程已删除")
-  },
-
-  showUndo(message) {
-    this.undoVisible = true
-    this.undoMessage = message
-    var self = this
-    if (this.undoTimer) clearTimeout(this.undoTimer)
-    this.undoTimer = setTimeout(function() {
-      self.hideUndo()
-    }, 5000)
-  },
-
-  hideUndo() {
-    if (this.undoTimer) {
-      clearTimeout(this.undoTimer)
-      this.undoTimer = null
-    }
-    this.undoVisible = false
+    this.showTip("已删除", true)
   },
 
   undoDelete() {
     if (!this.undoBackup) {
-      this.hideUndo()
+      this.hideTip()
       return
     }
     // 恢复：把课程按时间重新插入列表并写回，保证顺序正确
@@ -319,29 +325,30 @@ export default {
     this.courseList = this.sortByTime(this.courseList)
     this.saveCourses()
     this.undoBackup = null
-    this.hideUndo()
-    prompt.showToast({ message: "已恢复", duration: 300 })
+    this.showTip("已恢复", false)
   },
 
   clearAllCourses() {
+    var self = this
     if (!this.clearAllConfirm) {
       this.clearAllConfirm = true
-      var self = this
+      if (this.clearTimer) clearTimeout(this.clearTimer)
+      this.showTip("再点清空全部", false)
       this.clearTimer = setTimeout(function() {
         self.clearAllConfirm = false
         self.clearTimer = null
-        prompt.showToast({ message: "已取消清除" })
-      }, 8000)
+      }, 5000)
       return
     }
     if (this.clearTimer) {
       clearTimeout(this.clearTimer)
       this.clearTimer = null
     }
+    this.undoBackup = null
     this.courseList = []
     this.saveCourses()
     this.clearAllConfirm = false
-    prompt.showToast({ message: "所有课程已清除" })
+    this.showTip("已清空", false)
   },
 
   updateIconSrc(themeName) {
@@ -361,9 +368,9 @@ export default {
       clearTimeout(this.clearTimer)
       this.clearTimer = null
     }
-    if (this.undoTimer) {
-      clearTimeout(this.undoTimer)
-      this.undoTimer = null
+    if (this.tipTimer) {
+      clearTimeout(this.tipTimer)
+      this.tipTimer = null
     }
   }
 }
@@ -372,17 +379,20 @@ export default {
 <style>
 @import '../../common/header.css';
 /* ================================================================
-   BASE CSS = 手环 9 基准（160px 内容区）
-   手环 9 默认命中，无需任何 media query。
-   弹性 flex + % 撑满。屏幕增大时，下方宽度断点「增量」调整。
+   BASE CSS = 手环 9 基准（内容宽 168px = 192 − 12×2）
+   手环 9 默认命中，无需任何 media query。弹性 flex + % 撑满。
    原则：base 属性一旦设定，大屏断点只改物理必须区分的值，不覆盖。
    手环 9 黑屏根因：独立 @media (shape: pill-shaped) 大块命中即崩，
    故 base 以 9 为基准，彻底移除独立 pill-shaped 分支。
+
+   高度账（490 − 顶 30 − 底 60 = 400）：
+     header 44+10=54 ｜ action-bar 40+8=48 ｜ 列表 298 ⇒ 6 项 @50px
+   目标：单屏 6 项（原设计卡片上下两层、单屏 3 项）。
    ================================================================ */
 
 .page {
   flex-direction: column;
-  padding: 30px 16px 56px 16px;
+  padding: 30px 12px 60px 12px;
   height: 100%;
 }
 
@@ -391,41 +401,38 @@ export default {
   flex-shrink: 0;
 }
 
-/* ---- 方屏（Watch6 / rect）用右上角 "+ 添加" ---- */
-/* 添加按钮已移到内容区：与 36px 返回键同档高度，宽度容下「+ 添加」4 字符 */
-.add-btn {
-  width: 76px;
-  height: 36px;
-  border-radius: 18px;
-  font-size: 24px;
-  font-weight: bold;
-  text-align: center;
-  line-height: 36px;
-  flex-shrink: 0;}
-
-/* ---- 胶囊屏（手环9 / 10 Pro）工具栏：清除 + 添加 ---- */
-
-
-
+/* ---- 操作行：清空 + 添加，同高 40px（≈返回键档） ---- */
 .action-bar {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 2px 0;
-  margin-bottom: 6px;
+  height: 40px;
+  margin-bottom: 8px;
   flex-shrink: 0;
 }
 
-
 .clear-btn {
   width: 76px;
-  height: 36px;
-  border-radius: 18px;
-  font-size: 22px;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 24px;
   font-weight: bold;
   text-align: center;
-  line-height: 36px;
-  flex-shrink: 0;}
+  line-height: 40px;
+  flex-shrink: 0;
+}
+
+/* 「+ 添加」= 2.85P @24px ≈ 68px，84 宽留足两侧余量 */
+.add-btn {
+  width: 84px;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 40px;
+  flex-shrink: 0;
+}
 
 .course-list-scroll {
   flex: 1;
@@ -433,174 +440,153 @@ export default {
   flex-direction: column;
 }
 
-/* ---- 手环9 课程条：卡片式上下两行（课名在上，操作在下） ---- */
+/* ---- 单行课程条：46px（课名 38 + 上下 4），一屏 6 项 ---- */
 .course-item {
-  flex-direction: column;
-  align-items: stretch;
-  padding: 8px 12px;
-  margin-bottom: 8px;
-  border-radius: 14px;
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  padding: 4px;
+  margin-bottom: 6px;
+  border-radius: 12px;
+  flex-shrink: 0;
 }
 
+/* 课名区用 cardLight 亮底 = 可点性线索（ev-six 第 5 条：靠底色三级层次表达，不靠符号） */
 .item-main {
-  flex: none;
-  width: 100%;
-  flex-direction: row;
-  align-items: center;
-  min-width: 0;
-}
-
-.item-actions {
-  width: 100%;
-  flex-direction: row;
-  justify-content: flex-end;
-  align-items: center;
-  flex-shrink: 0;
-  margin-left: 0;
-  margin-top: 6px;
-}
-
-.item-del-hint {
-  font-size: 22px;
-  font-weight: bold;
-  line-height: 31px;
-  text-align: center;
-  flex-shrink: 0;
-  margin-right: 10px;
-}
-
-.item-index {
-  width: 30px;
-  height: 30px;
-  border-radius: 15px;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
-  margin-right: 8px;
-}
-
-.index-text {
-  font-size: 20px;
-  font-weight: bold;
-  color: #ffffff;
-  text-align: center;
-  line-height: 26px;
-}
-
-.course-name {
   flex: 1;
-  font-size: 22px;
-  font-weight: bold;
-  line-height: 30px;
+  min-width: 0;
+  min-height: 38px;
+  justify-content: center;
+  padding: 0 8px;
+  border-radius: 9px;
 }
 
-.edit-btn {
-  width: 56px;
-  height: 48px;
-  border-radius: 14px;
-  font-size: 22px;
+/* 课名 28px：102px 可用 ⇒ 3.6 字。2~3 字课名一屏读全，超长自然折行（不省略号） */
+.course-name {
+  font-size: 28px;
   font-weight: bold;
-  text-align: center;
-  line-height: 48px;
-  flex-shrink: 0;
+  line-height: 38px;
 }
 
-.delete-btn {
-  width: 56px;
-  height: 48px;
-  border-radius: 14px;
-  font-size: 22px;
-  line-height: 48px;
+/* 删除键 38×38：2 字中文课名之外只占 0.42P，确认态靠切亮红底表达，文案恒为「删」 */
+.del-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  font-size: 24px;
   font-weight: bold;
   text-align: center;
+  line-height: 38px;
   flex-shrink: 0;
-  margin-left: 10px;
+  margin-left: 4px;
+}
+
+.empty-hint {
+  font-size: 24px;
+  line-height: 34px;
+  text-align: center;
+  padding: 40px 8px;
+}
+
+/* ---- 底部内联提示条（替代全部 toast）：高度固定 52px，只换文案与按钮显隐 ---- */
+.tip-bar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 8px;
+  height: 52px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 14px;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0 8px 0 12px;
+}
+
+.tip-msg {
+  flex: 1;
+  font-size: 24px;
+  line-height: 34px;
+}
+
+.tip-btn {
+  width: 56px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 40px;
+  flex-shrink: 0;
+  margin-left: 8px;
 }
 
 /* ================================================================
    宽度断点：手环 10 / 胶囊屏大号（width >= 200px，内容区 ~180px）
-   在 base 基础上「增量」调整。
    ================================================================ */
 @media (width >= 200px) {
   .course-name {
-    font-size: 24px;
-    line-height: 32px;
-  }
-  .clear-btn {
-    width: 64px;
-    height: 44px;
-    border-radius: 22px;
-    font-size: 22px;
-    line-height: 44px;
+    font-size: 28px;
+    line-height: 38px;
   }
 }
 
 /* ================================================================
    宽度断点：Watch 6 / 方屏（width >= 400px，内容区 ~400px）
-   方屏矩形改为单行上下两栏，字号与按钮放大。
+   方屏空间充裕，卡片改单行横排，按钮与字放大到 30/24。
    ================================================================ */
 @media (width >= 400px) {
   .page {
     padding: 6px 12px 16px 12px;
   }
-  .header-placeholder {
-    width: 30px;
+  .action-bar {
+    height: 44px;
   }
   .add-btn {
-    width: 80px;
+    width: 96px;
     height: 44px;
     border-radius: 22px;
     font-size: 24px;
-    line-height: 40px;
+    line-height: 44px;
   }
   .clear-btn {
-    width: 64px;
+    width: 88px;
     height: 44px;
     border-radius: 22px;
     font-size: 24px;
-    line-height: 40px;
+    line-height: 44px;
   }
   .course-item {
-    padding: 10px;
+    padding: 6px;
     margin-bottom: 6px;
   }
   .item-main {
-    flex: 1;
-  }
-  .item-actions {
-    width: auto;
-    flex: none;
-    margin-left: 6px;
-    margin-top: 0;
-  }
-  .item-index {
-    width: 30px;
-    height: 30px;
-    border-radius: 15px;
-    margin-right: 6px;
-  }
-  .index-text {
-    font-size: 22px;
-    line-height: 28px;
+    min-height: 44px;
   }
   .course-name {
-    font-size: 28px;
-    line-height: 36px;
-  }
-  .edit-btn {
-    width: 56px;
-    height: 44px;
-    border-radius: 22px;
-    font-size: 20px;
+    font-size: 30px;
     line-height: 40px;
   }
-  .delete-btn {
-    width: 56px;
+  .del-btn {
+    width: 48px;
     height: 44px;
-    border-radius: 22px;
-    font-size: 20px;
-    line-height: 40px;
-    margin-left: 6px;
+    border-radius: 10px;
+    font-size: 24px;
+    line-height: 44px;
+  }
+  .tip-bar {
+    height: 56px;
+  }
+  .tip-msg {
+    font-size: 24px;
+    line-height: 34px;
+  }
+  .tip-btn {
+    width: 88px;
+    height: 44px;
+    font-size: 24px;
+    line-height: 44px;
   }
 }
 
@@ -612,98 +598,37 @@ export default {
   .page {
     padding: 38px 36px 44px 36px;
   }
-        .add-btn {
-    width: 72px;
-    height: 44px;
-    border-radius: 20px;
-    font-size: 22px;
-    line-height: 40px;
-  }
-  .action-bar {
-    display: flex;
-  }
   .course-item {
-    flex-direction: row;
-    align-items: center;
-    padding: 10px;
+    padding: 6px;
     margin-bottom: 6px;
-    border-radius: 10px;
   }
   .item-main {
-    flex: 1;
-  }
-  .item-actions {
-    width: auto;
-    flex: none;
-    margin-left: 6px;
-    margin-top: 0;
-  }
-  .item-index {
-    width: 28px;
-    height: 28px;
-    border-radius: 14px;
-    margin-right: 6px;
-  }
-  .index-text {
-    font-size: 20px;
-    line-height: 26px;
+    min-height: 44px;
   }
   .course-name {
     font-size: 28px;
-    line-height: 36px;
+    line-height: 38px;
   }
-  .edit-btn {
-    width: 52px;
+  .del-btn {
+    width: 48px;
     height: 44px;
-    border-radius: 20px;
-    font-size: 22px;
-    line-height: 40px;
+    border-radius: 10px;
+    font-size: 24px;
+    line-height: 44px;
   }
-  .delete-btn {
-    width: 52px;
+  .add-btn {
+    width: 96px;
     height: 44px;
-    border-radius: 20px;
-    font-size: 22px;
-    line-height: 40px;
-    margin-left: 6px;
+    border-radius: 22px;
+    font-size: 24px;
+    line-height: 44px;
   }
   .clear-btn {
-    width: 64px;
+    width: 88px;
     height: 44px;
-    border-radius: 20px;
-    font-size: 22px;
-    line-height: 40px;
+    border-radius: 22px;
+    font-size: 24px;
+    line-height: 44px;
   }
-}
-
-.undo-bar {
-  position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
-  height: 64px;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  border-radius: 16px;
-  border-width: 1px;
-  border-style: solid;
-  padding: 0 10px 0 16px;
-}
-.undo-msg {
-  font-size: 24px;
-  flex: 1;
-  line-height: 34px;
-}
-.undo-btn {
-  width: 72px;
-  height: 44px;
-  border-radius: 12px;
-  font-size: 24px;
-  font-weight: bold;
-  text-align: center;
-  line-height: 44px;
-  flex-shrink: 0;
-  margin-left: 8px;
 }
 </style>
