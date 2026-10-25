@@ -155,17 +155,18 @@ truthy("无 <scroll>（固定网格，不滚动）", !/<scroll/.test(TPL))
 truthy("全页无 setInterval（分钟级）", !/setInterval/.test(CODE))
 truthy("无 @keyframes", !/@keyframes/.test(STYLE))
 truthy("style 无数据绑定 {{ }}", !/\{\{[^}]*\}\}/.test(STYLE))
-eq("A 课名 40px", (/\.now-name \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "40")
-eq("A 色块宽 12", (/\.now-stripe \{[\s\S]*?width: (\d+)px/.exec(STYLE) || [])[1], "12")
-eq("A 色块高 44", (/\.now-stripe \{[\s\S]*?height: (\d+)px/.exec(STYLE) || [])[1], "44")
+eq("A 课名兜底字号 44（四档最大）", (/\.now-name \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "44")
+eq("A 色条宽 10（从 12 收回 2px 给课名）", (/\.now-stripe \{[\s\S]*?width: (\d+)px/.exec(STYLE) || [])[1], "10")
+eq("A 色条高 40", (/\.now-stripe \{[\s\S]*?height: (\d+)px/.exec(STYLE) || [])[1], "40")
 eq("B 格宽 80（2×80+8 间距=168）", (/\.cell \{[\s\S]*?width: (\d+)px/.exec(STYLE) || [])[1], "80")
 eq("B 格高 72", (/\.cell \{[\s\S]*?height: (\d+)px/.exec(STYLE) || [])[1], "72")
 eq("B 行宽 168", (/\.grid-row \{[\s\S]*?width: (\d+)px/.exec(STYLE) || [])[1], "168")
 truthy("B 行两端对齐（撑出 8px 列间距）", /\.grid-row \{[\s\S]*?justify-content:\s*space-between/.test(STYLE))
-eq("B 课名 18px", (/\.cell-name \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "18")
-eq("C 图例 16px", (/\.legend \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "16")
-truthy("A 课名单行省略（40px 下 4 字必超宽）", /\.now-name \{[\s\S]*?lines:\s*1/.test(STYLE))
-truthy("B 课名单行省略", /\.cell-name \{[\s\S]*?lines:\s*1/.test(STYLE))
+eq("B 课名 24px（18px 在 12~23 禁区）", (/\.cell-name \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "24")
+eq("C 图例 24px（16px 在 12~23 禁区）", (/\.legend \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "24")
+truthy("A 课名单行（不折行把 B 区顶下去）", /\.now-name \{[\s\S]*?lines:\s*1/.test(STYLE))
+truthy("B 课名允许折 2 行（3 字科目不丢字）", /\.cell-name \{[\s\S]*?lines:\s*2/.test(STYLE))
+truthy("全页无 text-overflow（红线 8 禁省略号）", !/text-overflow/.test(STYLE))
 
 /* 2. 固定配色表 */
 console.log("\n[2] 固定配色表（子串匹配 / 跨天同色 / 灰兜底）")
@@ -220,31 +221,31 @@ console.log("\n[4] B 网格（1 科 / 6 科 / 8 科超格 / 去重）")
 eq("8 科 → 3 行", a.gridRows.length, 3)
 eq("8 科 → 只渲染 6 格", flatCells(a).length, 6)
 eq("网格每行最多 2 格", a.gridRows[0].cells.length, 2)
-eq("8 科图例提示只显示前 6", a.legendText, "今日 8 科 · 显示前 6")
+eq("8 科图例：总数 + 只列 6，不用点号", a.legendText, "8 科 只列 6")
 eq("首格为当天第一科（数学）", flatCells(a)[0].name, "数学")
 
 var f6 = makeInst(T("08:30:00"), { schedule: FIX6 })
 f6.onInit()
 eq("6 科 → 3 行", f6.gridRows.length, 3)
 eq("6 科 → 6 格（正好填满 2×3）", flatCells(f6).length, 6)
-eq("6 科图例", f6.legendText, "今日 6 科")
+eq("6 科图例", f6.legendText, "今天 6 科")
 
 var f1 = makeInst(T("08:30:00"), { schedule: FIX1 })
 f1.onInit()
 eq("1 科 → 1 行", f1.gridRows.length, 1)
 eq("1 科 → 1 格", flatCells(f1).length, 1)
-eq("1 科图例", f1.legendText, "今日 1 科")
+eq("1 科图例", f1.legendText, "今天 1 科")
 
 var f0 = makeInst(T("09:00:00"), { schedule: [] })
 f0.onInit()
 eq("0 科 → 无格", f0.gridRows.length, 0)
-eq("0 科图例", f0.legendText, "今日 0 科")
+eq("0 科图例 = 今天没课（不报 0 科）", f0.legendText, "今天没课")
 
 // 同名同科两节 → 只占 1 格
 var dup = makeInst(T("08:30:00"), { schedule: build(TODAY, ["数学", "数学", "语文"]) })
 dup.onInit()
 eq("同科去重：数学×2 + 语文 → 2 格", flatCells(dup).length, 2)
-eq("去重后图例只算 2 科", dup.legendText, "今日 2 科")
+eq("去重后图例只算 2 科", dup.legendText, "今天 2 科")
 
 /* 5. 分钟级刷新 */
 console.log("\n[5] 分钟级刷新")
@@ -277,6 +278,62 @@ eq("首帧就挂好分钟级定时器", h.__timers.pending(), 1)
 var i = makeInst(T("10:30:00"), { dbGet: false, builtin: [] })
 i.onInit()
 eq("内置课表也空时退化为没课而非卡住", i.nowName, "没课")
+
+/* 7. ev-six 硬指标 */
+console.log("\n[7] ev-six 硬指标（字号四档 / 禁字符 / display 绑定 / 高度预算）")
+var sizes = (STYLE.match(/font-size:\s*(\d+)px/g) || []).map(function(v) { return parseInt(v.replace(/\D/g, ""), 10) })
+var TIERS = { 44: 1, 28: 1, 24: 1 }
+truthy("font-size 只出现三档 44/28/24（实见 " + sizes.join(",") + "）", sizes.every(function(v) { return TIERS[v] }))
+truthy("无 12~23px 字号", sizes.every(function(v) { return v < 12 || v > 23 }))
+truthy("模板与脚本均无点号分隔符（红线 4）", !/·/.test(TPL) && !/·/.test(CODE))
+truthy("模板无 if= 条件渲染（事故案例 11）", !/\bif=/.test(TPL))
+truthy("返回键改 display 绑定", /display: \{\{ isRoot \? 'none' : 'flex' \}\}/.test(TPL))
+truthy("占位块也用同一 display 绑定", (TPL.match(/display: \{\{ isRoot \? 'none' : 'flex' \}\}/g) || []).length === 2)
+truthy("A 课名字号走 inline 绑定（不在样式里写死视觉结果）", /font-size: \{\{ nowFont \}\}px/.test(TPL))
+
+var padDecl = (/\.page \{[\s\S]*?padding: ([^;]+);/.exec(STYLE) || [])[1] || ""
+var pv = padDecl.split(/\s+/).map(function(x) { return parseInt(x, 10) })
+eq("页面左右 padding 均为 12", [pv[1], pv[3]].join(","), "12,12")
+
+// 字宽口径：全角 1.33em（手册 §4.0 实测）、半角 0.5em、空格 0.3em
+function estW(str, fs) {
+  var w = 0
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charCodeAt(i)
+    w += (c === 32) ? 0.3 * fs : (c > 127 ? 1.33 * fs : 0.5 * fs)
+  }
+  return w
+}
+// A 区可用宽 = 168 − 色条 10 − 间距 8
+truthy("A 区 2 字 @44 = " + Math.round(estW("语文", 44)) + " ≤150", estW("语文", 44) <= 150)
+truthy("A 区 3 字 @44 = " + Math.round(estW("自习课", 44)) + " >150 → 必须降档到 28", estW("自习课", 44) > 150)
+truthy("A 区 4 字 @28 = " + Math.round(estW("信息技术", 28)) + " ≤150", estW("信息技术", 28) <= 150)
+// B 区格内可用宽 = 80 − 4×2
+truthy("格子 2 字 @24 = " + Math.round(estW("语文", 24)) + " ≤72", estW("语文", 24) <= 72)
+truthy("格子 3 字 @24 会超 72 → 靠 lines:2 折行兜底", estW("自习课", 24) > 72)
+// C 图例最坏串
+truthy("图例「今天 10 科」24px = " + Math.round(estW("今天 10 科", 24)) + " ≤168", estW("今天 10 科", 24) <= 168)
+truthy("图例「12 科 只列 6」24px = " + Math.round(estW("12 科 只列 6", 24)) + " ≤168", estW("12 科 只列 6", 24) <= 168)
+
+function cssNum(sel, prop) {
+  var re = new RegExp("\\." + sel + " \\{[\\s\\S]*?" + prop + ": (\\d+)px")
+  var m = re.exec(STYLE)
+  return m ? parseInt(m[1], 10) : NaN
+}
+var stack = pv[0] + cssNum("back-header", "height")
+  + cssNum("now-row", "margin-top") + cssNum("now-row", "height")
+  + cssNum("grid", "margin-top") + 3 * cssNum("grid-row", "height") + 2 * cssNum("grid-row", "margin-bottom")
+  + cssNum("legend", "margin-top") + cssNum("legend", "line-height")
+truthy("最坏栈高 " + stack + "px ≤440（3 行满格仍不进胶囊圆弧）", stack <= 440)
+
+// 动态字号：2 字用 44、3 字以上用 28
+var twoChar = makeInst(T("08:30:00"), { schedule: build(TODAY, ["数学", "语文"]) })
+twoChar.onInit()
+eq("2 字课名 → 44px", twoChar.nowFont, 44)
+var threeChar = makeInst(T("08:30:00"), { schedule: build(TODAY, ["自习课"]) })
+threeChar.onInit()
+eq("3 字课名 → 降档 28px", threeChar.nowFont, 28)
+eq("自习课未进色表 → 灰兜底，不返回空", threeChar.nowColor, "#7f8c8d")
 
 console.log("\n" + (fail === 0
   ? "\x1b[32m✔ 全部 " + pass + " 项通过\x1b[0m"

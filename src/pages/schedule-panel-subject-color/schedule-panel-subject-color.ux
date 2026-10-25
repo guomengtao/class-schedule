@@ -1,20 +1,24 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+      <!-- 条件渲染一律 display 绑定（事故案例 11：多兄弟节点 if 会整页白屏） -->
+      <div class="back-btn-wrapper" style="display: {{ isRoot ? 'none' : 'flex' }}; background-color: {{ theme.card }}" onclick="goBack">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" onclick="goBack" style="color: {{ theme.textSecondary }}">色卡</text>
-      <div if="{{ !isRoot }}" class="header-placeholder"></div>
+      <div class="header-placeholder" style="display: {{ isRoot ? 'none' : 'flex' }}"></div>
     </div>
 
-    <!-- A 当前科目：色块 12×44 + 课名 40px（130–185） -->
+    <!-- A 当前科目：10px 色条 + 课名。色条是「这一格什么颜色」的唯一载体，不是装饰。
+         课名字号随字数在两档之间切：2 字用 44（117px），3~4 字降到 28（112/149px）。
+         可用宽 168 − 10(色条) − 8(间距) = 150，44px 只放得下 2 字，这是硬账。 -->
     <div class="now-row">
       <div class="now-stripe" style="background-color: {{ nowColor }}"></div>
-      <text class="now-name" style="color: {{ nowActive ? theme.accent : theme.textMuted }}">{{ nowName }}</text>
+      <text class="now-name" style="font-size: {{ nowFont }}px; color: {{ nowActive ? theme.accent : theme.textSecondary }}">{{ nowName }}</text>
     </div>
 
-    <!-- B 今日科目色卡网格：2 列 × 3 行，每格 80×72（200–432） -->
+    <!-- B 今日科目色卡网格：2 列 × 3 行，每格 80×72。格内 72px 宽，24px 一行 2 字，
+         3 字以上靠 lines:2 折行兜底——不省略，宁可两行也不丢字。 -->
     <div class="grid">
       <div for="{{ gridRows }}" class="grid-row">
         <div for="{{ $item.cells }}" class="cell" style="background-color: {{ $item.color }}">
@@ -23,8 +27,8 @@
       </div>
     </div>
 
-    <!-- C 图例（452–468） -->
-    <text class="legend" style="color: {{ theme.textMuted }}">{{ legendText }}</text>
+    <!-- C 图例：只报总数。超过 6 科时改口径说「N 科 只列 6」，不用点号拼接 -->
+    <text class="legend" style="color: {{ theme.textSecondary }}">{{ legendText }}</text>
   </div>
 </template>
 
@@ -37,7 +41,11 @@ const builtinSchedule = require("../../data/schedule.js")
 
 var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
-// P2 · 固定配色表：同一科跨天同色（#5 多彩课表的前置件，改色只改这张表）
+// P2 阶段固定配色表：同一科跨天同色。
+// ⚠️ 已知问题（不在本次范围）：这张是本页私有的旧表，与共享表 src/data/subject-color.js 已经漂移
+//    （例：语文本页 #2ecc71 绿、共享表 #e74c3c 红；体育 #8bc34a / #2ecc71；信息系 #2980b9 / #0984e3）。
+//    后果是同一个「语文」在色卡页和多彩课表页显示成两种颜色。收敛方案：改 require 共享表，
+//    代价是 4 个科目变色、多彩课表页要一起回归，故单独立项处理。
 var SUBJECT_COLORS = {
   "数学": "#3498db",
   "语文": "#2ecc71",
@@ -56,6 +64,10 @@ var SUBJECT_COLORS = {
 }
 var FALLBACK_COLOR = "#7f8c8d"
 
+// 2 字课名走 44（四档最大），3 字以上降到 28——168px 一行放不下 3 个 44px 汉字
+var NAME_FONT_BIG = 44
+var NAME_FONT_SMALL = 28
+
 // 子串匹配（"信息技术" 命中 "信息技术"，"体育课" 命中 "体育"）；未命中回退灰，绝不返回空
 function getSubjectColor(name) {
   if (!name) return FALLBACK_COLOR
@@ -65,7 +77,7 @@ function getSubjectColor(name) {
   return FALLBACK_COLOR
 }
 
-// "08:00 - 09:35" → {startMin, endMin}；脏数据返回 null
+// "08:00 - 09:35" 解析成 {startMin, endMin}；脏数据返回 null
 function parseTimeRange(timeStr) {
   if (!timeStr) return null
   var parts = timeStr.split(" - ")
@@ -79,6 +91,11 @@ function parseTimeRange(timeStr) {
   return { startMin: a, endMin: b }
 }
 
+function fontOf(name) {
+  var n = (name || "").length
+  return n <= 2 ? NAME_FONT_BIG : NAME_FONT_SMALL
+}
+
 export default {
   private: {
     iconTheme: "dark",
@@ -88,6 +105,7 @@ export default {
     nowName: "",
     nowColor: FALLBACK_COLOR,
     nowActive: false,
+    nowFont: NAME_FONT_BIG,
     gridRows: [],
     legendText: "",
     schedule: [],
@@ -172,6 +190,7 @@ export default {
       this.nowName = "没课"
       this.nowColor = FALLBACK_COLOR
       this.nowActive = false
+      this.nowFont = NAME_FONT_BIG
       this.gridRows = []
       this.legendText = ""
       console.error("[subject-color] compute failed: " + e)
@@ -198,7 +217,7 @@ export default {
     }
     items.sort(function(a, b) { return a.startMin - b.startMin })
 
-    // A 当前科目：正在上的那节；否则退「课间」/「已下课」/「没课」（≤3 字，40px 下不截断）
+    // A 当前科目：正在上的那节；否则退「课间」/「已下课」/「没课」（≤3 字）
     var current = null
     for (var k = 0; k < items.length; k++) {
       if (nowMin >= items[k].startMin && nowMin < items[k].endMin) { current = items[k]; break }
@@ -218,6 +237,7 @@ export default {
       this.nowColor = FALLBACK_COLOR
       this.nowActive = false
     }
+    this.nowFont = fontOf(this.nowName)
 
     // B 今日科目（去重，按当天首次出现顺序），最多 6 格 = 2×3
     var subjects = []
@@ -235,18 +255,18 @@ export default {
     }
     this.gridRows = rows
 
-    // C 图例
+    // C 图例：只说总数；超 6 科时把「只列 6」明说，不用点号拼接
     if (subjects.length === 0) {
-      this.legendText = "今日 0 科"
+      this.legendText = "今天没课"
     } else if (subjects.length > 6) {
-      this.legendText = "今日 " + subjects.length + " 科 · 显示前 6"
+      this.legendText = subjects.length + " 科 只列 6"
     } else {
-      this.legendText = "今日 " + subjects.length + " 科"
+      this.legendText = "今天 " + subjects.length + " 科"
     }
   },
 
   goBack: function() {
-    // 双模返回：被「更多首页」push（fromPanel）→ 回父页；作为 root 首页 → 回「更多首页」
+    // 双模返回：被「更多首页」push（fromPanel）则回父页；作为 root 首页则回「更多首页」
     if (this.fromPanel === '1') {
       router.back()
     } else {
@@ -297,6 +317,7 @@ export default {
   font-size: 28px;
   text-align: center;
   line-height: 36px;
+  lines: 1;
 }
 .header-placeholder {
   width: 30px;
@@ -304,35 +325,32 @@ export default {
   flex-shrink: 0;
 }
 
-/* A 当前科目：130–185（header 84 + margin-top 46），高 55 */
+/* A 当前科目：色条 10×40 + 课名。字号由 nowFont 绑进 inline style（44 / 28 两档） */
 .now-row {
-  margin-top: 46px;
-  height: 55px;
+  margin-top: 12px;
+  height: 56px;
   flex-direction: row;
   align-items: center;
   flex-shrink: 0;
-  padding: 0 4px;
 }
 .now-stripe {
-  width: 12px;
-  height: 44px;
-  border-radius: 6px;
-  margin-right: 10px;
+  width: 10px;
+  height: 40px;
+  border-radius: 5px;
+  margin-right: 8px;
   flex-shrink: 0;
 }
 .now-name {
   flex: 1;
-  font-size: 40px;
+  font-size: 44px;
   font-weight: bold;
-  line-height: 55px;
-  /* 40px 下 4 字就超 148px 可用宽，必须单行省略，不许折行把 B 区顶下去 */
+  line-height: 56px;
   lines: 1;
-  text-overflow: ellipsis;
 }
 
-/* B 网格：200 起，3 行 × 72 + 2×8 间距 = 232 → 200–432 */
+/* B 网格：12 + 3×72 + 2×8 = 240，整页内容底 432 */
 .grid {
-  margin-top: 15px;
+  margin-top: 12px;
   flex-direction: column;
   flex-shrink: 0;
 }
@@ -353,22 +371,21 @@ export default {
   align-items: center;
   padding: 0 4px;
 }
+/* 格内可用宽 72px = 2 个 24px 汉字；3 字以上折行（lines:2，26×2=52 ≤ 72−8），不省略号 */
 .cell-name {
-  font-size: 18px;
-  line-height: 24px;
+  font-size: 24px;
+  line-height: 26px;
   font-weight: bold;
   color: #ffffff;
   text-align: center;
-  lines: 1;
-  text-overflow: ellipsis;
+  lines: 2;
 }
 
-/* C 图例：452–472（原 452–468）—— 18px 字配 20 行高，仍在 490 内 */
+/* C 图例：8 + 24 = 32，收在 432 */
 .legend {
-  margin-top: 20px;
-  height: 20px;
-  font-size: 18px;
-  line-height: 24px;
+  margin-top: 8px;
+  font-size: 24px;
+  line-height: 32px;
   text-align: center;
   flex-shrink: 0;
   lines: 1;
@@ -377,26 +394,25 @@ export default {
 @media (width >= 200px) {
   .page { padding: 44px 16px 14px 16px; }
   .header-title { font-size: 28px; line-height: 36px; }
-  .now-row { margin-top: 42px; height: 60px; }
-  .now-stripe { width: 14px; height: 48px; }
-  .now-name { font-size: 44px; line-height: 60px; }
-  .grid { margin-top: 16px; }
+  .now-row { height: 60px; }
+  .now-stripe { width: 12px; height: 44px; }
+  .now-name { line-height: 60px; }
   .grid-row { width: 176px; height: 78px; margin-bottom: 9px; }
   .cell { width: 84px; height: 78px; }
-  .cell-name { font-size: 20px; line-height: 26px; }
-  .legend { font-size: 20px; line-height: 22px; height: 22px; }
+  .cell-name { font-size: 24px; line-height: 28px; }
+  .legend { font-size: 24px; line-height: 34px; }
 }
 
 @media (width >= 400px) {
   .page { padding: 12px 20px 16px 20px; }
-  .header-title { font-size: 30px; line-height: 38px; }
+  .header-title { font-size: 28px; line-height: 38px; }
   .now-row { margin-top: 20px; height: 90px; }
-  .now-stripe { width: 20px; height: 72px; border-radius: 10px; }
-  .now-name { font-size: 64px; line-height: 90px; }
+  .now-stripe { width: 18px; height: 68px; border-radius: 9px; }
+  .now-name { line-height: 90px; }
   .grid { margin-top: 24px; }
   .grid-row { width: 320px; height: 110px; margin-bottom: 12px; }
   .cell { width: 154px; height: 110px; border-radius: 16px; }
   .cell-name { font-size: 28px; line-height: 36px; }
-  .legend { font-size: 22px; line-height: 26px; height: 26px; }
+  .legend { font-size: 28px; line-height: 38px; }
 }
 </style>
