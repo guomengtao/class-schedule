@@ -5,7 +5,7 @@
 
 > 本篇为组级文档，覆盖 `watch-face` 及全部 16 个 `watch-face-*` 变体。EvEmuPreview 角标显示的「表盘·总览（组级）」即来源于此，不代表每个变体都有独立文档。
 >
-> **已有专属主文档的变体**（角标精确命中，不走组级回退）：`watch-face-gradient`、`watch-face-colorful`、`watch-face-background`、`watch-face-vibrate`、`watch-face-font`（2026-10-25 起）、`watch-face-functional`、`watch-face-evpointer`、`watch-face-metal`（2026-10-26 起），见同名 `.md`。
+> **已有专属主文档的变体**（角标精确命中，不走组级回退）：`watch-face-gradient`、`watch-face-colorful`、`watch-face-background`、`watch-face-vibrate`、`watch-face-font`（2026-10-25 起）、`watch-face-functional`、`watch-face-evpointer`、`watch-face-metal`、`watch-face-gold`（2026-10-26 起），见同名 `.md`。
 > 其余变体仍走本组级文档。
 
 ## 功能说明
@@ -20,7 +20,7 @@
 | `watch-face-class` | 表盘·课程 | 突出当前/最近一节课程卡片 |
 | `watch-face-list` | 表盘·列表 | 当日全天课程纵向列表 |
 | `watch-face-colorful` | 表盘·彩色 | 色块构成：四段色标 + 数字下同色 chip + 秒 5 段方格（专属文档）；不涉及科目数据 |
-| `watch-face-gold` | 表盘·金色 | 金色质感主题 |
+| `watch-face-gold` | 表盘·金色 | 168px 八层错位同心钢壳 + 48 分刻度 + 日期窗 + 上下表耳 + 三层立体三针，**唯一用 scale(1.35)**（专属文档） |
 | `watch-face-metal` | 表盘·金属 | 仿古黄铜四层同心表壳 + 罗马数字时标 + 4 铆钉 + 120 档三针（专属文档） |
 | `watch-face-gradient` | 表盘·渐变 | 逐字符色带 + 48 条背景色带纵向渐变 + 秒进度条（4 套色带） |
 | `watch-face-flip` | 表盘·翻页 | 翻页时钟动效 |

@@ -26,15 +26,15 @@
   <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
 
     <!-- 顶部：品牌字（机械表惯用的两行小字） -->
-    <text class="brand">MECHANICAL</text>
-    <text class="brand-sub">EV · 自动机械</text>
+    <text class="brand {{brandCls}}">MECHANICAL</text>
+    <text class="brand-sub {{subCls}}">EV · 自动机械</text>
 
     <!-- 表耳（画在表壳之前，被表壳压住 → 层次） -->
-    <div class="lug lug-top"></div>
-    <div class="lug lug-bottom"></div>
+    <div class="lug lug-top {{lugTopCls}}"></div>
+    <div class="lug lug-bottom {{lugBottomCls}}"></div>
 
     <!-- 表壳 + 盘面：168×168，中心 (84,84) -->
-    <div class="dial-wrap">
+    <div class="dial-wrap {{dialCls}}">
 
       <!-- 8 层错位同心圆：每层都比外层向右下偏 1–3px，左上留出月牙高光 -->
       <div class="case-outer"></div>
@@ -165,9 +165,9 @@
     </div>
 
     <!-- 底部信息 -->
-    <text class="date-line">{{dateText}}</text>
-    <text class="time-line">{{timeText}}</text>
-    <text class="back">轻触返回</text>
+    <text class="date-line {{dateCls}}">{{dateText}}</text>
+    <text class="time-line {{timeCls}}">{{timeText}}</text>
+    <text class="back {{backCls}}">轻触返回</text>
   </div>
 </template>
 
@@ -196,14 +196,51 @@ export default {
     timeText: "--:--",
     dateText: "",
     dayText: "1",
+    brandCls: "",
+    subCls: "",
+    lugTopCls: "",
+    lugBottomCls: "",
+    dialCls: "",
+    dateCls: "",
+    timeCls: "",
+    backCls: "",
     touchStartY: 0,
     suppressTap: false,
     timer: null
   },
 
   onInit() {
+    this.fitScreen()
     this.syncHands()
     this.tick()
+  },
+
+  /* ── 宽屏适配（336×480，手环 10Pro）──
+     168 表壳 × scale(1.35) = 226.8，盘心 (54.6+113.4, 88+113.4) = (168, 201.4)。
+     取 1.35 而非 1.5：表耳上凸 33 + 下凸 33 + 盘 252 = 318，再叠品牌 70 与底部三行 100 会爆 480。
+     表耳在 .dial-wrap 之外（page 坐标系），故单独给 .w-lug/.w-lug-top/.w-lug-bottom 三值重定位，
+     不动 DOM 结构（负 top 方案未验证过，不冒险）。
+     本页 onReady 不可靠（同仓 functional 实测不触发），从 onInit 调；必须异步 getInfo。 */
+  fitScreen() {
+    const self = this
+    try {
+      const dev = require("@system.device")
+      dev.getInfo({
+        success: function(d) {
+          const w = (d && d.screenWidth) ? d.screenWidth : 0
+          if (w < 300) return
+          self.brandCls = "w-brand"
+          self.subCls = "w-sub"
+          self.lugTopCls = "w-lug w-lug-top"
+          self.lugBottomCls = "w-lug w-lug-bottom"
+          self.dialCls = "w-dial"
+          self.dateCls = "w-date"
+          self.timeCls = "w-time"
+          self.backCls = "w-back"
+        },
+        fail: function() {}
+      })
+    } catch (e) {}
   },
 
   onReady() {
@@ -722,11 +759,11 @@ export default {
   .date-line {
     position: absolute;
     left: 0;
-    top: 314px;
+    top: 306px;
     width: 192px;
-    height: 16px;
+    height: 26px;
     text-align: center;
-    font-size: 13px;
+    font-size: 24px;
     color: #8d949c;
   }
 
@@ -747,10 +784,63 @@ export default {
     left: 0;
     top: 396px;
     width: 192px;
-    height: 14px;
+    height: 26px;
     text-align: center;
-    font-size: 12px;
-    color: #4f565d;
+    font-size: 24px;
+    color: #8d949c;
+  }
+
+  /* ── 宽屏适配：336×480（手环 10Pro）──
+     Vela 不支持后代选择器，全部单类；text 基线 width 写死 192px，必须 width:100% 覆盖。
+     表壳 scale(1.35)：168→226.8，盘心 (54.6+113.4, 88+113.4) = (168, 201.4)。
+     取 1.35 是纵向唯一可行解：1.5 时 盘252 + 表耳上下各33 + 品牌70 + 底部三行100 ≈ 500 > 480。 */
+  .w-brand {
+    top: 6px;
+    width: 100%;
+    height: 28px;
+    font-size: 24px;
+  }
+  .w-sub {
+    top: 34px;
+    width: 100%;
+    height: 26px;
+    font-size: 22px;
+  }
+  /* 表耳在 .dial-wrap 之外，只 scale 表壳会错位，故按 1.35 手算重定位 */
+  .w-lug {
+    left: 111px;
+    width: 113px;
+    height: 35px;
+  }
+  .w-lug-top {
+    top: 60px;
+  }
+  .w-lug-bottom {
+    top: 306px;
+  }
+  .w-dial {
+    left: 54.6px;
+    top: 88px;
+    transform: scale(1.35);
+  }
+  .w-date {
+    top: 342px;
+    width: 100%;
+    height: 26px;
+    font-size: 24px;
+  }
+  .w-time {
+    top: 372px;
+    width: 100%;
+    height: 50px;
+    font-size: 48px;
+  }
+  .w-back {
+    top: 426px;
+    width: 100%;
+    height: 26px;
+    font-size: 24px;
+    color: #8d949c;
   }
 
   /* ── 120 档字面量旋转：rotate(180 + 3N)，180° 使针由「向下」转为「向上」── */
