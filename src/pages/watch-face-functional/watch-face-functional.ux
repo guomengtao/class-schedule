@@ -11,48 +11,49 @@
     · 骨架照经典表盘（flex 居中，无 absolute 子元素），规避黑屏。
   -->
   <div class="page" onclick="onTap">
-    <text class="clock" style="color: {{ fgColor }}">{{ timeText }}</text>
-    <text class="date" style="color: {{ subColor }}">{{ dateText }}</text>
+    <text class="clock {{ clockCls }}" style="color: {{ fgColor }}">{{ timeText }}</text>
+    <text class="date {{ dateCls }}" style="color: {{ subColor }}">{{ dateText }}</text>
 
-    <div class="item">
-      <div class="head">
-        <text class="k" style="color: {{ subColor }}">空间使用</text>
-        <text class="v" style="color: {{ fgColor }}">{{usedStr}} / {{totalStr}}</text>
+    <div class="item {{ itemCls }}">
+      <div class="head {{ headCls }}">
+        <text class="k {{ kvCls }}" style="color: {{ subColor }}">空间使用</text>
+        <text class="v {{ kvCls }}" style="color: {{ fgColor }}">{{usedStr}} / {{totalStr}}</text>
       </div>
-      <progress class="bar" percent="{{usedPct}}" color="#ff9a3c"></progress>
+      <progress class="bar {{ barCls }}" percent="{{usedPct}}" color="#ff9a3c"></progress>
     </div>
 
-    <div class="item">
-      <div class="head">
-        <text class="k" style="color: {{ subColor }}">剩余空间</text>
-        <text class="v" style="color: {{ fgColor }}">{{availStr}}</text>
+    <div class="item {{ itemCls }}">
+      <div class="head {{ headCls }}">
+        <text class="k {{ kvCls }}" style="color: {{ subColor }}">剩余空间</text>
+        <text class="v {{ kvCls }}" style="color: {{ fgColor }}">{{availStr}}</text>
       </div>
-      <progress class="bar" percent="{{availPct}}" color="#4ade80"></progress>
+      <progress class="bar {{ barCls }}" percent="{{availPct}}" color="#4ade80"></progress>
     </div>
 
-    <div class="item" if="{{ batteryText }}">
-      <div class="head">
-        <text class="k" style="color: {{ subColor }}">电量</text>
+    <div class="item {{ itemCls }}" if="{{ batteryText }}">
+      <div class="head {{ headCls }}">
+        <text class="k {{ kvCls }}" style="color: {{ subColor }}">电量</text>
         <div class="head-right">
           <!-- 电池小图标 -->
-          <div class="batt">
-            <div class="batt-shell">
-              <div class="batt-level" style="width: {{battW}}px; background-color: {{battColor}}"></div>
+          <div class="batt {{ battCls }}">
+            <div class="batt-shell {{ shellCls }}">
+              <div class="batt-level {{ levelCls }}" style="width: {{battW}}px; background-color: {{battColor}}"></div>
             </div>
-            <div class="batt-nub" style="background-color: {{battColor}}"></div>
+            <div class="batt-nub {{ nubCls }}" style="background-color: {{battColor}}"></div>
           </div>
-          <text class="v" style="color: {{ fgColor }}">{{batteryText}}</text>
+          <text class="v {{ kvCls }}" style="color: {{ fgColor }}">{{batteryText}}</text>
         </div>
       </div>
-      <progress class="bar" percent="{{battPct}}" color="{{battColor}}"></progress>
+      <progress class="bar {{ barCls }}" percent="{{battPct}}" color="{{battColor}}"></progress>
     </div>
 
-    <text class="back" onclick="goBack">返回</text>
+    <text class="back {{ backCls }}" onclick="goBack">返回</text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
+import device from "@system.device"
 
 const LIST_PAGE = "/pages/watch-face-list"
 const WEEK = ["日", "一", "二", "三", "四", "五", "六"]
@@ -77,7 +78,12 @@ export default {
     subColor: "#8a8aa0",
     usedStr: "--", totalStr: "--", availStr: "--",
     usedPct: 0, availPct: 0,
-    batteryText: "", battPct: 0, battW: 0, battColor: "#4ade80"
+    batteryText: "", battPct: 0, battW: 0, battColor: "#4ade80",
+    /* 宽屏适配：电量芯净宽（= 壳宽 − 2×2 边框），186/192 屏为 30，336 屏探针改成 52 */
+    battLevel: 0, battInner: 30,
+    /* 宽屏单类，`w >= 300` 才由 fitScreen 填值；192 屏保持空串 = 零回归 */
+    clockCls: "", dateCls: "", itemCls: "", headCls: "", kvCls: "",
+    barCls: "", battCls: "", shellCls: "", levelCls: "", nubCls: "", backCls: ""
   },
 
   onInit() {
@@ -87,7 +93,38 @@ export default {
   },
 
   onReady() {
+    this.fitScreen()
     this.refresh()
+  },
+
+  /* 宽屏探针：手环10Pro 336×480 专用。必须异步回调，同步取会拿到错值。
+     192 屏 `w < 300` 直接 return，11 个类全空、battInner 保持 30 = 零回归。 */
+  fitScreen() {
+    const self = this
+    try {
+      device.getInfo({
+        success: function(d) {
+          const w = d && d.screenWidth ? d.screenWidth : 0
+          if (w < 300) return
+          self.clockCls = "w-clock"
+          self.dateCls = "w-date"
+          self.itemCls = "w-item"
+          self.headCls = "w-head"
+          self.kvCls = "w-kv"
+          self.barCls = "w-bar"
+          self.battCls = "w-batt"
+          self.shellCls = "w-shell"
+          self.levelCls = "w-level"
+          self.nubCls = "w-nub"
+          self.backCls = "w-back"
+          self.battInner = 52
+          /* 电量在 onInit 已按 30 算过一次 battW，这里用存下的 level 重算：
+             漏掉这行，宽屏上 100% 电量只画 30/52 格（看着像半格电） */
+          if (self.battLevel) self.battW = Math.round(self.battLevel * 52)
+        },
+        fail: function() {}
+      })
+    } catch (e) {}
   },
 
   onShow() {
@@ -148,13 +185,14 @@ export default {
   loadStorage() {
     const self = this
     try {
-      const device = require("@system.device")
-      device.getTotalStorage({
+      /* 内部改名 devApi：顶部已 import device，避免同名局部声明 */
+      const devApi = require("@system.device")
+      devApi.getTotalStorage({
         success: function(t) {
           if (!t || !t.totalStorage) return
           const total = t.totalStorage
           self.totalStr = self.fmt(total)
-          device.getAvailableStorage({
+          devApi.getAvailableStorage({
             success: function(a) {
               if (!a || typeof a.availableStorage !== "number") return
               const avail = a.availableStorage
@@ -183,7 +221,8 @@ export default {
             const pct = Math.round(res.level * 100)
             self.battPct = pct
             self.batteryText = res.charging ? (pct + "% 充电中") : (pct + "%")
-            self.battW = Math.round(res.level * 30)
+            self.battLevel = res.level
+            self.battW = Math.round(res.level * self.battInner)
             self.battColor = pct <= 20 ? "#ff5f6d" : (pct <= 50 ? "#ffd166" : "#4ade80")
           }
         },
@@ -286,5 +325,60 @@ export default {
     margin-top: 24px;
     font-size: 22px;
     color: #888899;
+  }
+
+  /* ── 宽屏（336×480 手环10Pro）· 全部单类选择器 ──
+     Vela 不支持后代选择器（`.w-page .x` 会退化成 `.x` 套到所有屏），
+     故每个宽屏样式独立成类，由 fitScreen 挂到元素上。 */
+  .w-clock {
+    font-size: 84px;
+    letter-spacing: 3px;
+  }
+
+  .w-date {
+    margin-top: 6px;
+    font-size: 28px;
+  }
+
+  .w-item {
+    width: 276px;
+  }
+
+  .w-head {
+    width: 276px;
+  }
+
+  /* .k / .v 共用同一个宽屏类，避免两处字号不一致 */
+  .w-kv {
+    font-size: 28px;
+  }
+
+  .w-bar {
+    width: 276px;
+    stroke-width: 18px;
+  }
+
+  .w-batt {
+    margin-right: 12px;
+  }
+
+  /* 壳 56×26（净宽 52 = JS battInner），芯与帽按同比例抬 */
+  .w-shell {
+    width: 56px;
+    height: 26px;
+  }
+
+  .w-level {
+    height: 13px;
+  }
+
+  .w-nub {
+    width: 5px;
+    height: 13px;
+  }
+
+  .w-back {
+    margin-top: 20px;
+    font-size: 28px;
   }
 </style>
