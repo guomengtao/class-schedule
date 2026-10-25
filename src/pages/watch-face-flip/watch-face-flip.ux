@@ -19,10 +19,11 @@
 <template>
   <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
 
-    <text class="brand">EV</text>
-    <text class="brand-sub">翻页表盘</text>
+    <!-- ===== 192×490（手环 9）：原版式，一个像素都不改 ===== -->
+    <text if="{{ !wide }}" class="brand">EV</text>
+    <text if="{{ !wide }}" class="brand-sub">翻页表盘</text>
 
-    <div class="clock">
+    <div if="{{ !wide }}" class="clock">
       <div class="win">
         <div class="strip" style="top: {{ p0 }}px"><text for="{{ items }}" class="di">{{ $item }}</text></div>
       </div>
@@ -45,18 +46,54 @@
       </div>
     </div>
 
-    <text class="date">{{ dateText }}</text>
+    <text if="{{ !wide }}" class="date">{{ dateText }}</text>
+
+    <!-- ===== 宽屏（10Pro 336×480 起）=====
+         本页不能「等比放大」：滚动数字带的换字位移是 top = -digit × ITEM_H，
+         ITEM_H 必须与窗口 CSS 高度逐一相等，否则数字停在半格。
+         故宽屏把窗口 26×64 → 46×88（6×46 + 2×14 冒号 = 304 ≤ 336-16 安全区），
+         JS 侧 itemH 同步取 88（见 fitScreen），两边靠同一个数走。
+         字号 34 → 56：按最坏字宽 0.6F 反算 0.6×56 = 33.6 < 46，横向不裁。 -->
+    <text if="{{ wide }}" class="w-brand">EV</text>
+    <text if="{{ wide }}" class="w-brand-sub">翻页表盘</text>
+
+    <div if="{{ wide }}" class="w-clock">
+      <div class="w-win">
+        <div class="w-strip" style="top: {{ p0 }}px"><text for="{{ items }}" class="w-di">{{ $item }}</text></div>
+      </div>
+      <div class="w-win">
+        <div class="w-strip" style="top: {{ p1 }}px"><text for="{{ items }}" class="w-di">{{ $item }}</text></div>
+      </div>
+      <text class="w-c">:</text>
+      <div class="w-win">
+        <div class="w-strip" style="top: {{ p2 }}px"><text for="{{ items }}" class="w-di">{{ $item }}</text></div>
+      </div>
+      <div class="w-win">
+        <div class="w-strip" style="top: {{ p3 }}px"><text for="{{ items }}" class="w-di">{{ $item }}</text></div>
+      </div>
+      <text class="w-c">:</text>
+      <div class="w-win">
+        <div class="w-strip" style="top: {{ p4 }}px"><text for="{{ items }}" class="w-di">{{ $item }}</text></div>
+      </div>
+      <div class="w-win">
+        <div class="w-strip" style="top: {{ p5 }}px"><text for="{{ items }}" class="w-di">{{ $item }}</text></div>
+      </div>
+    </div>
+
+    <text if="{{ wide }}" class="w-date">{{ dateText }}</text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
+import device from "@system.device"
 
 const LIST_PAGE = "/pages/watch-face-list"
 const UP_PAGE   = "/pages/watch-face-landscape"   // 目录里本页前一个
 const DOWN_PAGE = "/pages/watch-face-animated"    // 目录里本页后一个
 
-const ITEM_H   = 64   // 每格高度，必须等于 CSS .win / .di 的 height
+const ITEM_H      = 64   // 小屏每格高度，必须等于 CSS .win / .di 的 height
+const ITEM_H_WIDE = 88   // 宽屏每格高度，必须等于 CSS .w-win / .w-di 的 height
 const STEPS    = 5    // 一次滚动分几帧（5 × 20ms ≈ 100ms）
 const STEP_MS  = 45
 const SWIPE_TH = 40   // 上下滑判定阈值（与 evpointer 一致）
@@ -73,7 +110,8 @@ export default {
     items: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
     /* 六条带的 top 偏移（负数向上） */
     p0: 0, p1: 0, p2: 0, p3: 0, p4: 0, p5: 0,
-    dateText: ""
+    dateText: "",
+    wide: false
   },
 
   onInit() {
@@ -82,7 +120,32 @@ export default {
     this.timers = []                        // 分帧 setTimeout
     this.touchStartY = 0
     this.suppressTap = false
+    this.itemH = ITEM_H                     // 先按小屏基准，fitScreen 回调再改
+    this.fitScreen()
     this.tick()
+  },
+
+  /* 屏宽 ≥300 → 宽屏版式（10Pro 336 起）。读不到就按 192 基准渲染，绝不白屏。
+     关键：itemH 必须跟着窗口 CSS 高度一起改，否则 top = -digit × itemH 会停在半格。 */
+  fitScreen() {
+    const self = this
+    device.getInfo({
+      success: function(d) {
+        if (!d || d.screenWidth < 300) return
+        self.wide = true
+        self.itemH = ITEM_H_WIDE
+        /* 之前用 64 算过的偏移作废：归零 + shown 打回 -1，下一帧按新格高重滚到位 */
+        self.p0 = 0
+        self.p1 = 0
+        self.p2 = 0
+        self.p3 = 0
+        self.p4 = 0
+        self.p5 = 0
+        self.shown = [-1, -1, -1, -1, -1, -1]
+        self.tick()
+      },
+      fail: function() {}
+    })
   },
 
   onShow() {
@@ -180,12 +243,13 @@ export default {
 
   stepTo(i, target) {
     const start = this.readP(i)
-    let end = -target * ITEM_H
+    /* 格高随屏宽变化（小屏 64 / 宽屏 88），必须用实例值而不是模块常量 */
+    let end = -target * this.itemH
     let wrap = false
     if (end > start) {
       /* 9→0：向前滚过副本（-10 格），落定后再瞬时归 0，视觉连续 */
       wrap = true
-      end = -10 * ITEM_H
+      end = -10 * this.itemH
     }
     const delta = end - start
     if (delta === 0) return
@@ -328,6 +392,91 @@ export default {
     width: 192px;
     text-align: center;
     font-size: 13px;
+    letter-spacing: 1px;
+    color: #6f7688;
+  }
+
+  /* ===== 宽屏（10Pro 336×480 起）版式 =====
+     铁律同 192 版：.page 只给尺寸 + 列向 flex，禁 justify-content / align-items；
+     本页所有元素仍是 absolute 定位，不走 flex 居中（历史黑屏教训见文件头）。
+     尺寸链：win 46×88 ×6 + 冒号 14×2 = 304 ≤ 336-16；di 字号 56（0.6F=33.6 < 46 不裁）；
+     line-height 必须 = win 高度 = JS itemH(88)，三者任一处不同步，数字就会停半格。
+     ev-six：可读文字用 24 一档（brand / brand-sub / date），24 为绝对下限；
+     主数字 56 属表盘图形本体，不套四档，已在模板注释写明。 */
+  .w-brand {
+    position: absolute;
+    left: 0;
+    top: 140px;
+    width: 336px;
+    text-align: center;
+    font-size: 24px;
+    letter-spacing: 3px;
+    color: #d8dde8;
+  }
+
+  .w-brand-sub {
+    position: absolute;
+    left: 0;
+    top: 170px;
+    width: 336px;
+    text-align: center;
+    font-size: 24px;
+    letter-spacing: 2px;
+    color: #7b8496;
+  }
+
+  .w-clock {
+    position: absolute;
+    left: 16px;
+    top: 208px;
+    width: 304px;
+    height: 88px;
+    flex-direction: row;
+  }
+
+  .w-win {
+    position: relative;
+    width: 46px;
+    height: 88px;
+    overflow: hidden;
+    background-color: #151924;
+    border-radius: 8px;
+  }
+
+  .w-strip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 46px;
+    flex-direction: column;
+  }
+
+  .w-di {
+    width: 46px;
+    height: 88px;
+    font-size: 56px;
+    font-weight: bold;
+    line-height: 88px;
+    text-align: center;
+    color: #f2efe6;
+  }
+
+  .w-c {
+    width: 14px;
+    height: 88px;
+    font-size: 36px;
+    line-height: 88px;
+    text-align: center;
+    color: #4a5265;
+  }
+
+  .w-date {
+    position: absolute;
+    left: 0;
+    top: 312px;
+    width: 336px;
+    text-align: center;
+    font-size: 24px;
     letter-spacing: 1px;
     color: #6f7688;
   }
