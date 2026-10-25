@@ -22,51 +22,51 @@
     <div class="band b6"></div>
 
     <!-- 印刷分钟轨：48 根分钟刻度（每 5 分位置让给整点时标） -->
-    <div class="mt {{$item.c}}" for="{{mt}}" style="left:{{$item.x}}px;top:{{$item.y}}px"></div>
+    <div class="mt {{$item.c}} {{mtCls}}" for="{{mt}}" style="left:{{$item.x}}px;top:{{$item.y}}px"></div>
 
     <!-- 整点时标 ×12：金属条，外端贴椭圆轨 -->
-    <div class="hm {{$item.c}}" for="{{hm}}" style="left:{{$item.x}}px;top:{{$item.y}}px"></div>
+    <div class="hm {{$item.c}} {{hmCls}}" for="{{hm}}" style="left:{{$item.x}}px;top:{{$item.y}}px"></div>
 
     <!-- 夜光点 ×11（3 点让位日期窗） -->
-    <div class="lume" for="{{lm}}" style="left:{{$item.x}}px;top:{{$item.y}}px"></div>
+    <div class="lume {{lmCls}}" for="{{lm}}" style="left:{{$item.x}}px;top:{{$item.y}}px"></div>
 
     <!-- 阿拉伯数字 ×11 -->
-    <text class="num {{$item.big}}" for="{{nms}}" style="left:{{$item.x}}px;top:{{$item.y}}px">{{$item.t}}</text>
+    <text class="num {{$item.big}} {{numCls}}" for="{{nms}}" style="left:{{$item.x}}px;top:{{$item.y}}px">{{$item.t}}</text>
 
     <!-- 日期窗凹槽：框上缘亮线 + 窗内上缘暗线 + 天数 -->
-    <div class="dw" style="left:{{dwx}}px;top:{{dwy}}px">
-      <div class="dw-hi"></div>
-      <div class="dw-sh"></div>
-      <text class="dw-num">{{dayText}}</text>
+    <div class="dw {{dwCls}}" style="left:{{dwx}}px;top:{{dwy}}px">
+      <div class="dw-hi {{dwHiCls}}"></div>
+      <div class="dw-sh {{dwShCls}}"></div>
+      <text class="dw-num {{dwNumCls}}">{{dayText}}</text>
     </div>
 
     <!-- 印刷铭文 -->
-    <text class="brand" style="left:{{brL}}px;top:{{brT}}px">EV</text>
-    <text class="mark2" style="left:{{brL2}}px;top:{{brT2}}px">AUTOMATIC</text>
-    <text class="mark2" style="left:{{jwL}}px;top:{{jwT}}px">36 JEWELS</text>
-    <text class="dateline" style="left:{{dlL}}px;top:{{dlT}}px">{{dateText}}</text>
+    <text class="brand {{brandCls}}" style="left:{{brL}}px;top:{{brT}}px">EV</text>
+    <text class="mark2 {{markCls}}" style="left:{{brL2}}px;top:{{brT2}}px">AUTOMATIC</text>
+    <text class="mark2 {{markCls}}" style="left:{{jwL}}px;top:{{jwT}}px">36 JEWELS</text>
+    <text class="dateline {{dlCls}}" style="left:{{dlL}}px;top:{{dlT}}px">{{dateText}}</text>
 
     <!-- 三针：暗影（右下偏 1px）+ 主针 + 左缘高光，共用同一档位 class；秒针另配重尾（+60 档） -->
-    <div class="hand hour-sh {{hourCls}}" style="left:{{hxs}}px;top:{{hys}}px;width:6px;height:{{hh}}px"></div>
-    <div class="hand hour {{hourCls}}" style="left:{{hx}}px;top:{{hy}}px;width:6px;height:{{hh}}px"></div>
-    <div class="hand-hl hour-hl {{hourCls}}" style="left:{{hxl}}px;top:{{hy}}px;width:1px;height:{{hh}}px"></div>
+    <div class="hand hour-sh {{hourCls}}" style="left:{{hxs}}px;top:{{hys}}px;width:{{hw}}px;height:{{hh}}px"></div>
+    <div class="hand hour {{hourCls}}" style="left:{{hx}}px;top:{{hy}}px;width:{{hw}}px;height:{{hh}}px"></div>
+    <div class="hand-hl hour-hl {{hourCls}}" style="left:{{hxl}}px;top:{{hy}}px;width:{{hwL}}px;height:{{hh}}px"></div>
 
-    <div class="hand minute-sh {{minuteCls}}" style="left:{{mxs}}px;top:{{mys}}px;width:4px;height:{{mh}}px"></div>
-    <div class="hand minute {{minuteCls}}" style="left:{{mx}}px;top:{{my}}px;width:4px;height:{{mh}}px"></div>
-    <div class="hand-hl minute-hl {{minuteCls}}" style="left:{{mxl}}px;top:{{my}}px;width:1px;height:{{mh}}px"></div>
+    <div class="hand minute-sh {{minuteCls}}" style="left:{{mxs}}px;top:{{mys}}px;width:{{mw}}px;height:{{mh}}px"></div>
+    <div class="hand minute {{minuteCls}}" style="left:{{mx}}px;top:{{my}}px;width:{{mw}}px;height:{{mh}}px"></div>
+    <div class="hand-hl minute-hl {{minuteCls}}" style="left:{{mxl}}px;top:{{my}}px;width:{{mwL}}px;height:{{mh}}px"></div>
 
-    <div class="hand second {{secondCls}}" style="left:{{sx}}px;top:{{sy}}px;width:1px;height:{{sh}}px"></div>
-    <div class="hand sec-tail {{secTailCls}}" style="left:{{tx}}px;top:{{sy}}px;width:2px;height:{{sth}}px"></div>
+    <div class="hand second {{secondCls}}" style="left:{{sx}}px;top:{{sy}}px;width:{{sw}}px;height:{{sh}}px"></div>
+    <div class="hand sec-tail {{secTailCls}}" style="left:{{tx}}px;top:{{sy}}px;width:{{tw}}px;height:{{sth}}px"></div>
 
     <!-- 中轴三层 -->
-    <div class="hub" style="left:{{hbx}}px;top:{{hby}}px">
-      <div class="hub-base"></div>
-      <div class="hub-ring"></div>
-      <div class="hub-dot"></div>
+    <div class="hub {{hubCls}}" style="left:{{hbx}}px;top:{{hby}}px">
+      <div class="hub-base {{hubBaseCls}}"></div>
+      <div class="hub-ring {{hubRingCls}}"></div>
+      <div class="hub-dot {{hubDotCls}}"></div>
     </div>
 
     <!-- 返回 -->
-    <text class="back" style="top:{{backT}}px">轻触返回</text>
+    <text class="back {{backCls}}" style="top:{{backT}}px">轻触返回</text>
   </div>
 </template>
 
@@ -127,6 +127,29 @@ export default {
     minuteCls: "r0",
     secondCls: "r0",
     secTailCls: "r60",
+    /* 宽屏尺寸档（192 时为空 / 基线值，336 时由 build 赋值） */
+    mtCls: "",
+    hmCls: "",
+    lmCls: "",
+    numCls: "",
+    dwCls: "",
+    dwHiCls: "",
+    dwShCls: "",
+    dwNumCls: "",
+    brandCls: "",
+    markCls: "",
+    dlCls: "",
+    backCls: "",
+    hubCls: "",
+    hubBaseCls: "",
+    hubRingCls: "",
+    hubDotCls: "",
+    hw: 6,
+    hwL: 1,
+    mw: 4,
+    mwL: 1,
+    sw: 1,
+    tw: 2,
     dateText: "",
     dayText: "1",
     timer: undefined
@@ -174,11 +197,20 @@ export default {
       W = 192
       H = 490
     }
+    var wide = W > 300
+    var S = wide ? 1.75 : 1
     var cx = W / 2
-    var cy = H / 2
     var a = Math.min(0.44 * W, 0.42 * H)
-    var b = Math.min(0.42 * H, 1.35 * a)
+    var b, cy
+    if (wide) {
+      b = 172
+      cy = 46 + b
+    } else {
+      b = Math.min(0.42 * H, 1.35 * a)
+      cy = H / 2
+    }
     var L0 = Math.sqrt(a * b)
+    var DLW = 180    // 日期行宽：与 CSS 的 .dateline 一致，24px 下 "周一 10-26" 约 110px
 
     var mt = []
     var hm = []
@@ -192,7 +224,7 @@ export default {
       th = (i * 6) * Math.PI / 180
       x = cx + a * Math.sin(th)
       y = cy - b * Math.cos(th)
-      mt.push({ x: r1(x - 0.5), y: r1(y), c: "r" + (i * 2) })
+      mt.push({ x: r1(x - 0.5 * S), y: r1(y), c: "r" + (i * 2) })
     }
 
     // 整点时标 + 夜光点 + 阿拉伯数字（3 点让位日期窗）
@@ -200,18 +232,18 @@ export default {
       th = (i * 30) * Math.PI / 180
       x = cx + a * Math.sin(th)
       y = cy - b * Math.cos(th)
-      hm.push({ x: r1(x - 1), y: r1(y), c: "r" + (i * 10) })
+      hm.push({ x: r1(x - 1 * S), y: r1(y), c: "r" + (i * 10) })
       if (i === 3) continue
-      lx = cx + (a - 12) * Math.sin(th)
-      ly = cy - (b - 12) * Math.cos(th)
-      lm.push({ x: r1(lx - 1), y: r1(ly - 1) })
+      lx = cx + (a - 12 * S) * Math.sin(th)
+      ly = cy - (b - 12 * S) * Math.cos(th)
+      lm.push({ x: r1(lx - 1 * S), y: r1(ly - 1 * S) })
       nx = cx + 0.7 * a * Math.sin(th)
       ny = cy - 0.7 * b * Math.cos(th)
       nms.push({
-        x: r1(nx - 8),
-        y: r1(ny - 6),
+        x: r1(nx - 8 * S),
+        y: r1(ny - 6 * S),
         t: i === 0 ? "12" : "" + i,
-        big: i % 3 === 0 ? "num-big" : ""
+        big: i % 3 === 0 ? (wide ? "num-big w-numbig" : "num-big") : ""
       })
     }
 
@@ -221,38 +253,62 @@ export default {
     this.nms = nms
 
     // 日期窗（3 点位内侧）+ 铭文 + 底部信息
-    this.dwx = r1(cx + 0.66 * a - 11)
-    this.dwy = r1(cy - 8)
-    this.brL = r1(cx - 30)
-    this.brT = r1(cy - b - 28)
-    this.brL2 = r1(cx - 40)
-    this.brT2 = r1(cy - b - 13)
-    this.jwL = r1(cx - 40)
-    this.jwT = r1(cy + b + 8)
-    this.dlL = r1(cx - 45)
-    this.dlT = r1(cy + b + 22)
-    this.backT = r1(H - 30)
+    this.dwx = r1(cx + 0.66 * a - 11 * S)
+    this.dwy = r1(cy - 8 * S)
+    this.brL = r1(cx - 30 * S)
+    this.brT = wide ? 2 : r1(cy - b - 28)
+    this.brL2 = r1(cx - 40 * S)
+    this.brT2 = wide ? 32 : r1(cy - b - 13)
+    this.jwL = r1(cx - 40 * S)
+    this.jwT = wide ? 392 : r1(cy + b + 8)
+    this.dlL = r1(cx - DLW / 2)
+    this.dlT = wide ? 414 : r1(cy + b + 22)
+    this.backT = wide ? 446 : r1(H - 30)
 
     // 三针：顶部中点压在盘心 (cx,cy)，向下延伸（配合 180° 档指向上）
-    this.hx = r1(cx - 3)
-    this.hxs = r1(cx - 2)
-    this.hxl = r1(cx - 2)
-    this.mx = r1(cx - 2)
-    this.mxs = r1(cx - 1)
-    this.mxl = r1(cx - 1)
+    this.hx = r1(cx - 3 * S)
+    this.hxs = r1(cx - 2 * S)
+    this.hxl = r1(cx - 2 * S)
+    this.mx = r1(cx - 2 * S)
+    this.mxs = r1(cx - 1 * S)
+    this.mxl = r1(cx - 1 * S)
     this.hy = r1(cy)
-    this.hys = r1(cy + 1)
+    this.hys = r1(cy + 1 * S)
     this.my = r1(cy)
-    this.mys = r1(cy + 1)
+    this.mys = r1(cy + 1 * S)
     this.hh = Math.round(0.42 * L0)
     this.mh = Math.round(0.72 * L0)
-    this.sx = r1(cx - 0.5)
+    this.sx = r1(cx - 0.5 * S)
     this.sy = r1(cy)
     this.sh = Math.round(0.78 * L0)
-    this.tx = r1(cx - 1)
+    this.tx = r1(cx - 1 * S)
     this.sth = Math.round(0.2 * L0)
-    this.hbx = r1(cx - 2.5)
-    this.hby = r1(cy - 2.5)
+    this.hbx = r1(cx - 2.5 * S)
+    this.hby = r1(cy - 2.5 * S)
+
+    // 针宽与尺寸档（内联 width 优先级高于 class，必须走绑定）
+    this.hw = wide ? 10 : 6
+    this.hwL = wide ? 2 : 1
+    this.mw = wide ? 7 : 4
+    this.mwL = wide ? 2 : 1
+    this.sw = wide ? 2 : 1
+    this.tw = wide ? 3 : 2
+    this.mtCls = wide ? "w-mt" : ""
+    this.hmCls = wide ? "w-hm" : ""
+    this.lmCls = wide ? "w-lume" : ""
+    this.numCls = wide ? "w-num" : ""
+    this.dwCls = wide ? "w-dw" : ""
+    this.dwHiCls = wide ? "w-dw-hi" : ""
+    this.dwShCls = wide ? "w-dw-sh" : ""
+    this.dwNumCls = wide ? "w-dw-num" : ""
+    this.brandCls = wide ? "w-brand" : ""
+    this.markCls = wide ? "w-mark" : ""
+    this.dlCls = wide ? "w-dl" : ""
+    this.backCls = wide ? "w-back" : ""
+    this.hubCls = wide ? "w-hub" : ""
+    this.hubBaseCls = wide ? "w-hub-base" : ""
+    this.hubRingCls = wide ? "w-hub-ring" : ""
+    this.hubDotCls = wide ? "w-hub-dot" : ""
   },
 
   /* ── 时间：1s 心跳；只写变化字段（稳态 1 次/秒重绘，防整页闪）── */
@@ -425,8 +481,8 @@ export default {
 
   .dateline {
     position: absolute;
-    width: 90px;
-    font-size: 10px;
+    width: 180px;
+    font-size: 24px;
     color: #9aa3ab;
     text-align: center;
   }
@@ -434,7 +490,7 @@ export default {
   .back {
     position: absolute;
     left: 16px;
-    font-size: 10px;
+    font-size: 24px;
     color: #767c84;
   }
 
@@ -514,6 +570,25 @@ export default {
     height: 1px;
     background-color: #e6ecf1;
   }
+
+  /* ── 宽屏尺寸档（336×480，S = 1.75）：盘内元素等比放大，底部文字按可读性另定 ── */
+  .w-mt { width: 2px; height: 7px; }
+  .w-hm { width: 4px; height: 19px; }
+  .w-lume { width: 3px; height: 3px; }
+  .w-num { width: 32px; height: 20px; font-size: 18px; }
+  .w-numbig { height: 28px; font-size: 22px; }
+  .w-dw { width: 38px; height: 28px; border-radius: 4px; }
+  .w-dw-hi { width: 38px; height: 2px; top: -2px; }
+  .w-dw-sh { left: 2px; top: 2px; width: 34px; height: 2px; }
+  .w-dw-num { width: 38px; height: 28px; font-size: 19px; }
+  .w-brand { width: 105px; font-size: 20px; letter-spacing: 2px; }
+  .w-mark { width: 140px; font-size: 10px; letter-spacing: 2px; }
+  .w-dl { width: 180px; font-size: 24px; }
+  .w-back { font-size: 24px; }
+  .w-hub { width: 9px; height: 9px; }
+  .w-hub-base { width: 9px; height: 9px; border-radius: 4.5px; }
+  .w-hub-ring { left: 2px; top: 2px; width: 5px; height: 5px; border-radius: 2.5px; }
+  .w-hub-dot { left: 4px; top: 4px; width: 2px; height: 2px; }
 
   /* ── 120 档字面量旋转：rotate(180 + 3N)，180° 使针由「向下」转为「向上」── */
   .r0 { transform: rotate(180deg); }
