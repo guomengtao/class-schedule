@@ -5,7 +5,7 @@
 
 > 本篇为组级文档，覆盖 `watch-face` 及全部 16 个 `watch-face-*` 变体。EvEmuPreview 角标显示的「表盘·总览（组级）」即来源于此，不代表每个变体都有独立文档。
 >
-> **已有专属主文档的变体**（角标精确命中，不走组级回退）：`watch-face-gradient`、`watch-face-colorful`、`watch-face-background`、`watch-face-vibrate`（均 2026-10-25 起，见同名 `.md`）。
+> **已有专属主文档的变体**（角标精确命中，不走组级回退）：`watch-face-gradient`、`watch-face-colorful`、`watch-face-background`、`watch-face-vibrate`、`watch-face-font`（均 2026-10-25 起，见同名 `.md`）。
 > 其余变体仍走本组级文档。
 
 ## 功能说明
@@ -28,7 +28,7 @@
 | `watch-face-vibrate` | 表盘·方形机械 | 方形仿真机械表（四边不等亮 / 45° 错位倒角 / 铁路分钟轨 / 表冠表耳 / 三针 + 日期窗）；震动提醒默认开、每 30s 一次，开关收在长按面板 |
 | `watch-face-random` | 表盘·随机 | 每次亮屏随机样式 |
 | `watch-face-evpointer` | 表盘·指针 | 指针式表盘叠加课程 |
-| `watch-face-font` | 表盘·字体 | 字号/字重变体 |
+| `watch-face-font` | 表盘·字体 | 九种纯排版风格可切换（巨型加粗 / 等宽数码 / 逐字渐变 / 错落双行 / 细边描签 / 等宽秒带 / 翻页滚动 / 横铺跑道 / 分色跳动），`wf_font_style` 持久化；**唯一按字号分档适配宽屏的一块**（详见同名文档） |
 | `watch-face-background` | 表盘·背景 | 场景氛围：天空 17 段色带 + 7px 地平线 + 平涂地面 + 天体圆盘，8 套场景可切换，**不支持自定义图片** |
 | `watch-face-functional` | 表盘·功能 | 带快捷操作入口 |
 | `watch-face-landscape` | 表盘·横屏 | 横屏布局（适配特定表型） |

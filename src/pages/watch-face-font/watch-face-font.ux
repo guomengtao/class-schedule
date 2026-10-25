@@ -3,55 +3,57 @@
 
     <!-- 变体 0 · 巨型加粗（克隆经典表盘骨架） -->
     <div class="clock" if="{{ isBig }}">
-      <text class="d-clock">{{ timeText }}</text>
+      <text class="d-clock {{ bigCls }}">{{ timeText }}</text>
     </div>
 
     <!-- 变体 1 · 等宽数码 + 冒号跳动（monospace 有先例；冒号 opacity 动画） -->
     <div class="clock" if="{{ isDigital }}">
-      <text class="dgt-mono">{{ d0 }}</text>
-      <text class="dgt-mono">{{ d1 }}</text>
-      <text class="colon-blink">:</text>
-      <text class="dgt-mono">{{ d2 }}</text>
-      <text class="dgt-mono">{{ d3 }}</text>
+      <text class="dgt-mono {{ monoCls }}">{{ d0 }}</text>
+      <text class="dgt-mono {{ monoCls }}">{{ d1 }}</text>
+      <text class="colon-blink {{ blinkCls }}">:</text>
+      <text class="dgt-mono {{ monoCls }}">{{ d2 }}</text>
+      <text class="dgt-mono {{ monoCls }}">{{ d3 }}</text>
     </div>
 
     <!-- 变体 2 · 逐字渐变（克隆彩色表盘骨架，内联 color 绑定有先例） -->
     <div class="clock" if="{{ isGrad }}">
-      <text class="digit" style="color: {{ c0 }}">{{ d0 }}</text>
-      <text class="digit" style="color: {{ c1 }}">{{ d1 }}</text>
-      <text class="colon" style="color: {{ cColon }}">:</text>
-      <text class="digit" style="color: {{ c2 }}">{{ d2 }}</text>
-      <text class="digit" style="color: {{ c3 }}">{{ d3 }}</text>
+      <text class="digit {{ digitCls }}" style="color: {{ c0 }}">{{ d0 }}</text>
+      <text class="digit {{ digitCls }}" style="color: {{ c1 }}">{{ d1 }}</text>
+      <text class="colon {{ colonCls }}" style="color: {{ cColon }}">:</text>
+      <text class="digit {{ digitCls }}" style="color: {{ c2 }}">{{ d2 }}</text>
+      <text class="digit {{ digitCls }}" style="color: {{ c3 }}">{{ d3 }}</text>
     </div>
 
     <!-- 变体 3 · 错落双行（上 H 大、下 M 小；flex 正常流，字距拉开） -->
     <div class="stack" if="{{ isStack }}">
-      <text class="st-h">{{ timeTextH }}</text>
-      <text class="st-m">{{ timeTextM }}</text>
+      <text class="st-h {{ sthCls }}">{{ timeTextH }}</text>
+      <text class="st-m {{ stmCls }}">{{ timeTextM }}</text>
     </div>
 
     <!-- 变体 4 · 细边描签（大字号 + 大字距 + 弱对比色；仅字号/字距/颜色） -->
     <div class="clock" if="{{ isThin }}">
-      <text class="thin-t">{{ timeText }}</text>
+      <text class="thin-t {{ thinCls }}">{{ timeText }}</text>
     </div>
 
     <!-- 变体 5 · 等宽秒带（monospace + 下方秒刻度条，width 绑定同功能表盘） -->
     <div class="meter" if="{{ isMeter }}">
-      <text class="m-time">{{ timeText }}</text>
-      <div class="m-track"><div class="m-bar" style="width: {{ secPct }}px"></div></div>
+      <text class="m-time {{ mtimeCls }}">{{ timeText }}</text>
+      <div class="m-track {{ trackCls }}"><div class="m-bar" style="width: {{ secPct }}px"></div></div>
     </div>
 
-    <!-- 变体 6 · 翻页滚动（scroll scrolltop 竖排滚动，无需轮有先例） -->
+    <!-- 变体 6 · 翻页滚动（scroll scrolltop 竖排滚动，无需轮有先例）
+         ⚠️ 列宽/行高必须与 JS 的 rowH 同步：宽屏 .w-col/.w-di 的 84 = fitScreen 里的 rowH -->
     <div class="clock" if="{{ isFlip }}">
-      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y0}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
-      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y1}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
-      <text class="c">:</text>
-      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y2}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
-      <scroll class="col" scroll-y="{{true}}" scrolltop="{{y3}}"><div for="{{items}}" class="di">{{ $item }}</div></scroll>
+      <scroll class="col {{ colCls }}" scroll-y="{{true}}" scrolltop="{{y0}}"><div for="{{items}}" class="di {{ diCls }}">{{ $item }}</div></scroll>
+      <scroll class="col {{ colCls }}" scroll-y="{{true}}" scrolltop="{{y1}}"><div for="{{items}}" class="di {{ diCls }}">{{ $item }}</div></scroll>
+      <text class="c {{ cCls }}">:</text>
+      <scroll class="col {{ colCls }}" scroll-y="{{true}}" scrolltop="{{y2}}"><div for="{{items}}" class="di {{ diCls }}">{{ $item }}</div></scroll>
+      <scroll class="col {{ colCls }}" scroll-y="{{true}}" scrolltop="{{y3}}"><div for="{{items}}" class="di {{ diCls }}">{{ $item }}</div></scroll>
     </div>
 
-    <!-- 变体 7 · 横铺跑道（字面量 rotate(-90deg)，显式 transform-origin，同横屏表盘） -->
-    <div class="rot" if="{{ isRotate }}">
+    <!-- 变体 7 · 横铺跑道（字面量 rotate(-90deg)，显式 transform-origin，同横屏表盘）
+         宽屏只换 origin（.w-rot），字号保持原生：旋转后横长≈309，336 屏刚好容纳 -->
+    <div class="rot {{ rotCls }}" if="{{ isRotate }}">
       <div class="line">
         <text class="d">{{ d0 }}</text>
         <text class="d">{{ d1 }}</text>
@@ -63,26 +65,28 @@
 
     <!-- 变体 8 · 分色跳动（逐字彩色 + 冒号 opacity 动画，classic+colorful 合并） -->
     <div class="clock" if="{{ isBlinky }}">
-      <text class="digit" style="color: {{ c0 }}">{{ d0 }}</text>
-      <text class="digit" style="color: {{ c1 }}">{{ d1 }}</text>
-      <text class="colon-blink" style="color: {{ cColon }}">:</text>
-      <text class="digit" style="color: {{ c2 }}">{{ d2 }}</text>
-      <text class="digit" style="color: {{ c3 }}">{{ d3 }}</text>
+      <text class="digit {{ digitCls }}" style="color: {{ c0 }}">{{ d0 }}</text>
+      <text class="digit {{ digitCls }}" style="color: {{ c1 }}">{{ d1 }}</text>
+      <text class="colon-blink {{ blinkCls }}" style="color: {{ cColon }}">:</text>
+      <text class="digit {{ digitCls }}" style="color: {{ c2 }}">{{ d2 }}</text>
+      <text class="digit {{ digitCls }}" style="color: {{ c3 }}">{{ d3 }}</text>
     </div>
 
-    <text class="btn-switch" onclick="onSwitch">切换样式</text>
+    <text class="btn-switch {{ btnCls }}" onclick="onSwitch">切换样式</text>
     <text class="back" onclick="goBack">返回</text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
+import device from "@system.device"
 
 const storage = require("@system.storage")
 
 const LIST_PAGE = "/pages/watch-face-list"
 const STYLE_KEY = "wf_font_style"
-const ITEM_H = 56
+const ITEM_H = 56      /* 192 屏翻页列行高；宽屏由 data.rowH 覆盖（84），须与 .w-di 的 lh 同步 */
+const TRACK_W = 90     /* 192 屏秒带宽度；宽屏由 data.trackW 覆盖（156），须与 .w-track 同步 */
 
 /* 逐字渐变配色（H H : M M 五点） */
 const GRAD = ["#ff6b6b", "#ffd166", "#7ec8e3", "#7dffb0", "#c792ea"]
@@ -107,7 +111,13 @@ export default {
     isFlip: false,
     isRotate: false,
     isBlinky: false,
-    suppressTap: false
+    suppressTap: false,
+    /* ── 宽屏（336×480）适配字段：192 屏一律为空/基线值，零回归 ── */
+    bigCls: "", monoCls: "", blinkCls: "", digitCls: "", colonCls: "",
+    sthCls: "", stmCls: "", thinCls: "", mtimeCls: "", trackCls: "",
+    colCls: "", diCls: "", cCls: "", rotCls: "", btnCls: "",
+    rowH: ITEM_H,
+    trackW: TRACK_W
   },
 
   onInit() {
@@ -116,6 +126,7 @@ export default {
   },
 
   onReady() {
+    this.fitScreen()
     this.refresh()
   },
 
@@ -147,6 +158,42 @@ export default {
     }
   },
 
+  /* ── 屏型适配：192 屏一个字段都不填（零回归），336 屏才填 15 个类名 + 2 个尺寸 ──
+     本页面是「纯文字 + flex 居中」，没有表壳刻度可整体缩放：
+     480 屏比 490 还矮 10px，等比 scale 会纵向溢出且文字位图发虚，
+     所以宽屏走「字号分档（.w-* 单类）+ 两个 JS 常量动态化」而不是 transform。 */
+  fitScreen() {
+    const self = this
+    try {
+      device.getInfo({
+        success: function (d) {
+          const w = (d && d.screenWidth) || 0
+          if (w < 300) return          /* 192 屏：一个字段都不填，零回归 */
+          self.bigCls = "w-big"
+          self.monoCls = "w-mono"
+          self.blinkCls = "w-blink"
+          self.digitCls = "w-digit"
+          self.colonCls = "w-colon"    /* ⚠️ 只挂变体 2 的冒号；变体 7 的 .colon 不加 */
+          self.sthCls = "w-sth"
+          self.stmCls = "w-stm"
+          self.thinCls = "w-thin"
+          self.mtimeCls = "w-mtime"
+          self.trackCls = "w-track"
+          self.colCls = "w-col"
+          self.diCls = "w-di"
+          self.cCls = "w-c"
+          self.rotCls = "w-rot"
+          self.btnCls = "w-btn"
+          self.rowH = 84               /* 与 .w-di 的 line-height: 84px 同步 */
+          self.trackW = 156            /* 与 .w-track 的 width: 156px 同步 */
+          self.tick()                  /* 立刻按新 rowH/trackW 重算，不等下一秒 */
+        }
+      })
+    } catch (e) {}
+    /* ⚠️ 必须用异步回调形式。实测同步 device.getInfo() 拿到的 screenWidth
+       在 192 屏上会 ≥300，导致小屏误套宽屏样式。 */
+  },
+
   tick() {
     const now = new Date()
     const h = this.pad(now.getHours())
@@ -160,14 +207,15 @@ export default {
     if (h[1] !== this.d1) this.d1 = h[1]
     if (m[0] !== this.d2) this.d2 = m[0]
     if (m[1] !== this.d3) this.d3 = m[1]
-    /* 秒带刻度：0-100，映射到 90px 刻度条宽度（功能表盘已验证 width 绑定） */
-    const p = Math.round(s / 60 * 90)
+    /* 秒带刻度：0-100%，映射到刻度条宽度（宽屏 156 / 小屏 90） */
+    const p = Math.round(s / 60 * this.trackW)
     if (p !== this.secPct) this.secPct = p
-    /* 翻页滚动：只处理 H/M（H 十位视情况，如 <10 十位补 0） */
-    const y0 = Math.floor(h / 10) * ITEM_H
-    const y1 = (h % 10) * ITEM_H
-    const y2 = Math.floor(m / 10) * ITEM_H
-    const y3 = (m % 10) * ITEM_H
+    /* 翻页滚动：只处理 H/M（H 十位视情况，如 <10 十位补 0）；行高宽屏 84 / 小屏 56 */
+    const rh = this.rowH
+    const y0 = Math.floor(h / 10) * rh
+    const y1 = (h % 10) * rh
+    const y2 = Math.floor(m / 10) * rh
+    const y3 = (m % 10) * rh
     if (y0 !== this.y0) this.y0 = y0
     if (y1 !== this.y1) this.y1 = y1
     if (y2 !== this.y2) this.y2 = y2
@@ -418,7 +466,7 @@ export default {
 
   .back {
     margin-top: 14px;
-    font-size: 22px;
+    font-size: 24px;
     color: #888899;
   }
 
@@ -426,4 +474,27 @@ export default {
     0%, 100% { opacity: 1; }
     50%      { opacity: 0.35; }
   }
+
+  /* ══════════════════════════════════════════════════════════════
+     宽屏 336×480（手环 10Pro）· 全部单类选择器
+     Vela 不支持后代选择器（.w-page .x{} 会退化成 .x{} 污染小屏），
+     也不支持纯动态 class（会丢父类样式），故一律 `class="原类 {{ 字段 }}"`
+     ══════════════════════════════════════════════════════════════ */
+  .w-big   { font-size: 96px;  letter-spacing: 6px; }
+  .w-mono  { font-size: 72px; }
+  .w-blink { font-size: 66px;  margin: 0 6px; }
+  .w-digit { font-size: 90px; }
+  .w-colon { font-size: 66px; }
+  .w-sth   { font-size: 108px; letter-spacing: 12px; }
+  .w-stm   { font-size: 60px;  letter-spacing: 18px; margin-top: 12px; }
+  .w-thin  { font-size: 96px;  letter-spacing: 8px; }
+  .w-mtime { font-size: 78px;  margin-bottom: 26px; }
+  .w-track { width: 156px; }
+  /* 变体 6：width/height 84 必须与 JS data.rowH（fitScreen 里设 84）同步 */
+  .w-col   { width: 44px;  height: 84px; }
+  .w-di    { width: 44px;  height: 84px; font-size: 56px; line-height: 84px; }
+  .w-c     { font-size: 56px; }
+  /* 变体 7：480 屏屏心 = (168, 240)，纵向不是 245 —— 480 比 490 矮 10px */
+  .w-rot   { transform-origin: 168px 240px; }
+  .w-btn   { font-size: 28px; margin-top: 52px; }
 </style>
