@@ -5,7 +5,7 @@
 
 > 本篇为组级文档，覆盖 `watch-face` 及全部 16 个 `watch-face-*` 变体。EvEmuPreview 角标显示的「表盘·总览（组级）」即来源于此，不代表每个变体都有独立文档。
 >
-> **已有专属主文档的变体**（角标精确命中，不走组级回退）：`watch-face-gradient`、`watch-face-colorful`、`watch-face-background`、`watch-face-vibrate`、`watch-face-font`（2026-10-25 起）、`watch-face-functional`、`watch-face-evpointer`、`watch-face-metal`、`watch-face-gold`、`watch-face-animated`、`watch-face-pickdate`、`watch-face-random`（2026-10-26 起），见同名 `.md`。
+> **已有专属主文档的变体**（角标精确命中，不走组级回退）：`watch-face-gradient`、`watch-face-colorful`、`watch-face-background`、`watch-face-vibrate`、`watch-face-font`（2026-10-25 起）、`watch-face-functional`、`watch-face-evpointer`、`watch-face-metal`、`watch-face-gold`、`watch-face-animated`、`watch-face-pickdate`、`watch-face-random`、`watch-face-class`（2026-10-26 起），见同名 `.md`。
 > 其余变体仍走本组级文档。
 
 ## 功能说明
@@ -17,7 +17,7 @@
 | 末段 | 名称 | 差异点（概览） |
 |---|---|---|
 | `watch-face` | 表盘·基础 | 默认布局，时间 + 下一节课 |
-| `watch-face-class` | 表盘·课程 | 突出当前/最近一节课程卡片 |
+| `watch-face-class` | 表盘·课程 | LCD 电子表风格纯布局版面：状态条 + 大字时间 + 时段标签 + 课程卡片 + 进度条 + 3 行时间轴 + 3 个隐形热区；**唯一没有几何图形的一块**，`BAR_MAX`/`TL_TOP`/`TL_GAP` 与 CSS 宽高双控（专属文档） |
 | `watch-face-list` | 表盘·列表 | 当日全天课程纵向列表 |
 | `watch-face-colorful` | 表盘·彩色 | 色块构成：四段色标 + 数字下同色 chip + 秒 5 段方格（专属文档）；不涉及科目数据 |
 | `watch-face-gold` | 表盘·金色 | 168px 八层错位同心钢壳 + 48 分刻度 + 日期窗 + 上下表耳 + 三层立体三针，**唯一用 scale(1.35)**（专属文档） |

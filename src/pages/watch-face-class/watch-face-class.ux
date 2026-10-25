@@ -11,47 +11,47 @@
   -->
   <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
     <!-- 顶部状态条 -->
-    <text class="status-left">{{ dateText }}</text>
-    <text class="status-right">{{ countText }}</text>
+    <text class="status-left {{ statusLCls }}">{{ dateText }}</text>
+    <text class="status-right {{ statusRCls }}">{{ countText }}</text>
 
     <!-- 巨型电子时间 -->
-    <div class="clock-row">
-      <text class="clock-num">{{ hhText }}</text>
-      <text class="clock-colon" style="color: {{ colonOn ? '#7dffb0' : '#1d3a2c' }}">:</text>
-      <text class="clock-num">{{ mmText }}</text>
-      <text class="clock-sec">:{{ ssText }}</text>
+    <div class="clock-row {{ clockCls }}">
+      <text class="clock-num {{ clockNumCls }}">{{ hhText }}</text>
+      <text class="clock-colon {{ clockColonCls }}" style="color: {{ colonOn ? '#7dffb0' : '#1d3a2c' }}">:</text>
+      <text class="clock-num {{ clockNumCls }}">{{ mmText }}</text>
+      <text class="clock-sec {{ clockSecCls }}">:{{ ssText }}</text>
     </div>
 
     <!-- 时段标签 -->
-    <text class="phase-tag" style="color: {{ phaseColor }}">{{ phaseText }}</text>
+    <text class="phase-tag {{ phaseCls }}" style="color: {{ phaseColor }}">{{ phaseText }}</text>
 
     <!-- 课程主卡片 -->
-    <div class="card" style="border-color: {{ cardHot ? '#7dffb0' : '#1d3a2c' }}">
-      <text class="card-name" style="color: {{ hasCourse ? '#7dffb0' : '#3a5a4a' }}">{{ courseName }}</text>
-      <text class="card-meta">{{ courseMeta }}</text>
-      <text class="card-left" style="color: {{ leftColor }}">{{ leftText }}</text>
+    <div class="card {{ cardCls }}" style="border-color: {{ cardHot ? '#7dffb0' : '#1d3a2c' }}">
+      <text class="card-name {{ cardNameCls }}" style="color: {{ hasCourse ? '#7dffb0' : '#3a5a4a' }}">{{ courseName }}</text>
+      <text class="card-meta {{ cardMetaCls }}">{{ courseMeta }}</text>
+      <text class="card-left {{ cardMetaCls }}" style="color: {{ leftColor }}">{{ leftText }}</text>
     </div>
 
     <!-- 当前课进度条（课间时作为「距下节」进度） -->
-    <div class="bar-track">
-      <div class="bar-fill" style="width: {{ barWidth }}px"></div>
+    <div class="bar-track {{ barCls }}">
+      <div class="bar-fill {{ barFillCls }}" style="width: {{ barWidth }}px"></div>
     </div>
 
     <!-- 今日课程时间轴（接下来 3 节，当前项高亮） -->
-    <div class="tl-row" for="{{ upcoming }}" style="top: {{ $item.top }}px">
-      <text class="tl-idx" style="color: {{ $item.hot ? '#7dffb0' : '#2e4a3c' }}">{{ $item.idx }}</text>
-      <text class="tl-name" style="color: {{ $item.hot ? '#d8ffe8' : '#4a6b5a' }}">{{ $item.name }}</text>
-      <text class="tl-time" style="color: {{ $item.hot ? '#7dffb0' : '#2e4a3c' }}">{{ $item.time }}</text>
+    <div class="tl-row {{ tlRowCls }}" for="{{ upcoming }}" style="top: {{ $item.top }}px">
+      <text class="tl-idx {{ tlIdxCls }}" style="color: {{ $item.hot ? '#7dffb0' : '#2e4a3c' }}">{{ $item.idx }}</text>
+      <text class="tl-name {{ tlNameCls }}" style="color: {{ $item.hot ? '#d8ffe8' : '#4a6b5a' }}">{{ $item.name }}</text>
+      <text class="tl-time {{ tlTimeCls }}" style="color: {{ $item.hot ? '#7dffb0' : '#2e4a3c' }}">{{ $item.time }}</text>
     </div>
 
     <!-- 底部 -->
-    <text class="foot">{{ footText }}</text>
-    <text class="back-btn" onclick="onBack">返回</text>
+    <text class="foot {{ footCls }}">{{ footText }}</text>
+    <text class="back-btn {{ backCls }}" onclick="onBack">返回</text>
 
     <!-- 隐形热区 -->
-    <div class="hit-clock" onlongpress="onClockLongPress" ontouchend="cancelExit"></div>
-    <div class="hit-card" onlongpress="onCardLongPress" ontouchend="cancelExit"></div>
-    <div class="hit-corner" onclick="onCornerTap"></div>
+    <div class="hit-clock {{ hitClockCls }}" onlongpress="onClockLongPress" ontouchend="cancelExit"></div>
+    <div class="hit-card {{ hitCardCls }}" onlongpress="onCardLongPress" ontouchend="cancelExit"></div>
+    <div class="hit-corner {{ hitCornerCls }}" onclick="onCornerTap"></div>
   </div>
 </template>
 
@@ -69,8 +69,12 @@ const WEEKDAY_INDEX = {
   "星期日": 0, "星期一": 1, "星期二": 2, "星期三": 3,
   "星期四": 4, "星期五": 5, "星期六": 6
 }
-const BAR_MAX = 156 // 进度条最大宽度
-const TL_TOP = 286 // 时间轴首行 y
+/* ── 版面几何：改这里必须同步改 CSS 的 .bar-track 宽 / .tl-row 高 ──
+   fitScreen() 在宽屏（w>=300）时整组改成 292 / 280 / 44，
+   192 屏不进入该分支，因此 192 为结构性零回归。 */
+let BAR_MAX = 156   // 进度条最大宽度（= .bar-track width）
+let TL_TOP = 286    // 时间轴首行 y
+let TL_GAP = 42     // 时间轴行距（≈ .tl-row height + 2）
 
 function pad2(n) {
   return (n < 10 ? "0" : "") + n
@@ -116,12 +120,91 @@ export default {
     pressStep: 0,
     lastCornerTap: 0,
     touchStartY: 0,
-    lastMinute: -1
+    lastMinute: -1,
+
+    /* ── 宽屏类名（默认空串 → 192 屏样式零变化）── */
+    statusLCls: "",
+    statusRCls: "",
+    clockCls: "",
+    clockNumCls: "",
+    clockColonCls: "",
+    clockSecCls: "",
+    phaseCls: "",
+    cardCls: "",
+    cardNameCls: "",
+    cardMetaCls: "",
+    barCls: "",
+    barFillCls: "",
+    tlRowCls: "",
+    tlIdxCls: "",
+    tlNameCls: "",
+    tlTimeCls: "",
+    footCls: "",
+    backCls: "",
+    hitClockCls: "",
+    hitCardCls: "",
+    hitCornerCls: ""
   },
 
   onInit() {
+    this.fitScreen()
     this.loadCourses()
     this.tick()
+  },
+
+  /**
+   * 336×480 宽屏适配。
+   *
+   * 三条硬约束（前几块踩过）：
+   *  ① 不能用顶部 import 的 device —— 顶部 import 与页内 require 同一系统模块
+   *     并存时绑定取不到，getInfo 静默抛错（被 catch 吞）。
+   *  ② 必须用异步 success 回调 —— 同步形式在 336 屏会读到 >=300 的错误宽度。
+   *  ③ 宽屏类必须与原类混写（class="xxx {{ xxxCls }}"），纯动态 class 会丢父类样式。
+   *
+   * 同时改三处 JS 常量：BAR_MAX（须 = .bar-track 宽）、TL_TOP、TL_GAP
+   * （两处 i * 42 字面量都已换成 TL_GAP）。
+   */
+  fitScreen() {
+    const self = this
+    try {
+      const dev = require("@system.device")
+      dev.getInfo({
+        success: function(d) {
+          const w = d && d.screenWidth ? d.screenWidth : 0
+          if (w < 300) return
+
+          BAR_MAX = 292
+          TL_TOP = 280
+          TL_GAP = 44
+
+          self.statusLCls = "w-status-l"
+          self.statusRCls = "w-status-r"
+          self.clockCls = "w-clock-row"
+          self.clockNumCls = "w-clock-num"
+          self.clockColonCls = "w-clock-colon"
+          self.clockSecCls = "w-clock-sec"
+          self.phaseCls = "w-phase"
+          self.cardCls = "w-card"
+          self.cardNameCls = "w-card-name"
+          self.cardMetaCls = "w-card-meta"
+          self.barCls = "w-bar"
+          self.barFillCls = "w-bar-fill"
+          self.tlRowCls = "w-tl"
+          self.tlIdxCls = "w-tl-idx"
+          self.tlNameCls = "w-tl-name"
+          self.tlTimeCls = "w-tl-time"
+          self.footCls = "w-foot"
+          self.backCls = "w-back"
+          self.hitClockCls = "w-hit-clock"
+          self.hitCardCls = "w-hit-card"
+          self.hitCornerCls = "w-hit-corner"
+
+          // 常量变了：时间轴坐标与进度条宽度都得重算（否则要等下一次分钟跳变）
+          self.recompute(true)
+        },
+        fail: function() {}
+      })
+    } catch (e) {}
   },
 
   onShow() {
@@ -286,7 +369,7 @@ export default {
           name: rows[i].name,
           time: rows[i].time.split(/[-–—~]/)[0].trim(),
           hot: false,
-          top: TL_TOP + i * 42
+          top: TL_TOP + i * TL_GAP
         })
       }
       this.upcoming = up
@@ -354,7 +437,7 @@ export default {
         name: rows[i].name,
         time: rows[i].time.split(/[-–—~]/)[0].trim(),
         hot: (cur && rows[i].s === cur.s) || (!cur && next && rows[i].s === next.s),
-        top: TL_TOP + up.length * 42
+        top: TL_TOP + up.length * TL_GAP
       })
     }
     this.upcoming = up
@@ -480,11 +563,13 @@ export default {
   line-height: 20px;
 }
 
+/* 右端固定 180 不变（124+56 → 112+68）：text-align:right 让文字仍贴同一右端点，
+   只是给「今日 4 节」留足空间 —— 原 56px 只塞下「今日 4」，实测「节」被裁。 */
 .status-right {
   position: absolute;
-  left: 124px;
+  left: 112px;
   top: 46px;
-  width: 56px;
+  width: 68px;
   height: 20px;
   font-size: 15px;
   color: #4a6b5a;
@@ -667,5 +752,162 @@ export default {
   width: 52px;
   height: 60px;
   background-color: transparent;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   336×480 宽屏档（手环 10 Pro）
+   —— 全部单类选择器：Vela 不支持后代选择器，写 .page .x 会退化成 .x
+   —— 只在 w>=300 时由 fitScreen() 挂上，192 屏永不进入
+   —— 横向基准：内容区 left 20 / 宽 296（左右留白 20/20，中心 168）
+   —— 纵向预算见方案 §4，底余 8px
+   ══════════════════════════════════════════════════════════════ */
+
+.w-status-l {
+  left: 20px;
+  top: 26px;
+  width: 180px;
+  height: 28px;
+  font-size: 22px;
+  line-height: 28px;
+}
+
+/* 宽 120 覆盖两位数课次（「今日 12 节」7 字 ≈ 112px），右端仍 316 */
+.w-status-r {
+  left: 196px;
+  top: 26px;
+  width: 120px;
+  height: 28px;
+  font-size: 22px;
+  line-height: 28px;
+}
+
+/* width:100% 而非定宽 336：绝对定位下 left:0 + 100% 才会真正以屏心居中 */
+.w-clock-row {
+  left: 0;
+  top: 52px;
+  width: 100%;
+  height: 84px;
+}
+
+.w-clock-num {
+  font-size: 72px;
+  line-height: 84px;
+  letter-spacing: 6px;
+}
+
+.w-clock-colon {
+  font-size: 66px;
+  line-height: 84px;
+}
+
+.w-clock-sec {
+  font-size: 28px;
+  line-height: 84px;
+}
+
+.w-phase {
+  left: 20px;
+  top: 140px;
+  width: 200px;
+  height: 28px;
+  font-size: 24px;
+  line-height: 28px;
+}
+
+.w-card {
+  left: 20px;
+  top: 172px;
+  width: 296px;
+  height: 82px;
+  padding-left: 16px;
+  border-radius: 10px;
+}
+
+.w-card-name {
+  font-size: 30px;
+  line-height: 34px;
+}
+
+.w-card-meta {
+  font-size: 20px;
+  line-height: 22px;
+}
+
+/* 宽 292 必须与 JS 的 BAR_MAX = 292 一致，否则满格时进度条溢出/不满 */
+.w-bar {
+  left: 22px;
+  top: 264px;
+  width: 292px;
+  height: 8px;
+  border-radius: 4px;
+}
+
+.w-bar-fill {
+  height: 8px;
+  border-radius: 4px;
+}
+
+/* 行高保持 40：行距由 JS 的 TL_GAP = 44 控制，两者不必相等 */
+.w-tl {
+  left: 20px;
+  width: 296px;
+  height: 40px;
+}
+
+.w-tl-idx {
+  width: 28px;
+  font-size: 22px;
+  line-height: 40px;
+}
+
+.w-tl-name {
+  font-size: 24px;
+  line-height: 40px;
+}
+
+.w-tl-time {
+  width: 88px;
+  font-size: 22px;
+  line-height: 40px;
+}
+
+.w-foot {
+  left: 0;
+  top: 412px;
+  width: 100%;
+  height: 28px;
+  font-size: 24px;
+  line-height: 28px;
+}
+
+.w-back {
+  left: 0;
+  top: 444px;
+  width: 100%;
+  height: 28px;
+  font-size: 24px;
+  line-height: 28px;
+}
+
+/* 隐形热区：透明 div，错位的症状是"点了没反应"，必须与可见块同步 */
+.w-hit-clock {
+  left: 14px;
+  top: 50px;
+  width: 308px;
+  height: 92px;
+}
+
+.w-hit-card {
+  left: 20px;
+  top: 170px;
+  width: 296px;
+  height: 86px;
+}
+
+.w-hit-corner {
+  left: 270px;
+  top: 406px;
+  width: 60px;
+  height: 66px;
 }
 </style>
