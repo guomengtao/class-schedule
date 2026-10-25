@@ -5,7 +5,7 @@
  * Node 不能直接 require，这里抽出真实源码求值 + 注入桩（假时钟 / 假定时器 / 假数据层）。
  *
  * 钉死的命门：
- *   1) 结构：A 课名 56px（整屏最大）、B 状态行 20px、C 进度条 168×10、D 下一节、E 角标时钟；
+ *   1) 结构：A 课名 44px（四档上限）、B 状态行 24px、C 进度条 168×10、D 下一节竖排、E 时钟 24px；
  *   2) 三态：上课中 / 课间 / 已放学，外加「今天没课」空态；
  *   3) 进度：width 绑定百分比，0 / 33 / 50 / 67 / 100 各边界；
  *   4) 分钟级刷新：只有一个对齐整分的 setTimeout，全页无 setInterval（旧版是 10s 轮询）；
@@ -95,12 +95,13 @@ var THEME = {
   text: "#ffffff", textSecondary: "#888899", textMuted: "#555566"
 }
 
-// 168px 内容宽的粗略字宽估算（全角 1.0em / 半角 0.55em / 空格 0.3em，已按实拍校准）
+// 168px 内容宽的字宽估算：全角 1.33em（手册 §4.0 实测校准）、半角 0.5em（数字实测 0.44，取 0.5 留余量）、
+// 空格 0.3em。旧版按全角 1.0em 算，比真机窄 25%——「第3节 · 剩 45 分」就是那样被放行的。
 function estW(s, fs2) {
   var w = 0
   for (var i = 0; i < s.length; i++) {
     var c = s.charCodeAt(i)
-    w += (c === 32) ? 0.3 * fs2 : (c > 127 ? 1.0 * fs2 : 0.55 * fs2)
+    w += (c === 32) ? 0.3 * fs2 : (c > 127 ? 1.33 * fs2 : 0.5 * fs2)
   }
   return w
 }
@@ -161,15 +162,45 @@ truthy("无 <scroll>（固定一屏，不滚动）", !/<scroll/.test(TPL))
 truthy("全页无 setInterval（旧版 10s 轮询已除）", !/setInterval/.test(CODE))
 truthy("无 @keyframes（本页不做动画）", !/@keyframes/.test(STYLE))
 truthy("style 无数据绑定 {{ }}", !/\{\{[^}]*\}\}/.test(STYLE))
-eq("A 课名 56px", (/\.a-name \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "56")
-eq("A 课名行高 62（两行 = 124）", (/\.a-name \{[\s\S]*?line-height: (\d+)px/.exec(STYLE) || [])[1], "62")
-eq("B 状态行 20px", (/\.b-status \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "20")
+eq("A 课名 44px（四档上限，不是 56）", (/\.a-name \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "44")
+eq("A 课名行高 60（44 档口径 1.36）", (/\.a-name \{[\s\S]*?line-height: (\d+)px/.exec(STYLE) || [])[1], "60")
+eq("B 状态行 24px（出 12~23 禁区）", (/\.b-status \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "24")
 eq("C 进度条 168×10", (/\.c-bar-bg \{[\s\S]*?width: (\d+)px;[\s\S]*?height: (\d+)px/.exec(STYLE) || []).slice(1).join("x"), "168x10")
-eq("E 时钟 16px", (/\.e-clock \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "16")
-truthy("课名两行后省略", /lines:\s*2/.test(STYLE) && /text-overflow:\s*ellipsis/.test(STYLE))
-truthy("D 行课名弹性省略（flex + ellipsis）", /\.d-name \{[\s\S]*?flex:\s*1[\s\S]*?ellipsis/.test(STYLE))
-truthy("有弹性占位把时钟顶到底部（margin-top:auto 本引擎实测不生效）",
-  /class="spacer"/.test(TPL) && /\.spacer \{[^}]*flex:\s*1/.test(STYLE))
+eq("E 时钟 24px", (/\.e-clock \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "24")
+eq("头部标题 28px（四档内）", (/\.header-title \{[\s\S]*?font-size: (\d+)px/.exec(STYLE) || [])[1], "28")
+
+truthy("无 text-overflow: ellipsis（红线 8 禁省略号）", !/text-overflow/.test(STYLE))
+truthy("模板与脚本均无 · 分隔符（红线 4）", !/·/.test(TPL) && !/·/.test(CODE))
+truthy("全页无 if= 条件渲染（事故案例 11 改 display 绑定）", !/\bif=/.test(TPL))
+truthy("返回键与占位改 display 绑定", /display: \{\{ isRoot \? 'none' : 'flex' \}\}/.test(TPL))
+truthy("D 区改 display 绑定", /display: \{\{ nextName \? 'flex' : 'none' \}\}/.test(TPL))
+truthy("D 行竖排（flex-direction: column，事故案例 13）", /\.d-next \{[\s\S]*?flex-direction: column/.test(STYLE))
+truthy("有弹性占位撑开内容与时钟", /class="spacer"/.test(TPL) && /\.spacer \{[^}]*flex:\s*1/.test(STYLE))
+
+/* 1.5 ev-six 硬指标：字号四档 / 页面左右 12 / 内容不进胶囊圆弧 */
+console.log("\n[1.5] ev-six 硬指标")
+var sizes = (STYLE.match(/font-size:\s*(\d+)px/g) || []).map(function(s) { return parseInt(s.replace(/\D/g, ""), 10) })
+var TIERS = { 24: 1, 28: 1, 30: 1, 44: 1 }
+var straySizes = sizes.filter(function(v) { return !TIERS[v] })
+truthy("font-size 只出现四档 44/28/30/24（实见 " + sizes.join(",") + "）", straySizes.length === 0)
+truthy("无 12~23px 字号", sizes.every(function(v) { return v < 12 || v > 23 }))
+var padDecl = (/\.page \{[\s\S]*?padding: ([^;]+);/.exec(STYLE) || [])[1] || ""
+var pv = padDecl.split(/\s+/).map(function(x) { return parseInt(x, 10) })
+eq("页面左右 padding 均为 12", [pv[1], pv[3]].join(","), "12,12")
+truthy("底部留白 ≥50px 让开胶囊圆弧（实见 " + pv[2] + "）", pv[2] >= 50)
+
+function cssNum(sel, prop) {
+  var re = new RegExp("\\." + sel + " \\{[\\s\\S]*?" + prop + ": (\\d+)px")
+  var m = re.exec(STYLE)
+  return m ? parseInt(m[1], 10) : NaN
+}
+var stack = pv[0] + cssNum("back-header", "height")
+  + cssNum("a-name", "margin-top") + 2 * cssNum("a-name", "line-height")
+  + cssNum("b-status", "margin-top") + cssNum("b-status", "line-height")
+  + cssNum("c-bar-bg", "margin-top") + cssNum("c-bar-bg", "height")
+  + cssNum("d-next", "margin-top") + 2 * cssNum("d-label", "line-height")
+  + cssNum("e-clock", "line-height")
+truthy("最坏栈高 " + stack + "px ≤440（2 行课名时仍不进圆弧）", stack <= 440)
 
 /* 2. 上课中 */
 console.log("\n[2] 上课中（10:30 英语 10:00-10:45）")
@@ -178,9 +209,10 @@ a.onInit()
 eq("状态 class", a.state, "class")
 eq("A 课名 = 英语", a.focusName, "英语")
 eq("A 用主色", a.nameColor, THEME.accent)
-eq("B 第3节（按开始时间排序后的序号）", a.statusText, "第3节 · 剩 15 分")
+eq("头部标题承载节次（按开始时间排序后的序号）", a.headerText, "第3节")
+eq("B 只剩剩余分钟（不拼 · 分隔符）", a.statusText, "剩 15 分")
 eq("C 进度 30/45 → 67%", a.progressPercent, 67)
-eq("D 下一节时间 = 物理 11:00", a.nextTime, "11:00")
+eq("D 标签带定长时间「下节 11:00」", a.nextLabel, "下节 11:00")
 eq("D 下一节课名 = 物理", a.nextName, "物理")
 eq("E 时钟 = 10:30", a.clockText, "10:30")
 
@@ -189,7 +221,7 @@ console.log("\n[3] 进度边界")
 var b0 = makeInst(T("10:00:00"))
 b0.onInit()
 eq("刚上课 elapsed=0 → 0%", b0.progressPercent, 0)
-eq("刚上课剩满节 45 分", b0.statusText, "第3节 · 剩 45 分")
+eq("刚上课剩满节 45 分", b0.statusText, "剩 45 分")
 
 var b50 = makeInst(T("15:30:00"))
 b50.onInit()
@@ -213,14 +245,15 @@ var c = makeInst(T("09:50:00"))
 c.onInit()
 eq("状态 break", c.state, "break")
 eq("A 显示下节课名（马上要上的那节）", c.focusName, "英语")
-eq("B 距上课 10 分", c.statusText, "距上课 10 分")
+eq("B 10 分后上课", c.statusText, "10 分后上课")
+eq("课间头部标题 = 课间", c.headerText, "课间")
 eq("C 课间进度 5/15 → 33%", c.progressPercent, 33)
 eq("D 空（A 已是下节，不重复）", c.nextName, "")
 
 var c0 = makeInst(T("07:00:00"))
 c0.onInit()
 eq("一天第一节之前 → 课间", c0.state, "break")
-eq("第一节之前距上课 60 分", c0.statusText, "距上课 60 分")
+eq("第一节之前 60 分后上课", c0.statusText, "60 分后上课")
 eq("第一节之前课间进度记 0（不拿 00:00 当上节）", c0.progressPercent, 0)
 
 /* 5. 已放学 / 没课 */
@@ -230,30 +263,32 @@ d.onInit()
 eq("状态 done", d.state, "done")
 eq("A = 放学", d.focusName, "放学")
 eq("A 退次色（课名不是主角时不抢眼）", d.nameColor, THEME.textSecondary)
-eq("B 今天的课上完了", d.statusText, "今天的课上完了")
-eq("D = 明日首节 08:00", d.nextTime, "08:00")
+eq("B 课上完了（7 字 @24 会 224px 溢出，删到 4 字）", d.statusText, "课上完了")
+eq("已放学头部标题 = 今天", d.headerText, "今天")
+eq("D = 明日首节 08:00", d.nextLabel, "明日 08:00")
 eq("D 明日首节课名 = 体育（明天的课）", d.nextName, "体育")
-eq("D label = 明日", d.nextLabel, "明日")
+truthy("D 标签含明日与时间", d.nextLabel.indexOf("明日 ") === 0)
 
 var e = makeInst(T("09:00:00"), { schedule: [], builtin: [] })
 e.onInit()
 eq("今天没课 → none", e.state, "none")
 eq("A = 没课", e.focusName, "没课")
-eq("B 今天没有安排", e.statusText, "今天没有安排")
+eq("B 没有安排", e.statusText, "没有安排")
 eq("明天也没课 → D 不显示", e.nextName, "")
 
 var e2 = makeInst(T("09:00:00"), { schedule: [{ day: OTHER, classes: [{ id: "9", name: "体育", time: "08:00 - 08:45" }] }], builtin: [] })
 e2.onInit()
 eq("今天没课但明天有课 → A 仍为没课", e2.focusName, "没课")
 eq("D 预告明日体育", e2.nextName, "体育")
-eq("D label = 明日", e2.nextLabel, "明日")
+truthy("D 标签含明日与时间", e2.nextLabel.indexOf("明日 ") === 0)
 
 /* 6. 跨节不跳字 */
 console.log("\n[6] 跨节边界（09:44 → 09:45）")
 var f = makeInst(T("09:44:00"))
 f.onInit()
 eq("09:44 仍是数学", f.focusName, "数学")
-eq("09:44 剩 1 分", f.statusText, "第2节 · 剩 1 分")
+eq("09:44 剩 1 分", f.statusText, "剩 1 分")
+eq("09:44 头部 = 第2节", f.headerText, "第2节")
 f.__clock.set(T("09:45:00"))
 f.tick()
 eq("09:45 立刻切课间（不逗留在上节）", f.state, "break")
@@ -284,16 +319,19 @@ truthy("storage 不回也有画面（不是 — ）", h.focusName === "英语")
 var h2 = makeInst(T("10:30:00"), { dbGet: false, builtin: [] })
 h2.onInit()
 truthy("内置也为空时给「没课」而不是空白帧", h2.focusName === "没课")
-eq("内置兜底时不算加载态残留", h2.statusText, "今天没有安排")
+eq("内置兜底时不算加载态残留", h2.statusText, "没有安排")
 
-/* 9. 宽度护栏（168 内容宽） */
+/* 9. 宽度护栏（内容宽 168 = 192 − 12×2；头部可用宽 108 = 168 − 30×2） */
 console.log("\n[9] 宽度护栏")
-truthy("B 行最坏串「第10节 · 剩 45 分」20px ≤168", estW("第10节 · 剩 45 分", 20) <= 168)
-truthy("B 行「今天的课上完了」20px ≤168", estW("今天的课上完了", 20) <= 168)
-truthy("B 行「距上课 60 分」20px ≤168", estW("距上课 60 分", 20) <= 168)
-truthy("A 行 56px 每行 3 个全角字 ≤168", estW("大学物", 56) <= 168)
-var dNameW = 168 - estW("下节", 16) - 6 - estW("09:55", 18) - 6
-truthy("D 行课名可用宽 ≥4 全角字（大学物理放得下）", dNameW >= estW("大学物理", 18))
+truthy("B 最坏串「剩 100 分」24px = " + Math.round(estW("剩 100 分", 24)) + " ≤168", estW("剩 100 分", 24) <= 168)
+truthy("B「10 分后上课」24px = " + Math.round(estW("10 分后上课", 24)) + " ≤168", estW("10 分后上课", 24) <= 168)
+truthy("B「课上完了」24px ≤168", estW("课上完了", 24) <= 168)
+truthy("B「没有安排」24px ≤168", estW("没有安排", 24) <= 168)
+truthy("头部最坏串「第10节」28px = " + Math.round(estW("第10节", 28)) + " ≤108", estW("第10节", 28) <= 108)
+truthy("A 一行 2 个 44px 汉字 = " + Math.round(estW("英语", 44)) + " ≤168", estW("英语", 44) <= 168)
+truthy("A 一行 3 个会 175px 超宽 → 靠 lines:2 折行兜底", estW("自习课", 44) > 168)
+truthy("D 标签「下节 09:55」24px = " + Math.round(estW("下节 09:55", 24)) + " ≤168", estW("下节 09:55", 24) <= 168)
+truthy("D 课名 5 全角字 24px = " + Math.round(estW("大学物理课", 24)) + " ≤168（竖排后 3 字升到 5 字）", estW("大学物理课", 24) <= 168)
 
 /* 汇总 */
 console.log("\n" + "─".repeat(52))

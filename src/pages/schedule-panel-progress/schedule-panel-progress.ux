@@ -1,17 +1,22 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+      <div class="back-btn-wrapper" onclick="goBack"
+           style="background-color: {{ theme.card }}; display: {{ isRoot ? 'none' : 'flex' }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" onclick="goBack" style="color: {{ theme.textSecondary }}">进度</text>
-      <div if="{{ !isRoot }}" class="header-placeholder"></div>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.textSecondary }}">{{ headerText }}</text>
+      <div class="header-placeholder" style="display: {{ isRoot ? 'none' : 'flex' }}"></div>
     </div>
 
-    <!-- A 课名：整屏最大字（56px，两行后省略） -->
+    <!-- 上下各一个弹性占位：内容块在「头部以下、时钟以上」这段安全区里垂直居中，
+         时钟仍贴安全区底部。只有一个占位会让内容全挤在上半屏、中间空一大片。 -->
+    <div class="spacer"></div>
+
+    <!-- A 课名：整屏唯一大字。44px 是四档上限，按 1.33 倍宽算 168px 一行 2.8 字 -->
     <text class="a-name" style="color: {{ nameColor }}">{{ focusName }}</text>
 
-    <!-- B 状态行：第几节 / 剩几分 / 距上课 -->
+    <!-- B 状态行：一行一句，不用点号拼接 -->
     <text class="b-status" style="color: {{ theme.textSecondary }}">{{ statusText }}</text>
 
     <!-- C 进度条：宽度绑定 progressPercent，别写死 -->
@@ -19,17 +24,15 @@
       <div class="c-bar-fill" style="width: {{ progressPercent }}%; background-color: {{ theme.accent }}"></div>
     </div>
 
-    <!-- D 下一节：label + 定长时间 + 弹性课名（课名省略，整行永不溢出） -->
-    <div if="{{ nextName }}" class="d-next">
+    <!-- D 下一节：竖排两行（标签带定长时间在上、课名独占 168px 在下） -->
+    <div class="d-next" style="display: {{ nextName ? 'flex' : 'none' }}">
       <text class="d-label" style="color: {{ theme.textMuted }}">{{ nextLabel }}</text>
-      <text class="d-time" style="color: {{ theme.textSecondary }}">{{ nextTime }}</text>
       <text class="d-name" style="color: {{ theme.text }}">{{ nextName }}</text>
     </div>
 
-    <!-- 弹性占位：本引擎 margin-top:auto 不生效（实测时钟卡在内容下方而非贴底），用 flex:1 撑开 -->
     <div class="spacer"></div>
 
-    <!-- E 时钟：右下角小字（课名才是王，时钟只做参照） -->
+    <!-- E 时钟：安全区底部右对齐（圆心 394 以下进入胶囊圆弧，靠 padding-bottom 让开） -->
     <text class="e-clock" style="color: {{ theme.textMuted }}">{{ clockText }}</text>
   </div>
 </template>
@@ -43,7 +46,7 @@ const builtinSchedule = require("../../data/schedule.js")
 
 var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
-// "08:00 - 09:35" → {startMin, endMin}；格式不合规返回 null（脏数据不参与计算）
+// "08:00 - 09:35" 解析成 {startMin, endMin}；格式不合规返回 null（脏数据不参与计算）
 function parseTimeRange(timeStr) {
   if (!timeStr) return null
   var parts = timeStr.split(" - ")
@@ -59,7 +62,7 @@ function parseTimeRange(timeStr) {
 
 function pad2(n) { return (n < 10 ? "0" : "") + n }
 
-// 分钟数 → "08:00"（下一节行宽只有 168，必须定长）
+// 分钟数取成定长 "08:00"（下一节标签行要可预测宽度）
 function clockOf(min) {
   var m = min % 1440
   return pad2(Math.floor(m / 60)) + ":" + pad2(m % 60)
@@ -71,7 +74,7 @@ function clampPct(v) {
   return v > 100 ? 100 : v
 }
 
-// 某天的课 → 按开始时间升序的条目；解析失败的脏数据直接丢弃
+// 某天的课取成按开始时间升序的条目；解析失败的脏数据直接丢弃
 function buildItems(classes) {
   var out = []
   var list = classes || []
@@ -90,12 +93,12 @@ export default {
     fromPanel: "",
     isRoot: false,
     state: "none",          // class | break | done | none
-    focusName: "—",         // A 区主角：当前课 / 下节课 / 放学 / 没课
+    headerText: "今天",     // 头部标题兼状态位：第N节 / 课间 / 今天
+    focusName: "",          // A 区主角：当前课 / 下节课 / 放学 / 没课
     nameColor: "#ffffff",
     statusText: "",
     progressPercent: 0,
-    nextLabel: "",          // 下节 | 明日
-    nextTime: "",
+    nextLabel: "",          // "下节 11:00" / "明日 08:00"
     nextName: "",
     clockText: "",
     schedule: [],
@@ -181,21 +184,23 @@ export default {
     } catch (e) {
       // 计算异常不许把页面钉在旧读数上：退回「没课」让人看得懂
       this.state = "none"
+      this.headerText = "今天"
       this.focusName = "没课"
       this.nameColor = this.theme.textSecondary
-      this.statusText = "今天没有安排"
+      this.statusText = "没有安排"
       this.progressPercent = 0
       this.nextName = ""
+      this.nextLabel = ""
       console.error("[progress] compute failed: " + e)
     }
     this.scheduleNextMinute()
   },
 
-  /* 三态 + 空态：
-     class 上课中 → A 当前课名，B 第N节·剩X分，C 本节进度，D 本节之后那节
-     break 课间   → A 下节课名，B 距上课X分，C 课间进度，D 空（A 已是下节，不重复）
-     done  已放学 → A 放学，B 今天的课上完了，C 100%，D 明日首节
-     none  没课   → A 没课，B 今天没有安排，C 0%，D 明日首节（若有） */
+  /* 三态 + 空态（192px 每行只放得下一句，故信息分四行承载）：
+     class 上课中：头部「第N节」，A 当前课名，B「剩 X 分」，C 本节进度，D 本节之后那节
+     break 课间：头部「课间」，A 下节课名，B「X 分后上课」，C 课间进度，D 空（A 已是下节，不重复）
+     done  已放学：头部「今天」，A 放学，B「课上完了」，C 100%，D 明日首节
+     none  没课：头部「今天」，A 没课，B「没有安排」，C 0%，D 明日首节（若有） */
   compute: function() {
     var now = new Date()
     var nowMin = now.getHours() * 60 + now.getMinutes()
@@ -205,7 +210,6 @@ export default {
     var tomorrowItems = buildItems(this.classesOf(DAY_NAMES[(now.getDay() + 1) % 7]))
 
     this.nextLabel = ""
-    this.nextTime = ""
     this.nextName = ""
 
     var idx = -1
@@ -218,14 +222,14 @@ export default {
       var total = cur.endMin - cur.startMin
       var elapsed = nowMin - cur.startMin
       this.state = "class"
+      this.headerText = "第" + (idx + 1) + "节"
       this.focusName = cur.name
       this.nameColor = this.theme.accent
-      this.statusText = "第" + (idx + 1) + "节 · 剩 " + (cur.endMin - nowMin) + " 分"
+      this.statusText = "剩 " + (cur.endMin - nowMin) + " 分"
       this.progressPercent = total > 0 ? clampPct(Math.round(elapsed / total * 100)) : 100
       if (idx + 1 < todayItems.length) {
         var nx = todayItems[idx + 1]
-        this.nextLabel = "下节"
-        this.nextTime = clockOf(nx.startMin)
+        this.nextLabel = "下节 " + clockOf(nx.startMin)
         this.nextName = nx.name
       }
       return
@@ -239,10 +243,11 @@ export default {
     if (nextIdx >= 0) {
       var upcoming = todayItems[nextIdx]
       this.state = "break"
+      this.headerText = "课间"
       this.focusName = upcoming.name
       this.nameColor = this.theme.accent
-      this.statusText = "距上课 " + (upcoming.startMin - nowMin) + " 分"
-      // 课间进度 = 上节下课 → 本节上课；一天的第一节之前没有「上节」，记 0
+      this.statusText = (upcoming.startMin - nowMin) + " 分后上课"
+      // 课间进度 = 上节下课到本节上课；一天第一节之前没有「上节」，记 0
       var prevEnd = nextIdx > 0 ? todayItems[nextIdx - 1].endMin : nowMin
       var span = upcoming.startMin - prevEnd
       this.progressPercent = span > 0 ? clampPct(Math.round((nowMin - prevEnd) / span * 100)) : 0
@@ -251,19 +256,19 @@ export default {
 
     var hadClass = todayItems.length > 0
     this.state = hadClass ? "done" : "none"
+    this.headerText = "今天"
     this.focusName = hadClass ? "放学" : "没课"
     this.nameColor = this.theme.textSecondary
-    this.statusText = hadClass ? "今天的课上完了" : "今天没有安排"
+    this.statusText = hadClass ? "课上完了" : "没有安排"
     this.progressPercent = hadClass ? 100 : 0
     if (tomorrowItems.length > 0) {
-      this.nextLabel = "明日"
-      this.nextTime = clockOf(tomorrowItems[0].startMin)
+      this.nextLabel = "明日 " + clockOf(tomorrowItems[0].startMin)
       this.nextName = tomorrowItems[0].name
     }
   },
 
   goBack() {
-    // 双模返回：被「更多首页」push（fromPanel）→ 回父页；作为 root 首页 → 回「更多首页」
+    // 双模返回：被「更多首页」push（fromPanel）则回父页；作为 root 首页则回「更多首页」
     if (this.fromPanel === '1') {
       router.back()
     } else {
@@ -286,11 +291,13 @@ export default {
 </script>
 
 <style>
+/* 上下留白不对称是胶囊屏几何决定的：顶部 44 让开状态区，底部 52 让开
+   胶囊圆弧（圆心在 y=394、R=96，y>440 后右侧已放不下右对齐的定宽文本）。 */
 .page {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  padding: 44px 12px 12px 12px;
+  padding: 44px 12px 52px 12px;
 }
 .back-header {
   flex-direction: row;
@@ -307,41 +314,40 @@ export default {
   flex-shrink: 0;
 }
 .back-btn-icon { width: 22px; height: 22px }
+/* 标题兼状态位（第3节 / 课间 / 今天）：2 字 + 至多 2 位数字
+   = 37×2 + 15×2 = 104 ≤ 头部可用宽 108，不许再长 */
 .header-title {
   flex: 1;
   font-size: 28px;
   line-height: 36px;
   text-align: center;
+  lines: 1;
 }
 .header-placeholder { width: 30px; height: 30px; flex-shrink: 0 }
 
-/* A 课名：56px，最多两行（3 字/行），超长两行后省略。
-   不写死 height：单行课名（放学/没课/两字科目）固定 124 会在下方留一大块空白，
-   自然高度让 1 行贴紧 B、2 行自动撑到 124；总高最坏 246 < 434，不会溢出。 */
+/* A 课名：44px 是四档上限，单字 58.5px，168px 一行 2.8 字；
+   3 字名自然会折两行（lines:2），2 字名留一行。不写死 height，让行数决定。 */
 .a-name {
-  margin-top: 14px;
-  font-size: 56px;
-  line-height: 62px;
+  margin-top: 12px;
+  font-size: 44px;
+  line-height: 60px;
   font-weight: bold;
   lines: 2;
-  text-overflow: ellipsis;
   flex-shrink: 0;
 }
 
-/* B 状态行：只许一行，折行会把 C/D 顶出坐标 */
+/* B 状态行：一句一行，不用点号分隔；最长「10 分后上课」= 159px（1.33 倍宽口径） */
 .b-status {
-  margin-top: 16px;
-  height: 26px;
-  font-size: 20px;
-  line-height: 26px;
+  margin-top: 10px;
+  font-size: 24px;
+  line-height: 34px;
   lines: 1;
-  text-overflow: ellipsis;
   flex-shrink: 0;
 }
 
 /* C 进度条：168×10，宽度由 progressPercent 绑定 */
 .c-bar-bg {
-  margin-top: 12px;
+  margin-top: 14px;
   width: 168px;
   height: 10px;
   border-radius: 5px;
@@ -350,39 +356,34 @@ export default {
 }
 .c-bar-fill { height: 10px; border-radius: 5px }
 
-/* D 下一节：label + 定长时间 + 弹性课名（课名省略，整行永不溢出） */
+/* D 下一节：竖排两行。横排「标签 + 时间 + 课名」会把课名压成 1 个字（事故案例 13），
+   竖排后课名独占 168px，5 个 24px 汉字放得下 */
 .d-next {
-  margin-top: 20px;
-  height: 24px;
-  flex-direction: row;
-  align-items: center;
+  margin-top: 18px;
+  width: 100%;
+  flex-direction: column;
   flex-shrink: 0;
 }
-/* 2026-10-21 规则 §七：16 → 18。行宽 168 里「开始时间 + 节次 + 课名」，
-   课名本来就有 ellipsis，标签多出的 8px 从课名那里让 */
-.d-label { font-size: 18px; line-height: 24px; margin-right: 6px; flex-shrink: 0 }
-.d-time { font-size: 18px; line-height: 24px; margin-right: 6px; flex-shrink: 0 }
+.d-label { font-size: 24px; line-height: 34px }
 .d-name {
-  flex: 1;
-  font-size: 18px;
-  line-height: 24px;
+  font-size: 24px;
+  line-height: 34px;
+  font-weight: bold;
   lines: 1;
-  text-overflow: ellipsis;
 }
 
-/* E 时钟：贴底右对齐，16px 小字 */
+/* E 时钟：安全区底部右对齐 */
 .spacer { flex: 1; width: 100% }
 .e-clock {
   width: 100%;
   text-align: right;
-  font-size: 18px;
-  line-height: 24px;
+  font-size: 24px;
+  line-height: 34px;
   flex-shrink: 0;
 }
 
 @media (width >= 200px) {
-  .page { padding: 44px 16px 14px 16px }
-  .a-name { font-size: 60px; line-height: 65px }
+  .page { padding: 44px 16px 52px 16px }
   .c-bar-bg { width: 100% }
 }
 </style>
