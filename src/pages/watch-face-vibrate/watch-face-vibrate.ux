@@ -26,21 +26,23 @@
   <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
 
     <!-- 顶部品牌区（陈列感） -->
-    <text class="brand">EV · MECHANICAL</text>
-    <text class="brand-sub">SQUARE COLLECTION</text>
-
-    <!-- 表冠：画在表壳之前，被表壳压住左半 → 凸出 2px 的圆柱 -->
-    <div class="crown"></div>
-    <div class="crown-rib c1"></div>
-    <div class="crown-rib c2"></div>
-    <div class="crown-rib c3"></div>
+    <text class="brand {{ brandCls }}">EV · MECHANICAL</text>
+    <text class="brand-sub {{ bsubCls }}">SQUARE COLLECTION</text>
 
     <!-- 表耳：直线表耳，上下各一条，被表壳压住 4px -->
-    <div class="lug lug-top"></div>
-    <div class="lug lug-bottom"></div>
+    <div class="lug lug-top {{ lugtCls }}"></div>
+    <div class="lug lug-bottom {{ lugbCls }}"></div>
 
     <!-- 表壳 + 盘面：172×172，中心 (86,86) -->
-    <div class="dial-wrap">
+    <div class="dial-wrap {{ dialCls }}" style="{{ dialStyle }}">
+
+      <!-- 表冠：移进盘容器内，随盘一起缩放 —— 这样宽屏不用另算坐标。
+           坐标已改为相对盘左上：left 180−10=170，top 187−112=75。
+           画在表壳之前 → 被表壳压住左半，凸出 2px 的圆柱。 -->
+      <div class="crown"></div>
+      <div class="crown-rib c1"></div>
+      <div class="crown-rib c2"></div>
+      <div class="crown-rib c3"></div>
 
       <!-- 8 层错位同心方框：每层向内缩 2–6px，左上自动露 L 形倒角高光 -->
       <div class="case-outer"></div>
@@ -205,8 +207,8 @@
     </div>
 
     <!-- 底部：只留一行淡日期（32px 时间大字会把「实物表」打回「电子屏」） -->
-    <text class="date-line">{{dateText}}</text>
-    <text class="hint">长按设置 · 轻触返回</text>
+    <text class="date-line" style="{{ dateStyle }}">{{dateText}}</text>
+    <text class="hint" style="{{ hintStyle }}">长按设置 · 返回</text>
 
     <!-- 设置面板：震动开关 + 倒计时（长按打开，避免表面出现按钮） -->
     <div class="mask" if="{{showPanel}}" onclick="closePanel">
@@ -226,6 +228,7 @@
 <script>
 import router from "@system.router"
 import vibrator from "@system.vibrator"
+import device from "@system.device"
 
 const storage = require("@system.storage")
 
@@ -258,10 +261,21 @@ export default {
     suppressTap: false,
     vibrateOn: true,                      // 用户指定：默认打开
     vibrateLabel: "震动 30秒：开",
-    countdownText: "下次震动 30s"
+    countdownText: "下次震动 30s",
+    /* 屏型标记：192 屏全部空串（零变化），336 屏才填值。
+       位置类走 style 绑定（探针已验证 left/top 可绑），样式类走单类选择器。 */
+    dialCls: "",
+    dialStyle: "",
+    lugtCls: "",
+    lugbCls: "",
+    brandCls: "",
+    bsubCls: "",
+    dateStyle: "",
+    hintStyle: "",
   },
 
   onInit() {
+    this.fitScreen()
     this.loadVibrate()
     this.syncHands()
     this.tick()
@@ -283,6 +297,32 @@ export default {
 
   onDestroy() {
     this.stopTimer()
+  },
+
+  /* ── 屏型适配：192 屏一个字段都不填（零回归），336 屏才填 8 个标记 ──
+     盘内 140 个节点一个坐标不改：宽屏靠 .w-dial 的 scale(1.674) 整体放大，
+     探针实测父级 scale 会带动绝对定位子块、子块 left/top 按比例缩放，
+     所以刻度方框半径 / 表壳四级内缩 / 字号全部自动等比。 */
+  fitScreen() {
+    const self = this
+    try {
+      device.getInfo({
+        success: function (d) {
+          const w = (d && d.screenWidth) || 0
+          if (w < 300) return          /* 192 屏：一个字段都不填，零回归 */
+          self.dialCls = "w-dial"
+          self.dialStyle = "left:24px;top:96px;"
+          self.lugtCls = "w-lug w-lugt"
+          self.lugbCls = "w-lug w-lugb"
+          self.brandCls = "w-brand"
+          self.bsubCls = "w-bsub"
+          self.dateStyle = "top:392px;"
+          self.hintStyle = "top:424px;"
+        }
+      })
+    } catch (e) {}
+    /* ⚠️ 必须用异步回调形式。实测同步 device.getInfo() 拿到的 screenWidth
+       在 192 屏上会 ≥300，导致小屏误套宽屏样式（盘心从 110 跑到 167）。 */
   },
 
   /* ── 1s 心跳：时间 + 走针 + 震动计数 ── */
@@ -474,7 +514,7 @@ export default {
     position: absolute;
     left: 0;
     top: 52px;
-    width: 192px;
+    width: 100%;
     height: 14px;
     text-align: center;
     font-size: 10px;
@@ -486,7 +526,7 @@ export default {
     position: absolute;
     left: 0;
     top: 69px;
-    width: 192px;
+    width: 100%;
     height: 12px;
     text-align: center;
     font-size: 8px;
@@ -497,8 +537,8 @@ export default {
   /* ── 表冠（3 点位，页面坐标） ── */
   .crown {
     position: absolute;
-    left: 180px;
-    top: 187px;
+    left: 170px;
+    top: 75px;
     width: 7px;
     height: 22px;
     border-radius: 2px;
@@ -507,15 +547,15 @@ export default {
 
   .crown-rib {
     position: absolute;
-    left: 181px;
+    left: 171px;
     width: 4px;
     height: 1px;
     background-color: #454c53;
   }
 
-  .c1 { top: 191px; }
-  .c2 { top: 197px; }
-  .c3 { top: 203px; }
+  .c1 { top: 79px; }
+  .c2 { top: 85px; }
+  .c3 { top: 91px; }
 
   /* ── 直线表耳：上下各一条，被表壳压住 4px ── */
   .lug {
@@ -956,22 +996,22 @@ export default {
   .date-line {
     position: absolute;
     left: 0;
-    top: 338px;
-    width: 192px;
-    height: 16px;
+    top: 326px;
+    width: 100%;
+    height: 28px;
     text-align: center;
-    font-size: 13px;
+    font-size: 24px;
     color: #8d949c;
   }
 
   .hint {
     position: absolute;
     left: 0;
-    top: 362px;
-    width: 192px;
-    height: 14px;
+    top: 358px;
+    width: 100%;
+    height: 28px;
     text-align: center;
-    font-size: 10px;
+    font-size: 24px;
     color: #3f464d;
   }
 
@@ -993,18 +1033,18 @@ export default {
     align-items: center;
     background-color: #171b20;
     border-radius: 4px;
-    padding: 16px 0 12px 0;
+    padding: 18px 0 14px 0;
   }
 
   .p-title {
-    font-size: 15px;
+    font-size: 24px;
     color: #dfe6ec;
     letter-spacing: 2px;
   }
 
   .p-time {
-    margin-top: 4px;
-    font-size: 22px;
+    margin-top: 6px;
+    font-size: 24px;
     color: #8d949c;
     letter-spacing: 2px;
   }
@@ -1018,18 +1058,18 @@ export default {
   }
 
   .p-item {
-    font-size: 18px;
-    padding: 6px 0;
+    font-size: 24px;
+    padding: 8px 0;
   }
 
   .p-count {
-    font-size: 13px;
+    font-size: 24px;
     color: #6f767e;
   }
 
   .p-cancel {
-    margin-top: 4px;
-    font-size: 15px;
+    margin-top: 6px;
+    font-size: 24px;
     color: #8d949c;
   }
 
@@ -1153,4 +1193,43 @@ export default {
   .r117 { transform: rotate(531deg); }
   .r118 { transform: rotate(534deg); }
   .r119 { transform: rotate(537deg); }
+  /* ════════════════════════════════════════════════════════════
+     336×480（手环 10Pro）
+     ────────────────────────────────────────────────────────────
+     ⚠️ 全部用「单类选择器」，不用后代选择器。
+        实测 Vela 不支持 `.w-page .dial-wrap`，会退化成 `.dial-wrap` ——
+        结果宽屏样式被套到所有屏上（192 屏盘心从 110 跑到 167、宽屏白屏）。
+
+     盘内 140 个节点一个坐标不改：靠 .w-dial 的 transform: scale(1.674)
+     整体放大。探针实测父级 scale 会带动绝对定位子块、子块 left/top 按比例
+     缩放 → 刻度方框半径 65→108.8、表壳内缩 16→26.8 全自动等比。
+     transform-origin 实测默认是左上角，所以 left/top 直接写目标位置。
+     ════════════════════════════════════════════════════════════ */
+  .w-dial {
+    transform: scale(1.674);
+  }
+
+  /* 表耳：192 屏 left 58 / 宽 76 / 高 26，上下各外露 22px（被表壳压 4px） */
+  .w-lug {
+    left: 104px;
+    width: 127px;
+    height: 44px;
+  }
+
+  .w-lugt { top: 59px; }
+  .w-lugb { top: 340px; }
+
+  /* 品牌铭文：宽屏抬一档，仍小于 24 是刻意的质感（非可读文字） */
+  .w-brand {
+    top: 22px;
+    font-size: 14px;
+    letter-spacing: 7px;
+  }
+
+  .w-bsub {
+    top: 46px;
+    font-size: 10px;
+    letter-spacing: 4px;
+  }
+
 </style>

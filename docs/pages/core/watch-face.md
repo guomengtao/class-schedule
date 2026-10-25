@@ -5,7 +5,7 @@
 
 > 本篇为组级文档，覆盖 `watch-face` 及全部 16 个 `watch-face-*` 变体。EvEmuPreview 角标显示的「表盘·总览（组级）」即来源于此，不代表每个变体都有独立文档。
 >
-> **已有专属主文档的变体**（角标精确命中，不走组级回退）：`watch-face-gradient`、`watch-face-colorful`、`watch-face-background`（均 2026-10-25 起，见同名 `.md`）。
+> **已有专属主文档的变体**（角标精确命中，不走组级回退）：`watch-face-gradient`、`watch-face-colorful`、`watch-face-background`、`watch-face-vibrate`（均 2026-10-25 起，见同名 `.md`）。
 > 其余变体仍走本组级文档。
 
 ## 功能说明
@@ -25,7 +25,7 @@
 | `watch-face-gradient` | 表盘·渐变 | 逐字符色带 + 48 条背景色带纵向渐变 + 秒进度条（4 套色带） |
 | `watch-face-flip` | 表盘·翻页 | 翻页时钟动效 |
 | `watch-face-animated` | 表盘·动效 | 持续轻动效（注意低端设备掉帧） |
-| `watch-face-vibrate` | 表盘·震动 | 整点/课前震动联动 |
+| `watch-face-vibrate` | 表盘·方形机械 | 方形仿真机械表（四边不等亮 / 45° 错位倒角 / 铁路分钟轨 / 表冠表耳 / 三针 + 日期窗）；震动提醒默认开、每 30s 一次，开关收在长按面板 |
 | `watch-face-random` | 表盘·随机 | 每次亮屏随机样式 |
 | `watch-face-evpointer` | 表盘·指针 | 指针式表盘叠加课程 |
 | `watch-face-font` | 表盘·字体 | 字号/字重变体 |
