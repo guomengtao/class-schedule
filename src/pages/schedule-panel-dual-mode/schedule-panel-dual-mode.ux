@@ -1,49 +1,46 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+      <!-- 条件渲染一律 display 绑定（事故案例 11：多兄弟节点 if 会整页白屏） -->
+      <div class="back-btn-wrapper" style="display: {{ isRoot ? 'none' : 'flex' }}; background-color: {{ theme.card }}" onclick="goBack">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">智能</text>
-      <div if="{{ !isRoot }}" class="header-placeholder"></div>
+      <div class="header-placeholder" style="display: {{ isRoot ? 'none' : 'flex' }}"></div>
     </div>
 
-    <div if="{{ isLoading }}" class="loading-area">
-      <text class="loading-text" style="color: {{ theme.textMuted }}">加载中...</text>
-    </div>
+    <div class="center-area">
+      <div class="spacer"></div>
 
-    <div if="{{ !isLoading }}" class="content-area">
-      <div class="mode-tag" style="background-color: {{ theme.accent }}20">
-        <text class="mode-tag-text" style="color: {{ theme.accent }}">{{ modeLabel }}</text>
-      </div>
+      <!-- A 状态标签：三态各一个短词，不用分隔符（红线 4） -->
+      <text class="mode-tag" style="color: {{ theme.accent }}">{{ modeLabel }}</text>
 
-      <div if="{{ mode === 'in-class' }}" class="progress-card" style="background-color: {{ theme.card }}">
-        <text class="prog-name" style="color: {{ theme.text }}">{{ currentClass.name }}</text>
-        <text class="prog-time" style="color: {{ theme.textSecondary }}">{{ currentClass.time }}</text>
-
-        <div class="progress-bar-bg" style="background-color: {{ theme.border }}">
-          <div class="progress-bar-fill" style="width: {{ progressPercent }}%; background-color: {{ theme.accent }}"></div>
+      <!-- B1 上课中：课名 / 时间 / 进度条 / 已过 / 还剩 -->
+      <div class="card" style="display: {{ isClass ? 'flex' : 'none' }}; background-color: {{ theme.card }}">
+        <text class="c-name" style="color: {{ theme.text }}; font-size: {{ nameFont }}px">{{ currentName }}</text>
+        <text class="c-time" style="color: {{ theme.textSecondary }}">{{ timeText }}</text>
+        <div class="bar-bg" style="background-color: {{ theme.border }}">
+          <div class="bar-fill" style="width: {{ progressPercent }}%; background-color: {{ theme.accent }}"></div>
         </div>
-
-        <div class="progress-labels">
-          <text class="prog-label" style="color: {{ theme.textSecondary }}">已过 {{ elapsedMinutes }} 分钟</text>
-          <text class="prog-label" style="color: {{ theme.accent }}">剩余 {{ remainingMinutes }} 分钟</text>
-        </div>
+        <text class="c-row" style="color: {{ theme.textSecondary }}">{{ elapsedText }}</text>
+        <text class="c-row" style="color: {{ theme.accent }}">{{ remainText }}</text>
       </div>
 
-      <div if="{{ mode === 'break' }}" class="countdown-card">
-        <text class="cd-label" style="color: {{ theme.textSecondary }}">距下节课</text>
-        <text class="cd-time" style="color: {{ theme.accent }}">{{ displayTime }}</text>
-        <div class="cd-next" style="background-color: {{ theme.card }}">
-          <text class="cd-next-name" style="color: {{ theme.text }}">{{ nextClass.name }}</text>
-          <text class="cd-next-time" style="color: {{ theme.textSecondary }}">{{ nextClass.time }}</text>
-        </div>
+      <!-- B2 课间：距下节 / 大数字时分 / 下节课名 / 下节课时间 -->
+      <div class="card" style="display: {{ isBreak ? 'flex' : 'none' }}; background-color: {{ theme.card }}">
+        <text class="c-label" style="color: {{ theme.textSecondary }}">距下节</text>
+        <text class="c-big" style="color: {{ theme.accent }}">{{ displayTime }}</text>
+        <text class="c-name" style="color: {{ theme.text }}; font-size: {{ nameFont }}px">{{ nextName }}</text>
+        <text class="c-time" style="color: {{ theme.textSecondary }}">{{ timeText }}</text>
       </div>
 
-      <div if="{{ mode === 'done' }}" class="done-area">
-        <text class="done-icon">🎉</text>
-        <text class="done-text" style="color: {{ theme.textSecondary }}">{{ doneMessage }}</text>
+      <!-- B3 结束：大字短词 / 一句收尾 -->
+      <div class="card" style="display: {{ isDone ? 'flex' : 'none' }}; background-color: {{ theme.card }}">
+        <text class="c-done" style="color: {{ theme.accent }}">{{ doneWord }}</text>
+        <text class="c-time" style="color: {{ theme.textSecondary }}">{{ doneText }}</text>
       </div>
+
+      <div class="spacer"></div>
     </div>
   </div>
 </template>
@@ -53,6 +50,7 @@ import router from "@system.router"
 const database = require("../../data/database.js")
 const store = require("../../data/store.js")
 const utils = require("../../data/utils.js")
+const builtinSchedule = require("../../data/schedule.js")
 
 var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
@@ -68,21 +66,48 @@ function parseTimeRange(timeStr) {
 
 function pad(n) { return n < 10 ? "0" + n : String(n) }
 
+// 时间行只放一头：整段「17:00 - 18:30」实测 164px，超过 192 屏内宽 168 必折行（真机已复现）
+function endOfTime(timeStr) {
+  var p = (timeStr || "").split(" - ")
+  return p.length === 2 ? p[1].trim() : ""
+}
+
+function startOfTime(timeStr) {
+  var p = (timeStr || "").split(" - ")
+  return p.length === 2 ? p[0].trim() : ""
+}
+
+// 课名分档：192 屏一行 168px 只放得下 2 个 44px 汉字，长课名必须降档
+function fontForName(name) {
+  var len = (name || "").length
+  if (len <= 2) return 44
+  if (len <= 4) return 30
+  return 24
+}
+
 export default {
   private: {
     iconTheme: "dark",
     fromPanel: "",
     isRoot: false,
     isLoading: true,
-    mode: "break",
-    modeLabel: "课间 · 倒计时",
-    currentClass: null,
-    nextClass: null,
+    mode: "done",
+    modeLabel: "结束",
+    isClass: false,
+    isBreak: false,
+    isDone: true,
+    currentName: "",
+    timeText: "",
+    nameFont: 44,
     progressPercent: 0,
-    elapsedMinutes: 0,
-    remainingMinutes: 0,
+    elapsedText: "",
+    remainText: "",
     displayTime: "--:--",
-    doneMessage: "今日课程已全部结束",
+    nextName: "",
+    doneWord: "下课",
+    doneText: "明天见",
+    schedule: [],
+    tickTimer: null,
     theme: {
       bg: '#1a1a2e', card: '#16213e', cardLight: '#0f3460',
       accent: '#7ec8e3', text: '#ffffff', textSecondary: '#888899',
@@ -95,83 +120,153 @@ export default {
     // 独立首页 root 判定：由「更多首页」push 时带 fromPanel='1'；无参数即被设为首页冷启动
     self.fromPanel = (self.fromPanel === '1') ? '1' : ''
     self.isRoot = self.fromPanel !== '1'
-    store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
-    self.loadData()
-    self.timer = setInterval(function() { self.tick() }, 10000)
+    // 首帧同步出内容：storage / database 回调慢或丢也不许停在空白页
+    self.apply((builtinSchedule && builtinSchedule.schedule) ? builtinSchedule.schedule : [])
+    // database.init 必须放到 storage 回调之后再调：在 onInit 里同步调，回调永不触发（本项目实测）
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+      self.loadData()
+    })
   },
 
   onShow() {
     var self = this
-    store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+    // 回前台立即重算（后台期间可能已跨节次），再续排下一次整分
+    if (!self.isLoading) {
+      self.tick()
+    }
   },
 
-  updateIconSrc: function(themeName) {
-    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+  onHide() {
+    this.clearTickTimer()
+  },
+
+  /* 分钟级刷新：只挂一个对齐「下一个整分」的 setTimeout（方案 §0 禁秒级轮询） */
+  scheduleNextMinute: function() {
+    var self = this
+    this.clearTickTimer()
+    var now = new Date()
+    var ms = 60000 - (now.getSeconds() * 1000)
+    if (ms < 1000) ms = 1000
+    this.tickTimer = setTimeout(function() { self.tick() }, ms)
+  },
+
+  clearTickTimer: function() {
+    if (this.tickTimer) { clearTimeout(this.tickTimer); this.tickTimer = null }
+  },
+
+  apply: function(schedule) {
+    this.schedule = schedule || []
+    this.isLoading = false
+    this.tick()
   },
 
   loadData: function() {
     var self = this
     database.init(function() {
       database.getAllCourses(function(schedule) {
-        var todayIndex = new Date().getDay()
-        var todayName = DAY_NAMES[todayIndex]
-        var todayDay = null
-        for (var i = 0; i < schedule.length; i++) {
-          if (schedule[i].day === todayName) { todayDay = schedule[i]; break }
-        }
-        self.todayClasses = (todayDay && todayDay.classes) ? todayDay.classes.slice() : []
-        self.isLoading = false
-        self.tick()
+        self.apply(schedule || [])
       })
     })
   },
 
+  classesOf: function(dayName) {
+    var schedule = this.schedule || []
+    for (var i = 0; i < schedule.length; i++) {
+      if (schedule[i].day === dayName) return schedule[i].classes || []
+    }
+    return []
+  },
+
   tick: function() {
+    var self = this
+    self.scheduleNextMinute()
+    try {
+      self.compute()
+    } catch (e) {
+      // 计算异常不许把页面钉在上一帧：退回结束态，用户至少看得懂
+      self.mode = "done"
+      self.modeLabel = "结束"
+      self.isClass = false
+      self.isBreak = false
+      self.isDone = true
+      self.doneWord = "下课"
+      self.doneText = "明天见"
+    }
+  },
+
+  compute: function() {
     var self = this
     var now = new Date()
     var nowMin = now.getHours() * 60 + now.getMinutes()
-    var classes = self.todayClasses || []
+    var classes = self.classesOf(DAY_NAMES[now.getDay()])
 
+    // 1) 正在上课
     for (var i = 0; i < classes.length; i++) {
       var range = parseTimeRange(classes[i].time)
       if (!range) continue
       if (nowMin >= range.startMin && nowMin < range.endMin) {
-        self.mode = "in-class"
-        self.modeLabel = "上课中 · 进度"
-        self.currentClass = classes[i]
         var total = range.endMin - range.startMin
         var elapsed = nowMin - range.startMin
-        self.progressPercent = Math.min(100, Math.round(elapsed / total * 100))
-        self.elapsedMinutes = elapsed
-        self.remainingMinutes = range.endMin - nowMin
+        var left = range.endMin - nowMin
+        self.mode = "in-class"
+        self.modeLabel = "上课中"
+        self.isClass = true
+        self.isBreak = false
+        self.isDone = false
+        self.currentName = classes[i].name
+        self.timeText = "到 " + endOfTime(classes[i].time)
+        self.nameFont = fontForName(classes[i].name)
+        self.progressPercent = total > 0 ? Math.min(100, Math.round(elapsed / total * 100)) : 0
+        self.elapsedText = "已过 " + elapsed + " 分"
+        self.remainText = "还剩 " + left + " 分"
         return
       }
     }
 
-    self.mode = "break"
-    self.modeLabel = "课间 · 倒计时"
-    self.currentClass = null
-    self.nextClass = null
-
+    // 2) 课间：找最近的一节未来课
+    var next = null
     for (var j = 0; j < classes.length; j++) {
       var r = parseTimeRange(classes[j].time)
       if (r && r.startMin > nowMin) {
-        if (!self.nextClass || r.startMin < parseTimeRange(self.nextClass.time).startMin) {
-          self.nextClass = classes[j]
-        }
+        if (!next || r.startMin < parseTimeRange(next.time).startMin) next = classes[j]
       }
     }
-
-    if (self.nextClass) {
-      var nr = parseTimeRange(self.nextClass.time)
+    if (next) {
+      var nr = parseTimeRange(next.time)
       var wait = nr.startMin - nowMin
+      self.mode = "break"
+      self.modeLabel = "课间"
+      self.isClass = false
+      self.isBreak = true
+      self.isDone = false
+      self.currentName = ""
+      self.nextName = next.name
+      self.timeText = startOfTime(next.time) + " 开始"
+      self.nameFont = fontForName(next.name)
       self.displayTime = pad(Math.floor(wait / 60)) + ":" + pad(wait % 60)
-    } else if (classes.length > 0) {
-      self.mode = "done"
-      self.doneMessage = "今日课程已全部结束"
+      return
+    }
+
+    // 3) 结束：有课但都上完了 / 今天本来就没课
+    self.mode = "done"
+    self.modeLabel = "结束"
+    self.isClass = false
+    self.isBreak = false
+    self.isDone = true
+    self.currentName = ""
+    self.nextName = ""
+    if (classes.length > 0) {
+      self.doneWord = "下课"
+      self.doneText = "明天见"
     } else {
-      self.mode = "done"
-      self.doneMessage = "今天没有课"
+      self.doneWord = "无课"
+      self.doneText = "今天没有课"
     }
   },
 
@@ -192,61 +287,40 @@ export default {
   },
 
   onDestroy() {
-    if (this.timer) { clearInterval(this.timer); this.timer = null }
+    this.clearTickTimer()
   }
 }
 </script>
 
 <style>
+/* 左右 12px（ev-six 页面边距）+ 顶部 44px 让开胶囊状态栏；内容底 ≤440 才不会被胶囊圆角切 */
 .page { flex-direction: column; width: 100%; height: 100%; padding: 44px 12px 12px 12px }
 
-.back-header { flex-direction: row; align-items: center; margin-bottom: 16px }
+.back-header { flex-direction: row; align-items: center; margin-bottom: 8px }
 .back-btn-wrapper { width: 30px; height: 30px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0 }
 .back-btn-icon { width: 22px; height: 22px }
 .header-title { flex: 1; font-size: 28px; font-weight: bold; text-align: center; line-height: 36px }
 .header-placeholder { width: 30px; height: 30px; flex-shrink: 0 }
 
-.loading-area { align-items: center; padding: 30px 0 }
-.loading-text { font-size: 22px; line-height: 30px }
+/* 垂直居中靠上下两颗 flex:1 空格撑开，不写死高度（节次多寡、机型高矮都不影响） */
+.center-area { flex: 1; flex-direction: column }
+.spacer { flex: 1 }
 
-.content-area { flex: 1; flex-direction: column; padding: 0 4px }
+/* A 状态标签：纯文字，不做胶囊底色（手环上多一层色块只是噪声）
+   text 不吃 align-self，居中只能靠 width:100% + text-align（真机首版左对齐的教训） */
+.mode-tag { width: 100%; text-align: center; font-size: 24px; line-height: 32px; font-weight: bold; margin-bottom: 10px }
 
-.mode-tag { align-self: center; border-radius: 10px; padding: 6px 18px; margin-bottom: 18px }
-.mode-tag-text { font-size: 18px; line-height: 26px; font-weight: bold }
+.card { flex-direction: column; align-items: center; border-radius: 16px; padding: 10px 12px }
 
-/* 独立首页化修正：左右 padding 20→12px，给 22px 字号「10:00 - 10:45」留足一行宽度 */
-.progress-card { flex-direction: column; border-radius: 18px; padding: 24px 12px }
-.prog-name { font-size: 30px; font-weight: bold; line-height: 38px; margin-bottom: 4px }
-.prog-time { font-size: 22px; line-height: 30px; margin-bottom: 18px }
+/* 课名按字数分档 44/30/24（168px 一行只容 2 个 44px 汉字），行高固定 52 居中不变 */
+.c-name { font-size: 44px; font-weight: bold; line-height: 52px; text-align: center }
+.c-time { font-size: 24px; line-height: 32px; text-align: center }
+.c-label { font-size: 24px; line-height: 32px }
+.c-row { font-size: 24px; line-height: 30px }
+.c-big { font-size: 44px; font-weight: bold; line-height: 52px; font-family: monospace }
+.c-done { font-size: 44px; font-weight: bold; line-height: 52px }
 
-.progress-bar-bg { height: 14px; border-radius: 7px; margin-bottom: 10px; overflow: hidden }
-.progress-bar-fill { height: 14px; border-radius: 7px }
-/* 独立首页化修正：「已过 X 分钟」+「剩余 Y 分钟」左右排合计约 244px，144px 卡内溢出截断
-   （实测只见「已过 2 剩余」），改纵向堆叠两行完整显示 */
-.progress-labels { flex-direction: column }
-.prog-label { font-size: 20px; line-height: 28px }
-
-.countdown-card { flex: 1; flex-direction: column; justify-content: center; align-items: center }
-.cd-label { font-size: 22px; line-height: 30px; margin-bottom: 8px }
-.cd-time { font-size: 72px; font-weight: bold; line-height: 80px; font-family: monospace; margin-bottom: 24px }
-.cd-next { flex-direction: column; align-items: center; padding: 16px 24px; border-radius: 14px }
-.cd-next-name { font-size: 26px; font-weight: bold; line-height: 34px; margin-bottom: 4px }
-.cd-next-time { font-size: 20px; line-height: 28px }
-
-.done-area { flex: 1; flex-direction: column; justify-content: center; align-items: center }
-.done-icon { font-size: 56px; margin-bottom: 14px }
-.done-text { font-size: 24px; line-height: 32px; text-align: center }
-
-@media (width >= 200px) {
-  .page { padding: 44px 16px 14px 16px }
-  .progress-card { padding: 28px 24px; border-radius: 20px }
-  .prog-name { font-size: 34px; line-height: 42px }
-  .cd-time { font-size: 96px; line-height: 104px }
-  .cd-next-name { font-size: 28px; line-height: 36px }
-}
-
-@media (width >= 400px) {
-  .page { padding: 12px 20px 16px 20px }
-  .cd-time { font-size: 120px; line-height: 128px }
-}
+/* 进度条是信息本身（已上多久），不是装饰分隔线（事故案例 14） */
+.bar-bg { width: 100%; height: 10px; border-radius: 5px; margin-top: 8px; margin-bottom: 8px; overflow: hidden }
+.bar-fill { height: 10px; border-radius: 5px }
 </style>
