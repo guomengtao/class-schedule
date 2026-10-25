@@ -1,5 +1,7 @@
 <template>
-  <div class="page-root" style="background-color: {{ theme.bg }}">
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <!-- header 3 元素：返回键 30 + 居中标题（2 字）+ 等宽占位 30。
+         占位不能归零，否则 flex 标题被推向左侧、整体不居中。 -->
     <div class="header">
       <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
@@ -9,127 +11,127 @@
     </div>
 
     <scroll class="content-scroll" scroll-y="true">
-      <div class="section">
-        <div class="section-title-row">
-          <text class="section-title" style="color: {{ theme.text }}">选择课程</text>
-          <input class="mgmt-btn" type="button" value="管理" onclick="openCourseManager"
-                 style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+      <!-- 选课程：删掉原「管理」按钮（与末尾 + 卡同一入口，纯冗余占位） -->
+      <text class="section-title" style="color: {{ theme.text }}">选课程</text>
+      <scroll class="course-scroll" scroll-x="true">
+        <div class="course-item"
+             for="{{ (idx, c) in presetCourses }}"
+             onclick="selectCourseByIdx(idx)"
+             style="background-color: {{ courseIndex === idx ? theme.accent : theme.card }}">
+          <text class="course-name"
+                style="color: {{ courseIndex === idx ? theme.bg : theme.text }}">{{ c.name }}</text>
         </div>
-        <scroll class="course-scroll" scroll-x="true">
-          <div class="course-item {{ courseIndex === idx ? 'course-item-selected' : '' }}"
-               for="{{ (idx, c) in presetCourses }}"
-               onclick="selectCourseByIdx(idx)"
-               style="background-color: {{ theme.card }}">
-            <text class="course-name" style="color: {{ theme.text }}">{{ c.name }}</text>
-          </div>
-          <div class="course-item course-add-item" onclick="openCourseManager"
-               style="background-color: {{ theme.cardLight }}">
-            <text class="course-add-icon" style="color: {{ theme.accent }}">+</text>
-          </div>
-        </scroll>
-      </div>
-
-      <div class="section">
-        <text class="section-title" style="color: {{ theme.text }}">上课时间</text>
-        <text class="picker-label" style="color: {{ theme.text }}">开始</text>
-        <div class="stepper-time" style="background-color: {{ theme.card }}">
-          <div class="stepper-row">
-            <text class="stepper-label" style="color: {{ theme.text }}">小时</text>
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseStartHour"
-                   style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ padZero(startHour) }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseStartHour"
-                   style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-          </div>
-          <div class="stepper-row">
-            <text class="stepper-label" style="color: {{ theme.text }}">分钟</text>
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseStartMin"
-                   style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ padZero(startMin) }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseStartMin"
-                   style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-          </div>
+        <div class="course-item course-add-item" onclick="openCourseManager"
+             style="background-color: {{ theme.cardLight }}">
+          <text class="course-add-icon" style="color: {{ theme.accent }}">+</text>
         </div>
+      </scroll>
 
-        <text class="picker-label" style="color: {{ theme.text }}">结束</text>
-        <div class="stepper-time" style="background-color: {{ theme.card }}">
-          <div class="stepper-row">
-            <text class="stepper-label" style="color: {{ theme.text }}">小时</text>
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseEndHour"
-                   style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ padZero(endHour) }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseEndHour"
-                   style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+      <!-- 首屏放三个「真会改」的字段：课程、星期、位置。
+           时间由所选课程自动带出，改得最少，沉到最下方，避免首屏被两张时间卡吃掉。 -->
+      <text class="section-title" style="color: {{ theme.text }}">星期</text>
+      <scroll scroll-x="true" class="weekday-scroll" id="weekdayScroll" scroll-left="{{ weekdayScrollLeft }}">
+        <div class="weekday-row">
+          <div class="weekday-btn" onclick="selectDay(1)"
+               style="background-color: {{ dayIndex === 1 ? theme.accent : theme.card }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 1 ? theme.bg : theme.text }}">一</text>
           </div>
-          <div class="stepper-row">
-            <text class="stepper-label" style="color: {{ theme.text }}">分钟</text>
-            <input class="stepper-btn" type="button" value="-" onclick="decreaseEndMin"
-                   style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
-            <text class="stepper-val" style="color: {{ theme.text }}">{{ padZero(endMin) }}</text>
-            <input class="stepper-btn" type="button" value="+" onclick="increaseEndMin"
-                   style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+          <div class="weekday-btn" onclick="selectDay(2)"
+               style="background-color: {{ dayIndex === 2 ? theme.accent : theme.card }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 2 ? theme.bg : theme.text }}">二</text>
+          </div>
+          <div class="weekday-btn" onclick="selectDay(3)"
+               style="background-color: {{ dayIndex === 3 ? theme.accent : theme.card }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 3 ? theme.bg : theme.text }}">三</text>
+          </div>
+          <div class="weekday-btn" onclick="selectDay(4)"
+               style="background-color: {{ dayIndex === 4 ? theme.accent : theme.card }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 4 ? theme.bg : theme.text }}">四</text>
+          </div>
+          <div class="weekday-btn" onclick="selectDay(5)"
+               style="background-color: {{ dayIndex === 5 ? theme.accent : theme.card }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 5 ? theme.bg : theme.text }}">五</text>
+          </div>
+          <div class="weekday-btn" onclick="selectDay(6)"
+               style="background-color: {{ dayIndex === 6 ? theme.accent : theme.card }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 6 ? theme.bg : theme.text }}">六</text>
+          </div>
+          <div class="weekday-btn" onclick="selectDay(0)"
+               style="background-color: {{ dayIndex === 0 ? theme.accent : theme.card }}">
+            <text class="weekday-text" style="color: {{ dayIndex === 0 ? theme.bg : theme.text }}">日</text>
           </div>
         </div>
-      </div>
+      </scroll>
 
-      <div class="section">
-        <text class="section-title" style="color: {{ theme.text }}">上课位置</text>
-        <div class="input-box" onclick="showKeyboard" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
-          <text class="input-text {{ courseLocation ? '' : 'input-placeholder' }}"
-                style="color: {{ courseLocation ? theme.text : theme.textMuted }}">
-            {{ courseLocation || '点击输入位置' }}
-          </text>
-        </div>
-      </div>
-
-      <div class="weekday-section">
-        <text class="section-title" style="color: {{ theme.text }}">星期</text>
-        <scroll scroll-x="true" class="weekday-scroll" id="weekdayScroll" scroll-left="{{ weekdayScrollLeft }}">
-          <div class="weekday-row">
-            <div class="weekday-btn {{ dayIndex === 1 ? 'weekday-btn-active' : '' }}"
-                 onclick="selectDay(1)"
-                 style="background-color: {{ dayIndex === 1 ? theme.accent : theme.card }}">
-              <text class="weekday-text" style="color: {{ dayIndex === 1 ? theme.bg : theme.text }}">一</text>
-            </div>
-            <div class="weekday-btn {{ dayIndex === 2 ? 'weekday-btn-active' : '' }}"
-                 onclick="selectDay(2)"
-                 style="background-color: {{ dayIndex === 2 ? theme.accent : theme.card }}">
-              <text class="weekday-text" style="color: {{ dayIndex === 2 ? theme.bg : theme.text }}">二</text>
-            </div>
-            <div class="weekday-btn {{ dayIndex === 3 ? 'weekday-btn-active' : '' }}"
-                 onclick="selectDay(3)"
-                 style="background-color: {{ dayIndex === 3 ? theme.accent : theme.card }}">
-              <text class="weekday-text" style="color: {{ dayIndex === 3 ? theme.bg : theme.text }}">三</text>
-            </div>
-            <div class="weekday-btn {{ dayIndex === 4 ? 'weekday-btn-active' : '' }}"
-                 onclick="selectDay(4)"
-                 style="background-color: {{ dayIndex === 4 ? theme.accent : theme.card }}">
-              <text class="weekday-text" style="color: {{ dayIndex === 4 ? theme.bg : theme.text }}">四</text>
-            </div>
-            <div class="weekday-btn {{ dayIndex === 5 ? 'weekday-btn-active' : '' }}"
-                 onclick="selectDay(5)"
-                 style="background-color: {{ dayIndex === 5 ? theme.accent : theme.card }}">
-              <text class="weekday-text" style="color: {{ dayIndex === 5 ? theme.bg : theme.text }}">五</text>
-            </div>
-            <div class="weekday-btn {{ dayIndex === 6 ? 'weekday-btn-active' : '' }}"
-                 onclick="selectDay(6)"
-                 style="background-color: {{ dayIndex === 6 ? theme.accent : theme.card }}">
-              <text class="weekday-text" style="color: {{ dayIndex === 6 ? theme.bg : theme.text }}">六</text>
-            </div>
-            <div class="weekday-btn {{ dayIndex === 0 ? 'weekday-btn-active' : '' }}"
-                 onclick="selectDay(0)"
-                 style="background-color: {{ dayIndex === 0 ? theme.accent : theme.card }}">
-              <text class="weekday-text" style="color: {{ dayIndex === 0 ? theme.bg : theme.text }}">日</text>
+      <!-- 上课时间：两张卡（开始/结束），卡内时、分两列，值下方各自 −/+。
+           原设计 4 个 label 独占整行 + 4 行按钮 = 328px，现为 2×(34+34+44) 共 224px。 -->
+      <text class="section-title" style="color: {{ theme.text }}">上课时间</text>
+      <div class="time-card" style="background-color: {{ theme.card }}">
+        <text class="time-head" style="color: {{ theme.text }}">开始</text>
+        <div class="time-grid">
+          <div class="time-col">
+            <text class="time-val" style="color: {{ theme.text }}">{{ padZero(startHour) }}时</text>
+            <div class="step-pair">
+              <input class="step-btn" type="button" value="-" onclick="decreaseStartHour"
+                     style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+              <input class="step-btn" type="button" value="+" onclick="increaseStartHour"
+                     style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
             </div>
           </div>
-        </scroll>
+          <div class="time-col">
+            <text class="time-val" style="color: {{ theme.text }}">{{ padZero(startMin) }}分</text>
+            <div class="step-pair">
+              <input class="step-btn" type="button" value="-" onclick="decreaseStartMin"
+                     style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+              <input class="step-btn" type="button" value="+" onclick="increaseStartMin"
+                     style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+            </div>
+          </div>
+        </div>
       </div>
+      <div class="time-card" style="background-color: {{ theme.card }}">
+        <text class="time-head" style="color: {{ theme.text }}">结束</text>
+        <div class="time-grid">
+          <div class="time-col">
+            <text class="time-val" style="color: {{ theme.text }}">{{ padZero(endHour) }}时</text>
+            <div class="step-pair">
+              <input class="step-btn" type="button" value="-" onclick="decreaseEndHour"
+                     style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+              <input class="step-btn" type="button" value="+" onclick="increaseEndHour"
+                     style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+            </div>
+          </div>
+          <div class="time-col">
+            <text class="time-val" style="color: {{ theme.text }}">{{ padZero(endMin) }}分</text>
+            <div class="step-pair">
+              <input class="step-btn" type="button" value="-" onclick="decreaseEndMin"
+                     style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+              <input class="step-btn" type="button" value="+" onclick="increaseEndMin"
+                     style="background-color: {{ theme.cardLight }}; color: {{ theme.accent }}" />
+            </div>
+          </div>
+        </div>
+      </div>      <text class="section-title" style="color: {{ theme.text }}">上课位置</text>
+      <div class="input-box" onclick="showKeyboard" style="background-color: {{ theme.card }}">
+        <text class="input-text {{ courseLocation ? '' : 'input-placeholder' }}"
+              style="color: {{ courseLocation ? theme.text : theme.textSecondary }}">
+          {{ courseLocation || '输入位置' }}
+        </text>
+      </div>
+
+
     </scroll>
+
+    <!-- ev-six 第 13 条：禁用 prompt.showToast（系统浮层固定弹上部，会压住内容）。
+         校验/冲突/失败一律走这条页内状态条：高度固定 34px，只换颜色不换高度。 -->
+    <div class="tip-row" style="display: {{ tipText ? 'flex' : 'none' }}">
+      <text class="tip-text" style="color: {{ tipColor }}">{{ tipText }}</text>
+    </div>
 
     <div class="bottom-bar">
       <input class="cancel-btn" type="button" value="取消" onclick="goBack"
-             style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
-      <input class="save-btn" type="button" value="确认添加" onclick="saveCourse"
+             style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}" />
+      <input class="save-btn" type="button" value="{{ saveLabel }}" onclick="saveCourse"
              style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
     </div>
   </div>
@@ -137,11 +139,11 @@
 
 <script>
 import router from "@system.router"
-import prompt from "@system.prompt"
 var store = require("../../data/store.js")
 var database = require("../../data/database.js")
 
 var COURSE_LIST_KEY = "course_preset_list"
+var MIN_STEP = 5   // 分钟步进：课程表时间全为 5 的倍数，±1 需点 30 次不可用
 
 var defaultCourses = [
   { name: "语文", time: "08:00 - 08:45", teacher: "", location: "" },
@@ -198,6 +200,9 @@ export default {
     nextId: 100,
     isSaving: false,
     conflictConfirmed: false,
+    tipText: "",
+    tipColor: "#ff6b6b",
+    saveLabel: "添加",
     theme: {
       bg: "#1a1a2e",
       card: "#16213e",
@@ -287,7 +292,7 @@ export default {
   setDefaultDay() {
     var self = this
     var storage = require("@system.storage")
-    // 优先使用首页传入的星期：用户在首页翻到某一天后再点"添加课程"，
+    // 优先使用首页传入的星期：用户在首页翻到某一天后再点「添加课程」，
     // 表单应默认停在那一天，而不是永远停在今天。
     storage.get({
       key: "add_course_day",
@@ -348,9 +353,23 @@ export default {
     return padZero(n)
   },
 
+  // 页内状态条（替代 prompt.showToast）。高度固定 34px，只换颜色。
+  showTip(text, color) {
+    this.tipText = text
+    this.tipColor = color || "#ff6b6b"
+  },
+
+  // 任何一次有效的表单改动都清掉旧提示，并把主按钮复位成「添加」
+  clearTip() {
+    if (this.tipText !== "") { this.tipText = "" }
+    if (this.saveLabel !== "添加") { this.saveLabel = "添加" }
+    if (this.conflictConfirmed) { this.conflictConfirmed = false }
+  },
+
   selectCourseByIdx(idx) {
     this.courseIndex = idx
     var c = this.presetCourses[idx]
+    if (!c) { return }
     this.courseName = c.name
     this.courseLocation = c.location || ""
     var tp = parseTimeParts(c.time)
@@ -359,6 +378,7 @@ export default {
     this.endHour = tp.endH
     this.endMin = tp.endM
     this.courseTime = c.time
+    this.clearTip()
   },
 
   selectCourse(index) {
@@ -380,59 +400,90 @@ export default {
     this.endHour = tp.endH
     this.endMin = tp.endM
     this.courseTime = c.time
+    this.updateTimeString()
   },
 
-  // 时间步进：与编辑页（detail.ux）完全一致，改完立即回写 courseTime
+  // 时间步进：小时 ±1，分钟 ±5（MIN_STEP），分钟跨 60 自动进位/退位
   increaseStartHour() {
-    if (this.startHour < 23) { this.startHour = this.startHour + 1 }
-    else { this.startHour = 0 }
+    this.startHour = this.startHour >= 23 ? 0 : this.startHour + 1
     this.adjustEndTime()
+    this.clearTip()
   },
   decreaseStartHour() {
-    if (this.startHour > 0) { this.startHour = this.startHour - 1 }
-    else { this.startHour = 23 }
+    this.startHour = this.startHour <= 0 ? 23 : this.startHour - 1
     this.adjustEndTime()
+    this.clearTip()
   },
   increaseStartMin() {
-    if (this.startMin < 59) { this.startMin = this.startMin + 1 }
-    else { this.startMin = 0 }
+    this.shiftStartMin(MIN_STEP)
     this.adjustEndTime()
+    this.clearTip()
   },
   decreaseStartMin() {
-    if (this.startMin > 0) { this.startMin = this.startMin - 1 }
-    else { this.startMin = 59 }
+    this.shiftStartMin(-MIN_STEP)
     this.adjustEndTime()
+    this.clearTip()
   },
   increaseEndHour() {
-    if (this.endHour < 23) { this.endHour = this.endHour + 1 }
-    else { this.endHour = 0 }
-    this.adjustEndTime()
+    this.endHour = this.endHour >= 23 ? 0 : this.endHour + 1
+    this.applyEnd()
+    this.clearTip()
   },
   decreaseEndHour() {
-    if (this.endHour > 0) { this.endHour = this.endHour - 1 }
-    else { this.endHour = 23 }
-    this.adjustEndTime()
+    this.endHour = this.endHour <= 0 ? 23 : this.endHour - 1
+    this.applyEnd()
+    this.clearTip()
   },
   increaseEndMin() {
-    if (this.endMin < 59) { this.endMin = this.endMin + 1 }
-    else { this.endMin = 0 }
-    this.adjustEndTime()
+    this.shiftEndMin(MIN_STEP)
+    this.applyEnd()
+    this.clearTip()
   },
   decreaseEndMin() {
-    if (this.endMin > 0) { this.endMin = this.endMin - 1 }
-    else { this.endMin = 59 }
-    this.adjustEndTime()
+    this.shiftEndMin(-MIN_STEP)
+    this.applyEnd()
+    this.clearTip()
   },
 
+  shiftStartMin(delta) {
+    var total = this.startHour * 60 + this.startMin + delta
+    if (total < 0) { total = 1440 + total }
+    if (total > 1439) { total = total - 1440 }
+    this.startHour = Math.floor(total / 60)
+    this.startMin = total % 60
+  },
+
+  shiftEndMin(delta) {
+    var total = this.endHour * 60 + this.endMin + delta
+    if (total < 0) { total = 1440 + total }
+    if (total > 1439) { total = total - 1440 }
+    this.endHour = Math.floor(total / 60)
+    this.endMin = total % 60
+  },
+
+  // 开始时间变化后：结束必须晚于开始，不足则自动给 45 分钟（原默认课时）
   adjustEndTime() {
-    var startTotal = this.startHour * 60 + this.startMin
-    var endTotal = this.endHour * 60 + this.endMin
-    if (endTotal <= startTotal) {
-      endTotal = startTotal + 45
-      if (endTotal >= 1440) { endTotal = 1439 }
-      this.endHour = Math.floor(endTotal / 60)
-      this.endMin = endTotal % 60
+    var s = this.startHour * 60 + this.startMin
+    var e = this.endHour * 60 + this.endMin
+    if (e <= s) {
+      e = s + 45
+      if (e > 1439) { e = 1439 }
     }
+    this.endHour = Math.floor(e / 60)
+    this.endMin = e % 60
+    this.updateTimeString()
+  },
+
+  // 结束时间自身调整：只保证严格大于开始（最少 5 分钟），不做 45 分钟跳变
+  applyEnd() {
+    var s = this.startHour * 60 + this.startMin
+    var e = this.endHour * 60 + this.endMin
+    if (e <= s) {
+      e = s + MIN_STEP
+      if (e > 1439) { e = 1439 }
+    }
+    this.endHour = Math.floor(e / 60)
+    this.endMin = e % 60
     this.updateTimeString()
   },
 
@@ -444,16 +495,17 @@ export default {
     this.dayIndex = idx
     this.day = DAY_NAMES[idx]
     this.scrollToCurrentDay()
+    this.clearTip()
   },
 
   // 自动滚动到当前选中的星期：模板排列是「一二三四五六日」，dayIndex 0=周日排在末尾，
-  // 胶囊屏 160px 仅能看到约 3 个按钮，若不滚动用户看不到已选的周日，需二次滑动。
+  // 168px 内容宽仅能看到约 3 个按钮，若不滚动用户看不到已选的周日，需二次滑动。
   // 与编辑课程页(detail.ux)的 scrollToCurrentDay 保持一致：属性先行 + $element.scrollTo 兜底。
   scrollToCurrentDay() {
     var order = [1, 2, 3, 4, 5, 6, 0]
     var pos = order.indexOf(this.dayIndex)
     if (pos < 0) { pos = 0 }
-    var left = pos * 52 // 每项 48px 宽 + 左右 margin 约 4px
+    var left = pos * 49 // 每项 44px 宽 + 左右 margin 2px + 间距
     this.weekdayScrollLeft = left
     var self = this
     // 部分运行时不响应 scroll-left 属性，用组件方法兜底（不支持时静默跳过）
@@ -487,8 +539,8 @@ export default {
 
   saveCourse() {
     if (this.isSaving) { return }
-    if (!this.courseName) { prompt.showToast({ message: "请先选择课程" }); return }
-    if (!this.courseTime) { prompt.showToast({ message: "请先设置时间" }); return }
+    if (!this.courseName) { this.showTip("请选课程"); return }
+    if (!this.courseTime) { this.showTip("请设时间"); return }
     if (!this.day) {
       this.dayIndex = new Date().getDay()
       this.day = DAY_NAMES[this.dayIndex]
@@ -507,11 +559,13 @@ export default {
     // 时间冲突检测：同天已有课程时间重叠时，先提示，需再次确认才保存
     database.checkDayConflict(this.day, newCourse, null, function(conflict) {
       if (conflict && !self.conflictConfirmed) {
-        prompt.showToast({ message: "时间冲突：与《" + conflict.name + "》" + conflict.time + " 重叠，再点确认添加" })
+        self.showTip("时间重叠", "#ff6b6b")
+        self.saveLabel = "确认"
         self.conflictConfirmed = true
         return
       }
       self.conflictConfirmed = false
+      self.saveLabel = "添加"
       self.doInsert(newCourse)
     })
   },
@@ -524,11 +578,11 @@ export default {
     storage.set({ key: "add_course_nextId", value: String(this.nextId) })
     database.insertCourse(newCourse, function(err) {
       if (!err) {
-        prompt.showToast({ message: "课程已添加" })
+        self.tipText = ""
         router.back()
       } else {
         self.isSaving = false
-        prompt.showToast({ message: "保存失败，请重试" })
+        self.showTip("保存失败", "#ff6b6b")
       }
     })
   }
@@ -538,431 +592,269 @@ export default {
 <style>
 @import '../../common/header.css';
 /* ================================================================
-   BASE CSS = 手环 9 基准（160px 内容区）
-   手环 9 默认命中，无需任何 media query。
-   弹性 flex + % 撑满。屏幕增大时，下方宽度断点「增量」调整。
-   原则：base 属性一旦设定，大屏断点只改物理必须区分的值，不覆盖。
-   手环 9 黑屏根因：独立 @media (shape: pill-shaped) 大块命中即崩，
-   故 base 以 9 为基准，彻底移除独立 pill-shaped 分支。
+   ev-six 六位开发准则（v5）落地
+   容器：192 − 12×2 = 168px 页面级；卡片内 168 − 8×2 = 152px
+   字号：只有 24 / 28 两档（44/30 本页无用途），无 12~23px
+   行高：24→34、28→38（比例 1.36~1.42）
+   留白：横向几乎不动，呼吸感只在纵向买
    ================================================================ */
 
-.page-root {
+.page {
   width: 100%;
   height: 100%;
   flex-direction: column;
-  padding: 24px 16px 12px 16px;
+  padding: 32px 12px 16px 12px;
 }
 
 .content-scroll {
   flex: 1;
   flex-direction: column;
   width: 100%;
-  padding-bottom: 12px;
+  padding-bottom: 6px;
 }
 
-/* 胶囊屏 header 适配：占位归零，标题居中，给「添加课程」4字充足空间 */
-.header-placeholder {
-  width: 0;
-  height: 0;
-  margin: 0;
-}
 .header-title {
   font-size: 28px;
-  line-height: 36px;
-  flex: 1;
-  min-width: 0;
-  text-align: center;
+  line-height: 38px;
 }
 
-.mgmt-btn {
-  width: 52px;
-  height: 44px;
-  border-radius: 20px;
-  font-size: 20px;
-  line-height: 40px;
-  text-align: center;
-  background-color: transparent;
-  border: none;
-  flex-shrink: 0;
-}
-
-.section {
-  flex-direction: column;
-  width: 100%;
-  margin-bottom: 10px;
-  flex-shrink: 0;
-}
-
-.section-title-row {
-  flex-direction: row;
-  width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
+/* 区块标题：4 字 @28 = 149px ≤ 168px。原来 20px 属禁用档，且右侧挂「管理」按钮
+ * 会把标题压到 96px 内（4 字必裁）——按钮已删，+ 卡是同一入口。 */
 .section-title {
-  font-size: 20px;
-  line-height: 28px;
+  font-size: 28px;
+  line-height: 38px;
   font-weight: bold;
-  flex-shrink: 1;
-  margin-right: 8px;
+  flex-shrink: 0;
+  margin: 0 0 6px 0;
 }
 
+/* 课程横滑：88px 卡 + 28px 字（2 字 = 75px ≤ 88px）。
+ * 原 120px 卡一屏只见 1.35 个，现见 1.8 个，且选中态改用底色不用边框。 */
 .course-scroll {
   flex-direction: row;
   width: 100%;
   flex-shrink: 0;
-  height: 60px;
+  height: 52px;
+  margin-bottom: 10px;
 }
 
 .course-item {
-  width: 120px;
-  height: 56px;
-  border-radius: 10px;
+  width: 88px;
+  height: 52px;
+  border-radius: 12px;
   margin-right: 6px;
   justify-content: center;
   align-items: center;
-  border: 2px solid transparent;
   flex-shrink: 0;
 }
 
-.course-item-selected {
-  border-color: #7ec8e3;
+.course-add-item {
+  width: 56px;
 }
 
 .course-name {
-  font-size: 24px;
-  line-height: 32px;
+  font-size: 28px;
+  line-height: 38px;
   font-weight: bold;
   text-align: center;
-}
-
-.course-add-item {
-  justify-content: center;
-  align-items: center;
+  lines: 1;
 }
 
 .course-add-icon {
-  font-size: 34px;
+  font-size: 28px;
+  line-height: 38px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* 时间卡：卡头 24px + 时/分两列（列宽 74px：34+34 按钮 + 6 间隙）
+ * 值「08时」= 2.1P @24 ≈ 67px ≤ 74px，不裁 */
+.time-card {
+  width: 100%;
+  flex-direction: column;
+  border-radius: 14px;
+  padding: 6px 8px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.time-head {
+  font-size: 24px;
+  line-height: 34px;
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+.time-grid {
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.time-col {
+  width: 70px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.time-val {
+  font-size: 24px;
+  line-height: 34px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.step-pair {
+  flex-direction: row;
+  width: 70px;
+  justify-content: space-between;
+}
+
+.step-btn {
+  width: 32px;
+  height: 44px;
+  border-radius: 12px;
+  font-size: 24px;
   line-height: 44px;
   font-weight: bold;
   text-align: center;
-}
-
-/* 时间步进区：与编辑页（detail.ux）保持同一套结构与数值 */
-.picker-label {
-  font-size: 24px;
-  font-weight: bold;
-  line-height: 32px;
-  margin-top: 6px;
-  margin-bottom: 6px;
-  text-align: center;
-}
-
-.stepper-time {
-  flex-direction: column;
-  width: 100%;
-  align-items: center;
-  border-radius: 14px;
-  padding: 6px;
-  margin-bottom: 6px;
-}
-
-.stepper-row {
-  flex-direction: row;
-  width: 100%;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 6px;
-}
-
-.stepper-label {
-  font-size: 20px;
-  line-height: 28px;
-  width: 100%;
-  text-align: center;
-}
-
-.stepper-btn {
-  width: 44px;
-  height: 48px;
-  border-radius: 22px;
-  font-size: 24px;
-  line-height: 48px;
-  font-weight: bold;
-  text-align: center;
-  background-color: transparent;
   border: none;
 }
 
-.stepper-val {
-  font-size: 28px;
-  line-height: 48px;
-  font-weight: bold;
-  width: 56px;
-  text-align: center;
-}
-
+/* 位置输入：border 不写（quickapp 单位写 border 会被渲染成四边，且禁装饰边框） */
 .input-box {
   width: 100%;
   height: 48px;
-  border-radius: 10px;
-  border-width: 2px;
+  border-radius: 12px;
   justify-content: center;
   align-items: center;
-  padding: 0 10px;
+  padding: 0 8px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
 }
 
 .input-text {
   font-size: 24px;
-  line-height: 32px;
+  line-height: 34px;
 }
 
 .input-placeholder {
-  opacity: 0.5;
   font-size: 24px;
-  line-height: 32px;
+  line-height: 34px;
 }
 
-/* 星期独立区块：与可滚动内容区及底部确认栏分隔，避免挤成一行 */
-.weekday-section {
-  flex-direction: column;
-  width: 100%;
-  flex-shrink: 0;
-  margin-top: 10px;
-  border-top-width: 1px;
-  border-top-color: rgba(255, 255, 255, 0.08);
-}
-
+/* 星期：7 个 44px 按钮横滑，一屏可见 3.7 个；选中项自动滚入视野 */
 .weekday-scroll {
   width: 100%;
-  height: 52px;
-  margin-top: 8px;
-  padding-top: 4px;
+  height: 44px;
+  flex-shrink: 0;
 }
 
 .weekday-row {
   flex-direction: row;
-  width: 100%;
-  justify-content: space-between;
 }
 
 .weekday-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   justify-content: center;
   align-items: center;
-  background-color: transparent;
-  border: none;
-  margin: 0 1px;
-}
-
-.weekday-btn-active {
-  background-color: #7ec8e3;
-}
-
-.weekday-text {
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: bold;
-  text-align: center;
-}
-
-/* Bottom bar fixed outside scroll, always visible */
-.bottom-bar {
-  flex-direction: row;
-  width: 100%;
-  justify-content: space-between;
-  margin-top: 8px;
-  padding-top: 6px;
+  margin-right: 5px;
   flex-shrink: 0;
 }
 
-/* 按比例分配宽度，避免两个固定宽度之和超出屏幕 */
-.cancel-btn {
-  flex: 1;
-  width: auto;
-  height: 44px;
-  border-radius: 14px;
-  font-size: 22px;
-  line-height: 44px;
-  margin-right: 6px;
+.weekday-text {
+  font-size: 24px;
+  line-height: 34px;
   font-weight: bold;
   text-align: center;
-  background-color: transparent;
+}
+
+/* 页内状态条：高度固定 34px，只换颜色不换高度（ev-six 第 13 条） */
+.tip-row {
+  width: 100%;
+  height: 34px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.tip-text {
+  font-size: 24px;
+  line-height: 34px;
+  font-weight: bold;
+  text-align: center;
+  lines: 1;
+}
+
+/* 底部：取消 74px 定宽（「取消」@24 = 64）+ 添加 flex（「添加」@28 = 75 ≤ 88） */
+.bottom-bar {
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.cancel-btn {
+  width: 74px;
+  height: 44px;
+  border-radius: 12px;
+  font-size: 24px;
+  line-height: 44px;
+  font-weight: bold;
+  text-align: center;
   border: none;
+  flex-shrink: 0;
 }
 
 .save-btn {
-  flex: 2;
-  width: auto;
+  flex: 1;
   height: 44px;
-  border-radius: 14px;
-  font-size: 22px;
+  border-radius: 12px;
+  font-size: 28px;
   line-height: 44px;
   font-weight: bold;
   text-align: center;
-  background-color: transparent;
   border: none;
+  margin-left: 6px;
 }
 
 /* ================================================================
-   宽度断点：手环 10 / 胶囊屏大号（width >= 200px，内容区 ~180px）
-   在 base 基础上「增量」调整。
+   大屏断点：只改物理必须区分的值，不覆盖 base 的字号档位
    ================================================================ */
 @media (width >= 200px) {
-  .mgmt-btn {
-    width: 56px;
-    height: 44px;
-    font-size: 22px;
-    line-height: 44px;
-  }
-  .section-title {
-    font-size: 22px;
-    line-height: 30px;
-  }
-  .course-scroll {
-    height: 64px;
-  }
-  .course-name {
-    font-size: 26px;
-    line-height: 34px;
-  }
-  .picker-label {
-    font-size: 26px;
-    line-height: 34px;
-  }
-  .stepper-label {
-    font-size: 22px;
-    line-height: 30px;
-  }
-  .stepper-val {
-    font-size: 30px;
-  }
-  .input-text {
-    font-size: 26px;
-    line-height: 34px;
-  }
-  .input-placeholder {
-    font-size: 26px;
-    line-height: 34px;
-  }
-  .weekday-text {
-    font-size: 22px;
-    line-height: 30px;
-  }
+  .course-item { width: 96px; }
+  .time-col { width: 78px; }
+  .step-pair { width: 78px; }
+  .step-btn { width: 36px; }
+  .weekday-btn { width: 48px; height: 48px; }
+  .weekday-scroll { height: 48px; }
+  .cancel-btn { width: 80px; }
 }
 
-/* ================================================================
-   宽度断点：Watch 6 / 方屏（width >= 400px，内容区 ~400px）
-   rect 屏上下空间充裕，恢复更大字号与间距。
-   ================================================================ */
 @media (width >= 400px) {
-  .page-root {
-    padding: 30px 16px 12px 16px;
-  }
-  .mgmt-btn {
-    width: 60px;
-    height: 48px;
-    border-radius: 24px;
-    font-size: 22px;
-    line-height: 48px;
-  }
-  .section {
-    margin-bottom: 16px;
-  }
-  .section-title-row {
-    margin-bottom: 8px;
-  }
-  .section-title {
-    font-size: 26px;
-    line-height: 36px;
-  }
-  .course-scroll {
-    height: 72px;
-  }
-  .course-item {
-    width: 100px;
-    height: 64px;
-    border-radius: 14px;
-    margin-right: 10px;
-  }
-  .course-name {
-    font-size: 26px;
-    line-height: 34px;
-  }
-  .course-add-icon {
-    font-size: 40px;
-    line-height: 48px;
-  }
-  .header-title {
-    font-size: 26px;
-    line-height: 36px;
-  }
-  .picker-label {
-    font-size: 30px;
-    line-height: 40px;
-    margin-top: 8px;
-    margin-bottom: 8px;
-  }
-  .stepper-time {
-    padding: 12px;
-    margin-bottom: 10px;
-  }
-  .stepper-row {
-    flex-wrap: nowrap;
-    margin-bottom: 8px;
-  }
-  .stepper-label {
-    font-size: 28px;
-    line-height: 40px;
-    width: 60px;
-  }
-  .stepper-btn {
-    width: 48px;
-    border-radius: 10px;
-    font-size: 28px;
-  }
-  .stepper-val {
-    font-size: 40px;
-    width: 60px;
-  }
-  .input-box {
-    border-radius: 12px;
-    padding: 0 14px;
-  }
-  .input-text {
-    font-size: 26px;
-    line-height: 36px;
-  }
-  .input-placeholder {
-    font-size: 26px;
-    line-height: 36px;
-  }
-  .weekday-section {
-    margin-top: 14px;
-  }
-  .weekday-scroll {
-    height: 48px;
-    padding-top: 0;
-  }
-  .weekday-text {
-    font-size: 24px;
-    line-height: 44px;
-  }
-  .cancel-btn {
-    height: 48px;
-    line-height: 48px;
-    font-size: 26px;
-    margin-right: 12px;
-  }
-  .save-btn {
-    height: 48px;
-    line-height: 48px;
-    font-size: 26px;
-  }
+  .page { padding: 40px 20px 20px 20px; }
+  .section-title { font-size: 30px; line-height: 40px; margin-bottom: 10px; }
+  .course-scroll { height: 64px; }
+  .course-item { width: 120px; height: 64px; margin-right: 10px; }
+  .course-name { font-size: 30px; line-height: 40px; }
+  .time-card { padding: 14px; margin-bottom: 14px; }
+  .time-head { font-size: 30px; line-height: 40px; }
+  .time-col { width: 150px; }
+  .step-pair { width: 150px; }
+  .time-val { font-size: 30px; line-height: 40px; }
+  .step-btn { width: 56px; height: 52px; line-height: 52px; font-size: 30px; }
+  .input-box { height: 56px; }
+  .input-text { font-size: 30px; line-height: 40px; }
+  .input-placeholder { font-size: 30px; line-height: 40px; }
+  .weekday-btn { width: 56px; height: 56px; }
+  .weekday-scroll { height: 56px; }
+  .weekday-text { font-size: 30px; line-height: 40px; }
+  .tip-text { font-size: 30px; line-height: 40px; }
+  .tip-row { height: 40px; }
+  .cancel-btn { width: 140px; height: 56px; line-height: 56px; font-size: 30px; }
+  .save-btn { height: 56px; line-height: 56px; font-size: 30px; }
 }
 </style>
