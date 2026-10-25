@@ -5,8 +5,8 @@
 
 > 本篇为组级文档，覆盖 `watch-face` 及全部 16 个 `watch-face-*` 变体。EvEmuPreview 角标显示的「表盘·总览（组级）」即来源于此，不代表每个变体都有独立文档。
 >
-> **已有专属主文档的变体**（角标精确命中，不走组级回退）：`watch-face-gradient`（2026-10-25 起，见 `watch-face-gradient.md`）。
-> 逐步补齐中：彩色、背景表盘随后。
+> **已有专属主文档的变体**（角标精确命中，不走组级回退）：`watch-face-gradient`、`watch-face-colorful`、`watch-face-background`（均 2026-10-25 起，见同名 `.md`）。
+> 其余变体仍走本组级文档。
 
 ## 功能说明
 
@@ -29,7 +29,7 @@
 | `watch-face-random` | 表盘·随机 | 每次亮屏随机样式 |
 | `watch-face-evpointer` | 表盘·指针 | 指针式表盘叠加课程 |
 | `watch-face-font` | 表盘·字体 | 字号/字重变体 |
-| `watch-face-background` | 表盘·背景 | 6 套整页底色可切换，**不支持自定义图片** |
+| `watch-face-background` | 表盘·背景 | 场景氛围：天空 17 段色带 + 7px 地平线 + 平涂地面 + 天体圆盘，8 套场景可切换，**不支持自定义图片** |
 | `watch-face-functional` | 表盘·功能 | 带快捷操作入口 |
 | `watch-face-landscape` | 表盘·横屏 | 横屏布局（适配特定表型） |
 | `watch-face-pickdate` | 表盘·日期 | 强调日期/星期 |

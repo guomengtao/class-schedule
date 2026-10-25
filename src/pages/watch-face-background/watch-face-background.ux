@@ -1,39 +1,147 @@
 <template>
   <!--
-    背景表盘 ⑤ · 背景色多种多样可切换
-    骨架完全照经典表盘 watch-face.ux（已验证不黑屏）：
-      · .page flex 居中；文字/按钮正常流；面板用 absolute overlay
-      · 「背景」按钮 → 弹出背景面板（6 套背景，每项用自身底色预览），storage 持久化
-      · 「返回」按钮 + 点击空白处返回
-    本表盘差异：整页背景色 + 文字色由所选背景决定。
-  -->
-  <div class="page" style="background-color: {{ bgColor }}" onclick="onTap">
-    <text class="clock" style="color: {{ fgColor }}">{{ timeText }}</text>
-    <text class="btn-color" onclick="openPanel">背景</text>
-    <text class="back" onclick="goBack">返回</text>
+    背景表盘 ⑤ · 场景氛围
+    ─────────────────────────────────────────────────────────
+    母题分工（与渐变/彩色表盘刻意错开，避免三个表盘长一个样）：
+      渐变 = 色彩流动（全屏连续色带 + 秒进度条）
+      彩色 = 色块构成（硬边界色块 + 离散 5 段秒格）
+      背景 = 场景氛围（天地分层 + 地平线辉光 + 天体圆盘）
 
-    <!-- 背景选择面板 -->
+    这一版不是「加宽屏分支」，是重做：
+      ① 背景 24 段分层：天空 15 段（上深下亮过渡）+ 地平线 1 段辉光 + 地面 8 段
+         （Vela 不支持 linear-gradient，探针结论见 watch-face-gradient 文档 §1，故用色带法）
+      ② 天体圆盘：每套场景一个天体（月/日），位置由 discT/discL 两个比例决定
+      ③ 内容三层：场景名 / 主时间 / 日期 + 操作行，192 与 336 走同一骨架
+      ④ 面板 8 套场景双列色票：每格用「天空块 + 地面条」还原该场景，不是纯色方块
+    192×490 与 336×480 仅字号与尺寸两套常量。
+  -->
+  <div class="page" style="background-color: {{ floorColor }}" onclick="onTap">
+    <!-- ===== 场景背景：24 段 × 21px = 504px ≥ 两屏屏高（490/480），末段溢出被裁 =====
+         onclick 挂在这一层：满屏绝对定位层会吞掉下层点击，不挂就点不回去了 -->
+    <div class="bg" onclick="onTap">
+      <div for="{{ skyBands }}" class="band" style="background-color: {{ $item }}"></div>
+      <div class="horizon" style="background-color: {{ horizonColor }}"></div>
+      <div class="floor" style="background-color: {{ floorColor }}"></div>
+    </div>
+
+    <!-- 天体：圆盘直径 discD，圆角 discR = discD/2（显式 px 而非 50%，规避 Vela 百分比圆角风险） -->
+    <div
+      class="disc"
+      if="{{ discOn }}"
+      onclick="onTap"
+      style="width: {{ discD }}px; height: {{ discD }}px; border-radius: {{ discR }}px; left: {{ discX }}px; top: {{ discY }}px; background-color: {{ discColor }}"></div>
+
+    <!-- ===== 192×490（手环 9）=====
+         ev-six：可读文字 24px 为绝对下限（旧版 22px 不合规，这次统一抬到 24）。
+         主时间 60px 属表盘图形本体，不套四档。 -->
+    <div if="{{ !wide }}" class="stack s-stack">
+      <text class="s-scene" style="color: {{ accentColor }}">{{ sceneName }}</text>
+      <div class="s-clock">
+        <text class="s-digit" style="color: {{ fgColor }}">{{ d0 }}</text>
+        <text class="s-digit" style="color: {{ fgColor }}">{{ d1 }}</text>
+        <text class="s-colon" style="color: {{ fgColor }}">:</text>
+        <text class="s-digit" style="color: {{ fgColor }}">{{ d2 }}</text>
+        <text class="s-digit" style="color: {{ fgColor }}">{{ d3 }}</text>
+      </div>
+      <text class="s-date" style="color: {{ dimColor }}">{{ dateText }}</text>
+      <div class="s-acts">
+        <text class="s-act" style="color: {{ accentColor }}" onclick="openPanel">场景</text>
+        <div class="s-div"></div>
+        <text class="s-act2" onclick="goBack">返回</text>
+      </div>
+    </div>
+
+    <!-- ===== 336×480（手环 10Pro）：主时间 104px =====
+         104 沿用 landscape 最坏字宽反算：4×0.6×104 + 0.35×96 + 6×4 ≈ 308 ≤ 316（336 减两侧各 10）。
+         116 会到 343 直接溢出，故不取更满。
+         宽屏把「场景名 · 日期」合并成一行：192 屏两行放得下（24px 时合计 199px 会超宽，必须分行），
+         宽屏合并后省下 44px 纵向空间，正好腾给上方天体。 -->
+    <div if="{{ wide }}" class="stack w-stack">
+      <div class="w-head">
+        <text class="w-scene" style="color: {{ accentColor }}">{{ sceneName }}</text>
+        <text class="w-sep">·</text>
+        <text class="w-date" style="color: {{ dimColor }}">{{ dateText }}</text>
+      </div>
+      <div class="w-clock">
+        <text class="w-digit" style="color: {{ fgColor }}">{{ d0 }}</text>
+        <text class="w-digit" style="color: {{ fgColor }}">{{ d1 }}</text>
+        <text class="w-colon" style="color: {{ fgColor }}">:</text>
+        <text class="w-digit" style="color: {{ fgColor }}">{{ d2 }}</text>
+        <text class="w-digit" style="color: {{ fgColor }}">{{ d3 }}</text>
+      </div>
+      <div class="w-acts">
+        <text class="w-act" style="color: {{ accentColor }}" onclick="openPanel">场景</text>
+        <div class="w-div"></div>
+        <text class="w-act2" onclick="goBack">返回</text>
+      </div>
+    </div>
+
+    <!-- ===== 场景选择面板：8 套双列色票（两屏共用一份，宽度/格子尺寸动态）=====
+         每格 = 天空块（承载场景名）+ 地面条，一眼看出这套底色长什么样 -->
     <div class="mask" if="{{ showPanel }}" onclick="closePanel">
-      <div class="panel">
-        <text class="p-title">背景</text>
-        <div class="opt" style="background-color: {{ b0bg }}" onclick="pick(0)">
-          <text class="opt-t" style="color: {{ b0fg }}">午夜蓝</text>
+      <div class="panel" style="width: {{ panelW }}px">
+        <text class="p-title">场景</text>
+
+        <div class="p-row">
+          <div class="opt" style="width: {{ itemW }}px; height: {{ itemH }}px" onclick="pick(0)">
+            <div class="opt-sky" style="height: {{ skyH }}px; background-color: {{ b0sky }}">
+              <text class="opt-t" style="color: {{ b0fg }}">午夜蓝</text>
+            </div>
+            <div class="opt-fl" style="height: {{ flH }}px; background-color: {{ b0fl }}"></div>
+          </div>
+          <div class="opt opt2" style="width: {{ itemW }}px; height: {{ itemH }}px" onclick="pick(1)">
+            <div class="opt-sky" style="height: {{ skyH }}px; background-color: {{ b1sky }}">
+              <text class="opt-t" style="color: {{ b1fg }}">松林绿</text>
+            </div>
+            <div class="opt-fl" style="height: {{ flH }}px; background-color: {{ b1fl }}"></div>
+          </div>
         </div>
-        <div class="opt" style="background-color: {{ b1bg }}" onclick="pick(1)">
-          <text class="opt-t" style="color: {{ b1fg }}">松林绿</text>
+
+        <div class="p-row">
+          <div class="opt" style="width: {{ itemW }}px; height: {{ itemH }}px" onclick="pick(2)">
+            <div class="opt-sky" style="height: {{ skyH }}px; background-color: {{ b2sky }}">
+              <text class="opt-t" style="color: {{ b2fg }}">暖阳</text>
+            </div>
+            <div class="opt-fl" style="height: {{ flH }}px; background-color: {{ b2fl }}"></div>
+          </div>
+          <div class="opt opt2" style="width: {{ itemW }}px; height: {{ itemH }}px" onclick="pick(3)">
+            <div class="opt-sky" style="height: {{ skyH }}px; background-color: {{ b3sky }}">
+              <text class="opt-t" style="color: {{ b3fg }}">玫红</text>
+            </div>
+            <div class="opt-fl" style="height: {{ flH }}px; background-color: {{ b3fl }}"></div>
+          </div>
         </div>
-        <div class="opt" style="background-color: {{ b2bg }}" onclick="pick(2)">
-          <text class="opt-t" style="color: {{ b2fg }}">暖阳</text>
+
+        <div class="p-row">
+          <div class="opt" style="width: {{ itemW }}px; height: {{ itemH }}px" onclick="pick(4)">
+            <div class="opt-sky" style="height: {{ skyH }}px; background-color: {{ b4sky }}">
+              <text class="opt-t" style="color: {{ b4fg }}">静谧紫</text>
+            </div>
+            <div class="opt-fl" style="height: {{ flH }}px; background-color: {{ b4fl }}"></div>
+          </div>
+          <div class="opt opt2" style="width: {{ itemW }}px; height: {{ itemH }}px" onclick="pick(5)">
+            <div class="opt-sky" style="height: {{ skyH }}px; background-color: {{ b5sky }}">
+              <text class="opt-t" style="color: {{ b5fg }}">纯黑</text>
+            </div>
+            <div class="opt-fl" style="height: {{ flH }}px; background-color: {{ b5fl }}"></div>
+          </div>
         </div>
-        <div class="opt" style="background-color: {{ b3bg }}" onclick="pick(3)">
-          <text class="opt-t" style="color: {{ b3fg }}">玫红</text>
+
+        <div class="p-row">
+          <div class="opt" style="width: {{ itemW }}px; height: {{ itemH }}px" onclick="pick(6)">
+            <div class="opt-sky" style="height: {{ skyH }}px; background-color: {{ b6sky }}">
+              <text class="opt-t" style="color: {{ b6fg }}">薄雾</text>
+            </div>
+            <div class="opt-fl" style="height: {{ flH }}px; background-color: {{ b6fl }}"></div>
+          </div>
+          <div class="opt opt2" style="width: {{ itemW }}px; height: {{ itemH }}px" onclick="pick(7)">
+            <div class="opt-sky" style="height: {{ skyH }}px; background-color: {{ b7sky }}">
+              <text class="opt-t" style="color: {{ b7fg }}">深海</text>
+            </div>
+            <div class="opt-fl" style="height: {{ flH }}px; background-color: {{ b7fl }}"></div>
+          </div>
         </div>
-        <div class="opt" style="background-color: {{ b4bg }}" onclick="pick(4)">
-          <text class="opt-t" style="color: {{ b4fg }}">静谧紫</text>
-        </div>
-        <div class="opt" style="background-color: {{ b5bg }}" onclick="pick(5)">
-          <text class="opt-t" style="color: {{ b5fg }}">纯黑</text>
-        </div>
+
         <text class="p-cancel" onclick="closePanel">取消</text>
       </div>
     </div>
@@ -42,40 +150,170 @@
 
 <script>
 import router from "@system.router"
+import device from "@system.device"
 
 const storage = require("@system.storage")
 
 const LIST_PAGE = "/pages/watch-face-list"
 const BG_KEY = "wf_background_index"
+const DAY = ["日", "一", "二", "三", "四", "五", "六"]
 
-/* 6 套背景：bg = 整页底色，fg = 文字色 */
-const BGS = [
-  { name: "午夜蓝", bg: "#1a1a2e", fg: "#e8e4da" },
-  { name: "松林绿", bg: "#12341f", fg: "#d6f5e3" },
-  { name: "暖阳", bg: "#3a2410", fg: "#ffe0b3" },
-  { name: "玫红", bg: "#3a1030", fg: "#ffd6f0" },
-  { name: "静谧紫", bg: "#241b3a", fg: "#e6d9ff" },
-  { name: "纯黑", bg: "#000000", fg: "#ffffff" }
+/* 场景分段常量：天空 17 段 + 地平线 1 段 + 地面 6 段 = 24 段，每段 21px
+   24 × 21 = 504 ≥ 两屏屏高（490 / 480），末段溢出的部分被页面裁掉，
+   这样一套常量同时覆盖两个分辨率，不用按屏高算段数。
+
+   为什么天空要 17 段（357px）：地平线必须落在全部内容之下。192 内容底 ~350、
+   宽屏内容底 ~344，357 是能同时满足两者的最小天空高度（首版 15 段 = 315，
+   地平线辉光正好压在「场景│返回」按钮上，实机截图一眼看出问题）。 */
+const SKY_N = 17
+const BAND_H = 21
+
+/* 8 套场景。字段含义：
+   sky   [顶部色, 天空底部色]  —— 15 段在这两色间插值
+   floor [近处色, 远处色]      —— 8 段插值
+   fg    主文字色（时间）      dim 次要文字（日期）      accent 场景名/按钮/地平线辉光
+   disc  天体色；discOn=false 时不画（纯黑场景）
+   discT 天体在天空区内的纵向位置 0~1（越大越靠近地平线）；discL 横向位置 0~1 */
+const SCENES = [
+  { name: "午夜蓝", sky: ["#1e2749", "#131a33"], floor: ["#0c1020", "#070a15"],
+    fg: "#e9edf8", dim: "#9aa6c2", accent: "#7aa7ff",
+    discOn: true, disc: "#dfe7ff", discT: 0.20, discL: 0.70 },
+  { name: "松林绿", sky: ["#1d4d31", "#123523"], floor: ["#0a1a12", "#060f0a"],
+    fg: "#ddf6e8", dim: "#93c2a8", accent: "#5fd39a",
+    discOn: true, disc: "#c9ffe6", discT: 0.18, discL: 0.26 },
+  { name: "暖阳", sky: ["#3a2410", "#6d3a14"], floor: ["#2a1609", "#160b05"],
+    fg: "#ffe4bd", dim: "#d0a678", accent: "#ffb35c",
+    discOn: true, disc: "#ffd88a", discT: 0.62, discL: 0.44 },
+  { name: "玫红", sky: ["#4a1440", "#6b1b51"], floor: ["#2a0a22", "#150511"],
+    fg: "#ffd9f2", dim: "#d79cc0", accent: "#ff6fc0",
+    discOn: true, disc: "#ffd0ee", discT: 0.30, discL: 0.74 },
+  { name: "静谧紫", sky: ["#2a1f4d", "#1a1333"], floor: ["#110c22", "#090714"],
+    fg: "#eadfff", dim: "#b3a4d6", accent: "#a98cff",
+    discOn: true, disc: "#e2d6ff", discT: 0.22, discL: 0.30 },
+  { name: "纯黑", sky: ["#0a0a0a", "#050505"], floor: ["#000000", "#000000"],
+    fg: "#ffffff", dim: "#8a8a8a", accent: "#cfcfcf",
+    discOn: false, disc: "#ffffff", discT: 0.22, discL: 0.70 },
+  { name: "薄雾", sky: ["#3a444f", "#222932"], floor: ["#171d24", "#0d1116"],
+    fg: "#e6eef6", dim: "#a9b6c4", accent: "#9fc0d8",
+    discOn: true, disc: "#eef4fb", discT: 0.26, discL: 0.66 },
+  { name: "深海", sky: ["#0e3b4a", "#08232d"], floor: ["#041419", "#020a0d"],
+    fg: "#d6f4ff", dim: "#87bccd", accent: "#3fd4e8",
+    discOn: true, disc: "#bdf2ff", discT: 0.24, discL: 0.72 }
 ]
+
+function pad2(n) {
+  return n < 10 ? ("0" + n) : ("" + n)
+}
+
+function h2r(h) {
+  return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]
+}
+
+function c2(n) {
+  const v = Math.max(0, Math.min(255, Math.round(n)))
+  const s = v.toString(16)
+  return s.length < 2 ? ("0" + s) : s
+}
+
+/* k=0 取 a，k=1 取 b */
+function mixHex(a, b, k) {
+  if (k <= 0) return a
+  if (k >= 1) return b
+  const A = h2r(a)
+  const B = h2r(b)
+  return "#" + c2(A[0] + (B[0] - A[0]) * k) + c2(A[1] + (B[1] - A[1]) * k) + c2(A[2] + (B[2] - A[2]) * k)
+}
 
 export default {
   data: {
-    timeText: "--:--",
-    bgColor: "#1a1a2e",
-    fgColor: "#e8e4da",
-    b0bg: "#1a1a2e", b0fg: "#e8e4da",
-    b1bg: "#12341f", b1fg: "#d6f5e3",
-    b2bg: "#3a2410", b2fg: "#ffe0b3",
-    b3bg: "#3a1030", b3fg: "#ffd6f0",
-    b4bg: "#241b3a", b4fg: "#e6d9ff",
-    b5bg: "#000000", b5fg: "#ffffff",
+    d0: "0", d1: "0", d2: "0", d3: "0",
+    dateText: "--",
+    sceneName: "午夜蓝",
+    fgColor: "#e9edf8",
+    dimColor: "#9aa6c2",
+    accentColor: "#7aa7ff",
+    /* 背景三层：天空段 / 地平线色 / 地面段（onInit 里 applyScene 立即填真值，
+       这里留空数组占位，防首帧 undefined） */
+    skyBands: [],
+    horizonColor: "#435c90",
+    floorColor: "#080b16",
+    /* 天体 */
+    discOn: true,
+    discColor: "#dfe7ff",
+    discD: 64,
+    discR: 32,
+    discX: 88,
+    discY: 50,
+    /* 面板色票：bNsky = 天空块色，bNfl = 地面条色，bNfg = 场景名色 */
+    b0sky: "#1e2749", b0fl: "#0c1020", b0fg: "#e9edf8",
+    b1sky: "#1d4d31", b1fl: "#0a1a12", b1fg: "#ddf6e8",
+    b2sky: "#3a2410", b2fl: "#2a1609", b2fg: "#ffe4bd",
+    b3sky: "#4a1440", b3fl: "#2a0a22", b3fg: "#ffd9f2",
+    b4sky: "#2a1f4d", b4fl: "#110c22", b4fg: "#eadfff",
+    b5sky: "#0a0a0a", b5fl: "#000000", b5fg: "#ffffff",
+    b6sky: "#3a444f", b6fl: "#171d24", b6fg: "#e6eef6",
+    b7sky: "#0e3b4a", b7fl: "#041419", b7fg: "#d6f4ff",
+    /* 面板尺寸（layout 里按屏宽填） */
+    panelW: 176,
+    itemW: 82,
+    itemH: 40,
+    skyH: 30,
+    flH: 10,
+    wide: false,
     showPanel: false,
     suppressTap: false
   },
 
   onInit() {
-    this.loadBg()
+    this.idx = 0
+    this.screenW = 192
+    /* 先同步落一套场景再读 storage —— 学 colorful 的教训：storage 回调可能悬空，
+       不先给真值首帧背景就是空的 */
+    this.layout()
+    this.applyScene(0)
+    this.fitScreen()
+    this.loadScene()
     this.tick()
+  },
+
+  /* 屏宽 ≥300 → 宽屏版式。读不到按 192 渲染，绝不白屏。 */
+  fitScreen() {
+    const self = this
+    try {
+      device.getInfo({
+        success: function(d) {
+          if (d && d.screenWidth) {
+            self.screenW = d.screenWidth
+          }
+          if (d && d.screenWidth >= 300) {
+            self.wide = true
+            self.layout()
+            self.applyScene(self.idx)   // 重算天体位置与色票尺寸
+            self.tick()
+          } else {
+            self.applyScene(self.idx)
+          }
+        },
+        fail: function() {}
+      })
+    } catch (e) {}
+  },
+
+  /* 两套尺寸常量集中在一处，避免散落在模板里 */
+  layout() {
+    if (this.wide) {
+      this.panelW = 284
+      this.itemW = 130
+      this.itemH = 52
+      this.skyH = 38
+      this.flH = 14
+    } else {
+      this.panelW = 176
+      this.itemW = 82
+      this.itemH = 40
+      this.skyH = 30
+      this.flH = 10
+    }
   },
 
   onReady() {
@@ -94,7 +332,7 @@ export default {
     this.stop()
   },
 
-  /* ── 时间：1s 心跳，只在分钟变化时写文本 ── */
+  /* 时间：1s 心跳，只在分钟/日期变化时写文本 */
   refresh() {
     this.stop()
     this.tick()
@@ -112,23 +350,72 @@ export default {
   },
 
   tick() {
-    const now = new Date()
-    const t = this.pad(now.getHours()) + ":" + this.pad(now.getMinutes())
-    if (t !== this.timeText) this.timeText = t
+    const n = new Date()
+    const hh = pad2(n.getHours())
+    const mm = pad2(n.getMinutes())
+    if (hh[0] !== this.d0) this.d0 = hh[0]
+    if (hh[1] !== this.d1) this.d1 = hh[1]
+    if (mm[0] !== this.d2) this.d2 = mm[0]
+    if (mm[1] !== this.d3) this.d3 = mm[1]
+
+    const dt = pad2(n.getMonth() + 1) + "-" + pad2(n.getDate()) + " 周" + DAY[n.getDay()]
+    if (dt !== this.dateText) this.dateText = dt
   },
 
-  pad(n) {
-    return n < 10 ? "0" + n : "" + n
+  /* ── 场景渲染 ──
+     24 段一次性整数组替换：for 渲染整段重建，比逐段赋值省代码也不漏项。
+     天空 15 段每步色差 ≈ (sky[1]-sky[0])/14，各场景差值 ≤30 RGB，每步 <3，看不出分界；
+     地平线单独一段用「天空底 55% + accent 45%」做辉光，是这套母题的识别特征。 */
+  setBands(s) {
+    const sky = []
+    let i
+    for (i = 0; i < SKY_N; i++) {
+      sky.push(mixHex(s.sky[0], s.sky[1], i / (SKY_N - 1)))
+    }
+    /* 地平线与地面都不从「天空色」推算，改从「地面色 + accent」推算：
+       这样地平线是「地面受光的边缘」而不是「天上一条亮带」—— 首版从天空色推，
+       实机看像给按钮行加了下划线（UI 分隔条），不像地平线。
+       地面首段再抬 14% accent，比天空底略亮，读作被月光照到的地，不是黑洞。 */
+    const fTop = mixHex(s.floor[0], s.accent, 0.14)
+    this.skyBands = sky
+    this.horizonColor = mixHex(fTop, s.accent, 0.40)
+    /* 地面平涂单色：试过 6 段渐变，屏是 RGB565（5/6/5），每段一个可见台阶 →
+       实机像给下半屏糊了几道横条。远处地面本来就是一块暗色，平涂反而更像地。
+       色值不用 floor 本身（那比天空底还暗，底部 1/4 成了黑洞），改掺 12% accent：
+       比天空底亮一档，读作被月光照到的地，底部不再空。 */
+    this.floorColor = mixHex(s.floor[0], s.accent, 0.12)
   },
 
-  /* ── 背景持久化 ── */
-  applyBg(i) {
-    const b = BGS[i] || BGS[0]
-    this.bgColor = b.bg
-    this.fgColor = b.fg
+  /* 天体位置：只在「上方安全区」内摆，安全区下沿必须高于场景名/日期行，
+     否则圆盘会压到文字上（实测坑：宽屏内容顶 ~96，圆盘 96px 若按天空区比例算会压住标题）。
+     各场景靠 discL 做横向区分，discT 只在这块窄区间里微调纵向层次。 */
+  placeDisc(s) {
+    const wide = this.wide
+    const d = wide ? 64 : 64
+    const top = wide ? 6 : 12      // 安全区上沿
+    const span = wide ? 4 : 24     // 安全区纵向可动范围
+    this.discD = d
+    this.discR = d / 2
+    const t = (s.discT === undefined) ? 0.22 : s.discT
+    const l = (s.discL === undefined) ? 0.70 : s.discL
+    this.discY = Math.round(top + t * span)
+    this.discX = Math.round((this.screenW - d) * l)
   },
 
-  loadBg() {
+  applyScene(i) {
+    const s = SCENES[i] || SCENES[0]
+    this.idx = i
+    this.sceneName = s.name
+    this.fgColor = s.fg
+    this.dimColor = s.dim
+    this.accentColor = s.accent
+    this.discOn = !!s.discOn
+    this.discColor = s.disc
+    this.setBands(s)
+    this.placeDisc(s)
+  },
+
+  loadScene() {
     const self = this
     try {
       storage.get({
@@ -139,18 +426,18 @@ export default {
             i = parseInt(res.value, 10)
             if (isNaN(i)) i = 0
           }
-          self.applyBg(i)
+          self.applyScene(i)
         },
         fail: function() {
-          self.applyBg(0)
+          self.applyScene(0)
         }
       })
     } catch (e) {
-      this.applyBg(0)
+      this.applyScene(0)
     }
   },
 
-  saveBg(i) {
+  saveScene(i) {
     try {
       storage.set({ key: BG_KEY, value: String(i) })
     } catch (e) {}
@@ -171,8 +458,8 @@ export default {
   },
 
   pick(i) {
-    this.applyBg(i)
-    this.saveBg(i)
+    this.applyScene(i)
+    this.saveScene(i)
     this.closePanel()
   },
 
@@ -189,7 +476,57 @@ export default {
 </script>
 
 <style>
+  /* 底色取午夜蓝天空底，bands 首帧为空时不至于白屏 */
   .page {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: #131a33;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* ===== 场景背景：24 段纵向堆叠 =====
+     必须显式 flex-direction: column —— Vela 的 div 默认 row，
+     不写会把 24 段横排挤成顶部一条（渐变表盘首版实测踩到，此处提前规避）。 */
+  .bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+  }
+
+  .band {
+    width: 100%;
+    height: 21px;
+  }
+
+  /* 地平线：7px 细线。天空 17×21 = 357，地平线 357–364，地面接在下面 */
+  .horizon {
+    width: 100%;
+    height: 7px;
+  }
+
+  /* 地面 116px 平涂：357 + 7 + 116 = 480 —— 必须精确等于宽屏屏高。
+     ⚠️ 不能让总高超过屏高靠「溢出被裁」收尾：Vela 的 .bg 是 flex column，
+        子项总高 524 > 屏高 480 时会按比例 flex-shrink 压缩（实测 0.916），
+        每段 21px 被压成 19.2px，地平线位置随屏高漂移 —— 宽屏上地平线正好切在按钮中间。
+     192 屏（490）少覆盖的 10px 由 .page 底色补齐，页码底色已绑定 floorColor，无缝。 */
+  .floor {
+    width: 100%;
+    height: 116px;
+  }
+
+  /* 天体：绝对定位，圆角由 discR 绑定（显式 px） */
+  .disc {
+    position: absolute;
+  }
+
+  /* ===== 两屏共用骨架 ===== */
+  .stack {
     width: 100%;
     height: 100%;
     flex-direction: column;
@@ -197,68 +534,214 @@ export default {
     align-items: center;
   }
 
-  .clock {
-    font-size: 64px;
+  /* ===== 192×490 =====
+     底部留 56px 让内容整体上移：30px 时按钮距地平线仅 12px，实机看着像给按钮加了下划线。 */
+  .s-stack {
+    padding-bottom: 56px;
+  }
+  .s-scene {
+    font-size: 24px;
+    line-height: 28px;
+    letter-spacing: 3px;
+  }
+
+  .s-clock {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 18px;
+  }
+
+  .s-digit {
+    font-size: 60px;
+    line-height: 68px;
     font-weight: bold;
-    letter-spacing: 2px;
   }
 
-  .btn-color {
-    margin-top: 36px;
-    font-size: 22px;
-    color: #7ec8e3;
+  .s-colon {
+    font-size: 54px;
+    line-height: 68px;
+    font-weight: bold;
+    margin: 0 2px;
   }
 
-  .back {
-    margin-top: 14px;
-    font-size: 22px;
-    color: #888899;
+  .s-date {
+    font-size: 24px;
+    line-height: 28px;
+    letter-spacing: 1px;
+    margin-top: 10px;
   }
 
-  /* ── 背景面板 ── */
+  .s-acts {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 38px;
+  }
+
+  .s-act {
+    font-size: 24px;
+    line-height: 28px;
+  }
+
+  .s-act2 {
+    font-size: 24px;
+    line-height: 28px;
+    color: #8a90a0;
+  }
+
+  /* 分隔靠排版（1px 竖线），不用「|」「/」等符号 —— ev-six 第 5 条 */
+  .s-div {
+    width: 1px;
+    height: 20px;
+    margin: 0 18px;
+    background-color: rgba(255, 255, 255, 0.22);
+  }
+
+  /* ===== 336×480（10Pro）=====
+     ev-six：宽屏可读文字 24/28 两档；主时间 104px 属图形本体，豁免。 */
+  /* 宽屏 stack 底部留 30px：内容整体上移，上方给天体腾安全区、下方与地平线拉开 */
+  .w-stack {
+    padding-bottom: 30px;
+  }
+
+  /* 场景名 · 日期 合并成一行 */
+  .w-head {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .w-scene {
+    font-size: 28px;
+    line-height: 32px;
+    letter-spacing: 5px;
+  }
+
+  .w-sep {
+    font-size: 28px;
+    line-height: 32px;
+    color: #6f7c95;
+    margin: 0 12px;
+  }
+
+  .w-clock {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+  }
+
+  .w-digit {
+    font-size: 104px;
+    line-height: 116px;
+    font-weight: bold;
+  }
+
+  .w-colon {
+    font-size: 96px;
+    line-height: 116px;
+    font-weight: bold;
+    margin: 0 6px;
+  }
+
+  .w-date {
+    font-size: 28px;
+    line-height: 32px;
+    letter-spacing: 1px;
+  }
+
+  .w-acts {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 44px;
+  }
+
+  .w-act {
+    font-size: 28px;
+    line-height: 32px;
+  }
+
+  .w-act2 {
+    font-size: 28px;
+    line-height: 32px;
+    color: #8a90a0;
+  }
+
+  .w-div {
+    width: 1px;
+    height: 24px;
+    margin: 0 22px;
+    background-color: rgba(255, 255, 255, 0.22);
+  }
+
+  /* ===== 场景面板（两屏共用）===== */
   .mask {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.62);
     justify-content: center;
     align-items: center;
   }
 
   .panel {
-    width: 260px;
     flex-direction: column;
     align-items: center;
-    background-color: #16213e;
-    border-radius: 12px;
-    padding: 16px 12px 12px 12px;
+    background-color: #15141f;
+    border-radius: 14px;
+    padding: 14px 0 10px 0;
   }
 
   .p-title {
-    font-size: 22px;
+    font-size: 24px;
+    line-height: 28px;
     color: #ffffff;
+    margin-bottom: 10px;
+  }
+
+  /* 每行两格：第二格靠 margin-left 拉开，不用 gap（Vela 无 gap） */
+  .p-row {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
     margin-bottom: 8px;
   }
 
-  /* 每个背景项：用自身底色做预览 */
   .opt {
-    width: 100%;
-    height: 44px;
-    margin-bottom: 6px;
+    flex-direction: column;
     border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .opt2 {
+    margin-left: 8px;
+  }
+
+  /* 天空块承载场景名：本身就是这套底色的预览 */
+  .opt-sky {
+    width: 100%;
+    flex-direction: row;
     justify-content: center;
     align-items: center;
   }
 
   .opt-t {
     font-size: 24px;
+    line-height: 24px;
+  }
+
+  .opt-fl {
+    width: 100%;
   }
 
   .p-cancel {
     margin-top: 4px;
-    font-size: 22px;
+    font-size: 24px;
+    line-height: 28px;
     color: #888899;
   }
 </style>
