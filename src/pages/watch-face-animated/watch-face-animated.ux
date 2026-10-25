@@ -17,11 +17,11 @@
 <template>
   <div class="page" onclick="onTap">
 
-    <text class="brand">EV</text>
+    <text class="brand {{ brandCls }}">EV</text>
 
     <!-- L3 呼吸光晕：外圈暗环 + 内圈底色挖空 = 10px 光带 -->
-    <div class="halo"></div>
-    <div class="haloIn"></div>
+    <div class="halo {{ haloCls }}"></div>
+    <div class="haloIn {{ haloInCls }}"></div>
 
     <!-- L1 秒环：60 格静态刻度（5 的倍数加亮） -->
     <div class="dot {{ $item.c }}" for="{{ dots }}" style="left: {{ $item.l }}px; top: {{ $item.t }}px"></div>
@@ -32,20 +32,21 @@
     <div class="cur" style="left: {{ curL }}px; top: {{ curT }}px"></div>
 
     <!-- 环心：秒数 -->
-    <text class="sec">{{ secText }}</text>
-    <text class="seclab">SEC</text>
+    <text class="sec {{ secCls }}">{{ secText }}</text>
+    <text class="seclab {{ seclabCls }}">SEC</text>
 
-    <!-- L2 时间大字：HH 整行静态；MM 十位静态 + 个位数字带上滚 -->
-    <text class="dg" style="top: 186px">{{ timeH }}</text>
-    <text class="mmTen">{{ mmTen }}</text>
-    <div class="mmWin">
+    <!-- L2 时间大字：HH 整行静态；MM 十位静态 + 个位数字带上滚
+         注意：dg 的 top 必须走绑定，内联 style 优先级高于 class，写死会让宽屏类失效 -->
+    <text class="dg {{ dgCls }}" style="top: {{ dgTop }}px">{{ timeH }}</text>
+    <text class="mmTen {{ mmTenCls }}">{{ mmTen }}</text>
+    <div class="mmWin {{ mmWinCls }}">
       <div class="mmStrip" style="top: {{ mmTop }}px">
-        <text class="mmDig" for="{{ nums }}">{{ $item }}</text>
+        <text class="mmDig {{ mmDigCls }}" for="{{ nums }}">{{ $item }}</text>
       </div>
     </div>
 
-    <text class="date">{{ dateText }}</text>
-    <text class="hint">轻触返回</text>
+    <text class="date {{ dateCls }}">{{ dateText }}</text>
+    <text class="hint {{ hintCls }}">轻触返回</text>
   </div>
 </template>
 
@@ -54,15 +55,20 @@ import router from "@system.router"
 
 const LIST_PAGE = "/pages/watch-face-list"
 
-/* 秒环几何：圆心 (96,96)、半径 66、6° 一格 —— 与 CSS 里的 .halo 同圆心 */
-const CX = 96
-const CY = 96
-const R = 66
+/* 秒环几何：圆心 (96,96)、半径 66、6° 一格 —— 与 CSS 里的 .halo 同圆心
+   宽屏（336×480）由 fitScreen() 就地改写为 168 / 112 / 80，
+   60 格与三级游标全部随之重算（这三个值是本页唯一的几何来源，改这里就够） */
+let CX = 96
+let CY = 96
+let R = 66
 const DOT = 5      // 普通刻度边长
 const DOT_M = 7    // 5 的倍数刻度边长
 const CUR = 14     // 游标边长
 const TRAIL1 = 12  // 拖尾第 1 级（前 1 秒）
 const TRAIL2 = 10  // 拖尾第 2 级（前 2 秒）
+/* 分钟个位滚动行高：mmTop 的步长必须等于它。
+   改字号时行高一定会变，若步长仍写字面量 100，数字带会滚半格。 */
+let ROW = 100
 const WEEKS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
 
 function round1(v) {
@@ -85,12 +91,63 @@ export default {
     mmTop: 0,
     mmIdx: 0,
     nums: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
-    dateText: "--"
+    dateText: "--",
+
+    /* 宽屏（336×480）类：fitScreen 命中时置为 "w-*"，192 屏保持空串 → 零回归。
+       必须混写 class="原类 {{ xCls }}"，纯动态 class 会丢父类样式。 */
+    brandCls: "",
+    haloCls: "",
+    haloInCls: "",
+    secCls: "",
+    seclabCls: "",
+    dgCls: "",
+    mmTenCls: "",
+    mmWinCls: "",
+    mmDigCls: "",
+    dateCls: "",
+    hintCls: "",
+    dgTop: 186
   },
 
   onInit() {
     this.buildDots()
     this.tick()
+    this.fitScreen()   // 本仓 onReady 可能不触发，屏宽判定必须从 onInit 起
+  },
+
+  /* 宽屏判定：只有 336×480 命中，192×490 静默返回 → 像素零回归。
+     顶部的 import 只有 router，此处 require 的是 device，不同模块，不触发「import/require 互相干扰」。 */
+  fitScreen() {
+    const self = this
+    try {
+      const dev = require("@system.device")
+      dev.getInfo({
+        success: function(d) {
+          const w = d && d.screenWidth ? d.screenWidth : 0
+          if (w < 300) return
+          /* 几何：环外径 168、圆心 (168,112)、半径 80（= 84−4，与基线 70−4 同口径） */
+          CX = 168
+          CY = 112
+          R = 80
+          ROW = 104          // 行高 100 → 104，mmTop 步长随之变化
+          self.dgTop = 196
+          self.brandCls = "w-brand"
+          self.haloCls = "w-halo"
+          self.haloInCls = "w-haloIn"
+          self.secCls = "w-sec"
+          self.seclabCls = "w-seclab"
+          self.dgCls = "w-dg"
+          self.mmTenCls = "w-mmTen"
+          self.mmWinCls = "w-mmWin"
+          self.mmDigCls = "w-mmDig"
+          self.dateCls = "w-date"
+          self.hintCls = "w-hint"
+          self.buildDots()                            // 60 格按新圆心/半径重算
+          self.placeCur(new Date().getSeconds())      // 游标立即归位，不等下一拍
+        },
+        fail: function() {}
+      })
+    } catch (e) {}
   },
 
   onReady() {
@@ -221,7 +278,7 @@ export default {
     const step = function() {
       k++
       self.mmIdx = from + dir * k
-      self.mmTop = -self.mmIdx * 100
+      self.mmTop = -self.mmIdx * ROW   // 步长跟行高联动，不写字面量
       if (k < n) {
         self.rollTimer = setTimeout(step, 60)
       } else {
@@ -407,21 +464,94 @@ export default {
 
   .date {    position: absolute;
     left: 0;
-    top: 404px;
+    top: 400px;
     width: 192px;
     text-align: center;
-    font-size: 14px;
+    font-size: 24px;
     color: #8fa6b5;
   }
 
   .hint {
     position: absolute;
     left: 0;
-    top: 432px;
+    top: 434px;
     width: 192px;
     text-align: center;
-    font-size: 11px;
+    font-size: 24px;
     color: #5a6b78;
+  }
+
+  /* ══ 宽屏 336×480 覆盖块（全部单类，Vela 不支持后代选择器）══
+     只有 fitScreen 命中时才会被挂上；192×490 时这些类不被引用，像素零回归。
+     纵向预算：环 28–196 → HH 196–300 → MM 300–404 → date 406–436 → hint 440–470（底部余 10px） */
+  .w-brand {
+    top: 4px;
+    width: 100%;
+    font-size: 18px;
+  }
+  /* 光带 12px：168/2 − 144/2 = 12，两圆同心于 (168,112) */
+  .w-halo {
+    left: 84px;
+    top: 28px;
+    width: 168px;
+    height: 168px;
+    border-radius: 84px;
+  }
+  .w-haloIn {
+    left: 96px;
+    top: 40px;
+    width: 144px;
+    height: 144px;
+    border-radius: 72px;
+  }
+  /* 秒数中心对齐环心：87 + 50/2 = 112 = CY */
+  .w-sec {
+    top: 87px;
+    width: 100%;
+    font-size: 44px;
+    line-height: 50px;
+  }
+  .w-seclab {
+    top: 141px;
+    width: 100%;
+    font-size: 16px;
+  }
+  /* top 由 dgTop 绑定提供，此处只管字号与行高 */
+  .w-dg {
+    width: 100%;
+    font-size: 100px;
+    line-height: 104px;
+  }
+  /* 分钟两字：各宽 58，110–168、168–226 → 中心 168 */
+  .w-mmTen {
+    left: 110px;
+    top: 300px;
+    width: 58px;
+    font-size: 100px;
+    line-height: 104px;
+  }
+  /* 窗高必须等于行高，否则个位数字被裁上下沿 */
+  .w-mmWin {
+    left: 168px;
+    top: 300px;
+    width: 58px;
+    height: 104px;
+  }
+  .w-mmDig {
+    width: 58px;
+    height: 104px;
+    font-size: 100px;
+    line-height: 104px;
+  }
+  .w-date {
+    top: 406px;
+    width: 100%;
+    font-size: 24px;
+  }
+  .w-hint {
+    top: 440px;
+    width: 100%;
+    font-size: 24px;
   }
 
   /* 全页唯一动画：只动 opacity，纯色无文字节点 → 允许 */
