@@ -53,7 +53,6 @@
 
 <script>
 import router from "@system.router"
-import device from "@system.device"
 
 const LIST_PAGE = "/pages/watch-face-list"
 const WEEK = ["日", "一", "二", "三", "四", "五", "六"]
@@ -87,6 +86,7 @@ export default {
   },
 
   onInit() {
+    this.fitScreen()
     this.tick()
     this.loadStorage()
     this.loadBattery()
@@ -99,10 +99,17 @@ export default {
 
   /* 宽屏探针：手环10Pro 336×480 专用。必须异步回调，同步取会拿到错值。
      192 屏 `w < 300` 直接 return，11 个类全空、battInner 保持 30 = 零回归。 */
+  /* 宽屏探针：手环10Pro 336×480 专用。
+     ① 必须用「页内 require」而非顶部 import —— 本页原本就在 loadStorage 里 require 同一个
+        @system.device，两者并存时顶部 import 出来的绑定取不到，getInfo 调用静默抛错（被 catch 吞掉），
+        表现是宽屏类全空、页面看着完全没适配。
+     ② 必须从 onInit 调起 —— 本页 onReady 不触发（分层探针实测停在 onInit，之后再无进展）。
+     192 屏 `w < 300` 直接 return，11 个类全空、battInner 保持 30 = 零回归。 */
   fitScreen() {
     const self = this
     try {
-      device.getInfo({
+      const dev = require("@system.device")
+      dev.getInfo({
         success: function(d) {
           const w = d && d.screenWidth ? d.screenWidth : 0
           if (w < 300) return
@@ -125,19 +132,6 @@ export default {
         fail: function() {}
       })
     } catch (e) {}
-  },
-
-  onShow() {
-    this.refresh()
-    this.loadStorage()
-  },
-
-  onHide() {
-    this.stop()
-  },
-
-  onDestroy() {
-    this.stop()
   },
 
   refresh() {
@@ -185,7 +179,7 @@ export default {
   loadStorage() {
     const self = this
     try {
-      /* 内部改名 devApi：顶部已 import device，避免同名局部声明 */
+      /* 改名 devApi：与 fitScreen 里的 dev 区分，避免同页两处同名局部 */
       const devApi = require("@system.device")
       devApi.getTotalStorage({
         success: function(t) {
