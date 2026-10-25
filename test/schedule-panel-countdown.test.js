@@ -134,7 +134,7 @@ truthy("无 transform 数据绑定", !/\{\{[^}]*\}\}/.test(STYLE))
 truthy("无 @keyframes（本页不做动画）", !/@keyframes/.test(STYLE))
 truthy("无 <scroll>", !/<scroll/.test(TPL))
 truthy("全页无 setInterval（分钟级，禁秒级轮询）", !/setInterval/.test(CODE))
-eq("大数字基础字号 96px", (/\.c-num \{ font-size: (\d+)px/.exec(STYLE) || [])[1], "96")
+eq("大数字 44px（四档上限，原 96px 越档）", (/\.c-num \{ font-size: (\d+)px/.exec(STYLE) || [])[1], "44")
 
 /* 2. 四态判定 */
 console.log("\n[2] 四态判定")
@@ -142,13 +142,15 @@ var a = makeInst(T("08:30"))
 a.onInit()
 eq("上课中：课名 = 当前课", a.nextClass.name, "语文")
 eq("上课中：大数字 = 距下课 15", a.displayTime, "15")
-eq("上课中：单位 = 分钟后下课", a.countdownLabel, "分钟后下课")
+eq("上课中：语义行 = 距下课", a.countdownLabel, "距下课")
+eq("上课中：单位并排在数字右侧 = 分", a.unitText, "分")
 
 var b = makeInst(T("09:00"))
 b.onInit()
 eq("今天下一节：课名 = 数学", b.nextClass.name, "数学")
 eq("今天下一节：大数字 = 60", b.displayTime, "60")
-eq("今天下一节：单位 = 分钟后上课", b.countdownLabel, "分钟后上课")
+eq("今天下一节：语义行 = 距上课", b.countdownLabel, "距上课")
+eq("今天下一节：单位 = 分", b.unitText, "分")
 
 var c = makeInst(T("05:00"))
 c.onInit()
@@ -159,7 +161,8 @@ var d = makeInst(T("18:34"))
 d.onInit()
 eq("今日结束：切到明日首节（英语）", d.nextClass.name, "英语")
 eq("明日首节：大数字 = 14 小时（18:34→次日 09:00）", d.displayTime, "14")
-eq("明日首节：单位只 4 字（不折行）", d.countdownLabel, "小时后上课")
+eq("明日首节：单位切小时", d.unitText, "小时")
+eq("明日首节：语义行 = 距上课", d.countdownLabel, "距上课")
 eq("明日首节：「明天」单独一行，不带空格", d.dayPrefix, "明天")
 
 var e = makeInst(T("22:10", 21))
@@ -220,6 +223,63 @@ var n1 = makeInst(T("08:30"))
 n1.onInit()
 eq("无 fromPanel → root 态", n1.isRoot, true)
 eq("root 态返回键 → 退出应用", n1.onBackPress(), true)
+
+/* 7. 新增字段（开始时刻 / 地点 / 课名） */
+console.log("\n[7] 新增展示字段")
+eq("开始时刻拼成「08:00 起」（完整区间 13 字符 @24 约 160px 超卡片内宽 152）", a.startLabel, "08:00 起")
+eq("课名进 nameText", a.nameText, "语文")
+eq("地点进 locText", a.locText, "东楼 201")
+var noLoc = makeInst(T("08:30"), { schedule: [{ day: "星期二", classes: [{ name: "语文", time: "08:00 - 09:35" }] }] })
+noLoc.onInit()
+eq("无地点 → locText 为空串（模板 display 隐藏）", noLoc.locText, "")
+
+/* 8. ev-six 硬指标 */
+console.log("\n[8] ev-six 硬指标（字号四档 / 禁字符 / display 绑定 / 高度预算）")
+var sizes = (STYLE.match(/font-size: (\d+)px/g) || []).map(function(v) { return parseInt(v.replace(/\D/g, ""), 10) })
+var TIERS = { 44: 1, 28: 1, 24: 1 }
+truthy("font-size 只出现三档 44/28/24（实见 " + sizes.join(",") + "）", sizes.every(function(v) { return TIERS[v] }))
+truthy("无 12~23px 字号", sizes.every(function(v) { return v < 12 || v > 23 }))
+truthy("模板与脚本均无点号分隔符（红线 4）", !/·/.test(TPL) && !/·/.test(CODE))
+truthy("无「…」与 text-overflow（红线 8）", !/…/u.test(TPL) && !/text-overflow/.test(STYLE) && TPL.indexOf("加载中...") < 0)
+truthy("模板无 if= 条件渲染（事故案例 11）", !/\bif=/.test(TPL))
+truthy("返回键 / 占位改 display 绑定", (TPL.match(/display: \{\{ isRoot \? 'none' : 'flex' \}\}/g) || []).length === 2)
+truthy("加载区与内容区互斥走 display", /display: \{\{ isLoading \? 'flex' : 'none' \}\}/.test(TPL) && /display: \{\{ isLoading \? 'none' : 'flex' \}\}/.test(TPL))
+truthy("空态 / 卡片互斥走 display", /display: \{\{ nextClass \? 'none' : 'flex' \}\}/.test(TPL) && /display: \{\{ nextClass \? 'flex' : 'none' \}\}/.test(TPL))
+truthy("日期行与地点行走 display（不用 if）", /display: \{\{ dayPrefix \? 'flex' : 'none' \}\}/.test(TPL) && /display: \{\{ locText \? 'flex' : 'none' \}\}/.test(TPL))
+truthy("已删装饰分隔线 .c-div（手册禁装饰边框）", TPL.indexOf("c-div") < 0 && STYLE.indexOf(".c-div") < 0)
+
+var padDecl = (/\.page \{ flex-direction: column;[\s\S]*?padding: ([^;]+);/.exec(STYLE) || [])[1] || ""
+var pv = padDecl.split(/\s+/).map(function(x) { return parseInt(x, 10) })
+eq("页面左右 padding 均为 12", [pv[1], pv[3]].join(","), "12,12")
+
+// 字宽口径：全角 1.33em（手册 §4.0 实测）、半角 0.5em、空格 0.3em
+function estW(str, fs) {
+  var w = 0
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charCodeAt(i)
+    w += (c === 32) ? 0.3 * fs : (c > 127 ? 1.33 * fs : 0.5 * fs)
+  }
+  return w
+}
+truthy("头部「倒数」28px = " + Math.round(estW("倒数", 28)) + " ≤108", estW("倒数", 28) <= 108)
+truthy("头部若用 3 字「倒计时」= " + Math.round(estW("倒计时", 28)) + " > 108，会啃边", estW("倒计时", 28) > 108)
+truthy("卡片内 4 字课名 @28 = " + Math.round(estW("自习课上", 28)) + " ≤152", estW("自习课上", 28) <= 152)
+truthy("数字行「99+ 分」= " + Math.round(estW("99+", 44) + 4 + estW("分", 24)) + " ≤152", estW("99+", 44) + 4 + estW("分", 24) <= 152)
+truthy("语义行「距下课」24px = " + Math.round(estW("距下课", 24)) + " ≤152", estW("距下课", 24) <= 152)
+truthy("日期行「星期三」24px = " + Math.round(estW("星期三", 24)) + " ≤152", estW("星期三", 24) <= 152)
+truthy("时刻行「08:00 起」24px = " + Math.round(estW("08:00 起", 24)) + " ≤152", estW("08:00 起", 24) <= 152)
+truthy("地点行「实验室B」24px = " + Math.round(estW("实验室B", 24)) + " ≤152", estW("实验室B", 24) <= 152)
+
+function cssNum(sel, prop) {
+  var re = new RegExp("\\." + sel + " \\{[^}]*?" + prop + ": (\\d+)px")
+  var m = re.exec(STYLE)
+  return m ? parseInt(m[1], 10) : NaN
+}
+var stack = pv[0] + cssNum("header-title", "line-height") + 8
+  + cssNum("c-name", "line-height") + cssNum("c-num", "line-height")
+  + cssNum("c-label", "line-height") + cssNum("c-day", "line-height")
+  + cssNum("c-time", "line-height") + cssNum("c-loc", "line-height") + 24
+truthy("最坏栈高 " + stack + "px ≤440（六行全出仍不进胶囊圆弧）", stack <= 440)
 
 console.log("\n" + (fail === 0 ? "\x1b[32m全部通过\x1b[0m" : "\x1b[31m有失败\x1b[0m") +
             "  \x1b[1m" + pass + "\x1b[0m 通过 / " + fail + " 失败\n")

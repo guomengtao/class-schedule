@@ -1,28 +1,32 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
     <div class="back-header">
-      <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+      <!-- 条件渲染一律 display 绑定（事故案例 11：多兄弟节点 if 会整页白屏） -->
+      <div class="back-btn-wrapper" style="display: {{ isRoot ? 'none' : 'flex' }}; background-color: {{ theme.card }}" onclick="goBack">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">倒计时</text>
-      <div if="{{ !isRoot }}" class="header-placeholder"></div>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">倒数</text>
+      <div class="header-placeholder" style="display: {{ isRoot ? 'none' : 'flex' }}"></div>
     </div>
 
-    <div if="{{ isLoading }}" class="loading-area">
-      <text class="loading-text" style="color: {{ theme.textMuted }}">加载中...</text>
+    <div class="loading-area" style="display: {{ isLoading ? 'flex' : 'none' }}">
+      <text class="loading-text" style="color: {{ theme.textSecondary }}">加载中</text>
     </div>
 
-    <div if="{{ !isLoading }}" class="center-area">
-      <text if="{{ !nextClass }}" class="empty-text" style="color: {{ theme.textSecondary }}">{{ emptyMessage }}</text>
+    <div class="center-area" style="display: {{ isLoading ? 'none' : 'flex' }}">
+      <text class="empty-text" style="display: {{ nextClass ? 'none' : 'flex' }}; color: {{ theme.textSecondary }}">{{ emptyMessage }}</text>
 
-      <div if="{{ nextClass }}" class="card" style="background-color: {{ theme.card }}">
-        <text class="c-name" style="color: {{ theme.text }}">{{ nextClass.name }}</text>
-        <text class="c-num" style="color: {{ theme.accent }}">{{ displayTime }}</text>
-        <text class="c-unit" style="color: {{ theme.textSecondary }}">{{ countdownLabel }}</text>
-        <div class="c-div" style="background-color: {{ theme.border }}"></div>
-        <text if="{{ dayPrefix }}" class="c-day" style="color: {{ theme.textMuted }}">{{ dayPrefix }}</text>
-        <text class="c-time" style="color: {{ theme.textSecondary }}">{{ nextClass.time }}</text>
-        <text if="{{ nextClass.location }}" class="c-loc" style="color: {{ theme.textMuted }}">{{ nextClass.location }}</text>
+      <!-- A 课名 / B 大数字 + 单位 / C 语义行 / D 日期 / E 开始时刻 / F 地点 -->
+      <div class="card" style="display: {{ nextClass ? 'flex' : 'none' }}; background-color: {{ theme.card }}">
+        <text class="c-name" style="color: {{ theme.text }}">{{ nameText }}</text>
+        <div class="num-row">
+          <text class="c-num" style="color: {{ theme.accent }}">{{ displayTime }}</text>
+          <text class="c-unit" style="color: {{ theme.textSecondary }}">{{ unitText }}</text>
+        </div>
+        <text class="c-label" style="color: {{ theme.textSecondary }}">{{ countdownLabel }}</text>
+        <text class="c-day" style="display: {{ dayPrefix ? 'flex' : 'none' }}; color: {{ theme.textSecondary }}">{{ dayPrefix }}</text>
+        <text class="c-time" style="color: {{ theme.textSecondary }}">{{ startLabel }}</text>
+        <text class="c-loc" style="display: {{ locText ? 'flex' : 'none' }}; color: {{ theme.textSecondary }}">{{ locText }}</text>
       </div>
     </div>
   </div>
@@ -37,7 +41,7 @@ const builtinSchedule = require("../../data/schedule.js")
 
 var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
-// "08:00 - 09:35" → {startMin, endMin}；格式不合规返回 null（脏数据不参与计算）
+// "08:00 - 09:35" 解析成 {startMin, endMin}；格式不合规返回 null（脏数据不参与计算）
 function parseTimeRange(timeStr) {
   if (!timeStr) return null
   var parts = timeStr.split(" - ")
@@ -45,7 +49,18 @@ function parseTimeRange(timeStr) {
   var s1 = parts[0].trim().split(":")
   var s2 = parts[1].trim().split(":")
   if (s1.length !== 2 || s2.length !== 2) return null
-  return { startMin: parseInt(s1[0]) * 60 + parseInt(s1[1]), endMin: parseInt(s2[0]) * 60 + parseInt(s2[1]) }
+  var a = parseInt(s1[0]) * 60 + parseInt(s1[1])
+  var b = parseInt(s2[0]) * 60 + parseInt(s2[1])
+  if (isNaN(a) || isNaN(b) || b <= a) return null
+  return { startMin: a, endMin: b }
+}
+
+// "08:00 - 09:35" 只取开始时刻，拼成 "08:00 起"（完整区间 13 字符 @24 约 160px，超卡片内宽 152px）
+function startLabelOf(timeStr) {
+  if (!timeStr) return ""
+  var i = timeStr.indexOf(" - ")
+  var s = (i < 0 ? timeStr : timeStr.substring(0, i)).trim()
+  return s ? s + " 起" : ""
 }
 
 export default {
@@ -53,14 +68,18 @@ export default {
     iconTheme: "dark",
     fromPanel: "",
     isRoot: false,
-    // isLoading 只保留给「还没算过」的极短窗口：onInit 同步算出结果后立刻为 false
     isLoading: true,
-    schedule: [],
     nextClass: null,
+    nameText: "",
+    displayTime: "",
+    unitText: "",
     countdownLabel: "",
     dayPrefix: "",
-    displayTime: "",
-    emptyMessage: "今天没有课",
+    startLabel: "",
+    locText: "",
+    emptyMessage: "",
+    schedule: [],
+    tickTimer: null,
     theme: {
       bg: '#1a1a2e', card: '#16213e', cardLight: '#0f3460',
       accent: '#7ec8e3', text: '#ffffff', textSecondary: '#888899',
@@ -70,23 +89,25 @@ export default {
 
   onInit() {
     var self = this
-    // 独立首页 root 判定：由「更多首页」push 时带 fromPanel='1'；无参数即被设为首页冷启动
+    // 独立首页 root 判定：由「更多首页」push 带 fromPanel='1'；无参数即冷启动为首页
     self.fromPanel = (self.fromPanel === '1') ? '1' : ''
     self.isRoot = self.fromPanel !== '1'
-    // 首帧直接出内容：先用内置课表同步算一遍，storage 慢/丢回调都不会停在「加载中」。
-    // 真实数据随后（几十毫秒）覆盖，用户看不到差别；storage 挂了也只是停在「和内置一致」的画面。
+    // 首帧同步出内容：storage 回调慢/丢也不许停在「加载中」
     self.apply((builtinSchedule && builtinSchedule.schedule) ? builtinSchedule.schedule : [])
     store.getTheme(function(t, themeName) {
       self.theme = t
-      self.updateIconSrc(themeName)
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
       self.loadData()
     })
   },
 
   onShow() {
     var self = this
-    store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
-    // 回前台立即重算一次（后台期间分钟可能跨了很多），再按分钟对齐续排
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
+    })
+    // 回前台立即重算（后台期间可能已换课），再续排下一次整分
     if (!self.isLoading) self.tick()
   },
 
@@ -94,12 +115,7 @@ export default {
     this.clearTickTimer()
   },
 
-  updateIconSrc: function(themeName) {
-    this.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark'
-  },
-
-  /* 分钟级刷新：对齐「下一个整分」只挂一个 setTimeout。
-     不用 setInterval(1000)——方案 §0 明确禁止秒级轮询（除秒相关页）。 */
+  /* 分钟级刷新：只挂一个对齐「下一个整分」的 setTimeout（方案 §0 禁秒级轮询） */
   scheduleNextMinute: function() {
     var self = this
     this.clearTickTimer()
@@ -148,6 +164,17 @@ export default {
     this.scheduleNextMinute()
   },
 
+  fill: function(cls, num, unit, label, day) {
+    this.nextClass = cls
+    this.nameText = cls.name || "未命名"
+    this.displayTime = num
+    this.unitText = unit
+    this.countdownLabel = label
+    this.dayPrefix = day || ""
+    this.startLabel = startLabelOf(cls.time)
+    this.locText = cls.location || ""
+  },
+
   compute: function() {
     var self = this
     var now = new Date()
@@ -156,17 +183,19 @@ export default {
     var todayClasses = self.classesOf(DAY_NAMES[todayIdx])
 
     self.nextClass = null
+    self.nameText = ""
     self.displayTime = ""
+    self.unitText = ""
     self.countdownLabel = ""
     self.dayPrefix = ""
+    self.startLabel = ""
+    self.locText = ""
 
     // ① 上课中：大数字 = 距下课分钟
     for (var i = 0; i < todayClasses.length; i++) {
       var r = parseTimeRange(todayClasses[i].time)
       if (r && nowMin >= r.startMin && nowMin < r.endMin) {
-        self.nextClass = todayClasses[i]
-        self.displayTime = String(r.endMin - nowMin)
-        self.countdownLabel = "分钟后下课"
+        self.fill(todayClasses[i], String(r.endMin - nowMin), "分", "距下课")
         return
       }
     }
@@ -183,9 +212,7 @@ export default {
     }
     if (best) {
       var wait = bestStart - nowMin
-      self.nextClass = best
-      self.displayTime = wait > 99 ? "99+" : String(wait)
-      self.countdownLabel = "分钟后上课"
+      self.fill(best, wait > 99 ? "99+" : String(wait), "分", "距上课")
       return
     }
 
@@ -201,11 +228,7 @@ export default {
       }
       if (first) {
         var hrs = Math.floor((firstStart + d * 1440 - nowMin) / 60)
-        self.nextClass = first
-        self.displayTime = hrs > 99 ? "99+" : String(hrs)
-        self.countdownLabel = "小时后上课"
-        // 单位行只放 4 字（20px 下再多就折行），「明天 / 星期X」单独一行放在时间段上方
-        self.dayPrefix = (d === 1 ? "明天" : DAY_NAMES[idx])
+        self.fill(first, hrs > 99 ? "99+" : String(hrs), "小时", "距上课", d === 1 ? "明天" : DAY_NAMES[idx])
         return
       }
     }
@@ -214,7 +237,7 @@ export default {
   },
 
   goBack() {
-    // 双模返回：被「更多首页」push（fromPanel）→ 回父页；作为 root 首页 → 回「更多首页」
+    // 双模返回：被「更多首页」push（fromPanel）则回父页；作为 root 首页则回「更多首页」
     if (this.fromPanel === '1') {
       router.back()
     } else {
@@ -241,40 +264,42 @@ export default {
 .back-header { flex-direction: row; align-items: center; margin-bottom: 8px }
 .back-btn-wrapper { width: 30px; height: 30px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0 }
 .back-btn-icon { width: 22px; height: 22px }
-.header-title { flex: 1; font-size: 28px; font-weight: bold; text-align: center; line-height: 36px }
+/* 标题可用宽 108 = 192 − 12×2 − 30 − 30；28px 只放得下 2 字（3 字 112px 会啃掉边） */
+.header-title { flex: 1; font-size: 28px; font-weight: bold; text-align: center; line-height: 36px; lines: 1 }
 .header-placeholder { width: 30px; height: 30px; flex-shrink: 0 }
 
 .loading-area { align-items: center; padding: 30px 0 }
-.loading-text { font-size: 22px; line-height: 30px }
+.loading-text { font-size: 24px; line-height: 34px }
 
 .center-area { flex: 1; justify-content: center; align-items: center }
-.empty-text { font-size: 22px; line-height: 30px; text-align: center }
+.empty-text { font-size: 24px; line-height: 34px; text-align: center; lines: 1 }
 
-/* 卡片：168×约 300，垂直居中；A 课名 / B 大数字 / C 单位 / D 时间 */
-.card { flex-direction: column; align-items: center; width: 100%; padding: 16px 10px; border-radius: 12px }
-.c-name { font-size: 26px; font-weight: bold; line-height: 34px; text-align: center; max-width: 148px; text-overflow: ellipsis; lines: 1 }
-/* 96px 等宽下「99+」宽约 159px，168 可用 → 再大就会超页宽 */
-.c-num { font-size: 96px; font-weight: bold; line-height: 104px; font-family: monospace; margin-top: 2px }
-.c-unit { font-size: 20px; line-height: 26px; letter-spacing: 1px }
-.c-div { width: 44px; height: 1px; margin: 10px 0 }
-.c-day { font-size: 18px; line-height: 24px }
-.c-time { font-size: 20px; line-height: 27px }
-.c-loc { font-size: 18px; line-height: 25px; margin-top: 2px }
+/* 卡片内宽 152 = 168 − 8×2；A 课名 / B 数字+单位 / C 语义行 / D 日期 / E 开始时刻 / F 地点 */
+.card { flex-direction: column; align-items: center; width: 100%; padding: 12px 8px; border-radius: 12px }
+/* 4 字 @28 = 149 ≤ 152（贴边），5 字任何字档都放不下，靠删字不靠省略号 */
+.c-name { font-size: 28px; font-weight: bold; line-height: 34px; text-align: center; lines: 1 }
+/* 数字与单位同一行：44 是四档上限，单位并排后「99+ 分」总宽约 100px，远窄于 152 */
+.num-row { flex-direction: row; align-items: flex-end; justify-content: center }
+.c-num { font-size: 44px; font-weight: bold; line-height: 52px; font-family: monospace }
+.c-unit { font-size: 24px; line-height: 34px; margin-left: 4px }
+.c-label { font-size: 24px; line-height: 34px; text-align: center; lines: 1 }
+.c-day { font-size: 24px; line-height: 30px; text-align: center; lines: 1 }
+.c-time { font-size: 24px; line-height: 34px; text-align: center; lines: 1 }
+.c-loc { font-size: 24px; line-height: 30px; text-align: center; lines: 1 }
 
 @media (width >= 200px) {
   .page { padding: 44px 16px 14px 16px }
-  .c-name { font-size: 28px; line-height: 36px; max-width: 176px }
-  .c-num { font-size: 104px; line-height: 112px }
-  .c-time { font-size: 22px; line-height: 29px }
+  .c-name { font-size: 28px; line-height: 36px }
+  .c-num { line-height: 56px }
 }
 
 @media (width >= 400px) {
   .page { padding: 12px 20px 16px 20px }
   .card { padding: 24px 16px }
-  .c-name { font-size: 34px; line-height: 44px; max-width: 300px }
-  .c-num { font-size: 132px; line-height: 142px }
-  .c-unit { font-size: 24px; line-height: 32px }
-  .c-time { font-size: 26px; line-height: 34px }
-  .c-loc { font-size: 22px; line-height: 30px }
+  .c-name { font-size: 28px; line-height: 40px }
+  .c-num { font-size: 44px; line-height: 60px }
+  .c-unit { font-size: 28px; line-height: 40px }
+  .c-label { font-size: 28px; line-height: 40px }
+  .c-time { font-size: 28px; line-height: 38px }
 }
 </style>
