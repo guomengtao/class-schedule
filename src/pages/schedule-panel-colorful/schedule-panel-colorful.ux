@@ -7,38 +7,39 @@
        · 只挂一个对齐整分的 setTimeout，onHide/onDestroy 双清。
      纪律：无 transform / 无 <scroll> / 无 @keyframes；页根不挂 onclick。 -->
 <template>
-  <div class="page" style="background-color: {{ theme.bg }}">
+  <div class="page" style="background-color: {{ theme.bg }}; padding: {{ sz.page }}">
     <!-- 顶部返回热区（≥120px）：页面根节点不挂 onclick，防 drag 被当点击 -->
-    <div class="back-header">
+    <div class="back-header" style="height: {{ sz.headerH }}; margin-bottom: {{ sz.headerMB }}">
       <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="backClick" style="background-color: {{ theme.card }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
       <div class="header-center">
-        <text class="header-title" onclick="backClick" style="color: {{ theme.text }}">多彩</text>
-        <text class="header-day" style="color: {{ theme.textSecondary }}">{{ dayLabel }}</text>
+        <text class="header-title" onclick="backClick" style="color: {{ theme.text }}; font-size: {{ sz.title }}; line-height: {{ sz.titleLh }}">多彩</text>
+        <text class="header-day" style="color: {{ theme.textSecondary }}; font-size: {{ sz.dayFont }}; line-height: {{ sz.dayLh }}">{{ dayLabel }}</text>
       </div>
       <div if="{{ isRoot }}" class="header-placeholder"></div>
     </div>
 
     <text if="{{ !hasCourses }}" class="empty-hint" style="color: {{ theme.textMuted }}">{{ emptyHint }}</text>
 
-    <!-- A 星期条：一~日 7 格 + 左右切天箭头（替代原 @swipe 手势；20×20 才放得下 168） -->
-    <div if="{{ hasCourses }}" class="week-strip">
+    <!-- A 星期条：一~日 7 格 + 左右切天箭头（替代原 @swipe 手势；20×20 才放得下 168）
+         箭头热区 44×44 + 负 margin 收窄留在 CSS 里，不绑行内（负 margin 简写行内易被引擎丢） -->
+    <div if="{{ hasCourses }}" class="week-strip" style="height: {{ sz.weekH }}">
       <div class="arrow-btn" onclick="prevDay" style="background-color: {{ theme.card }}">
-        <text class="arrow-icon" style="color: {{ theme.accent }}">‹</text>
+        <text class="arrow-icon" style="color: {{ theme.accent }}; font-size: {{ sz.arrowFont }}; line-height: {{ sz.arrowLh }}">‹</text>
       </div>
-      <div for="{{ weekCells }}" class="week-cell {{ $item.current ? 'is-current' : '' }}">
-        <text class="week-text" style="color: {{ $item.current ? theme.accent : theme.textSecondary }}">{{ $item.label }}</text>
+      <div for="{{ weekCells }}" class="week-cell {{ $item.current ? 'is-current' : '' }}" style="width: {{ sz.weekW }}; height: {{ sz.weekCellH }}">
+        <text class="week-text" style="color: {{ $item.current ? theme.accent : theme.textSecondary }}; font-size: {{ sz.weekFont }}; line-height: {{ sz.weekLh }}">{{ $item.label }}</text>
       </div>
       <div class="arrow-btn" onclick="nextDay" style="background-color: {{ theme.card }}">
       </div>
     </div>
 
-    <!-- B 课表格：3 列 × 5 行固定网格，不滚动 -->
-    <div if="{{ hasCourses }}" class="grid">
-      <div for="{{ gridCells }}" class="grid-row">
-        <div for="{{ $item }}" class="grid-cell {{ $item.now ? 'is-now' : '' }}" style="background-color: {{ $item.color }}">
-          <text class="cell-name" style="color: #ffffff">{{ $item.name }}</text>
+    <!-- B 课表格：cols × rows 固定网格（192 屏 3×5；宽屏按 屏宽/192 重算列数与格子尺寸），不滚动 -->
+    <div if="{{ hasCourses }}" class="grid" style="margin-top: {{ sz.gridMT }}">
+      <div for="{{ gridCells }}" class="grid-row" style="height: {{ sz.cellH }}; margin-bottom: {{ sz.gapH }}">
+        <div for="{{ $item }}" class="grid-cell {{ $item.now ? 'is-now' : '' }}" style="background-color: {{ $item.color }}; width: {{ sz.cellW }}; height: {{ sz.cellH }}; padding: {{ sz.cellPad }}; border-radius: {{ sz.cellR }}">
+          <text class="cell-name" style="color: #ffffff; font-size: {{ sz.cellFont }}; line-height: {{ sz.cellLh }}">{{ $item.name }}</text>
         </div>
       </div>
     </div>
@@ -47,16 +48,19 @@
 
 <script>
 import router from "@system.router";
+import device from "@system.device";
 const database = require("../../data/database.js");
 const store = require("../../data/store.js");
 const utils = require("../../data/utils.js");
 const subjectColor = require("../../data/subject-color.js");
 const builtinSchedule = require("../../data/schedule.js");
+const screenFit = require("../../data/screen-fit.js");
 
 var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
 var DAY_SHORT = ["日", "一", "二", "三", "四", "五", "六"];
-var MAX_ROWS = 5;
-var COLS = 3;
+// 192 基准：3 列 × 5 行（=15 格）；宽屏由 fitScreen() 改写成 4×4（=16 格）
+var BASE_COLS = 3;
+var BASE_ROWS = 5;
 
 function parseMinutes(t) {
   if (!t) return 0;
@@ -91,6 +95,23 @@ export default {
     totalCount: 0,
     _matrix: null,
     _timer: null,
+    _wide: null,          // 宽屏预算（applyWide 写入；192 屏保持 null → 全部走基准常量）
+    // 网格维度：192 屏 3×5，宽屏（10 Pro 起）改 4×4 —— 由 fitScreen() 按屏宽重算
+    cols: BASE_COLS,
+    rows: BASE_ROWS,
+    // 尺寸令牌：默认值 = 192×490 基准的原始像素，一个都没改；
+    // 只有宽屏才会被 fitScreen() 覆盖成 屏宽/192 比例值
+    sz: {
+      page: "44px 12px 12px 12px",
+      headerH: "120px", headerMB: "8px",
+      title: "28px", titleLh: "36px", dayFont: "18px", dayLh: "22px",
+      weekH: "28px", weekW: "18px", weekCellH: "28px",
+      weekFont: "18px", weekLh: "22px",
+      arrow: "44px", arrowMargin: "-9px -12px", arrowFont: "18px", arrowLh: "22px",
+      gapH: "0px", gridMT: "0px",
+      cellW: "52px", cellH: "56px", cellPad: "3px", cellR: "8px",
+      cellFont: "18px", cellLh: "20px"
+    },
     theme: {
       bg: '#1a1a2e', card: '#16213e', accent: '#7ec8e3',
       text: '#ffffff', textSecondary: '#888899', textMuted: '#555566', border: '#0f3460'
@@ -103,6 +124,7 @@ export default {
     self.isRoot = self.fromPanel !== '1';
     self.dayCursor = new Date().getDay();
     self.updateTheme();
+    self.fitScreen();
     // 首帧兜底：内置课表同步算一遍，storage 回调慢也不卡「加载中」
     self.applySchedule((builtinSchedule && builtinSchedule.schedule) ? builtinSchedule.schedule : []);
     self.loadData();
@@ -146,6 +168,61 @@ export default {
       self.theme = t;
       self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark';
     });
+  },
+
+  /* 屏宽比例适配（2026-10-25）：
+     192×490（手环 9）是设计基准，sz 原样不动；只有 wide 屏（≥300，10 Pro 336 起）
+     才按 k = screenWidth / 192 重算尺寸。算不出来就继续用基准值，绝不白屏。 */
+  fitScreen: function() {
+    var self = this;
+    device.getInfo({
+      success: function(d) {
+        var s = screenFit.scaleFor(d.screenWidth, d.screenHeight);
+        if (!s.wide) return;                    // 192 屏：一个像素都不动
+        self.applyWide(s, d.screenWidth, d.screenHeight);
+        self.render();
+      },
+      fail: function() { /* 读不到屏幕信息 → 按 192 基准渲染 */ }
+    });
+  },
+
+  applyWide: function(s, w, h) {
+    var self = this;
+    var px = screenFit.px;
+    var f = s.font;                             // 字号比例（被纵向预算压过，见 screen-fit.js）
+    var sides = 14;
+    var padTop = 44;                            // 状态栏留白：系统级，不跟屏宽放大
+    var padBottom = 10;
+    var headerH = 120;                          // 项目规则 §8.3：顶部返回热区 ≥120px，宽屏也不缩
+    var headerMB = 8;
+    var weekH = 34;
+    var gapH = 6;
+    var cols = 4;                               // 宽屏把「多出来的宽度」换成第 4 列，而不是把格子拉长
+    var contentW = w - sides * 2;
+    var gridH = h - padTop - padBottom - headerH - headerMB - weekH;
+    var cellW = Math.floor((contentW - (cols - 1) * 8) / cols);
+    // 星期条：7 格 + 左右箭头**均分剩余宽度**。192 屏写死 18px 配 18px 字刚好，
+    // 但宽屏字号涨到 20px 后 22px 的格子会削字（实测「六」被切）→ 这里按宽度反算格子宽。
+    var arrowW = 44, arrowNeg = 10;             // 箭头净占 44 − 2×10 = 24（负 margin 保 44 触控热区）
+    var weekW = Math.floor((contentW - 2 * (arrowW - 2 * arrowNeg)) / 7);
+    // 格子先按 192 屏的 52:56 长宽比走，行数由 render() 按实际课数决定（见 _wide 预算）
+    self._wide = {
+      gridH: gridH, gapH: gapH, cols: cols,
+      natural: Math.round(cellW * 56 / 52)
+    };
+    self.cols = cols;
+    self.sz = {
+      page: px(padTop) + " " + px(sides) + " " + px(padBottom) + " " + px(sides),
+      headerH: px(headerH), headerMB: px(headerMB),
+      title: px(28 * f), titleLh: px(36 * f), dayFont: px(18 * f), dayLh: px(22 * f),
+      weekH: px(weekH), weekW: px(weekW), weekCellH: px(weekH),
+      weekFont: px(Math.min(18 * f, weekW - 8)), weekLh: px(24),
+      arrow: px(arrowW), arrowMargin: "-8px -" + arrowNeg + "px",
+      arrowFont: px(18 * f), arrowLh: px(24),
+      gapH: px(gapH), gridMT: "0px",
+      cellW: px(cellW), cellH: px(self._wide.natural), cellPad: px(4), cellR: px(10),
+      cellFont: px(17 * f), cellLh: px(20 * f)
+    };
   },
 
   loadData: function() {
@@ -194,11 +271,31 @@ export default {
     var cls = ((self._matrix && self._matrix[dayName]) || []).slice();
     cls.sort(function(a, b) { return parseMinutes(a.time) - parseMinutes(b.time); });
 
+    // 宽屏：行数按**实际课数**定（1~4 行），格子高度吃掉剩余空间、网格整体垂直居中。
+    // 这样 8 节课是 2 行、13 节是 4 行，不会出现「4 行只填 2 行、底下空一截」。
+    // 192 屏不走这段（self._wide 未定义），格子常量原样不动。
+    if (self._wide) {
+      var bw = self._wide;
+      var need = Math.max(1, Math.min(4, Math.ceil(cls.length / bw.cols)));
+      var cellH = Math.min(bw.natural, Math.floor((bw.gridH - (need - 1) * bw.gapH) / need));
+      var usedH = need * cellH + (need - 1) * bw.gapH;
+      var sz2 = {};
+      for (var k in self.sz) {
+        if (Object.prototype.hasOwnProperty.call(self.sz, k)) sz2[k] = self.sz[k];
+      }
+      sz2.cellH = screenFit.px(cellH);
+      sz2.gridMT = screenFit.px(Math.max(0, Math.floor((bw.gridH - usedH) / 2)));
+      self.rows = need;
+      self.sz = sz2;
+    }
+
+    var slots = self.cols * self.rows;          // 192 屏 15 格；宽屏 12~16 格（按课数）
+
     // 副标题宽度只有 ~120px（header-center = 168 − 48 占位）：「今天 · 周二 · 6 节」实测裁掉「节」。
     // 星期名与 A 区高亮重复 → 去掉；溢出时连「今天」也省掉（120px 放不下 12 个全角字）。
     self.todayCount = cls.length;
-    if (cls.length > MAX_ROWS * COLS) {
-      self.dayLabel = "前" + MAX_ROWS * COLS + "/共" + cls.length + "节";
+    if (cls.length > slots) {
+      self.dayLabel = "前" + slots + "/共" + cls.length + "节";
     } else {
       self.dayLabel = (self.dayCursor === todayIdx ? "今天 · " : ("周" + DAY_SHORT[self.dayCursor] + " · ")) + cls.length + " 节";
     }
@@ -212,14 +309,14 @@ export default {
     }
     self.weekCells = week;
 
-    // B 课表格：3 列 × 5 行；前 15 格（5 节）入格，其余计数提示
-    var shown = cls.slice(0, MAX_ROWS * COLS);
+    // B 课表格：cols × rows；前 slots 格入格，其余计数提示
+    var shown = cls.slice(0, slots);
     self.totalCount = cls.length;
     var rows = [];
-    for (var r = 0; r < MAX_ROWS; r++) {
+    for (var r = 0; r < self.rows; r++) {
       var row = [];
-      for (var c = 0; c < COLS; c++) {
-        var item = shown[r * COLS + c];
+      for (var c = 0; c < self.cols; c++) {
+        var item = shown[r * self.cols + c];
         if (item) {
           row.push({
             name: item.name,
@@ -312,13 +409,7 @@ export default {
 .cell-name { font-size: 18px; line-height: 20px; text-align: center; lines: 2; text-overflow: ellipsis; width: 100% }
 
 
-/* 宽屏 / 大屏断点：等比放大，比例不变 */
-@media (width >= 200px) {
-  .page { padding: 44px 16px 14px 16px }
-  .header-title { font-size: 28px; line-height: 36px }
-  .arrow-btn { width: 24px; height: 24px }
-  .week-cell { width: 22px; height: 32px }
-  .grid-cell { width: 60px; height: 64px }
-  .cell-name { font-size: 20px; line-height: 22px }
-}
+/* 宽屏（10 Pro 336 起）不再用 @media 断点写死像素：
+   尺寸全部由 fitScreen() 按 k = screenWidth/192 算好、以行内 style 绑定，
+   这里的数值只是 192 屏的兜底（也会被行内值覆盖）。 */
 </style>

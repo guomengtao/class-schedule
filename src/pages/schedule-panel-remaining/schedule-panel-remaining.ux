@@ -1,39 +1,41 @@
 <template>
-  <div class="page" style="background-color: {{ theme.bg }}">
-    <div class="back-header">
+  <div class="page" style="background-color: {{ theme.bg }}; padding: {{ sz.page }}">
+    <div class="back-header" style="height: {{ sz.headerH }}">
       <div class="back-btn-wrapper" onclick="goBack"
            style="background-color: {{ theme.card }}; display: {{ isRoot ? 'none' : 'flex' }}">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" onclick="goBack" style="color: {{ theme.textSecondary }}">剩余</text>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.textSecondary }}; font-size: {{ sz.title }}; line-height: {{ sz.titleLh }}">剩余</text>
       <div class="header-placeholder" style="display: {{ isRoot ? 'none' : 'flex' }}"></div>
     </div>
 
     <!-- A 主信息：剩余节数（字号封顶 44，单位跟数字同排，省一行） -->
-    <text class="big-count" style="color: {{ theme.accent }}">{{ bigText }}</text>
+    <text class="big-count" style="color: {{ theme.accent }}; margin-top: {{ sz.bigMarginTop }}; font-size: {{ sz.bigFont }}; line-height: {{ sz.bigLh }}">{{ bigText }}</text>
 
     <!-- B 副信息：剩余总时长；空态时这里直接说结论，D 区不再重复 -->
-    <text class="unit-line" style="color: {{ theme.textSecondary }}">{{ unitText }}</text>
+    <text class="unit-line" style="color: {{ theme.textSecondary }}; margin-top: {{ sz.unitMarginTop }}; font-size: {{ sz.unitFont }}; line-height: {{ sz.unitLh }}">{{ unitText }}</text>
 
-    <!-- D 列表：最多 4 行，行高 44（触控下限）。不写死容器高，行数少就自然收紧 -->
-    <div class="list">
-      <div for="{{ shownClasses }}" class="row">
-        <text class="row-time" style="color: {{ theme.textSecondary }}">{{ $item.timeShort }}</text>
-        <text class="row-name" style="color: {{ $item.isCurrent ? theme.accent : theme.text }}">{{ $item.name }}</text>
+    <!-- D 列表：最多 4 行，行高由剩余高度预算算出（192 屏 44，宽屏 50+）。不写死容器高，行数少就自然收紧 -->
+    <div class="list" style="margin-top: {{ sz.listMarginTop }}">
+      <div for="{{ shownClasses }}" class="row" style="height: {{ sz.rowH }}">
+        <text class="row-time" style="color: {{ theme.textSecondary }}; width: {{ sz.timeW }}; margin-right: {{ sz.timeMr }}; font-size: {{ sz.rowFont }}; line-height: {{ sz.rowLh }}">{{ $item.timeShort }}</text>
+        <text class="row-name" style="color: {{ $item.isCurrent ? theme.accent : theme.text }}; font-size: {{ sz.rowFont }}; line-height: {{ sz.rowLh }}">{{ $item.name }}</text>
       </div>
     </div>
 
     <!-- E 溢出提示：只报条数，13 字长句在 168px 上必然折行 -->
-    <text class="overflow-tip" style="color: {{ theme.textMuted }}; display: {{ hasOverflow ? 'flex' : 'none' }}">{{ overflowText }}</text>
+    <text class="overflow-tip" style="color: {{ theme.textMuted }}; display: {{ hasOverflow ? 'flex' : 'none' }}; font-size: {{ sz.tipFont }}; line-height: {{ sz.tipLh }}">{{ overflowText }}</text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
+import device from "@system.device"
 const database = require("../../data/database.js")
 const store = require("../../data/store.js")
 const utils = require("../../data/utils.js")
 const builtinSchedule = require("../../data/schedule.js")
+const screenFit = require("../../data/screen-fit.js")
 
 var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 
@@ -91,6 +93,19 @@ export default {
     overflowText: "",
     schedule: [],
     tickTimer: null,
+    // 尺寸令牌：默认 = 192×490 基准原值（手环 9 零改动）；
+    // 宽屏（10 Pro 336 起）由 fitScreen() 按 k = screenWidth/192 覆盖
+    sz: {
+      page: "44px 12px 12px 12px",
+      headerH: "40px",
+      title: "28px", titleLh: "36px",
+      bigMarginTop: "18px", bigFont: "44px", bigLh: "60px",
+      unitMarginTop: "4px", unitFont: "24px", unitLh: "34px",
+      listMarginTop: "16px",
+      rowH: "44px", timeW: "62px", timeMr: "8px",
+      rowFont: "24px", rowLh: "34px",
+      tipFont: "24px", tipLh: "34px"
+    },
     theme: {
       bg: '#1a1a2e', card: '#16213e', cardLight: '#0f3460',
       accent: '#7ec8e3', text: '#ffffff', textSecondary: '#888899',
@@ -103,6 +118,7 @@ export default {
     // 独立首页 root 判定：由「更多首页」push 带 fromPanel='1'；无参数即冷启动为首页
     self.fromPanel = (self.fromPanel === '1') ? '1' : ''
     self.isRoot = self.fromPanel !== '1'
+    self.fitScreen()
     // 首帧同步出内容：storage 回调慢/丢也不许停在「加载中」
     self.apply((builtinSchedule && builtinSchedule.schedule) ? builtinSchedule.schedule : [])
     store.getTheme(function(t, themeName) {
@@ -145,6 +161,56 @@ export default {
     this.schedule = schedule || []
     this.isLoading = false
     this.tick()
+  },
+
+  /* 屏宽比例适配（2026-10-25）：
+     192×490（手环 9）是设计基准，sz 原样不动；只有 wide 屏（≥300，10 Pro 336 起）
+     才按 k = screenWidth / 192 重算。竖向空间没跟着变宽（480/490 ≈ 0.98），
+     所以字号用 min(k, kv×1.14) 压住，行高再由剩余高度预算反算 —— 宁可字小也不许溢出。
+     读不到屏幕信息就继续用基准值，绝不白屏。 */
+  fitScreen: function() {
+    var self = this
+    device.getInfo({
+      success: function(d) {
+        var s = screenFit.scaleFor(d.screenWidth, d.screenHeight)
+        if (!s.wide) return
+        self.applyWide(s, d.screenWidth, d.screenHeight)
+      },
+      fail: function() {}
+    })
+  },
+
+  applyWide: function(s, w, h) {
+    var self = this
+    var px = screenFit.px
+    var fx = Math.min(s.k, 1.3)            // 横向拉伸上限：时间列再宽就挤课名了
+    var padTop = 44                        // 状态栏留白：系统级，不跟屏宽放大
+    var padBottom = 12
+    var sides = Math.round(12 * fx)        // 12 → 16
+    var headerH = 48
+    var bigFont = 56, bigLh = 70, bigMT = 14
+    var unitFont = 30, unitLh = 40, unitMT = 4
+    var listMT = 14
+    var tipFont = 26, tipLh = 32
+    var rowFont = 30, rowLh = 38
+    var timeW = Math.round(62 * fx)        // 62 → 81
+    // 行高吃剩下的高度：4 行硬上限（P1 规格），并夹在 44（触控下限）~64 之间
+    var avail = h - padTop - padBottom
+    var fixedH = headerH + bigMT + bigLh + unitMT + unitLh + listMT + tipLh
+    var rowH = Math.floor((avail - fixedH) / 4)
+    if (rowH > 64) rowH = 64
+    if (rowH < 44) rowH = 44
+    self.sz = {
+      page: px(padTop) + " " + px(sides) + " " + px(padBottom) + " " + px(sides),
+      headerH: px(headerH),
+      title: px(28 * s.font), titleLh: px(36 * s.font),
+      bigMarginTop: px(bigMT), bigFont: px(bigFont), bigLh: px(bigLh),
+      unitMarginTop: px(unitMT), unitFont: px(unitFont), unitLh: px(unitLh),
+      listMarginTop: px(listMT),
+      rowH: px(rowH), timeW: px(timeW), timeMr: px(8),
+      rowFont: px(rowFont), rowLh: px(rowLh),
+      tipFont: px(tipFont), tipLh: px(tipLh)
+    }
   },
 
   loadData: function() {
@@ -352,8 +418,7 @@ export default {
   flex-shrink: 0;
 }
 
-@media (width >= 200px) {
-  .page { padding: 44px 16px 12px 16px; }
-  .row-time { width: 72px; }
-}
+/* 宽屏（10 Pro 336 起）不再写 @media 断点：
+   尺寸由 fitScreen() 按 k = screenWidth/192 算好、行内 style 绑定，
+   这里的数值只是 192 屏兜底（会被行内值覆盖）。 */
 </style>
