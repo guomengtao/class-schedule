@@ -19,7 +19,7 @@
 | `watch-face` | 表盘·基础 | 默认布局，时间 + 下一节课 |
 | `watch-face-class` | 表盘·课程 | 突出当前/最近一节课程卡片 |
 | `watch-face-list` | 表盘·列表 | 当日全天课程纵向列表 |
-| `watch-face-colorful` | 表盘·多彩 | 5 个字符各一色（糖果/霓虹/马卡龙/冷色 4 套），**不涉及科目数据** |
+| `watch-face-colorful` | 表盘·彩色 | 色块构成：四段色标 + 数字下同色 chip + 秒 5 段方格（专属文档）；不涉及科目数据 |
 | `watch-face-gold` | 表盘·金色 | 金色质感主题 |
 | `watch-face-metal` | 表盘·金属 | 金属拉丝质感主题 |
 | `watch-face-gradient` | 表盘·渐变 | 逐字符色带 + 48 条背景色带纵向渐变 + 秒进度条（4 套色带） |
