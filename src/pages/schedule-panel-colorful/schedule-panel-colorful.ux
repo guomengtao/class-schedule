@@ -1,48 +1,48 @@
-<!-- 多彩课表 —— 7 天 × 5 节固定网格（本栏目唯一不可替代的价值：完整周结构一眼看完）。
-     2026-10-20 重构（evtask-D-evclass-sche-261020-txxxys）：
-       · 原为「单日彩色卡片 + <scroll> + @swipe 手势切天」→ 现为固定 3 列 × 5 行网格，不滚动；
-       · 移除 touch 手势（drag 在本引擎易被判点击 → 跳页风险），改顶部 ‹ › 箭头切天；
-       · 配色由 PALETTE「按插入顺序取色」改为共享固定表 subject-color.js（切天/重载不再漂移）；
-       · 首帧用内置课表同步出画（storage 慢也不卡「加载中」）；
-       · 只挂一个对齐整分的 setTimeout，onHide/onDestroy 双清。
+<!-- 多彩课表 —— 一天一屏的「彩色瓷砖」网格（本栏目身份：高饱和科目色块）。
+     2026-10-25 ev-six 重排（evtask-D-evclass-sche-261025-v473pg）：
+       · 字号 18/22 → 24/28 两档（18/22 在 12~23 禁区）；
+       · 7 格星期条（7×18px 才放得下）→ 删掉，改左右箭头 + 两字日名（24px 下 7 格需 224px，放不下）；
+       · 3 列 × 5 行 52×56 → 2 列 × 4 行 82×68 彩色瓷砖（格子大了课名才敢上 24px）；
+       · 4 处 if= → display 绑定；删 text-overflow: ellipsis；删日名里的 · 分隔符；
+       · 页头 120px 返回热区 → 36px 页头 + 44×44 箭头热区（本页已无手势，不必留超高热区）；
+       · 保留屏宽比例适配（fitScreen：192 原样、宽屏 2 列放大到四档内 30/28）。
      纪律：无 transform / 无 <scroll> / 无 @keyframes；页根不挂 onclick。 -->
 <template>
   <div class="page" style="background-color: {{ theme.bg }}; padding: {{ sz.page }}">
-    <!-- 顶部返回热区（≥120px）：页面根节点不挂 onclick，防 drag 被当点击 -->
-    <div class="back-header" style="height: {{ sz.headerH }}; margin-bottom: {{ sz.headerMB }}">
-      <div if="{{ !isRoot }}" class="back-btn-wrapper" onclick="backClick" style="background-color: {{ theme.card }}">
+    <div class="back-header" style="height: {{ sz.headerH }}">
+      <!-- 条件渲染一律 display 绑定（事故案例 11：多兄弟节点 if 会整页白屏） -->
+      <div class="back-btn-wrapper" style="display: {{ isRoot ? 'none' : 'flex' }}; background-color: {{ theme.card }}" onclick="backClick">
         <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <div class="header-center">
-        <text class="header-title" onclick="backClick" style="color: {{ theme.text }}; font-size: {{ sz.title }}; line-height: {{ sz.titleLh }}">多彩</text>
-        <text class="header-day" style="color: {{ theme.textSecondary }}; font-size: {{ sz.dayFont }}; line-height: {{ sz.dayLh }}">{{ dayLabel }}</text>
-      </div>
-      <div if="{{ isRoot }}" class="header-placeholder"></div>
+      <text class="header-title" style="color: {{ theme.text }}">多彩</text>
+      <div class="header-placeholder" style="display: {{ isRoot ? 'none' : 'flex' }}"></div>
     </div>
 
-    <text if="{{ !hasCourses }}" class="empty-hint" style="color: {{ theme.textMuted }}">{{ emptyHint }}</text>
-
-    <!-- A 星期条：一~日 7 格 + 左右切天箭头（替代原 @swipe 手势；20×20 才放得下 168）
-         箭头热区 44×44 + 负 margin 收窄留在 CSS 里，不绑行内（负 margin 简写行内易被引擎丢） -->
-    <div if="{{ hasCourses }}" class="week-strip" style="height: {{ sz.weekH }}">
-      <div class="arrow-btn" onclick="prevDay" style="background-color: {{ theme.card }}">
-        <text class="arrow-icon" style="color: {{ theme.accent }}; font-size: {{ sz.arrowFont }}; line-height: {{ sz.arrowLh }}">‹</text>
+    <!-- A 日切换：左箭头 + 两字日名（溢出时带 +N）+ 右箭头。
+         箭头用图标不用 ‹ › 字形（红线 4 禁 ›；且字形在本引擎里基线会飘） -->
+    <div class="day-row" style="height: {{ sz.dayH }}">
+      <div class="nav-btn" onclick="prevDay">
+        <image class="nav-icon" src="/common/icons/{{ iconTheme }}/icon_arrow_left.png"></image>
       </div>
-      <div for="{{ weekCells }}" class="week-cell {{ $item.current ? 'is-current' : '' }}" style="width: {{ sz.weekW }}; height: {{ sz.weekCellH }}">
-        <text class="week-text" style="color: {{ $item.current ? theme.accent : theme.textSecondary }}; font-size: {{ sz.weekFont }}; line-height: {{ sz.weekLh }}">{{ $item.label }}</text>
-      </div>
-      <div class="arrow-btn" onclick="nextDay" style="background-color: {{ theme.card }}">
+      <text class="day-text" style="color: {{ theme.text }}; font-size: {{ sz.dayFont }}; line-height: {{ sz.dayLh }}">{{ dayLabel }}</text>
+      <div class="nav-btn" onclick="nextDay">
+        <image class="nav-icon" src="/common/icons/{{ iconTheme }}/icon_arrow_right.png"></image>
       </div>
     </div>
 
-    <!-- B 课表格：cols × rows 固定网格（192 屏 3×5；宽屏按 屏宽/192 重算列数与格子尺寸），不滚动 -->
-    <div if="{{ hasCourses }}" class="grid" style="margin-top: {{ sz.gridMT }}">
-      <div for="{{ gridCells }}" class="grid-row" style="height: {{ sz.cellH }}; margin-bottom: {{ sz.gapH }}">
-        <div for="{{ $item }}" class="grid-cell {{ $item.now ? 'is-now' : '' }}" style="background-color: {{ $item.color }}; width: {{ sz.cellW }}; height: {{ sz.cellH }}; padding: {{ sz.cellPad }}; border-radius: {{ sz.cellR }}">
-          <text class="cell-name" style="color: #ffffff; font-size: {{ sz.cellFont }}; line-height: {{ sz.cellLh }}">{{ $item.name }}</text>
+    <!-- B 彩色瓷砖：2 列 × 最多 4 行，底色 = 科目色。
+         行对象带 cells 属性（不是裸数组）：本引擎里外层 for 的 $item 直接是数组时内层 for 渲染不出来，
+         这是色卡页（schedule-panel-subject-color）已验证过的写法。 -->
+    <div class="grid" style="display: {{ hasCourses ? 'flex' : 'none' }}; margin-top: {{ sz.gridMT }}">
+      <div for="{{ rows }}" class="grid-row" style="height: {{ sz.cellH }}; margin-bottom: {{ sz.gapH }}">
+        <div for="{{ $item.cells }}" class="tile {{ $item.now ? 'is-now' : '' }}" style="background-color: {{ $item.color }}; width: {{ sz.cellW }}; height: {{ sz.cellH }}">
+          <text class="tile-name {{ $item.sizeCls }}">{{ $item.name }}</text>
         </div>
       </div>
     </div>
+
+    <!-- C 空态：4 字以内（6 字「今天暂无课程」@24 = 191px 超内宽 168） -->
+    <text class="empty-hint" style="display: {{ hasCourses ? 'none' : 'flex' }}; color: {{ theme.textMuted }}; font-size: {{ sz.emptyFont }}; line-height: {{ sz.emptyLh }}">{{ emptyHint }}</text>
   </div>
 </template>
 
@@ -58,9 +58,10 @@ const screenFit = require("../../data/screen-fit.js");
 
 var DAY_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
 var DAY_SHORT = ["日", "一", "二", "三", "四", "五", "六"];
-// 192 基准：3 列 × 5 行（=15 格）；宽屏由 fitScreen() 改写成 4×4（=16 格）
-var BASE_COLS = 3;
-var BASE_ROWS = 5;
+
+// 192 基准：2 列 × 4 行 = 8 格（宽屏只放大格子，不增列 —— 增列后课名只剩 1 字/行）
+var BASE_COLS = 2;
+var BASE_ROWS = 4;
 
 function parseMinutes(t) {
   if (!t) return 0;
@@ -87,30 +88,23 @@ export default {
     isRoot: false,
     dayCursor: 0,
     dayLabel: "",
-    emptyHint: "今天暂无课程",
-    weekCells: [],
-    gridCells: [],
+    emptyHint: "今天无课",
+    rows: [],
     hasCourses: false,
-    todayCount: 0,
     totalCount: 0,
     _matrix: null,
     _timer: null,
-    _wide: null,          // 宽屏预算（applyWide 写入；192 屏保持 null → 全部走基准常量）
-    // 网格维度：192 屏 3×5，宽屏（10 Pro 起）改 4×4 —— 由 fitScreen() 按屏宽重算
+    _wide: false,
     cols: BASE_COLS,
-    rows: BASE_ROWS,
-    // 尺寸令牌：默认值 = 192×490 基准的原始像素，一个都没改；
-    // 只有宽屏才会被 fitScreen() 覆盖成 屏宽/192 比例值
+    rowsMax: BASE_ROWS,
+    // 尺寸令牌：默认值 = 192×490 基准原样；只有宽屏才会被 fitScreen() 改写
     sz: {
       page: "44px 12px 12px 12px",
-      headerH: "120px", headerMB: "8px",
-      title: "28px", titleLh: "36px", dayFont: "18px", dayLh: "22px",
-      weekH: "28px", weekW: "18px", weekCellH: "28px",
-      weekFont: "18px", weekLh: "22px",
-      arrow: "44px", arrowMargin: "-9px -12px", arrowFont: "18px", arrowLh: "22px",
-      gapH: "0px", gridMT: "0px",
-      cellW: "52px", cellH: "56px", cellPad: "3px", cellR: "8px",
-      cellFont: "18px", cellLh: "20px"
+      headerH: "36px", dayH: "44px",
+      dayFont: "24px", dayLh: "30px",
+      gridMT: "0px", gapH: "6px",
+      cellW: "82px", cellH: "68px",
+      emptyFont: "24px", emptyLh: "32px"
     },
     theme: {
       bg: '#1a1a2e', card: '#16213e', accent: '#7ec8e3',
@@ -123,11 +117,15 @@ export default {
     self.fromPanel = (self.fromPanel === '1') ? '1' : '';
     self.isRoot = self.fromPanel !== '1';
     self.dayCursor = new Date().getDay();
-    self.updateTheme();
     self.fitScreen();
-    // 首帧兜底：内置课表同步算一遍，storage 回调慢也不卡「加载中」
+    // 首帧兜底：内置课表同步算一遍，storage 回调慢/丢也不许空白
     self.applySchedule((builtinSchedule && builtinSchedule.schedule) ? builtinSchedule.schedule : []);
-    self.loadData();
+    // database.init 放在 storage 回调之后调：onInit 里同步调会让回调永不触发（pit-20261025-24）
+    store.getTheme(function(t, themeName) {
+      self.theme = t;
+      self.iconTheme = (themeName === 'light' || themeName === 'warm') ? 'light' : 'dark';
+      self.loadData();
+    });
     self.scheduleTick();
   },
 
@@ -155,6 +153,7 @@ export default {
     self.clearTick();
     var now = new Date();
     var ms = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+    if (ms < 1000) ms = 1000;
     self._timer = setTimeout(function() {
       self._timer = null;
       self.computeNowFlag();
@@ -170,15 +169,15 @@ export default {
     });
   },
 
-  /* 屏宽比例适配（2026-10-25）：
-     192×490（手环 9）是设计基准，sz 原样不动；只有 wide 屏（≥300，10 Pro 336 起）
-     才按 k = screenWidth / 192 重算尺寸。算不出来就继续用基准值，绝不白屏。 */
+  /* 屏宽比例适配：192×490（手环 9）是设计基准，sz 一个像素都不动；
+     只有 wide 屏（≥300，10 Pro 336 起）才重算格子尺寸。
+     字号仍锁死在四档内：2 字 30 / 3 字以上 28（宽屏格子够大，抬一档不越线）。 */
   fitScreen: function() {
     var self = this;
     device.getInfo({
       success: function(d) {
         var s = screenFit.scaleFor(d.screenWidth, d.screenHeight);
-        if (!s.wide) return;                    // 192 屏：一个像素都不动
+        if (!s.wide) return;
         self.applyWide(s, d.screenWidth, d.screenHeight);
         self.render();
       },
@@ -189,39 +188,22 @@ export default {
   applyWide: function(s, w, h) {
     var self = this;
     var px = screenFit.px;
-    var f = s.font;                             // 字号比例（被纵向预算压过，见 screen-fit.js）
-    var sides = 14;
-    var padTop = 44;                            // 状态栏留白：系统级，不跟屏宽放大
-    var padBottom = 10;
-    var headerH = 120;                          // 项目规则 §8.3：顶部返回热区 ≥120px，宽屏也不缩
-    var headerMB = 8;
-    var weekH = 34;
-    var gapH = 6;
-    var cols = 4;                               // 宽屏把「多出来的宽度」换成第 4 列，而不是把格子拉长
+    var sides = 14, padTop = 44, padBottom = 12;
+    var headerH = 36, headerMB = 8;
+    var dayH = 48, dayMB = 10;
+    var gap = 8;
     var contentW = w - sides * 2;
-    var gridH = h - padTop - padBottom - headerH - headerMB - weekH;
-    var cellW = Math.floor((contentW - (cols - 1) * 8) / cols);
-    // 星期条：7 格 + 左右箭头**均分剩余宽度**。192 屏写死 18px 配 18px 字刚好，
-    // 但宽屏字号涨到 20px 后 22px 的格子会削字（实测「六」被切）→ 这里按宽度反算格子宽。
-    var arrowW = 44, arrowNeg = 10;             // 箭头净占 44 − 2×10 = 24（负 margin 保 44 触控热区）
-    var weekW = Math.floor((contentW - 2 * (arrowW - 2 * arrowNeg)) / 7);
-    // 格子先按 192 屏的 52:56 长宽比走，行数由 render() 按实际课数决定（见 _wide 预算）
-    self._wide = {
-      gridH: gridH, gapH: gapH, cols: cols,
-      natural: Math.round(cellW * 56 / 52)
-    };
-    self.cols = cols;
+    var cellW = Math.floor((contentW - gap) / BASE_COLS);
+    var gridH = h - padTop - padBottom - headerH - headerMB - dayH - dayMB;
+    var cellH = Math.max(64, Math.floor((gridH - (BASE_ROWS - 1) * gap) / BASE_ROWS));
+    self._wide = true;
     self.sz = {
       page: px(padTop) + " " + px(sides) + " " + px(padBottom) + " " + px(sides),
-      headerH: px(headerH), headerMB: px(headerMB),
-      title: px(28 * f), titleLh: px(36 * f), dayFont: px(18 * f), dayLh: px(22 * f),
-      weekH: px(weekH), weekW: px(weekW), weekCellH: px(weekH),
-      weekFont: px(Math.min(18 * f, weekW - 8)), weekLh: px(24),
-      arrow: px(arrowW), arrowMargin: "-8px -" + arrowNeg + "px",
-      arrowFont: px(18 * f), arrowLh: px(24),
-      gapH: px(gapH), gridMT: "0px",
-      cellW: px(cellW), cellH: px(self._wide.natural), cellPad: px(4), cellR: px(10),
-      cellFont: px(17 * f), cellLh: px(20 * f)
+      headerH: px(headerH), dayH: px(dayH),
+      dayFont: px(28), dayLh: px(34),
+      gridMT: "0px", gapH: px(gap),
+      cellW: px(cellW), cellH: px(cellH),
+      emptyFont: px(28), emptyLh: px(36)
     };
   },
 
@@ -251,17 +233,17 @@ export default {
     var now = new Date();
     var nowMin = now.getHours() * 60 + now.getMinutes();
     var changed = false;
-    var cells = this.gridCells;
-    for (var r = 0; r < cells.length; r++) {
-      var row = cells[r] || [];
-      for (var c = 0; c < row.length; c++) {
-        var cell = row[c];
+    var rows = this.rows;
+    for (var r = 0; r < rows.length; r++) {
+      var cells = (rows[r] && rows[r].cells) || [];
+      for (var c = 0; c < cells.length; c++) {
+        var cell = cells[c];
         if (!cell) continue;
         var isNow = cell.startMin <= nowMin && nowMin < cell.endMin;
         if (cell.now !== isNow) { cell.now = isNow; changed = true; }
       }
     }
-    if (changed) this.gridCells = cells;
+    if (changed) this.rows = rows;
   },
 
   render: function() {
@@ -271,67 +253,38 @@ export default {
     var cls = ((self._matrix && self._matrix[dayName]) || []).slice();
     cls.sort(function(a, b) { return parseMinutes(a.time) - parseMinutes(b.time); });
 
-    // 宽屏：行数按**实际课数**定（1~4 行），格子高度吃掉剩余空间、网格整体垂直居中。
-    // 这样 8 节课是 2 行、13 节是 4 行，不会出现「4 行只填 2 行、底下空一截」。
-    // 192 屏不走这段（self._wide 未定义），格子常量原样不动。
-    if (self._wide) {
-      var bw = self._wide;
-      var need = Math.max(1, Math.min(4, Math.ceil(cls.length / bw.cols)));
-      var cellH = Math.min(bw.natural, Math.floor((bw.gridH - (need - 1) * bw.gapH) / need));
-      var usedH = need * cellH + (need - 1) * bw.gapH;
-      var sz2 = {};
-      for (var k in self.sz) {
-        if (Object.prototype.hasOwnProperty.call(self.sz, k)) sz2[k] = self.sz[k];
-      }
-      sz2.cellH = screenFit.px(cellH);
-      sz2.gridMT = screenFit.px(Math.max(0, Math.floor((bw.gridH - usedH) / 2)));
-      self.rows = need;
-      self.sz = sz2;
-    }
-
-    var slots = self.cols * self.rows;          // 192 屏 15 格；宽屏 12~16 格（按课数）
-
-    // 副标题宽度只有 ~120px（header-center = 168 − 48 占位）：「今天 · 周二 · 6 节」实测裁掉「节」。
-    // 星期名与 A 区高亮重复 → 去掉；溢出时连「今天」也省掉（120px 放不下 12 个全角字）。
-    self.todayCount = cls.length;
-    if (cls.length > slots) {
-      self.dayLabel = "前" + slots + "/共" + cls.length + "节";
-    } else {
-      self.dayLabel = (self.dayCursor === todayIdx ? "今天 · " : ("周" + DAY_SHORT[self.dayCursor] + " · ")) + cls.length + " 节";
-    }
-    self.hasCourses = cls.length > 0;
-    self.emptyHint = (self.dayCursor === todayIdx) ? "今天暂无课程" : ("周" + DAY_SHORT[self.dayCursor] + " 暂无课程");
-
-    // A 星期条：7 格，当前日高亮
-    var week = [];
-    for (var i = 0; i < 7; i++) {
-      week.push({ label: DAY_SHORT[i], current: i === self.dayCursor });
-    }
-    self.weekCells = week;
-
-    // B 课表格：cols × rows；前 slots 格入格，其余计数提示
+    var slots = BASE_COLS * BASE_ROWS;
     var shown = cls.slice(0, slots);
     self.totalCount = cls.length;
-    var rows = [];
-    for (var r = 0; r < self.rows; r++) {
-      var row = [];
-      for (var c = 0; c < self.cols; c++) {
-        var item = shown[r * self.cols + c];
-        if (item) {
-          row.push({
-            name: item.name,
-            color: subjectColor.getSubjectColor(item.name),
-            startMin: parseMinutes(item.time),
-            endMin: endMinutes(item.time),
-            now: false
-          });
-        } else {
-          row.push(null);
-        }
+    self.hasCourses = cls.length > 0;
+
+    // A 日名：两字在 24px 下只有 108px 可用（两侧箭头各占 30），「周二 +3」= 101px 刚好
+    var base = (self.dayCursor === todayIdx) ? "今天" : ("周" + DAY_SHORT[self.dayCursor]);
+    var over = cls.length - slots;
+    self.dayLabel = over > 0 ? (base + " +" + over) : base;
+    // C 空态：4 字以内（今天暂无课程 = 191px 超内宽）
+    self.emptyHint = (self.dayCursor === todayIdx) ? "今天无课" : ("周" + DAY_SHORT[self.dayCursor] + "无课");
+
+    // B 瓷砖：2 列分行，行对象带 cells（裸数组进外层 for 会让内层 for 静默不渲染）
+    var out = [];
+    for (var r = 0; r < BASE_ROWS; r++) {
+      var cells = [];
+      for (var c = 0; c < BASE_COLS; c++) {
+        var item = shown[r * BASE_COLS + c];
+        if (!item) continue;
+        cells.push({
+          name: item.name,
+          color: subjectColor.getSubjectColor(item.name),
+          // 字号走 class 不走行内（一个 style 里同时放 font-size/line-height 两个绑定在本引擎不稳）
+          sizeCls: (item.name || "").length <= 2 ? (self._wide ? "t2w" : "t2") : (self._wide ? "tnw" : "tn"),
+          startMin: parseMinutes(item.time),
+          endMin: endMinutes(item.time),
+          now: false
+        });
       }
-      rows.push(row);
+      if (cells.length) out.push({ cells: cells });
     }
-    self.gridCells = rows;
+    self.rows = out;
     self.computeNowFlag();
   },
 
@@ -360,56 +313,35 @@ export default {
 </script>
 
 <style>
+/* 左右 12px（ev-six 页面边距）+ 顶部 44px 让开胶囊状态栏 */
 .page { flex-direction: column; width: 100%; height: 100%; padding: 44px 12px 12px 12px }
 
-/* 顶部返回热区 ≥120px（含星期条之前的所有内容） */
-.back-header { flex-direction: row; align-items: center; height: 120px; margin-bottom: 8px }
+.back-header { flex-direction: row; align-items: center; height: 36px; margin-bottom: 8px }
 .back-btn-wrapper { width: 30px; height: 30px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0 }
 .back-btn-icon { width: 22px; height: 22px }
-.header-center { flex: 1; flex-direction: column; align-items: center; justify-content: center }
-.header-title { font-size: 28px; font-weight: bold; line-height: 36px; text-align: center }
-.header-day { font-size: 18px; line-height: 22px; text-align: center; margin-top: 2px; lines: 1 }
+.header-title { flex: 1; font-size: 28px; font-weight: bold; text-align: center; line-height: 36px }
 .header-placeholder { width: 30px; height: 30px; flex-shrink: 0 }
 
-/* 切天箭头：替代 @swipe 手势（drag 会被本引擎误判成点击 → 跳页）。
-   几何是算出来的（2026-10-21 字号抬到 18 后重算）：
-   星期条 7 格 ×18 + 箭头 2×20 = 166 ≤ 168，剩 2px 余量；
-   高度 20→26 是为了装下 18px 字的 22 行高，否则箭头字形被裁。 */
-/* 热区外扩（2026-10-21 规则 §8.3）：视觉仍是 20×26 的小箭头，
-   但可点区域做到 44×44。星期条总宽不能变（7×18 + 2×20 = 166 ≤ 168），
-   所以用负 margin 把多出来的 24×18 让给热区、不占布局。 */
-.arrow-btn {
-  width: 44px;
-  height: 44px;
-  margin: -9px -12px;
-  border-radius: 8px;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
-}
-.arrow-icon { font-size: 18px; line-height: 22px; text-align: center; font-weight: bold }
+/* A 日切换：44×44 热区，负 margin 各让 7px → 视觉只占 30px，中间日名剩 108px */
+.day-row { flex-direction: row; align-items: center; justify-content: center; height: 44px; margin-bottom: 8px; flex-shrink: 0 }
+.nav-btn { width: 44px; height: 44px; margin: 0 -7px; justify-content: center; align-items: center; flex-shrink: 0 }
+.nav-icon { width: 22px; height: 22px }
+.day-text { flex: 1; font-size: 24px; line-height: 30px; text-align: center; font-weight: bold }
 
-.empty-hint { flex: 1; align-items: center; justify-content: center; font-size: 22px; line-height: 31px; text-align: center }
-
-/* A 星期条：130–158，7 格各 18px（7×18 + 2×20 箭头 = 166 ≤ 168） */
-.week-strip { flex-direction: row; justify-content: space-between; align-items: center; height: 28px; flex-shrink: 0 }
-.week-cell { width: 18px; height: 28px; justify-content: center; align-items: center }
-.week-cell.is-current { border-bottom-width: 2px; border-bottom-style: solid; border-bottom-color: #7ec8e3 }
-.week-text { font-size: 18px; line-height: 22px; text-align: center }
-
-/* B 课表格：3 列 × 5 行，格 52×56，列间距 6（3×52+2×6=168）。
-   行高 56 是算出来的：页头 44+120+8=172 → 星期条 28 → 网格起点 200；5×64=320 会到 520 **超出 490**，
-   5×56=280 到 480 ✔（开工卡写的 B 160–480 即此口径，实拍前算过才没翻车）。 */
+/* B 瓷砖：2 列 × 最多 4 行；82×2 + 4 = 168（space-between 自动吃下 4px 缝）
+   4×68 + 3×6 = 290 → 内容底 44+36+8+44+8+290 = 430 ≤ 440（胶囊圆角安全线） */
 .grid { flex-direction: column; flex-shrink: 0 }
-.grid-row { flex-direction: row; justify-content: space-between; height: 56px; margin-bottom: 0 }
-.grid-cell { width: 52px; height: 56px; border-radius: 8px; padding: 3px; justify-content: flex-start; align-items: center; box-sizing: border-box }
-.grid-cell.is-now { border-width: 2px; border-style: solid; border-color: #7ec8e3 }
-/* 格内课名：18/20，2 行 = 40 + padding 6 = 46 ≤ 格高 56；格宽 52 − padding 6 = 46，
-   18px 汉字每行 2 字，4 字课名正好两行（再长由 ellipsis 收）。 */
-.cell-name { font-size: 18px; line-height: 20px; text-align: center; lines: 2; text-overflow: ellipsis; width: 100% }
+.grid-row { flex-direction: row; justify-content: space-between; height: 68px; margin-bottom: 6px }
+.tile { width: 82px; height: 68px; border-radius: 10px; padding: 2px; box-sizing: border-box; justify-content: center; align-items: center }
+/* 当前节：白色 2px 环 = 状态标记（不是装饰分隔线），全页仅此一处描边 */
+.tile.is-now { border-width: 2px; border-style: solid; border-color: #ffffff }
+/* 课名：28（2 字）/ 24（3 字以上）两档，靠 class 切——行内同放 font-size+line-height 两个绑定在本引擎不稳。
+   宽屏抬到 30/28，仍在四档之内。lines:2 兜住 4 字课名（82px 屏格最多 2 字/行），不用 ellipsis。 */
+.tile-name { width: 100%; text-align: center; font-weight: bold; color: #ffffff; lines: 2 }
+.t2 { font-size: 28px; line-height: 34px }
+.tn { font-size: 24px; line-height: 28px }
+.t2w { font-size: 30px; line-height: 36px }
+.tnw { font-size: 28px; line-height: 34px }
 
-
-/* 宽屏（10 Pro 336 起）不再用 @media 断点写死像素：
-   尺寸全部由 fitScreen() 按 k = screenWidth/192 算好、以行内 style 绑定，
-   这里的数值只是 192 屏的兜底（也会被行内值覆盖）。 */
+.empty-hint { flex: 1; align-items: center; justify-content: center; font-size: 24px; line-height: 32px; text-align: center }
 </style>
