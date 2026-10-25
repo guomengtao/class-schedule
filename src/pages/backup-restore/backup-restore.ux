@@ -108,6 +108,23 @@ export default {
     this.iconTheme = (themeName === "light") ? "dark" : "dark"
   },
 
+  onBackPress() {
+    // 返回优先级：解锁引导弹层 > 删除/恢复确认框 > 页面本身。
+    // 弹层开着时真机「左边缘右滑」会走这里；若不拦，系统默认返回会把整页弹掉，
+    // 用户只是想把弹层收起来，结果直接退出备份页。
+    // 只在确实关掉了弹层时 return true；其余一律 return false 交还系统默认返回
+    // （上一页 / 栈底退出），避免无条件吃返回键导致「退不出去」（见 index/welcome 教训）。
+    if (store._unlockDialogRef && store._unlockDialogRef.visible) {
+      store.hideUnlockDialog()
+      return true
+    }
+    if (this.showDialog) {
+      this.showDialog = false
+      return true
+    }
+    return false
+  },
+
   goBack() {
     router.back()
   },
