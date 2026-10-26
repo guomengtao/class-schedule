@@ -1,5 +1,5 @@
 <template>
-  <div class="page" onclick="onTap">
+  <div class="page">
 
     <!-- 变体 0 · 巨型加粗（克隆经典表盘骨架） -->
     <div class="clock" if="{{ isBig }}">
@@ -272,9 +272,9 @@ export default {
   },
 
   onSwitch() {
-    /* 点击「切换样式」会冒泡到 .page 的 onTap → 直接退出。
-       同步置 suppressTap 拦截本次冒泡（与经典表盘 openPanel 同款），
-       点击结束后马上复位，避免影响后续点击。 */
+    /* 切换样式：切换并保存当前样式。
+       注：原 .page 级「点击空白返回」已移除，suppressTap 不再承担拦截冒泡职责，
+       此处保留置位/复位仅为兼容既有写法，无副作用。 */
     this.suppressTap = true
     const m = (this.mode + 1) % 9
     this.applyMode(m)
@@ -286,11 +286,6 @@ export default {
   },
 
   /* ── 返回 ── */
-  onTap() {
-    if (this.suppressTap) return
-    router.replace({ uri: LIST_PAGE })
-  },
-
   goBack() {
     router.replace({ uri: LIST_PAGE })
   }

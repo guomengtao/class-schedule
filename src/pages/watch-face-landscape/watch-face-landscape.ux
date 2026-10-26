@@ -1,5 +1,5 @@
 <template>
-  <div class="page" onclick="onTap">
+  <div class="page">
     <!-- ===== 192×490（手环 9）：原绝对定位版，一个像素都不改 ===== -->
     <text if="{{ !wide }}" class="brand">EV</text>
     <text if="{{ !wide }}" class="sub">大字表盘</text>
@@ -15,7 +15,7 @@
     </div>
 
     <text if="{{ !wide }}" class="date">{{ dateText }}</text>
-    <text if="{{ !wide }}" class="hint">轻触返回</text>
+    <text if="{{ !wide }}" class="hint" onclick="onBack">返回</text>
 
     <!-- ===== 宽屏（10Pro 336×480 起）：4 位数字并成一行吃满宽度 + 整体垂直居中 =====
          192 屏两行数字受「屏高」限制（490 高只能放两行 150px），再放大就溢出；
@@ -33,7 +33,7 @@
         <text class="w-dg">{{ m1 }}</text>
       </div>
       <text class="w-date">{{ dateText }}</text>
-      <text class="w-hint">轻触返回</text>
+      <text class="w-hint" onclick="onBack">返回</text>
     </div>
   </div>
 </template>
@@ -133,7 +133,7 @@ export default {
     else this.m1 = c
   },
 
-  onTap() {
+  onBack() {
     this.stop()
     router.replace({ uri: LIST_PAGE })
   }

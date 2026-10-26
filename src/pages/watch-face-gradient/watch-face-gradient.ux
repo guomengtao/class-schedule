@@ -10,10 +10,10 @@
       ④ 排版三层：EV 品牌 / 主时间 / 日期 + 进度 + 操作
     192×490 与 336×480 走同一骨架，仅字号与间距两套常量。
   -->
-  <div class="page" onclick="onTap">
+  <div class="page">
     <!-- ===== 背景色带：12 条均分铺满，颜色 = 主色 22% 混深底，保证文字对比度 =====
          onclick 挂在这一层：绝对定位层会吞掉下层点击，不挂就点不回去了 -->
-    <div class="bg" onclick="onTap">
+    <div class="bg">
       <div for="{{ bars }}" class="bg-bar" style="background-color: {{ $item }}"></div>
     </div>
 
@@ -305,11 +305,6 @@ export default {
     this.applyTheme(i)
     this.saveTheme(i)
     this.closePanel()
-  },
-
-  onTap() {
-    if (this.suppressTap) return
-    router.replace({ uri: LIST_PAGE })
   },
 
   goBack() {

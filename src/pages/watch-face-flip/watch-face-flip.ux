@@ -17,7 +17,7 @@
      absolute 子元素也必须有定位上下文，否则会叠到页面左上角。
 -->
 <template>
-  <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
+  <div class="page">
 
     <!-- ===== 192×490（手环 9）：原版式，一个像素都不改 ===== -->
     <text if="{{ !wide }}" class="brand">EV</text>
@@ -81,6 +81,8 @@
     </div>
 
     <text if="{{ wide }}" class="w-date">{{ dateText }}</text>
+
+    <text style="position:absolute;left:0;bottom:16px;width:100%;text-align:center;font-size:22px;color:#888899" onclick="onBack">返回</text>
   </div>
 </template>
 
@@ -89,14 +91,11 @@ import router from "@system.router"
 import device from "@system.device"
 
 const LIST_PAGE = "/pages/watch-face-list"
-const UP_PAGE   = "/pages/watch-face-landscape"   // 目录里本页前一个
-const DOWN_PAGE = "/pages/watch-face-animated"    // 目录里本页后一个
 
 const ITEM_H      = 64   // 小屏每格高度，必须等于 CSS .win / .di 的 height
 const ITEM_H_WIDE = 88   // 宽屏每格高度，必须等于 CSS .w-win / .w-di 的 height
 const STEPS    = 5    // 一次滚动分几帧（5 × 20ms ≈ 100ms）
 const STEP_MS  = 45
-const SWIPE_TH = 40   // 上下滑判定阈值（与 evpointer 一致）
 
 const FULL_DAY = ["日", "一", "二", "三", "四", "五", "六"]
 
@@ -118,8 +117,6 @@ export default {
     this.shown = [-1, -1, -1, -1, -1, -1]   // 脏检查：上次真正滚到位的数字
     this.tok = [0, 0, 0, 0, 0, 0]           // 每条带的动画令牌
     this.timers = []                        // 分帧 setTimeout
-    this.touchStartY = 0
-    this.suppressTap = false
     this.itemH = ITEM_H                     // 先按小屏基准，fitScreen 回调再改
     this.fitScreen()
     this.tick()
@@ -274,33 +271,8 @@ export default {
     frame()
   },
 
-  /* ── 手势：Vela 无 onswipe，靠 Y 位移手算 ─────────────── */
-
-  onTouchStart(e) {
-    const t = (e && e.touches && e.touches[0]) || e || {}
-    this.touchStartY = t.clientY || t.offsetY || t.pageY || 0
-  },
-
-  onTouchEnd(e) {
-    const t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]) || e || {}
-    const endY = t.clientY || t.offsetY || t.pageY || 0
-    const d = this.touchStartY ? (this.touchStartY - endY) : 0
-    this.touchStartY = 0
-    if (d >= SWIPE_TH) {
-      this.suppressTap = true
-      router.replace({ uri: UP_PAGE })
-    } else if (d <= -SWIPE_TH) {
-      this.suppressTap = true
-      router.replace({ uri: DOWN_PAGE })
-    }
-  },
-
-  /* 单击 → 返回目录（系列统一）；滑动已触发时吞掉这一次点击 */
-  onTap() {
-    if (this.suppressTap) {
-      this.suppressTap = false
-      return
-    }
+  /* 返回目录（按钮，系列统一；已移除点击空白返回 / 上下滑切表盘） */
+  onBack() {
     router.replace({ uri: LIST_PAGE })
   }
 }

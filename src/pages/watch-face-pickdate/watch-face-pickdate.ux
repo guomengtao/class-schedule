@@ -1,7 +1,7 @@
 <template>
   <div class="page">
 
-    <div class="back" onclick="onTap"></div>
+    <div class="back" onclick="onBack"></div>
 
     <text class="brand {{ brandCls }}">EV</text>
     <text class="brand-sub {{ subCls }}">时 间 表 盘</text>
@@ -408,7 +408,7 @@ export default {
 
   /* ── 交互出口 ───────────────────────────────────────── */
 
-  onTap() {
+  onBack() {
     this.stopAll()
     router.replace({ uri: LIST_PAGE })
   }

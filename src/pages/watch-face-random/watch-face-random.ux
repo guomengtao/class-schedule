@@ -10,9 +10,6 @@
       ④ 交互：点空白返回、右下「轻触返回」。原随机跳字与换色面板取消。
   -->
   <div class="page">
-    <!-- 底层透明点击层：只有点「空白」才会命中它 → 返回 -->
-    <div class="bg-tap" onclick="onTap"></div>
-
     <!-- 纵向拉丝 ×6（百分比定位，静态） -->
     <div class="band b1"></div>
     <div class="band b2"></div>
@@ -66,7 +63,7 @@
     </div>
 
     <!-- 返回 -->
-    <text class="back {{backCls}}" style="top:{{backT}}px">轻触返回</text>
+    <text class="back {{backCls}}" style="top:{{backT}}px" onclick="onBack">轻触返回</text>
   </div>
 </template>
 
@@ -344,8 +341,8 @@ export default {
     if (dd !== this.dayText) this.dayText = dd
   },
 
-  /* ── 返回 ── */
-  onTap() {
+  /* ── 返回（按钮，系列统一；已移除「点击空白返回」透明层）── */
+  onBack() {
     router.replace({ uri: LIST_PAGE })
   }
 }
@@ -357,16 +354,6 @@ export default {
     height: 100%;
     background-color: #17191d;
     position: relative;
-  }
-
-  /* 底层透明点击层：撑满整屏，承接「点空白返回」 */
-  .bg-tap {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: transparent;
   }
 
   /* ── 纵向拉丝带：极淡横向明暗交替，替代框的「材质存在感」── */

@@ -9,7 +9,7 @@
     本页不出现任何渐变（探针已证 Vela 不支持 linear-gradient，正好符合母题）。
     内容占屏 18.6% → 约 45%；192 主数字 60px 原值不动，336 改 104px。
   -->
-  <div class="page" onclick="onTap">
+  <div class="page">
     <!-- ===== 192×490（手环 9）：主数字 60px 原值 ===== -->
     <div if="{{ !wide }}" class="stack">
       <!-- 四段色标：40×4=160，居中走排版流。
@@ -350,11 +350,6 @@ export default {
     this.applyPalette(i)
     this.savePalette(i)
     this.closePanel()
-  },
-
-  onTap() {
-    if (this.suppressTap) return
-    router.replace({ uri: LIST_PAGE })
   },
 
   goBack() {

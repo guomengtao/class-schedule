@@ -9,7 +9,7 @@
       ④ 自下往上滑 —— 切到「经典表盘」（两页上下滑动互切；onswipe 在 Vela 不可用，用 touchstart/touchend 判方向）
     松手即中止计时，防误触。
   -->
-  <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
+  <div class="page">
     <!-- 顶部状态条 -->
     <text class="status-left {{ statusLCls }}">{{ dateText }}</text>
     <text class="status-right {{ statusRCls }}">{{ countText }}</text>
@@ -119,7 +119,6 @@ export default {
     pressTimer: null,
     pressStep: 0,
     lastCornerTap: 0,
-    touchStartY: 0,
     lastMinute: -1,
 
     /* ── 宽屏类名（默认空串 → 192 屏样式零变化）── */
@@ -487,27 +486,7 @@ export default {
     this.lastCornerTap = now
   },
 
-  onTouchStart(e) {
-    const t = (e && e.touches && e.touches[0]) || e || {}
-    this.touchStartY = t.clientY || t.offsetY || t.pageY || 0
-  },
-
-  onTouchEnd(e) {
-    const t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]) || e || {}
-    const endY = t.clientY || t.offsetY || t.pageY || 0
-    const d = this.touchStartY ? (this.touchStartY - endY) : 0
-    if (d >= 40) {
-      this.cancelExit()
-      // 上滑 = 上一页「经典表盘」；下滑 = 下一页「金属字针表」（环：①→②→③→④→⑤→①）
-      // 退出回目录仍可用：长按时间区 / 长按卡片区 / 双击右下角 / 「返回」按钮
-      router.replace({ uri: "/pages/watch-face" })
-    } else if (d <= -40) {
-      this.cancelExit()
-      router.replace({ uri: "/pages/watch-face-gold" })
-    }
-    this.touchStartY = 0
-  },
-
+  /* 已移除「上下滑切表盘」：返回统一走「返回」按钮（onBack）；长按 / 双击右下角仍保留 */
   cancelExit() {
     this.clearPress()
     this.cardHot = false
@@ -519,11 +498,6 @@ export default {
       clearTimeout(this.pressTimer)
       this.pressTimer = null
     }
-  },
-
-  /* ── 退出：单击任意位置（主路径）── */
-  onTap() {
-    this.doExit()
   },
 
   doExit() {

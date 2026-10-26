@@ -15,7 +15,7 @@
   ⑤ keyframes 里只放字面量；只挂在纯色无文字的节点上。
 -->
 <template>
-  <div class="page" onclick="onTap">
+  <div class="page">
 
     <text class="brand {{ brandCls }}">EV</text>
 
@@ -46,7 +46,7 @@
     </div>
 
     <text class="date {{ dateCls }}">{{ dateText }}</text>
-    <text class="hint {{ hintCls }}">轻触返回</text>
+    <text class="hint {{ hintCls }}" onclick="onBack">返回</text>
   </div>
 </template>
 
@@ -297,7 +297,7 @@ export default {
     return n < 10 ? "0" + n : "" + n
   },
 
-  onTap() {
+  onBack() {
     router.replace({ uri: LIST_PAGE })
   }
 }

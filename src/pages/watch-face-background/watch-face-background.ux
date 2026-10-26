@@ -15,10 +15,10 @@
       ④ 面板 8 套场景双列色票：每格用「天空块 + 地面条」还原该场景，不是纯色方块
     192×490 与 336×480 仅字号与尺寸两套常量。
   -->
-  <div class="page" style="background-color: {{ floorColor }}" onclick="onTap">
+  <div class="page" style="background-color: {{ floorColor }}">
     <!-- ===== 场景背景：24 段 × 21px = 504px ≥ 两屏屏高（490/480），末段溢出被裁 =====
          onclick 挂在这一层：满屏绝对定位层会吞掉下层点击，不挂就点不回去了 -->
-    <div class="bg" onclick="onTap">
+    <div class="bg">
       <div for="{{ skyBands }}" class="band" style="background-color: {{ $item }}"></div>
       <div class="horizon" style="background-color: {{ horizonColor }}"></div>
       <div class="floor" style="background-color: {{ floorColor }}"></div>
@@ -28,7 +28,6 @@
     <div
       class="disc"
       if="{{ discOn }}"
-      onclick="onTap"
       style="width: {{ discD }}px; height: {{ discD }}px; border-radius: {{ discR }}px; left: {{ discX }}px; top: {{ discY }}px; background-color: {{ discColor }}"></div>
 
     <!-- ===== 192×490（手环 9）=====
@@ -464,11 +463,6 @@ export default {
   },
 
   /* ── 返回 ── */
-  onTap() {
-    if (this.suppressTap) return
-    router.replace({ uri: LIST_PAGE })
-  },
-
   goBack() {
     router.replace({ uri: LIST_PAGE })
   }

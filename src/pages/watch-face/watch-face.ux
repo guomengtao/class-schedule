@@ -9,7 +9,7 @@
     颜色选择面板用「自绘 overlay」实现 —— 与 backup-restore.ux 的 overlay-modal 同套路，
     不用系统的 prompt.showDialog（项目里无先例，未验证）。
   -->
-  <div class="page" onclick="onTap">
+  <div class="page">
     <!-- ===== 192×490（手环 9）：原版式，一个像素都不改 ===== -->
     <text if="{{ !wide }}" class="clock" style="color: {{ clockColor }}">{{timeText}}</text>
     <text if="{{ !wide }}" class="btn-color" onclick="openPanel">换色</text>
@@ -177,12 +177,7 @@ export default {
     this.closePanel()
   },
 
-  /* ── 返回 ── */
-  onTap() {
-    if (this.suppressTap) return
-    router.replace({ uri: LIST_PAGE })
-  },
-
+  /* ── 返回（按钮，系列统一；已移除点击空白返回）── */
   goBack() {
     router.replace({ uri: LIST_PAGE })
   }

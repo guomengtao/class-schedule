@@ -10,7 +10,7 @@
     · 电池图标用 div 手绘（外壳 + 电芯 + 正极帽），零外部资源。
     · 骨架照经典表盘（flex 居中，无 absolute 子元素），规避黑屏。
   -->
-  <div class="page" onclick="onTap">
+  <div class="page">
     <text class="clock {{ clockCls }}" style="color: {{ fgColor }}">{{ timeText }}</text>
     <text class="date {{ dateCls }}" style="color: {{ subColor }}">{{ dateText }}</text>
 
@@ -223,10 +223,6 @@ export default {
         fail: function() {}
       })
     } catch (e) {}
-  },
-
-  onTap() {
-    router.replace({ uri: LIST_PAGE })
   },
 
   goBack() {

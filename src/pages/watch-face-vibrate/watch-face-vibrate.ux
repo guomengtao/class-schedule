@@ -23,7 +23,7 @@
 -->
 
 <template>
-  <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
+  <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd">
 
     <!-- 顶部品牌区（陈列感） -->
     <text class="brand {{ brandCls }}">EV · MECHANICAL</text>
@@ -208,7 +208,7 @@
 
     <!-- 底部：只留一行淡日期（32px 时间大字会把「实物表」打回「电子屏」） -->
     <text class="date-line" style="{{ dateStyle }}">{{dateText}}</text>
-    <text class="hint" style="{{ hintStyle }}">长按设置 · 返回</text>
+    <text class="hint" style="{{ hintStyle }}">长按设置</text>
 
     <!-- 设置面板：震动开关 + 倒计时（长按打开，避免表面出现按钮） -->
     <div class="mask" if="{{showPanel}}" onclick="closePanel">
@@ -222,6 +222,8 @@
         <text class="p-cancel" onclick="closePanel">关闭</text>
       </div>
     </div>
+
+    <text style="position:absolute;left:0;bottom:16px;width:100%;text-align:center;font-size:22px;color:#8d949c" onclick="onBack">返回</text>
   </div>
 </template>
 
@@ -434,35 +436,16 @@ export default {
   /* ── 触摸：长按开面板 / 上下滑切表盘 / 单击返回 ── */
   onTouchStart(e) {
     const t = (e && e.touches && e.touches[0]) || e || {}
-    this.touchStartY = t.clientY || t.offsetY || t.pageY || 0
     this.pressTs = Date.now()
-    this.moved = false
   },
 
   onTouchEnd(e) {
     const t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]) || e || {}
-    const endY = t.clientY || t.offsetY || t.pageY || 0
-    const startY = this.touchStartY || 0
-    const d = startY ? (startY - endY) : 0
     const held = this.pressTs ? (Date.now() - this.pressTs) : 0
 
-    this.touchStartY = 0
     this.pressTs = 0
 
-    // 上下滑（阈值 40px）优先：机械表盘 ← 上滑→课程表盘 ｜ 下滑→EV 指针
-    if (d >= 40) {
-      this.suppressTap = true
-      this.stopTimer()
-      router.replace({ uri: "/pages/watch-face-class" })
-      return
-    }
-    if (d <= -40) {
-      this.suppressTap = true
-      this.stopTimer()
-      router.replace({ uri: "/pages/watch-face-evpointer" })
-      return
-    }
-    // 长按：开设置面板（并挡住随后的 click，否则会立刻返回目录）
+    // 已移除「上下滑切表盘」：本页只保留长按开设置面板（guardTap 会挡住随后的 click）
     if (held >= LONG_PRESS_MS) {
       this.openPanel()
     }
@@ -492,8 +475,8 @@ export default {
     this.guardTap()
   },
 
-  onTap() {
-    if (this.suppressTap) return
+  /* 返回目录（按钮，系列统一；已移除点击空白返回 / 上下滑切表盘） */
+  onBack() {
     this.stopTimer()
     router.replace({ uri: LIST_PAGE })
   }

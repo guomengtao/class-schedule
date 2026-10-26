@@ -18,7 +18,8 @@
 -->
 
 <template>
-  <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd" onclick="onTap">
+  <div class="page">
+    <text style="position:absolute;left:0;bottom:16px;width:100%;text-align:center;font-size:22px;color:#888899" onclick="onBack">返回</text>
 
     <!-- 顶部品牌 -->
     <text class="brand {{ brandCls }}">EV</text>
@@ -196,30 +197,8 @@ export default {
     this.syncHands()
   },
 
-  /* ── 上下滑动切表盘（Vela 无 onswipe，靠 Y 位移手算；阈值 40px）──
-     目录环：金属字针表(gold) ← 上滑 ｜ 下滑 → 仿古金属表盘(metal) */
-  onTouchStart(e) {
-    const t = (e && e.touches && e.touches[0]) || e || {}
-    this.touchStartY = t.clientY || t.offsetY || t.pageY || 0
-  },
-
-  onTouchEnd(e) {
-    const t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]) || e || {}
-    const endY = t.clientY || t.offsetY || t.pageY || 0
-    const d = this.touchStartY ? (this.touchStartY - endY) : 0
-    if (d >= 40) {
-      this.suppressTap = true
-      router.replace({ uri: "/pages/watch-face-gold" })
-    } else if (d <= -40) {
-      this.suppressTap = true
-      router.replace({ uri: "/pages/watch-face-metal" })
-    }
-    this.touchStartY = 0
-  },
-
-  /* ── 退出：单击任意位置返回目录（系列统一）── */
-  onTap() {
-    if (this.suppressTap) return
+  /* ── 退出：返回目录（按钮）── */
+  onBack() {
     router.replace({ uri: LIST_PAGE })
   }
 }

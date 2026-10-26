@@ -74,6 +74,10 @@
       <div class="item-row" onclick="openPickDate">
         <text class="item-label" style="color: {{ theme.text }}">日期选择器表盘</text>
       </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openAppleWidget">
+        <text class="item-label" style="color: {{ theme.text }}">苹果Mac表盘</text>
+      </div>
     </div>
 
     </div>
@@ -184,6 +188,10 @@ export default {
 
   openPickDate() {
     router.push({ uri: "/pages/watch-face-pickdate" })
+  },
+
+  openAppleWidget() {
+    router.push({ uri: "/pages/watch-face-apple-widget" })
   },
 
   goBack() {
