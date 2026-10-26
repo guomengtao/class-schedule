@@ -275,3 +275,48 @@ fitScreen() {
 | 变体 7 与按钮重叠 | **本次新发现**，非本次引入（192 屏同结构同问题）。修法已给出（origin y 上移或 `.rot` 加 `top:-48px`），待定是否动 |
 | 变体 1/8 冒号黑底 | **本次新发现**，非本次引入（opacity 动画被单独建层填黑）。待定 |
 
+
+---
+
+## §11 变体 6（翻页）实拍取证与根因修复（2026-10-26）
+
+### 11.1 取证方式：绕开「点击链必断」
+
+§10.3-2 记录的「点切换样式必冒泡退页」让变体遍历不可用，本次改用**临时钩子强制单变体**：
+在 `onReady` 末尾挂 `tempVerifyCycles()`，里面 `applyMode(6)`（并在 3s 后补打一次，
+防 `loadStyle` 的 storage 回调把 mode 冲回 0），取证后整段删除。
+比「定时器自动巡游」可靠——实测 `setTimeout(25s)` 后套 `setInterval(8s)` 的交替方案
+在 Vela 上只触发了第一跳，后续不再走。
+
+### 11.2 结论：v6 是**两屏都坏**的既有缺陷，不是 336 适配引入
+
+| 屏 | 变体 6 实际渲染 |
+|---|---|
+| 192×490（手环9） | 只有居中的冒号 `:`，四列数字**全空** |
+| 336×480（手环10Pro） | 同上，一样只有冒号 |
+
+即：v6 从写出来那天起就没有显示过数字，与宽屏适配无关。
+
+### 11.3 根因（两处，均对照官方文档确认）
+
+官方 scroll 文档（`iot.mi.com/vela/.../container/scroll.html`）：
+
+1. **`scrolltop` 是事件名，不是属性名。** 控制滚动位置的属性是 **`scroll-top`**（`<number>|<string>`）。
+   原代码 `<scroll ... scrolltop="{{y0}}">` 写成了事件名，属性不成立。
+2. **文字不能裸放在 `<div>` 里。** 官方示例与仓库内全部可用 scroll（`components/InputMethod`
+   共 8 处）都是 `<div>` 包 `<text>`，文本一律在 `<text>` 内。原代码
+   `<div for="{{items}}" class="di">{{ $item }}</div>` 把数字直接塞进 div → 不渲染。
+
+两条同时成立，所以看到的正好是「div 空壳 + 唯一一个 `<text>` 冒号还在」。
+
+### 11.4 改法（两行）
+
+```html
+<!-- 改前 -->
+<scroll class="col {{ colCls }}" scroll-y="{{true}}" scrolltop="{{y0}}"><div for="{{items}}" class="di {{ diCls }}">{{ $item }}</div></scroll>
+<!-- 改后 -->
+<scroll class="col {{ colCls }}" scroll-y="{{true}}" scroll-top="{{y0}}"><text for="{{items}}" class="di {{ diCls }}">{{ $item }}</text></scroll>
+```
+
+`.di` 的样式（width/height/font-size/line-height/text-align/color）对 `<text>` 全部合法，无需改 CSS。
+竖向滚动需要定高——`.col` 已有 height（56 / 宽屏 84），满足。

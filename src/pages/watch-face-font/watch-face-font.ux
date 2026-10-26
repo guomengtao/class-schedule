@@ -41,14 +41,17 @@
       <div class="m-track {{ trackCls }}"><div class="m-bar" style="width: {{ secPct }}px"></div></div>
     </div>
 
-    <!-- 变体 6 · 翻页滚动（scroll scrolltop 竖排滚动，无需轮有先例）
-         ⚠️ 列宽/行高必须与 JS 的 rowH 同步：宽屏 .w-col/.w-di 的 84 = fitScreen 里的 rowH -->
+    <!-- 变体 6 · 翻页滚动（scroll scroll-top 竖排滚动，无需轮有先例）
+         ⚠️ 三条硬约束（2026-10-26 实拍定位，见 docs §11）：
+            1. 属性是 scroll-top，不是 scrolltop（后者是**事件名**，写了等于没写）
+            2. 数字必须放在 <text> 里，裸放 <div> 不渲染（所以此前只有冒号、四列全空）
+            3. 列宽/行高必须与 JS 的 rowH 同步：宽屏 .w-col/.w-di 的 84 = fitScreen 里的 rowH -->
     <div class="clock" if="{{ isFlip }}">
-      <scroll class="col {{ colCls }}" scroll-y="{{true}}" scrolltop="{{y0}}"><div for="{{items}}" class="di {{ diCls }}">{{ $item }}</div></scroll>
-      <scroll class="col {{ colCls }}" scroll-y="{{true}}" scrolltop="{{y1}}"><div for="{{items}}" class="di {{ diCls }}">{{ $item }}</div></scroll>
+      <scroll class="col {{ colCls }}" scroll-y="{{true}}" scroll-top="{{y0}}"><text for="{{items}}" class="di {{ diCls }}">{{ $item }}</text></scroll>
+      <scroll class="col {{ colCls }}" scroll-y="{{true}}" scroll-top="{{y1}}"><text for="{{items}}" class="di {{ diCls }}">{{ $item }}</text></scroll>
       <text class="c {{ cCls }}">:</text>
-      <scroll class="col {{ colCls }}" scroll-y="{{true}}" scrolltop="{{y2}}"><div for="{{items}}" class="di {{ diCls }}">{{ $item }}</div></scroll>
-      <scroll class="col {{ colCls }}" scroll-y="{{true}}" scrolltop="{{y3}}"><div for="{{items}}" class="di {{ diCls }}">{{ $item }}</div></scroll>
+      <scroll class="col {{ colCls }}" scroll-y="{{true}}" scroll-top="{{y2}}"><text for="{{items}}" class="di {{ diCls }}">{{ $item }}</text></scroll>
+      <scroll class="col {{ colCls }}" scroll-y="{{true}}" scroll-top="{{y3}}"><text for="{{items}}" class="di {{ diCls }}">{{ $item }}</text></scroll>
     </div>
 
     <!-- 变体 7 · 横铺跑道（字面量 rotate(-90deg)，显式 transform-origin，同横屏表盘）
@@ -128,19 +131,6 @@ export default {
   onReady() {
     this.fitScreen()
     this.refresh()
-    this.tempVerifyCycles()   /* TEMP-VERIFY */
-  },
-
-  /* ══ TEMP-VERIFY 起 ══ 仅用于补 336 屏 v6/v2/v4/v8 实拍，取证后整段删除 ══
-     背景：本页点「切换样式」会冒泡到 .page 的 onTap 直接 router.replace 回列表，
-     v3 之后必挂（见 docs §10.3-2），所以变体遍历不能靠点击，只能靠定时器自巡游。
-     排期：40s→v6、65s→v2、90s→v4、115s→v8（前 30s 留给首屏黑屏期） */
-  tempVerifyCycles() {
-    /* 强制停在 v6（翻页）：定时器交替在 Vela 上不可靠，改单变体硬编码最确定。
-       打两次是因为 loadStyle 的 storage 回调可能在 onReady 之后才落地、把 mode 冲回 0 */
-    const self = this
-    this.applyMode(6)
-    setTimeout(function () { self.applyMode(6) }, 3000)
   },
 
   onShow() {
