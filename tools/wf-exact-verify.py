@@ -429,6 +429,102 @@ def find_dial_center(im):
     return cx, cy
 
 
+def pct_to_crop(pct, size):
+    """百分比裁剪框 → 像素框。pct=(x0%,y0%,x1%,y1%)，取 0~100。
+
+    存在的意义：同一套比例可跨机型复用（336x480 与 192x490 各按自己尺寸换算），
+    避免每次换机型都重算绝对像素——实测换机型重算最容易写错，而 crop 错 30px
+    就足以让 SSIM 从 0.87 掉到 0.54。
+    """
+    w, h = size
+    x0 = int(round(pct[0] / 100.0 * (w - 1)))
+    y0 = int(round(pct[1] / 100.0 * (h - 1)))
+    x1 = int(round(pct[2] / 100.0 * (w - 1)))
+    y1 = int(round(pct[3] / 100.0 * (h - 1)))
+    x0, y0 = max(0, min(x0, w - 2)), max(0, min(y0, h - 2))
+    x1, y1 = max(x0 + 16, min(x1, w - 1)), max(y0 + 16, min(y1, h - 1))
+    return (x0, y0, x1, y1)
+
+
+def crop_fit_check(im, crop, tol=20, step=2, cut_ratio=0.5, area_min=0.03):
+    """校验 crop 是否贴合组件本体。返回 dict(ok, why, cut, full_bleed, edge_ratio)。
+
+    核心判据：**裁切是否切断组件**。只能看框外——框内无法自证：
+      · 某条边上「框内像素是组件色，且框外 1px 与之同色」→ 组件延伸出框外，该边被切；
+        比例 > cut_ratio 即判定（裁到盘面纯色区时，内外同色，占比接近 100%）。
+      · 该边内侧是背景色 → 是留白，不判切（框大了不报切边，由面积判据兜底）。
+      · 该边贴到图像边界（无框外可比）→ 该边豁免，四边都贴则标记 full_bleed。
+
+    为什么不用「crop 四角当背景基准」：裁到盘面内部时四角就是盘面色，
+    会被当成背景，导致四边全部"无前景"而误判通过（实测踩过）。
+    """
+    x0, y0, x1, y1 = crop
+    W, H = im.size
+    ip = im.load()
+    cw, ch = x1 - x0 + 1, y1 - y0 + 1
+    if cw < 24 or ch < 24:
+        return {"ok": False, "why": "crop 区域过小（%dx%d）" % (cw, ch),
+                "cut": [], "full_bleed": False, "edge_ratio": {}}
+
+    bgs = border_colors(im) or [(255, 255, 255)]
+    tol2 = tol * tol
+
+    def is_bg(p):
+        return min((p[0] - b[0]) ** 2 + (p[1] - b[1]) ** 2 + (p[2] - b[2]) ** 2
+                   for b in bgs) <= tol2
+
+    def same(p, q, t=40):
+        return (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2 <= t * t
+
+    # 每条边：(框内坐标, 框外坐标) 序列；框外越界则为 None（该边豁免）
+    def line(fix, axis, inside, outside):
+        if outside < 0 or outside >= (W if axis == "x" else H):
+            return None
+        rng = range(x0, x1 + 1, step) if axis == "x" else range(y0, y1 + 1, step)
+        out = []
+        for v in rng:
+            a = ip[v, inside] if axis == "x" else ip[inside, v]
+            b = ip[v, outside] if axis == "x" else ip[outside, v]
+            out.append((a, b))
+        return out
+
+    edges = {
+        "上": line(y0, "x", y0, y0 - 1),
+        "下": line(y1, "x", y1, y1 + 1),
+        "左": line(x0, "y", x0, x0 - 1),
+        "右": line(x1, "y", x1, x1 + 1),
+    }
+
+    ratios, cut = {}, []
+    for k, pts in edges.items():
+        if pts is None:
+            ratios[k] = None
+            continue
+        n = float(len(pts)) or 1.0
+        ext = sum(1 for a, b in pts if (not is_bg(a)) and same(a, b))
+        ratios[k] = round(ext / n, 3)
+        if ratios[k] > cut_ratio:
+            cut.append(k)
+
+    boundary_edges = sum(1 for v in ratios.values() if v is None)
+    full_bleed = boundary_edges >= 3
+
+    samples = [ip[x, y] for y in range(y0 + 2, y1 - 1, 4)
+               for x in range(x0 + 2, x1 - 1, 4)]
+    area = (sum(1 for p in samples if not is_bg(p)) / float(max(1, len(samples))))
+
+    why = []
+    if cut:
+        why.append("组件被切到框外（%s 边内外同色占比 %s）"
+                   % ("/".join(cut),
+                      ", ".join("%s=%.0f%%" % (k, ratios[k] * 100) for k in cut)))
+    if area < area_min:
+        why.append("框内前景仅占 %.1f%%，crop 未对准组件" % (area * 100))
+    return {"ok": not why, "why": "；".join(why), "cut": cut,
+            "full_bleed": full_bleed, "area": round(area, 3),
+            "edge_ratio": ratios}
+
+
 def normalize(im, loc, size=SIZE):
     """裁 bbox → 居中补边成正方形 → 缩放到 size。返回 (RGB, mask L, scale)"""
     x0, y0, x1, y1 = loc["bbox"]
@@ -967,8 +1063,28 @@ def run_case(ref_p, mine_p, name, out_root, args):
     ref0 = Image.open(ref_p).convert("RGB")
     mine0 = Image.open(mine_p).convert("RGB")
 
-    lr = locate(ref0, args.crop_ref, args.shape)
-    lm = locate(mine0, args.crop_mine, args.shape)
+    # 百分比 crop 按各自尺寸换算（跨机型同一比例复用），绝对 crop 优先
+    pct_ref = getattr(args, "crop_pct_ref", None) or args.crop_pct
+    pct_mine = getattr(args, "crop_pct_mine", None) or args.crop_pct
+    c_ref = args.crop_ref or (pct_to_crop(pct_ref, ref0.size) if pct_ref else None)
+    c_mine = args.crop_mine or (pct_to_crop(pct_mine, mine0.size) if pct_mine else None)
+
+    # 贴合度校验：crop 错 30px 就能让 SSIM 从 0.87 掉到 0.54，必须先挡住
+    fits = {}
+    for tag, im0, c in (("ref", ref0, c_ref), ("mine", mine0, c_mine)):
+        if not c:
+            continue
+        f = crop_fit_check(im0, c)
+        fits[tag] = f
+        if not f["ok"]:
+            hint = ("crop 不贴合（%s）：%s" % (tag, f["why"]))
+            if args.crop_fit_warn:
+                print("[WARN] " + hint, file=sys.stderr)
+            else:
+                die(hint + "\n改用 --crop-pct x0,y0,x1,y1 按比例重裁，或加 --crop-fit-warn 降级为告警")
+
+    lr = locate(ref0, c_ref, args.shape)
+    lm = locate(mine0, c_mine, args.shape)
     if lr is None:
         die("基准图自动定位失败（前景占比过低或主体不成块）。用 --crop-ref x0,y0,x1,y1 指定")
     if lm is None:
@@ -1029,6 +1145,9 @@ def run_case(ref_p, mine_p, name, out_root, args):
             "shape_mismatch": shape_mismatch,
             "ratio_ref": round(ar, 3), "ratio_mine": round(am, 3),
         },
+        "crop": {"ref": list(c_ref) if c_ref else None,
+                 "mine": list(c_mine) if c_mine else None,
+                 "fit": fits},
         "align": {"dx": dx, "dy": dy, "scale": s,
                   "dx_px_r320": int(round(dx * SIZE / 96.0)),
                   "dy_px_r320": int(round(dy * SIZE / 96.0))},
@@ -1182,6 +1301,14 @@ def main():
     ap.add_argument("--same-clock", metavar="说明", nargs="?", const="模拟器已锁定同一时刻",
                     default=None,
                     help="声明两图同刻（时刻由截图方设定，声明比像素反推可靠）；带值则记入报告")
+    ap.add_argument("--crop-pct", metavar="x0,y0,x1,y1",
+                    help="按百分比裁剪（0~100），ref 与 mine 各按自身尺寸换算——换机型不用重算像素")
+    ap.add_argument("--crop-pct-ref", metavar="x0,y0,x1,y1",
+                    help="只给 ref 的百分比裁剪（两机型布局比例不同时用）")
+    ap.add_argument("--crop-pct-mine", metavar="x0,y0,x1,y1",
+                    help="只给 mine 的百分比裁剪（两机型布局比例不同时用）")
+    ap.add_argument("--crop-fit-warn", action="store_true",
+                    help="crop 不贴合组件时仅告警，不中止（默认 exit 2）")
     ap.add_argument("--allow-clock-mismatch", action="store_true",
                     help="不同刻也允许 PASS（默认不同刻降级 WARN）")
     ap.add_argument("--gif-size", type=int, default=320)
@@ -1203,6 +1330,26 @@ def main():
             die("--crop 需要 4 个整数：x0,y0,x1,y1")
         return tuple(parts)
 
+    def parse_pct(s):
+        if not s:
+            return None
+        try:
+            parts = [float(x) for x in s.replace("，", ",").split(",")]
+        except ValueError:
+            die("--crop-pct 需要 4 个数字（百分比）：x0,y0,x1,y1")
+        if len(parts) != 4:
+            die("--crop-pct 需要 4 个数字（百分比）：x0,y0,x1,y1")
+        if not all(0.0 <= v <= 100.0 for v in parts):
+            die("--crop-pct 取值须在 0~100 之间")
+        if not (parts[0] < parts[2] and parts[1] < parts[3]):
+            die("--crop-pct 需满足 x0<x1 且 y0<y1")
+        return tuple(parts)
+
+    args.crop_pct = parse_pct(args.crop_pct)
+    args.crop_pct_ref = parse_pct(args.crop_pct_ref) or args.crop_pct
+    args.crop_pct_mine = parse_pct(args.crop_pct_mine) or args.crop_pct
+    args.crop_fit_warn = bool(getattr(args, "crop_fit_warn", False))
+
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     out_root = args.out or os.path.join(here, "build", "verify")
 
@@ -1222,13 +1369,15 @@ def main():
                 "crop_mine": parse_crop(c.get("crop_mine")),
                 "shape": c.get("shape", args.shape),
                 "same_clock": c.get("same_clock", args.same_clock),
+                "crop_pct": parse_pct(c.get("crop_pct")) or args.crop_pct,
             })
     elif args.ref and args.mine:
         cases.append({"name": args.name or os.path.splitext(os.path.basename(args.mine))[0],
                       "ref": args.ref, "mine": args.mine, "type": args.type,
                       "crop_ref": parse_crop(args.crop_ref),
                       "crop_mine": parse_crop(args.crop_mine),
-                      "shape": args.shape, "same_clock": args.same_clock})
+                      "shape": args.shape, "same_clock": args.same_clock,
+                      "crop_pct": args.crop_pct})
     else:
         ap.print_help()
         die("需要 --ref 与 --mine，或 --cases，或 --self-test")
@@ -1242,6 +1391,7 @@ def main():
         args.crop_ref = c["crop_ref"]
         args.crop_mine = c["crop_mine"]
         args.same_clock = c["same_clock"]
+        args.crop_pct = c["crop_pct"]
         rep = run_case(c["ref"], c["mine"], c["name"], out_root, args)
         summary.append(rep)
         worst = max(worst, rank[rep["verdict"]])
