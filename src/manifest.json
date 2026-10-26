@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.9.51",
-  "versionCode": 1512,
+  "versionName": "1.9.53",
+  "versionCode": 1514,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
@@ -56,7 +56,7 @@
     "designWidth": "device-width"
   },
   "router": {
-    "entry": "pages/index",
+    "entry": "pages/watch-face",
     "pages": {
       "pages/welcome": {
         "component": "welcome"
