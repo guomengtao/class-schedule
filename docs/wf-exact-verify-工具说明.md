@@ -1,0 +1,101 @@
+# EVX · 精确复刻验证工具
+
+`tools/wf-exact-verify.py` —— 面向「Mac 时钟组件 / 苹果表盘复刻」的通用视觉验证工具。
+目标不是「零差异」（跨渲染引擎不可达），而是**结构性差异为零 + 像素差异收敛到可解释区间**。
+
+```bash
+# 单例：基准图 vs 我方截图
+python3 tools/wf-exact-verify.py \
+  --ref docs/reference/apple-clock-widget/widget-analog-numerals-white.png \
+  --mine screenshots/clock-p1-20261026.png \
+  --same-clock 3:34:54 --name clock-p1
+
+# 批量
+python3 tools/wf-exact-verify.py --cases tools/cases/watchfaces.json
+
+# 自检（不依赖外部文件，5 张基准图自比自必须全 PASS）
+python3 tools/wf-exact-verify.py --self-test
+```
+
+## 为什么需要它
+
+旧工具 `wf-apple-compare.py` 只能做一件事：指针宽度剖面。对数字表盘、4 联布局、胶囊屏会**静默输出假结论**（径向采样饱和到 131 仍照样出报告）。
+本工具把验证拆成四层，按「该查什么」分工，而不是把最窄的指标放第一线：
+
+| 层 | 手段 | 覆盖范围 | 工具 |
+|---|---|---|---|
+| L1 | 静态参数审计（读 `.ux` 源码） | 全部组件 | `scripts/audit-*.py` |
+| L2 | **同刻整图 SSIM + 分区差分** | **全部类型** | **本工具** |
+| L3 | 结构对齐差分（缩放/平移搜索后比对） | 全部类型 | 本工具（内置） |
+| L4 | 针身宽度剖面细查 | 仅指针表盘 | `wf-apple-compare.py`（L2 报警后再用） |
+
+## 核心能力
+
+1. **自动定位组件**：边缘泛洪抠图 → 前景 bbox → 判圆/方（径向一致性），支持深底白卡、贴边卡片、壁纸背景。
+2. **几何对齐**：缩放档（×0.94~×1.06）× 平移网格搜索，96 尺度求解后换算到 320 尺度应用。
+   自比自实测收敛到 **平移 (0,0) / 缩放 ×1.00**，无系统性偏差。
+3. **差异量化**：SSIM / MAE / 超阈像素占比，按**同心环**（表盘专用）与**九宫格**双维度分区，直接指出差在圆心还是四角。
+4. **产物可视化**：`side.png` 并排、`overlay.png` 50% 叠加、`diff.png` 热力图、`blink.gif` A/B 闪烁（人眼最敏感）。
+5. **拒绝假结论**：数字表盘不伪造时刻；`--type analog` 但读不出指针时直接 `exit 2`，不出报告。
+
+## 时刻校验：声明式为主
+
+跨工具对比**必须同刻**，否则差分算的是指针角度差，不是形状差。
+自动从像素反推时刻受圆心误差（6px 就能让短针射线擦边）、抗锯齿、数字干扰影响，不稳定 —— 所以设计成：
+
+- **`--same-clock [说明]`（推荐）**：时刻是你截图时设定的（可用 `?debugTime=3:34:54` 或模拟器状态钉死），声明比猜可靠。声明后 `gap = 0`，自动读数的结果降级为 `auto_gap_sec` 仅供参照。
+- **自动识别（无声明时）**：读两图指针角度反推时刻。`--type auto` 下读不出就跳过时刻校验、只比其他项；`--type analog` 下读不出直接 `exit 2`。
+
+限速：角度分辨率 1° ≈ 10 秒。因此 `CLOCK_TOL_SEC = 30`。
+
+## 参数
+
+| 参数 | 说明 |
+|---|---|
+| `--ref` / `--mine` | 基准图 / 我方截图 |
+| `--name` | 用例名（产物目录前缀），默认取 mine 文件名 |
+| `--cases` | 批量 JSON：`{cases:[{name,ref,mine,type,crop_ref,crop_mine,shape,same_clock}]}` |
+| `--type` | `auto`（默认，尽力读）/ `analog`（强制读，失败即停）/ `digital`（跳过时刻） |
+| `--shape` | `auto` / `circle` / `rect`，强制组件形态（圆形遮罩四角） |
+| `--crop-ref` / `--crop-mine` | 手动裁剪 `x0,y0,x1,y1`，自动定位失败时用 |
+| `--same-clock [说明]` | 声明两图同刻 |
+| `--allow-clock-mismatch` | 不同刻也允许 PASS（默认降级 WARN） |
+| `--no-align` | 跳过几何对齐（已知两图已严格同尺寸同位置时更快） |
+| `--search N` | 平移搜索半径（96 尺度，默认 6） |
+| `--out DIR` | 产物根目录，默认 `build/verify` |
+| `--self-test` | 基准图自比自，5/5 必须 PASS |
+
+## 输出
+
+产物落 `build/verify/<name>-<YYYYmmdd-HHMMSS>/`（`build/` 已 gitignore，属过程态，不进提交）：
+
+```
+side.png     并排对照
+overlay.png  50% 叠加（错位一眼可见）
+diff.png     差异热力图（红=差异大）
+blink.gif    A/B 闪烁
+report.json  机器可读（含 locate / align / metrics / clock）
+report.md    人读摘要
+```
+
+退出码：`0` PASS ｜ `1` FAIL/WARN ｜ `2` INVALID（输入不合格，拒绝出结论）。
+
+## 判定口径
+
+- **PASS**：SSIM ≥ 0.985 且 超阈占比 ≤ 1.0% 且 时刻差 ≤ 容差
+- **WARN**：SSIM ≥ 0.950 或 差异集中在单一分区（多半是局部笔画/字号问题）
+- **FAIL**：低于上述，或形状/长宽比判定不一致
+
+分区表按 SSIM 升序排列，**第一个就是最差区域**，直接据此定位。
+
+## 已知限制（不要当作 bug 反复修）
+
+1. **跨渲染引擎必然有 1~2px 级差异**：Vela 与 iOS 抗锯齿、字重渲染不同，SSIM 到不了 1.0。
+2. **指针表盘圆心依赖 bbox 中心**：若表盘明显偏心（深卡片 + 偏心圆盘），用 `--crop-ref/--crop-mine` 手动裁到盘内更稳。
+3. **自动读时刻不保证准**：只在 `--type analog` 且画面干净时参考；生产验算请用 `--same-clock`。
+4. **非指针表盘不读时刻**：数字表盘、4 联布局会被正确拒绝（这是设计，不是缺陷）。
+
+## 与旧工具的关系
+
+`wf-apple-compare.py` 保留为 **L4 细查工具**：只有当本工具报出「差在表盘环带」且确认是指针问题时，才用它看针身宽度曲线。
+它的 P0 缺陷（时针/分针标签互换、中心圆盘污染宽度剖面、只打印末 40 行）仍未修，使用前需知悉。
