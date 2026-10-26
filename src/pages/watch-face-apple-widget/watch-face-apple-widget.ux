@@ -30,78 +30,88 @@
     <div class="card" if="{{ isWide }}"></div>
 
     <div class="face" if="{{ isWide }}">
-      <div class="tk-h" style="left:167.0px;top:84.0px;transform:rotate(0deg)"></div>
-      <div class="tk-h" style="left:245.0px;top:104.9px;transform:rotate(30deg)"></div>
-      <div class="tk-h" style="left:302.1px;top:162.0px;transform:rotate(60deg)"></div>
-      <div class="tk-h" style="left:323.0px;top:240.0px;transform:rotate(90deg)"></div>
-      <div class="tk-h" style="left:302.1px;top:318.0px;transform:rotate(120deg)"></div>
-      <div class="tk-h" style="left:245.0px;top:375.1px;transform:rotate(150deg)"></div>
-      <div class="tk-h" style="left:167.0px;top:396.0px;transform:rotate(180deg)"></div>
-      <div class="tk-h" style="left:89.0px;top:375.1px;transform:rotate(210deg)"></div>
-      <div class="tk-h" style="left:31.9px;top:318.0px;transform:rotate(240deg)"></div>
-      <div class="tk-h" style="left:11.0px;top:240.0px;transform:rotate(270deg)"></div>
-      <div class="tk-h" style="left:31.9px;top:162.0px;transform:rotate(300deg)"></div>
-      <div class="tk-h" style="left:89.0px;top:104.9px;transform:rotate(330deg)"></div>
-      <div class="tk-m" style="left:183.6px;top:84.9px;transform:rotate(6deg)"></div>
-      <div class="tk-m" style="left:199.7px;top:87.4px;transform:rotate(12deg)"></div>
-      <div class="tk-m" style="left:215.5px;top:91.6px;transform:rotate(18deg)"></div>
-      <div class="tk-m" style="left:230.7px;top:97.5px;transform:rotate(24deg)"></div>
-      <div class="tk-m" style="left:258.9px;top:113.8px;transform:rotate(36deg)"></div>
-      <div class="tk-m" style="left:271.6px;top:124.1px;transform:rotate(42deg)"></div>
-      <div class="tk-m" style="left:283.2px;top:135.6px;transform:rotate(48deg)"></div>
-      <div class="tk-m" style="left:293.5px;top:148.3px;transform:rotate(54deg)"></div>
-      <div class="tk-m" style="left:309.8px;top:176.5px;transform:rotate(66deg)"></div>
-      <div class="tk-m" style="left:315.6px;top:191.8px;transform:rotate(72deg)"></div>
-      <div class="tk-m" style="left:319.8px;top:207.6px;transform:rotate(78deg)"></div>
-      <div class="tk-m" style="left:322.4px;top:223.7px;transform:rotate(84deg)"></div>
-      <div class="tk-m" style="left:322.4px;top:256.3px;transform:rotate(96deg)"></div>
-      <div class="tk-m" style="left:319.8px;top:272.4px;transform:rotate(102deg)"></div>
-      <div class="tk-m" style="left:315.6px;top:288.2px;transform:rotate(108deg)"></div>
-      <div class="tk-m" style="left:309.8px;top:303.5px;transform:rotate(114deg)"></div>
-      <div class="tk-m" style="left:293.5px;top:331.7px;transform:rotate(126deg)"></div>
-      <div class="tk-m" style="left:283.2px;top:344.4px;transform:rotate(132deg)"></div>
-      <div class="tk-m" style="left:271.6px;top:355.9px;transform:rotate(138deg)"></div>
-      <div class="tk-m" style="left:258.9px;top:366.2px;transform:rotate(144deg)"></div>
-      <div class="tk-m" style="left:230.7px;top:382.5px;transform:rotate(156deg)"></div>
-      <div class="tk-m" style="left:215.5px;top:388.4px;transform:rotate(162deg)"></div>
-      <div class="tk-m" style="left:199.7px;top:392.6px;transform:rotate(168deg)"></div>
-      <div class="tk-m" style="left:183.6px;top:395.1px;transform:rotate(174deg)"></div>
-      <div class="tk-m" style="left:150.9px;top:395.1px;transform:rotate(186deg)"></div>
-      <div class="tk-m" style="left:134.8px;top:392.6px;transform:rotate(192deg)"></div>
-      <div class="tk-m" style="left:119.0px;top:388.4px;transform:rotate(198deg)"></div>
-      <div class="tk-m" style="left:103.8px;top:382.5px;transform:rotate(204deg)"></div>
-      <div class="tk-m" style="left:75.6px;top:366.2px;transform:rotate(216deg)"></div>
-      <div class="tk-m" style="left:62.9px;top:355.9px;transform:rotate(222deg)"></div>
-      <div class="tk-m" style="left:51.3px;top:344.4px;transform:rotate(228deg)"></div>
-      <div class="tk-m" style="left:41.0px;top:331.7px;transform:rotate(234deg)"></div>
-      <div class="tk-m" style="left:24.7px;top:303.5px;transform:rotate(246deg)"></div>
-      <div class="tk-m" style="left:18.9px;top:288.2px;transform:rotate(252deg)"></div>
-      <div class="tk-m" style="left:14.7px;top:272.4px;transform:rotate(258deg)"></div>
-      <div class="tk-m" style="left:12.1px;top:256.3px;transform:rotate(264deg)"></div>
-      <div class="tk-m" style="left:12.1px;top:223.7px;transform:rotate(276deg)"></div>
-      <div class="tk-m" style="left:14.7px;top:207.6px;transform:rotate(282deg)"></div>
-      <div class="tk-m" style="left:18.9px;top:191.8px;transform:rotate(288deg)"></div>
-      <div class="tk-m" style="left:24.7px;top:176.5px;transform:rotate(294deg)"></div>
-      <div class="tk-m" style="left:41.0px;top:148.3px;transform:rotate(306deg)"></div>
-      <div class="tk-m" style="left:51.3px;top:135.6px;transform:rotate(312deg)"></div>
-      <div class="tk-m" style="left:62.9px;top:124.1px;transform:rotate(318deg)"></div>
-      <div class="tk-m" style="left:75.6px;top:113.8px;transform:rotate(324deg)"></div>
-      <div class="tk-m" style="left:103.8px;top:97.5px;transform:rotate(336deg)"></div>
-      <div class="tk-m" style="left:119.0px;top:91.6px;transform:rotate(342deg)"></div>
-      <div class="tk-m" style="left:134.8px;top:87.4px;transform:rotate(348deg)"></div>
-      <div class="tk-m" style="left:150.9px;top:84.9px;transform:rotate(354deg)"></div>
+      <div class="tk-h" style="left:167.0px;top:95.0px;transform:rotate(0deg)"></div>
+      <div class="tk-h" style="left:239.5px;top:114.4px;transform:rotate(30deg)"></div>
+      <div class="tk-h" style="left:292.6px;top:167.5px;transform:rotate(60deg)"></div>
+      <div class="tk-h" style="left:312.0px;top:240.0px;transform:rotate(90deg)"></div>
+      <div class="tk-h" style="left:292.6px;top:312.5px;transform:rotate(120deg)"></div>
+      <div class="tk-h" style="left:239.5px;top:365.6px;transform:rotate(150deg)"></div>
+      <div class="tk-h" style="left:167.0px;top:385.0px;transform:rotate(180deg)"></div>
+      <div class="tk-h" style="left:94.5px;top:365.6px;transform:rotate(210deg)"></div>
+      <div class="tk-h" style="left:41.4px;top:312.5px;transform:rotate(240deg)"></div>
+      <div class="tk-h" style="left:22.0px;top:240.0px;transform:rotate(270deg)"></div>
+      <div class="tk-h" style="left:41.4px;top:167.5px;transform:rotate(300deg)"></div>
+      <div class="tk-h" style="left:94.5px;top:114.4px;transform:rotate(330deg)"></div>
+      <div class="tk-m" style="left:182.4px;top:95.8px;transform:rotate(6deg)"></div>
+      <div class="tk-m" style="left:197.4px;top:98.2px;transform:rotate(12deg)"></div>
+      <div class="tk-m" style="left:212.1px;top:102.1px;transform:rotate(18deg)"></div>
+      <div class="tk-m" style="left:226.2px;top:107.5px;transform:rotate(24deg)"></div>
+      <div class="tk-m" style="left:252.5px;top:122.7px;transform:rotate(36deg)"></div>
+      <div class="tk-m" style="left:264.3px;top:132.2px;transform:rotate(42deg)"></div>
+      <div class="tk-m" style="left:275.0px;top:143.0px;transform:rotate(48deg)"></div>
+      <div class="tk-m" style="left:284.6px;top:154.8px;transform:rotate(54deg)"></div>
+      <div class="tk-m" style="left:299.7px;top:181.0px;transform:rotate(66deg)"></div>
+      <div class="tk-m" style="left:305.2px;top:195.2px;transform:rotate(72deg)"></div>
+      <div class="tk-m" style="left:309.1px;top:209.9px;transform:rotate(78deg)"></div>
+      <div class="tk-m" style="left:311.5px;top:224.8px;transform:rotate(84deg)"></div>
+      <div class="tk-m" style="left:311.5px;top:255.2px;transform:rotate(96deg)"></div>
+      <div class="tk-m" style="left:309.1px;top:270.1px;transform:rotate(102deg)"></div>
+      <div class="tk-m" style="left:305.2px;top:284.8px;transform:rotate(108deg)"></div>
+      <div class="tk-m" style="left:299.7px;top:299.0px;transform:rotate(114deg)"></div>
+      <div class="tk-m" style="left:284.6px;top:325.2px;transform:rotate(126deg)"></div>
+      <div class="tk-m" style="left:275.0px;top:337.0px;transform:rotate(132deg)"></div>
+      <div class="tk-m" style="left:264.3px;top:347.8px;transform:rotate(138deg)"></div>
+      <div class="tk-m" style="left:252.5px;top:357.3px;transform:rotate(144deg)"></div>
+      <div class="tk-m" style="left:226.2px;top:372.5px;transform:rotate(156deg)"></div>
+      <div class="tk-m" style="left:212.1px;top:377.9px;transform:rotate(162deg)"></div>
+      <div class="tk-m" style="left:197.4px;top:381.8px;transform:rotate(168deg)"></div>
+      <div class="tk-m" style="left:182.4px;top:384.2px;transform:rotate(174deg)"></div>
+      <div class="tk-m" style="left:152.1px;top:384.2px;transform:rotate(186deg)"></div>
+      <div class="tk-m" style="left:137.1px;top:381.8px;transform:rotate(192deg)"></div>
+      <div class="tk-m" style="left:122.4px;top:377.9px;transform:rotate(198deg)"></div>
+      <div class="tk-m" style="left:108.3px;top:372.5px;transform:rotate(204deg)"></div>
+      <div class="tk-m" style="left:82.0px;top:357.3px;transform:rotate(216deg)"></div>
+      <div class="tk-m" style="left:70.2px;top:347.8px;transform:rotate(222deg)"></div>
+      <div class="tk-m" style="left:59.5px;top:337.0px;transform:rotate(228deg)"></div>
+      <div class="tk-m" style="left:49.9px;top:325.2px;transform:rotate(234deg)"></div>
+      <div class="tk-m" style="left:34.8px;top:299.0px;transform:rotate(246deg)"></div>
+      <div class="tk-m" style="left:29.3px;top:284.8px;transform:rotate(252deg)"></div>
+      <div class="tk-m" style="left:25.4px;top:270.1px;transform:rotate(258deg)"></div>
+      <div class="tk-m" style="left:23.0px;top:255.2px;transform:rotate(264deg)"></div>
+      <div class="tk-m" style="left:23.0px;top:224.8px;transform:rotate(276deg)"></div>
+      <div class="tk-m" style="left:25.4px;top:209.9px;transform:rotate(282deg)"></div>
+      <div class="tk-m" style="left:29.3px;top:195.2px;transform:rotate(288deg)"></div>
+      <div class="tk-m" style="left:34.8px;top:181.0px;transform:rotate(294deg)"></div>
+      <div class="tk-m" style="left:49.9px;top:154.8px;transform:rotate(306deg)"></div>
+      <div class="tk-m" style="left:59.5px;top:143.0px;transform:rotate(312deg)"></div>
+      <div class="tk-m" style="left:70.2px;top:132.2px;transform:rotate(318deg)"></div>
+      <div class="tk-m" style="left:82.0px;top:122.7px;transform:rotate(324deg)"></div>
+      <div class="tk-m" style="left:108.3px;top:107.5px;transform:rotate(336deg)"></div>
+      <div class="tk-m" style="left:122.4px;top:102.1px;transform:rotate(342deg)"></div>
+      <div class="tk-m" style="left:137.1px;top:98.2px;transform:rotate(348deg)"></div>
+      <div class="tk-m" style="left:152.1px;top:95.8px;transform:rotate(354deg)"></div>
 
       <text class="num" style="left:133px;top:134px">12</text>
       <text class="num" style="left:219px;top:220px">3</text>
       <text class="num" style="left:133px;top:306px">6</text>
       <text class="num" style="left:47px;top:220px">9</text>
 
-      <div class="hand hour {{ hourCls }}"></div>
-      <div class="hand minute {{ minuteCls }}"></div>
+      <!-- 时针 / 分针：外层 .pivot 是 0×0 的「旋转载体」，旋转轴（顶部中点）恰好落在盘心；
+           内层子元素按普通坐标摆放，于是针身可以从 r=21.5 起笔用圆底自然展开成肩部。
+           平铺方案做不到这一点——所有元素都只能从盘心起笔，肩部只能是硬台阶。 -->
+      <div class="pivot {{ hourCls }}">
+        <div class="hb hb-hour"></div>
+        <div class="hn"></div>
+      </div>
+      <div class="pivot {{ minuteCls }}">
+        <div class="hb hb-min"></div>
+        <div class="hn"></div>
+      </div>
       <div class="hand second {{ secondCls }}"></div>
       <div class="hand second-tail {{ tailCls }}"></div>
 
       <div class="hub"></div>
+      <div class="hub-hole"></div>
     </div>
 
     <!-- ═══ 窄屏 192×490：暗卡数字版（同家族另一款，非降级） ═══ -->
@@ -260,14 +270,14 @@ export default {
   .tk-h {
     position: absolute;
     width: 2px;
-    height: 32px;
+    height: 29px;
     background-color: #1D1D1F;
   }
 
   .tk-m {
     position: absolute;
     width: 1.5px;
-    height: 20px;
+    height: 18px;
     background-color: #B5B5B6;
   }
 
@@ -278,7 +288,7 @@ export default {
     height: 40px;
     line-height: 40px;
     text-align: center;
-    font-size: 42px;
+    font-size: 39px;
     font-weight: bold;
     color: #1D1D1F;
   }
@@ -286,52 +296,77 @@ export default {
   /* 所有针：top 必须压在盘心 240（引擎旋转轴 = 顶部中点） */
   .hand { position: absolute; }
 
-  .hour {
-    left: 163.5px;
+  /* 旋转载体：0×0，顶部中点 = 左上角 = 盘心 (168,240)。
+     子元素在这个坐标系里正常摆放，不需要自己再旋转。 */
+  .pivot {
+    position: absolute;
+    left: 168px;
     top: 240px;
-    width: 9px;
-    height: 70px;
-    background-color: #1D1D1F;
-    border-radius: 4.5px;
+    width: 0px;
+    height: 0px;
   }
 
-  .minute {
-    left: 163.5px;
-    top: 240px;
-    width: 9px;
-    height: 136px;
+  /* 针身：从 r=21.5 起笔，border-radius 5 = 圆底 → 6px 内自然由细颈宽度展开到全宽（肩部），
+     尖端同为圆头。基准实测：时针 0.561R、分针 0.810R、针身宽 0.064R。 */
+  .hb {
+    position: absolute;
     background-color: #1D1D1F;
-    border-radius: 4.5px;
+    border-radius: 5px;
+  }
+  .hb-hour { left: -5px; top: 21.5px; width: 10px; height: 68.5px; }
+  .hb-min  { left: -5px; top: 21.5px; width: 10px; height: 108.5px; }
+
+  /* 细颈：5px 窄线（基准实测 5.0），从盘心到 r=24；
+     外端埋进针身黑色里，绝不露圆头 —— 之前收腰就是圆头露在针身外面造成的。 */
+  .hn {
+    position: absolute;
+    left: -2.5px;
+    top: 0px;
+    width: 5px;
+    height: 24px;
+    background-color: #1D1D1F;
+    border-radius: 2.5px;
   }
 
   .second {
-    left: 164.5px;
+    left: 167px;
     top: 240px;
-    width: 7px;
+    width: 2px;
     height: 144px;
     background-color: #EC993C;
-    border-radius: 3.5px;
+    border-radius: 1px;
   }
 
   /* 秒针反向尾：独立元素 + θ+180 的 class，25px（0.155R） */
   .second-tail {
-    left: 164.5px;
+    left: 167px;
     top: 240px;
-    width: 7px;
+    width: 2px;
     height: 25px;
     background-color: #EC993C;
-    border-radius: 3.5px;
+    border-radius: 1px;
   }
 
   /* 中心：纯橙圆点 ⌀7，压在三针之上（基准中心像素 (234,149,53)，无白芯） */
   .hub {
     position: absolute;
-    left: 164.5px;
-    top: 236.5px;
-    width: 7px;
-    height: 7px;
-    border-radius: 3.5px;
+    left: 162.5px;
+    top: 234.5px;
+    width: 11px;
+    height: 11px;
+    border-radius: 5.5px;
     background-color: #EC993C;
+  }
+
+  /* 环孔：透出卡片白底（基准实测孔内为白卡色，秒针在孔内被环遮住） */
+  .hub-hole {
+    position: absolute;
+    left: 165.5px;
+    top: 237.5px;
+    width: 5px;
+    height: 5px;
+    border-radius: 2.5px;
+    background-color: #FEFEFE;
   }
 
   /* ── 窄屏 · 暗卡数字版 ── */
