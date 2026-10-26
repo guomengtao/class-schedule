@@ -1,20 +1,24 @@
 <!--
-  EV 苹果风表盘 · macOS 时钟小组件复刻（2026-10-26）
+  EV 苹果风表盘 · macOS 时钟小组件复刻（2026-10-26 修订 2）
   ─────────────────────────────────────────────────────────────
   复刻对象：macOS 桌面「时钟」小组件 · 小号 · 模拟表盘（白卡四数字版）
-  基准图  ：docs/reference/apple-clock-widget/widget-analog-numerals-white.png
-  实测参数：卡片 326px → 圆角 23.9% 边长；数字字高 23.2% 边长；
-            整点刻度/指针 #1D1D1F、分钟刻度 #B5B5B6、秒针 #EC993C；表盘无外圈圆环。
+  基准图  ：docs/reference/apple-clock-widget/widget-analog-numerals-white.png（326×325）
+            widget-analog-fullnums-white.png（320×325，第二样本交叉验证）
 
-  机位分工（方案 §4.5）：
-    336×480（手环10Pro）→ 完整复刻白卡模拟表盘（本页宽屏分支）
-    192×490（手环9）   → 同家族另一款：macOS 数字版小组件（黑卡，本页窄屏分支）
-    理由：模拟表盘 48 条分钟刻度缩到 192 后线宽 <1px 必糊，数字版无精细刻度。
+  几何全部取自基准实测（按卡片半径 160 折算到本页 336×480 屏）：
+    刻度外沿 R=152（贴卡片边缘，留 8px）   整点刻度 2×20 深色   分钟刻度 1.5×11 灰
+    时针  70×9   （0.44R，基准两个样本 0.42R / 0.45R）
+    分针 136×9   （0.85R，基准 0.91R / 0.79R）
+    秒针 144×7   （0.90R）+ 反向尾 25（0.155R，基准实测 25px）
+    数字字高 31（占卡 9.9%，基准实测 32/326），数字中心距盘心 86
+    中心：纯橙圆点 ⌀7，无白芯（基准中心像素实测 (234,149,53)）
 
-  走针方案沿用 watch-face-evpointer 的标定结论（绕开引擎三大坑）：
+  走针方案（沿用 evpointer 标定 + 本轮修正）：
     ① 禁 `transform: rotate({{deg}}deg)` 数据绑定 —— Vela 整页黑屏；
-    ② 引擎旋转轴 = 元素【顶部中点】，transform-origin 不按 CSS 语义生效；
-    ③ 角度只改 class（.r0…​.r59 字面量），不改 transform 值。
+    ② 引擎旋转轴 = 元素【顶部中点】，故所有针 top 必须压在盘心 (168,240)；
+    ③ 角度只改 class（.s0…​.s359 字面量，1° 一档）；
+    ④ 秒针尾是【独立元素】、用 θ+180 的 class —— 不能把 top 上移做尾，那会把旋转轴带偏。
+    ⑤ 扫秒：100ms 刷新 + 1° 粒度（每步 0.6°，肉眼连续），非跳秒。
 
   布局铁律：.page 只给尺寸 + 列向 flex，绝不加 justify-content / align-items。
 -->
@@ -23,90 +27,84 @@
 
     <!-- ═══ 宽屏 336×480：白卡模拟表盘 ═══ -->
     <text class="date-line" if="{{ isWide }}">{{ dateText }}</text>
-
     <div class="card" if="{{ isWide }}"></div>
 
     <div class="face" if="{{ isWide }}">
-      <!-- 12 整点刻度：#1D1D1F 长 20（字面量 rotate，规避引擎黑屏） -->
-      <div class="tk-h" style="left:166.5px;top:97.0px;transform:rotate(0deg)"></div>
-      <div class="tk-h" style="left:238.0px;top:116.2px;transform:rotate(30deg)"></div>
-      <div class="tk-h" style="left:290.3px;top:168.5px;transform:rotate(60deg)"></div>
-      <div class="tk-h" style="left:309.5px;top:240.0px;transform:rotate(90deg)"></div>
-      <div class="tk-h" style="left:290.3px;top:311.5px;transform:rotate(120deg)"></div>
-      <div class="tk-h" style="left:238.0px;top:363.8px;transform:rotate(150deg)"></div>
-      <div class="tk-h" style="left:166.5px;top:383.0px;transform:rotate(180deg)"></div>
-      <div class="tk-h" style="left:95.0px;top:363.8px;transform:rotate(210deg)"></div>
-      <div class="tk-h" style="left:42.7px;top:311.5px;transform:rotate(240deg)"></div>
-      <div class="tk-h" style="left:23.5px;top:240.0px;transform:rotate(270deg)"></div>
-      <div class="tk-h" style="left:42.7px;top:168.5px;transform:rotate(300deg)"></div>
-      <div class="tk-h" style="left:95.0px;top:116.2px;transform:rotate(330deg)"></div>
-      <!-- 48 分钟刻度：#B5B5B6 短 9 -->
-      <div class="tk-m" style="left:181.9px;top:97.8px;transform:rotate(6deg)"></div>
-      <div class="tk-m" style="left:196.7px;top:100.1px;transform:rotate(12deg)"></div>
-      <div class="tk-m" style="left:211.2px;top:104.0px;transform:rotate(18deg)"></div>
-      <div class="tk-m" style="left:225.2px;top:109.4px;transform:rotate(24deg)"></div>
-      <div class="tk-m" style="left:251.1px;top:124.3px;transform:rotate(36deg)"></div>
-      <div class="tk-m" style="left:262.7px;top:133.7px;transform:rotate(42deg)"></div>
-      <div class="tk-m" style="left:273.3px;top:144.3px;transform:rotate(48deg)"></div>
-      <div class="tk-m" style="left:282.7px;top:155.9px;transform:rotate(54deg)"></div>
-      <div class="tk-m" style="left:297.6px;top:181.8px;transform:rotate(66deg)"></div>
-      <div class="tk-m" style="left:303.0px;top:195.8px;transform:rotate(72deg)"></div>
-      <div class="tk-m" style="left:306.9px;top:210.3px;transform:rotate(78deg)"></div>
-      <div class="tk-m" style="left:309.2px;top:225.1px;transform:rotate(84deg)"></div>
-      <div class="tk-m" style="left:309.2px;top:254.9px;transform:rotate(96deg)"></div>
-      <div class="tk-m" style="left:306.9px;top:269.7px;transform:rotate(102deg)"></div>
-      <div class="tk-m" style="left:303.0px;top:284.2px;transform:rotate(108deg)"></div>
-      <div class="tk-m" style="left:297.6px;top:298.2px;transform:rotate(114deg)"></div>
-      <div class="tk-m" style="left:282.7px;top:324.1px;transform:rotate(126deg)"></div>
-      <div class="tk-m" style="left:273.3px;top:335.7px;transform:rotate(132deg)"></div>
-      <div class="tk-m" style="left:262.7px;top:346.3px;transform:rotate(138deg)"></div>
-      <div class="tk-m" style="left:251.1px;top:355.7px;transform:rotate(144deg)"></div>
-      <div class="tk-m" style="left:225.2px;top:370.6px;transform:rotate(156deg)"></div>
-      <div class="tk-m" style="left:211.2px;top:376.0px;transform:rotate(162deg)"></div>
-      <div class="tk-m" style="left:196.7px;top:379.9px;transform:rotate(168deg)"></div>
-      <div class="tk-m" style="left:181.9px;top:382.2px;transform:rotate(174deg)"></div>
-      <div class="tk-m" style="left:152.1px;top:382.2px;transform:rotate(186deg)"></div>
-      <div class="tk-m" style="left:137.3px;top:379.9px;transform:rotate(192deg)"></div>
-      <div class="tk-m" style="left:122.8px;top:376.0px;transform:rotate(198deg)"></div>
-      <div class="tk-m" style="left:108.8px;top:370.6px;transform:rotate(204deg)"></div>
-      <div class="tk-m" style="left:82.9px;top:355.7px;transform:rotate(216deg)"></div>
-      <div class="tk-m" style="left:71.3px;top:346.3px;transform:rotate(222deg)"></div>
-      <div class="tk-m" style="left:60.7px;top:335.7px;transform:rotate(228deg)"></div>
-      <div class="tk-m" style="left:51.3px;top:324.1px;transform:rotate(234deg)"></div>
-      <div class="tk-m" style="left:36.4px;top:298.2px;transform:rotate(246deg)"></div>
-      <div class="tk-m" style="left:31.0px;top:284.2px;transform:rotate(252deg)"></div>
-      <div class="tk-m" style="left:27.1px;top:269.7px;transform:rotate(258deg)"></div>
-      <div class="tk-m" style="left:24.8px;top:254.9px;transform:rotate(264deg)"></div>
-      <div class="tk-m" style="left:24.8px;top:225.1px;transform:rotate(276deg)"></div>
-      <div class="tk-m" style="left:27.1px;top:210.3px;transform:rotate(282deg)"></div>
-      <div class="tk-m" style="left:31.0px;top:195.8px;transform:rotate(288deg)"></div>
-      <div class="tk-m" style="left:36.4px;top:181.8px;transform:rotate(294deg)"></div>
-      <div class="tk-m" style="left:51.3px;top:155.9px;transform:rotate(306deg)"></div>
-      <div class="tk-m" style="left:60.7px;top:144.3px;transform:rotate(312deg)"></div>
-      <div class="tk-m" style="left:71.3px;top:133.7px;transform:rotate(318deg)"></div>
-      <div class="tk-m" style="left:82.9px;top:124.3px;transform:rotate(324deg)"></div>
-      <div class="tk-m" style="left:108.8px;top:109.4px;transform:rotate(336deg)"></div>
-      <div class="tk-m" style="left:122.8px;top:104.0px;transform:rotate(342deg)"></div>
-      <div class="tk-m" style="left:137.3px;top:100.1px;transform:rotate(348deg)"></div>
-      <div class="tk-m" style="left:152.1px;top:97.8px;transform:rotate(354deg)"></div>
+      <div class="tk-h" style="left:167.0px;top:84.0px;transform:rotate(0deg)"></div>
+      <div class="tk-h" style="left:245.0px;top:104.9px;transform:rotate(30deg)"></div>
+      <div class="tk-h" style="left:302.1px;top:162.0px;transform:rotate(60deg)"></div>
+      <div class="tk-h" style="left:323.0px;top:240.0px;transform:rotate(90deg)"></div>
+      <div class="tk-h" style="left:302.1px;top:318.0px;transform:rotate(120deg)"></div>
+      <div class="tk-h" style="left:245.0px;top:375.1px;transform:rotate(150deg)"></div>
+      <div class="tk-h" style="left:167.0px;top:396.0px;transform:rotate(180deg)"></div>
+      <div class="tk-h" style="left:89.0px;top:375.1px;transform:rotate(210deg)"></div>
+      <div class="tk-h" style="left:31.9px;top:318.0px;transform:rotate(240deg)"></div>
+      <div class="tk-h" style="left:11.0px;top:240.0px;transform:rotate(270deg)"></div>
+      <div class="tk-h" style="left:31.9px;top:162.0px;transform:rotate(300deg)"></div>
+      <div class="tk-h" style="left:89.0px;top:104.9px;transform:rotate(330deg)"></div>
+      <div class="tk-m" style="left:183.6px;top:84.9px;transform:rotate(6deg)"></div>
+      <div class="tk-m" style="left:199.7px;top:87.4px;transform:rotate(12deg)"></div>
+      <div class="tk-m" style="left:215.5px;top:91.6px;transform:rotate(18deg)"></div>
+      <div class="tk-m" style="left:230.7px;top:97.5px;transform:rotate(24deg)"></div>
+      <div class="tk-m" style="left:258.9px;top:113.8px;transform:rotate(36deg)"></div>
+      <div class="tk-m" style="left:271.6px;top:124.1px;transform:rotate(42deg)"></div>
+      <div class="tk-m" style="left:283.2px;top:135.6px;transform:rotate(48deg)"></div>
+      <div class="tk-m" style="left:293.5px;top:148.3px;transform:rotate(54deg)"></div>
+      <div class="tk-m" style="left:309.8px;top:176.5px;transform:rotate(66deg)"></div>
+      <div class="tk-m" style="left:315.6px;top:191.8px;transform:rotate(72deg)"></div>
+      <div class="tk-m" style="left:319.8px;top:207.6px;transform:rotate(78deg)"></div>
+      <div class="tk-m" style="left:322.4px;top:223.7px;transform:rotate(84deg)"></div>
+      <div class="tk-m" style="left:322.4px;top:256.3px;transform:rotate(96deg)"></div>
+      <div class="tk-m" style="left:319.8px;top:272.4px;transform:rotate(102deg)"></div>
+      <div class="tk-m" style="left:315.6px;top:288.2px;transform:rotate(108deg)"></div>
+      <div class="tk-m" style="left:309.8px;top:303.5px;transform:rotate(114deg)"></div>
+      <div class="tk-m" style="left:293.5px;top:331.7px;transform:rotate(126deg)"></div>
+      <div class="tk-m" style="left:283.2px;top:344.4px;transform:rotate(132deg)"></div>
+      <div class="tk-m" style="left:271.6px;top:355.9px;transform:rotate(138deg)"></div>
+      <div class="tk-m" style="left:258.9px;top:366.2px;transform:rotate(144deg)"></div>
+      <div class="tk-m" style="left:230.7px;top:382.5px;transform:rotate(156deg)"></div>
+      <div class="tk-m" style="left:215.5px;top:388.4px;transform:rotate(162deg)"></div>
+      <div class="tk-m" style="left:199.7px;top:392.6px;transform:rotate(168deg)"></div>
+      <div class="tk-m" style="left:183.6px;top:395.1px;transform:rotate(174deg)"></div>
+      <div class="tk-m" style="left:150.9px;top:395.1px;transform:rotate(186deg)"></div>
+      <div class="tk-m" style="left:134.8px;top:392.6px;transform:rotate(192deg)"></div>
+      <div class="tk-m" style="left:119.0px;top:388.4px;transform:rotate(198deg)"></div>
+      <div class="tk-m" style="left:103.8px;top:382.5px;transform:rotate(204deg)"></div>
+      <div class="tk-m" style="left:75.6px;top:366.2px;transform:rotate(216deg)"></div>
+      <div class="tk-m" style="left:62.9px;top:355.9px;transform:rotate(222deg)"></div>
+      <div class="tk-m" style="left:51.3px;top:344.4px;transform:rotate(228deg)"></div>
+      <div class="tk-m" style="left:41.0px;top:331.7px;transform:rotate(234deg)"></div>
+      <div class="tk-m" style="left:24.7px;top:303.5px;transform:rotate(246deg)"></div>
+      <div class="tk-m" style="left:18.9px;top:288.2px;transform:rotate(252deg)"></div>
+      <div class="tk-m" style="left:14.7px;top:272.4px;transform:rotate(258deg)"></div>
+      <div class="tk-m" style="left:12.1px;top:256.3px;transform:rotate(264deg)"></div>
+      <div class="tk-m" style="left:12.1px;top:223.7px;transform:rotate(276deg)"></div>
+      <div class="tk-m" style="left:14.7px;top:207.6px;transform:rotate(282deg)"></div>
+      <div class="tk-m" style="left:18.9px;top:191.8px;transform:rotate(288deg)"></div>
+      <div class="tk-m" style="left:24.7px;top:176.5px;transform:rotate(294deg)"></div>
+      <div class="tk-m" style="left:41.0px;top:148.3px;transform:rotate(306deg)"></div>
+      <div class="tk-m" style="left:51.3px;top:135.6px;transform:rotate(312deg)"></div>
+      <div class="tk-m" style="left:62.9px;top:124.1px;transform:rotate(318deg)"></div>
+      <div class="tk-m" style="left:75.6px;top:113.8px;transform:rotate(324deg)"></div>
+      <div class="tk-m" style="left:103.8px;top:97.5px;transform:rotate(336deg)"></div>
+      <div class="tk-m" style="left:119.0px;top:91.6px;transform:rotate(342deg)"></div>
+      <div class="tk-m" style="left:134.8px;top:87.4px;transform:rotate(348deg)"></div>
+      <div class="tk-m" style="left:150.9px;top:84.9px;transform:rotate(354deg)"></div>
 
-      <!-- 四数字（复刻对象只保留 12/3/6/9） -->
-      <text class="num" style="left:123px;top:100px">12</text>
-      <text class="num" style="left:223px;top:200px">3</text>
-      <text class="num" style="left:123px;top:300px">6</text>
-      <text class="num" style="left:23px;top:200px">9</text>
+      <text class="num" style="left:133px;top:134px">12</text>
+      <text class="num" style="left:219px;top:220px">3</text>
+      <text class="num" style="left:133px;top:306px">6</text>
+      <text class="num" style="left:47px;top:220px">9</text>
 
-      <!-- 三针：顶部中点压在盘心 (168,240)，向下延伸，rotate(180+θ) 指向 θ -->
       <div class="hand hour {{ hourCls }}"></div>
       <div class="hand minute {{ minuteCls }}"></div>
       <div class="hand second {{ secondCls }}"></div>
+      <div class="hand second-tail {{ tailCls }}"></div>
 
-      <!-- 中心：橙色轴心 -->
       <div class="hub"></div>
-      <div class="hub-dot"></div>
     </div>
 
-    <!-- ═══ 窄屏 192×490：黑卡数字版（同家族另一款，非降级） ═══ -->
+    <!-- ═══ 窄屏 192×490：暗卡数字版（同家族另一款，非降级） ═══ -->
     <div class="card-dark" if="{{ isNarrow }}"></div>
     <text class="d-day"   if="{{ isNarrow }}">{{ dayText }}</text>
     <text class="d-time"  if="{{ isNarrow }}">{{ hhmm }}</text>
@@ -125,11 +123,11 @@ function pad2(n) {
   return (n < 10 ? "0" : "") + n
 }
 
-// 角度 → 60 档类名（6° 一档）。引擎轴在顶部中点，故 .rN 内部为 rotate(180 + 6N)
-function stepClass(deg) {
-  let step = Math.round(deg / 6) % 60
-  if (step < 0) step += 60
-  return "r" + step
+// 角度 → 360 档类名（1° 一档）。引擎轴在顶部中点，故 .sN 内部为 rotate(180 + N)
+function degClass(deg) {
+  let d = Math.round(deg) % 360
+  if (d < 0) d += 360
+  return "s" + d
 }
 
 export default {
@@ -140,9 +138,10 @@ export default {
     dayText: "",
     hhmm: "--:--",
     dateSmall: "",
-    hourCls: "r0",
-    minuteCls: "r0",
-    secondCls: "r0",
+    hourCls: "s0",
+    minuteCls: "s0",
+    secondCls: "s0",
+    tailCls: "s180",
     timer: null
   },
 
@@ -184,11 +183,15 @@ export default {
     const h = now.getHours()
     const m = now.getMinutes()
     const s = now.getSeconds()
+    const ms = now.getMilliseconds()
     const h12 = h % 12
 
-    this.hourCls = stepClass((h12 + m / 60 + s / 3600) * 30)
-    this.minuteCls = stepClass((m + s / 60) * 6)
-    this.secondCls = stepClass(s * 6)
+    // 扫秒：秒位带毫秒，1° 粒度下每 100ms 走 0.6°
+    const secDeg = (s + ms / 1000) * 6
+    this.hourCls = degClass((h12 + m / 60 + s / 3600) * 30)
+    this.minuteCls = degClass((m + s / 60) * 6)
+    this.secondCls = degClass(secDeg)
+    this.tailCls = degClass(secDeg + 180)
 
     const mo = now.getMonth() + 1
     const dd = now.getDate()
@@ -201,7 +204,7 @@ export default {
   startTimer() {
     if (this.timer) return
     const self = this
-    this.timer = setInterval(function () { self.sync() }, 1000)
+    this.timer = setInterval(function () { self.sync() }, 100)
   },
 
   stopTimer() {
@@ -219,7 +222,6 @@ export default {
 </script>
 
 <style>
-  /* 布局铁律：只给尺寸 + 列向 flex，禁 justify-content / align-items */
   .page {
     width: 100%;
     height: 100%;
@@ -227,7 +229,6 @@ export default {
     background-color: #000000;
   }
 
-  /* ── 宽屏 · 白卡（复刻 macOS widget 圆角方卡）── */
   .card {
     position: absolute;
     left: 8px;
@@ -256,88 +257,84 @@ export default {
     height: 480px;
   }
 
-  /* 整点刻度：黑，长 20 */
   .tk-h {
     position: absolute;
-    width: 3px;
-    height: 20px;
+    width: 2px;
+    height: 32px;
     background-color: #1D1D1F;
-    border-radius: 1.5px;
   }
 
-  /* 分钟刻度：灰，短 9 */
   .tk-m {
     position: absolute;
-    width: 2px;
-    height: 9px;
+    width: 1.5px;
+    height: 20px;
     background-color: #B5B5B6;
-    border-radius: 1px;
   }
 
-  /* 四数字：字号 72（实测字高占卡 23.2%，320 卡 → 74，取 72 防溢出） */
+  /* 数字：字高 31（占卡 9.9%，与基准 32/326 一致），中心距盘心 86 */
   .num {
     position: absolute;
-    width: 90px;
-    height: 80px;
-    line-height: 80px;
+    width: 70px;
+    height: 40px;
+    line-height: 40px;
     text-align: center;
-    font-size: 77px;
+    font-size: 42px;
     font-weight: bold;
     color: #1D1D1F;
   }
 
-  /* ── 三针：顶部中点压在盘心 (168,240)，向下延伸 ── */
-  .hand {
-    position: absolute;
-  }
+  /* 所有针：top 必须压在盘心 240（引擎旋转轴 = 顶部中点） */
+  .hand { position: absolute; }
 
   .hour {
-    left: 164px;
+    left: 163.5px;
     top: 240px;
-    width: 8px;
-    height: 80px;
+    width: 9px;
+    height: 70px;
     background-color: #1D1D1F;
-    border-radius: 5px;
+    border-radius: 4.5px;
   }
 
   .minute {
-    left: 164.5px;
+    left: 163.5px;
     top: 240px;
-    width: 7px;
-    height: 112px;
+    width: 9px;
+    height: 136px;
     background-color: #1D1D1F;
-    border-radius: 4px;
+    border-radius: 4.5px;
   }
 
   .second {
-    left: 166.5px;
+    left: 164.5px;
     top: 240px;
-    width: 3px;
-    height: 114px;
+    width: 7px;
+    height: 144px;
     background-color: #EC993C;
+    border-radius: 3.5px;
   }
 
+  /* 秒针反向尾：独立元素 + θ+180 的 class，25px（0.155R） */
+  .second-tail {
+    left: 164.5px;
+    top: 240px;
+    width: 7px;
+    height: 25px;
+    background-color: #EC993C;
+    border-radius: 3.5px;
+  }
+
+  /* 中心：纯橙圆点 ⌀7，压在三针之上（基准中心像素 (234,149,53)，无白芯） */
   .hub {
     position: absolute;
-    left: 163px;
-    top: 235px;
-    width: 10px;
-    height: 10px;
-    border-radius: 5px;
+    left: 164.5px;
+    top: 236.5px;
+    width: 7px;
+    height: 7px;
+    border-radius: 3.5px;
     background-color: #EC993C;
   }
 
-  .hub-dot {
-    position: absolute;
-    left: 166px;
-    top: 238px;
-    width: 4px;
-    height: 4px;
-    border-radius: 2px;
-    background-color: #FEFEFE;
-  }
-
-  /* ── 窄屏 · 黑卡数字版 ── */
+  /* ── 窄屏 · 暗卡数字版 ── */
   .card-dark {
     position: absolute;
     left: 8px;
@@ -391,65 +388,365 @@ export default {
     color: #48484A;
   }
 
-  /* ── 60 档角度类（字面量 transform，安全） ── */
-  .r0 { transform: rotate(180deg); }
-  .r1 { transform: rotate(186deg); }
-  .r2 { transform: rotate(192deg); }
-  .r3 { transform: rotate(198deg); }
-  .r4 { transform: rotate(204deg); }
-  .r5 { transform: rotate(210deg); }
-  .r6 { transform: rotate(216deg); }
-  .r7 { transform: rotate(222deg); }
-  .r8 { transform: rotate(228deg); }
-  .r9 { transform: rotate(234deg); }
-  .r10 { transform: rotate(240deg); }
-  .r11 { transform: rotate(246deg); }
-  .r12 { transform: rotate(252deg); }
-  .r13 { transform: rotate(258deg); }
-  .r14 { transform: rotate(264deg); }
-  .r15 { transform: rotate(270deg); }
-  .r16 { transform: rotate(276deg); }
-  .r17 { transform: rotate(282deg); }
-  .r18 { transform: rotate(288deg); }
-  .r19 { transform: rotate(294deg); }
-  .r20 { transform: rotate(300deg); }
-  .r21 { transform: rotate(306deg); }
-  .r22 { transform: rotate(312deg); }
-  .r23 { transform: rotate(318deg); }
-  .r24 { transform: rotate(324deg); }
-  .r25 { transform: rotate(330deg); }
-  .r26 { transform: rotate(336deg); }
-  .r27 { transform: rotate(342deg); }
-  .r28 { transform: rotate(348deg); }
-  .r29 { transform: rotate(354deg); }
-  .r30 { transform: rotate(360deg); }
-  .r31 { transform: rotate(366deg); }
-  .r32 { transform: rotate(372deg); }
-  .r33 { transform: rotate(378deg); }
-  .r34 { transform: rotate(384deg); }
-  .r35 { transform: rotate(390deg); }
-  .r36 { transform: rotate(396deg); }
-  .r37 { transform: rotate(402deg); }
-  .r38 { transform: rotate(408deg); }
-  .r39 { transform: rotate(414deg); }
-  .r40 { transform: rotate(420deg); }
-  .r41 { transform: rotate(426deg); }
-  .r42 { transform: rotate(432deg); }
-  .r43 { transform: rotate(438deg); }
-  .r44 { transform: rotate(444deg); }
-  .r45 { transform: rotate(450deg); }
-  .r46 { transform: rotate(456deg); }
-  .r47 { transform: rotate(462deg); }
-  .r48 { transform: rotate(468deg); }
-  .r49 { transform: rotate(474deg); }
-  .r50 { transform: rotate(480deg); }
-  .r51 { transform: rotate(486deg); }
-  .r52 { transform: rotate(492deg); }
-  .r53 { transform: rotate(498deg); }
-  .r54 { transform: rotate(504deg); }
-  .r55 { transform: rotate(510deg); }
-  .r56 { transform: rotate(516deg); }
-  .r57 { transform: rotate(522deg); }
-  .r58 { transform: rotate(528deg); }
-  .r59 { transform: rotate(534deg); }
+  /* ── 360 档角度类（1° 一档，扫秒用；字面量 transform，安全） ── */
+  .s0 { transform: rotate(180deg); }
+  .s1 { transform: rotate(181deg); }
+  .s2 { transform: rotate(182deg); }
+  .s3 { transform: rotate(183deg); }
+  .s4 { transform: rotate(184deg); }
+  .s5 { transform: rotate(185deg); }
+  .s6 { transform: rotate(186deg); }
+  .s7 { transform: rotate(187deg); }
+  .s8 { transform: rotate(188deg); }
+  .s9 { transform: rotate(189deg); }
+  .s10 { transform: rotate(190deg); }
+  .s11 { transform: rotate(191deg); }
+  .s12 { transform: rotate(192deg); }
+  .s13 { transform: rotate(193deg); }
+  .s14 { transform: rotate(194deg); }
+  .s15 { transform: rotate(195deg); }
+  .s16 { transform: rotate(196deg); }
+  .s17 { transform: rotate(197deg); }
+  .s18 { transform: rotate(198deg); }
+  .s19 { transform: rotate(199deg); }
+  .s20 { transform: rotate(200deg); }
+  .s21 { transform: rotate(201deg); }
+  .s22 { transform: rotate(202deg); }
+  .s23 { transform: rotate(203deg); }
+  .s24 { transform: rotate(204deg); }
+  .s25 { transform: rotate(205deg); }
+  .s26 { transform: rotate(206deg); }
+  .s27 { transform: rotate(207deg); }
+  .s28 { transform: rotate(208deg); }
+  .s29 { transform: rotate(209deg); }
+  .s30 { transform: rotate(210deg); }
+  .s31 { transform: rotate(211deg); }
+  .s32 { transform: rotate(212deg); }
+  .s33 { transform: rotate(213deg); }
+  .s34 { transform: rotate(214deg); }
+  .s35 { transform: rotate(215deg); }
+  .s36 { transform: rotate(216deg); }
+  .s37 { transform: rotate(217deg); }
+  .s38 { transform: rotate(218deg); }
+  .s39 { transform: rotate(219deg); }
+  .s40 { transform: rotate(220deg); }
+  .s41 { transform: rotate(221deg); }
+  .s42 { transform: rotate(222deg); }
+  .s43 { transform: rotate(223deg); }
+  .s44 { transform: rotate(224deg); }
+  .s45 { transform: rotate(225deg); }
+  .s46 { transform: rotate(226deg); }
+  .s47 { transform: rotate(227deg); }
+  .s48 { transform: rotate(228deg); }
+  .s49 { transform: rotate(229deg); }
+  .s50 { transform: rotate(230deg); }
+  .s51 { transform: rotate(231deg); }
+  .s52 { transform: rotate(232deg); }
+  .s53 { transform: rotate(233deg); }
+  .s54 { transform: rotate(234deg); }
+  .s55 { transform: rotate(235deg); }
+  .s56 { transform: rotate(236deg); }
+  .s57 { transform: rotate(237deg); }
+  .s58 { transform: rotate(238deg); }
+  .s59 { transform: rotate(239deg); }
+  .s60 { transform: rotate(240deg); }
+  .s61 { transform: rotate(241deg); }
+  .s62 { transform: rotate(242deg); }
+  .s63 { transform: rotate(243deg); }
+  .s64 { transform: rotate(244deg); }
+  .s65 { transform: rotate(245deg); }
+  .s66 { transform: rotate(246deg); }
+  .s67 { transform: rotate(247deg); }
+  .s68 { transform: rotate(248deg); }
+  .s69 { transform: rotate(249deg); }
+  .s70 { transform: rotate(250deg); }
+  .s71 { transform: rotate(251deg); }
+  .s72 { transform: rotate(252deg); }
+  .s73 { transform: rotate(253deg); }
+  .s74 { transform: rotate(254deg); }
+  .s75 { transform: rotate(255deg); }
+  .s76 { transform: rotate(256deg); }
+  .s77 { transform: rotate(257deg); }
+  .s78 { transform: rotate(258deg); }
+  .s79 { transform: rotate(259deg); }
+  .s80 { transform: rotate(260deg); }
+  .s81 { transform: rotate(261deg); }
+  .s82 { transform: rotate(262deg); }
+  .s83 { transform: rotate(263deg); }
+  .s84 { transform: rotate(264deg); }
+  .s85 { transform: rotate(265deg); }
+  .s86 { transform: rotate(266deg); }
+  .s87 { transform: rotate(267deg); }
+  .s88 { transform: rotate(268deg); }
+  .s89 { transform: rotate(269deg); }
+  .s90 { transform: rotate(270deg); }
+  .s91 { transform: rotate(271deg); }
+  .s92 { transform: rotate(272deg); }
+  .s93 { transform: rotate(273deg); }
+  .s94 { transform: rotate(274deg); }
+  .s95 { transform: rotate(275deg); }
+  .s96 { transform: rotate(276deg); }
+  .s97 { transform: rotate(277deg); }
+  .s98 { transform: rotate(278deg); }
+  .s99 { transform: rotate(279deg); }
+  .s100 { transform: rotate(280deg); }
+  .s101 { transform: rotate(281deg); }
+  .s102 { transform: rotate(282deg); }
+  .s103 { transform: rotate(283deg); }
+  .s104 { transform: rotate(284deg); }
+  .s105 { transform: rotate(285deg); }
+  .s106 { transform: rotate(286deg); }
+  .s107 { transform: rotate(287deg); }
+  .s108 { transform: rotate(288deg); }
+  .s109 { transform: rotate(289deg); }
+  .s110 { transform: rotate(290deg); }
+  .s111 { transform: rotate(291deg); }
+  .s112 { transform: rotate(292deg); }
+  .s113 { transform: rotate(293deg); }
+  .s114 { transform: rotate(294deg); }
+  .s115 { transform: rotate(295deg); }
+  .s116 { transform: rotate(296deg); }
+  .s117 { transform: rotate(297deg); }
+  .s118 { transform: rotate(298deg); }
+  .s119 { transform: rotate(299deg); }
+  .s120 { transform: rotate(300deg); }
+  .s121 { transform: rotate(301deg); }
+  .s122 { transform: rotate(302deg); }
+  .s123 { transform: rotate(303deg); }
+  .s124 { transform: rotate(304deg); }
+  .s125 { transform: rotate(305deg); }
+  .s126 { transform: rotate(306deg); }
+  .s127 { transform: rotate(307deg); }
+  .s128 { transform: rotate(308deg); }
+  .s129 { transform: rotate(309deg); }
+  .s130 { transform: rotate(310deg); }
+  .s131 { transform: rotate(311deg); }
+  .s132 { transform: rotate(312deg); }
+  .s133 { transform: rotate(313deg); }
+  .s134 { transform: rotate(314deg); }
+  .s135 { transform: rotate(315deg); }
+  .s136 { transform: rotate(316deg); }
+  .s137 { transform: rotate(317deg); }
+  .s138 { transform: rotate(318deg); }
+  .s139 { transform: rotate(319deg); }
+  .s140 { transform: rotate(320deg); }
+  .s141 { transform: rotate(321deg); }
+  .s142 { transform: rotate(322deg); }
+  .s143 { transform: rotate(323deg); }
+  .s144 { transform: rotate(324deg); }
+  .s145 { transform: rotate(325deg); }
+  .s146 { transform: rotate(326deg); }
+  .s147 { transform: rotate(327deg); }
+  .s148 { transform: rotate(328deg); }
+  .s149 { transform: rotate(329deg); }
+  .s150 { transform: rotate(330deg); }
+  .s151 { transform: rotate(331deg); }
+  .s152 { transform: rotate(332deg); }
+  .s153 { transform: rotate(333deg); }
+  .s154 { transform: rotate(334deg); }
+  .s155 { transform: rotate(335deg); }
+  .s156 { transform: rotate(336deg); }
+  .s157 { transform: rotate(337deg); }
+  .s158 { transform: rotate(338deg); }
+  .s159 { transform: rotate(339deg); }
+  .s160 { transform: rotate(340deg); }
+  .s161 { transform: rotate(341deg); }
+  .s162 { transform: rotate(342deg); }
+  .s163 { transform: rotate(343deg); }
+  .s164 { transform: rotate(344deg); }
+  .s165 { transform: rotate(345deg); }
+  .s166 { transform: rotate(346deg); }
+  .s167 { transform: rotate(347deg); }
+  .s168 { transform: rotate(348deg); }
+  .s169 { transform: rotate(349deg); }
+  .s170 { transform: rotate(350deg); }
+  .s171 { transform: rotate(351deg); }
+  .s172 { transform: rotate(352deg); }
+  .s173 { transform: rotate(353deg); }
+  .s174 { transform: rotate(354deg); }
+  .s175 { transform: rotate(355deg); }
+  .s176 { transform: rotate(356deg); }
+  .s177 { transform: rotate(357deg); }
+  .s178 { transform: rotate(358deg); }
+  .s179 { transform: rotate(359deg); }
+  .s180 { transform: rotate(360deg); }
+  .s181 { transform: rotate(361deg); }
+  .s182 { transform: rotate(362deg); }
+  .s183 { transform: rotate(363deg); }
+  .s184 { transform: rotate(364deg); }
+  .s185 { transform: rotate(365deg); }
+  .s186 { transform: rotate(366deg); }
+  .s187 { transform: rotate(367deg); }
+  .s188 { transform: rotate(368deg); }
+  .s189 { transform: rotate(369deg); }
+  .s190 { transform: rotate(370deg); }
+  .s191 { transform: rotate(371deg); }
+  .s192 { transform: rotate(372deg); }
+  .s193 { transform: rotate(373deg); }
+  .s194 { transform: rotate(374deg); }
+  .s195 { transform: rotate(375deg); }
+  .s196 { transform: rotate(376deg); }
+  .s197 { transform: rotate(377deg); }
+  .s198 { transform: rotate(378deg); }
+  .s199 { transform: rotate(379deg); }
+  .s200 { transform: rotate(380deg); }
+  .s201 { transform: rotate(381deg); }
+  .s202 { transform: rotate(382deg); }
+  .s203 { transform: rotate(383deg); }
+  .s204 { transform: rotate(384deg); }
+  .s205 { transform: rotate(385deg); }
+  .s206 { transform: rotate(386deg); }
+  .s207 { transform: rotate(387deg); }
+  .s208 { transform: rotate(388deg); }
+  .s209 { transform: rotate(389deg); }
+  .s210 { transform: rotate(390deg); }
+  .s211 { transform: rotate(391deg); }
+  .s212 { transform: rotate(392deg); }
+  .s213 { transform: rotate(393deg); }
+  .s214 { transform: rotate(394deg); }
+  .s215 { transform: rotate(395deg); }
+  .s216 { transform: rotate(396deg); }
+  .s217 { transform: rotate(397deg); }
+  .s218 { transform: rotate(398deg); }
+  .s219 { transform: rotate(399deg); }
+  .s220 { transform: rotate(400deg); }
+  .s221 { transform: rotate(401deg); }
+  .s222 { transform: rotate(402deg); }
+  .s223 { transform: rotate(403deg); }
+  .s224 { transform: rotate(404deg); }
+  .s225 { transform: rotate(405deg); }
+  .s226 { transform: rotate(406deg); }
+  .s227 { transform: rotate(407deg); }
+  .s228 { transform: rotate(408deg); }
+  .s229 { transform: rotate(409deg); }
+  .s230 { transform: rotate(410deg); }
+  .s231 { transform: rotate(411deg); }
+  .s232 { transform: rotate(412deg); }
+  .s233 { transform: rotate(413deg); }
+  .s234 { transform: rotate(414deg); }
+  .s235 { transform: rotate(415deg); }
+  .s236 { transform: rotate(416deg); }
+  .s237 { transform: rotate(417deg); }
+  .s238 { transform: rotate(418deg); }
+  .s239 { transform: rotate(419deg); }
+  .s240 { transform: rotate(420deg); }
+  .s241 { transform: rotate(421deg); }
+  .s242 { transform: rotate(422deg); }
+  .s243 { transform: rotate(423deg); }
+  .s244 { transform: rotate(424deg); }
+  .s245 { transform: rotate(425deg); }
+  .s246 { transform: rotate(426deg); }
+  .s247 { transform: rotate(427deg); }
+  .s248 { transform: rotate(428deg); }
+  .s249 { transform: rotate(429deg); }
+  .s250 { transform: rotate(430deg); }
+  .s251 { transform: rotate(431deg); }
+  .s252 { transform: rotate(432deg); }
+  .s253 { transform: rotate(433deg); }
+  .s254 { transform: rotate(434deg); }
+  .s255 { transform: rotate(435deg); }
+  .s256 { transform: rotate(436deg); }
+  .s257 { transform: rotate(437deg); }
+  .s258 { transform: rotate(438deg); }
+  .s259 { transform: rotate(439deg); }
+  .s260 { transform: rotate(440deg); }
+  .s261 { transform: rotate(441deg); }
+  .s262 { transform: rotate(442deg); }
+  .s263 { transform: rotate(443deg); }
+  .s264 { transform: rotate(444deg); }
+  .s265 { transform: rotate(445deg); }
+  .s266 { transform: rotate(446deg); }
+  .s267 { transform: rotate(447deg); }
+  .s268 { transform: rotate(448deg); }
+  .s269 { transform: rotate(449deg); }
+  .s270 { transform: rotate(450deg); }
+  .s271 { transform: rotate(451deg); }
+  .s272 { transform: rotate(452deg); }
+  .s273 { transform: rotate(453deg); }
+  .s274 { transform: rotate(454deg); }
+  .s275 { transform: rotate(455deg); }
+  .s276 { transform: rotate(456deg); }
+  .s277 { transform: rotate(457deg); }
+  .s278 { transform: rotate(458deg); }
+  .s279 { transform: rotate(459deg); }
+  .s280 { transform: rotate(460deg); }
+  .s281 { transform: rotate(461deg); }
+  .s282 { transform: rotate(462deg); }
+  .s283 { transform: rotate(463deg); }
+  .s284 { transform: rotate(464deg); }
+  .s285 { transform: rotate(465deg); }
+  .s286 { transform: rotate(466deg); }
+  .s287 { transform: rotate(467deg); }
+  .s288 { transform: rotate(468deg); }
+  .s289 { transform: rotate(469deg); }
+  .s290 { transform: rotate(470deg); }
+  .s291 { transform: rotate(471deg); }
+  .s292 { transform: rotate(472deg); }
+  .s293 { transform: rotate(473deg); }
+  .s294 { transform: rotate(474deg); }
+  .s295 { transform: rotate(475deg); }
+  .s296 { transform: rotate(476deg); }
+  .s297 { transform: rotate(477deg); }
+  .s298 { transform: rotate(478deg); }
+  .s299 { transform: rotate(479deg); }
+  .s300 { transform: rotate(480deg); }
+  .s301 { transform: rotate(481deg); }
+  .s302 { transform: rotate(482deg); }
+  .s303 { transform: rotate(483deg); }
+  .s304 { transform: rotate(484deg); }
+  .s305 { transform: rotate(485deg); }
+  .s306 { transform: rotate(486deg); }
+  .s307 { transform: rotate(487deg); }
+  .s308 { transform: rotate(488deg); }
+  .s309 { transform: rotate(489deg); }
+  .s310 { transform: rotate(490deg); }
+  .s311 { transform: rotate(491deg); }
+  .s312 { transform: rotate(492deg); }
+  .s313 { transform: rotate(493deg); }
+  .s314 { transform: rotate(494deg); }
+  .s315 { transform: rotate(495deg); }
+  .s316 { transform: rotate(496deg); }
+  .s317 { transform: rotate(497deg); }
+  .s318 { transform: rotate(498deg); }
+  .s319 { transform: rotate(499deg); }
+  .s320 { transform: rotate(500deg); }
+  .s321 { transform: rotate(501deg); }
+  .s322 { transform: rotate(502deg); }
+  .s323 { transform: rotate(503deg); }
+  .s324 { transform: rotate(504deg); }
+  .s325 { transform: rotate(505deg); }
+  .s326 { transform: rotate(506deg); }
+  .s327 { transform: rotate(507deg); }
+  .s328 { transform: rotate(508deg); }
+  .s329 { transform: rotate(509deg); }
+  .s330 { transform: rotate(510deg); }
+  .s331 { transform: rotate(511deg); }
+  .s332 { transform: rotate(512deg); }
+  .s333 { transform: rotate(513deg); }
+  .s334 { transform: rotate(514deg); }
+  .s335 { transform: rotate(515deg); }
+  .s336 { transform: rotate(516deg); }
+  .s337 { transform: rotate(517deg); }
+  .s338 { transform: rotate(518deg); }
+  .s339 { transform: rotate(519deg); }
+  .s340 { transform: rotate(520deg); }
+  .s341 { transform: rotate(521deg); }
+  .s342 { transform: rotate(522deg); }
+  .s343 { transform: rotate(523deg); }
+  .s344 { transform: rotate(524deg); }
+  .s345 { transform: rotate(525deg); }
+  .s346 { transform: rotate(526deg); }
+  .s347 { transform: rotate(527deg); }
+  .s348 { transform: rotate(528deg); }
+  .s349 { transform: rotate(529deg); }
+  .s350 { transform: rotate(530deg); }
+  .s351 { transform: rotate(531deg); }
+  .s352 { transform: rotate(532deg); }
+  .s353 { transform: rotate(533deg); }
+  .s354 { transform: rotate(534deg); }
+  .s355 { transform: rotate(535deg); }
+  .s356 { transform: rotate(536deg); }
+  .s357 { transform: rotate(537deg); }
+  .s358 { transform: rotate(538deg); }
+  .s359 { transform: rotate(539deg); }
 </style>
