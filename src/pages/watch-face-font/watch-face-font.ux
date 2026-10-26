@@ -128,6 +128,19 @@ export default {
   onReady() {
     this.fitScreen()
     this.refresh()
+    this.tempVerifyCycles()   /* TEMP-VERIFY */
+  },
+
+  /* ══ TEMP-VERIFY 起 ══ 仅用于补 336 屏 v6/v2/v4/v8 实拍，取证后整段删除 ══
+     背景：本页点「切换样式」会冒泡到 .page 的 onTap 直接 router.replace 回列表，
+     v3 之后必挂（见 docs §10.3-2），所以变体遍历不能靠点击，只能靠定时器自巡游。
+     排期：40s→v6、65s→v2、90s→v4、115s→v8（前 30s 留给首屏黑屏期） */
+  tempVerifyCycles() {
+    /* 强制停在 v6（翻页）：定时器交替在 Vela 上不可靠，改单变体硬编码最确定。
+       打两次是因为 loadStyle 的 storage 回调可能在 onReady 之后才落地、把 mode 冲回 0 */
+    const self = this
+    this.applyMode(6)
+    setTimeout(function () { self.applyMode(6) }, 3000)
   },
 
   onShow() {
