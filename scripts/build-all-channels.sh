@@ -5,7 +5,8 @@ PROJECT_DIR="/Users/Banner/Documents/guomengtao/ev/class-schedule"
 VERSION_FILE="$PROJECT_DIR/src/data/version.js"
 RELEASE_DIR="$PROJECT_DIR/release"
 
-# 14 个渠道
+# 15 个渠道（2026-10-27 补 t-b11-r：Band 11 胶囊版资源 8046 一直在手工维护，
+# 构建清单里漏了它，导致 8046 只能挂旧包 v1.5.49 而无法随 release 更新）
 CHANNELS=(
   "t-9p-d"
   "t-9p-r"
@@ -13,6 +14,7 @@ CHANNELS=(
   "t-9-r"
   "t-10-d"
   "t-10-r"
+  "t-b11-r"
   "t-10p-d"
   "t-10p-r"
   "t-s4-d"
