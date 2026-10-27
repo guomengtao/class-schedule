@@ -1,8 +1,8 @@
 {
   "package": "com.application.watch.classschedule",
   "name": "Ev课程表",
-  "versionName": "1.9.57",
-  "versionCode": 1518,
+  "versionName": "1.9.58",
+  "versionCode": 1519,
   "minPlatformVersion": 1050,
   "icon": "/logo.png",
   "deviceTypeList": [
@@ -204,6 +204,9 @@
       },
       "pages/watch-face-metal": {
         "component": "watch-face-metal"
+      },
+      "pages/watch-face-worldclock": {
+        "component": "watch-face-worldclock"
       },
       "pages/watch-face-evpointer": {
         "component": "watch-face-evpointer"
