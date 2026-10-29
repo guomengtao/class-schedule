@@ -43,6 +43,10 @@
         <text class="item-label" style="color: {{ theme.text }}">仿古金属表盘</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
+      <div class="item-row" onclick="openWorldClock">
+        <text class="item-label" style="color: {{ theme.text }}">4联世界时钟</text>
+      </div>
+      <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openColorful">
         <text class="item-label" style="color: {{ theme.text }}">彩色表盘</text>
       </div>
@@ -156,6 +160,10 @@ export default {
 
   openWatchFaceMetal() {
     router.push({ uri: "/pages/watch-face-metal" })
+  },
+
+  openWorldClock() {
+    router.push({ uri: "/pages/watch-face-worldclock" })
   },
 
   openColorful() {
