@@ -1487,7 +1487,8 @@ export default {
     border-radius: 2px;
     margin-right: 8px;
     flex-shrink: 0;
-    align-self: center;
+    /* align-self 不被 Vela 支持（运行时 warn: Unknown style - alignSelf），
+       父容器 .status-capsule-row 已 align-items: center，此处本来就冗余 */
   }
   .status-capsule-body {
     flex: 1;
