@@ -41,7 +41,7 @@
           <text if="{{ !showRowNum }}" class="wv-time" style="width:0px;padding-right:0"></text>
           <div class="wv-cells">
             <div for="{{ $item.cells }}" class="wv-cell {{ $item.isCurrent ? 'wv-now' : '' }} {{ !$item.course ? 'wv-cell-empty' : '' }} {{ transparentCells ? 'wv-cell-text' : '' }} {{ cellBordered ? 'wv-cell-bordered' : '' }}" onclick="showDetail($item.day, $item.course)" style="width:{{ cellWidth }}px;margin:{{ cellMargin }}px;background-color:{{ getCellBg($item.course) }};border-radius:{{ cellRadius }};height:{{ cellHeight }}px;{{ cellBordered ? 'border-color:' + theme.borderLight : '' }}">
-              <text if="{{ $item.course }}" class="wv-name {{ transparentCells ? 'wv-name-transparent' : '' }} {{ $item.isCurrent && transparentCells ? 'wv-name-now' : '' }}" style="color:{{ getCellTextColor($item.course) }};font-size:{{ nameFontSize }}px;line-height:{{ nameLineHeight }}px;font-weight:{{ nameFontWeight }}">{{ getDisplayName($item.course) }}</text>
+              <text if="{{ $item.course }}" class="wv-name {{ nameLines > 1 ? 'wv-name-2l' : '' }} {{ transparentCells ? 'wv-name-transparent' : '' }} {{ $item.isCurrent && transparentCells ? 'wv-name-now' : '' }}" style="color:{{ getCellTextColor($item.course) }};font-size:{{ nameFontSize }}px;line-height:{{ nameLineHeight }}px;font-weight:{{ nameFontWeight }}">{{ getDisplayName($item.course) }}</text>
               <text if="{{ $item.course && showRoom && $item.course.location }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.location }}</text>
               <text if="{{ $item.course && showTeacher && $item.course.teacher }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.teacher }}</text>
               <text if="{{ $item.course && $item.course.extraCount > 0 && currentTplId !== 'minimal-char' && currentTplId !== 'minimal-clean' }}" class="wv-extra" style="color:{{ theme.textMuted }}">+{{ $item.course.extraCount }}</text>
@@ -189,7 +189,7 @@ var TEMPLATE_CONFIGS = {
     nameDisplay: "char",
     dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
     cellRadius: "6px", rowHeight: 58, cellHeight: 52, rowNumWidth: 0,
-    nameFontSize: 36, nameLineHeight: 42, nameFontWeight: "bold", infoFontSize: 0,
+    nameLines: 1, nameFontSize: 36, nameLineHeight: 42, nameFontWeight: "bold", infoFontSize: 0,
     useColorScheme: true, denseMode: false, cellWidth: 42, cellMargin: 0
   },
   "minimal-en": {
@@ -198,7 +198,7 @@ var TEMPLATE_CONFIGS = {
     nameDisplay: "en-abbr",
     dayLabels: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
     cellRadius: "8px", rowHeight: 54, cellHeight: 50, rowNumWidth: 0,
-    nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "bold", infoFontSize: 0,
+    nameLines: 1, nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "bold", infoFontSize: 0,
     useColorScheme: true, denseMode: false, cellWidth: 60
   },
   "standard-block": {
@@ -207,7 +207,7 @@ var TEMPLATE_CONFIGS = {
     nameDisplay: "full",
     dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
     cellRadius: "6px", rowHeight: 72, cellHeight: 64, rowNumWidth: 50,
-    nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "normal", infoFontSize: 0,
+    nameLines: 2, nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "normal", infoFontSize: 0,
     useColorScheme: true, denseMode: false, cellWidth: 70
   },
   "compact-grid": {
@@ -216,7 +216,7 @@ var TEMPLATE_CONFIGS = {
     nameDisplay: "char",
     dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
     cellRadius: "4px", rowHeight: 54, cellHeight: 48, rowNumWidth: 40,
-    nameFontSize: 32, nameLineHeight: 38, nameFontWeight: "bold", infoFontSize: 0,
+    nameLines: 1, nameFontSize: 32, nameLineHeight: 38, nameFontWeight: "bold", infoFontSize: 0,
     useColorScheme: true, denseMode: true, cellWidth: 40, rowNumMode: "index",
     cellBordered: true, cellMargin: 0
   },
@@ -226,7 +226,7 @@ var TEMPLATE_CONFIGS = {
     nameDisplay: "char",
     dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
     cellRadius: "10px", rowHeight: 66, cellHeight: 58, rowNumWidth: 0,
-    nameFontSize: 24, nameLineHeight: 30, nameFontWeight: "normal", infoFontSize: 0,
+    nameLines: 1, nameFontSize: 24, nameLineHeight: 30, nameFontWeight: "normal", infoFontSize: 0,
     useColorScheme: true, denseMode: false, cellWidth: 42, cellMargin: 0
   },
   "color-pastel": {
@@ -235,7 +235,7 @@ var TEMPLATE_CONFIGS = {
     nameDisplay: "full",
     dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
     cellRadius: "10px", rowHeight: 72, cellHeight: 64, rowNumWidth: 50,
-    nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "normal", infoFontSize: 0,
+    nameLines: 2, nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "normal", infoFontSize: 0,
     useColorScheme: false, denseMode: false, rowNumMode: "index", cellWidth: 70
   }
 }
@@ -276,6 +276,7 @@ export default {
     showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
     showDayCount: false, showTotal: false,
     nameDisplay: "full",
+    nameLines: 1,
     cellRadius: "12px",
     rowHeight: 60,
     cellHeight: 56,
@@ -470,6 +471,7 @@ export default {
     this.showDayCount = cfg.showDayCount !== false
     this.showTotal = cfg.showTotal !== false
     this.nameDisplay = cfg.nameDisplay
+    this.nameLines = cfg.nameLines || 1
     this.cellRadius = cfg.cellRadius
     this.rowHeight = cfg.rowHeight
     this.cellHeight = cfg.cellHeight
@@ -483,6 +485,11 @@ export default {
     }
     this.nameFontSize = cfg.nameFontSize
     this.nameLineHeight = cfg.nameLineHeight || (cfg.nameFontSize + 6)
+    // 两行模式：标准模板 2×34=68 会超出 64 的格高被裁，按格高收敛行高（留 4px 余量）
+    if (this.nameLines > 1) {
+      var maxLineH = Math.floor((cfg.cellHeight - 4) / this.nameLines)
+      this.nameLineHeight = Math.min(this.nameLineHeight, maxLineH)
+    }
     this.nameFontWeight = cfg.nameFontWeight
     var w = cfg.cellWidth || Math.max(100, this.nameFontSize * 5)
     // 胶囊屏把列宽收敛到 ≤60px：160px 内容区 ÷ 60 ≈ 2.67 列，落入规范 2.5~3.5 区间
@@ -1068,6 +1075,11 @@ export default {
   font-weight: bold;
   text-align: center;
   text-overflow: ellipsis;
+}
+
+/* 两行模式（标准/清爽）：超过两行由 text-overflow 省略，不再换行撑高溢出 */
+.wv-name-2l {
+  lines: 2;
 }
 
 .wv-info {
