@@ -315,6 +315,9 @@ export default {
   onInit() {
     var self = this
     log("onInit start")
+    // T-01：销毁标志。本页是长停留+高频重入页面，异步回调一律先判此标志，
+    // 避免页面销毁后仍操作实例（手环11「打开一会儿重启」的根因之一）。
+    self._destroyed = false
     self.firstLoad = true
     var now = new Date()
     var dayIdx = now.getDay()
@@ -323,6 +326,7 @@ export default {
     // 屏型异步返回：胶囊屏下要关闭行号列并收敛列宽，否则可视列数跌到 1.57
     device.getInfo({
       success: function(data) {
+        if (self._destroyed) return
         var shape = data.screenShape || ""
         var capsule = (shape === "capsule" || shape === "pill-shaped")
         // 保存真实屏宽：胶囊屏列宽自适应需要（手环9=192，手环10/11=212）
@@ -338,10 +342,12 @@ export default {
       fail: function() {}
     })
     store.getTheme(function(t, themeName) {
+      if (self._destroyed) return
       self.theme = t
       self.updateIconSrc(themeName)
     })
     store.getHideWeekend(function(hide) {
+      if (self._destroyed) return
       self.hideWeekend = hide
       self.applyWeekendFilter()
       self.hideWeekendLoaded = true
@@ -354,6 +360,7 @@ export default {
     storage.get({
       key: "weekview_index",
       success: function(data) {
+        if (self._destroyed) return
         self.viewIndex = parseInt(data) || 0
         log("onInit viewIndex loaded=" + self.viewIndex)
         self.weekViewIndexLoaded = true
@@ -363,6 +370,7 @@ export default {
         }
       },
       fail: function() {
+        if (self._destroyed) return
         log("onInit viewIndex not found, use 0")
         self.weekViewIndexLoaded = true
         if (self.hideWeekendLoaded) {
@@ -372,9 +380,12 @@ export default {
       }
     })
     store.getWeekViewTemplate(function(id) {
+      if (self._destroyed) return
       self.applyTemplate(id || "minimal-char")
     })
-    setTimeout(function() {
+    // T-01：句柄化，由 onDestroy 清除。原实现丢弃句柄，销毁后仍会触发 loadData
+    self._initTimer = setTimeout(function() {
+      if (self._destroyed) return
       if (!self.initDone) {
         log("onInit timeout fallback, forcing loadData")
         self.initDone = true
@@ -387,10 +398,12 @@ export default {
     var self = this
     log("onShow start")
     store.getTheme(function(t, themeName) {
+      if (self._destroyed) return
       self.theme = t
       self.updateIconSrc(themeName)
     })
     store.getHideWeekend(function(hide) {
+      if (self._destroyed) return
       self.hideWeekend = hide
       self.applyWeekendFilter()
       if (self.firstLoad) {
@@ -403,11 +416,13 @@ export default {
       storage.get({
         key: "weekview_index",
         success: function(data) {
+          if (self._destroyed) return
           self.viewIndex = parseInt(data) || 0
           log("onShow viewIndex=" + self.viewIndex)
           self.loadTemplateAndReload()
         },
         fail: function() {
+          if (self._destroyed) return
           self.loadTemplateAndReload()
         }
       })
@@ -417,6 +432,7 @@ export default {
   loadTemplateAndReload() {
     var self = this
     store.getWeekViewTemplate(function(id) {
+      if (self._destroyed) return
       self.applyTemplate(id || "minimal-char")
       self.isLoading = true
       self.loadData()
@@ -509,6 +525,8 @@ export default {
 
   loadData() {
     var self = this
+    // T-01：页面已销毁时不再发起数据链路
+    if (self._destroyed) return
     log("loadData start viewIndex=" + self.viewIndex)
 
     store.getScheduleNames(function(names) {
@@ -585,11 +603,14 @@ export default {
       log("loadData saved to data cache viewIndex=" + self.viewIndex)
     })
 
-    setTimeout(function() {
+    // T-01：句柄化，由 onDestroy 清除
+    self._dataTimer = setTimeout(function() {
+      if (self._destroyed) return
       if (!dataLoaded) {
         dataLoaded = true
         log("loadData timeout 1500ms fallback")
         database.getAllCourses(function(fallback) {
+          if (self._destroyed) return
           self.renderSchedule(fallback)
         })
       }
@@ -597,6 +618,7 @@ export default {
   },
 
   renderSchedule(schedule) {
+    if (this._destroyed) return
     log("renderSchedule len=" + (schedule ? schedule.length : "null"))
     var allCourses = {}
     if (schedule) {
@@ -623,6 +645,7 @@ export default {
 
   renderScheduleData(allCourses) {
     var self = this
+    if (self._destroyed) return
     log("renderScheduleData displayDayNames=" + JSON.stringify(self.displayDayNames) + " allCourses keys=" + Object.keys(allCourses).join(","))
 
     // Compute cache key: data fingerprint + template + weekend + capsule
@@ -866,10 +889,22 @@ export default {
   },
 
   onDestroy() {
-    this.scheduleName = null
-    this.timeSlots = null
-    this.theme = null
-    this.templateList = null
+    // T-01 / B-01：本方法原先主动把 scheduleName / timeSlots / theme / templateList
+    // 置 null，但 template 里 for="{{ templateList }}" 与 60+ 处内联样式仍绑定 theme，
+    // 销毁瞬间若还有延迟回调或延迟帧求值，就会对 null 取属性抛异常导致进程崩溃。
+    // 正确做法：不置 null（框架会回收），改为「置销毁标志 + 清定时器 + 清模块级缓存」。
+    this._destroyed = true
+    if (this._initTimer) {
+      clearTimeout(this._initTimer)
+      this._initTimer = null
+    }
+    if (this._dataTimer) {
+      clearTimeout(this._dataTimer)
+      this._dataTimer = null
+    }
+    // 模块级缓存跨实例共享，销毁时清理，避免下一次进入命中旧实例的数据
+    clearRenderCache()
+    clearDataCache()
   }
 }
 </script>
