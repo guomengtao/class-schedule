@@ -259,6 +259,7 @@ export default {
     todayIndex: 0,
     isCapsule: false,
     screenWidth: 0,
+    screenShape: "",
     currentCourseDay: "",
     currentCourseTime: "",
     initDone: false,
@@ -330,11 +331,14 @@ export default {
         if (self._destroyed) return
         var shape = data.screenShape || ""
         var capsule = (shape === "capsule" || shape === "pill-shaped")
-        // 保存真实屏宽：胶囊屏列宽自适应需要（手环9=192，手环10/11=212）
-        self.screenWidth = data.screenWidth || 0
-        if (self.isCapsule !== capsule) {
+        // 保存真实屏宽与屏型：列宽自适应需要（手环9=192 胶囊，手环10Pro=336 方屏）
+        var newWidth = data.screenWidth || 0
+        var widthChanged = (self.screenWidth !== newWidth)
+        self.screenWidth = newWidth
+        self.screenShape = shape
+        if (self.isCapsule !== capsule || widthChanged) {
           self.isCapsule = capsule
-          // 模板可能已按默认（非胶囊）应用过，屏型回填后需重新应用
+          // 模板可能已按默认屏宽应用过，屏型/屏宽回填后必须重新应用，否则方屏仍按 336 兜底算宽
           if (self.currentTplId) {
             self.applyTemplate(self.currentTplId)
           }
@@ -502,12 +506,22 @@ export default {
     this.cellMargin = cfg.cellMargin !== undefined ? cfg.cellMargin : 1
     this.templateDayLabels = cfg.dayLabels || ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"]
     this.applyWeekendFilter()
-    if (id === "minimal-clean" || id === "minimal-char" || id === "compact-grid") {
-      var cellExtra = 2 * this.cellMargin + (this.cellBordered ? 2 : 0)
-      // 胶囊屏按真实屏宽自适应（.wv-page 左右 padding 为 0）。
+    var cellExtra = 2 * this.cellMargin + (this.cellBordered ? 2 : 0)
+    if (this.isCapsule === true) {
+      // 胶囊屏：极简/紧凑按真实屏宽自适应（.wv-page 左右 padding 为 0）。
       // 此前胶囊屏被排除、固定 42px：5×42=210 > 192，周五整列被屏幕右缘裁掉半个字（2026-09-28 用户反馈）。
-      var availCells = (this.isCapsule === true ? (this.screenWidth || 192) : 316) - this.rowNumWidth
-      this.cellWidth = Math.max(30, Math.floor(availCells / this.weekDays.length) - cellExtra)
+      // 标准/清爽/英文保持固定 min(70,60) + 横向滑动，符合规范 5.3「显示 2.5~3.5 列」（D-02）。
+      if (id === "minimal-clean" || id === "minimal-char" || id === "compact-grid") {
+        var availCells = (this.screenWidth || 192) - this.rowNumWidth
+        this.cellWidth = Math.max(30, Math.floor(availCells / this.weekDays.length) - cellExtra)
+      }
+    } else {
+      // 方屏/圆屏：所有模板一律按真实可用宽度均分。
+      // 标准/清爽此前固定 70px：5×70+50=400 > 316，只显 4.09 列、周五整列不可见（B-02）。
+      // 规范 5.2 要求方屏 5 列全显，故方屏不再保留固定列宽（D-02 的固定宽只在胶囊屏成立）。
+      var pagePad = (this.screenShape === "circle") ? 72 : 20 // .wv-page 左右内距：方屏 10×2，圆屏 36×2
+      var availRect = (this.screenWidth || 336) - pagePad - this.rowNumWidth
+      this.cellWidth = Math.max(30, Math.floor(availRect / this.weekDays.length) - cellExtra)
     }
     this.gridContentWidth = this.rowNumWidth + this.weekDays.length * (this.cellWidth + 2 * this.cellMargin + (this.cellBordered ? 2 : 0))
   },
