@@ -44,8 +44,8 @@
               <text if="{{ $item.course }}" class="wv-name {{ nameLines > 1 ? 'wv-name-2l' : '' }} {{ transparentCells ? 'wv-name-transparent' : '' }} {{ $item.isCurrent && transparentCells ? 'wv-name-now' : '' }}" style="color:{{ getCellTextColor($item.course) }};font-size:{{ nameFontSize }}px;line-height:{{ nameLineHeight }}px;font-weight:{{ nameFontWeight }}">{{ getDisplayName($item.course) }}</text>
               <text if="{{ $item.course && showRoom && $item.course.location }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.location }}</text>
               <text if="{{ $item.course && showTeacher && $item.course.teacher }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.teacher }}</text>
-              <text if="{{ $item.course && $item.course.extraCount > 0 && currentTplId !== 'minimal-char' && currentTplId !== 'minimal-clean' }}" class="wv-extra" style="color:{{ theme.textMuted }}">+{{ $item.course.extraCount }}</text>
-              <text if="{{ !$item.course && !transparentCells }}" class="wv-empty" style="color:{{ theme.textMuted }}">·</text>
+              <text if="{{ $item.course && $item.course.extraCount > 0 && showExtraBadge }}" class="wv-extra" style="color:{{ theme.textMuted }}">+{{ $item.course.extraCount }}</text>
+              <text if="{{ !$item.course && paletteEmptyDot }}" class="wv-empty" style="color:{{ theme.textMuted }}">·</text>
             </div>
           </div>
         </div>
@@ -182,62 +182,130 @@ function guessSubjectKey(name) {
   return "default"
 }
 
-var TEMPLATE_CONFIGS = {
-  "minimal-char": {
+// ═══════════════════════════════════════════════════════════════════════
+// T-09 / D-12：外观拆成两个正交维度 —— 布局 × 配色
+//
+// LAYOUT_CONFIGS  只管「几何与信息密度」：字号 / 行数 / 格尺寸 / 圆角 / 行号列 / 显示字段，
+//                 **不含任何颜色字段**。
+// PALETTE_CONFIGS 只管「颜色」，不碰任何尺寸。
+//
+// 旧单维 `TEMPLATE_CONFIGS` 已移除；老 id 由 LEGACY_TEMPLATE_MAP 一次性映射，
+// 保证存量用户升级后外观逐像素不变（S1 验收标准）。
+//
+// 为什么不直接把「标准」和「跟随系统」合并成一个 full-name 布局：
+// 二者除配色外还差「圆角 6 vs 10」与「行号列 time vs index」，合并会改变视觉，
+// S1 的「截图字节零差异」验收将失效。收敛为 5 档属 T-10 / Q-06 的视觉决策，
+// 故 S1 保留 `full-name-index` 作为第 6 个布局档，待视觉决策后再合并。
+// ═══════════════════════════════════════════════════════════════════════
+var LAYOUT_CONFIGS = {
+  // 大字单字：36px 首字，格最小（D-01）
+  "big-char": {
     showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
     showDayCount: false, showTotal: false,
     nameDisplay: "char",
     dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
     cellRadius: "6px", rowHeight: 58, cellHeight: 52, rowNumWidth: 0,
     nameLines: 1, nameFontSize: 36, nameLineHeight: 42, nameFontWeight: "bold", infoFontSize: 0,
-    useColorScheme: true, denseMode: false, cellWidth: 42, cellMargin: 0
+    denseMode: false, cellWidth: 42, cellMargin: 0,
+    showExtraBadge: false, capsuleAutoWidth: true, hideTimeColumnOnRect: false
   },
-  "minimal-en": {
-    showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
-    showDayCount: false, showTotal: false,
-    nameDisplay: "en-abbr",
-    dayLabels: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
-    cellRadius: "8px", rowHeight: 54, cellHeight: 50, rowNumWidth: 0,
-    nameLines: 1, nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "bold", infoFontSize: 0,
-    useColorScheme: true, denseMode: false, cellWidth: 60
-  },
-  "standard-block": {
-    showRowNum: true, showRoom: false, showTeacher: false, showTime: true,
-    showDayCount: false, showTotal: true,
-    nameDisplay: "full",
-    dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
-    cellRadius: "6px", rowHeight: 72, cellHeight: 64, rowNumWidth: 50,
-    nameLines: 2, nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "normal", infoFontSize: 0,
-    useColorScheme: true, denseMode: false, cellWidth: 70
-  },
-  "compact-grid": {
-    showRowNum: true, showRoom: false, showTeacher: false, showTime: false,
-    showDayCount: true, showTotal: true,
-    nameDisplay: "char",
-    dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
-    cellRadius: "4px", rowHeight: 54, cellHeight: 48, rowNumWidth: 40,
-    nameLines: 1, nameFontSize: 32, nameLineHeight: 38, nameFontWeight: "bold", infoFontSize: 0,
-    useColorScheme: true, denseMode: true, cellWidth: 40, rowNumMode: "index",
-    cellBordered: true, cellMargin: 0
-  },
-  "minimal-clean": {
+  // 小字单字：24px 首字，圆角更圆（T-10 待评估是否与 big-char 合并）
+  "small-char": {
     showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
     showDayCount: false, showTotal: false,
     nameDisplay: "char",
     dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
     cellRadius: "10px", rowHeight: 66, cellHeight: 58, rowNumWidth: 0,
     nameLines: 1, nameFontSize: 24, nameLineHeight: 30, nameFontWeight: "normal", infoFontSize: 0,
-    useColorScheme: true, denseMode: false, cellWidth: 42, cellMargin: 0
+    denseMode: false, cellWidth: 42, cellMargin: 0,
+    showExtraBadge: false, capsuleAutoWidth: true, hideTimeColumnOnRect: false
   },
-  "color-pastel": {
+  // 全名两行 + 时间列：方屏隐藏时间列（B-06 方案 c）
+  "full-name": {
+    showRowNum: true, showRoom: false, showTeacher: false, showTime: true,
+    showDayCount: false, showTotal: true,
+    nameDisplay: "full",
+    dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
+    cellRadius: "6px", rowHeight: 72, cellHeight: 64, rowNumWidth: 50,
+    nameLines: 2, nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "normal", infoFontSize: 0,
+    denseMode: false, rowNumMode: "time", cellWidth: 70,
+    showExtraBadge: true, capsuleAutoWidth: false, hideTimeColumnOnRect: true
+  },
+  // 全名两行 + 序号列：与 full-name 同尺寸，仅行号模式与圆角不同（原「跟随系统」的布局部分）
+  "full-name-index": {
     showRowNum: true, showRoom: false, showTeacher: false, showTime: true,
     showDayCount: false, showTotal: true,
     nameDisplay: "full",
     dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
     cellRadius: "10px", rowHeight: 72, cellHeight: 64, rowNumWidth: 50,
     nameLines: 2, nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "normal", infoFontSize: 0,
-    useColorScheme: false, denseMode: false, rowNumMode: "index", cellWidth: 70
+    denseMode: false, rowNumMode: "index", cellWidth: 70,
+    showExtraBadge: true, capsuleAutoWidth: false, hideTimeColumnOnRect: false
+  },
+  // 紧凑带序号 + 边框
+  "dense-index": {
+    showRowNum: true, showRoom: false, showTeacher: false, showTime: false,
+    showDayCount: true, showTotal: true,
+    nameDisplay: "char",
+    dayLabels: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
+    cellRadius: "4px", rowHeight: 54, cellHeight: 48, rowNumWidth: 40,
+    nameLines: 1, nameFontSize: 32, nameLineHeight: 38, nameFontWeight: "bold", infoFontSize: 0,
+    denseMode: true, cellWidth: 40, rowNumMode: "index",
+    cellBordered: true, cellMargin: 0,
+    showExtraBadge: true, capsuleAutoWidth: true, hideTimeColumnOnRect: false
+  },
+  // 英文缩写
+  "en-abbr": {
+    showRowNum: false, showRoom: false, showTeacher: false, showTime: false,
+    showDayCount: false, showTotal: false,
+    nameDisplay: "en-abbr",
+    dayLabels: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
+    cellRadius: "8px", rowHeight: 54, cellHeight: 50, rowNumWidth: 0,
+    nameLines: 1, nameFontSize: 28, nameLineHeight: 34, nameFontWeight: "bold", infoFontSize: 0,
+    denseMode: false, cellWidth: 60,
+    showExtraBadge: true, capsuleAutoWidth: false, hideTimeColumnOnRect: false
   }
+}
+
+// 配色维度：只描述颜色，不含任何尺寸字段。
+// `cellBg` / `cellText` 非空 = 固定色（用于高对比档，与 theme.* 完全解耦）；
+// 为空则回落到 `useColorScheme` 决定的分支（科目色 / 单色）。
+// `pageBg` / `footerBg` 供高对比档整页转黑白用，为 null 表示跟随 theme（T-06 决策：整页转黑白）。
+var PALETTE_CONFIGS = {
+  // 科目色：现状默认
+  "subject": {
+    useColorScheme: true, transparentCells: false,
+    cellBg: null, cellText: null, emptyDot: true, pageBg: null, footerBg: null
+  },
+  // 单色：theme.cardLight 底 + theme.accent 字（原「跟随系统」的配色部分）
+  "mono": {
+    useColorScheme: false, transparentCells: false,
+    cellBg: null, cellText: null, emptyDot: true, pageBg: null, footerBg: null
+  },
+  // 黑白高对比（T-06，S4 启用）：底 #000 / 文字 #fff / 有课格 #fff 底 + #000 字 / 空课格仅描边
+  "high-contrast": {
+    useColorScheme: false, transparentCells: false,
+    cellBg: "#ffffff", cellText: "#000000", emptyDot: false,
+    pageBg: "#000000", footerBg: "#000000",
+    text: "#ffffff", textSecondary: "#c8c8c8", textMuted: "#7a7a7a",
+    borderLight: "#5a5a5a", accent: "#ffffff"
+  },
+  // 纯文字（T-07，S4 启用）：透明底 + 正文色，不画无课点
+  "plain": {
+    useColorScheme: false, transparentCells: true,
+    cellBg: null, cellText: null, emptyDot: false, pageBg: null, footerBg: null
+  }
+}
+
+// 旧 id → 布局 × 配色。S1 期间 `weekview_template` 仍是唯一持久化键，
+// 读到旧 id 后经此表分流到两个维度；S2 引入 weekview_layout / weekview_palette 后本表仅用于一次性迁移。
+var LEGACY_TEMPLATE_MAP = {
+  "minimal-char":   { layout: "big-char",        palette: "subject" },
+  "minimal-clean":  { layout: "small-char",      palette: "subject" },
+  "standard-block": { layout: "full-name",       palette: "subject" },
+  "compact-grid":   { layout: "dense-index",     palette: "subject" },
+  "minimal-en":     { layout: "en-abbr",         palette: "subject" },
+  "color-pastel":   { layout: "full-name-index", palette: "mono"    }
 }
 
 export default {
@@ -265,6 +333,10 @@ export default {
     initDone: false,
     firstLoad: true,
     currentTplId: "minimal-char",
+    // T-09：外观双维度状态。currentTplId 仅为底部条选中态与渲染缓存键保留（S3 改双键后废弃）
+    currentLayoutId: "big-char",
+    currentPaletteId: "subject",
+    paletteEmptyDot: true,
     templateList: [
       { id: "minimal-char", label: "极简", activeColor: "#e67e22" },
       { id: "minimal-clean", label: "清爽", activeColor: "#27ae60" },
@@ -464,10 +536,29 @@ export default {
     self.loadData()
   },
 
+  // 兼容入口：调用方仍按旧模板 id 传入（onInit / onShow / loadTemplateAndReload / device 回调）。
+  // T-09 后外观由「布局 + 配色」两个维度共同决定，本方法只负责把旧 id 解析成两个维度再分别应用。
   applyTemplate(id) {
-    var cfg = TEMPLATE_CONFIGS[id] || TEMPLATE_CONFIGS["minimal-char"]
-    log("applyTemplate id=" + id + " nameDisplay=" + cfg.nameDisplay)
-    this.currentTplId = id
+    var legacyId = id || "minimal-char"
+    var entry = LEGACY_TEMPLATE_MAP[legacyId]
+    if (!entry) {
+      log("applyTemplate unknown id=" + legacyId + ", fallback minimal-char")
+      legacyId = "minimal-char"
+      entry = LEGACY_TEMPLATE_MAP[legacyId]
+    }
+    this.currentTplId = legacyId
+    this.applyLayout(entry.layout)
+    this.applyPalette(entry.palette)
+    // 列宽计算依赖 this.weekDays.length，必须先跑周末过滤再算度量
+    this.applyWeekendFilter()
+    this.recalcGridMetrics()
+  },
+
+  // 布局维度：只应用几何与信息密度，不碰颜色
+  applyLayout(layoutId) {
+    var cfg = LAYOUT_CONFIGS[layoutId] || LAYOUT_CONFIGS["big-char"]
+    log("applyLayout id=" + layoutId + " nameDisplay=" + cfg.nameDisplay)
+    this.currentLayoutId = layoutId
     this.showRowNum = cfg.showRowNum
     this.showRoom = cfg.showRoom
     this.showTeacher = cfg.showTeacher
@@ -481,11 +572,10 @@ export default {
     this.cellHeight = cfg.cellHeight
     // 胶囊屏：行号列会吃掉 40~50px，160px 内容区下可视列数仅 1.57（规范下限 2.5）。
     // 窄屏关闭行号列，把宽度全部让给课程格。
-    // 标准模板（B-06）：时间列在方屏/圆屏只剩约 50px，"07:00 - 07:45" 被迫折成 4 行竖排，
-    // 把行高从 72px 顶到约 120px，一屏只装得下 2 行课程。时间文本本身也不可压缩，
-    // 故改为与胶囊屏一致 —— 直接隐藏时间列，宽度全部让给课程格；序号模式（紧凑/跟随系统）显示的是
-    // 1~N 的单位数字，不会折行，保持原样。
-    if (this.isCapsule === true || id === "standard-block") {
+    // 时间列（B-06）：在方屏只剩约 50px，"07:00 - 07:45" 被迫折成 4 行竖排，
+    // 把行高从 72px 顶到约 120px。时间文本不可压缩，故该布局在非胶囊屏也隐藏时间列。
+    // 序号列（dense-index / full-name-index）显示的是 1~N 单位数字，不会折行，保持原样。
+    if (this.isCapsule === true || cfg.hideTimeColumnOnRect === true) {
       this.rowNumWidth = 0
       this.showRowNum = false
     } else {
@@ -493,7 +583,7 @@ export default {
     }
     this.nameFontSize = cfg.nameFontSize
     this.nameLineHeight = cfg.nameLineHeight || (cfg.nameFontSize + 6)
-    // 两行模式：标准模板 2×34=68 会超出 64 的格高被裁，按格高收敛行高（留 4px 余量）
+    // 两行模式：2×34=68 会超出 64 的格高被裁，按格高收敛行高（留 4px 余量）
     if (this.nameLines > 1) {
       var maxLineH = Math.floor((cfg.cellHeight - 4) / this.nameLines)
       this.nameLineHeight = Math.min(this.nameLineHeight, maxLineH)
@@ -504,18 +594,30 @@ export default {
     this.cellWidth = (this.isCapsule === true) ? Math.min(w, 60) : w
     this.rowNumMode = cfg.rowNumMode || "time"
     this.infoFontSize = cfg.infoFontSize
-    this.useColorScheme = cfg.useColorScheme
-    this.transparentCells = cfg.transparentCells === true
     this.cellBordered = cfg.cellBordered === true
     this.cellMargin = cfg.cellMargin !== undefined ? cfg.cellMargin : 1
+    this.showExtraBadge = cfg.showExtraBadge === true
     this.templateDayLabels = cfg.dayLabels || ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"]
-    this.applyWeekendFilter()
+  },
+
+  // 配色维度：只应用颜色，不碰任何尺寸。颜色取值见 getCellBg / getCellTextColor
+  applyPalette(paletteId) {
+    var pal = PALETTE_CONFIGS[paletteId] || PALETTE_CONFIGS["subject"]
+    this.currentPaletteId = paletteId
+    this.useColorScheme = pal.useColorScheme === true
+    this.transparentCells = pal.transparentCells === true
+    this.paletteEmptyDot = pal.emptyDot !== false
+  },
+
+  // 度量计算：列宽自适应与内容总宽。依赖 this.weekDays，须在 applyWeekendFilter 之后调用
+  recalcGridMetrics() {
+    var cfg = LAYOUT_CONFIGS[this.currentLayoutId] || LAYOUT_CONFIGS["big-char"]
     var cellExtra = 2 * this.cellMargin + (this.cellBordered ? 2 : 0)
     if (this.isCapsule === true) {
-      // 胶囊屏：极简/紧凑按真实屏宽自适应（.wv-page 左右 padding 为 0）。
-      // 此前胶囊屏被排除、固定 42px：5×42=210 > 192，周五整列被屏幕右缘裁掉半个字（2026-09-28 用户反馈）。
-      // 标准/清爽/英文保持固定 min(70,60) + 横向滑动，符合规范 5.3「显示 2.5~3.5 列」（D-02）。
-      if (id === "minimal-clean" || id === "minimal-char" || id === "compact-grid") {
+      // 胶囊屏：部分布局按真实屏宽自适应（.wv-page 左右 padding 为 0）。
+      // 此前胶囊屏被整体排除、固定 42px：5×42=210 > 192，周五整列被屏幕右缘裁掉半个字（2026-09-28 用户反馈）。
+      // 全名类布局保持固定 min(70,60) + 横向滑动，符合规范 5.3「显示 2.5~3.5 列」（D-02）。
+      if (cfg.capsuleAutoWidth === true) {
         var availCells = (this.screenWidth || 192) - this.rowNumWidth
         this.cellWidth = Math.max(30, Math.floor(availCells / this.weekDays.length) - cellExtra)
       }
@@ -750,10 +852,13 @@ export default {
     return result
   },
 
+  // T-09：颜色全部由 palette 决定，本方法只读 PALETTE_CONFIGS，不再内联分支判断
   getCellBg(course) {
     if (!course) return "transparent"
-    if (this.transparentCells) return "transparent"
-    if (!this.useColorScheme) {
+    var pal = PALETTE_CONFIGS[this.currentPaletteId] || PALETTE_CONFIGS["subject"]
+    if (pal.transparentCells) return "transparent"
+    if (pal.cellBg) return pal.cellBg
+    if (pal.useColorScheme !== true) {
       return this.theme.cardLight || "#0f3460"
     }
     var key = guessSubjectKey(course.name)
@@ -762,8 +867,10 @@ export default {
 
   getCellTextColor(course) {
     if (!course) return "transparent"
-    if (this.transparentCells) return this.theme.text || "#ffffff"
-    if (!this.useColorScheme) {
+    var pal = PALETTE_CONFIGS[this.currentPaletteId] || PALETTE_CONFIGS["subject"]
+    if (pal.transparentCells) return this.theme.text || "#ffffff"
+    if (pal.cellText) return pal.cellText
+    if (pal.useColorScheme !== true) {
       return this.theme.accent || "#7ec8e3"
     }
     var key = guessSubjectKey(course.name)
