@@ -154,7 +154,7 @@
       <!-- 胶囊屏三钮同径同底（真机反馈 2026-10-24：加号原来带 2px accent 描边、
            底色透明，视觉上比左右两枚「大一号」）。现在三枚都是 48 圆 + cardLight 底，
            只有图标不同：＋ / 周视图 / 齿轮。 -->
-      <div class="add-btn-wrapper" if="{{ isCapsule }}" onclick="openAddCoursePage"
+      <div class="add-btn-wrapper add-btn-wrapper-circle" if="{{ isCapsule }}" onclick="openAddCoursePage"
            style="background-color: {{ theme.cardLight }}">
         <image class="add-btn-icon" src="/common/icons/{{ iconTheme }}/icon_plus.png"></image>
       </div>
@@ -862,7 +862,12 @@ export default {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  padding: 44px 8px 8px 8px;
+  /* 2026-11-01 兜底改造：基础样式直接取胶囊屏（手环）数值。
+     原因见 docs/首页-真机与截图不一致-根因分析.md：真机上
+     shape: pill-shaped 那条媒体查询可能整条不生效，此前基础值 44px 顶部内距
+     会让真机首页顶部白白空出 39px。现基础值即手环正确值，
+     圆屏/方屏由各自 media 块显式覆盖（circle 44/36、rect 6），行为不变。 */
+  padding: 5px 16px 14px 16px;
 }
 
 .header {
@@ -871,7 +876,9 @@ export default {
   align-items: center;
   /* 2026-11-01 紧凑化：上下 padding 8→5、下边距 4→2（省 8px），
      圆钮本身直径未变，点按手感不受影响 */
-  padding: 5px 4px;
+  /* 2026-11-01 兜底改造：基础值取胶囊态 0（手环 header 无需额外内距）；
+     圆屏在 circle 块补回 5px 4px，方屏在 rect 块本就是 3px 0 */
+  padding: 0;
   margin-bottom: 2px;
   flex-shrink: 0;
 }
@@ -886,15 +893,17 @@ export default {
      命中面积 176×34 远大于规范下限，不影响「回今天」。 */
   /* 2026-11-01 紧凑化二次收敛（方屏/圆屏）：时间行再收 34→28、字号 22→20，
      与胶囊屏一致，顶部时间只作提示不再抢视觉重心。 */
-  height: 28px;
+  /* 2026-11-01 兜底改造：基础值取胶囊态 20px；圆屏/方屏在各自块补回 28px */
+  height: 20px;
   align-items: flex-start;
   flex-shrink: 0;
 }
 
 .date-text {
-  font-size: 20px;
+  /* 2026-11-01 兜底改造：基础值取胶囊态 18/20；圆屏/方屏补回 20/28 */
+  font-size: 18px;
   /* line-height 与 .date-row 等高，文字在行内正好垂直占满，不再顶对齐留白 */
-  line-height: 28px;
+  line-height: 20px;
   text-align: center;
   width: 100%;
 }
@@ -907,17 +916,19 @@ export default {
   }
 
 .nav-btn-circle {
-  width: 48px;
-  height: 48px;
-  border-radius: 24px;
+  /* 2026-11-01 兜底改造：基础值取胶囊态 40；圆屏在 circle 块补回 48，方屏在 rect 块补回 48 */
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
   justify-content: center;
   align-items: center;
   flex-shrink: 0;
 }
 
 .nav-btn-img {
-  width: 24px;
-  height: 24px;
+  /* 基础值取胶囊态 20；圆屏 22、方屏 24 各自覆盖 */
+  width: 20px;
+  height: 20px;
 }
 
 .day-nav-btns {
@@ -1220,18 +1231,37 @@ export default {
 .bottom-buttons {
   flex-direction: row;
   justify-content: space-between;
+  /* 四个 media 块里只有 circle 声明了 8px、rect 声明了 3px，胶囊块未声明
+     → 手环当前实际就用这条基础值 4px，故保持不动，避免引入意外位移 */
   margin-bottom: 4px;
   flex-shrink: 0;
 }
 
 .add-btn-wrapper {
+  /* 2026-11-01 兜底改造：高度/圆角取胶囊态 48/24（手环三圆同径）。
+     flex 与 margin 仍保持长条语义（flex:1 + 4px），因为非胶囊屏渲染的
+     是「图标＋添加课程」长条，两套 DOM 结构不同，不能一并改成圆钮。
+     圆屏在 circle 块覆盖 44/20，方屏在 rect 块覆盖 44/21。 */
   flex: 1;
-  height: 44px;
-  border-radius: 22px;
+  height: 48px;
+  border-radius: 24px;
   margin-right: 4px;
   flex-direction: row;
   justify-content: center;
   align-items: center;
+}
+
+/* 2026-11-01 兜底改造：胶囊屏那一份「＋」的圆钮形态不再靠媒体查询区分，
+   改用模板里 isCapsule 分支专属的 class 直接给定。
+   原因：add-btn-wrapper 有两套互斥形态（圆钮 48 / 长条 flex:1），
+   一旦真机媒体查询失效，仅靠 media 覆盖会让加号退化成 64px 宽块、
+   三圆被挤紧。现在圆钮形态与 isCapsule 同源，不依赖设备端媒体查询解析。 */
+.add-btn-wrapper-circle {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  margin-right: 0;
 }
 
 .add-btn-icon {
@@ -1419,6 +1449,18 @@ export default {
 @media (shape: circle) {
   .schedule-page {
     padding: 44px 36px 44px 36px;
+  }
+  /* 2026-11-01 兜底改造的配套：基础样式已改为胶囊态，圆屏必须在此显式
+     收回自己的值，否则会跟着变矮变小（视觉回归）。*/
+  .header {
+    padding: 5px 4px;
+  }
+  .date-row {
+    height: 28px;
+  }
+  .date-text {
+    font-size: 20px;
+    line-height: 28px;
   }
   /* 圆屏横向空间同样紧张，取 44px 而非规范 48px */
   /* 胶囊屏 header 实际只有 ◀ + 标题 + ▶（总/今/明已移到 nav-toolbar），
@@ -1652,7 +1694,21 @@ export default {
     padding: 3px 0;
     margin-bottom: 3px;
   }
+  /* 2026-11-01 兜底改造的配套：基础样式已改为胶囊态，方屏在此显式收回
+     自己的日期行与导航圆钮尺寸，保证方屏观感零变化。*/
+  .date-row {
+    height: 28px;
+  }
+  .date-text {
+    font-size: 20px;
+    line-height: 28px;
+  }
   /* 方屏: 圆圈容器保持48px, 箭头三角缩小到24px与胶囊屏一致 */
+  .nav-btn-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+  }
   .nav-btn-img {
     width: 24px;
     height: 24px;
