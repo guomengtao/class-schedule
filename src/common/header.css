@@ -140,3 +140,77 @@
     width: 30px;
   }
 }
+
+/* ====== 页头胶囊返回按钮（2026-11-01 新增，settings 页首用）======
+ *
+ * 形态：「‹ 标题」一颗整体胶囊，顶部水平居中，整块可点返回。
+ * 与上面 .header/.back-btn-wrapper 旧骨架**并存但不共用类名**：
+ *   - 旧类仍服务 56 个未迁移页面，一处不动；
+ *   - 新页面只用 .hdr 系列，迁移一页就干净一页，随时可停在中间态。
+ *
+ * 为什么不复用旧类名：见 docs/统一返回按钮-方案分析.md §4 —— 公共文件与页面本地
+ * 定义同名类时，同特异性下「页面后加载」会静默赢（本文件第 130 行就记着这个坑），
+ * 且 quickapp 不支持 !important，复合选择器实测会把进页搞黑屏。新命名空间是唯一
+ * 能保证「接入即生效」的做法。
+ *
+ * 尺寸依据（192×490，页面侧 padding 12 → 可用 168）：
+ *   胶囊宽 = 内距 14×2 + 箭头 20 + 间距 4 + 标题（24px×0.96/字）
+ *   2 字 = 98（58%）· 3 字 = 121（72%）· 4 字 = 144（86%）· 5 字 = 167（99% 临界）
+ *   ⇒ 标题字数上限 4 字，超长改文案，不要缩字号硬塞。
+ *
+ * 兜底原则（与 index.ux 2026-11-01 改造同一条）：基础值即手环正确形态，
+ * @media 只负责在大屏放大。真机上媒体查询若整条不命中，最坏只是字小一圈，
+ * 不会出现形态错乱。
+ */
+.hdr {
+  flex-direction: row;
+  justify-content: center; /* 居中在这里做，不再靠「返回键+等宽占位」凑对称 */
+  align-items: center;
+  width: 100%;
+  margin-bottom: 4px;
+  /* 键盘弹起时页头会被压成 0 高，这是「返回键消失」的历史坑，必须留 */
+  flex-shrink: 0;
+}
+
+.hdr-pill {
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
+.hdr-pill-ic {
+  width: 20px;
+  height: 20px;
+  margin-right: 4px;
+  object-fit: contain;
+}
+
+.hdr-pill-t {
+  font-size: 24px;
+  line-height: 30px;
+  lines: 1;
+}
+
+/* 大屏放大：命中则更舒展，不命中也只是按手环档显示，可用性不受影响 */
+@media screen and (shape: rect), (shape: circle) {
+  .hdr-pill {
+    height: 48px;
+    padding: 0 18px;
+    border-radius: 24px;
+  }
+
+  .hdr-pill-ic {
+    width: 24px;
+    height: 24px;
+    margin-right: 6px;
+  }
+
+  .hdr-pill-t {
+    font-size: 30px;
+    line-height: 38px;
+  }
+}

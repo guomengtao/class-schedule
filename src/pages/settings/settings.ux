@@ -4,15 +4,18 @@
     <scroll class="settings-scroll" scroll-y="{{true}}">
     <div class="page-body">
 
-    <!-- 统一 header（全项目同一骨架：36px 返回键 / 24px 居中标题 / 36px 占位）
-         旧版这里是自造的双套 header（胶囊屏「返回键独占一行 + 标题在下方」），
-         既与全项目不一致，又多吃掉 88px 垂直预算，已删除。 -->
-    <div class="back-header">
-      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+    <!-- 页头（2026-11-01 试点：统一返回按钮）——「‹ 设置」一颗整体胶囊，
+         箭头与标题合成一个按钮、整块可点返回，取代原来的三段式
+         「方块返回键 30 + flex:1 居中标题 + 等高占位 30」。
+         样式在 common/header.css 的 .hdr 一节（新命名空间，不碰旧类）。
+         goBack 原样保留：本页返回前要先 clearExitConfirmTimer，不能被替换。
+         （更早一版这里是自造的双套 header：胶囊屏「返回键独占一行、标题在下方」，
+         多吃 88px 垂直预算，2026-10 已删。） -->
+    <div class="hdr">
+      <div class="hdr-pill" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="hdr-pill-ic" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <text class="hdr-pill-t" style="color: {{ theme.text }}">设置</text>
       </div>
-      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">设置</text>
-      <div class="header-placeholder"></div>
     </div>
 
     <!-- 个人 -->
@@ -424,41 +427,13 @@ export default {
   box-sizing: border-box;
 }
 
-/* ---- header：与全项目同一骨架 ---- */
-.back-header {
-  flex-direction: row;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 10px;
-}
-
-.back-btn-wrapper {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.back-btn-icon {
-  width: 22px;
-  height: 22px;
-}
-
-.header-title {
-  flex: 1;
-  font-size: 28px;
-  font-weight: bold;
-  text-align: center;
-  line-height: 36px;
-}
-
-.header-placeholder {
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-}
+/* ---- header ----
+ * 2026-11-01 试点：改用 common/header.css 的 .hdr 胶囊方案后，本页原来的
+ * .back-header / .back-btn-wrapper / .back-btn-icon / .header-title /
+ * .header-placeholder 五条定义全部删除。
+ * 必须删干净，不能留「反正不用了」的残留：同特异性下页面本地规则会盖掉
+ * 公共文件的单类规则（quickapp 不支持 !important），留着就是定时炸弹。
+ * 大屏字号同理，统一由 header.css 里的 .hdr-pill-t 媒体查询接管。 */
 
 /* ---- 分组卡片 ---- */
 .group {
@@ -697,10 +672,7 @@ export default {
     line-height: 40px;
   }
 
-  .header-title {
-    font-size: 30px;
-    line-height: 40px;
-  }
+  /* 标题字号由 common/header.css 的 .hdr-pill-t 媒体查询接管，此处不再重复定义 */
 }
 
 @media screen and (shape: circle) {
@@ -723,9 +695,6 @@ export default {
     line-height: 40px;
   }
 
-  .header-title {
-    font-size: 30px;
-    line-height: 40px;
-  }
+  /* 标题字号由 common/header.css 的 .hdr-pill-t 媒体查询接管，此处不再重复定义 */
 }
 </style>
