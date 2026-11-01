@@ -19,7 +19,7 @@ const { execSync } = require('child_process')
 const REPO = path.resolve(__dirname, '..')
 const FILE = 'src/pages/week-view/week-view.ux'
 const BASE_REF = process.argv[2] || 'HEAD'
-const ONLY = process.argv.slice(3)
+const ONLY = process.argv.slice(3).filter(a => !a.startsWith('--'))
 
 const ALL_IDS = ['minimal-char', 'minimal-clean', 'standard-block', 'compact-grid', 'minimal-en', 'color-pastel']
 const IDS = ONLY.length ? ONLY : ALL_IDS
@@ -33,7 +33,7 @@ const PROFS = [
 ]
 
 // 引入的新字段：旧实现不存在，不参与 diff
-const NEW_KEYS = ['currentLayoutId', 'currentPaletteId', 'paletteEmptyDot', 'showExtraBadge']
+const NEW_KEYS = ['currentLayoutId', 'currentPaletteId', 'paletteEmptyDot', 'showExtraBadge', '_layoutApplied']
 
 function buildInstance(src) {
   const m = src.match(/<script>([\s\S]*?)<\/script>/)
@@ -77,7 +77,9 @@ for (const prof of PROFS) {
       i.hideWeekend = prof.hideWeekend
       i.applyTemplate(id)
     }
-    const sa = snapshot(a, [])
+
+    // 新增字段两侧一起剔除，否则 base 侧保留、cur 侧被 drop，比对必然不等
+    const sa = snapshot(a, NEW_KEYS)
     const sb = snapshot(b, NEW_KEYS)
     const diffs = []
     for (const k of new Set([...Object.keys(sa), ...Object.keys(sb)])) {
@@ -99,5 +101,43 @@ for (const prof of PROFS) {
     }
   }
 }
+// ── 可选：--cells 校验「预计算渲染值」与「模板现算函数」完全一致 ──
+// 2026-11-01 起格子配色/显示名在 buildTimeSlots 期预计算（见 cell.bg/fg/nameText），
+// 模板不再调用 getCellBg/getCellTextColor/getDisplayName。此段确保预计算没有走偏。
+if (process.argv.includes('--cells')) {
+  const SAMPLE = {
+    Monday:    [{ id: 1, name: '高等数学A', time: '07:00-07:45' }],
+    Tuesday:   [{ id: 2, name: 'English', time: '07:00-07:45' }],
+    Wednesday: [{ id: 3, name: '大学物理', time: '08:00-08:45' }],
+    Thursday:  [],
+    Friday:    [{ id: 4, name: '体育', time: '08:00-08:45' }, { id: 5, name: '体育', time: '08:00-08:45' }]
+  }
+  let ok = 0, bad = 0
+  for (const prof of PROFS) {
+    for (const id of IDS) {
+      const inst = buildInstance(curSrc)
+      inst.isCapsule = prof.isCapsule
+      inst.screenWidth = prof.screenWidth
+      inst.screenShape = prof.screenShape
+      inst.hideWeekend = prof.hideWeekend
+      inst.applyTemplate(id)
+      inst.currentCourseDay = null
+      inst.currentCourseTime = null
+      inst.buildTimeSlots(JSON.parse(JSON.stringify(SAMPLE)))
+      for (const slot of inst.timeSlots) {
+        for (const cell of slot.cells) {
+          const expBg = inst.getCellBg(cell.course)
+          const expFg = inst.getCellTextColor(cell.course)
+          const expName = cell.course ? inst.getDisplayName(cell.course) : ''
+          if (cell.bg === expBg && cell.fg === expFg && cell.nameText === expName) ok++
+          else { bad++; console.log('  ✗ ' + prof.name + ' / ' + id + ' ' + cell.day + ' bg=' + cell.bg + '/' + expBg + ' fg=' + cell.fg + '/' + expFg + ' name=' + JSON.stringify(cell.nameText) + '/' + JSON.stringify(expName)) }
+        }
+      }
+    }
+  }
+  console.log('cells 预计算校验：一致 ' + ok + ' 格，不一致 ' + bad + ' 格')
+  if (bad) process.exitCode = 1
+}
+
 console.log('\n' + combos + ' 组合 · ' + (diffCount === 0 ? '全部零差异' : diffCount + ' 处差异'))
 process.exit(diffCount === 0 ? 0 : 1)

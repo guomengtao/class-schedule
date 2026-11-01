@@ -40,8 +40,8 @@
           <text if="{{ showRowNum }}" class="wv-time" style="width:{{ rowNumWidth }}px;color:{{ theme.textSecondary }}">{{ rowNumMode === 'index' ? ($idx + 1) : $item.time }}</text>
           <text if="{{ !showRowNum }}" class="wv-time" style="width:0px;padding-right:0"></text>
           <div class="wv-cells">
-            <div for="{{ $item.cells }}" class="wv-cell {{ $item.isCurrent ? 'wv-now' : '' }} {{ !$item.course ? 'wv-cell-empty' : '' }} {{ transparentCells ? 'wv-cell-text' : '' }} {{ cellBordered ? 'wv-cell-bordered' : '' }}" onclick="showDetail($item.day, $item.course)" style="width:{{ cellWidth }}px;margin:{{ cellMargin }}px;background-color:{{ getCellBg($item.course) }};border-radius:{{ cellRadius }};height:{{ cellHeight }}px;{{ cellBordered ? 'border-color:' + theme.borderLight : '' }}">
-              <text if="{{ $item.course }}" class="wv-name {{ nameLines > 1 ? 'wv-name-2l' : '' }} {{ transparentCells ? 'wv-name-transparent' : '' }} {{ $item.isCurrent && transparentCells ? 'wv-name-now' : '' }}" style="color:{{ getCellTextColor($item.course) }};font-size:{{ nameFontSize }}px;line-height:{{ nameLineHeight }}px;font-weight:{{ nameFontWeight }}">{{ getDisplayName($item.course) }}</text>
+            <div for="{{ $item.cells }}" class="wv-cell {{ $item.isCurrent ? 'wv-now' : '' }} {{ !$item.course ? 'wv-cell-empty' : '' }} {{ transparentCells ? 'wv-cell-text' : '' }} {{ cellBordered ? 'wv-cell-bordered' : '' }}" onclick="showDetail($item.day, $item.course)" style="width:{{ cellWidth }}px;margin:{{ cellMargin }}px;background-color:{{ $item.bg }};border-radius:{{ cellRadius }};height:{{ cellHeight }}px;{{ cellBordered ? 'border-color:' + theme.borderLight : '' }}">
+              <text if="{{ $item.course }}" class="wv-name {{ nameLines > 1 ? 'wv-name-2l' : '' }} {{ transparentCells ? 'wv-name-transparent' : '' }} {{ $item.isCurrent && transparentCells ? 'wv-name-now' : '' }}" style="color:{{ $item.fg }};font-size:{{ nameFontSize }}px;line-height:{{ nameLineHeight }}px;font-weight:{{ nameFontWeight }}">{{ $item.nameText }}</text>
               <text if="{{ $item.course && showRoom && $item.course.location }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.location }}</text>
               <text if="{{ $item.course && showTeacher && $item.course.teacher }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.teacher }}</text>
               <text if="{{ $item.course && $item.course.extraCount > 0 && showExtraBadge }}" class="wv-extra" style="color:{{ theme.textMuted }}">+{{ $item.course.extraCount }}</text>
@@ -510,7 +510,17 @@ export default {
     var self = this
     store.getWeekViewTemplate(function(id) {
       if (self._destroyed) return
-      self.applyTemplate(id || "minimal-char")
+      var targetId = id || "minimal-char"
+      // 2026-11-01 性能：从别的页面返回本页时 onShow 必走这里，而模板通常没变。
+      // 原实现无条件 applyTemplate —— 每次都重算六档配置 + recalcGridMetrics + 重建
+      // gridContentWidth，是「返回本页总要卡一下」的直接来源。模板未变则跳过布局重算。
+      if (targetId !== self.currentTplId || !self._layoutApplied) {
+        self.applyTemplate(targetId)
+      } else {
+        // 模板未变：只补一次度量（周末显隐可能已切换导致列数变化），
+        // 跳过 applyLayout/applyPalette 的配置解析与全字段赋值。
+        self.recalcGridMetrics()
+      }
       self.isLoading = true
       self.loadData()
     })
@@ -552,6 +562,8 @@ export default {
     // 列宽计算依赖 this.weekDays.length，必须先跑周末过滤再算度量
     this.applyWeekendFilter()
     this.recalcGridMetrics()
+    // 供 loadTemplateAndReload 判断「同一模板是否已应用过」，避免返回本页时重复重算
+    this._layoutApplied = true
   },
 
   // 布局维度：只应用几何与信息密度，不碰颜色
@@ -695,17 +707,6 @@ export default {
       }
       log("loadData allCourses keys=" + Object.keys(allCourses).join(","))
 
-      // dump every course
-      for (var dk in allCourses) {
-        if (allCourses.hasOwnProperty(dk)) {
-          var cls = allCourses[dk]
-          for (var ci = 0; ci < cls.length; ci++) {
-            var c = cls[ci]
-            log("loadData course " + dk + " #" + ci + " raw=" + JSON.stringify(c))
-          }
-        }
-      }
-
       var totalCourses = 0
       for (var key in allCourses) {
         if (allCourses.hasOwnProperty(key)) {
@@ -757,30 +758,20 @@ export default {
         }
       }
     }
-    // dump fallback courses
-    for (var dk in allCourses) {
-      if (allCourses.hasOwnProperty(dk)) {
-        var cls = allCourses[dk]
-        for (var ci = 0; ci < cls.length; ci++) {
-          log("renderSchedule course " + dk + " #" + ci + " raw=" + JSON.stringify(cls[ci]))
-        }
-      }
-    }
-    log("renderSchedule days=" + Object.keys(allCourses).join(","))
+    // 2026-11-01 性能：原实现逐课 JSON.stringify 打日志，dlog 已是空函数，
+    // 字符串化纯属浪费（每门课一次，回退路径同样触发），删除。
     this.renderScheduleData(allCourses)
   },
 
   renderScheduleData(allCourses) {
     var self = this
     if (self._destroyed) return
-    log("renderScheduleData displayDayNames=" + JSON.stringify(self.displayDayNames) + " allCourses keys=" + Object.keys(allCourses).join(","))
 
     // Compute cache key: data fingerprint + template + weekend + capsule
     var fp = dataFingerprint(allCourses)
     var cacheKey = self.viewIndex + "|" + self.currentTplId + "|" + self.hideWeekend + "|" + self.isCapsule
 
     if (_renderCache && _renderCache.key === cacheKey && _renderCache.fp === fp) {
-      log("renderScheduleData cache hit, skipping rebuild")
       self.timeSlots = _renderCache.timeSlots
       self.totalCourses = _renderCache.totalCourses
       self.totalDays = _renderCache.totalDays
@@ -790,16 +781,7 @@ export default {
       return
     }
 
-    // log per-day course list
     var dayNames = self.displayDayNames
-    for (var d = 0; d < dayNames.length; d++) {
-      var day = dayNames[d]
-      var courses = allCourses[day] || []
-      if (courses.length > 0) {
-        var names = courses.map(function(c) { return (c.name || "?") + "@" + (c.time || "?") }).join(", ")
-        log("renderScheduleData day=" + day + " " + courses.length + " courses: " + names)
-      }
-    }
 
     self.detectCurrentCourse(allCourses)
     self.buildTimeSlots(allCourses)
@@ -822,7 +804,7 @@ export default {
       dayCounts.push(dayCourses ? dayCourses.length : 0)
     }
     self.dayCounts = dayCounts
-    log("renderScheduleData dayCounts=" + JSON.stringify(dayCounts))
+
 
     // Save to cache
     _renderCache = {
@@ -917,24 +899,34 @@ export default {
         }
         if (matched.length > 0) {
           var firstCourse = matched[0]
+          var cellCourse = {
+            id: firstCourse.id,
+            name: firstCourse.name,
+            extraCount: matched.length > 1 ? matched.length - 1 : 0,
+            time: firstCourse.time,
+            teacher: firstCourse.teacher,
+            location: firstCourse.location,
+            allCourses: matched
+          }
+          // 2026-11-01 性能：配色与显示名在构建期算一次，模板只绑定结果。
+          // 原实现模板里对每格调 getCellBg/getCellTextColor/getDisplayName，60 格 × 每次重绘
+          // 都要重查 PALETTE_CONFIGS + guessSubjectKey + 字符串切片，是滑动卡顿的主要来源之一。
+          // 另删除从未被模板引用的 displayChar（每格白算一次 getFirstChar）。
           cells.push({
             day: day,
             isCurrent: day === self.currentCourseDay && time === self.currentCourseTime,
-            course: {
-              id: firstCourse.id,
-              name: firstCourse.name,
-              displayChar: self.getFirstChar(firstCourse.name),
-              extraCount: matched.length > 1 ? matched.length - 1 : 0,
-              time: firstCourse.time,
-              teacher: firstCourse.teacher,
-              location: firstCourse.location,
-              allCourses: matched
-            }
+            bg: self.getCellBg(cellCourse),
+            fg: self.getCellTextColor(cellCourse),
+            nameText: self.getDisplayName(cellCourse),
+            course: cellCourse
           })
         } else {
           cells.push({
             day: day,
             isCurrent: false,
+            bg: "transparent",
+            fg: "transparent",
+            nameText: "",
             course: null
           })
         }
@@ -946,7 +938,7 @@ export default {
     }
 
     this.timeSlots = timeSlots
-    log("buildTimeSlots slots=" + timeSlots.length + " times=" + timeKeys.join(","))
+
   },
 
   getFirstChar(name) {
