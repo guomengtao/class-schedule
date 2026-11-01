@@ -12,7 +12,9 @@
       <div class="nav-btn-circle" onclick="prevDay" style="background-color: {{ theme.cardLight }}">
         <image class="nav-btn-img" src="/common/icons/{{ iconTheme }}/icon_arrow_left.png"></image>
       </div>
-      <text class="day-title" style="font-size: {{ dayTitleSize }}px; color: {{ dayTitleColor || theme.text }}">{{ dayDisplayText }}</text>
+      <!-- 2026-11-01：周几同样做成「回今天」热区（与顶部日期行同一动作），
+           两个入口都落在屏幕上半部，拇指够得到的同一个区域。 -->
+      <text class="day-title" onclick="goToToday" style="font-size: {{ dayTitleSize }}px; color: {{ dayTitleColor || theme.text }}">{{ dayDisplayText }}</text>
       <!-- 方屏：总/今/明 三枚汉字圆钮保留在 header 内（方屏横向放得下，只留图标界面太空）。
            三枚按钮的显隐开关已随胶囊屏三圆化一并移除，此处固定常显。 -->
       <div class="day-nav-btns" if="{{ !isCapsule }}">
@@ -893,17 +895,20 @@ export default {
      命中面积 176×34 远大于规范下限，不影响「回今天」。 */
   /* 2026-11-01 紧凑化二次收敛（方屏/圆屏）：时间行再收 34→28、字号 22→20，
      与胶囊屏一致，顶部时间只作提示不再抢视觉重心。 */
-  /* 2026-11-01 兜底改造：基础值取胶囊态 20px；圆屏/方屏在各自块补回 28px */
-  height: 20px;
+  /* 2026-11-01 兜底改造：基础值取胶囊态；圆屏/方屏在各自块补回更大值。
+     2026-11-01 二次：字号 18→22、行高 20→26（+6px），顶部时间从「灰提示」提到
+     可读的正文层级。宽度账：最长文案「10月25日」6 字 × 0.958 × 22 = 126px，
+     小于该行可用宽（192 屏顶部弧下约 150px），不会与弧边打架。 */
+  height: 26px;
   align-items: flex-start;
   flex-shrink: 0;
 }
 
 .date-text {
-  /* 2026-11-01 兜底改造：基础值取胶囊态 18/20；圆屏/方屏补回 20/28 */
-  font-size: 18px;
+  /* 2026-11-01 兜底改造：基础值取胶囊态；圆屏/方屏补回更大值 */
+  font-size: 22px;
   /* line-height 与 .date-row 等高，文字在行内正好垂直占满，不再顶对齐留白 */
-  line-height: 20px;
+  line-height: 26px;
   text-align: center;
   width: 100%;
 }
@@ -1456,11 +1461,11 @@ export default {
     padding: 5px 4px;
   }
   .date-row {
-    height: 28px;
+    height: 30px;
   }
   .date-text {
-    font-size: 20px;
-    line-height: 28px;
+    font-size: 24px;
+    line-height: 30px;
   }
   /* 圆屏横向空间同样紧张，取 44px 而非规范 48px */
   /* 胶囊屏 header 实际只有 ◀ + 标题 + ▶（总/今/明已移到 nav-toolbar），
@@ -1512,11 +1517,11 @@ export default {
     margin-bottom: 2px;
   }
   .date-row {
-    height: 20px;
+    height: 26px;
   }
   .date-text {
-    font-size: 18px;
-    line-height: 20px;
+    font-size: 22px;
+    line-height: 26px;
   }
   .nav-btn-circle {
     width: 40px;
@@ -1695,18 +1700,17 @@ export default {
     margin-bottom: 3px;
   }
   /* 2026-11-01 兜底改造的配套：基础样式已改为胶囊态，方屏在此显式收回
-     自己的日期行与导航圆钮尺寸，保证方屏观感零变化。*/
+     自己的日期行与导航圆钮尺寸；二次加号时同步放大到 30/24。*/
   .date-row {
-    height: 28px;
+    height: 30px;
   }
   .date-text {
-    font-size: 20px;
-    line-height: 28px;
+    font-size: 24px;
+    line-height: 30px;
   }
   /* 方屏: 圆圈容器保持48px, 箭头三角缩小到24px与胶囊屏一致 */
   .nav-btn-circle {
-    width: 48px;
-    height: 48px;
+    width: 48px;    height: 48px;
     border-radius: 24px;
   }
   .nav-btn-img {
