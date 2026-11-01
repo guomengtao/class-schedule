@@ -13,7 +13,10 @@ export const tabsData = [
           { name: '倒数日', path: '/pages/countdown-panel' },
           { name: '智能切换', path: '/pages/schedule-panel-dual-mode' },
           { name: '多彩课表', path: '/pages/schedule-panel-colorful' },
-          { name: '简易课表', path: '/pages/schedule-panel-simple' }
+          { name: '简易课表', path: '/pages/schedule-panel-simple' },
+          // 完整课表：一维列表（天在外层、课在内层），与 week-view 的二维矩阵层级不同故独立成页（D-09）；
+          // 教室/老师在总览页格内放不下（T-04 实测否决），由本页承载
+          { name: '完整课表', path: '/pages/full-schedule' }
         ]
       }
     ]

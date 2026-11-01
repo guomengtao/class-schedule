@@ -106,6 +106,9 @@
       "pages/schedule-panel-simple": {
         "component": "schedule-panel-simple"
       },
+      "pages/full-schedule": {
+        "component": "full-schedule"
+      },
       "pages/schedule-panel-progress": {
         "component": "schedule-panel-progress"
       },

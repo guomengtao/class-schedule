@@ -1,0 +1,318 @@
+<!-- 完整课表：一维列表，按周一→周日分组，每门课展示 课名 / 时段 / 教室 老师。
+     2026-11-01 新建（evtask-D-class-schedu-261101-and6r6），依据：
+     ① D-09：完整课表是「天在外层、课在内层」的一维列表，与 week-view 的二维矩阵层级不同，
+        必须独立成页，不能做成第 7 个模板；
+     ② T-04 决策：教室/老师信息在总览页 61×64 的格内放不下（实测文字重叠），改由本页承载，
+        故本页每门课必须带齐 四项：课名全称 / 时段 / 教室 / 老师；
+     ③ ev-six 六位准则：字号只用四档里的 28（课名）与 24（信息与标题），禁用 12~23px 区间；
+        禁省略号、禁点号分隔符；兄弟节点一律 display 绑定，不用 if（事故案例 11：多个 if 兄弟节点整页白屏）。
+     数据源与其他面板页一致：database.init → database.getAllCourses，返回 [{ day, classes:[...] }]，
+     day 为中文（"星期一"），classes 元素含 id / name / time / teacher / location / notes。 -->
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <div class="back-btn-wrapper" style="background-color: {{ theme.card }}" onclick="goBack">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" style="color: {{ theme.text }}">完整课表</text>
+      <div class="header-placeholder"></div>
+    </div>
+
+    <div class="status-row" style="display: {{ isLoading ? 'flex' : 'none' }}">
+      <text class="status-text" style="color: {{ theme.textMuted }}">加载中</text>
+    </div>
+
+    <scroll class="body" scroll-y="{{ true }}" style="display: {{ isLoading ? 'none' : 'flex' }}">
+      <div for="{{ groups }}" class="day-group">
+        <div class="day-head">
+          <text class="day-name" style="color: {{ $item.isToday ? theme.accent : theme.textSecondary }}">{{ $item.title }}</text>
+          <text class="day-count" style="color: {{ theme.textMuted }}">{{ $item.countLabel }}</text>
+        </div>
+
+        <div for="{{ $item.courses }}" class="row" style="background-color: {{ $item.isCurrent ? theme.progressOngoing : theme.card }}" onclick="openDetail($item)">
+          <text class="row-name" style="color: {{ $item.isPast ? theme.textMuted : theme.text }}">{{ $item.name }}</text>
+          <text class="row-line" style="color: {{ $item.isCurrent ? theme.accent : theme.textSecondary }}">{{ $item.timeText }}</text>
+          <text class="row-line" style="color: {{ theme.textMuted }}">{{ $item.whereText }}</text>
+        </div>
+
+        <div class="row row-empty" style="display: {{ $item.isEmpty ? 'flex' : 'none' }}; background-color: {{ theme.card }}">
+          <text class="row-name" style="color: {{ theme.textMuted }}">无课</text>
+        </div>
+      </div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const database = require("../../data/database.js")
+const store = require("../../data/store.js")
+const builtinSchedule = require("../../data/schedule.js")
+
+// 固定周一次序（数据库返回顺序不保证，且课表习惯以周一开头）
+var WEEK_ORDER = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+var WEEK_LABEL = { "星期一": "周一", "星期二": "周二", "星期三": "周三", "星期四": "周四", "星期五": "周五", "星期六": "周六", "星期日": "周日" }
+var JS_DAY_TO_NAME = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+
+// "08:00 - 08:45" → 分钟数；格式不合规返回 -1（脏数据不参与排序）
+function startMinutes(timeStr) {
+  if (!timeStr) return -1
+  var head = timeStr.split(" - ")[0]
+  if (!head) return -1
+  var hm = head.trim().split(":")
+  if (hm.length !== 2) return -1
+  var h = parseInt(hm[0])
+  var m = parseInt(hm[1])
+  if (isNaN(h) || isNaN(m)) return -1
+  return h * 60 + m
+}
+
+// 去掉时段两端的前导零："08:00 - 08:45" → "8:00 - 8:45"，省 2 个字符给窄屏
+function compactTime(timeStr) {
+  if (!timeStr) return ""
+  return timeStr.split(" - ").map(function(part) {
+    return part.trim().replace(/^0/, "")
+  }).join(" - ")
+}
+
+export default {
+  private: {
+    iconTheme: "dark",
+    isLoading: true,
+    groups: [],
+    theme: {
+      bg: "#1a1a2e", card: "#16213e", cardLight: "#0f3460",
+      accent: "#7ec8e3", text: "#ffffff", textSecondary: "#888899",
+      textMuted: "#555566", border: "#0f3460", progressOngoing: "#1f4068"
+    }
+  },
+
+  onInit() {
+    var self = this
+    // 首帧同步出内容：先用内置课表算一遍，storage 慢或丢回调都不会停在「加载中」
+    self.apply((builtinSchedule && builtinSchedule.schedule) ? builtinSchedule.schedule : [])
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
+      self.loadData()
+    })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
+    })
+    // 回到本页时重算一次（跨节后 isCurrent/isPast 会变）
+    if (!self.isLoading) self.compute()
+  },
+
+  loadData() {
+    var self = this
+    database.init(function() {
+      database.getAllCourses(function(schedule) {
+        if (self._destroyed) return
+        self.apply(schedule || [])
+      })
+    })
+  },
+
+  apply(schedule) {
+    this.schedule = schedule || []
+    this.isLoading = false
+    this.compute()
+  },
+
+  compute() {
+    var now = new Date()
+    var todayName = JS_DAY_TO_NAME[now.getDay()]
+    var nowMin = now.getHours() * 60 + now.getMinutes()
+    var schedule = this.schedule || []
+    var groups = []
+
+    for (var i = 0; i < WEEK_ORDER.length; i++) {
+      var dayName = WEEK_ORDER[i]
+      var raw = []
+      for (var s = 0; s < schedule.length; s++) {
+        if (schedule[s].day === dayName) { raw = schedule[s].classes || []; break }
+      }
+
+      var items = []
+      for (var c = 0; c < raw.length; c++) {
+        var course = raw[c]
+        var startMin = startMinutes(course.time)
+        var endMin = -1
+        var seg = course.time ? course.time.split(" - ") : []
+        if (seg.length === 2) {
+          var tail = seg[1].trim().split(":")
+          if (tail.length === 2) endMin = parseInt(tail[0]) * 60 + parseInt(tail[1])
+        }
+        items.push({
+          id: course.id,
+          name: course.name || "?",
+          timeText: compactTime(course.time),
+          // 教室与老师用空格分隔（ev-six 红线 4：禁点号等分隔符）；缺字段时不留空占位
+          whereText: [course.location || "", course.teacher || ""].filter(function(x) { return x !== "" }).join(" "),
+          startMin: startMin,
+          endMin: endMin,
+          isToday: dayName === todayName,
+          dayName: dayName,
+          isCurrent: dayName === todayName && startMin >= 0 && endMin >= 0 && nowMin >= startMin && nowMin < endMin,
+          isPast: dayName === todayName && endMin >= 0 && nowMin >= endMin
+        })
+      }
+
+      items.sort(function(a, b) { return a.startMin - b.startMin })
+
+      groups.push({
+        key: dayName,
+        title: (dayName === todayName ? "今天 " : "") + WEEK_LABEL[dayName],
+        isToday: dayName === todayName,
+        isEmpty: items.length === 0,
+        countLabel: items.length === 0 ? "" : (items.length + " 门"),
+        courses: items
+      })
+    }
+
+    this.groups = groups
+  },
+
+  openDetail(course) {
+    if (!course || !course.id) return
+    // 与其他面板页一致：详情页从 storage 取 detail_classId / detail_day，不靠路由参数
+    var storage = require("@system.storage")
+    storage.set({ key: "detail_classId", value: String(course.id) })
+    storage.set({
+      key: "detail_day",
+      value: course.dayName,
+      success: function() { router.push({ uri: "/pages/detail" }) }
+    })
+  },
+
+  goBack() {
+    // 兜底：直接以本页为入口启动（栈深为 1）时也能退出，不会卡死
+    if (router.getLength && router.getLength() > 1) {
+      router.back()
+    } else {
+      router.replace({ uri: "/pages/index" })
+    }
+  },
+
+  onDestroy() {
+    this._destroyed = true
+    this.groups = []
+  }
+}
+</script>
+
+<style>
+.page {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+}
+
+.header {
+  width: 100%;
+  height: 44px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 6px;
+  padding-right: 6px;
+  flex-shrink: 0;
+}
+
+.back-btn-wrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  justify-content: center;
+  align-items: center;
+}
+
+.back-btn-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.header-title {
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 38px;
+}
+
+.header-placeholder {
+  width: 36px;
+  height: 36px;
+}
+
+.status-row {
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+}
+
+.status-text {
+  font-size: 24px;
+  line-height: 34px;
+}
+
+.body {
+  flex: 1;
+  width: 100%;
+  flex-direction: column;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.day-group {
+  width: 100%;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.day-head {
+  width: 100%;
+  height: 34px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.day-name {
+  font-size: 24px;
+  line-height: 34px;
+  font-weight: bold;
+}
+
+.day-count {
+  font-size: 24px;
+  line-height: 34px;
+}
+
+.row {
+  width: 100%;
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+}
+
+.row-empty {
+  align-items: center;
+}
+
+.row-name {
+  font-size: 28px;
+  line-height: 38px;
+}
+
+.row-line {
+  font-size: 24px;
+  line-height: 34px;
+}
+</style>
