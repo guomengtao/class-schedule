@@ -481,7 +481,11 @@ export default {
     this.cellHeight = cfg.cellHeight
     // 胶囊屏：行号列会吃掉 40~50px，160px 内容区下可视列数仅 1.57（规范下限 2.5）。
     // 窄屏关闭行号列，把宽度全部让给课程格。
-    if (this.isCapsule === true) {
+    // 标准模板（B-06）：时间列在方屏/圆屏只剩约 50px，"07:00 - 07:45" 被迫折成 4 行竖排，
+    // 把行高从 72px 顶到约 120px，一屏只装得下 2 行课程。时间文本本身也不可压缩，
+    // 故改为与胶囊屏一致 —— 直接隐藏时间列，宽度全部让给课程格；序号模式（紧凑/跟随系统）显示的是
+    // 1~N 的单位数字，不会折行，保持原样。
+    if (this.isCapsule === true || id === "standard-block") {
       this.rowNumWidth = 0
       this.showRowNum = false
     } else {
