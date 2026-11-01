@@ -172,9 +172,16 @@
       </div>
       <input class="style-btn" type="button" value="设置" if="{{ !isCapsule }}" onclick="openSettings" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }};" />
     </div>
-    <div class="schedule-indicator" onclick="openScheduleManager" style="background-color: {{ theme.cardLight }}">
-      <image class="schedule-swap-icon" src="/common/icons/{{ iconTheme }}/icon_swap.png"></image>
-      <text class="schedule-name" style="color: {{ theme.text }}">{{ currentScheduleName }}</text>
+    <!-- 2026-11-01：课表切换条改为「按内容宽度居中」。
+         原来它是 .schedule-page（flex column）的直接子项，默认 stretch 拉满整行，
+         cardLight 底色铺成 100% 通栏。Vela 不支持 align-self（运行时告警
+         Unknown style - alignSelf），故用一层 row 容器 + justify-content:center
+         来收敛宽度，宽度由文字自然决定。 -->
+    <div class="schedule-indicator-row" onclick="openScheduleManager">
+      <div class="schedule-indicator" style="background-color: {{ theme.cardLight }}">
+        <image class="schedule-swap-icon" src="/common/icons/{{ iconTheme }}/icon_swap.png"></image>
+        <text class="schedule-name" style="color: {{ theme.text }}">{{ currentScheduleName }}</text>
+      </div>
     </div>
   </div>
 </template>
@@ -1304,14 +1311,22 @@ export default {
   text-align: center;
 }
 
-/* 方案 D7：课表切换指示条（单独一行，可点击进入课表管理） */
+/* 方案 D7：课表切换指示条（单独一行，可点击进入课表管理）
+   2026-11-01：外层 row 容器负责「居中」，内层条宽度＝内容宽度，不再拉满整行 */
+.schedule-indicator-row {
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
 .schedule-indicator {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  padding: 6px 8px;
+  padding: 6px 16px;
   border-radius: 18px;
-  margin-bottom: 4px;
   flex-shrink: 0;
 }
 
