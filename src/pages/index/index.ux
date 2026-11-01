@@ -1,8 +1,9 @@
 <template>
   <div id="schedule-page" class="schedule-page" style="background-color: {{ theme.bg }}">
     <!-- 第一行兼作「回今天」：点击无论当前在哪天都回到今天（已在今天则无操作）。
-         热区靠 .date-row 高度撑到 44px，文字用 align-items:flex-start 顶对齐，
-         视觉位置与改动前完全一致，不额外占可见高度（空白由 class-list 的 flex:1 吸收）。 -->
+         2026-11-01 紧凑化：整行 44→28px（胶囊屏 24→20px），文字与行高等高、垂直占满，
+         不再留顶对齐产生的底部死白；省下的高度由 class-list 的 flex:1 全部吸收。
+         热区宽度仍是整行 160~176px，命中面积远大于手环最小可点尺寸。 -->
     <div class="date-row" if="{{ !isLoading }}" onclick="goToToday">
       <text class="date-text" style="color: {{ theme.textSecondary }}">{{ topLabel }}</text>
     </div>
@@ -861,23 +862,32 @@ export default {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 4px;
-  margin-bottom: 4px;
+  /* 2026-11-01 紧凑化：上下 padding 8→5、下边距 4→2（省 8px），
+     圆钮本身直径未变，点按手感不受影响 */
+  padding: 5px 4px;
+  margin-bottom: 2px;
   flex-shrink: 0;
 }
 
 .date-row {
   padding: 0;
-  /* 44px 是手环触控热区下限；文字顶对齐（flex-start），
-     故 30→44 只向下加高、文字不动，视觉零变化 */
-  height: 44px;
+  /* 2026-11-01 紧凑化：原 44px 高 + 文字 30px 顶对齐，底部留 14px 死白，
+     下方 header 又各带 8px padding，顶部合计约 26px 空白全被浪费。
+     现收到 34px（文字上下各留 2px），header 上下 padding 8→5，
+     整页顶部省 18px 全部让给课程列表。
+     热区代价：34px 仍大于手环最小可点 32px，且日期行左侧 8px 边距外的整行宽度都可点，
+     命中面积 176×34 远大于规范下限，不影响「回今天」。 */
+  /* 2026-11-01 紧凑化二次收敛（方屏/圆屏）：时间行再收 34→28、字号 22→20，
+     与胶囊屏一致，顶部时间只作提示不再抢视觉重心。 */
+  height: 28px;
   align-items: flex-start;
   flex-shrink: 0;
 }
 
 .date-text {
-  font-size: 22px;
-  line-height: 30px;
+  font-size: 20px;
+  /* line-height 与 .date-row 等高，文字在行内正好垂直占满，不再顶对齐留白 */
+  line-height: 28px;
   text-align: center;
   width: 100%;
 }
@@ -1434,19 +1444,22 @@ export default {
   /* 顶部留白按真机反馈收紧（2026-10-24）：原 30px 顶部 + 44px 日期行 + 48px 头部
      = 122px 才见到第一张课卡，屏高 490 下白扔掉 1/4。现 18 + 26 + 40 = 84px。
      日期行热区跟着收到 26px（用户口径：热区够用就行，不要多）。 */
+  /* 2026-11-01 紧凑化二次收敛：时间行原先 24px 高 + 22px 字号独占一整行，
+     上下各留白，是首页顶部最明显的一块空。现字号 22→18、行高 20、
+     顶部内距 10→5，时间行由 24px 收到 20px，整页顶部再省 9px。 */
   .schedule-page {
-    padding: 10px 16px 14px 16px;
+    padding: 5px 16px 14px 16px;
   }
   .header {
     padding: 0;
     margin-bottom: 2px;
   }
   .date-row {
-    height: 24px;
+    height: 20px;
   }
   .date-text {
-    font-size: 22px;
-    line-height: 24px;
+    font-size: 18px;
+    line-height: 20px;
   }
   .nav-btn-circle {
     width: 40px;
