@@ -17,12 +17,12 @@
          热区宽度仍是整行 160~176px，命中面积远大于手环最小可点尺寸。
          2026-11-02：下拉回今天时，本行临时切换成「已是今天」——
          手势收到但无动作时必须给可见确认，否则会被当成功能坏了。 -->
-    <div class="date-row" if="{{ !isLoading }}" onclick="goToToday">
+    <div class="date-row" if="{{ !isLoading }}" onclick="goToToday" onswipe="onCardSwipe">
       <text class="date-text" if="{{ !showPullTip }}" style="color: {{ theme.textSecondary }}">{{ topLabel }}</text>
       <text class="date-text" if="{{ showPullTip }}" style="color: {{ theme.accent }}">已是今天</text>
     </div>
 
-    <div class="header">
+    <div class="header" onswipe="onCardSwipe">
       <div class="nav-btn-circle" onclick="prevDay" style="background-color: {{ theme.cardLight }}">
         <image class="nav-btn-img" src="/common/icons/{{ iconTheme }}/icon_arrow_left.png"></image>
       </div>
@@ -95,7 +95,9 @@
       </div>
     </div>
 
-    <scroll class="class-list" scroll-y="true" id="classList" onscroll="onListScroll">
+    <!-- onswipe 是第二条左滑通道：系统级快速滑动识别，不依赖触摸冒泡。
+         卡片可点击，会吃掉触摸流，只靠根节点 touch 会出现「只有某一块能滑进去」。 -->
+    <scroll class="class-list" scroll-y="true" id="classList" onscroll="onListScroll" onswipe="onCardSwipe">
       <div if="{{ isLoading }}" class="skeleton-list">
         <div for="{{ skeletonCards }}" class="skeleton-card" style="background-color: {{ theme.card }}">
           <div class="skeleton-accent" style="background-color: {{ theme.borderLight }}"></div>
@@ -116,7 +118,7 @@
       <div if="{{ !isLoading && !loadError && currentClasses.length === 0 && !(isHoliday && holidayReminderOn) }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
       </div>
-      <div for="{{ currentClasses }}" class="class-grid-item" onclick="goToClassDetail($item)" style="background-color: {{ theme.card }}">
+      <div for="{{ currentClasses }}" class="class-grid-item" onclick="goToClassDetail($item)" onswipe="onCardSwipe" style="background-color: {{ theme.card }}">
         <div class="progress-bg" if="{{ isToday }}" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
         <div class="class-card-accent" style="background-color: {{ theme.accent }}"></div>
         <div class="class-card-body">
