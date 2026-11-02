@@ -1,8 +1,9 @@
 /**
  * 首页手势模块（2026-11-02 修订版）
  *
- * 两个手势，都是「与列表纵向滚动正交」的：
+ * 三个手势，都是「与列表纵向滚动正交」的：
  *   左滑  → 总课表（/pages/week-view，与底部中间那颗圆钮完全同一目标）
+ *   右滑  → 退出应用（= 页面 onBackPress → exitApp，**只在列表区生效**，见 ④）
  *   下拉  → 回到今天，**但只有从顶栏区域起手才认**
  *
  * ── v2 修了三个真机问题（用户 2026-11-02 反馈）────────────
@@ -20,6 +21,14 @@
  *    现在补上 onswipe 通道：class-list 容器与每张课程卡片都挂 onCardSwipe，
  *    系统级手势识别不依赖触摸冒泡，覆盖面接近全屏。
  *    两条通道都命中时用 navOnce() 去重，避免连开两页。
+ *
+ * ④ 右滑退出失效（v3，用户 2026-11-02 反馈）：③ 里挂上 onswipe 之后，
+ *    列表区的滑动被交给 JS 手势通道，**系统返回手势不再触发**，
+ *    而 onCardSwipe 当时只认 left → 列表区右滑成了死手势
+ *    （顶栏/底部没有 scroll，系统手势照常，所以只有中间退不出去）。
+ *    现在 onCardSwipe 补 right 分支，直接调页面 onBackPress（内含 exitApp），
+ *    与系统触发的行为逐字一致。onswipe 这条通道**不能撤**：
+ *    撤了左滑又只剩根 touch，回到 ③ 的老问题 —— 两条通道缺一不可。
  *
  * ── 三条红线（照抄 countdown 仓实证，勿改）──────────────────
  * ① touchmove 里绝不 setData：判定全程只写闭包变量。
@@ -49,6 +58,7 @@ var G = {
 
 var tipTimer = null
 var lastNav = 0
+var lastBack = 0      // 右滑退出通道的去重（见 backOnce）
 var headLimit = 100   // 顶栏下边界，init 时按真实屏高算
 
 function buzz() {
@@ -70,6 +80,40 @@ function navOnce(fn) {
   if (now - lastNav < 700) return
   lastNav = now
   fn()
+}
+
+/** 右滑退出：与系统返回手势同一条语义链（页面 onBackPress → exitApp）。
+ *
+ *  为什么需要自己实现：列表区（<scroll> + 每张课程卡）挂了 onswipe 之后，
+ *  Vela 把这次滑动交给 JS 手势通道，**系统返回手势不再触发**，
+ *  而 onCardSwipe 只认 left，于是右滑在这块区域变成死手势
+ *  —— 顶栏与底部没有 scroll，系统手势照常，用户看到的就是
+ *  「上面下面能退出，中间列表退不出去」。
+ *
+ *  去重：一张卡 + 外层 scroll 会各报一次 swipe，700ms 内只处理第一次。
+ *  失败兜底：onBackPress 返回 false（退出入口一个都不存在）时才退回 router.back()，
+ *  与 docs/cannot-exit-analysis.md §7.2 同口径 —— 绝不 return true 却不做事。
+ */
+function backOnce(self) {
+  var now = Date.now()
+  if (now - lastBack < 700) return
+  lastBack = now
+
+  var handled = false
+  try {
+    if (typeof self.onBackPress === 'function') {
+      handled = self.onBackPress() === true
+    } else {
+      // onBackPress 在本运行时不是实例方法时，直接走同一条退出链
+      handled = require("../../data/utils.js").exitApp() === true
+    }
+  } catch (e) {}
+
+  if (handled) return
+
+  try {
+    require("@system.router").back()
+  } catch (e2) {}
 }
 
 function init(instance) {
@@ -132,6 +176,16 @@ function init(instance) {
       return
     }
 
+    // 右滑：与系统返回手势同义（退出应用）。
+    // 顶栏/底部本来由系统直接处理，这里再挂一条是为了列表区 ——
+    // 那一块被 <scroll> 与卡片吃掉，系统手势收不到（见文件头 ④）。
+    if (!G.inH && dx >= MIN_DX && ax >= ay * DOMINANCE) {
+      G.armed = true
+      G.dir = 'right'
+      buzz()
+      return
+    }
+
     // 下拉：三个条件同时成立才认
     //   ① 起点在顶栏区（v2 新增的硬条件，挡掉课程区里的误触）
     //   ② 列表已在顶部（否则那是「滚回上面看」）
@@ -161,6 +215,10 @@ function init(instance) {
       navOnce(function () { self.goWeekView() })
       return
     }
+    if (dir === 'right' && dx >= MIN_DX) {
+      backOnce(self)
+      return
+    }
     if (dir === 'down' && dy >= MIN_DY) {
       self.pullToToday()
     }
@@ -169,10 +227,17 @@ function init(instance) {
   /**
    * onswipe 通道：系统级快速滑动识别，不依赖触摸冒泡。
    * 挂在 class-list 与每张课程卡片上，补上 touch 收不到的区域。
-   * 只认 left —— 右划是系统退出，绝不能碰；上下划留给滚动。
+   *
+   * 左滑 → 总课表；
+   * 右滑 → 退出（2026-11-02 补）：这条通道会把系统返回手势吃掉，
+   *        不自己处理就等于把列表区的右滑变成死手势。上下划仍交给滚动。
    */
   instance.onCardSwipe = function (evt) {
     var dir = (evt && evt.direction) || ''
+    if (dir === 'right') {
+      backOnce(self)
+      return
+    }
     if (dir !== 'left') return
     navOnce(function () { self.goWeekView() })
   }
