@@ -12,6 +12,7 @@ function init(instance) {
   instance.statusTag = "暂无"
   instance.statusMainText = "今日无课"   // 铁律四：短文案保证一行放得下，不靠省略号
   instance.statusTimeText = ""
+  instance.statusIconName = ""           // 状态灯文件名后缀：now/soon/holiday，空=不显示
   instance.statusTimer = null
 
   instance.updateStatus = function() {
@@ -30,6 +31,7 @@ function init(instance) {
       // 铁律四：胶囊内容区仅 ≈133px，主文案 ≤4 字（22px 字号）才不截断
       self.statusMainText = self.holidayName || "假期中"
       self.statusTimeText = ""
+      self.statusIconName = "holiday"
       self.showStatusBar = (self.statusBarSetting !== false)
       return
     }
@@ -76,15 +78,21 @@ function init(instance) {
       }
       if (nowMinutes < cls.startMin && !next) next = cls
     }
+    // 2026-11-02 状态条单行化 + lucide 状态灯（胶囊 165px 硬预算）：
+    //   一行 = 状态灯 18 + 间距 6 + 「127m」约 38 + 间距 6 + 课名 97（20px 约 5 字）。
+    //   时间与灯都是定宽，课名 flex:1 + ellipsis 兜底，任何课名/分钟数都不可能溢出。
+    //   状态灯：now=实心绿 disc（上课中）/ soon=橙 timer（即将）/ holiday=灰 sun（假期）。
     if (current) {
-      self.statusTag = "上课中"
+      self.statusTag = "上课"
       self.statusMainText = current.name
-      self.statusTimeText = Math.ceil(current.endMin - nowMinutes) + "min"
+      self.statusTimeText = Math.ceil(current.endMin - nowMinutes) + "m"
+      self.statusIconName = "now"
       self.showStatusBar = (self.statusBarSetting !== false)
     } else if (next) {
-      self.statusTag = "即将上课"
+      self.statusTag = "即将"
       self.statusMainText = next.name
-      self.statusTimeText = Math.ceil(next.startMin - nowMinutes) + "min后"
+      self.statusTimeText = Math.ceil(next.startMin - nowMinutes) + "m"
+      self.statusIconName = "soon"
       self.showStatusBar = (self.statusBarSetting !== false)
     } else {
       self.showStatusBar = false

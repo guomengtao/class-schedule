@@ -56,14 +56,19 @@
 
     <div class="status-bar" if="{{ showStatusBar }}" style="background-color: {{ theme.cardLight }}">
       <div class="left-accent left-accent-6" if="{{ !isCapsule }}" style="background-color: {{ theme.accent }}"></div>
-      <!-- Capsule: two-line compact layout with accent + tag badge + time / course name -->
+      <!-- Capsule: 单行紧凑布局（状态灯 + 时间 + 课程名） -->
       <div if="{{ isCapsule }}" class="status-capsule-row">
-        <div class="status-capsule-accent" style="background-color: {{ theme.accent }}"></div>
+        <!-- 状态灯（lucide 图形）：now=实心绿 disc / soon=橙 timer / holiday=灰 sun，
+             文件名由 statusIconName 给出，双色主题共用同一份彩色 png -->
+        <image class="status-capsule-ic" if="{{ statusIconName }}" src="/common/icons/{{ iconTheme }}/icon_status_{{ statusIconName }}.png"></image>
+        <!-- 单行版（方案 B）：状态灯 + 剩余时间 + 课程名，一行只有三个元素。
+             宽度账：192 − 12×2 页边 = 168，条内距 6×2 = 156；
+             灯 16 + 间 4 + 「36m」38 + 间 4 = 62 → 课名实得 94px（18px 字号放 4 汉字）。
+             课名过长仍由 ellipsis 兜底，其余字段永远不会溢出。
+             ⚠️ 2026-11-02 修正：旧注释按 165px 估算，实际只有 144px，
+             导致 4 字课名被切成「机械…」——数值以此处为准。 -->
         <div class="status-capsule-body">
-          <div class="status-capsule-line1">
-            <text class="status-capsule-tag" style="background-color: {{ theme.accent }}; color: {{ onAccentColor }}">{{ statusTag }}</text>
-            <text class="status-capsule-time" if="{{ statusTimeText }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
-          </div>
+          <text class="status-capsule-time" if="{{ statusTimeText }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
           <text class="status-capsule-name" style="color: {{ theme.text }}">{{ statusMainText }}</text>
         </div>
       </div>
@@ -133,11 +138,22 @@
     </scroll>
 
     <div class="quick-add" if="{{ showQuickAdd }}" style="background-color: {{ theme.card }}">
-      <div class="quick-add-header" onclick="quickAdd.toggle">
+      <!-- 2026-11-02 收起/展开拆成两块（不用复合选择器：本项目实测复合选择器会把进页搞黑屏）。
+           收起态弱化理由：accent #7ec8e3 是行动色，课程时间、标签「+」都在用它，
+           一个纯折叠标题占着这个位置，等于把强调位从课程内容手里抢走 —— 页面重点就散了。
+           收起态改 textSecondary #888899（对比约 3.4:1，看得清但不抢），展开态才回 accent。
+           留白分两档：收起 6px、展开 10px，收起态整条 48→40，字号仍 20px 不缩。 -->
+      <div class="quick-add-header" if="{{ quickAdd.expanded }}" onclick="quickAdd.toggle">
         <text class="quick-add-title" style="color: {{ theme.accent }}">快速添加</text>
         <div class="quick-add-info">
-          <text class="quick-add-time" if="{{ quickAdd.expanded && !isCapsule }}" style="color: {{ theme.textSecondary }}">{{ quickAdd.time }}</text>
-          <image class="quick-add-arrow-img" src="/common/icons/{{ iconTheme }}/{{ quickAdd.expanded ? 'icon_chevron_up' : 'icon_chevron_down' }}.png"></image>
+          <text class="quick-add-time" if="{{ !isCapsule }}" style="color: {{ theme.textSecondary }}">{{ quickAdd.time }}</text>
+          <image class="quick-add-arrow-img" src="/common/icons/{{ iconTheme }}/icon_chevron_up.png"></image>
+        </div>
+      </div>
+      <div class="quick-add-header quick-add-header-collapsed" if="{{ !quickAdd.expanded }}" onclick="quickAdd.toggle">
+        <text class="quick-add-title" style="color: {{ theme.textSecondary }}">快速添加</text>
+        <div class="quick-add-info">
+          <image class="quick-add-arrow-img quick-add-arrow-dim" src="/common/icons/{{ iconTheme }}/icon_chevron_down.png"></image>
         </div>
       </div>
       <!-- 快速添加：这一行是 scroll-x 横向滚动条，横向滑动要留给自己。
@@ -352,6 +368,7 @@ export default {
     statusTag: "",
     statusMainText: "",
     statusTimeText: "",
+    statusIconName: "",
     showCustomContent: false,
     customContent: "",
     showQuickAdd: true,
@@ -1219,6 +1236,17 @@ export default {
   margin-left: 4px;
 }
 
+/* 收起态：上下留白 10 → 6，整条 48 → 40px（字号不动，只收留白）。
+   单独一个类而不是改 .quick-add-header —— 展开时那一行是操作区，需要原来的呼吸感。 */
+.quick-add-header-collapsed {
+  padding: 6px 12px;
+}
+
+/* 收起态箭头压暗一半：图标是固定色 png，没法跟主题走，只能靠透明度退后 */
+.quick-add-arrow-dim {
+  opacity: 0.5;
+}
+
 .quick-add-row-scroll {
   flex-direction: column;
   padding: 0 0 8px 0;
@@ -1533,12 +1561,17 @@ export default {
   /* 2026-11-01 紧凑化二次收敛：时间行原先 24px 高 + 22px 字号独占一整行，
      上下各留白，是首页顶部最明显的一块空。现字号 22→18、行高 20、
      顶部内距 10→5，时间行由 24px 收到 20px，整页顶部再省 9px。 */
+  /* 2026-11-02 横向 16→12：ev-six 内容宽口径是 192−2×12 = 168px。
+     原来按 16 收边只剩 160，提醒条再扣内距后真正可用只有 144px，
+     正是课名被切成「机械…」的直接原因（宽度账见 .status-capsule-name 注释）。 */
   .schedule-page {
-    padding: 5px 16px 14px 16px;
+    padding: 5px 12px 14px 12px;
   }
+  /* 提醒条与上方圆钮原来只隔 2px，视觉上像贴在按钮下沿；
+     放到 6px，与提醒条到下方课卡的间距（6px）对称。 */
   .header {
     padding: 0;
-    margin-bottom: 2px;
+    margin-bottom: 6px;
   }
   .date-row {
     height: 26px;
@@ -1570,52 +1603,47 @@ export default {
     font-size: 20px;
     line-height: 28px;
   }
+  /* 2026-11-02 内距 8→6、下边距 4→6：上下各 6px 与 header 下边距对称，
+     条高 26+12=38（原 42），省下的 4px 还给课卡列表。 */
   .status-bar {
-    padding: 8px 8px;
-    margin-bottom: 4px;
+    padding: 6px;
+    margin-bottom: 6px;
   }
-  /* Capsule status bar: two-line layout for narrow 160px content area */
+  /* Capsule status bar: 单行布局（状态灯 + 时间 + 课程名），见模板注释 */
   .status-capsule-row {
     flex-direction: row;
     align-items: center;
     flex: 1;
   }
-  .status-capsule-accent {
-    width: 3px;
-    height: 42px;
-    border-radius: 2px;
-    margin-right: 8px;
+  /* 状态灯 18→16、灯后间距 6→4：给课名腾出 4px */
+  .status-capsule-ic {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
     flex-shrink: 0;
-    /* align-self 不被 Vela 支持（运行时 warn: Unknown style - alignSelf），
-       父容器 .status-capsule-row 已 align-items: center，此处本来就冗余 */
   }
   .status-capsule-body {
     flex: 1;
-    flex-direction: column;
-  }
-  .status-capsule-line1 {
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 2px;
-  }
-  .status-capsule-tag {
-    font-size: 18px;
-    padding: 1px 8px;
-    border-radius: 4px;
-    line-height: 24px;
-    flex-shrink: 0;
   }
   .status-capsule-time {
     font-size: 18px;
-    line-height: 24px;
-    margin-left: 6px;
+    line-height: 26px;
+    margin-right: 4px;
     flex-shrink: 0;
   }
+  /* 宽度账（192 − 12×2 页边 = 168，条内距 6×2 = 156）：
+       灯 16 + 间 4 + 「36m」38 + 间 4 = 62，课名实得 94px。
+     Vela 的 text-overflow: ellipsis 会预留一个字宽再决定截断
+     （实测：盒宽 76px 时只放 2 字就出省略号），所以 20px 字号要完整显示
+     4 字需 4×20+20 = 100px，94 不够；改 18px 后 4×18+18 = 90 ≤ 94 刚好放得下。
+     这是「课名被切成机械…」的根治点，别再把字号调回 20。 */
   .status-capsule-name {
-    font-size: 22px;
+    flex: 1;
+    font-size: 18px;
     font-weight: bold;
-    line-height: 28px;
+    line-height: 26px;
     lines: 1;
     text-overflow: ellipsis;
   }
