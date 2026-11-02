@@ -136,14 +136,22 @@ function init(instance) {
     persistDateToHoliday(self, self.currentDate)
   }
 
+  /**
+   * 回到今天。
+   * 返回值语义（2026-11-02 加，供首页下拉手势判断要不要给「已是今天」反馈）：
+   *   true  = 真的切了日期
+   *   false = 本来就在今天，什么都没变
+   * 模板上的 onclick 忽略返回值，不受影响。
+   */
   instance.goToToday = function() {
     var self = instance
     var today = new Date()
     today = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    if (sameDate(self.currentDate, today)) return
+    if (sameDate(self.currentDate, today)) return false
     self.currentDate = today
     syncDayFromDate(self, self.currentDate)
     persistDateToHoliday(self, self.currentDate)
+    return true
   }
 
   instance.updateHideWeekend = function() {
