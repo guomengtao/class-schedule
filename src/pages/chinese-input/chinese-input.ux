@@ -67,7 +67,10 @@ export default {
     cursorPos: 0,
     beforeChars: [],
     afterChars: [],
-    screenType: "pill-shaped",
+    // 2026-11-01：默认值从 pill-shaped 改为 rect。
+    // 原因：getInfo 是异步的，回调返回前页面会先用默认值渲染一帧。
+    // 默认值若是 pill-shaped，手环 11 上这一帧就足以白屏，等不到回调修正。
+    screenType: "rect",
     iconTheme: "dark",
     theme: {
       bg: '#1a1a2e',
@@ -88,8 +91,16 @@ export default {
     device.getInfo({
       success: function(data) {
         var shape = data.screenShape || "circle"
+        // 2026-11-01 手环 11 真机实测（倒数日七形态对照包 v0.0.39）：
+        //   rect           → 可以打开
+        //   pill-shaped    → 打不开（凡走 pill 的 4 个形态全灭，无一例外）
+        //   circle         → 打不开（容器写死 480×321，212 屏溢出一倍多）
+        // 原逻辑把 capsule 映射成 pill-shaped，正是手环 11 用户输入法不可用的直接原因。
+        // 现改为映射到 rect：rect 分支全用 100% 相对宽度、不依赖异步 screenWidth、
+        // 容器高度 255（pill 是 305），是唯一在 212×520 上验证可用的布局。
+        // 代价：胶囊机身弧线内显示方键，外观不再贴合，但功能可用。
         if (shape === "capsule") {
-          shape = "pill-shaped"
+          shape = "rect"
         }
         self.screenType = shape
       }
