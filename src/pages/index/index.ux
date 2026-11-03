@@ -56,17 +56,19 @@
 
     <div class="status-bar" if="{{ showStatusBar }}" style="background-color: {{ theme.cardLight }}">
       <div class="left-accent left-accent-6" if="{{ !isCapsule }}" style="background-color: {{ theme.accent }}"></div>
-      <!-- Capsule: 单行紧凑布局（状态灯 + 时间 + 课程名） -->
+      <!-- Capsule: 单行紧凑布局（剩余时间 + 课程名，2026-11-03 起无图标） -->
       <div if="{{ isCapsule }}" class="status-capsule-row">
-        <!-- 状态灯（lucide 图形）：now=实心绿 disc / soon=橙 timer / holiday=灰 sun，
-             文件名由 statusIconName 给出，双色主题共用同一份彩色 png -->
-        <image class="status-capsule-ic" if="{{ statusIconName }}" src="/common/icons/{{ iconTheme }}/icon_status_{{ statusIconName }}.png"></image>
-        <!-- 单行版（方案 B）：状态灯 + 剩余时间 + 课程名，一行只有三个元素。
+        <!-- 单行版（2026-11-03 去图标）：剩余时间 + 课程名，一行只有两个元素。
              宽度账：192 − 12×2 页边 = 168，条内距 6×2 = 156；
-             灯 16 + 间 4 + 「36m」38 + 间 4 = 62 → 课名实得 94px（18px 字号放 4 汉字）。
+             「36m」38 + 间 4 = 42 → 课名实得 114px。
+             18px 字号：4 字需 4×18+18 = 90（稳定完整）；
+             时间短（如 36m）时 5 字需 108 ≤ 114，也能完整显示。
              课名过长仍由 ellipsis 兜底，其余字段永远不会溢出。
-             ⚠️ 2026-11-02 修正：旧注释按 165px 估算，实际只有 144px，
-             导致 4 字课名被切成「机械…」——数值以此处为准。 -->
+             ⚠️ 2026-11-03 去掉了原来的 16px 状态灯 + 4px 间距（statusIconName 的 png）。
+                理由：那 20px 占掉提醒条 13% 宽度，只为表达 now/soon/holiday 三种状态，
+                而这层语义已由倒计时文案（「36m」/「即将」）与课程卡底色表达；
+                移走后课名从「必保 4 字」变成「必保 4 字 + 多数情况 5 字」。
+                方屏不走这条分支（用下面的文字 tag），状态语义更强，故不动。 -->
         <div class="status-capsule-body">
           <text class="status-capsule-time" if="{{ statusTimeText }}" style="color: {{ theme.accent }}">{{ statusTimeText }}</text>
           <text class="status-capsule-name" style="color: {{ theme.text }}">{{ statusMainText }}</text>
@@ -187,8 +189,11 @@
          仍保持独立一行，避免 192px 屏把切换钮压成孤立图标 -->
     <!-- 底部按钮区（方案 D9）：
          胶囊屏＝三个同形圆钮 [添加][总][设置]，左操作/中视图/右设置，直径 48、间距 8；
-         方屏保持原样＝[添加课程][设置] 两条长条（横向放得下，只留图标界面太空）。 -->
-    <div class="bottom-buttons">
+         方屏保持原样＝[添加课程][设置] 两条长条（横向放得下，只留图标界面太空）。
+         2026-11-03：挂 onswipe 作为上划进设置的通道（圆钮是可点元素，会吃掉触摸流，
+         只靠根节点 touch 起手在本区会漏）；这条通道同时接管 right → 退出，
+         否则底部右划会像 11-02 的列表区一样变成死手势（见 gesture.js 文件头 ⑤）。 -->
+    <div class="bottom-buttons" onswipe="onBottomSwipe">
       <!-- 胶囊屏三钮同径同底（真机反馈 2026-10-24：加号原来带 2px accent 描边、
            底色透明，视觉上比左右两枚「大一号」）。现在三枚都是 48 圆 + cardLight 底，
            只有图标不同：＋ / 周视图 / 齿轮。 -->
@@ -215,7 +220,7 @@
          cardLight 底色铺成 100% 通栏。Vela 不支持 align-self（运行时告警
          Unknown style - alignSelf），故用一层 row 容器 + justify-content:center
          来收敛宽度，宽度由文字自然决定。 -->
-    <div class="schedule-indicator-row" onclick="openScheduleManager">
+    <div class="schedule-indicator-row" onclick="openScheduleManager" onswipe="onBottomSwipe">
       <div class="schedule-indicator" style="background-color: {{ theme.cardLight }}">
         <image class="schedule-swap-icon" src="/common/icons/{{ iconTheme }}/icon_swap.png"></image>
         <text class="schedule-name" style="color: {{ theme.text }}">{{ currentScheduleName }}</text>
@@ -1609,19 +1614,14 @@ export default {
     padding: 6px;
     margin-bottom: 6px;
   }
-  /* Capsule status bar: 单行布局（状态灯 + 时间 + 课程名），见模板注释 */
+  /* Capsule status bar: 单行布局（剩余时间 + 课程名），见模板注释 */
   .status-capsule-row {
     flex-direction: row;
     align-items: center;
     flex: 1;
   }
-  /* 状态灯 18→16、灯后间距 6→4：给课名腾出 4px */
-  .status-capsule-ic {
-    width: 16px;
-    height: 16px;
-    margin-right: 4px;
-    flex-shrink: 0;
-  }
+  /* 2026-11-03：状态灯样式删除。模板节点已移除，这里若留 16px 定义会让人以为
+     图标还在（当年就是为了给课名腾宽度才从 18 收到 16，索性整块去掉）。 */
   .status-capsule-body {
     flex: 1;
     flex-direction: row;
@@ -1634,11 +1634,14 @@ export default {
     flex-shrink: 0;
   }
   /* 宽度账（192 − 12×2 页边 = 168，条内距 6×2 = 156）：
-       灯 16 + 间 4 + 「36m」38 + 间 4 = 62，课名实得 94px。
-     Vela 的 text-overflow: ellipsis 会预留一个字宽再决定截断
-     （实测：盒宽 76px 时只放 2 字就出省略号），所以 20px 字号要完整显示
-     4 字需 4×20+20 = 100px，94 不够；改 18px 后 4×18+18 = 90 ≤ 94 刚好放得下。
-     这是「课名被切成机械…」的根治点，别再把字号调回 20。 */
+       去图标后只剩「36m」38 + 间 4 = 42 → 课名实得 114px。
+       Vela 的 text-overflow: ellipsis 会预留一个字宽再决定截断
+       （实测：盒宽 76px 时只放 2 字就出省略号），判据是 (盒宽 − 1字)/1字：
+         18px 字号 → 4 字需 4×18+18 = 90 ≤ 114 稳定；
+                      5 字需 108 ≤ 114，仅当倒计时是「36m」这类 3 字符时成立
+                      （倒计时若长到「1h36m」约 57px，课名只剩 95px，退化为 4 字）。
+       这是「课名被切成机械…」的根治点，别再把字号调回 20（20px 下 4 字需 100，
+       倒计时一变长就截）。 */
   .status-capsule-name {
     flex: 1;
     font-size: 18px;

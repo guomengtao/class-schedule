@@ -1,10 +1,11 @@
 /**
- * 首页手势模块（2026-11-02 修订版）
+ * 首页手势模块（2026-11-03 修订版 · 四向完备）
  *
- * 三个手势，都是「与列表纵向滚动正交」的：
+ * 四个方向，全部「与列表纵向滚动正交」或「有严格起手区」：
  *   左滑  → 总课表（/pages/week-view，与底部中间那颗圆钮完全同一目标）
- *   右滑  → 退出应用（= 页面 onBackPress → exitApp，**只在列表区生效**，见 ④）
- *   下拉  → 回到今天，**但只有从顶栏区域起手才认**
+ *   右滑  → 退出应用（= 页面 onBackPress → exitApp）
+ *   下拉  → 回到今天，**只有从顶栏区域起手才认**
+ *   上滑  → 设置页，**只有从底部按钮区起手才认**
  *
  * ── v2 修了三个真机问题（用户 2026-11-02 反馈）────────────
  * ① 目标页错了：上一版进 /pages/full-schedule（完整课表），
@@ -30,6 +31,14 @@
  *    与系统触发的行为逐字一致。onswipe 这条通道**不能撤**：
  *    撤了左滑又只剩根 touch，回到 ③ 的老问题 —— 两条通道缺一不可。
  *
+ * ⑤ 四向完备 + 触觉反馈（v4，用户 2026-11-03 反馈）：
+ *    - 上滑进设置，起手区严格限定在底部按钮区（G.ty >= footY），
+ *      与下拉的顶栏起手构成镜像；中间列表区上滑仍然归 scroll（那是「看后面的课」）。
+ *    - 底部按钮区挂 onBottomSwipe 第二通道，因为圆钮是可点元素会吃掉触摸流。
+ *      ⚠️ 这条通道同样要接 right → backOnce：否则底部右滑重演 ④ 的死手势。
+ *    - 四个方向统一在「动作执行前」震一次（buzzOnce，300ms 去重）。
+ *      原来只在 move 判定成立时震，手指还没抬起就震完，与跳转错开，感知模糊。
+ *
  * ── 三条红线（照抄 countdown 仓实证，勿改）──────────────────
  * ① touchmove 里绝不 setData：判定全程只写闭包变量。
  * ② 不做 opacity / transform / 位移动画。
@@ -39,10 +48,11 @@
 var device = require("@system.device")
 
 // ── 阈值（192px 宽屏上的物理量）──────────────────────────
-var MIN_DX = 34      // 左滑最小横向位移，约占屏宽 18%
-var MIN_DY = 60      // 下拉最小纵向位移，约占屏高 12%
+var MIN_DX = 34      // 左/右滑最小横向位移，约占屏宽 18%
+var MIN_DY = 60      // 下拉/上划最小纵向位移，约占屏高 12%
 var DOMINANCE = 2    // 主轴位移必须达到次轴的整数倍
 var HEAD_RATIO = 0.2 // 顶栏区占屏高的比例，超过这里起手一律不算下拉
+var FOOT_RATIO = 0.2 // 底部区占屏高的比例，起手低于 H−footLimit 才算上划
 
 // 闭包状态：刻意不放进 data —— 每移动一次就 setData 正是历史崩溃的成因
 var G = {
@@ -59,13 +69,25 @@ var G = {
 var tipTimer = null
 var lastNav = 0
 var lastBack = 0      // 右滑退出通道的去重（见 backOnce）
+var lastBuzz = 0      // 触觉反馈去重：卡片 + 顶层容器会各报一次 swipe
 var headLimit = 100   // 顶栏下边界，init 时按真实屏高算
+var footY = 392       // 底部区上边界（490 − 98），init 时按真实屏高算
 
 function buzz() {
   try {
     var vibrator = require("@system.vibrator")
     vibrator.vibrate({ mode: "short" })
   } catch (e) {}
+}
+
+/** 手势确认的统一反馈：300ms 内只震一次。
+ *  双通道（touch + onswipe）与冒泡会把同一次滑动报多次，
+ *  不去重会连震两三下，用户会以为手势触发了好几回。 */
+function buzzOnce() {
+  var now = Date.now()
+  if (now - lastBuzz < 300) return
+  lastBuzz = now
+  buzz()
 }
 
 function reset() {
@@ -119,13 +141,17 @@ function backOnce(self) {
 function init(instance) {
   var self = instance
 
-  // 顶栏下边界：按真实屏高算，192×490 → 98px，212×520 → 104px。
-  // 拿不到就退回 100（两种手环都够用）。
+  // 顶栏下边界 / 底部区上边界：按真实屏高算。
+  // 192×490 → 顶 98 / 底 392；212×520 → 顶 104 / 底 416。
+  // 拿不到就退回 100 / 392（两种手环都够用）。
   try {
     device.getInfo({
       success: function (info) {
         var h = info && (info.screenHeight || info.windowHeight)
-        if (h > 0) headLimit = Math.round(h * HEAD_RATIO)
+        if (h > 0) {
+          headLimit = Math.round(h * HEAD_RATIO)
+          footY = h - Math.round(h * FOOT_RATIO)
+        }
       }
     })
   } catch (e) {}
@@ -172,7 +198,6 @@ function init(instance) {
     if (!G.inH && dx <= -MIN_DX && ax >= ay * DOMINANCE) {
       G.armed = true
       G.dir = 'left'
-      buzz()
       return
     }
 
@@ -182,7 +207,6 @@ function init(instance) {
     if (!G.inH && dx >= MIN_DX && ax >= ay * DOMINANCE) {
       G.armed = true
       G.dir = 'right'
-      buzz()
       return
     }
 
@@ -194,7 +218,14 @@ function init(instance) {
         dy >= MIN_DY && ay >= ax * DOMINANCE) {
       G.armed = true
       G.dir = 'down'
-      buzz()
+      return
+    }
+
+    // 上划（v4）：起点必须落在底部区 —— 与下拉的顶栏起手镜像。
+    // 中间列表区上划仍然归 scroll：那是「看后面的课」，不是导航。
+    if (G.ty >= footY && dy <= -MIN_DY && ay >= ax * DOMINANCE) {
+      G.armed = true
+      G.dir = 'up'
     }
   }
 
@@ -211,12 +242,21 @@ function init(instance) {
 
     if (!armed) return
 
+    // 触觉反馈统一放在「动作执行前」：手指抬起那一刻震，与跳转同时发生。
+    // 下拉交给 pullToToday 内部去震（它还要区分「已在今天」的提示态）。
     if (dir === 'left' && dx <= -MIN_DX) {
+      buzzOnce()
       navOnce(function () { self.goWeekView() })
       return
     }
     if (dir === 'right' && dx >= MIN_DX) {
+      buzzOnce()
       backOnce(self)
+      return
+    }
+    if (dir === 'up' && dy <= -MIN_DY) {
+      buzzOnce()
+      navOnce(function () { self.goSettings() })
       return
     }
     if (dir === 'down' && dy >= MIN_DY) {
@@ -235,11 +275,41 @@ function init(instance) {
   instance.onCardSwipe = function (evt) {
     var dir = (evt && evt.direction) || ''
     if (dir === 'right') {
+      buzzOnce()
       backOnce(self)
       return
     }
     if (dir !== 'left') return
+    buzzOnce()
     navOnce(function () { self.goWeekView() })
+  }
+
+  /**
+   * 底部区的 onswipe 通道（2026-11-03）。
+   *
+   * 为什么需要：上划进设置的起手区在底部按钮区，而三颗圆钮都是可点元素，
+   * 会把触摸流吃掉 —— 只靠根节点 touch，起手落在圆钮上就永远认不到上划。
+   *
+   * ⚠️ 挂上 onswipe 就等于把这块区域的滑动从系统手势手里拿走，
+   *    所以 right 必须自己接 backOnce（否则底部右划重演 11-02 的死手势）。
+   *    这条与 onCardSwipe 是同一条教训，别只处理想加的那个方向。
+   */
+  instance.onBottomSwipe = function (evt) {
+    var dir = (evt && evt.direction) || ''
+    if (dir === 'up') {
+      buzzOnce()
+      navOnce(function () { self.goSettings() })
+      return
+    }
+    if (dir === 'right') {
+      buzzOnce()
+      backOnce(self)
+      return
+    }
+    if (dir === 'left') {
+      buzzOnce()
+      navOnce(function () { self.goWeekView() })
+    }
   }
 
   /** 总课表：与底部圆钮同一目标、同一入口方法（含 weekview_index 落盘） */
@@ -252,6 +322,20 @@ function init(instance) {
     } catch (e) {}
     try {
       require("@system.router").push({ uri: "/pages/week-view" })
+    } catch (e2) {}
+  }
+
+  /** 设置页：与底部右侧齿轮圆钮同一入口（openSettings）。
+   *  页面没有这个方法时退回直跳 /pages/settings（路由已在 manifest 声明）。 */
+  instance.goSettings = function () {
+    try {
+      if (typeof self.openSettings === 'function') {
+        self.openSettings()
+        return
+      }
+    } catch (e) {}
+    try {
+      require("@system.router").push({ uri: "/pages/settings" })
     } catch (e2) {}
   }
 
