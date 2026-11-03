@@ -1,93 +1,100 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <div class="page-body">
-    <div class="header">
-      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
-      </div>
-      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">重置</text>
-      <div class="header-placeholder"></div>
-    </div>
-
-    <div class="warning-section" style="background-color: {{ theme.card }}">
-      <text class="warning-icon" style="color: {{ theme.accent }}">▲</text>
-      <text class="warning-title" style="color: {{ theme.accent }}">重要提示</text>
-      <text class="warning-text" style="color: {{ theme.textSecondary }}">操作将覆盖当前课程数据，不可撤销。</text>
-      <text class="warning-text" style="color: {{ theme.deleteText }}">请仔细阅读说明，谨慎操作！</text>
-    </div>
-
-    <div class="preview-section" style="background-color: {{ theme.card }}">
-      <text class="section-title" style="color: {{ theme.text }}">默认课程（12门）</text>
-      <div class="course-grid">
-        <div class="course-tag" for="{{ defaultCourses }}" style="background-color: {{ theme.cardLight }}">
-          <text class="course-tag-num" style="color: {{ theme.accent }}">{{ $idx + 1 }}</text>
-          <text class="course-tag-name" style="color: {{ theme.text }}">{{ $item }}</text>
-        </div>
+    <!-- 页头（2026-11-03 迁移到 common/header.css 的 .hdr 胶囊）
+         原先是「方块返回键 + 居中标题 + 等宽占位」三件套，与 settings / 总课表 两页不一致。
+         .hdr 自带居中，不再需要占位元素凑对称；旧骨架类一律不再本页定义。 -->
+    <div class="hdr rd-hdr">
+      <div class="hdr-pill" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="hdr-pill-ic" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <text class="hdr-pill-t" style="color: {{ theme.text }}">重置数据</text>
       </div>
     </div>
 
-    <div class="action-section" style="background-color: {{ theme.card }}">
-      <text class="section-title" style="color: {{ theme.text }}">恢复默认课程</text>
-      <text class="action-desc" style="color: {{ theme.textSecondary }}">仅重置课程名称为默认12门，不影响课表。</text>
-      <text class="action-warn" style="color: {{ theme.deleteText }}">自定义名称将被覆盖</text>
+    <!-- 内容超过 1 屏（3 张操作卡 + 12 个课程标签 ≈ 1.5 屏），必须滚动。
+         ev-six §7.7：允许 1.5 屏，但禁止靠压字号塞进一屏。 -->
+    <scroll class="body-scroll" scroll-y="{{true}}">
+      <!-- 提示卡：原文 3 行 13/11 字，24px 下行宽 312px、192 屏必折行后被 lines:1 硬裁。
+           按 ev-six §7.2 单行 ≤6 位置压成两行，信息不丢：「覆盖」+「不可撤销」。 -->
+      <div class="card warn-card" style="background-color: {{ theme.card }}">
+        <text class="warn-title" style="color: {{ theme.deleteText }}">▲ 不可撤销</text>
+        <text class="warn-line" style="color: {{ theme.textSecondary }}">数据将被覆盖</text>
+      </div>
 
-      <input class="action-btn {{ presetConfirm ? 'danger' : '' }}" type="button"
-             value="{{ presetConfirm ? '确认恢复？' : '恢复默认课程' }}"
-             onclick="handleResetPresets"
-             style="background-color: {{ presetConfirm ? theme.deleteText : theme.accent }}; color: {{ presetConfirm ? theme.text : theme.bg }}" />
-
-      <text class="reset-hint" if="{{ presetConfirm }}" style="color: {{ theme.deleteText }}">再次点击确认</text>
-      <text class="reset-hint" if="{{ !presetConfirm }}" style="color: {{ theme.textMuted }}">需二次确认</text>
-      <text class="result-text" if="{{ presetDone }}" style="color: {{ theme.accent }}">默认课程已恢复</text>
-    </div>
-
-    <div class="action-section" style="background-color: {{ theme.card }}">
-      <text class="section-title" style="color: {{ theme.text }}">一键重置全部</text>
-      <text class="action-desc" style="color: {{ theme.textSecondary }}">恢复到默认状态：2张课表、12门课程。</text>
-      <text class="action-warn" style="color: {{ theme.deleteText }}">所有数据将被覆盖，不可撤销！</text>
-
-      <input class="action-btn {{ fullConfirm ? 'danger' : '' }}" type="button"
-             value="{{ fullConfirm ? '确认重置？' : '一键重置全部' }}"
-             onclick="handleResetAll"
-             style="background-color: {{ fullConfirm ? theme.deleteText : theme.accent }}; color: {{ fullConfirm ? theme.text : theme.bg }}" />
-
-      <text class="reset-hint" if="{{ fullConfirm }}" style="color: {{ theme.deleteText }}">再次点击确认</text>
-      <text class="reset-hint" if="{{ !fullConfirm }}" style="color: {{ theme.textMuted }}">需二次确认</text>
-      <text class="result-text" if="{{ fullDone }}" style="color: {{ theme.accent }}">已重置成功</text>
-    </div>
-
-    <div class="action-section" style="background-color: {{ theme.card }}">
-      <text class="section-title" style="color: {{ theme.text }}">重置为空</text>
-      <text class="action-desc" style="color: {{ theme.textSecondary }}">清空所有数据，从零开始自定义。</text>
-      <text class="action-warn" style="color: {{ theme.deleteText }}">所有数据将被清空，不可撤销！</text>
-
-      <input class="action-btn {{ emptyConfirm ? 'danger' : '' }}" type="button"
-             value="{{ emptyConfirm ? '确认清空？' : '重置为空' }}"
-             onclick="handleResetEmpty"
-             style="background-color: {{ emptyConfirm ? theme.deleteText : theme.accent }}; color: {{ emptyConfirm ? theme.text : theme.bg }}" />
-
-      <text class="reset-hint" if="{{ emptyConfirm }}" style="color: {{ theme.deleteText }}">再次点击确认</text>
-      <text class="reset-hint" if="{{ !emptyConfirm }}" style="color: {{ theme.textMuted }}">需二次确认</text>
-      <text class="result-text" if="{{ emptyDone }}" style="color: {{ theme.accent }}">已清空</text>
-    </div>
-
-    </div>
-
-    <div class="overlay-modal" show="{{ showDialog }}" onclick="dismissDialog"
-         style="position: absolute; left: 0; top: 0; width: 100%; height: 100%">
-      <div class="modal-card" style="background-color: {{ theme.card }}" onclick="stopBubble">
-        <text class="modal-title" style="color: {{ theme.accent }}">解锁高级版</text>
-        <text class="modal-desc" style="color: {{ theme.textSecondary }}">一次性解锁，永久使用全部高级功能</text>
-        <div class="benefit-list">
-          <text class="benefit-item" style="color: {{ theme.text }}">✓ 多课表管理</text>
-          <text class="benefit-item" style="color: {{ theme.text }}">✓ 数据备份与恢复</text>
-          <text class="benefit-item" style="color: {{ theme.text }}">✓ 首页自定义</text>
-          <text class="benefit-item" style="color: {{ theme.text }}">✓ 多套主题</text>
+      <div class="card" style="background-color: {{ theme.card }}">
+        <text class="card-title" style="color: {{ theme.text }}">默认课程</text>
+        <div class="course-grid">
+          <text class="course-tag" for="{{ defaultCourses }}" style="background-color: {{ theme.cardLight }}; color: {{ theme.text }}">{{ $item }}</text>
         </div>
-        <input class="modal-btn-primary" type="button" value="立即解锁" onclick="goToPremium"
-               style="background-color: {{ theme.accent }}; color: {{ theme.bg }}" />
-        <input class="modal-btn-secondary" type="button" value="取消" onclick="dismissDialog"
-               style="background-color: {{ theme.btnSecondary }}; color: {{ theme.btnSecondaryText }}" />
+      </div>
+
+      <div class="card" style="background-color: {{ theme.card }}">
+        <text class="card-title" style="color: {{ theme.text }}">恢复默认</text>
+        <text class="card-desc" style="color: {{ theme.textSecondary }}">只改课程名</text>
+        <text class="card-desc" style="color: {{ theme.textSecondary }}">课表不变</text>
+
+        <div class="act-btn" onclick="handleResetPresets"
+             style="background-color: {{ presetConfirm ? theme.deleteText : theme.accent }}">
+          <text class="act-btn-text" style="color: {{ presetConfirm ? theme.text : theme.bg }}">{{ presetConfirm ? '确认恢复' : '恢复默认' }}</text>
+        </div>
+        <text class="act-hint" style="color: {{ presetConfirm ? theme.deleteText : theme.textMuted }}">{{ presetConfirm ? '再次点击确认' : '需二次确认' }}</text>
+        <text class="act-done" if="{{ presetDone }}" style="color: {{ theme.accent }}">已恢复</text>
+      </div>
+
+      <div class="card" style="background-color: {{ theme.card }}">
+        <text class="card-title" style="color: {{ theme.text }}">全部重置</text>
+        <text class="card-desc" style="color: {{ theme.textSecondary }}">回到初始状态</text>
+        <text class="card-desc" style="color: {{ theme.textSecondary }}">2 张课表 12 门课</text>
+
+        <div class="act-btn" onclick="handleResetAll"
+             style="background-color: {{ fullConfirm ? theme.deleteText : theme.accent }}">
+          <text class="act-btn-text" style="color: {{ fullConfirm ? theme.text : theme.bg }}">{{ fullConfirm ? '确认重置' : '全部重置' }}</text>
+        </div>
+        <text class="act-hint" style="color: {{ fullConfirm ? theme.deleteText : theme.textMuted }}">{{ fullConfirm ? '再次点击确认' : '需二次确认' }}</text>
+        <text class="act-done" if="{{ fullDone }}" style="color: {{ theme.accent }}">已重置</text>
+      </div>
+
+      <div class="card" style="background-color: {{ theme.card }}">
+        <text class="card-title" style="color: {{ theme.text }}">重置为空</text>
+        <text class="card-desc" style="color: {{ theme.textSecondary }}">清空全部数据</text>
+        <text class="card-desc" style="color: {{ theme.textSecondary }}">从零开始自建</text>
+
+        <div class="act-btn" onclick="handleResetEmpty"
+             style="background-color: {{ emptyConfirm ? theme.deleteText : theme.accent }}">
+          <text class="act-btn-text" style="color: {{ emptyConfirm ? theme.text : theme.bg }}">{{ emptyConfirm ? '确认清空' : '重置为空' }}</text>
+        </div>
+        <text class="act-hint" style="color: {{ emptyConfirm ? theme.deleteText : theme.textMuted }}">{{ emptyConfirm ? '再次点击确认' : '需二次确认' }}</text>
+        <text class="act-done" if="{{ emptyDone }}" style="color: {{ theme.accent }}">已清空</text>
+      </div>
+
+      <div class="scroll-tail"></div>
+    </scroll>
+
+    <!-- 升级引导弹层（2026-11-03 重构）
+         ① 行为：原先 onReady 里 checkAndShowOverlay() 会「进页即弹」，把只读浏览也打断。
+            现改为「点击三个重置按钮时才弹」——先判权限，未解锁则弹窗并中止本次操作。
+            权限状态在 onInit/onShow 预取（refreshPremium），点击路径同步判定，
+            不重演 backup-restore 记录的「点击后等异步回调，等于石沉大海」。
+         ② 形态：对齐 unlock-dialog 组件的标准规格，但**不套该组件**——
+            backup-restore.ux 已实测：store 单例存的是页面栈下方某页的实例，
+            show() 返回 true 却看不到弹窗。本页自绘，零共享状态，与备份页同一路线。 -->
+    <div class="upgrade-screen" if="{{ showUpgrade }}" onclick="closeUpgrade">
+      <div class="upgrade-card" onclick="stopBubble" style="background-color: {{ theme.card }}">
+        <text class="upgrade-title" style="color: {{ theme.accent }}">解锁高级版</text>
+        <text class="upgrade-desc" style="color: {{ theme.textSecondary }}">一次购买 永久可用</text>
+
+        <div class="upgrade-benefits">
+          <div class="upgrade-benefit-row" for="{{ upgradeBenefits }}">
+            <text class="upgrade-benefit-mark" style="color: {{ theme.accent }}">✓</text>
+            <text class="upgrade-benefit-text" style="color: {{ theme.text }}">{{ $item }}</text>
+          </div>
+        </div>
+
+        <div class="upgrade-btn upgrade-btn-primary" onclick="goActivate" style="background-color: {{ theme.accent }}">
+          <text class="upgrade-btn-text" style="color: {{ theme.bg }}">立即解锁</text>
+        </div>
+        <div class="upgrade-btn upgrade-btn-cancel" style="background-color: {{ theme.btnSecondary }}" onclick="closeUpgrade">
+          <text class="upgrade-btn-text" style="color: {{ theme.btnSecondaryText }}">继续标准版</text>
+        </div>
       </div>
     </div>
   </div>
@@ -123,7 +130,11 @@ export default {
     fullDone: false,
     emptyConfirm: false,
     emptyDone: false,
-    showDialog: false
+    // 解锁引导：默认关闭。整页默认不弹任何弹窗，只有点按钮且未解锁时才开。
+    showUpgrade: false,
+    isPremium: false,
+    premiumChecked: false,
+    upgradeBenefits: ["多课表管理", "数据备份", "首页自定义", "多套主题"]
   },
 
   onInit() {
@@ -132,13 +143,38 @@ export default {
       self.theme = t
       self.updateIconSrc(themeName)
     })
+    this.refreshPremium()
   },
-  onReady() {
-    dlog("[RESET-DATA] onReady: checking premium...")
-    this.checkAndShowOverlay()
+
+  // 会员状态「进页预取 + 点击时同步判定」：点击路径零异步依赖。
+  // 原实现在 onReady 里查完就直接弹窗，正是「默认弹出」的来源，已删除。
+  refreshPremium() {
+    var self = this
+    store.isPremiumUnlocked(function(u) {
+      self.isPremium = !!u
+      self.premiumChecked = true
+    })
+  },
+
+  onShow() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.updateIconSrc(themeName)
+    })
+    this.refreshPremium()
+  },
+
+  // 三个重置入口共用的权限闸：未解锁 → 弹升级引导并中止本次点击
+  guardPremium() {
+    if (this.isPremium) return true
+    this.showUpgrade = true
+    if (!this.premiumChecked) this.refreshPremium()
+    return false
   },
 
   handleResetPresets() {
+    if (!this.guardPremium()) return
     if (!this.presetConfirm) {
       this.presetConfirm = true
       var self = this
@@ -167,6 +203,7 @@ export default {
   },
 
   handleResetAll() {
+    if (!this.guardPremium()) return
     if (!this.fullConfirm) {
       this.fullConfirm = true
       var self = this
@@ -197,6 +234,7 @@ export default {
   },
 
   handleResetEmpty() {
+    if (!this.guardPremium()) return
     if (!this.emptyConfirm) {
       this.emptyConfirm = true
       var self = this
@@ -224,28 +262,34 @@ export default {
     })
   },
 
-  checkAndShowOverlay() {
-    dlog("[RESET-DATA] checkAndShowOverlay: checking premium...")
-    var self = this
-    store.isPremiumUnlocked(function(unlocked) {
-      if (!unlocked) {
-        dlog("[RESET-DATA] checkAndShowOverlay: not premium, showing dialog")
-        self.showDialog = true
-      }
-    })
+  goActivate() {
+    this.showUpgrade = false
+    this.clearTimers()
+    router.push({ uri: "/pages/activation" })
   },
 
-  goToPremium() {
-    dlog("[RESET-DATA] goToPremium: navigating to activation")
-    this.showDialog = false
-    router.push({ uri: "/pages/activation" })
+  closeUpgrade() {
+    this.showUpgrade = false
+  },
+
+  stopBubble() {
   },
 
   updateIconSrc: function(themeName) {
     this.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
   },
 
-  goBack() {
+  // 返回优先级：升级弹层开着时先收弹层，不要把整页弹掉（同 backup-restore 的教训）。
+  // 只在真的关掉弹层时 return true，其余交还系统默认返回，避免「退不出去」。
+  onBackPress() {
+    if (this.showUpgrade) {
+      this.showUpgrade = false
+      return true
+    }
+    return false
+  },
+
+  clearTimers() {
     if (presetTimer) {
       clearTimeout(presetTimer)
       presetTimer = null
@@ -258,35 +302,24 @@ export default {
       clearTimeout(emptyTimer)
       emptyTimer = null
     }
+  },
+
+  goBack() {
+    this.clearTimers()
     router.back()
   },
 
-  dismissDialog() {
-    this.showDialog = false
-  },
-
-  stopBubble() {
-  },
-
   onDestroy() {
-    if (presetTimer) {
-      clearTimeout(presetTimer)
-      presetTimer = null
-    }
-    if (fullTimer) {
-      clearTimeout(fullTimer)
-      fullTimer = null
-    }
-    if (emptyTimer) {
-      clearTimeout(emptyTimer)
-      emptyTimer = null
-    }
+    this.clearTimers()
   }
 }
 </script>
 
 <style>
 @import '../../common/header.css';
+
+/* 基准值 = 胶囊屏（192×490）的正确形态，@media 只负责在大屏放大。
+   媒体查询若整条不命中，最坏只是字小一圈，不会形态错乱。 */
 
 .page {
   flex-direction: column;
@@ -295,147 +328,126 @@ export default {
   height: 100%;
 }
 
-/* padding 承载在内层：弹窗 absolute 按父级内容盒计算，根容器带 padding 会让弹窗内缩不对称 */
-.page-body {
-  padding: 38px 8px 10px 8px;
+/* 页头只补本页独有的外距，**不重定义 .hdr** ——
+   week-view 那轮已经踩过：页面本地与公共类同名会静默整体覆盖，
+   导致 flex 居中丢失、胶囊被顶到左边。故另起 .rd-hdr 叠加。 */
+.rd-hdr {
+  padding: 0 12px;
+  margin-top: 12px;
 }
 
-.warning-section {
+.body-scroll {
+  flex: 1;
   flex-direction: column;
-  align-items: center;
-  border-radius: 10px;
-  padding: 14px 12px;
+  padding: 0 12px;
+}
+
+/* 卡片内距 8：ev-six 留白税要求卡片 ≤8（原 12 在 168 可用宽里白扔 24px） */
+.card {
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 8px;
   margin-bottom: 8px;
+  flex-shrink: 0;
 }
 
-.warning-icon {
-  font-size: 28px;
-  margin-bottom: 4px;
-  line-height: 36px;
+.warn-card {
+  align-items: center;
 }
 
-.warning-title {
+.warn-title {
   font-size: 28px;
   font-weight: bold;
-  margin-bottom: 8px;
   line-height: 34px;
   lines: 1;
+  margin-bottom: 2px;
 }
 
-.warning-text {
+.warn-line {
   font-size: 24px;
-  text-align: center;
-  margin-bottom: 2px;
   line-height: 30px;
   lines: 1;
 }
 
-.preview-section {
-  flex-direction: column;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 8px;
-}
-
-.section-title {
+.card-title {
   font-size: 28px;
   font-weight: bold;
-  margin-bottom: 8px;
   line-height: 34px;
+  lines: 1;
+  margin-bottom: 4px;
+}
+
+/* 说明行：24px 是 ev-six 绝对下限，原 22px（胶囊屏）/ 20px（弹窗）一律作废 */
+.card-desc {
+  font-size: 24px;
+  line-height: 30px;
   lines: 1;
 }
 
+/* 12 个标签排 3 列：内容宽 168 − 卡片内距 16 = 152。
+   首版取 50：50×3 + margin 6 = 156 超 152，实测只排下 2 列。
+   收到 48：48×3 + 6 = 150 ≤ 152，3 列成立；2 字 @24 ≈46px 仍放得下。
+   序号徽标按 ev-six §7.3「装饰优先省掉」删除。 */
 .course-grid {
   flex-direction: row;
   flex-wrap: wrap;
 }
 
 .course-tag {
-  flex-direction: row;
-  align-items: center;
-  border-radius: 8px;
-  padding: 5px 8px;
-  margin: 0 5px 5px 0;
-}
-
-.course-tag-num {
+  width: 48px;
   font-size: 24px;
-  font-weight: bold;
-  margin-right: 4px;
-  width: 18px;
+  line-height: 30px;
   text-align: center;
-  line-height: 32px;
+  border-radius: 8px;
+  padding: 3px 0;
+  margin: 0 1px 4px 1px;
 }
 
-.course-tag-name {
-  font-size: 28px;
-  line-height: 34px;
-  lines: 1;
-}
-
-.action-section {
-  flex-direction: column;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 8px;
-}
-
-.action-desc {
-  font-size: 24px;
-  margin-bottom: 2px;
-  line-height: 34px;
-  lines: 1;
-}
-
-.action-warn {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  line-height: 32px;
-  lines: 1;
-}
-
-.action-btn {
+/* 按钮 44 高：手环触摸目标下限，与全项目一致 */
+.act-btn {
   width: 100%;
   height: 44px;
-  border-radius: 20px;
-  font-size: 28px;
-  font-weight: bold;
-  text-align: center;
-  line-height: 40px;
-}
-
-.action-btn.danger {
-  animation-name: pulse;
-  animation-duration: 800ms;
-  animation-iteration-count: infinite;
-  animation-timing-function: ease-in-out;
-}
-
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.6; }
-  100% { opacity: 1; }
-}
-
-.reset-hint {
-  font-size: 24px;
+  border-radius: 22px;
+  justify-content: center;
+  align-items: center;
   margin-top: 6px;
-  text-align: center;
-  line-height: 34px;
-  lines: 1;
+  flex-shrink: 0;
 }
 
-.result-text {
+.act-btn-text {
   font-size: 28px;
   font-weight: bold;
-  text-align: center;
-  margin-top: 8px;
   line-height: 34px;
   lines: 1;
+  text-align: center;
 }
 
-.overlay-modal {
+.act-hint {
+  font-size: 24px;
+  line-height: 30px;
+  lines: 1;
+  text-align: center;
+  margin-top: 4px;
+}
+
+.act-done {
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 34px;
+  lines: 1;
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* 底部留白：让最后一张卡片不贴屏幕下缘被圆弧压到 */
+.scroll-tail {
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* ── 升级引导弹层 ──
+   绝对定位铺满根容器（.page 无 padding，故不与内容盒错位）。 */
+.upgrade-screen {
   position: absolute;
   left: 0;
   top: 0;
@@ -445,312 +457,241 @@ export default {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  padding: 40px 12px;
   z-index: 1000;
 }
 
-.modal-card {
-  width: 80%;
+.upgrade-card {
+  width: 100%;
   border-radius: 14px;
-  padding: 20px 16px;
+  padding: 12px 8px;
   flex-direction: column;
   align-items: center;
 }
 
-.modal-title {
+.upgrade-title {
   font-size: 28px;
   font-weight: bold;
-  margin-bottom: 10px;
-  text-align: center;
-  line-height: 36px;
-  lines: 1;
-}
-
-.modal-desc {
-  font-size: 24px;
-  text-align: center;
-  margin-bottom: 16px;
   line-height: 34px;
   lines: 1;
+  margin-bottom: 4px;
 }
 
-.benefit-list {
+.upgrade-desc {
+  font-size: 24px;
+  line-height: 30px;
+  lines: 1;
+  margin-bottom: 8px;
+}
+
+.upgrade-benefits {
   width: 100%;
   flex-direction: column;
-  padding-left: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
-.benefit-item {
+.upgrade-benefit-row {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.upgrade-benefit-mark {
+  width: 24px;
   font-size: 24px;
-  margin-bottom: 8px;
+  line-height: 30px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.upgrade-benefit-text {
+  flex: 1;
+  font-size: 24px;
   line-height: 30px;
   lines: 1;
 }
 
-.modal-btn-primary {
+.upgrade-btn {
   width: 100%;
   height: 44px;
-  border-radius: 20px;
-  font-size: 28px;
-  font-weight: bold;
-  text-align: center;
-  line-height: 40px;
+  border-radius: 22px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.upgrade-btn-primary {
   margin-bottom: 8px;
 }
 
-.modal-btn-secondary {
-  width: 100%;
-  height: 44px;
-  border-radius: 18px;
-  font-size: 22px;
+.upgrade-btn-text {
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 34px;
+  lines: 1;
   text-align: center;
-  line-height: 40px;
+}
+
+/* ── 方屏 / 圆屏放大 ── */
+@media (shape: rect) {
+  .rd-hdr {
+    padding: 0 12px;
+    margin-top: 8px;
+  }
+  .body-scroll {
+    padding: 0 12px;
+  }
+  .card {
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  .warn-title {
+    font-size: 30px;
+    line-height: 38px;
+  }
+  .warn-line {
+    font-size: 26px;
+    line-height: 34px;
+  }
+  .card-title {
+    font-size: 30px;
+    line-height: 38px;
+  }
+  .card-desc {
+    font-size: 26px;
+    line-height: 34px;
+  }
+  .course-tag {
+    width: 74px;
+    font-size: 26px;
+    line-height: 34px;
+    padding: 4px 0;
+    margin: 0 2px 6px 2px;
+  }
+  .act-btn {
+    height: 50px;
+    border-radius: 25px;
+  }
+  .act-btn-text {
+    font-size: 30px;
+    line-height: 38px;
+  }
+  .act-hint {
+    font-size: 26px;
+    line-height: 32px;
+  }
+  .act-done {
+    font-size: 30px;
+    line-height: 38px;
+  }
+  .upgrade-screen {
+    padding: 60px 60px;
+  }
+  .upgrade-card {
+    padding: 18px 16px;
+  }
+  .upgrade-title {
+    font-size: 32px;
+    line-height: 40px;
+  }
+  .upgrade-desc {
+    font-size: 26px;
+    line-height: 34px;
+    margin-bottom: 12px;
+  }
+  .upgrade-benefit-mark,
+  .upgrade-benefit-text {
+    font-size: 26px;
+    line-height: 34px;
+  }
+  .upgrade-btn {
+    height: 50px;
+    border-radius: 25px;
+  }
+  .upgrade-btn-text {
+    font-size: 30px;
+    line-height: 38px;
+  }
 }
 
 @media (shape: circle) {
-  .page-body {
-    padding: 38px 36px 44px 36px;
+  .rd-hdr {
+    padding: 0 36px;
+    margin-top: 40px;
   }
-  
-  
-  
-  .warning-section {
-    padding: 14px 12px;
-    margin-bottom: 8px;
+  .body-scroll {
+    padding: 0 36px;
   }
-  .warning-icon {
-    font-size: 30px;
-    line-height: 40px;
-  }
-  .warning-title {
-    font-size: 28px;
-    line-height: 38px;
-  }
-  .warning-text {
-    font-size: 24px;
-    line-height: 34px;
-  }
-  .preview-section {
-    padding: 12px;
-    margin-bottom: 8px;
-  }
-  .section-title {
-    font-size: 28px;
-    line-height: 38px;
-  }
-  .course-tag-name {
-    font-size: 28px;
-    line-height: 38px;
-  }
-  .course-tag-num {
-    font-size: 22px;
-    line-height: 30px;
-    width: 20px;
-  }
-  .action-section {
-    padding: 12px;
-    margin-bottom: 8px;
-  }
-  .action-desc {
-    font-size: 24px;
-    line-height: 34px;
-  }
-  .action-warn {
-    font-size: 22px;
-    line-height: 30px;
-  }
-  .action-btn {
-    height: 44px;
-    font-size: 26px;
-    line-height: 40px;
-  }
-  .reset-hint {
-    font-size: 22px;
-    line-height: 30px;
-  }
-  .result-text {
-    font-size: 24px;
-    line-height: 34px;
-  }
-  .modal-title {
-    font-size: 32px;
-    line-height: 42px;
-  }
-  .modal-desc {
-    font-size: 24px;
-    line-height: 34px;
-  }
-  .benefit-item {
-    font-size: 24px;
-    line-height: 34px;
-  }
-  .modal-btn-primary {
-    height: 44px;
-    font-size: 26px;
-    line-height: 40px;
-  }
-  .modal-btn-secondary {
-    height: 44px;
-    font-size: 24px;
-    line-height: 40px;
-  }
-  .overlay-modal {
-    padding: 44px 36px 44px 36px;
-  }
-  .modal-card {
-    width: 72%;
-    padding: 24px 20px;
-  }
-}
-
-@media (shape: rect) {
-  .page-body {
-    padding: 6px 12px 16px 12px;
-  }
-  
-  
-  
-  .warning-section {
-    padding: 16px 14px;
+  .card {
+    padding: 10px;
     margin-bottom: 10px;
   }
-  .warning-icon {
-    font-size: 32px;
-    line-height: 42px;
-  }
-  .warning-title {
+  .warn-title {
     font-size: 30px;
-    line-height: 40px;
+    line-height: 38px;
   }
-  .warning-text {
+  .warn-line {
     font-size: 26px;
-    line-height: 36px;
-  }
-  .preview-section {
-    padding: 14px;
-    margin-bottom: 10px;
-  }
-  .section-title {
-    font-size: 30px;
-    line-height: 40px;
-  }
-  .course-tag-name {
-    font-size: 26px;
-    line-height: 36px;
-  }
-  .course-tag-num {
-    font-size: 24px;
     line-height: 34px;
   }
-  .action-section {
-    padding: 14px;
-    margin-bottom: 10px;
+  .card-title {
+    font-size: 30px;
+    line-height: 38px;
   }
-  .action-desc {
+  .card-desc {
     font-size: 26px;
-    line-height: 36px;
+    line-height: 34px;
   }
-  .action-warn {
-    font-size: 24px;
+  .course-tag {
+    width: 74px;
+    font-size: 26px;
+    line-height: 34px;
+    padding: 4px 0;
+    margin: 0 2px 6px 2px;
+  }
+  .act-btn {
+    height: 50px;
+    border-radius: 25px;
+  }
+  .act-btn-text {
+    font-size: 30px;
+    line-height: 38px;
+  }
+  .act-hint {
+    font-size: 26px;
     line-height: 32px;
   }
-  .action-btn {
-    height: 46px;
-    font-size: 28px;
-    line-height: 42px;
+  .act-done {
+    font-size: 30px;
+    line-height: 38px;
   }
-  .reset-hint {
-    font-size: 24px;
-    line-height: 32px;
+  .upgrade-screen {
+    padding: 60px 60px;
   }
-  .result-text {
-    font-size: 26px;
-    line-height: 36px;
+  .upgrade-card {
+    padding: 18px 16px;
   }
-  .modal-card {
-    width: 76%;
-    padding: 24px 20px;
-  }
-  .modal-title {
-    font-size: 34px;
-    line-height: 44px;
-  }
-  .modal-desc {
-    font-size: 26px;
-    line-height: 36px;
-  }
-  .benefit-item {
-    font-size: 26px;
-    line-height: 36px;
-  }
-  .modal-btn-primary {
-    height: 46px;
-    font-size: 28px;
-    line-height: 42px;
-  }
-  .modal-btn-secondary {
-    height: 44px;
-    font-size: 26px;
+  .upgrade-title {
+    font-size: 32px;
     line-height: 40px;
   }
-}
-/* ===== 胶囊屏（192px）统一适配：解锁/高级版弹窗 =====
-   背景：同一套弹窗在 6 处各写一份，胶囊适配缺失/不一致 → 192×490 上出现
-   标题截成 3 字、✓ 条目只剩 1 字、内容顶到屏幕右缘被裁（2026-09-27 实测）。
-   统一策略：卡片占满安全宽度、字号降档、文本允许 2 行/1 行 + 省略号。 */
-@media (shape: pill-shaped) {
-  .overlay-modal {
-    padding: 40px 16px;
+  .upgrade-desc {
+    font-size: 26px;
+    line-height: 34px;
+    margin-bottom: 12px;
   }
-
-  .modal-card {
-    width: 100%;
-    border-radius: 14px;
-    padding: 14px 8px;
+  .upgrade-benefit-mark,
+  .upgrade-benefit-text {
+    font-size: 26px;
+    line-height: 34px;
   }
-
-  .modal-title {
-    font-size: 24px;
-    line-height: 30px;
-    margin-bottom: 8px;
-    lines: 2;
-    text-overflow: ellipsis;
+  .upgrade-btn {
+    height: 50px;
+    border-radius: 25px;
   }
-
-  .modal-desc {
-    font-size: 18px;
-    line-height: 25px;
-    margin-bottom: 10px;
-    lines: 4;
-  }
-
-  .benefit-list {
-    width: 100%;
-    padding-left: 0;
-    margin-bottom: 10px;
-  }
-
-  .benefit-item {
-    font-size: 18px;
-    line-height: 24px;
-    margin-bottom: 6px;
-    lines: 1;
-    text-overflow: ellipsis;
-  }
-
-  .modal-btn-primary {
-    height: 44px;
-    border-radius: 20px;
-    font-size: 22px;
-    line-height: 40px;
-    margin-bottom: 8px;
-  }
-
-  .modal-btn-secondary {
-    height: 44px;
-    border-radius: 17px;
-    font-size: 20px;
-    line-height: 40px;
+  .upgrade-btn-text {
+    font-size: 30px;
+    line-height: 38px;
   }
 }
 </style>
