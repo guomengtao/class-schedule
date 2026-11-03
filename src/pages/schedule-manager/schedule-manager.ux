@@ -1,12 +1,15 @@
 <template>
   <stack class="page-root" style="background-color: {{ theme.bg }}">
   <scroll id="pageScroll" class="page" scroll-y="{{true}}" style="background-color: {{ theme.bg }}">
-    <div class="header">
-      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+    <!-- 页头（2026-11-03）：改用 common/header.css 的 .hdr 胶囊方案，与设置页 / 总课表一致 ——
+         「‹ 课表」一颗整体胶囊、整块可点返回，取代原来的「方块返回键 + 居中标题 + 占位」三段式。
+         旧类 .header / .back-btn-wrapper / .header-title / .header-placeholder 由公共 css 提供，
+         留着不会报错但形态是上一代（实测截图里标题偏左、返回键是深色方块），本页不再引用。 -->
+    <div class="hdr">
+      <div class="hdr-pill" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="hdr-pill-ic" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <text class="hdr-pill-t" style="color: {{ theme.text }}">课表</text>
       </div>
-      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">课表</text>
-      <div class="header-placeholder"></div>
     </div>
 
     <div class="rename-bar" if="{{ editingIndex >= 0 }}" style="background-color: {{ theme.card }}">
@@ -21,8 +24,15 @@
 
     <!-- Vela 红线：同一行只保留一个 onclick，放在整行容器上；行内子元素一律不绑 onclick -->
     <div for="{{ list }}" class="item" onclick="openSheet($idx)" style="background-color: {{ theme.card }}">
+      <!-- 计数徽章（2026-11-03）：原来的空心圆环只是「当前课表」标记，纯装饰；
+           现在把该课表的课程数直接写进圆里，一个元素同时承载「当前」与「有多少门课」。
+           0 门是最需要被一眼看见的状态（选了个空课表却不知道），
+           故 0 用 textMuted，非 0 用 textSecondary；当前课表填 accent + 数字反白（theme.bg）。 -->
       <div class="indicator"
-           style="background-color: {{ $idx === currentIndex ? theme.accent : 'transparent' }}; border-color: {{ $idx === currentIndex ? theme.accent : theme.textMuted }}"></div>
+           style="background-color: {{ $idx === currentIndex ? theme.accent : 'transparent' }}; border-color: {{ $idx === currentIndex ? theme.accent : theme.textMuted }}">
+        <text class="indicator-num"
+              style="color: {{ $idx === currentIndex ? theme.bg : ($item.courseCount > 0 ? theme.textSecondary : theme.textMuted) }}">{{ $item.courseCount }}</text>
+      </div>
       <text class="name" style="color: {{ $idx === currentIndex ? theme.accent : theme.text }}; font-weight: {{ $idx === currentIndex ? 'bold' : 'normal' }}">{{ $item.name }}</text>
     </div>
 
@@ -176,12 +186,41 @@ export default {
     var self = this
     store.getScheduleNames(function(names) {
       console.log("[loadData] names=" + JSON.stringify(names) + " count=" + names.length)
+      var n = names.length
       var list = []
-      for (var i = 0; i < names.length; i++) {
+      for (var i = 0; i < n; i++) {
         list.push({ name: names[i], courseCount: 0, holidayOn: false })
       }
+      // 先渲染名称（课程数暂为 0），不阻塞首屏
       self.list = list
-      for (var i = 0; i < names.length; i++) {
+      if (n === 0) return
+
+      // 2026-11-03：课程数进入列表行后必须真正刷新视图。
+      // ① 直接 `self.list[idx].courseCount = count` 只改对象属性，Vela 数据绑定
+      //    不监听数组元素的深层赋值 → 圆徽章永远 0。
+      // ② 也不能「就地改 draft 再 self.list = draft.slice()」：slice 是浅拷贝，
+      //    新旧数组共用同一批对象引用，Vela 做值对比时两边读到的是同一个已被改过的
+      //    对象，相等 → 判定「无变化」→ 不重绘（实测仍是 0）。
+      // 所以必须**每次重建全新的行对象**再整体赋值，让新旧数据在值层面真的不同。
+      var pending = n * 2
+      var draft = []
+      for (var k = 0; k < n; k++) {
+        draft.push({ name: names[k], courseCount: 0, holidayOn: false })
+      }
+      var flush = function() {
+        pending--
+        if (pending > 0) return
+        var out = []
+        for (var m = 0; m < draft.length; m++) {
+          out.push({
+            name: draft[m].name,
+            courseCount: draft[m].courseCount,
+            holidayOn: draft[m].holidayOn
+          })
+        }
+        self.list = out
+      }
+      for (var j = 0; j < n; j++) {
         (function(idx) {
           database.getAllCoursesWithIndex(idx, function(schedule) {
             var count = 0
@@ -190,12 +229,14 @@ export default {
                 count += (schedule[d].classes || []).length
               }
             }
-            self.list[idx].courseCount = count
+            draft[idx].courseCount = count
+            flush()
           })
           store.getHolidayReminderEnabled(idx, function(on) {
-            self.list[idx].holidayOn = on
+            draft[idx].holidayOn = on
+            flush()
           })
-        })(i)
+        })(j)
       }
     })
     store.getCurrentScheduleIndex(function(idx) {
@@ -754,6 +795,19 @@ export default {
   border-style: solid;
   flex-shrink: 0;
   margin-right: 12px;
+  /* 2026-11-03：由「空心圆环」改为「计数徽章」，需居中承载数字 */
+  justify-content: center;
+  align-items: center;
+}
+
+/* 徽章里的课程数。宽度账（圆 32 − 边框 2×2 = 内径 28）：
+   20px 字号下数字实宽 ≈ 0.63em = 12.6px，2 位 = 25.2 ≤ 28 放得下；
+   3 位（≥100 门课）会溢出 —— 单课表不可能有那么多课，不为此缩字号。
+   圆形表盘分支把圆收到 28（内径 24），那里数字降到 18（2 位 22.7 ≤ 24）。 */
+.indicator-num {
+  font-size: 20px;
+  line-height: 24px;
+  text-align: center;
 }
 
 .name {
@@ -1118,6 +1172,11 @@ export default {
     width: 28px;
     height: 28px;
     border-radius: 14px;
+  }
+  /* 圆形表盘圆收到 28 → 内径 24，20px 的 2 位数字（25.2）会溢出，降到 18px（22.7） */
+  .indicator-num {
+    font-size: 18px;
+    line-height: 22px;
   }
   .rename-display {
     font-size: 20px;
