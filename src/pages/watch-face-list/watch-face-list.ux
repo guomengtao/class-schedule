@@ -24,7 +24,7 @@
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openWatchFaceRandom">
-        <text class="item-label" style="color: {{ theme.text }}">无框机械表盘</text>
+        <text class="item-label" style="color: {{ theme.text }}">计时码表</text>
       </div>
       <div class="row-divider" style="background-color: {{ theme.border }}"></div>
       <div class="item-row" onclick="openWatchFaceClass">
