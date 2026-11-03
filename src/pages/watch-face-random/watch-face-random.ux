@@ -1,73 +1,51 @@
 <template>
   <!--
-    无框机械表盘 · 由「随机表盘」重写（方案：docs/无框机械表盘-方案.md）
-    与圆表/方表的区别：
-      ① 无框：不画表壳/表圈/表耳/盘面轮廓线。整个屏幕即盘面（底色 #17191d + 6 条纵向拉丝带），
-         盘的「边」只由印刷分钟轨（48 根分钟刻度）+ 整点时标暗示。
-      ② 12 时位按屏幕比例分配：运行时 device.getInfo 取真实宽高，椭圆
-         a=min(0.44W, 0.42H)、b=min(0.42H, 1.35a)，长短比跟随屏幕比例（方形屏收敛为正圆）。
-      ③ 三针/时标朝向全部走 120 档字面量 .rN = rotate(180+3N)，无任何动态 transform、无嵌套旋转。
-      ④ 交互：点空白返回、右下「轻触返回」。原随机跳字与换色面板取消。
+    计时码表圆盘 · 复刻参考图（方案：docs/WatchFace-复刻计时码表Pro-方案.md）
+    叠层结构（由下至上）：
+      ① 表壳：黑壳圆 → 盘沿浅灰细线 → 米白盘面（三层同轴圆，靠 DOM 顺序叠压）
+      ② 刻度：12 根灰矩形，3/6/9/12 位加长加粗（旧款 60 根分钟轨 / 阿拉伯数字 / 夜光点 / 铭文已移除）
+      ③ 双凹陷小表盘：左上 / 右上，各含 12 根白刻度 + 指示小针 + 100/25/50/75（盘径过小时不画数字）
+      ④ 日期：OCTOBER 灰字 + 白底黑框数字
+      ⑤ 三针：纯黑，秒针带配重尾；朝向全走 120 档字面量 .rN = rotate(180+3N)，无动态 transform
+    几何：运行时 device.getInfo 取真实宽高。圆心恒为屏幕几何中心；屏比 ≤1.15（方屏/圆屏）
+          盘径取短边 86% 留边，屏比 >1.15（长条屏）盘径取屏宽 94%、上下留信息区。
   -->
   <div class="page">
-    <!-- 表圈（黑粗圈）+ 盘面（米白）：复刻「计时码表 Pro」的骨架 -->
+    <!-- 表壳三层：黑圈 → 盘边浅灰细线 → 米白盘面（参考图的黑壳 + 盘沿描边） -->
     <div class="bezel" style="left:{{bezL}}px;top:{{bezT}}px;width:{{bezD}}px;height:{{bezD}}px;border-radius:{{bezR}}px"></div>
+    <div class="cring" style="left:{{rgL}}px;top:{{rgT}}px;width:{{rgD}}px;height:{{rgD}}px;border-radius:{{rgR}}px"></div>
     <div class="dial" style="left:{{dpL}}px;top:{{dpT}}px;width:{{dpD}}px;height:{{dpD}}px;border-radius:{{dpR}}px"></div>
 
-    <!-- 纵向拉丝 ×6（百分比定位，静态） -->
-    <div class="band b1"></div>
-    <div class="band b2"></div>
-    <div class="band b3"></div>
-    <div class="band b4"></div>
-    <div class="band b5"></div>
-    <div class="band b6"></div>
+    <!-- 主刻度 ×12：灰矩形，3/6/9/12 位加长加粗（内联尺寸，角度走 rN 档） -->
+    <div class="tick {{$item.c}}" for="{{tk}}" style="left:{{$item.x}}px;top:{{$item.y}}px;width:{{$item.w}}px;height:{{$item.h}}px"></div>
 
-    <!-- 印刷分钟轨：48 根分钟刻度（每 5 分位置让给整点时标） -->
-    <div class="mt {{$item.c}} {{mtCls}}" for="{{mt}}" style="left:{{$item.x}}px;top:{{$item.y}}px"></div>
+    <!-- 双凹陷小表盘：浅灰外缘圈 + 深灰盘面（左上 / 右上） -->
+    <div class="sub-edge" for="{{se}}" style="left:{{$item.x}}px;top:{{$item.y}}px;width:{{$item.d}}px;height:{{$item.d}}px;border-radius:{{$item.r}}px"></div>
+    <div class="sub-face" for="{{sf}}" style="left:{{$item.x}}px;top:{{$item.y}}px;width:{{$item.d}}px;height:{{$item.d}}px;border-radius:{{$item.r}}px"></div>
 
-    <!-- 整点时标 ×12：金属条，外端贴椭圆轨 -->
-    <div class="hm {{$item.c}} {{hmCls}}" for="{{hm}}" style="left:{{$item.x}}px;top:{{$item.y}}px"></div>
+    <!-- 小表盘内刻度 ×12 + 指示小针 -->
+    <div class="sub-tick {{$item.c}}" for="{{st}}" style="left:{{$item.x}}px;top:{{$item.y}}px;width:{{$item.w}}px;height:{{$item.h}}px"></div>
 
-    <!-- 夜光点 ×11（3 点让位日期窗） -->
-    <div class="lume {{lmCls}}" for="{{lm}}" style="left:{{$item.x}}px;top:{{$item.y}}px"></div>
+    <!-- 小表盘数字 100 / 25 / 50 / 75（盘径过小时由 build 决定不生成） -->
+    <text class="sub-num" for="{{sn}}" style="left:{{$item.x}}px;top:{{$item.y}}px;width:{{$item.w}}px;height:{{$item.h}}px;font-size:{{$item.fs}}px">{{$item.t}}</text>
 
-    <!-- 阿拉伯数字 ×11 -->
-    <text class="num {{$item.big}} {{numCls}}" for="{{nms}}" style="left:{{$item.x}}px;top:{{$item.y}}px">{{$item.t}}</text>
+    <!-- 日期：OCTOBER 小字 + 白底黑框数字 -->
+    <text class="mon" style="left:{{moL}}px;top:{{moT}}px;width:{{moW}}px;height:{{moH}}px;font-size:{{moFs}}px">OCTOBER</text>
+    <div class="datebox" style="left:{{dbL}}px;top:{{dbT}}px;width:{{dbW}}px;height:{{dbH}}px;border:{{dbBw}}px solid #26241f"></div>
+    <text class="dtext" style="left:{{dbL}}px;top:{{dbT}}px;width:{{dbW}}px;height:{{dbH}}px;font-size:{{dbFs}}px">{{dayText}}</text>
 
-    <!-- 日期窗凹槽：框上缘亮线 + 窗内上缘暗线 + 天数 -->
-    <div class="dw {{dwCls}}" style="left:{{dwx}}px;top:{{dwy}}px">
-      <div class="dw-hi {{dwHiCls}}"></div>
-      <div class="dw-sh {{dwShCls}}"></div>
-      <text class="dw-num {{dwNumCls}}">{{dayText}}</text>
-    </div>
-
-    <!-- 印刷铭文 -->
-    <text class="brand {{brandCls}}" style="left:{{brL}}px;top:{{brT}}px">EV</text>
-    <text class="mark2 {{markCls}}" style="left:{{brL2}}px;top:{{brT2}}px">AUTOMATIC</text>
-    <text class="mark2 {{markCls}}" style="left:{{jwL}}px;top:{{jwT}}px">36 JEWELS</text>
-    <text class="dateline {{dlCls}}" style="left:{{dlL}}px;top:{{dlT}}px">{{dateText}}</text>
-
-    <!-- 三针：暗影（右下偏 1px）+ 主针 + 左缘高光，共用同一档位 class；秒针另配重尾（+60 档） -->
-    <div class="hand hour-sh {{hourCls}}" style="left:{{hxs}}px;top:{{hys}}px;width:{{hw}}px;height:{{hh}}px"></div>
+    <!-- 三针：纯黑（参考图为黑针，白盘上不需要阴影层）。顶部中点压在盘心，向下延伸 -->
     <div class="hand hour {{hourCls}}" style="left:{{hx}}px;top:{{hy}}px;width:{{hw}}px;height:{{hh}}px"></div>
-    <div class="hand-hl hour-hl {{hourCls}}" style="left:{{hxl}}px;top:{{hy}}px;width:{{hwL}}px;height:{{hh}}px"></div>
-
-    <div class="hand minute-sh {{minuteCls}}" style="left:{{mxs}}px;top:{{mys}}px;width:{{mw}}px;height:{{mh}}px"></div>
     <div class="hand minute {{minuteCls}}" style="left:{{mx}}px;top:{{my}}px;width:{{mw}}px;height:{{mh}}px"></div>
-    <div class="hand-hl minute-hl {{minuteCls}}" style="left:{{mxl}}px;top:{{my}}px;width:{{mwL}}px;height:{{mh}}px"></div>
-
     <div class="hand second {{secondCls}}" style="left:{{sx}}px;top:{{sy}}px;width:{{sw}}px;height:{{sh}}px"></div>
     <div class="hand sec-tail {{secTailCls}}" style="left:{{tx}}px;top:{{sy}}px;width:{{tw}}px;height:{{sth}}px"></div>
 
-    <!-- 中轴三层 -->
-    <div class="hub {{hubCls}}" style="left:{{hbx}}px;top:{{hby}}px">
-      <div class="hub-base {{hubBaseCls}}"></div>
-      <div class="hub-ring {{hubRingCls}}"></div>
-      <div class="hub-dot {{hubDotCls}}"></div>
-    </div>
+    <!-- 中轴：米白圆帽 + 灰环 -->
+    <div class="hub" style="left:{{hbx}}px;top:{{hby}}px;width:{{hbd}}px;height:{{hbd}}px;border-radius:{{hbr}}px"></div>
 
-    <!-- 返回 -->
-    <text class="back {{backCls}}" style="top:{{backT}}px" onclick="onBack">轻触返回</text>
+    <!-- 盘下日期行 + 返回 -->
+    <text class="dateline" style="left:{{dlL}}px;top:{{dlT}}px;width:{{dlW}}px;font-size:{{dlFs}}px">{{dateText}}</text>
+    <text class="back" style="left:{{bkL}}px;top:{{backT}}px;font-size:{{bkFs}}px" onclick="onBack">轻触返回</text>
   </div>
 </template>
 
@@ -103,61 +81,58 @@ export default {
     hm: [],
     lm: [],
     nms: [],
-    dwx: 150,
-    dwy: 237,
-    brL: 66,
-    brT: 103,
-    brL2: 56,
-    brT2: 118,
-    jwL: 56,
-    jwT: 367,
-    dlL: 51,
-    dlT: 381,
+    /* 表壳内圈浅灰细线 */
+    rgL: 12,
+    rgT: 161,
+    rgD: 168,
+    rgR: 84,
+    /* 复刻版元素数组：主刻度 / 小表盘外缘 / 盘面 / 内刻度+小针 / 数字 */
+    tk: [],
+    se: [],
+    sf: [],
+    st: [],
+    sn: [],
+    /* 日期：OCTOBER + 白底黑框 */
+    moL: 12,
+    moT: 269,
+    moW: 168,
+    moH: 12,
+    moFs: 9,
+    dbL: 66,
+    dbT: 290,
+    dbW: 60,
+    dbH: 21,
+    dbBw: 1,
+    dbFs: 14,
+    /* 盘下日期行 / 返回 */
+    dlL: 6,
+    dlT: 341,
+    dlW: 180,
+    dlFs: 16,
+    bkL: 8,
     backT: 460,
+    bkFs: 14,
     hx: 93,
-    hxs: 94,
-    hxl: 94,
     hy: 245,
-    hys: 246,
-    hh: 41,
+    hh: 36,
     mx: 94,
-    mxs: 95,
-    mxl: 95,
     my: 245,
-    mys: 246,
-    mh: 71,
+    mh: 56,
     sx: 95.5,
     sy: 245,
-    sh: 77,
+    sh: 69,
     tx: 95,
-    sth: 20,
-    hbx: 93.5,
-    hby: 242.5,
+    sth: 13,
+    hbx: 91.5,
+    hby: 240.5,
+    hbd: 9,
+    hbr: 4.5,
     hourCls: "r0",
     minuteCls: "r0",
     secondCls: "r0",
     secTailCls: "r60",
-    /* 宽屏尺寸档（192 时为空 / 基线值，336 时由 build 赋值） */
-    mtCls: "",
-    hmCls: "",
-    lmCls: "",
-    numCls: "",
-    dwCls: "",
-    dwHiCls: "",
-    dwShCls: "",
-    dwNumCls: "",
-    brandCls: "",
-    markCls: "",
-    dlCls: "",
-    backCls: "",
-    hubCls: "",
-    hubBaseCls: "",
-    hubRingCls: "",
-    hubDotCls: "",
-    hw: 6,
-    hwL: 1,
-    mw: 4,
-    mwL: 1,
+    hw: 4,
+    mw: 2,
     sw: 1,
     tw: 2,
     dateText: "",
@@ -235,105 +210,134 @@ export default {
     this.dpR = r1(a)
     this.dpL = r1(cx - a)
     this.dpT = r1(cy - a)
-    var DLW = 180    // 日期行宽：与 CSS 的 .dateline 一致，24px 下 "周一 10-26" 约 110px
+    var tk = []
+    var se = []
+    var sf = []
+    var st = []
+    var sn = []
+    var i, k, th, tw, tl, ro, big, th2, tr, nr, nw, nh, sxc, rs, scy, edgeW, nss
 
-    var mt = []
-    var hm = []
-    var lm = []
-    var nms = []
-    var i, th, x, y, lx, ly, nx, ny
-
-    // 分钟刻度：每分一根（跳过整点），外端贴 (a,b)
-    for (i = 0; i < 60; i++) {
-      if (i % 5 === 0) continue
-      th = (i * 6) * Math.PI / 180
-      x = cx + a * Math.sin(th)
-      y = cy - b * Math.cos(th)
-      mt.push({ x: r1(x - 0.5 * S), y: r1(y), c: "r" + (i * 2) })
-    }
-
-    // 整点时标 + 夜光点 + 阿拉伯数字（3 点让位日期窗）
+    // ── 主刻度 ×12：外端 0.90a 向内延伸；3/6/9/12 位加长加粗 ──
     for (i = 0; i < 12; i++) {
+      big = i % 3 === 0
       th = (i * 30) * Math.PI / 180
-      x = cx + a * Math.sin(th)
-      y = cy - b * Math.cos(th)
-      hm.push({ x: r1(x - 1 * S), y: r1(y), c: "r" + (i * 10) })
-      if (i === 3) continue
-      lx = cx + (a - 12 * S) * Math.sin(th)
-      ly = cy - (b - 12 * S) * Math.cos(th)
-      lm.push({ x: r1(lx - 1 * S), y: r1(ly - 1 * S) })
-      nx = cx + 0.7 * a * Math.sin(th)
-      ny = cy - 0.7 * b * Math.cos(th)
-      nms.push({
-        x: r1(nx - 8 * S),
-        y: r1(ny - 6 * S),
-        t: i === 0 ? "12" : "" + i,
-        big: i % 3 === 0 ? (wide ? "num-big w-numbig" : "num-big") : ""
+      ro = 0.90 * a
+      tl = (big ? 0.155 : 0.115) * a
+      tw = (big ? 0.034 : 0.024) * a
+      tk.push({
+        x: r1(cx + ro * Math.sin(th) - tw / 2),
+        y: r1(cy - ro * Math.cos(th)),
+        w: r1(tw),
+        h: r1(tl),
+        c: "r" + (i * 10) + (big ? " k-long" : "")
       })
     }
 
-    this.mt = mt
-    this.hm = hm
-    this.lm = lm
-    this.nms = nms
+    // ── 双凹陷小表盘（左上 / 右上）：外缘圈 + 深灰盘 + 内刻度 + 指示小针 ──
+    rs = 0.30 * a
+    scy = cy - 0.40 * a
+    edgeW = 0.014 * a
+    for (k = 0; k < 2; k++) {
+      sxc = cx + (k === 0 ? -0.36 : 0.36) * a
+      se.push({
+        x: r1(sxc - rs - edgeW), y: r1(scy - rs - edgeW),
+        d: r1(2 * (rs + edgeW)), r: r1(rs + edgeW)
+      })
+      sf.push({ x: r1(sxc - rs), y: r1(scy - rs), d: r1(2 * rs), r: r1(rs) })
+      // 内刻度 ×12：起点 0.62rs，朝外
+      for (i = 0; i < 12; i++) {
+        th2 = (i * 30) * Math.PI / 180
+        tr = 0.62 * rs
+        tw = Math.max(1, 0.045 * rs)
+        tl = Math.max(1, 0.26 * rs)
+        st.push({
+          x: r1(sxc + tr * Math.sin(th2) - tw / 2),
+          y: r1(scy - tr * Math.cos(th2)),
+          w: r1(tw), h: r1(tl),
+          c: "r" + (i * 10)
+        })
+      }
+      // 指示小针：左盘朝上（指向 100），右盘朝右（指向 25）
+      st.push({
+        x: r1(sxc - 1), y: r1(scy),
+        w: Math.max(1, r1(0.055 * rs)), h: r1(0.66 * rs),
+        c: stepClass(k === 0 ? 0 : 90)
+      })
+      // 数字 100 / 25 / 50 / 75：仅盘径足够时生成（192 上 rs≈25，字会糊成一团）
+      if (rs >= 40) {
+        nss = ["100", "25", "50", "75"]
+        for (i = 0; i < 4; i++) {
+          th2 = (i * 90) * Math.PI / 180
+          nr = 0.74 * rs
+          nw = 0.52 * rs
+          nh = 0.26 * rs
+          sn.push({
+            x: r1(sxc + nr * Math.sin(th2) - nw / 2),
+            y: r1(scy - nr * Math.cos(th2) - nh / 2),
+            w: r1(nw), h: r1(nh), t: nss[i],
+            fs: Math.max(7, Math.round(0.20 * rs))
+          })
+        }
+      }
+    }
 
-    // 日期窗（3 点位内侧）+ 铭文 + 底部信息
-    this.dwx = r1(cx + 0.66 * a - 11 * S)
-    this.dwy = r1(cy - 8 * S)
-    this.brL = r1(cx - 30 * S)
-    this.brT = wide ? 2 : r1(cy - b - 28)
-    this.brL2 = r1(cx - 40 * S)
-    this.brT2 = wide ? 32 : r1(cy - b - 13)
-    this.jwL = r1(cx - 40 * S)
-    this.jwT = wide ? 392 : r1(cy + b + 8)
-    this.dlL = r1(cx - DLW / 2)
-    this.dlT = wide ? 414 : r1(cy + b + 22)
-    this.backT = wide ? 446 : r1(H - 30)
+    this.tk = tk
+    this.se = se
+    this.sf = sf
+    this.st = st
+    this.sn = sn
 
-    // 三针：顶部中点压在盘心 (cx,cy)，向下延伸（配合 180° 档指向上）
-    this.hx = r1(cx - 3 * S)
-    this.hxs = r1(cx - 2 * S)
-    this.hxl = r1(cx - 2 * S)
-    this.mx = r1(cx - 2 * S)
-    this.mxs = r1(cx - 1 * S)
-    this.mxl = r1(cx - 1 * S)
+    // ── 表壳内圈浅灰细线（盘沿描边）──
+    var ringW = Math.max(2, Math.round(0.012 * a))
+    this.rgD = r1(2 * a + 2 * ringW)
+    this.rgR = r1(a + ringW)
+    this.rgL = r1(cx - a - ringW)
+    this.rgT = r1(cy - a - ringW)
+
+    // ── 日期：OCTOBER 小字 + 白底黑框数字（参考图形式）──
+    this.moFs = Math.max(9, Math.round(0.098 * a))
+    this.moW = r1(0.72 * a)
+    this.moL = r1(cx - this.moW / 2)
+    this.moH = Math.round(this.moFs * 1.4)
+    this.moT = r1(cy + 0.28 * a)
+    this.dbW = r1(0.36 * a)
+    this.dbH = r1(0.26 * a)
+    this.dbL = r1(cx - this.dbW / 2)
+    this.dbT = r1(cy + 0.50 * a)
+    this.dbBw = a > 120 ? 2 : 1
+    this.dbFs = Math.max(13, Math.round(0.17 * a))
+
+    // ── 盘下日期行 + 返回（方屏：日期居中、返回右下；长条屏：日期居中、返回左下）──
+    this.dlW = r1(W * 0.9)
+    this.dlL = r1(cx - this.dlW / 2)
+    this.dlFs = wide ? 16 : 15
+    this.dlT = r1(cy + Rout + 6)
+    this.bkL = wide ? r1(W - 86) : 8
+    this.bkFs = wide ? 14 : 14
+    this.backT = r1(H - 26)
+
+    // ── 三针：黑针，顶部中点压在盘心 (cx,cy)，向下延伸（配合 180° 档指向上）──
+    this.hh = Math.round(0.44 * a)
+    this.mh = Math.round(0.68 * a)
+    this.sh = Math.round(0.84 * a)
+    this.sth = Math.round(0.16 * a)
+    this.hw = Math.max(3, Math.round(0.048 * a))
+    this.mw = Math.max(2, Math.round(0.030 * a))
+    this.sw = Math.max(1, Math.round(0.010 * a))
+    this.tw = this.sw
+    this.hx = r1(cx - this.hw / 2)
     this.hy = r1(cy)
-    this.hys = r1(cy + 1 * S)
+    this.mx = r1(cx - this.mw / 2)
     this.my = r1(cy)
-    this.mys = r1(cy + 1 * S)
-    this.hh = Math.round(0.42 * L0)
-    this.mh = Math.round(0.72 * L0)
-    this.sx = r1(cx - 0.5 * S)
+    this.sx = r1(cx - this.sw / 2)
     this.sy = r1(cy)
-    this.sh = Math.round(0.78 * L0)
-    this.tx = r1(cx - 1 * S)
-    this.sth = Math.round(0.2 * L0)
-    this.hbx = r1(cx - 2.5 * S)
-    this.hby = r1(cy - 2.5 * S)
+    this.tx = r1(cx - this.tw / 2)
 
-    // 针宽与尺寸档（内联 width 优先级高于 class，必须走绑定）
-    this.hw = wide ? 10 : 6
-    this.hwL = wide ? 2 : 1
-    this.mw = wide ? 7 : 4
-    this.mwL = wide ? 2 : 1
-    this.sw = wide ? 2 : 1
-    this.tw = wide ? 3 : 2
-    this.mtCls = wide ? "w-mt" : ""
-    this.hmCls = wide ? "w-hm" : ""
-    this.lmCls = wide ? "w-lume" : ""
-    this.numCls = wide ? "w-num" : ""
-    this.dwCls = wide ? "w-dw" : ""
-    this.dwHiCls = wide ? "w-dw-hi" : ""
-    this.dwShCls = wide ? "w-dw-sh" : ""
-    this.dwNumCls = wide ? "w-dw-num" : ""
-    this.brandCls = wide ? "w-brand" : ""
-    this.markCls = wide ? "w-mark" : ""
-    this.dlCls = wide ? "w-dl" : ""
-    this.backCls = wide ? "w-back" : ""
-    this.hubCls = wide ? "w-hub" : ""
-    this.hubBaseCls = wide ? "w-hub-base" : ""
-    this.hubRingCls = wide ? "w-hub-ring" : ""
-    this.hubDotCls = wide ? "w-hub-dot" : ""
+    // ── 中轴：米白圆帽（直径随盘径）──
+    this.hbd = Math.max(6, Math.round(0.115 * a))
+    this.hbr = r1(this.hbd / 2)
+    this.hbx = r1(cx - this.hbd / 2)
+    this.hby = r1(cy - this.hbd / 2)
   },
 
   /* ── 时间：1s 心跳；只写变化字段（稳态 1 次/秒重绘，防整页闪）── */
@@ -380,230 +384,88 @@ export default {
   .page {
     width: 100%;
     height: 100%;
-    background-color: #17191d;
+    background-color: #121212;
     position: relative;
   }
 
-  /* ── 纵向拉丝带：极淡横向明暗交替，替代框的「材质存在感」── */
-  .band {
-    position: absolute;
-    left: 0;
-    width: 100%;
-    background-color: #ffffff;
-  }
+  /* ── 表壳三层：黑壳 / 盘沿浅灰细线 / 米白盘面（靠 DOM 顺序叠出壳感）── */
+  .bezel { position: absolute; background-color: #121212; }
+  .cring { position: absolute; background-color: #cfccc2; }
+  .dial { position: absolute; background-color: #f2f0e8; }
 
-  .b1 { top: 0%; height: 17%; opacity: 0.020; }
-  .b2 { top: 16.7%; height: 17%; opacity: 0.008; }
-  .b3 { top: 33.3%; height: 17%; opacity: 0.020; }
-  .b4 { top: 50%; height: 17%; opacity: 0.008; }
-  .b5 { top: 66.7%; height: 17%; opacity: 0.020; }
-  .b6 { top: 83.3%; height: 17%; opacity: 0.008; }
+  /* ── 主刻度 ×12 ── */
+  .tick { position: absolute; background-color: #767268; }
+  .k-long { background-color: #4a4843; }
 
-  /* ── 印刷分钟轨 ── */
-  .mt {
-    position: absolute;
-    width: 1px;
-    height: 4px;
-    background-color: #98a3ad;
-  }
+  /* ── 双凹陷小表盘 ── */
+  .sub-edge { position: absolute; background-color: #8e8b83; }
+  .sub-face { position: absolute; background-color: #3b3a38; }
+  .sub-tick { position: absolute; background-color: #efede4; }
 
-  /* ── 整点时标 ── */
-  .hm {
+  .sub-num {
     position: absolute;
-    width: 2px;
-    height: 11px;
-    background-color: #dde4ea;
-  }
-
-  /* ── 夜光点 ── */
-  .lume {
-    position: absolute;
-    width: 2px;
-    height: 2px;
-    background-color: #aec6bb;
-  }
-
-  /* ── 阿拉伯数字 ── */
-  .num {
-    position: absolute;
-    width: 18px;
-    height: 11px;
-    font-size: 10px;
-    color: #c2ccd5;
+    color: #efede4;
     text-align: center;
   }
 
-  .num-big {
-    height: 16px;
-    font-size: 13px;
-    color: #e6ecf1;
-  }
-
-  /* ── 日期窗凹槽 ── */
-  .dw {
+  /* ── 日期：OCTOBER 灰字 + 白底黑框数字 ── */
+  .mon {
     position: absolute;
-    width: 22px;
-    height: 16px;
-    background-color: #101216;
-    border-radius: 2px;
-  }
-
-  .dw-hi {
-    position: absolute;
-    left: 0;
-    top: -1px;
-    width: 22px;
-    height: 1px;
-    background-color: #4d565f;
-  }
-
-  .dw-sh {
-    position: absolute;
-    left: 1px;
-    top: 1px;
-    width: 20px;
-    height: 1px;
-    background-color: #04050a;
-  }
-
-  .dw-num {
-    width: 22px;
-    height: 16px;
+    color: #6a6760;
     text-align: center;
-    font-size: 11px;
-    color: #d3dae1;
+    letter-spacing: 1px;
   }
 
-  /* ── 铭文 ── */
-  .brand {
+  .datebox {
     position: absolute;
-    width: 60px;
-    font-size: 15px;
+    background-color: #f7f5ee;
+  }
+
+  .dtext {
+    position: absolute;
+    color: #1f1d19;
+    text-align: center;
     font-weight: bold;
-    letter-spacing: 1px;
-    color: #c9d2da;
-    text-align: center;
-  }
-
-  .mark2 {
-    position: absolute;
-    width: 80px;
-    font-size: 7px;
-    letter-spacing: 1px;
-    color: #6f767e;
-    text-align: center;
   }
 
   .dateline {
     position: absolute;
-    width: 180px;
-    font-size: 24px;
-    color: #9aa3ab;
+    color: #6f6c63;
     text-align: center;
   }
 
   .back {
     position: absolute;
-    left: 16px;
-    font-size: 24px;
-    color: #767c84;
+    color: #7d7a71;
   }
 
-  /* ── 三针：顶部中点压在盘心，向下延伸 ── */
+  /* ── 三针：纯黑（白盘用黑针，不需要阴影/高光层）── */
   .hand {
     position: absolute;
   }
 
-  .hand-hl {
-    position: absolute;
-  }
-
   .hour {
-    background-color: #ccd5dd;
-  }
-
-  .hour-sh {
-    background-color: #2a2f36;
-  }
-
-  .hour-hl {
-    background-color: #eef3f7;
+    background-color: #1d1c1a;
   }
 
   .minute {
-    background-color: #d8dfe6;
-  }
-
-  .minute-sh {
-    background-color: #2a2f36;
-  }
-
-  .minute-hl {
-    background-color: #f2f6f9;
+    background-color: #1d1c1a;
   }
 
   .second {
-    background-color: #e8611f;
+    background-color: #1d1c1a;
   }
 
   .sec-tail {
-    background-color: #e8611f;
+    background-color: #1d1c1a;
   }
 
-  /* ── 中轴三层 ── */
+  /* ── 中轴：米白圆帽 + 灰环 ── */
   .hub {
     position: absolute;
-    width: 5px;
-    height: 5px;
+    background-color: #efece2;
+    border: 1px solid #8a8780;
   }
-
-  .hub-base {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 5px;
-    height: 5px;
-    border-radius: 2.5px;
-    background-color: #101216;
-  }
-
-  .hub-ring {
-    position: absolute;
-    left: 1px;
-    top: 1px;
-    width: 3px;
-    height: 3px;
-    border-radius: 1.5px;
-    background-color: #b9c2cb;
-  }
-
-  .hub-dot {
-    position: absolute;
-    left: 2px;
-    top: 2px;
-    width: 1px;
-    height: 1px;
-    background-color: #e6ecf1;
-  }
-
-  /* ── 宽屏尺寸档（336×480，S = 1.75）：盘内元素等比放大，底部文字按可读性另定 ── */
-  .w-mt { width: 2px; height: 7px; }
-  .w-hm { width: 4px; height: 19px; }
-  .w-lume { width: 3px; height: 3px; }
-  .w-num { width: 32px; height: 20px; font-size: 18px; }
-  .w-numbig { height: 28px; font-size: 22px; }
-  .w-dw { width: 38px; height: 28px; border-radius: 4px; }
-  .w-dw-hi { width: 38px; height: 2px; top: -2px; }
-  .w-dw-sh { left: 2px; top: 2px; width: 34px; height: 2px; }
-  .w-dw-num { width: 38px; height: 28px; font-size: 19px; }
-  .w-brand { width: 105px; font-size: 20px; letter-spacing: 2px; }
-  .w-mark { width: 140px; font-size: 10px; letter-spacing: 2px; }
-  .w-dl { width: 180px; font-size: 24px; }
-  .w-back { font-size: 24px; }
-  .w-hub { width: 9px; height: 9px; }
-  .w-hub-base { width: 9px; height: 9px; border-radius: 4.5px; }
-  .w-hub-ring { left: 2px; top: 2px; width: 5px; height: 5px; border-radius: 2.5px; }
-  .w-hub-dot { left: 4px; top: 4px; width: 2px; height: 2px; }
 
   /* ── 120 档字面量旋转：rotate(180 + 3N)，180° 使针由「向下」转为「向上」── */
   .r0 { transform: rotate(180deg); }
@@ -726,21 +588,5 @@ export default {
   .r117 { transform: rotate(531deg); }
   .r118 { transform: rotate(534deg); }
   .r119 { transform: rotate(537deg); }
-  /* ══ 阶段 1：圆盘骨架（复刻计时码表 Pro）══ */
-  .bezel {
-    position: absolute;
-    background-color: #101215;
-  }
-
-  .dial {
-    position: absolute;
-    background-color: #f1eee4;
-  }
-
-  /* 白盘 → 刻度/数字/夜光点改深色（写在文件末尾，按顺序覆盖前面的同名规则） */
-  .mt { background-color: #a8a49a; }
-  .hm { background-color: #4c4a45; }
-  .num { color: #3d3b36; }
-  .num-big { color: #23211d; }
-  .lume { background-color: #b9b3a4; }
+  /* ══ 阶段 2 已并入上方规则区：表壳/盘面/刻度/小表盘/日期/三针 ══ */
 </style>
