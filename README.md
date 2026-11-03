@@ -2,6 +2,11 @@
 
 > 一款专为智能手表设计的课程表管理应用，帮助学生在手腕上轻松查看和管理每日课程。
 
+> ⚠️ **动手改「购买 / 激活 / 二维码 / URL 参数」之前，先读
+> [`docs/开发须知-硬约束.md`](docs/开发须知-硬约束.md)。**
+> 二维码长度已到极限（190/213 字符）、已发布安装包的参数无法修改，
+> 这些约束在代码里看不出来，违反会造成不可逆的数据污染或扫码失败。
+
 [![Version](https://img.shields.io/badge/version-1.4.0-blue)](https://github.com/guomengtao/class-schedule/releases)
 [![Platform](https://img.shields.io/badge/platform-Xiaomi%20Quick%20App-orange)](https://www.quickapp.cn/)
 [![Device](https://img.shields.io/badge/device-watch%20%7C%20band-green)]()
