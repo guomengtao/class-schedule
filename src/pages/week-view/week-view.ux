@@ -1377,6 +1377,13 @@ export default {
   .wv-grid-scroll {
     padding: 0;
   }
+  /* 胶囊屏左右是圆弧：R=96 时 y=48 处可视区左缘内收约 13px，内容贴边会被弧吃掉半列
+     （2026-11-03 实测：顶距收到 8 后日行上移进弧区，「一」只剩右半条）。
+     安全边加在滚动内容上而非 page 上 —— 这样横向滚到任何位置，左右缘都不压字，
+     且 gridContentWidth 的滚动宽度语义不变。12 = 13px 弧内收向上取整的整数边。 */
+  .wv-scroll-inner {
+    padding: 0 12px;
+  }
   .wv-tpl {
     height: 48px;
     padding: 0 8px;
