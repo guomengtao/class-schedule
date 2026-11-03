@@ -10,6 +10,10 @@
       ④ 交互：点空白返回、右下「轻触返回」。原随机跳字与换色面板取消。
   -->
   <div class="page">
+    <!-- 表圈（黑粗圈）+ 盘面（米白）：复刻「计时码表 Pro」的骨架 -->
+    <div class="bezel" style="left:{{bezL}}px;top:{{bezT}}px;width:{{bezD}}px;height:{{bezD}}px"></div>
+    <div class="dial" style="left:{{dpL}}px;top:{{dpT}}px;width:{{dpD}}px;height:{{dpD}}px"></div>
+
     <!-- 纵向拉丝 ×6（百分比定位，静态） -->
     <div class="band b1"></div>
     <div class="band b2"></div>
@@ -86,6 +90,13 @@ function r1(v) {
 
 export default {
   data: {
+    /* 表圈 / 盘面（复刻计时码表 Pro）：默认值按 192×490 预算，build() 里按真实屏幕重算 */
+    bezL: 6,
+    bezT: 36,
+    bezD: 180,
+    dpL: 13,
+    dpT: 43,
+    dpD: 166,
     mt: [],
     hm: [],
     lm: [],
@@ -196,17 +207,28 @@ export default {
     }
     var wide = W > 300
     var S = wide ? 1.75 : 1
+    // ── 圆盘几何（阶段 1 · 复刻计时码表 Pro）──
+    // 方屏/圆屏（H/W ≤ 1.15）→ 1:1 正圆居中；长条屏 → 盘径取屏宽 94%，圆心下移让出顶栏
     var cx = W / 2
-    var a = Math.min(0.44 * W, 0.42 * H)
-    var b, cy
-    if (wide) {
-      b = 172
-      cy = 46 + b
-    } else {
-      b = Math.min(0.42 * H, 1.35 * a)
+    var ratio = H / W
+    var Rout, cy
+    if (ratio <= 1.15) {
+      Rout = Math.min(W, H) * 0.47
       cy = H / 2
+    } else {
+      Rout = W * 0.47
+      cy = 36 + Rout
     }
-    var L0 = Math.sqrt(a * b)
+    var bezelW = Math.round(Rout * 0.08)
+    var a = Rout - bezelW
+    var b = a
+    var L0 = a
+    this.bezD = r1(2 * Rout)
+    this.bezL = r1(cx - Rout)
+    this.bezT = r1(cy - Rout)
+    this.dpD = r1(2 * a)
+    this.dpL = r1(cx - a)
+    this.dpT = r1(cy - a)
     var DLW = 180    // 日期行宽：与 CSS 的 .dateline 一致，24px 下 "周一 10-26" 约 110px
 
     var mt = []
@@ -698,4 +720,23 @@ export default {
   .r117 { transform: rotate(531deg); }
   .r118 { transform: rotate(534deg); }
   .r119 { transform: rotate(537deg); }
+  /* ══ 阶段 1：圆盘骨架（复刻计时码表 Pro）══ */
+  .bezel {
+    position: absolute;
+    border-radius: 50%;
+    background-color: #101215;
+  }
+
+  .dial {
+    position: absolute;
+    border-radius: 50%;
+    background-color: #f1eee4;
+  }
+
+  /* 白盘 → 刻度/数字/夜光点改深色（写在文件末尾，按顺序覆盖前面的同名规则） */
+  .mt { background-color: #a8a49a; }
+  .hm { background-color: #4c4a45; }
+  .num { color: #3d3b36; }
+  .num-big { color: #23211d; }
+  .lume { background-color: #b9b3a4; }
 </style>
