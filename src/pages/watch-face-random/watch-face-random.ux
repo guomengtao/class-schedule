@@ -11,8 +11,8 @@
   -->
   <div class="page">
     <!-- 表圈（黑粗圈）+ 盘面（米白）：复刻「计时码表 Pro」的骨架 -->
-    <div class="bezel" style="left:{{bezL}}px;top:{{bezT}}px;width:{{bezD}}px;height:{{bezD}}px"></div>
-    <div class="dial" style="left:{{dpL}}px;top:{{dpT}}px;width:{{dpD}}px;height:{{dpD}}px"></div>
+    <div class="bezel" style="left:{{bezL}}px;top:{{bezT}}px;width:{{bezD}}px;height:{{bezD}}px;border-radius:{{bezR}}px"></div>
+    <div class="dial" style="left:{{dpL}}px;top:{{dpT}}px;width:{{dpD}}px;height:{{dpD}}px;border-radius:{{dpR}}px"></div>
 
     <!-- 纵向拉丝 ×6（百分比定位，静态） -->
     <div class="band b1"></div>
@@ -94,9 +94,11 @@ export default {
     bezL: 6,
     bezT: 36,
     bezD: 180,
+    bezR: 90,
     dpL: 13,
     dpT: 43,
     dpD: 166,
+    dpR: 83,
     mt: [],
     hm: [],
     lm: [],
@@ -213,20 +215,24 @@ export default {
     var ratio = H / W
     var Rout, cy
     if (ratio <= 1.15) {
-      Rout = Math.min(W, H) * 0.47
+      // 方屏/圆屏：盘径取短边 86%，四周留 7% 边距（0.47 会顶到屏幕边、裁掉顶部铭文）
+      Rout = Math.min(W, H) * 0.43
       cy = H / 2
     } else {
+      // 长条屏：盘径取屏宽 94%，圆心上下居中（顶栏/底栏由后续信息区填充）
       Rout = W * 0.47
-      cy = 36 + Rout
+      cy = H / 2
     }
     var bezelW = Math.round(Rout * 0.08)
     var a = Rout - bezelW
     var b = a
     var L0 = a
     this.bezD = r1(2 * Rout)
+    this.bezR = r1(Rout)
     this.bezL = r1(cx - Rout)
     this.bezT = r1(cy - Rout)
     this.dpD = r1(2 * a)
+    this.dpR = r1(a)
     this.dpL = r1(cx - a)
     this.dpT = r1(cy - a)
     var DLW = 180    // 日期行宽：与 CSS 的 .dateline 一致，24px 下 "周一 10-26" 约 110px
@@ -723,13 +729,11 @@ export default {
   /* ══ 阶段 1：圆盘骨架（复刻计时码表 Pro）══ */
   .bezel {
     position: absolute;
-    border-radius: 50%;
     background-color: #101215;
   }
 
   .dial {
     position: absolute;
-    border-radius: 50%;
     background-color: #f1eee4;
   }
 
