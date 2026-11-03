@@ -1,17 +1,46 @@
-<import name="unlock-dialog" src="../../components/unlock-dialog"></import>
-
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <div class="header">
-      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+    <!-- 弹层显示时用 block 把整页内容摘掉，而不是叠一层 absolute 覆盖：
+         absolute 版视觉正常但在模拟器上收不到点击（命中框不跟定位走），
+         整屏替换没有定位与命中不一致的问题，真机同样稳。 -->
+    <!-- 页头（2026-11-02 迁移）：与设置页同一套 .hdr 胶囊，「‹ 备份」整体可点返回。
+         本地 .header / .back-btn-* / .header-title / .header-placeholder 五条已删，
+         连同两处 width 媒体查询里的同名覆盖一并清掉，避免新旧两套类名互相打架。 -->
+    <!-- 2026-11-02 底部结构：页头/标题固定，列表独立滚动，底栏（按钮 + 版本号）固定。
+         高度用的是固定像素而不是 flex:1 —— 实测本机 Vela 里 scroll 只吃显式 px 高度，
+         给 flex:1 会退化成「内容高」：不裁剪、不滚、直接压到底栏上。
+         192×490：490 − 页头 44 − 标题 46 − 底栏 84 ≈ 316。 -->
+    <!-- 2026-11-02 修「弹窗被压缩」：.list-scroll / .sheet-screen / .upgrade-screen 都是 .page
+         的直接子元素且都写了 flex:1 —— 同级平分剩余高度，弹层只拿到「列表那一半」，
+         于是卡片落在列表区域的正中（也就是底栏上方），而不是屏幕正中。
+         这里在弹层打开时把四段常规内容整体摘出渲染树（if 为假时确实不参与 flex 分配），
+         弹层独子 flex:1 才是整页高，justify-content:center 才等于屏幕居中。
+         注意：不加外层 wrapper —— 多套一层 div 会让内部 scroll 再次丢掉高度约束。 -->
+    <!-- 2026-11-02 二次改版：底部固定栏废弃，动作按钮上移到页头下方。
+         原因是实测两条硬证据（不是审美偏好）：
+         ① 点 (96,448) 的「添加新备份」连续两次完全没有反应，而同一帧点顶部返回胶囊
+            立即生效 —— 胶囊屏底部那片是边界/手势死区，点击到不了页面；
+         ② 底部圆弧把按钮和版本号压在该区域里，字被弧线盖掉一部分。
+         放顶部一次解决两件事：满宽 160 的按钮在 y≈52 的弧内宽度内，且顶部已验证可点。 -->
+    <div class="hdr" if="{{ !showSheet && !showUpgrade }}">
+      <div class="hdr-pill" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="hdr-pill-ic" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <text class="hdr-pill-t" style="color: {{ theme.text }}">备份</text>
       </div>
-      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">备份</text>
-      <div class="header-placeholder"></div>
     </div>
 
-    <text class="section-title" style="color: {{ theme.textSecondary }}">已有备份</text>
+    <div class="act-row" if="{{ !showSheet && !showUpgrade }}">
+      <div class="btn-add" onclick="createBackup" style="background-color: {{ theme.accent }}">
+        <text class="btn-add-text" style="color: {{ theme.text }}">添加新备份</text>
+      </div>
+    </div>
 
+    <div class="list-head" if="{{ !showSheet && !showUpgrade }}">
+      <text class="section-title" style="color: {{ theme.textSecondary }}">已有备份</text>
+      <text class="ver-text" style="color: {{ theme.textMuted }}">v{{ versionText }}</text>
+    </div>
+
+    <scroll class="list-scroll" if="{{ !showSheet && !showUpgrade }}" scroll-y="{{true}}">
     <div class="empty-msg" if="{{ backupList.length === 0 }}">
       <text class="empty-text" style="color: {{ theme.textMuted }}">暂无备份</text>
     </div>
@@ -30,32 +59,55 @@
         </div>
       </div>
     </div>
+    </scroll>
 
-    <div class="add-bottom">
-      <div class="btn-add" onclick="createBackup" style="background-color: {{ theme.accent }}">
-        <text class="btn-add-text" style="color: {{ theme.text }}">添加新备份</text>
-      </div>
-    </div>
-
-    <text class="result-msg" if="{{ resultMessage }}" style="color: {{ resultSuccess ? theme.accent : theme.deleteText }}">{{ resultMessage }}</text>
-
-    <div class="overlay-modal" if="{{ showDialog }}" onclick="dismissDialog"
-         style="position: absolute; left: 0; top: 0; width: 100%; height: 100%">
-      <div class="dialog-box" onclick="stopBubble" style="background-color: {{ theme.card }}">
-        <text class="dialog-title" style="color: {{ theme.text }}">{{ dialogType === 'delete' ? '确认删除' : '确认恢复' }}</text>
-        <text class="dialog-desc" style="color: {{ theme.textSecondary }}">{{ dialogType === 'delete' ? '删除 ' + deleteName + ' ？' : '恢复 ' + restoreName + ' ？' }}</text>
-        <div class="dialog-buttons">
-          <div class="dialog-btn dialog-btn-cancel" onclick="dismissDialog" style="background-color: {{ theme.cardLight }}">
-            <text class="dialog-btn-text" style="color: {{ theme.text }}">取消</text>
+    <!-- 确认/进度/结果统一弹层（2026-11-02 重构）。
+         为什么不再用 absolute 覆盖层：那个版本的 `height: 100%` 在长页面里等于整页内容高，
+         `justify-content: center` 就把卡片居中到「内容中点」而不是「屏幕中点」——
+         备份一多，弹窗直接被推到可视区之外，用户在任意位置点「恢复」都看不到。
+         这里改用与解锁引导同构的「整屏替换 + flex:1 居中」：页面内容被 block 摘掉，
+         弹层独占 .page 高度，无论列表多长、用户滚到哪儿，卡片恒在屏幕正中。 -->
+    <div class="sheet-screen" if="{{ showSheet }}">
+      <div class="sheet-card" style="background-color: {{ theme.card }}">
+        <text class="sheet-title" style="color: {{ sheetOk ? theme.accent : theme.deleteText }}">{{ sheetTitle }}</text>
+        <text class="sheet-desc" if="{{ sheetDesc }}" style="color: {{ theme.textSecondary }}">{{ sheetDesc }}</text>
+        <div class="pg-track" if="{{ showProgress }}" style="background-color: {{ theme.cardLight }}">
+          <div class="pg-fill" style="width: {{ progressPct }}%; background-color: {{ sheetOk ? theme.accent : theme.deleteText }}"></div>
+        </div>
+        <text class="sheet-sub" if="{{ statusSub }}" style="color: {{ theme.textSecondary }}">{{ statusSub }}</text>
+        <div class="sheet-actions" if="{{ sheetCancelText || sheetBtnText }}">
+          <div class="sheet-btn sheet-btn-cancel" if="{{ sheetCancelText }}" onclick="dismissSheet" style="background-color: {{ theme.cardLight }}">
+            <text class="sheet-btn-text" style="color: {{ theme.text }}">{{ sheetCancelText }}</text>
           </div>
-          <div class="dialog-btn dialog-btn-delete" onclick="dialogAction" style="background-color: {{ dialogType === 'delete' ? theme.deleteText : theme.accent }}">
-            <text class="dialog-btn-text" style="color: {{ theme.text }}">{{ dialogType === 'delete' ? '删除' : '恢复' }}</text>
+          <div class="sheet-btn sheet-btn-primary" if="{{ sheetBtnText }}" onclick="sheetAction" style="background-color: {{ sheetOk ? theme.accent : theme.deleteText }}">
+            <text class="sheet-btn-text" style="color: {{ theme.text }}">{{ sheetBtnText }}</text>
           </div>
         </div>
       </div>
     </div>
 
-    <unlock-dialog id="unlockDialog"></unlock-dialog>
+    <!-- 升级引导（2026-11-02 改为本页自绘）：原先套 unlock-dialog 组件 + store 单例，
+         实测点击后 store.showUnlockDialog 返回 true（ref 非空）却看不到任何弹窗 ——
+         单例里存的未必是本页实例，可能是页面栈下方某一页注册的，show() 生效在看不到的层。
+         这里复用本页 overlay-modal 的自绘弹层，同步改 showUpgrade 即可，零异步、零共享状态。 -->
+    <div class="upgrade-screen" if="{{ showUpgrade }}" onclick="closeUpgrade">
+      <div class="upgrade-card" onclick="stopBubble" style="background-color: {{ theme.card }}">
+        <text class="upgrade-title" style="color: {{ theme.accent }}">解锁备份</text>
+        <text class="upgrade-desc" style="color: {{ theme.textSecondary }}">备份与恢复是高级版功能</text>
+        <div class="upgrade-benefits">
+          <text class="upgrade-benefit" for="{{ upgradeBenefits }}" style="color: {{ theme.text }}">✓ {{ $item }}</text>
+        </div>
+        <!-- 按钮基础态为纵向堆叠：192 宽屏内两个 5 字按钮横排需 250px，物理放不下 -->
+        <div class="upgrade-actions">
+          <div class="upgrade-btn upgrade-btn-cancel" onclick="closeUpgrade" style="background-color: {{ theme.cardLight }}">
+            <text class="upgrade-btn-text" style="color: {{ theme.text }}">继续标准版</text>
+          </div>
+          <div class="upgrade-btn upgrade-btn-primary" onclick="goActivate" style="background-color: {{ theme.accent }}">
+            <text class="upgrade-btn-text" style="color: {{ theme.text }}">立即解锁</text>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div>
 </template>
@@ -65,6 +117,7 @@ import router from "@system.router"
 var storage = require("@system.storage")
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
+const version = require("../../data/version.js")
 var BACKUP_LIST_KEY = "backup_list"
 var MAX_BACKUPS = 20
 
@@ -82,26 +135,55 @@ export default {
     iconTheme: "dark",
     theme: store.DEFAULT_THEME,
     backupList: [],
-    showDialog: false,
+    // 统一弹层（确认/进度/结果），整屏替换式，恒在屏幕中央
+    versionText: "",
+    showSheet: false,
+    sheetTitle: "",
+    sheetDesc: "",
+    sheetOk: true,
+    sheetCancelText: "",
+    sheetBtnText: "",
     dialogType: '',
     deleteIndex: -1,
     deleteName: '',
     restoreIndex: -1,
     restoreName: '',
-    resultMessage: "",
-    resultSuccess: false,
+    // 弹层内容（备份/恢复/删除共用）
+    statusSub: "",
+    progressPct: 0,
+    showProgress: false,
+    // 运行中标志：备份/恢复期间锁住所有按钮，防止重复点导致并发写同一个 key
+    busy: false,
+    isPremium: false,
+    premiumChecked: false,
+    showUpgrade: false,
+    upgradeBenefits: ["多份备份", "一键恢复", "防丢失", "永久使用"],
   },
 
   onInit() {
     var self = this
     store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
+    this.versionText = version.versionName
     this.loadBackupList()
+    this.refreshPremium()
+  },
+
+  // 2026-11-02：会员状态改为「进页预取 + 点击时同步判定」。
+  // 原先是在点击回调里才去问 isPremiumUnlocked，一旦它的两层异步回调没回来，
+  // 这次点击就等于石沉大海（真机反馈「点了没有任何提示」）。预取后点击路径零异步依赖。
+  refreshPremium() {
+    var self = this
+    store.isPremiumUnlocked(function(u) {
+      self.isPremium = !!u
+      self.premiumChecked = true
+    })
   },
 
   onShow() {
     var self = this
     store.getTheme(function(t, themeName) { self.theme = t; self.updateIconSrc(themeName) })
     this.loadBackupList()
+    this.refreshPremium()
   },
 
   updateIconSrc(themeName) {
@@ -114,12 +196,13 @@ export default {
     // 用户只是想把弹层收起来，结果直接退出备份页。
     // 只在确实关掉了弹层时 return true；其余一律 return false 交还系统默认返回
     // （上一页 / 栈底退出），避免无条件吃返回键导致「退不出去」（见 index/welcome 教训）。
-    if (store._unlockDialogRef && store._unlockDialogRef.visible) {
-      store.hideUnlockDialog()
+    if (this.showUpgrade) {
+      this.showUpgrade = false
       return true
     }
-    if (this.showDialog) {
-      this.showDialog = false
+    if (this.showSheet) {
+      // 进行中（busy）不允许用返回键中断，避免写一半退出导致数据不一致
+      if (!this.busy) this.dismissSheet()
       return true
     }
     return false
@@ -165,33 +248,35 @@ export default {
     })
   },
 
+
   createBackup() {
     var self = this
-    store.isPremiumUnlocked(function(unlocked) {
-      if (!unlocked) {
-        self.showUpgradeDialog()
-        return
-      }
-      self.doCreateBackup()
-    })
+    if (this.busy) return
+    if (this.premiumChecked && !this.isPremium) {
+      self.showUpgradeDialog()
+      return
+    }
+    if (!this.premiumChecked) {
+      // 进页预取还没回来就点了：按标准版处理先弹引导，同时补一次取数
+      self.showUpgradeDialog()
+      self.refreshPremium()
+      return
+    }
+    self.doCreateBackup()
   },
 
   showUpgradeDialog() {
-    // unlock-dialog 组件注册可能晚于页面回调，失败则短重试（同 statistics.ux 写法）
-    var opts = {
-      title: "解锁备份",
-      description: "备份与恢复是高级版功能",
-      benefits: ["多份数据备份", "一键恢复课表", "防止数据丢失", "永久使用"],
-      cancelText: "继续使用标准版"
-    }
-    var tries = 5
-    var tryShow = function() {
-      if (!store.showUnlockDialog(opts) && tries > 0) {
-        tries--
-        setTimeout(tryShow, 400)
-      }
-    }
-    tryShow()
+    // 同步打开本页自绘弹层：不查 store 单例、不等组件注册、不依赖 setTimeout。
+    this.showUpgrade = true
+  },
+
+  closeUpgrade() {
+    this.showUpgrade = false
+  },
+
+  goActivate() {
+    this.showUpgrade = false
+    router.push({ uri: "/pages/activation" })
   },
 
   doCreateBackup() {
@@ -199,11 +284,25 @@ export default {
     var backupData = {}
     var total = DATA_KEYS.length
 
+    // 备份阶段也给反馈：读 18 个 key 在真机上约 200-400ms，原先这段时间页面无变化，
+    // 用户会以为按钮没生效而重复点。
+    self.busy = true
+    self.openSheet({
+      title: "正在备份…",
+      ok: true,
+      progress: true,
+      sub: "0/" + total + " 项 · 0%",
+      cancelText: "",
+      btnText: ""
+    })
+
     function loadKey(index) {
       if (index >= total) {
         saveBackup(backupData)
         return
       }
+      self.progressPct = Math.round(index / total * 100)
+      self.statusSub = index + "/" + total + " 项 · " + self.progressPct + "%"
       var key = DATA_KEYS[index]
       storage.get({
         key: key,
@@ -274,8 +373,16 @@ export default {
       }
 
       self.saveBackupList(list)
-      self.resultMessage = "备份成功 (" + timeStr + ")"
-      self.resultSuccess = true
+      self.busy = false
+      self.openSheet({
+        title: "备份成功",
+        ok: true,
+        progress: true,
+        pct: 100,
+        sub: timeStr + " · " + courseCount + " 门课程 / " + scheduleCount + " 张课表",
+        cancelText: "",
+        btnText: "完成"
+      })
     }
 
     loadKey(0)
@@ -286,8 +393,9 @@ export default {
     var index = self.restoreIndex
     var backup = self.backupList[index]
     if (!backup || !backup.data) {
-      self.resultMessage = "备份数据无效"
-      self.resultSuccess = false
+      self.restoreIndex = -1
+      self.dialogType = ''
+      self.failStatus("备份数据无效")
       return
     }
 
@@ -296,17 +404,52 @@ export default {
     var total = keys.length
 
     if (total === 0) {
-      self.resultMessage = "备份数据为空"
-      self.resultSuccess = false
+      self.restoreIndex = -1
+      self.dialogType = ''
+      self.failStatus("备份数据为空")
       return
     }
 
+    // 恢复阶段状态：把确认框收掉、进度条立刻显示 0%，让用户在点下「恢复」的
+    // 同一帧就看到变化。写入是逐 key 串行的，进度按写完项数推进。
+    self.restoreIndex = -1
+    self.dialogType = ''
+    self.busy = true
+    self.openSheet({
+      title: "正在恢复…",
+      ok: true,
+      progress: true,
+      sub: "0/" + total + " 项 · 0%",
+      cancelText: "",
+      btnText: ""
+    })
+
+    var failed = 0
+
     function saveKey(i) {
       if (i >= total) {
-        self.restoreIndex = -1
-        self.showDialog = false
-        self.resultMessage = "已恢复 " + total + " 项"
-        self.resultSuccess = true
+        self.busy = false
+        if (failed > 0) {
+          self.openSheet({
+            title: "恢复完成，但 " + failed + " 项写入失败",
+            ok: false,
+            progress: true,
+            pct: 100,
+            sub: "成功 " + (total - failed) + "/" + total + " 项，建议再恢复一次",
+            cancelText: "",
+            btnText: "完成"
+          })
+        } else {
+          self.openSheet({
+            title: "恢复成功",
+            ok: true,
+            progress: true,
+            pct: 100,
+            sub: "已写入 " + total + " 项 · " + (backup.time || ""),
+            cancelText: "",
+            btnText: "完成"
+          })
+        }
         if (database.resetCache) database.resetCache()
         database.init(function() {
           store.getTheme(function() {}, true)
@@ -318,9 +461,14 @@ export default {
         key: key,
         value: backupData[key],
         success: function() {
+          self.progressPct = Math.round((i + 1) / total * 100)
+          self.statusSub = (i + 1) + "/" + total + " 项 · " + self.progressPct + "%"
           saveKey(i + 1)
         },
         fail: function() {
+          failed++
+          self.progressPct = Math.round((i + 1) / total * 100)
+          self.statusSub = (i + 1) + "/" + total + " 项 · " + self.progressPct + "%"
           saveKey(i + 1)
         }
       })
@@ -329,48 +477,106 @@ export default {
     saveKey(0)
   },
 
+  // 前置校验失败时的统一收口：卡片红字 + 关掉进度条，避免只闪一行小字
+  failStatus(msg) {
+    this.busy = false
+    this.openSheet({
+      title: msg,
+      ok: false,
+      progress: false,
+      sub: "",
+      cancelText: "",
+      btnText: "完成"
+    })
+  },
+
+  // 打开统一弹层（居中）。所有字段一次给全，避免残留上一态的文字。
+  openSheet(o) {
+    this.sheetTitle = o.title || ""
+    this.sheetDesc = o.desc || ""
+    this.sheetOk = o.ok !== false
+    this.sheetCancelText = o.cancelText || ""
+    this.sheetBtnText = o.btnText || ""
+    this.showProgress = !!o.progress
+    this.progressPct = (o.pct === undefined ? 0 : o.pct)
+    this.statusSub = o.sub || ""
+    this.showSheet = true
+  },
+
+  dismissSheet() {
+    if (this.busy) return
+    this.showSheet = false
+    this.dialogType = ''
+  },
+
   confirmDeleteBackup(index) {
+    if (this.busy) return
     var item = this.backupList[index]
     this.deleteIndex = index
     this.deleteName = item ? item.name : ''
     this.dialogType = 'delete'
-    this.showDialog = true
+    this.openSheet({
+      title: "确认删除",
+      desc: (item ? item.name : '') + " ？删除后不可恢复",
+      ok: false,
+      progress: false,
+      sub: "",
+      cancelText: "取消",
+      btnText: "删除"
+    })
   },
 
   confirmRestoreBackup(index) {
+    if (this.busy) return
     var item = this.backupList[index]
     this.restoreIndex = index
     this.restoreName = item ? item.name : ''
     this.dialogType = 'restore'
-    this.showDialog = true
+    this.openSheet({
+      title: "确认恢复",
+      desc: (item ? item.name : '') + " ？当前课表将被覆盖",
+      ok: true,
+      progress: false,
+      sub: "",
+      cancelText: "取消",
+      btnText: "恢复"
+    })
   },
 
   deleteBackup() {
     var self = this
     var index = self.deleteIndex
     if (index < 0 || index >= self.backupList.length) {
-      self.showDialog = false
+      self.dismissSheet()
       return
     }
     var list = self.backupList.slice()
     list.splice(index, 1)
     self.saveBackupList(list)
     self.deleteIndex = -1
-    self.showDialog = false
-    self.resultMessage = "备份已删除"
-    self.resultSuccess = false
+    self.dialogType = ''
+    self.openSheet({
+      title: "备份已删除",
+      ok: true,
+      progress: false,
+      sub: "",
+      cancelText: "",
+      btnText: "完成"
+    })
   },
 
-  dismissDialog() {
-    this.showDialog = false
-  },
-
-  dialogAction() {
+  // 弹层主按钮：确认键 / 完成键共用同一个入口，按 dialogType 分派
+  sheetAction() {
+    if (this.busy) return
     if (this.dialogType === 'delete') {
       this.deleteBackup()
-    } else {
-      this.restoreBackup()
+      return
     }
+    if (this.dialogType === 'restore') {
+      this.restoreBackup()
+      return
+    }
+    this.dismissSheet()
   },
 
   stopBubble() {
@@ -379,45 +585,118 @@ export default {
 </script>
 
 <style>
+/* 统一返回按钮（2026-11-02）：.hdr / .hdr-pill / .hdr-pill-ic / .hdr-pill-t 全部来自
+   公共 header.css，本页不再各写一套。注意本文件必须在页面本地规则「之前」引入：
+   同特异性下后加载者赢，公共文件先来，本地才压得住。 */
+@import '../../common/header.css';
+
+/* 2026-11-02：原来只有 height:100%。Vela 里这种写法给不出确定的尺寸约束，
+   里面的 scroll 拿不到「剩余高度」，于是不裁剪也不滚（列表直接压到底栏上）。
+   设置页一直是四边定位，scroll:flex:1 在那儿是好的 —— 照抄过来。 */
 .page {
-  flex-direction: column;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
   width: 100%;
   height: 100%;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
-.header {
-  flex-direction: row;
-  align-items: center;
-  width: 100%;
-  height: 36px;
-  padding: 0 10px;
-  margin-bottom: 10px;
-  flex-shrink: 0;
-}
-
-.back-btn-wrapper {
-  width: 30px; height: 30px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0;
-}
-
-.back-btn-icon {
-  width: 22px; height: 22px;
-}
-
-
-.header-title {
-  flex: 1; font-size: 28px; font-weight: bold; text-align: center; line-height: 36px; lines: 1;
-}
-
-.header-placeholder {
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-}
-
+/* 原 .header / .back-btn-wrapper / .back-btn-icon / .header-title / .header-placeholder
+   五条已于 2026-11-02 删除（迁移到 .hdr 胶囊），连同下方两处 width 媒体查询里的同名
+   覆盖一并清空 —— 留着只会在下一次改样式时误以为还在生效。 */
 
 .section-title {
   font-size: 24px;
-  margin: 8px 8px 4px 8px;
+  margin: 0;
+}
+
+/* 统一弹层（2026-11-02 重构）：确认 / 进度 / 结果三态共用。
+   结构与解锁引导同构 —— 整屏替换（页面内容被 block 摘掉）+ flex:1 吃满 .page 高 +
+   justify-content: center，因此卡片恒在屏幕正中，与列表多长、当前滚到哪儿无关。
+   这是刻意的：absolute 覆盖层在长页面里 height:100% 等于「内容高」，
+   居中落到内容中点（屏幕外），真机实测点下方条目的「恢复」完全看不到弹窗。
+   进度条用两层 div 自绘，不用 progress 组件（Vela 不支持 progress.color）。 */
+.sheet-screen {
+  flex: 1;
+  width: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 12px;
+}
+
+.sheet-card {
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 14px 12px;
+  border-radius: 16px;
+}
+
+.sheet-title {
+  font-size: 26px;
+  font-weight: bold;
+  text-align: center;
+  lines: 2;
+}
+
+.sheet-desc {
+  font-size: 22px;
+  line-height: 28px;
+  margin-top: 6px;
+  text-align: center;
+  lines: 3;
+}
+
+.sheet-sub {
+  font-size: 22px;
+  line-height: 28px;
+  margin-top: 6px;
+  text-align: center;
+  lines: 2;
+}
+
+.sheet-actions {
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.sheet-btn {
+  width: 100%;
+  height: 40px;
+  border-radius: 20px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.sheet-btn-primary {
+  margin-bottom: 0;
+}
+
+.sheet-btn-text {
+  font-size: 22px;
+  lines: 1;
+}
+
+.pg-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+/* 宽度走 progressPct%，与 index.ux / statistics.ux 的进度条同一套写法，
+   百分比宽度在该框架上已被大量验证，不用 flex 比例凑。 */
+.pg-fill {
+  height: 8px;
+  border-radius: 4px;
 }
 
 .empty-msg {
@@ -470,28 +749,53 @@ export default {
   font-size: 24px;
 }
 
-.add-bottom {
-  align-items: center;
-  margin: 8px 8px 0 8px;
+/* 列表滚动容器：高度写死，因为本机 Vela 里 scroll 给 flex:1 会退化成「内容高」，
+   既不裁剪也不滚（见 2026-11-02 实测）。192×490 的账：
+   490 − 页头 44 − 动作区 44 − 标题行 40 = 362，再留 14px 给底部圆弧 → 348。 */
+.list-scroll {
+  height: 348px;
+  box-sizing: border-box;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* 顶部动作区（2026-11-02 从底栏上移）：满宽按钮落在页头正下方，
+   既不在底部圆弧里被裁字，也不在底部点击死区里（真机/模拟器实测点不到）。 */
+.act-row {
+  width: 100%;
+  padding: 4px 12px 0 12px;
+  flex-shrink: 0;
 }
 
 .btn-add {
   width: 100%;
-  height: 44px;
-  border-radius: 22px;
+  height: 40px;
+  border-radius: 20px;
   justify-content: center;
   align-items: center;
 }
 
 .btn-add-text {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: bold;
+  lines: 1;
 }
 
-.result-msg {
-  font-size: 24px;
-  text-align: center;
-  margin: 8px 8px 0 8px;
+/* 标题行：左「已有备份」、右版本号。版本号从底部挪到这里 —— 底部那片不可点且会被弧线压字，
+   而版本信息本身在排障时有价值，放在标题行右侧零成本保留。 */
+.list-head {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 12px;
+  margin: 6px 0 4px 0;
+  flex-shrink: 0;
+}
+
+.ver-text {
+  font-size: 18px;
+  lines: 1;
 }
 
 .overlay-modal {
@@ -526,6 +830,81 @@ export default {
   font-size: 24px;
 }
 
+/* 升级引导：整屏替换式卡片（不叠层），flex:1 吃满 .page 高度。
+   2026-11-02 结构降级：这套弹层原按方屏 336 设计，直接落到 192 宽手环上
+   出现「权益 4 条折成 7 行 + 按钮文字被裁 + 卡片占屏 96%」。
+   基础值改为 192 下的纵向堆叠形态，≥300px 在下方媒体查询里放大回横排。 */
+.upgrade-screen {
+  flex: 1;
+  width: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 12px;
+}
+
+.upgrade-card {
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 12px 10px;
+  border-radius: 16px;
+}
+
+.upgrade-title {
+  font-size: 26px;
+  font-weight: bold;
+}
+
+.upgrade-desc {
+  font-size: 20px;
+  line-height: 26px;
+  margin-top: 6px;
+  text-align: center;
+  lines: 2;
+}
+
+.upgrade-benefits {
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.upgrade-benefit {
+  font-size: 22px;
+  line-height: 30px;
+}
+
+.upgrade-actions {
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.upgrade-btn {
+  width: 100%;
+  height: 40px;
+  border-radius: 20px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.upgrade-btn-cancel {
+  margin-right: 0;
+}
+
+.upgrade-btn-primary {
+  margin-bottom: 0;
+}
+
+.upgrade-btn-text {
+  font-size: 22px;
+  lines: 1;
+}
+
 .dialog-buttons {
   flex-direction: row;
   margin-top: 16px;
@@ -547,38 +926,82 @@ export default {
   font-size: 24px;
 }
 
+/* 页头尺寸全部交给 header.css 的 .hdr 媒体查询，本页不再复写一套 */
 @media (width >= 220px) {
-  .header {
-    flex-direction: row;
-    align-items: center;
-    padding: 8px 10px 10px 10px;
+  .section-title {
+    font-size: 24px;
+    margin: 0;
   }
 
-  .back-btn-wrapper {
-    width: 50px;
-    height: 50px;
-    border-radius: 25px;
+  .act-row {
+    padding: 8px 12px 0 12px;
   }
 
-  .back-btn-icon {
-    width: 31px;
-    height: 31px;
+  .btn-add {
+    height: 48px;
+    border-radius: 24px;
   }
 
-  .header-title-wrapper {
-    flex: 1;
-    align-items: center;
-    margin-top: 0;
-    margin-left: 8px;
-  }
-
-  .header-title {
+  .btn-add-text {
     font-size: 28px;
   }
 
-  .section-title {
-    font-size: 24px;
-    margin: 10px 10px 4px 10px;
+  .list-head {
+    padding: 0 12px;
+    margin: 8px 0 6px 0;
+  }
+
+  .ver-text {
+    font-size: 22px;
+  }
+
+  /* 480 高的方屏：480 − 页头 62 − 动作区 56 − 标题行 46 ≈ 316 */
+  .list-scroll {
+    height: 316px;
+  }
+
+  .sheet-screen {
+    padding: 16px;
+  }
+
+  .sheet-card {
+    padding: 20px 16px;
+  }
+
+  .sheet-title {
+    font-size: 30px;
+  }
+
+  .sheet-desc {
+    font-size: 26px;
+    line-height: 34px;
+  }
+
+  .sheet-sub {
+    font-size: 26px;
+    line-height: 34px;
+  }
+
+  .sheet-actions {
+    flex-direction: row;
+    justify-content: center;
+    margin-top: 16px;
+  }
+
+  .sheet-btn {
+    width: auto;
+    height: 48px;
+    border-radius: 24px;
+    padding: 0 20px;
+    margin-bottom: 0;
+  }
+
+  .sheet-btn-cancel {
+    margin-right: 10px;
+  }
+
+  .sheet-btn-text {
+    font-size: 26px;
   }
 
   .backup-row {
@@ -602,26 +1025,9 @@ export default {
   .action-restore {
     margin-right: 8px;
   }
-
-  .btn-add {
-    height: 48px;
-    border-radius: 24px;
-  }
-
-  .btn-add-text {
-    font-size: 28px;
-  }
 }
 
 @media (width >= 400px) {
-  .header {
-    padding: 20px 12px 20px 12px;
-  }
-
-  .header-title {
-    font-size: 30px;
-  }
-
   .section-title {
     font-size: 24px;
   }
@@ -645,6 +1051,52 @@ export default {
   .btn-add {
     height: 44px;
     border-radius: 20px;
+  }
+}
+
+/* 升级弹层宽屏恢复：≥300px（方屏 336）用横排 + 放大字号。
+   边界算过：卡宽 336−24=312，内宽 312−28=284；
+   按钮「继续标准版」5 字 ×24px=120 + 左右各 8 = 136，两个 272 + 间距 8 = 280 ≤ 284，正好不裁。 */
+@media (width >= 300px) {
+  .upgrade-card {
+    padding: 16px 14px;
+  }
+
+  .upgrade-title {
+    font-size: 30px;
+  }
+
+  .upgrade-desc {
+    font-size: 24px;
+    line-height: 32px;
+    margin-top: 8px;
+  }
+
+  .upgrade-benefit {
+    font-size: 26px;
+    line-height: 36px;
+  }
+
+  .upgrade-actions {
+    flex-direction: row;
+    justify-content: center;
+    margin-top: 18px;
+  }
+
+  .upgrade-btn {
+    width: auto;
+    height: 46px;
+    border-radius: 23px;
+    padding: 0 8px;
+    margin-bottom: 0;
+  }
+
+  .upgrade-btn-cancel {
+    margin-right: 8px;
+  }
+
+  .upgrade-btn-text {
+    font-size: 24px;
   }
 }
 </style>
