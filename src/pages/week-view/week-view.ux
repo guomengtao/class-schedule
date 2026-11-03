@@ -58,12 +58,13 @@
       </div>
     </scroll>
 
-    <!-- footer（2026-11-03 二次调整）：模板切换条保留，下面只留一枚 ⇄ 圆钮 ——
+    <!-- footer（2026-11-03 三次调整）：模板切换条保留，下面只留一枚「⇄ + 课程表名」胶囊 ——
          它是全页唯一的「链接」：点击进课程表管理页（/pages/schedule-manager），
-         与首页底部 .schedule-indicator-row 同一目的地。
-         首版曾照搬首页放三枚（＋ 添加课程 / ⚙ 设置），但本页是「看课表」的只读视图，
-         加课与设置各有独立入口，三枚反而挤占 192×490 本就不多的垂直预算，故收敛为一枚。
-         样式仍与首页 .bottom-buttons 同形（48 圆 / 图标 24）。 -->
+         与首页 .schedule-indicator-row 同一目的地、同一形态（图标 + 名称）。
+         命名：本页是「总课表」，底部要回答「我在看的是哪一张课表」，故必须带名称；
+         首版只放一枚空 ⇄ 圆钮，信息量为零，用户当场要求补名称。
+         样式仍取首页 .schedule-indicator 的度量（18px 字 / 圆角 16 / 图标 18），
+         但类名一律 wv- 前缀，避免与首页同名类在同特异性下互相静默覆盖。 -->
     <div class="wv-footer" style="background-color:{{ theme.card }}">
       <scroll class="wv-tpl-row" scroll-x="true">
         <div for="{{ templateList }}" class="wv-tpl {{ $item.id === currentTplId ? 'wv-tpl-on' : '' }}" onclick="switchTemplate($item.id)" style="background-color:{{ $item.id === currentTplId ? $item.activeColor : theme.borderLight }};color:{{ $item.id === currentTplId ? '#fff' : theme.textSecondary }};border-color:{{ $item.id === currentTplId ? $item.activeColor : 'transparent' }}">
@@ -72,8 +73,9 @@
       </scroll>
 
       <div class="wv-bottom-buttons">
-        <div class="wv-round-btn" onclick="openScheduleManager" style="background-color:{{ theme.cardLight }}">
-          <image class="wv-round-icon" src="/common/icons/{{ iconTheme }}/icon_swap.png"></image>
+        <div class="wv-sched-pill" onclick="openScheduleManager" style="background-color:{{ theme.cardLight }}">
+          <image class="wv-sched-icon" src="/common/icons/{{ iconTheme }}/icon_swap.png"></image>
+          <text class="wv-sched-name" style="color:{{ theme.text }}">{{ scheduleName || '课程表' }}</text>
         </div>
       </div>
     </div>
@@ -681,11 +683,13 @@ export default {
     log("loadData start viewIndex=" + self.viewIndex)
 
     store.getScheduleNames(function(names) {
+      if (self._destroyed) return
       store.getCurrentScheduleIndex(function() {
-        if (names && names.length > self.viewIndex) {
-          self.scheduleName = names[self.viewIndex]
-          log("loadData scheduleName=" + self.scheduleName)
-        }
+        if (self._destroyed) return
+        // 名称只用于底部胶囊文案，越界/空值不清空旧值会显示上一张课表的名，
+        // 故显式回落空串，由模板的 `|| '课程表'` 兜底。
+        self.scheduleName = (names && names.length > self.viewIndex && names[self.viewIndex]) || ""
+        log("loadData scheduleName=" + self.scheduleName)
       })
     })
 
@@ -1077,31 +1081,46 @@ export default {
    本页不再定义 .wv-header / .wv-back / .wv-title —— 与公共文件同名类在同特异性下
    「页面后加载」会静默覆盖公共值，是 settings 页文档里记过的坑。 */
 
-/* ── 底部圆钮区（2026-11-03 新增，对齐首页 .bottom-buttons）──
-   现只承载唯一一枚 ⇄（课程表管理）。尺寸仍按首页规范：48 圆 / 图标 24；
-   水平居中而非 space-between —— 即使将来再加钮，胶囊屏 192 − n×48 的余量
-   都靠居中均分，方屏下也不会被拉散成「彼此相距 86px」的散架感。 */
+/* ── 底部课程表入口（2026-11-03 三次调整：圆钮 → 带名称胶囊）──
+   形态对齐首页 .schedule-indicator（⇄ 图标 + 课表名，圆角胶囊），
+   因为它回答的是同一个问题「现在是哪张课表」，同一个答案不该长两个样。
+   垂直预算：34px（18 字 + 上下各 8），比原先 48px 圆钮省 14px 还给网格。
+   宽度上限按胶囊屏 192 屏宽留边：168 = 192 − 2×12；方屏/圆屏在各自媒体查询里放宽。 */
 .wv-bottom-buttons {
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  margin-top: 8px;
+  margin-top: 6px;
+  width: 100%;
   flex-shrink: 0;
 }
 
-.wv-round-btn {
-  flex: 0 0 48px;
-  width: 48px;
-  height: 48px;
-  border-radius: 24px;
-  margin: 0 6px;
-  justify-content: center;
+.wv-sched-pill {
+  flex-direction: row;
   align-items: center;
+  justify-content: center;
+  max-width: 168px;
+  padding: 5px 14px;
+  border-radius: 16px;
+  flex-shrink: 0;
 }
 
-.wv-round-icon {
-  width: 24px;
-  height: 24px;
+.wv-sched-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 5px;
+  flex-shrink: 0;
+}
+
+/* 名称可能被用户改成任意长度（课程表管理页可改名），
+   故 lines:1 + ellipsis 硬截断，绝不换行撑破 34px 高的胶囊。 */
+.wv-sched-name {
+  font-size: 18px;
+  line-height: 24px;
+  text-align: center;
+  text-overflow: ellipsis;
+  lines: 1;
+  flex-shrink: 1;
 }
 
 /* ── grid ── */
@@ -1323,17 +1342,19 @@ export default {
   .wv-footer {
     padding: 6px 0 4px 0;
   }
-  /* 大屏圆钮收到 44（与首页 circle 块同值），把省下的高度还给网格 */
-  .wv-round-btn {
-    flex: 0 0 44px;
-    width: 44px;
-    height: 44px;
-    border-radius: 22px;
-    margin: 0 5px;
+  /* 大屏放宽胶囊宽度（圆屏可视区更宽，168 会把长名字过早截断） */
+  .wv-sched-pill {
+    max-width: 200px;
+    padding: 6px 18px;
   }
-  .wv-round-icon {
-    width: 22px;
-    height: 22px;
+  .wv-sched-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 6px;
+  }
+  .wv-sched-name {
+    font-size: 20px;
+    line-height: 26px;
   }
   .wv-tpl-row {
     padding: 0 4px;
@@ -1381,6 +1402,10 @@ export default {
   .wv-tpl-text {
     font-size: 24px;
     line-height: 32px;
+  }
+  /* 方屏横向充裕（336px），胶囊放到 260 让长课表名基本能整段显示 */
+  .wv-sched-pill {
+    max-width: 260px;
   }
 }
 </style>
