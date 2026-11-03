@@ -1,11 +1,17 @@
 <template>
   <div class="wv-page" style="background-color:{{ theme.bg }}">
-    <!-- header -->
-    <div class="wv-header">
-      <div class="wv-back-wrapper" onclick="goBack" style="background-color:{{ theme.card }}">
-        <image class="wv-back-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+    <!-- 页头（2026-11-03）：改用 common/header.css 的 .hdr 胶囊方案，与设置页一致 ——
+         「‹ 总课表」一颗整体胶囊、整块可点返回，取代原来的
+         「方块返回键 + 居中标题」两段式。
+         旧类 .wv-header / .wv-back-wrapper / .wv-title 已从本页样式表删除，
+         理由同 settings 页：公共文件与页面本地同名类在同特异性下「页面后加载」会
+         静默赢，留着就是定时炸弹（quickapp 不支持 !important）。
+         标题 3 字，28px 在 192 屏预算内（胶囊宽 ≈121px / 可用 168px）。 -->
+    <div class="hdr">
+      <div class="hdr-pill" onclick="goBack" style="background-color:{{ theme.card }}">
+        <image class="hdr-pill-ic" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <text class="hdr-pill-t" style="color:{{ theme.text }}">总课表</text>
       </div>
-      <text class="wv-title" style="color:{{ theme.text }}">总课表</text>
     </div>
 
     <!-- grid area -->
@@ -52,7 +58,12 @@
       </div>
     </scroll>
 
-    <!-- footer: template buttons -->
+    <!-- footer（2026-11-03 二次调整）：模板切换条保留，下面只留一枚 ⇄ 圆钮 ——
+         它是全页唯一的「链接」：点击进课程表管理页（/pages/schedule-manager），
+         与首页底部 .schedule-indicator-row 同一目的地。
+         首版曾照搬首页放三枚（＋ 添加课程 / ⚙ 设置），但本页是「看课表」的只读视图，
+         加课与设置各有独立入口，三枚反而挤占 192×490 本就不多的垂直预算，故收敛为一枚。
+         样式仍与首页 .bottom-buttons 同形（48 圆 / 图标 24）。 -->
     <div class="wv-footer" style="background-color:{{ theme.card }}">
       <scroll class="wv-tpl-row" scroll-x="true">
         <div for="{{ templateList }}" class="wv-tpl {{ $item.id === currentTplId ? 'wv-tpl-on' : '' }}" onclick="switchTemplate($item.id)" style="background-color:{{ $item.id === currentTplId ? $item.activeColor : theme.borderLight }};color:{{ $item.id === currentTplId ? '#fff' : theme.textSecondary }};border-color:{{ $item.id === currentTplId ? $item.activeColor : 'transparent' }}">
@@ -60,9 +71,10 @@
         </div>
       </scroll>
 
-      <!-- schedule name at bottom -->
-      <div class="week-indicator">
-        <text class="week-text" style="color:{{ theme.accent }}">⇄ {{ scheduleName }}</text>
+      <div class="wv-bottom-buttons">
+        <div class="wv-round-btn" onclick="openScheduleManager" style="background-color:{{ theme.cardLight }}">
+          <image class="wv-round-icon" src="/common/icons/{{ iconTheme }}/icon_swap.png"></image>
+        </div>
       </div>
     </div>
   </div>
@@ -1012,6 +1024,14 @@ export default {
     router.back()
   },
 
+  // 底部三圆（2026-11-03）：与首页底部同形同目的地，避免同一动作在本 app 里
+  // 出现两条不同的进入路径。跳转前不做 storage 预写 —— 本页已在看某个 viewIndex，
+  // 目标页各自读当前索引，不依赖本页状态。
+  // 底部唯一入口：课程表管理（本页恒为只读视图，加课/设置不在此页开）
+  openScheduleManager() {
+    router.push({ uri: "/pages/schedule-manager" })
+  },
+
   onDestroy() {
     // T-01 / B-01：本方法原先主动把 scheduleName / timeSlots / theme / templateList
     // 置 null，但 template 里 for="{{ templateList }}" 与 60+ 处内联样式仍绑定 theme，
@@ -1034,50 +1054,54 @@ export default {
 </script>
 
 <style>
+@import '../../common/header.css';
+
 /* ── page ── */
+/* 顶距 44 → 8（2026-11-03 二次调整）：44px 是旧页头的历史遗留 —— 那时是「方块返回键
+ * + 居中标题」两段式，按圆形可视区预留了整条安全带，页头下方因此多出一条空行。
+ * 换成 .hdr 居中胶囊后，192 屏上胶囊左右各留白 ≈35px，左上角 (35,8) 到弧心 (40,40)
+ * 距离 ≈32 < 弧半径 40，整颗胶囊都在可视区内，故顶部只留 8px 呼吸；
+ * 取值与 settings 页 .page-body 的 8px 一致，两页页头观感才对得上。
+ * 省出的 36px 全部让给课表网格。
+ *
+ * 圆屏例外：见下方 @media (shape: circle) 的 44px —— 圆形可视区顶部收窄，
+ * 那个值是几何推导出来的，不要为了「统一」跟着压成 8。 */
 .wv-page {
   flex-direction: column;
-  padding: 44px 10px 12px 10px;
+  padding: 8px 10px 12px 10px;
   height: 100%;
 }
 
 /* ── header ── */
-.wv-header {
+/* 页头样式一律由 common/header.css 的 .hdr 一节提供（2026-11-03 迁移）。
+   本页不再定义 .wv-header / .wv-back / .wv-title —— 与公共文件同名类在同特异性下
+   「页面后加载」会静默覆盖公共值，是 settings 页文档里记过的坑。 */
+
+/* ── 底部圆钮区（2026-11-03 新增，对齐首页 .bottom-buttons）──
+   现只承载唯一一枚 ⇄（课程表管理）。尺寸仍按首页规范：48 圆 / 图标 24；
+   水平居中而非 space-between —— 即使将来再加钮，胶囊屏 192 − n×48 的余量
+   都靠居中均分，方屏下也不会被拉散成「彼此相距 86px」的散架感。 */
+.wv-bottom-buttons {
   flex-direction: row;
-  align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
-  position: relative;
-}
-
-.wv-back {
-  width: 48px;
-  height: 40px;
-  border-radius: 8px;
-  font-size: 28px;
-  text-align: center;
-  line-height: 40px;
-}
-
-.wv-title {
-  font-size: 30px;
-  font-weight: bold;
-  text-align: center;
-  flex: 1;
-  line-height: 40px;
-}
-
-.week-indicator {
-  padding: 12px 8px;
   align-items: center;
-  justify-content: center;
+  margin-top: 8px;
   flex-shrink: 0;
 }
 
-.week-text {
-  font-size: 20px;
-  text-align: center;
-  line-height: 28px;
+.wv-round-btn {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  margin: 0 6px;
+  justify-content: center;
+  align-items: center;
+}
+
+.wv-round-icon {
+  width: 24px;
+  height: 24px;
 }
 
 /* ── grid ── */
@@ -1271,19 +1295,6 @@ export default {
   .wv-page {
     padding: 44px 36px 44px 36px;
   }
-  .wv-header {
-    margin-bottom: 8px;
-  }
-  .wv-back {
-    width: 44px;
-    height: 40px;
-    font-size: 28px;
-    line-height: 40px;
-  }
-  .wv-title {
-    font-size: 30px;
-    line-height: 40px;
-  }
   .wv-day-spacer {
     width: 42px;
   }
@@ -1312,6 +1323,18 @@ export default {
   .wv-footer {
     padding: 6px 0 4px 0;
   }
+  /* 大屏圆钮收到 44（与首页 circle 块同值），把省下的高度还给网格 */
+  .wv-round-btn {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
+    margin: 0 5px;
+  }
+  .wv-round-icon {
+    width: 22px;
+    height: 22px;
+  }
   .wv-tpl-row {
     padding: 0 4px;
   }
@@ -1327,17 +1350,11 @@ export default {
 
 @media (shape: pill-shaped) {
   .wv-page {
-    padding: 44px 0 8px 0;
-  }
-  .wv-header {
-    margin-bottom: 8px;
+    /* 手环走这条：顶距与基准一致收到 8（原 44 会在页头下留一条空行） */
+    padding: 8px 0 8px 0;
   }
   .wv-grid-scroll {
     padding: 0;
-  }
-  .wv-title {
-    font-size: 30px;
-    line-height: 40px;
   }
   .wv-tpl {
     height: 48px;
@@ -1352,20 +1369,8 @@ export default {
 
 @media (shape: rect) {
   .wv-page {
-    padding: 6px 10px 12px 10px;
-  }
-  .wv-header {
-    margin-bottom: 8px;
-  }
-  .wv-back {
-    width: 44px;
-    height: 36px;
-    font-size: 28px;
-    line-height: 36px;
-  }
-  .wv-title {
-    font-size: 30px;
-    line-height: 40px;
+    /* 方屏直角、无弧边裁切，顶距直接归零（与 settings 页方屏 padding-top: 0 对齐） */
+    padding: 0px 10px 12px 10px;
   }
   /* 模板切换按钮提到规范的 48px */
   .wv-tpl {
@@ -1378,6 +1383,4 @@ export default {
     line-height: 32px;
   }
 }
-.wv-back-wrapper { width: 52px; height: 48px; border-radius: 8px; justify-content: center; align-items: center; }
-.wv-back-icon { width: 24px; height: 24px; }
 </style>
