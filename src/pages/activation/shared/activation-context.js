@@ -26,14 +26,17 @@ const APK_BASE = "https://app-auth.gudq.com/apk-download.html?deviceId="
 //
 // ⚠️ 向下兼容硬约束（已发安装包无法升级，老用户参数写死在旧包里，必须守住）：
 //   ① 只追加新参数，绝不改动 AFDIAN_BASE 及任何既有参数的名、顺序、含义；
-//   ② 三态语义：无 i = 老包或尚未取完（服务端**不得**判为失败）；
-//               i=1 = 明确取到；i=f = 明确失败；
+//   ② 标记语义：**只有失败才标记** i=f（唯一新增参数）；
+//               无 i = 取参成功，或老包 / 尚未取完（服务端**不得**判为失败）；
+//       —— 成功场景刻意不追加任何字节，使长码（实测约 190 字符）长度零增长。
+//          二维码密度已到极限，多 4 个字符虽不跨 QR 版本，但没有收益就不占位。
+//          代价：新包的"成功样本量"无法直接计数，失败率分母须用
+//          「带 deviceId 且无 i=f」近似；发布新包时改 c 渠道后缀可精确切分。
 //   ③ deviceId 缺失时仍然留空，**绝不**写入 none/unknown 之类假 ID
-//      —— 服务端会把任何非空值当真实 device_full 入库，那是污染；改用一个独立标记 dn=1；
+//      —— 服务端会把任何非空值当真实 device_full 入库，那是不可逆的污染。
+//      URL 里的空值本身已表达"无设备号"，故不再追加冗余标记。
 //   ④ 老包跑旧代码、不发这些参数，其行为与改造前完全相同。
 var INFO_FAIL = 'i=f'
-var INFO_OK = 'i=1'
-var DID_MISSING = 'dn=1'
 
 var _deviceId = null
 var _infoParams = ''
@@ -81,8 +84,6 @@ function _readInfo() {
         if (ret.screenHeight != null) p.push('h=' + ret.screenHeight)
         if (ret.APILevel != null) p.push('a=' + ret.APILevel)
         if (ret.language) p.push('l=' + encodeURIComponent(ret.language))
-        // 取参成功标记：追加在末尾，不影响前面任何参数的位置与含义
-        p.push(INFO_OK)
         _infoParams = p.join('&')
         _emit()
       },
@@ -163,9 +164,8 @@ function _build(base, deviceId, infoParams, extra) {
   var url = base + encodeURIComponent(deviceId || '')
   if (infoParams) url = url + '&' + infoParams
   if (extra) url = url + '&' + extra
-  // deviceId 缺失：只追加标记，**不**把 deviceId 填成假值
-  // （老服务端会把任何非空 deviceId 当真实 device_full 写库，那是不可逆的污染）
-  if (!deviceId) url = url + '&' + DID_MISSING
+  // deviceId 缺失时不再追加标记：URL 中的空值本身即表达该状态，
+  // 且**绝不**把 deviceId 填成假值（老服务端会把任何非空值当真实 device_full 写库）
   return url
 }
 
