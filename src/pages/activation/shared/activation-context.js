@@ -15,6 +15,17 @@ const version = require("../../../data/version.js")
 
 // 三条 URL 常量：与老版单页逐字一致，禁止改直链
 const AFDIAN_BASE = "https://app-auth.gudq.com/go/ev-timetable?deviceId="
+
+// ── 购买二维码直连开关（2026-11-03 临时措施）────────────────────────────
+// 背景：按「先保订单、后补技术」的决策，购买二维码临时改为爱发电直连，
+//       绕开短链跳转层，避免跳转环节抖动/故障挡住下单。
+// 收益：二维码由约 163 字符降到 56 字符（QR Version 10 → 4），
+//       手环小屏扫描速度与识别成功率都明显改善。
+// 代价：deviceId / 机型 / 渠道码归因全部丢失，订单无法回连具体设备。
+//       爱发电侧不向我们回传落地参数，带参只增加长度、不产生归因，故不带。
+// 回滚：把 AFDIAN_DIRECT 置为空字符串即可完整恢复「短链 + 全参数」逻辑；
+//       下方 AFDIAN_BASE 与 afdianUrl() 的参数拼接分支均原样保留、未删。
+const AFDIAN_DIRECT = "https://ifdian.net/item/54100fe4a1e011f1a3f452540025c377"
 const REDEEM_BASE = "https://app-auth.gudq.com/activate.html?deviceId="
 const APK_BASE = "https://app-auth.gudq.com/apk-download.html?deviceId="
 
@@ -169,8 +180,11 @@ function _build(base, deviceId, infoParams, extra) {
   return url
 }
 
-/** 购买二维码：带跟踪参数，禁止改直链 */
+/** 购买二维码：直连开关开启时不带任何参数；关闭时回到短链 + 全参数追踪 */
 function afdianUrl(deviceId, infoParams) {
+  if (AFDIAN_DIRECT) {
+    return AFDIAN_DIRECT
+  }
   var ch = _channel()
   return _build(AFDIAN_BASE, deviceId, infoParams, ch ? 'c=' + encodeURIComponent(ch) : '')
 }

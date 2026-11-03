@@ -160,6 +160,9 @@ const crypto = require("../../../lib/crypto.js")
 
 var ACTIVATION_URL = "https://app-auth.gudq.com/activate.html?deviceId="
 var AFDIAN_REDIRECT_URL = "https://app-auth.gudq.com/go/ev-timetable?deviceId="
+// 购买二维码直连开关（2026-11-03 临时）：非空则二维码只放该地址、不拼任何参数。
+// 置空即恢复「短链 + deviceId + 机型 + 渠道」的完整追踪逻辑（下方分支原样保留）。
+var AFDIAN_DIRECT = "https://ifdian.net/item/54100fe4a1e011f1a3f452540025c377"
 
 function doVibrate() {
   try {
@@ -385,15 +388,18 @@ export default {
       }
       self.qrText = qr
 
-      var afd = AFDIAN_REDIRECT_URL + encodeURIComponent(self.deviceId)
-      if (self.deviceInfoParams) {
-        afd = afd + '&' + self.deviceInfoParams
-      }
-      if (self.versionText) {
-        afd = afd + '&r=' + encodeURIComponent(self.versionText)
-      }
-      if (self.channelParam) {
-        afd = afd + '&c=' + encodeURIComponent(self.channelParam)
+      var afd = AFDIAN_DIRECT
+      if (!afd) {
+        afd = AFDIAN_REDIRECT_URL + encodeURIComponent(self.deviceId)
+        if (self.deviceInfoParams) {
+          afd = afd + '&' + self.deviceInfoParams
+        }
+        if (self.versionText) {
+          afd = afd + '&r=' + encodeURIComponent(self.versionText)
+        }
+        if (self.channelParam) {
+          afd = afd + '&c=' + encodeURIComponent(self.channelParam)
+        }
       }
       self.afdianUrl = afd
 
