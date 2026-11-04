@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>激活码键盘 v1 / v2 布局对比（192×490 真实像素）</title>
+<style>
+  :root {
+    --s: 1.75;
+    --bg: #0B0F17;
+    --screen: #12161F;
+    --card: #1E2430;
+    --line: #2C3444;
+    --text: #E8ECF4;
+    --muted: #7A8598;
+    --accent: #4C9AFF;
+    --danger: #FF6B6B;
+    --ok: #3DD68C;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "PingFang SC", sans-serif;
+    padding: 40px 24px 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 { font-size: 19px; font-weight: 500; margin-bottom: 6px; }
+  .sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; text-align: center; line-height: 1.6; }
+  .stage { display: flex; gap: 72px; align-items: flex-start; }
+
+  .col { display: flex; flex-direction: column; align-items: center; }
+  .col-title {
+    font-size: 14px; font-weight: 500; margin-bottom: 4px;
+  }
+  .col-sub { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+
+  .screen {
+    width: calc(192px * var(--s));
+    height: calc(490px * var(--s));
+    background: var(--screen);
+    border-radius: calc(46px * var(--s));
+    border: 2px solid var(--line);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .px { font-size: 9px; color: var(--muted); letter-spacing: .3px; }
+
+  .blk {
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted);
+    border-radius: calc(4px * var(--s));
+    flex-shrink: 0;
+  }
+
+  .v1-pad { padding: calc(38px * var(--s)) calc(10px * var(--s)) calc(8px * var(--s)); display: flex; flex-direction: column; }
+  .v2-pad { padding: calc(4px * var(--s)) calc(2px * var(--s)) calc(4px * var(--s)); display: flex; flex-direction: column; }
+
+  .cellgrid { display: grid; grid-template-columns: repeat(6, 1fr); gap: calc(4px * var(--s)) calc(4px * var(--s)); }
+
+  .keypad-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(3px * var(--s)) calc(4px * var(--s)); }
+  .keypad-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: calc(2px * var(--s)) calc(2px * var(--s)); }
+
+  .key {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: calc(8px * var(--s));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .ops { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: calc(2px * var(--s)); margin-top: calc(4px * var(--s)); }
+
+  .measure {
+    position: absolute; right: 0; top: 0;
+    background: rgba(76,154,255,.14);
+    border: 1px dashed var(--accent);
+  }
+
+  .metrics {
+    margin-top: 18px; width: calc(192px * var(--s));
+    font-size: 12px; line-height: 1.9; color: var(--muted);
+  }
+  .metrics b { color: var(--text); font-weight: 500; }
+  .bad { color: var(--danger); }
+  .good { color: var(--ok); }
+
+  .cutline {
+    position: absolute; left: 0; right: 0; height: 0;
+    border-top: 1px dashed var(--danger);
+  }
+  .cutline span {
+    position: absolute; right: 6px; top: 3px;
+    font-size: 9px; color: var(--danger); background: var(--screen); padding: 0 4px;
+  }
+
+  .note {
+    margin-top: 34px; max-width: 700px; font-size: 12.5px; line-height: 1.85;
+    color: var(--muted); border-top: 1px solid var(--line); padding-top: 18px;
+  }
+  .note b { color: var(--text); font-weight: 500; }
+  .note code { color: var(--accent); font-family: ui-monospace, monospace; }
+</style>
+</head>
+<body>
+
+<h1>激活码键盘 v1 / v2 布局对比</h1>
+<div class="sub">两台都是 192 × 490 真实像素，按 1.75 倍显示。灰线是屏幕边界，红色虚线是首屏底边。</div>
+
+<div class="stage">
+
+  <!-- ============ v1 当前版 ============ -->
+  <div class="col">
+    <div class="col-title">当前版本 v1.9.127</div>
+    <div class="col-sub">3 列 × 4 行 · 页面需滚动</div>
+
+    <div class="screen">
+      <div class="v1-pad" style="height:100%">
+
+        <!-- header 54 -->
+        <div class="blk" style="height:calc(44px * var(--s)); background:var(--card); margin-bottom:calc(10px * var(--s)); font-size:11px">
+          激活码
+        </div>
+
+        <!-- source-hint 62 -->
+        <div class="blk" style="height:calc(56px * var(--s)); margin-bottom:calc(6px * var(--s)); font-size:8.5px; line-height:1.5; text-align:center">
+          18位 · 从网页获取<br>不是4位兑换码
+        </div>
+
+        <!-- cells 116 -->
+        <div class="cellgrid" style="margin-bottom:calc(8px * var(--s))">
+          <!-- 18 格，32 高 -->
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(32px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+        </div>
+
+        <!-- status 36 -->
+        <div class="blk" style="height:calc(28px * var(--s)); background:var(--card); margin-bottom:calc(8px * var(--s)); font-size:8.5px">
+          请输入 18 位激活码
+        </div>
+
+        <!-- keypad 180 -->
+        <div class="keypad-3" style="margin-bottom:calc(8px * var(--s))">
+          <div class="key" style="height:calc(40px * var(--s)); font-size:calc(22px * var(--s))">1</div>
+          <div class="key" style="height:calc(40px * var(--s)); font-size:calc(22px * var(--s))">2</div>
+          <div class="key" style="height:calc(40px * var(--s)); font-size:calc(22px * var(--s))">3</div>
+          <div class="key" style="height:calc(40px * var(--s)); font-size:calc(22px * var(--s))">4</div>
+          <div class="key" style="height:calc(40px * var(--s)); font-size:calc(22px * var(--s))">5</div>
+          <div class="key" style="height:calc(40px * var(--s)); font-size:calc(22px * var(--s))">6</div>
+          <div class="key" style="height:calc(40px * var(--s)); font-size:calc(22px * var(--s))">7</div>
+          <div class="key" style="height:calc(40px * var(--s)); font-size:calc(22px * var(--s))">8</div>
+          <div class="key" style="height:calc(40px * var(--s)); font-size:calc(22px * var(--s))">9</div>
+          <div class="key" style="height:calc(40px * var(--s)); font-size:calc(22px * var(--s)); color:var(--danger)">C</div>
+          <div class="key" style="height:calc(40px * var(--s)); font-size:calc(22px * var(--s))">0</div>
+          <div class="key" style="height:calc(40px * var(--s)); font-size:calc(22px * var(--s)); color:var(--danger)">←</div>
+        </div>
+
+        <!-- verify 44：已超出屏底 -->
+        <div class="blk" style="height:calc(44px * var(--s)); background:var(--accent); color:#0B0F17; font-size:11px; font-weight:600">
+          验证
+        </div>
+
+        <div class="cutline" style="bottom:calc(56px*var(--s) + 2px)">
+          <span>↑ 首屏可见到此 · 验证按钮在屏外</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="metrics">
+      单键 <b class="bad">53 × 40 px</b><br>
+      物理 <b class="bad">4.2 × 3.1 mm</b><br>
+      内容总高 <b>500 px</b>（可用 444）<br>
+      页面状态 <b class="bad">溢出，需滚动</b>
+    </div>
+  </div>
+
+  <!-- ============ v2 新版 ============ -->
+  <div class="col">
+    <div class="col-title">对比版 v1.9.128</div>
+    <div class="col-sub">2 列 × 5 行 · 首屏完整</div>
+
+    <div class="screen">
+      <div class="v2-pad" style="height:100%">
+
+        <!-- top-bar 22 -->
+        <div style="height:calc(20px * var(--s)); margin-bottom:calc(2px * var(--s)); display:flex; align-items:center">
+          <div style="width:calc(20px * var(--s)); height:calc(20px * var(--s)); border-radius:50%; background:var(--card); display:flex; align-items:center; justify-content:center; font-size:8px; color:var(--muted)">‹</div>
+        </div>
+
+        <!-- cells 80 -->
+        <div class="cellgrid" style="margin-bottom:calc(2px * var(--s))">
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--accent); border:2px solid var(--accent)"></div>
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+          <div class="blk" style="height:calc(24px * var(--s)); background:var(--card); border:1px solid var(--line)"></div>
+        </div>
+
+        <!-- status 32 -->
+        <div class="blk" style="height:calc(28px * var(--s)); background:var(--card); margin-bottom:calc(4px * var(--s)); font-size:8.5px">
+          18 位激活码，不是 4 位兑换码
+        </div>
+
+        <!-- keypad 302 -->
+        <div class="keypad-2">
+          <div class="key" style="height:calc(58px * var(--s)); font-size:calc(30px * var(--s))">1</div>
+          <div class="key" style="height:calc(58px * var(--s)); font-size:calc(30px * var(--s))">6</div>
+          <div class="key" style="height:calc(58px * var(--s)); font-size:calc(30px * var(--s))">2</div>
+          <div class="key" style="height:calc(58px * var(--s)); font-size:calc(30px * var(--s))">7</div>
+          <div class="key" style="height:calc(58px * var(--s)); font-size:calc(30px * var(--s))">3</div>
+          <div class="key" style="height:calc(58px * var(--s)); font-size:calc(30px * var(--s))">8</div>
+          <div class="key" style="height:calc(58px * var(--s)); font-size:calc(30px * var(--s))">4</div>
+          <div class="key" style="height:calc(58px * var(--s)); font-size:calc(30px * var(--s))">9</div>
+          <div class="key" style="height:calc(58px * var(--s)); font-size:calc(30px * var(--s))">5</div>
+          <div class="key" style="height:calc(58px * var(--s)); font-size:calc(30px * var(--s))">0</div>
+        </div>
+
+        <!-- ops 44 -->
+        <div class="ops">
+          <div class="key" style="height:calc(44px * var(--s)); font-size:calc(20px * var(--s)); color:var(--danger)">C</div>
+          <div class="key" style="height:calc(44px * var(--s)); font-size:calc(20px * var(--s)); color:var(--danger)">←</div>
+          <div class="key" style="height:calc(44px * var(--s)); font-size:calc(16px * var(--s)); background:var(--accent); color:#0B0F17">验证</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="metrics">
+      单键 <b class="good">93 × 58 px</b><br>
+      物理 <b class="good">7.3 × 4.5 mm</b><br>
+      内容总高 <b>484 px</b>（可用 486）<br>
+      页面状态 <b class="good">首屏完整，无滚动</b>
+    </div>
+  </div>
+
+</div>
+
+<div class="note">
+  <b>怎么看这张图</b><br>
+  两个屏都是 192 × 490 真实像素，只是放大了 1.75 倍显示。左边红色虚线以下的部分，就是在手环首屏上看不到、要下滑才能碰到的区域——目前「验证」按钮正好落在那里。<br><br>
+  <b>v2 做了什么</b><br>
+  · 删掉「激活码」标题行（-54px）和「18位·从网页获取」提示行（-62px），提示文案并入状态条<br>
+  · 18 格回显高度 32 → 24（-24px）<br>
+  · 独立「验证」按钮并入键盘下方操作栏（-44px）<br>
+  · 键盘从 3 列 × 4 行改为 <code>2 列 × 5 行</code>，单键 93 × 58<br><br>
+  <b>为什么必须改列数</b><br>
+  屏宽 192px 除以 3 列 = 64px，换算下来是 5.0mm，这是 3 列布局的物理天花板。你现在觉得"已经极限"，就是因为一直在 3 列里抠 padding。改成 2 列后宽度上限变成 7.5mm，单键面积是原来的 <b>2.55 倍</b>。
+</div>
+
+</body>
+</html>

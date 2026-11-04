@@ -82,6 +82,11 @@
       <div class="row" onclick="openActivation">
         <text class="row-label" style="color: {{ theme.text }}">高级版本</text>
       </div>
+      <!-- 临时对比入口（2026-11-04）：激活码键盘 2 列大键方案试用，
+           原 activation-code.ux 未改动。验证通过后再替换并删除本行。 -->
+      <div class="row" onclick="openActivationCodeV2">
+        <text class="row-label" style="color: {{ theme.text }}">激活码键盘 v2 对比</text>
+      </div>
       <div class="row" onclick="openFeedback">
         <text class="row-label" style="color: {{ theme.text }}">意见反馈</text>
       </div>
@@ -321,6 +326,11 @@ export default {
 
   openActivation() {
     router.push({ uri: "/pages/activation" })
+  },
+
+  // 临时：键盘 v2 对比入口，验证通过后随入口行一起删除
+  openActivationCodeV2() {
+    router.push({ uri: "/pages/activation/activation-code-v2" })
   },
 
   openDonate() {
