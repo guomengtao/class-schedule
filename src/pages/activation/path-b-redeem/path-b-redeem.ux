@@ -8,17 +8,20 @@
       <text class="header-title" style="color: {{ theme.text }}">激活码</text>
     </div>
 
-    <!-- 「第2步 共3步」= 5.4P @24px = 130px，无分隔符无箭头 -->
-    <text class="progress" style="color: {{ theme.textSecondary }}">第2步 共3步</text>
+    <!-- 「第1步 共3步」：本路径用户手里已有 4 位兑换码，第一步是拿到设备ID，不是扫码 -->
+    <text class="progress" style="color: {{ theme.textSecondary }}">第1步 共3步</text>
 
-    <text class="lead" style="color: {{ theme.text }}">扫码取激活码</text>
+    <text class="lead" style="color: {{ theme.text }}">记下设备ID</text>
 
-    <!-- ID 并入一行：ID + 后 4 位 = 4.6P @24px；点击整行重试 -->
-    <div class="dev-row" onclick="retryId" style="background-color: {{ theme.card }}">
+    <!-- 设备ID 明码大字（P1 手输网页的前提，掩码等于让用户没法抄）。
+         点击：取到 ID 时复制，取不到时重试 -->
+    <div class="dev-row" onclick="onDevTap" style="background-color: {{ theme.card }}">
       <text class="dev-value" style="color: {{ idColor }}">{{ deviceIdText }}</text>
     </div>
 
+    <!-- 二维码降为次要通道（120px）：主路径是手抄 4 位去网页输入 -->
     <div class="qr-box" style="background-color: {{ theme.card }}">
+      <text class="qr-hint" style="color: {{ theme.textMuted }}">也可以扫码打开激活页</text>
       <div class="qr-wrap" if="{{ qrUrl }}">
         <qrcode class="qr-code" value="{{ qrUrl }}" style="color: #000000; background-color: #ffffff;"></qrcode>
       </div>
@@ -33,6 +36,8 @@
 
 <script>
 import router from "@system.router"
+import clipboard from "@system.clipboard"
+import prompt from "@system.prompt"
 const ctx = require("../shared/activation-context.js")
 
 export default {
@@ -51,7 +56,8 @@ export default {
     },
     deviceIdText: 'ID 获取中',
     idColor: '#888899',
-    qrUrl: ''
+    qrUrl: '',
+    deviceId: ''
   },
 
   onInit() {
@@ -61,6 +67,7 @@ export default {
       self.updateIconSrc(themeName)
     })
     ctx.getIdentity(function(deviceId, infoParams) {
+      self.deviceId = deviceId || ''
       self.deviceIdText = self.formatId(deviceId)
       self.idColor = deviceId ? self.theme.text : self.theme.accent
       self.qrUrl = ctx.redeemUrl(deviceId, infoParams)
@@ -75,13 +82,25 @@ export default {
     })
   },
 
-  // 只展示末 4 位：用户不直接使用完整 ID，只需确认「取到了」
-  // 取不到时必须显式提示，隐藏就等于让用户看不到问题；提示本身是可点击的重试入口
+  // 展示末 4 位明码：网页端要手输这 4 位（掩码会让用户没法抄）。
+  // 取不到时显式提示，且提示本身是可点击的重试入口
   formatId(id) {
-    if (!id) return '重试获取ID'
-    var s = String(id)
-    if (s.length <= 4) return 'ID ••' + s
-    return 'ID ••' + s.substring(s.length - 4)
+    if (!id) return '点此重试获取ID'
+    return String(id).substring(String(id).length - 4)
+  },
+
+  // 点击：有 ID 复制（主路径是手抄/复制到网页），没 ID 重试
+  onDevTap() {
+    if (!this.deviceId) {
+      this.retryId()
+      return
+    }
+    try {
+      clipboard.set({ text: this.deviceId })
+      prompt.showToast({ message: '已复制完整设备ID' })
+    } catch (e) {
+      prompt.showToast({ message: '复制失败，请手抄屏幕上的 4 位' })
+    }
   },
 
   retryId() {
@@ -104,7 +123,8 @@ export default {
 
 <style>
 /* ev-six：字号只用 30/28/24，横向 padding 页面 10、卡片 8，留白从行高与纵向 padding 买。
-   高度预算：header 44 + 进度 36 + 说明 42 + ID 58 + 二维码 186 + 按钮 58 = 424 / 434 */
+   高度预算：header 44 + 进度 36 + 说明 42 + ID 58 + 二维码 154 + 按钮 58 ≈ 392 / 434
+   （2026-11-04：二维码 152→120 并加一行小字说明，净省 30px，给手输主路径留裕量） */
 .page {
   flex-direction: column;
   padding: 44px 10px 12px 10px;
@@ -172,8 +192,8 @@ export default {
 }
 
 .dev-value {
-  font-size: 24px;
-  line-height: 34px;
+  font-size: 28px;
+  line-height: 38px;
   font-weight: bold;
   flex-shrink: 0;
 }
@@ -197,16 +217,23 @@ export default {
   border-radius: 6px;
 }
 
+/* 二维码降为次要通道：120 + 白边 16 = 136px，上方留一行小字说明 */
+.qr-hint {
+  font-size: 24px;
+  line-height: 34px;
+  margin-bottom: 4px;
+}
+
 .qr-code {
-  width: 152px;
-  height: 152px;
+  width: 120px;
+  height: 120px;
   flex-shrink: 0;
 }
 
 .qr-loading {
   font-size: 24px;
   line-height: 34px;
-  height: 168px;
+  height: 136px;
   text-align: center;
 }
 
