@@ -9,33 +9,36 @@
         <div class="header-placeholder"></div>
     </div>
 
-    <!-- 状态区：去掉卡片底色，裸大字 + 宽行高。与下方卡片形成「裸文 vs 卡片」层级，不花一个位置 -->
-    <div class="status">
+    <!-- 已激活才配用 44px 裸大字（状态就是这页对他的全部内容）；
+         未激活压成一行小字：这页的重点是让他买，不是告诉他"你是标准版" -->
+    <div class="status" if="{{ isActivated }}">
       <text class="status-main" style="color: {{ statusColor }}">{{ statusText }}</text>
       <text class="status-sub" style="color: {{ theme.textSecondary }}">{{ statusSub }}</text>
     </div>
+    <text class="status-hint" if="{{ !isActivated }}" style="color: {{ theme.textSecondary }}">当前：标准版</text>
 
-    <!-- 未激活：兑换码激活（默认重点）→ 安卓扫码（可选）→ 购买（下沉为文字入口）。
-         定序依据是稳定性而非路径长短：安卓路径依赖 同步器→小米运动健康→手环SPP会话，
-         经常卡断（pit-20261104-97）；手工路径零蓝牙零App零会话。
-         文案受 152px 内容宽硬约束：标题 ≤5 字@28px，副标 ≤6 字@24px。 -->
+    <!-- 未激活：购买（主）→ 已有码兑换（次）→ 扫码激活（末）。
+         定序依据是用户手上有没有码：绝大多数未激活用户还没买，先给「怎么买」；
+         已买的人走第二张（零蓝牙零App，最稳）；扫码路径依赖 同步器→小米运动健康→手环SPP 会话，
+         经常卡断（pit-20261104-97），沉底并标注前提。
+         文案受 152px 内容宽硬约束：标题 ≤5 字@28px，副标 ≤5 字@24px。 -->
     <block if="{{ !isActivated }}">
-      <div class="path-card path-card-primary" onclick="openPathB" style="background-color: {{ theme.cardLight }}">
+      <div class="path-card path-card-primary" onclick="openPurchase" style="background-color: {{ theme.cardLight }}">
+        <div class="path-head">
+          <text class="path-title" style="color: {{ theme.text }}">购买兑换码</text>
+        </div>
+        <text class="path-sub" style="color: {{ theme.accent }}">手机扫码付</text>
+      </div>
+
+      <div class="path-card" onclick="openPathB" style="background-color: {{ theme.card }}">
         <div class="path-head">
           <text class="path-title" style="color: {{ theme.text }}">兑换码激活</text>
         </div>
-        <text class="path-sub" style="color: {{ theme.accent }}">推荐·稳定</text>
+        <text class="path-sub" style="color: {{ theme.textSecondary }}">已有码</text>
       </div>
 
-      <div class="path-card" onclick="openPathA" style="background-color: {{ theme.card }}">
-        <div class="path-head">
-          <text class="path-title" style="color: {{ theme.text }}">扫码激活</text>
-        </div>
-        <text class="path-sub" style="color: {{ theme.textSecondary }}">同步器·常卡</text>
-      </div>
-
-      <div class="buy-row" onclick="openPurchase" style="background-color: {{ theme.card }}">
-        <text class="buy-text" style="color: {{ theme.textSecondary }}">购买兑换码</text>
+      <div class="link-row" onclick="openPathA" style="background-color: {{ theme.card }}">
+        <text class="link-text" style="color: {{ theme.textSecondary }}">扫码激活</text>
       </div>
     </block>
 
@@ -212,6 +215,14 @@ export default {
 }
 
 
+/* 未激活态的单行状态：24px 一行，替代原来 44+34 的两行大字，
+   给三张卡让出 ~60px 预算（否则第三张卡副标被屏幕截断） */
+.status-hint {
+  font-size: 24px;
+  line-height: 34px;
+  margin-bottom: 10px;
+}
+
 /* 状态区：无卡片底色，靠留白和层级区分，不与下方卡片抢视觉重量 */
 .status {
   flex-direction: column;
@@ -232,9 +243,10 @@ export default {
   margin-top: 4px;
 }
 
-/* 购买入口已下沉为次级文字行（2026-11-04 入口重排）：不再是主操作，
-   高度从 58 收到 40，给上方两张路径卡让出预算 */
-.buy-row {
+/* 最末的扫码路径降为文字行：它依赖 同步器→小米运动健康→手环SPP 会话，
+   常卡断（pit-20261104-97），不值得占一张 100px 卡的高度；
+   前提说明放在 path-a-sync 页里讲，不在首页占位 */
+.link-row {
   flex-direction: row;
   align-items: center;
   justify-content: center;
@@ -242,10 +254,10 @@ export default {
   min-height: 40px;
   padding: 0 6px;
   border-radius: 14px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
-.buy-text {
+.link-text {
   flex: 1;
   font-size: 24px;
   line-height: 34px;

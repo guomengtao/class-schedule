@@ -19,7 +19,7 @@
 
     <text class="hint" style="color: {{ theme.textSecondary }}">付款后回到此页</text>
 
-    <div class="btn" onclick="goBack" style="background-color: {{ theme.accent }}">
+    <div class="btn" onclick="goRedeem" style="background-color: {{ theme.accent }}">
       <text class="btn-text" style="color: {{ theme.bg }}">已购买去激活</text>
     </div>
   </div>
@@ -71,6 +71,12 @@ export default {
 
   goBack() {
     router.back()
+  },
+
+  // 买完不再回激活页二次选择，直接进输码页（2026-11-04 用户裁定：
+  // 「用户都没购买，怎么激活」→ 反过来，买完就该零思考进兑换码）
+  goRedeem() {
+    router.push({ uri: 'pages/activation/path-b-redeem' })
   }
 }
 </script>
