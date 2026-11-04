@@ -15,27 +15,27 @@
       <text class="status-sub" style="color: {{ theme.textSecondary }}">{{ statusSub }}</text>
     </div>
 
-    <!-- 未激活：购买入口 + A/B 二选一（无序号徽标、无分隔符、无分组标签） -->
+    <!-- 未激活：兑换码激活（默认重点）→ 安卓扫码（可选）→ 购买（下沉为文字入口）。
+         定序依据是稳定性而非路径长短：安卓路径依赖 同步器→小米运动健康→手环SPP会话，
+         经常卡断（pit-20261104-97）；手工路径零蓝牙零App零会话。
+         文案受 152px 内容宽硬约束：标题 ≤5 字@28px，副标 ≤6 字@24px。 -->
     <block if="{{ !isActivated }}">
-      <div class="buy-row" onclick="openPurchase" style="background-color: {{ theme.cardLight }}">
-        <text class="buy-text" style="color: {{ theme.text }}">购买兑换码</text>
+      <div class="path-card path-card-primary" onclick="openPathB" style="background-color: {{ theme.cardLight }}">
+        <div class="path-head">
+          <text class="path-title" style="color: {{ theme.text }}">兑换码激活</text>
+        </div>
+        <text class="path-sub" style="color: {{ theme.accent }}">推荐·稳定</text>
       </div>
 
-      <!-- A/B 紧贴（间距 10）与其他组间距（14/12）形成节奏，「二选一」由布局表达，不用文字占位置 -->
       <div class="path-card" onclick="openPathA" style="background-color: {{ theme.card }}">
         <div class="path-head">
-          <text class="path-key" style="color: {{ theme.accent }}">A</text>
           <text class="path-title" style="color: {{ theme.text }}">扫码激活</text>
         </div>
-        <text class="path-sub" style="color: {{ theme.accent }}">安卓 2 步</text>
+        <text class="path-sub" style="color: {{ theme.textSecondary }}">同步器·常卡</text>
       </div>
 
-      <div class="path-card" onclick="openPathB" style="background-color: {{ theme.card }}">
-        <div class="path-head">
-          <text class="path-key" style="color: {{ theme.textSecondary }}">B</text>
-          <text class="path-title" style="color: {{ theme.text }}">手工激活</text>
-        </div>
-        <text class="path-sub" style="color: {{ theme.textSecondary }}">全平台 3 步</text>
+      <div class="buy-row" onclick="openPurchase" style="background-color: {{ theme.card }}">
+        <text class="buy-text" style="color: {{ theme.textSecondary }}">购买兑换码</text>
       </div>
     </block>
 
@@ -232,12 +232,14 @@ export default {
   margin-top: 4px;
 }
 
-/* 主操作：亮一档底色（cardLight），与 A/B 卡（card）拉开层级，不加边框不加图标 */
+/* 购买入口已下沉为次级文字行（2026-11-04 入口重排）：不再是主操作，
+   高度从 58 收到 40，给上方两张路径卡让出预算 */
 .buy-row {
   flex-direction: row;
   align-items: center;
+  justify-content: center;
   width: 100%;
-  min-height: 58px;
+  min-height: 40px;
   padding: 0 6px;
   border-radius: 14px;
   margin-bottom: 12px;
@@ -245,9 +247,15 @@ export default {
 
 .buy-text {
   flex: 1;
-  font-size: 28px;
-  font-weight: bold;
-  line-height: 38px;
+  font-size: 24px;
+  line-height: 34px;
+  text-align: center;
+}
+
+/* 主推路径卡：亮底由模板内联 cardLight 表达，此变体保留语义位，
+   将来如需描边/徽标在此扩展（pit-20261104-97 的定序依据） */
+.path-card-primary {
+  border: 1px solid transparent;
 }
 
 /* 全页无导航箭头：官方链接本身就是「点击即进」，加 › 只是装饰又白占 0.5 位置 */
