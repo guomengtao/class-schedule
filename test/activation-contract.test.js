@@ -92,10 +92,10 @@ ok(
   legacyDec && legacyDec.valid && matches(legacyDec.deviceId, '6e44')
 );
 
-console.log('\n=== Part 2 \u00b7 两端 deviceIdToNumber 一致性巡检（仅报告）===\n');
-console.log('  签发端对设备段做大写归一，客户端当前未归一。真实链路不受影响');
-console.log('  （客户端解码走 numberToDeviceId，不用这个函数），但同名函数行为分歧');
-console.log('  是同一类事故的第二个引信，列在这里持续可见。\n');
+console.log('\n=== Part 2 \u00b7 两端 deviceIdToNumber 归一守卫 ===\n');
+console.log('  2026-11-04 已把客户端归一到与签发端一致。本节作为回归守卫：');
+console.log('  任何一项出现 \u26a0\ufe0f 都说明归一路径被改坏，等同激活链路可能再次分裂。');
+console.log('  该函数不参与真实解密（解密走 numberToDeviceId），但同名不同行为是事故温床。\n');
 
 ['6e44', '6E44', '3456'].forEach(function (seg) {
   var a = issuer.normalizeDeviceIdSegment(seg);
@@ -110,8 +110,8 @@ console.log('  是同一类事故的第二个引信，列在这里持续可见�
     ' | evbox=' + bx
   );
 });
-console.log('\n  \u26a0\ufe0f 表示客户端对同一设备的大小写写法算出不同数值。');
-console.log('  当前不影响激活，但若将来有任何一侧拿 deviceIdToNumber 做校验，就会复现同类事故。\n');
+console.log('\n  期望：同一设备段的大写与小写写法必须算出同一数值。');
+console.log('  若此项报警，先看 crypto.js 的 deviceIdToNumber 是否丢了 toUpperCase。\n');
 
 console.log('=== 结果：' + pass + ' 通过 / ' + fail + ' 失败 ===\n');
 if (fail > 0) {
