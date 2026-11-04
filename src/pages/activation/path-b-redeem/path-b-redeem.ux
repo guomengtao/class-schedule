@@ -11,21 +11,21 @@
     <!-- 「第1步 共3步」：本路径用户手里已有 4 位兑换码，第一步是拿到设备ID，不是扫码 -->
     <text class="progress" style="color: {{ theme.textSecondary }}">第1步 共3步</text>
 
-    <text class="lead" style="color: {{ theme.text }}">设备ID</text>
-
-    <!-- 设备ID 明码大字（P1 手输网页的前提，掩码等于让用户没法抄）。
-         点击：取到 ID 时复制，取不到时重试 -->
-    <div class="dev-row" onclick="onDevTap" style="background-color: {{ theme.card }}">
-      <text class="dev-value" style="color: {{ idColor }}">{{ deviceIdText }}</text>
-    </div>
-
-    <!-- 二维码降为次要通道（120px）：主路径是手抄 4 位去网页输入 -->
+    <!-- 扫码是唯一主路径（2026-11-04 用户裁定）：去掉「或」字——这里不是可选项，
+         就是扫；二维码按屏宽吃满，小屏扫得动优先于任何文案。
+         扫码会自动带上 deviceId 与全部参数，用户不需要抄任何东西。 -->
     <div class="qr-box" style="background-color: {{ theme.card }}">
-      <text class="qr-hint" style="color: {{ theme.textMuted }}">或扫码打开</text>
+      <text class="qr-hint" style="color: {{ theme.textSecondary }}">扫码打开</text>
       <div class="qr-wrap" if="{{ qrUrl }}">
-        <qrcode class="qr-code" value="{{ qrUrl }}" style="color: #000000; background-color: #ffffff;"></qrcode>
+        <qrcode class="qr-code" value="{{ qrUrl }}" style="width: {{ qrSize }}px; height: {{ qrSize }}px; color: #000000; background-color: #ffffff;"></qrcode>
       </div>
       <text class="qr-loading" if="{{ !qrUrl }}" style="color: {{ theme.textMuted }}">正在生成</text>
+    </div>
+
+    <!-- 设备ID 降为页脚参考行：只是「有这个」兜底/排障，不占视觉预算。
+         点击仍可复制完整 ID（手输路径已退为备用/测试通道） -->
+    <div class="dev-row" onclick="onDevTap">
+      <text class="dev-value" style="color: {{ theme.textMuted }}">设备ID {{ deviceIdText }}</text>
     </div>
 
     <div class="btn" onclick="goInput" style="background-color: {{ theme.accent }}">
@@ -38,6 +38,7 @@
 import router from "@system.router"
 import clipboard from "@system.clipboard"
 import prompt from "@system.prompt"
+import device from "@system.device"
 const ctx = require("../shared/activation-context.js")
 
 export default {
@@ -57,11 +58,13 @@ export default {
     deviceIdText: 'ID 获取中',
     idColor: '#888899',
     qrUrl: '',
-    deviceId: ''
+    deviceId: '',
+    qrSize: 156
   },
 
   onInit() {
     var self = this
+    self.calcQrSize()
     ctx.getTheme(function(t, themeName) {
       self.theme = t
       self.updateIconSrc(themeName)
@@ -82,7 +85,27 @@ export default {
     })
   },
 
-  // 展示末 4 位明码：网页端要手输这 4 位（掩码会让用户没法抄）。
+  // 二维码边长按屏宽/屏高同时封顶：小屏扫得动是第一诉求。
+  // 宽度侧：页面左右 padding 20 + 白框 12 + 呼吸 12 = 44
+  // 高度侧：固定占位约 302（header/progress/hint/ID 行/按钮/各间距）
+  calcQrSize() {
+    var self = this
+    if (!device || typeof device.getInfo !== 'function') return
+    device.getInfo({
+      success: function(d) {
+        var w = (d && d.screenWidth) ? d.screenWidth : 192
+        var h = (d && d.screenHeight) ? d.screenHeight : 480
+        var byW = w - 44
+        var byH = h - 302
+        var s = Math.min(byW, byH, 240)
+        if (s < 96) s = 96
+        self.qrSize = Math.floor(s)
+      },
+      fail: function() {}
+    })
+  },
+
+  // 展示末 4 位明码：备用/排障时网页端要手输这 4 位
   // 取不到时显式提示，且提示本身是可点击的重试入口
   formatId(id) {
     if (!id) return '点此重试获取ID'
@@ -170,31 +193,22 @@ export default {
   margin-bottom: 2px;
 }
 
-/* 6 字 @28 = 168px，正好满行 */
-.lead {
-  font-size: 28px;
-  line-height: 38px;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 4px;
-}
-
-/* ID 单行居中，无 label、无分隔符 */
+/* 设备ID 页脚参考行：无卡片底、24px muted，点一下可复制完整 ID */
 .dev-row {
   width: 100%;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  min-height: 50px;
-  padding: 8px;
-  border-radius: 10px;
-  margin-bottom: 8px;
+  min-height: 32px;
+  padding: 0 4px;
+  margin-top: 4px;
+  margin-bottom: 6px;
 }
 
 .dev-value {
-  font-size: 28px;
-  line-height: 38px;
-  font-weight: bold;
+  font-size: 24px;
+  line-height: 32px;
+  text-align: center;
   flex-shrink: 0;
 }
 
@@ -207,9 +221,9 @@ export default {
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  padding: 5px 0;
+  padding: 6px 0;
   border-radius: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .qr-wrap {
@@ -217,28 +231,29 @@ export default {
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 6px;
   background-color: #ffffff;
   border-radius: 6px;
 }
 
-/* 5 字 @24 = 120px，152px 内容宽内单行放得下（原 10 字文案会被截断） */
+/* 4 字 @24 = 96px，任何屏宽都单行放得下（去掉了原来的「或」） */
 .qr-hint {
   font-size: 24px;
-  line-height: 34px;
+  line-height: 32px;
   margin-bottom: 4px;
 }
 
+/* 兜底尺寸；真实边长由脚本按 screenWidth/Height 动态写入 inline style */
 .qr-code {
-  width: 120px;
-  height: 120px;
+  width: 156px;
+  height: 156px;
   flex-shrink: 0;
 }
 
 .qr-loading {
   font-size: 24px;
   line-height: 34px;
-  height: 136px;
+  height: 168px;
   text-align: center;
 }
 
