@@ -92,22 +92,23 @@ ok(
   legacyDec && legacyDec.valid && matches(legacyDec.deviceId, '6e44')
 );
 
-console.log('\n=== Part 2 \u00b7 两端 deviceIdToNumber 归一守卫 ===\n');
+console.log('\n=== Part 2 \u00b7 两端 deviceIdToNumber 归一守卫（判失败）===\n');
 console.log('  2026-11-04 已把客户端归一到与签发端一致。本节作为回归守卫：');
 console.log('  任何一项出现 \u26a0\ufe0f 都说明归一路径被改坏，等同激活链路可能再次分裂。');
 console.log('  该函数不参与真实解密（解密走 numberToDeviceId），但同名不同行为是事故温床。\n');
 
 ['6e44', '6E44', '3456'].forEach(function (seg) {
+  var up = seg.toUpperCase();
   var a = issuer.normalizeDeviceIdSegment(seg);
   var cs = csCrypto.deviceIdToNumber(seg);
   var bx = boxCrypto.deviceIdToNumber(seg);
-  var converged = /^[0-9]+$/.test(seg) || cs === csCrypto.deviceIdToNumber(seg.toUpperCase());
-  console.log(
-    '  ' + (converged ? '\u2714' : '\u26a0\ufe0f ') +
-    ' 设备段=' + seg +
-    ' | 签发端归一后=' + a +
-    ' | cs=' + cs +
-    ' | evbox=' + bx
+  var csSame = cs === csCrypto.deviceIdToNumber(up);
+  var bxSame = bx === boxCrypto.deviceIdToNumber(up);
+  var cross = cs === bx;
+  ok(
+    '设备段=' + seg + ' | 签发端归一=' + a + ' | cs=' + cs + ' | evbox=' + bx,
+    csSame && bxSame && cross,
+    (csSame && bxSame && cross) ? '' : ('大小写写法算出不同数值 csSame=' + csSame + ' bxSame=' + bxSame + ' cs==evbox:' + cross)
   );
 });
 console.log('\n  期望：同一设备段的大写与小写写法必须算出同一数值。');
