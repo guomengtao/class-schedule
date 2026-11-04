@@ -21,6 +21,17 @@
     ⑤ 扫秒：100ms 刷新 + 1° 粒度（每步 0.6°，肉眼连续），非跳秒。
 
   布局铁律：.page 只给尺寸 + 列向 flex，绝不加 justify-content / align-items。
+
+  ── 双屏形（2026-11-04 补胶囊屏）────────────────────────────────
+  本表盘原先只做 336 方屏，模板里三个内容块全带 if="{{ isWide }}"，窄屏无兜底，
+  192×490 打开后整页空白。现补同为「白卡模拟表盘」的缩尺版：
+    基准比例 k = 80 / 145 = 0.5517（刻度外沿 145 → 80）
+    卡 184×184（left 4, top 92），盘心 (96,184)，日期行 y=66
+    整点刻度 1×16   分钟刻度 1×10   数字 22px（中心距 47.4）
+    时针 5×38（起笔 r=12）  分针 5×60  秒针 2×79 + 尾 14
+    中心橙点 ⌀6 + 白孔 ⌀3
+  盘下另置一行 60px 数字时刻：胶囊屏宽仅 192，圆盘最大只能到 184，
+  日期与三针在小盘面上不好读，用数字时刻兜可读性（宽屏版没有这行）。
 -->
 <template>
   <div class="page">
@@ -96,17 +107,14 @@
       <text class="num" style="left:133px;top:306px">6</text>
       <text class="num" style="left:47px;top:220px">9</text>
 
-      <!-- 时针 / 分针：外层 .pivot 是 0×0 的「旋转载体」，旋转轴（顶部中点）恰好落在盘心；
-           内层子元素按普通坐标摆放，于是针身可以从 r=21.5 起笔用圆底自然展开成肩部。
-           平铺方案做不到这一点——所有元素都只能从盘心起笔，肩部只能是硬台阶。 -->
-      <div class="pivot {{ hourCls }}">
-        <div class="hb hb-hour"></div>
-        <div class="hn"></div>
-      </div>
-      <div class="pivot {{ minuteCls }}">
-        <div class="hb hb-min"></div>
-        <div class="hn"></div>
-      </div>
+      <!-- 时针 / 分针 / 秒针：四根全部平铺，top 压在盘心 240（引擎旋转轴 = 元素顶部中点）。
+           2026-11-04 实测废弃原「0×0 旋转载体 + 内层子元素」写法：
+           该运行时下父层 transform 会打乱子元素的定位坐标系，指针要么不渲染、
+           要么被甩到盘外，336 与 192 两屏均如此。平铺是唯一可靠解。
+           代价：针身从盘心起笔，原来的「细颈→肩部」收腰做不出来，
+           统一为圆头等宽针身（macOS 小组件实际也是等宽圆头）。 -->
+      <div class="hand hb-hour {{ hourCls }}"></div>
+      <div class="hand hb-min {{ minuteCls }}"></div>
       <div class="hand second {{ secondCls }}"></div>
       <div class="hand second-tail {{ tailCls }}"></div>
 
@@ -114,11 +122,90 @@
       <div class="hub-hole"></div>
     </div>
 
-    <!-- ═══ 窄屏 192×490：暗卡数字版（同家族另一款，非降级） ═══ -->
-    <div class="card-dark" if="{{ isNarrow }}"></div>
-    <text class="d-day"   if="{{ isNarrow }}">{{ dayText }}</text>
-    <text class="d-time"  if="{{ isNarrow }}">{{ hhmm }}</text>
-    <text class="d-date"  if="{{ isNarrow }}">{{ dateSmall }}</text>
+    <!-- ═══ 窄屏 192×490：白卡模拟表盘 · 缩尺版（2026-11-04 补）═══
+         几何 = 宽屏标定值 × 0.5517（刻度外沿 145→80，盘心 (96,184)，卡 184×184）
+         此前窄屏只有一个「暗卡数字版」且 isNarrow 分支里没有任何盘面，
+         与宽屏不是同一款；这次改为同款缩尺，两屏是同一块表盘。 -->
+    <text class="n-date" if="{{ isNarrow }}">{{ dateText }}</text>
+    <div class="n-card" if="{{ isNarrow }}"></div>
+
+    <div class="n-face" if="{{ isNarrow }}">
+        <div class="ntk-h" style="left:95.5px;top:104px;transform:rotate(0deg)"></div>
+        <div class="ntk-h" style="left:135.5px;top:114.7px;transform:rotate(30deg)"></div>
+        <div class="ntk-h" style="left:164.8px;top:144px;transform:rotate(60deg)"></div>
+        <div class="ntk-h" style="left:175.5px;top:184px;transform:rotate(90deg)"></div>
+        <div class="ntk-h" style="left:164.8px;top:224px;transform:rotate(120deg)"></div>
+        <div class="ntk-h" style="left:135.5px;top:253.3px;transform:rotate(150deg)"></div>
+        <div class="ntk-h" style="left:95.5px;top:264px;transform:rotate(180deg)"></div>
+        <div class="ntk-h" style="left:55.5px;top:253.3px;transform:rotate(210deg)"></div>
+        <div class="ntk-h" style="left:26.2px;top:224px;transform:rotate(240deg)"></div>
+        <div class="ntk-h" style="left:15.5px;top:184px;transform:rotate(270deg)"></div>
+        <div class="ntk-h" style="left:26.2px;top:144px;transform:rotate(300deg)"></div>
+        <div class="ntk-h" style="left:55.5px;top:114.7px;transform:rotate(330deg)"></div>
+        <div class="ntk-m" style="left:103.9px;top:104.4px;transform:rotate(6deg)"></div>
+        <div class="ntk-m" style="left:112.1px;top:105.7px;transform:rotate(12deg)"></div>
+        <div class="ntk-m" style="left:120.2px;top:107.9px;transform:rotate(18deg)"></div>
+        <div class="ntk-m" style="left:128px;top:110.9px;transform:rotate(24deg)"></div>
+        <div class="ntk-m" style="left:142.5px;top:119.3px;transform:rotate(36deg)"></div>
+        <div class="ntk-m" style="left:149px;top:124.5px;transform:rotate(42deg)"></div>
+        <div class="ntk-m" style="left:155px;top:130.5px;transform:rotate(48deg)"></div>
+        <div class="ntk-m" style="left:160.2px;top:137px;transform:rotate(54deg)"></div>
+        <div class="ntk-m" style="left:168.6px;top:151.5px;transform:rotate(66deg)"></div>
+        <div class="ntk-m" style="left:171.6px;top:159.3px;transform:rotate(72deg)"></div>
+        <div class="ntk-m" style="left:173.8px;top:167.4px;transform:rotate(78deg)"></div>
+        <div class="ntk-m" style="left:175.1px;top:175.6px;transform:rotate(84deg)"></div>
+        <div class="ntk-m" style="left:175.1px;top:192.4px;transform:rotate(96deg)"></div>
+        <div class="ntk-m" style="left:173.8px;top:200.6px;transform:rotate(102deg)"></div>
+        <div class="ntk-m" style="left:171.6px;top:208.7px;transform:rotate(108deg)"></div>
+        <div class="ntk-m" style="left:168.6px;top:216.5px;transform:rotate(114deg)"></div>
+        <div class="ntk-m" style="left:160.2px;top:231px;transform:rotate(126deg)"></div>
+        <div class="ntk-m" style="left:155px;top:237.5px;transform:rotate(132deg)"></div>
+        <div class="ntk-m" style="left:149px;top:243.5px;transform:rotate(138deg)"></div>
+        <div class="ntk-m" style="left:142.5px;top:248.7px;transform:rotate(144deg)"></div>
+        <div class="ntk-m" style="left:128px;top:257.1px;transform:rotate(156deg)"></div>
+        <div class="ntk-m" style="left:120.2px;top:260.1px;transform:rotate(162deg)"></div>
+        <div class="ntk-m" style="left:112.1px;top:262.3px;transform:rotate(168deg)"></div>
+        <div class="ntk-m" style="left:103.9px;top:263.6px;transform:rotate(174deg)"></div>
+        <div class="ntk-m" style="left:87.1px;top:263.6px;transform:rotate(186deg)"></div>
+        <div class="ntk-m" style="left:78.9px;top:262.3px;transform:rotate(192deg)"></div>
+        <div class="ntk-m" style="left:70.8px;top:260.1px;transform:rotate(198deg)"></div>
+        <div class="ntk-m" style="left:63px;top:257.1px;transform:rotate(204deg)"></div>
+        <div class="ntk-m" style="left:48.5px;top:248.7px;transform:rotate(216deg)"></div>
+        <div class="ntk-m" style="left:42px;top:243.5px;transform:rotate(222deg)"></div>
+        <div class="ntk-m" style="left:36px;top:237.5px;transform:rotate(228deg)"></div>
+        <div class="ntk-m" style="left:30.8px;top:231px;transform:rotate(234deg)"></div>
+        <div class="ntk-m" style="left:22.4px;top:216.5px;transform:rotate(246deg)"></div>
+        <div class="ntk-m" style="left:19.4px;top:208.7px;transform:rotate(252deg)"></div>
+        <div class="ntk-m" style="left:17.2px;top:200.6px;transform:rotate(258deg)"></div>
+        <div class="ntk-m" style="left:15.9px;top:192.4px;transform:rotate(264deg)"></div>
+        <div class="ntk-m" style="left:15.9px;top:175.6px;transform:rotate(276deg)"></div>
+        <div class="ntk-m" style="left:17.2px;top:167.4px;transform:rotate(282deg)"></div>
+        <div class="ntk-m" style="left:19.4px;top:159.3px;transform:rotate(288deg)"></div>
+        <div class="ntk-m" style="left:22.4px;top:151.5px;transform:rotate(294deg)"></div>
+        <div class="ntk-m" style="left:30.8px;top:137px;transform:rotate(306deg)"></div>
+        <div class="ntk-m" style="left:36px;top:130.5px;transform:rotate(312deg)"></div>
+        <div class="ntk-m" style="left:42px;top:124.5px;transform:rotate(318deg)"></div>
+        <div class="ntk-m" style="left:48.5px;top:119.3px;transform:rotate(324deg)"></div>
+        <div class="ntk-m" style="left:63px;top:110.9px;transform:rotate(336deg)"></div>
+        <div class="ntk-m" style="left:70.8px;top:107.9px;transform:rotate(342deg)"></div>
+        <div class="ntk-m" style="left:78.9px;top:105.7px;transform:rotate(348deg)"></div>
+        <div class="ntk-m" style="left:87.1px;top:104.4px;transform:rotate(354deg)"></div>
+
+      <text class="nnum" style="left:77px;top:126px">12</text>
+      <text class="nnum" style="left:124px;top:173px">3</text>
+      <text class="nnum" style="left:77px;top:220px">6</text>
+      <text class="nnum" style="left:30px;top:173px">9</text>
+
+      <div class="nhand nhb-hour {{ hourCls }}"></div>
+      <div class="nhand nhb-min {{ minuteCls }}"></div>
+      <div class="nhand nsecond {{ secondCls }}"></div>
+      <div class="nhand nsecond-tail {{ tailCls }}"></div>
+
+      <div class="nhub"></div>
+      <div class="nhub-hole"></div>
+    </div>
+
+    <text class="n-time" if="{{ isNarrow }}">{{ hhmm }}</text>
     <text style="position:absolute;left:0;bottom:16px;width:100%;text-align:center;font-size:22px;color:#888899" onclick="onBack">返回</text>
   </div>
 </template>
@@ -297,36 +384,24 @@ export default {
   /* 所有针：top 必须压在盘心 240（引擎旋转轴 = 顶部中点） */
   .hand { position: absolute; }
 
-  /* 旋转载体：0×0，顶部中点 = 左上角 = 盘心 (168,240)。
-     子元素在这个坐标系里正常摆放，不需要自己再旋转。 */
-  .pivot {
-    position: absolute;
-    left: 168px;
+  /* 时针 / 分针：top 压在盘心 240，元素顶部中点即旋转轴。
+     长度取基准实测：时针 r=90（0.62R，基准 0.561R + 细颈 21.5）、分针 r=130（0.90R）。
+     针身宽 10（0.064R），圆头。 */
+  .hb-hour {
+    left: 163px;
     top: 240px;
-    width: 0px;
-    height: 0px;
-  }
-
-  /* 针身：从 r=21.5 起笔，border-radius 5 = 圆底 → 6px 内自然由细颈宽度展开到全宽（肩部），
-     尖端同为圆头。基准实测：时针 0.561R、分针 0.810R、针身宽 0.064R。 */
-  .hb {
-    position: absolute;
+    width: 10px;
+    height: 90px;
     background-color: #1D1D1F;
     border-radius: 5px;
   }
-  .hb-hour { left: -5px; top: 21.5px; width: 10px; height: 68.5px; }
-  .hb-min  { left: -5px; top: 21.5px; width: 10px; height: 108.5px; }
-
-  /* 细颈：5px 窄线（基准实测 5.0），从盘心到 r=24；
-     外端埋进针身黑色里，绝不露圆头 —— 之前收腰就是圆头露在针身外面造成的。 */
-  .hn {
-    position: absolute;
-    left: -2.5px;
-    top: 0px;
-    width: 5px;
-    height: 24px;
+  .hb-min {
+    left: 163px;
+    top: 240px;
+    width: 10px;
+    height: 130px;
     background-color: #1D1D1F;
-    border-radius: 2.5px;
+    border-radius: 5px;
   }
 
   .second {
@@ -370,48 +445,134 @@ export default {
     background-color: #FEFEFE;
   }
 
-  /* ── 窄屏 · 暗卡数字版 ── */
-  .card-dark {
+  /* ── 窄屏 192×490 · 白卡模拟表盘（宽屏标定 × 0.5517） ──
+     盘心 (96,184)，刻度外沿 R=80，卡 184×184。192 屏上沿是半径 96 的半圆，
+     y=66 处内收仅 4px，所以日期行放在 y=66 不会压进圆弧。 */
+  .n-card {
     position: absolute;
-    left: 8px;
-    top: 110px;
-    width: 176px;
-    height: 176px;
-    border-radius: 42px;
-    background-color: #1C1C1E;
+    left: 4px;
+    top: 92px;
+    width: 184px;
+    height: 184px;
+    border-radius: 44px;
+    background-color: #FEFEFE;
   }
 
-  .d-day {
+  .n-date {
     position: absolute;
-    left: 8px;
-    top: 134px;
-    width: 176px;
+    left: 0;
+    top: 66px;
+    width: 192px;
     text-align: center;
-    font-size: 16px;
-    color: #AEAEB2;
+    font-size: 18px;
+    color: #8E8E93;
   }
 
-  .d-time {
+  .n-face {
     position: absolute;
-    left: 8px;
-    top: 166px;
-    width: 176px;
-    height: 64px;
-    line-height: 64px;
+    left: 0;
+    top: 0;
+    width: 192px;
+    height: 490px;
+  }
+
+  .ntk-h {
+    position: absolute;
+    width: 1px;
+    height: 16px;
+    background-color: #1D1D1F;
+  }
+
+  .ntk-m {
+    position: absolute;
+    width: 1px;
+    height: 10px;
+    background-color: #B5B5B6;
+  }
+
+  /* 数字：字高 22（宽屏 39 × 0.5517），中心距盘心 47.4 */
+  .nnum {
+    position: absolute;
+    width: 38px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: #1D1D1F;
+  }
+
+  .nhand { position: absolute; }
+
+  /* 时针 r=50（宽屏 90 × 0.5517）、分针 r=72（130 × 0.5517），针身宽 5 */
+  .nhb-hour {
+    left: 93.5px;
+    top: 184px;
+    width: 5px;
+    height: 50px;
+    background-color: #1D1D1F;
+    border-radius: 3px;
+  }
+  .nhb-min {
+    left: 93.5px;
+    top: 184px;
+    width: 5px;
+    height: 72px;
+    background-color: #1D1D1F;
+    border-radius: 3px;
+  }
+
+  .nsecond {
+    left: 95px;
+    top: 184px;
+    width: 2px;
+    height: 79px;
+    background-color: #EC993C;
+    border-radius: 1px;
+  }
+
+  /* 秒针反向尾：独立元素 + θ+180 的 class（不能上移 top，那会把旋转轴带偏） */
+  .nsecond-tail {
+    left: 95px;
+    top: 184px;
+    width: 2px;
+    height: 14px;
+    background-color: #EC993C;
+    border-radius: 1px;
+  }
+
+  .nhub {
+    position: absolute;
+    left: 93px;
+    top: 181px;
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background-color: #EC993C;
+  }
+
+  .nhub-hole {
+    position: absolute;
+    left: 94.5px;
+    top: 182.5px;
+    width: 3px;
+    height: 3px;
+    border-radius: 1.5px;
+    background-color: #FEFEFE;
+  }
+
+  /* 盘下数字时刻：胶囊屏窄，圆盘做不大，用一行大数字兜住可读性 */
+  .n-time {
+    position: absolute;
+    left: 0;
+    top: 320px;
+    width: 192px;
+    height: 70px;
+    line-height: 70px;
     text-align: center;
     font-size: 60px;
     font-weight: bold;
     color: #FFFFFF;
-  }
-
-  .d-date {
-    position: absolute;
-    left: 8px;
-    top: 238px;
-    width: 176px;
-    text-align: center;
-    font-size: 15px;
-    color: #AEAEB2;
   }
 
   /* ── 360 档角度类（1° 一档，扫秒用；字面量 transform，安全） ── */
