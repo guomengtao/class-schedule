@@ -551,7 +551,10 @@ export default {
       }
 
       var deviceIdLast4 = deviceId.substring(deviceId.length - 4)
-      if (decrypted.deviceId !== deviceIdLast4) {
+      // 大小写不敏感比较：DEVICE_CHARSET 把 A-Z 与 a-z 当作两组不同字符，
+      // 而设备端 UUID 只生成小写（utils/device-uuid.js: chars='0123456789abcdef'），
+      // 生成端若做过大写归一，同一台设备就会被判成他人设备。与 app.ux:521 口径对齐。
+      if (String(decrypted.deviceId).toUpperCase() !== String(deviceIdLast4).toUpperCase()) {
         dlog('[ACTIVATION] device mismatch: code=' + decrypted.deviceId + ' local=' + deviceIdLast4)
         self.showError('设备不匹配')
         return
