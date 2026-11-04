@@ -23,7 +23,6 @@
 
 <template>
   <div class="page">
-    <text style="position:absolute;left:0;bottom:16px;width:100%;text-align:center;font-size:22px;color:#888899" onclick="onBack">返回</text>
 
     <!-- 顶部品牌 -->
     <text class="brand {{brandCls}}">EV</text>
@@ -86,7 +85,7 @@
     <!-- 底部：日期 / 数字时间 / 返回提示 -->
     <text class="date-line {{dateCls}}">{{dateText}}</text>
     <text class="time-line {{timeCls}}">{{timeText}}</text>
-    <text class="back {{backCls}}">轻触返回</text>
+    <text class="back {{backCls}}" onclick="onBack">轻触返回</text>
   </div>
 </template>
 
