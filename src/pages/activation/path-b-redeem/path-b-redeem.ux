@@ -11,7 +11,7 @@
     <!-- 「第1步 共3步」：本路径用户手里已有 4 位兑换码，第一步是拿到设备ID，不是扫码 -->
     <text class="progress" style="color: {{ theme.textSecondary }}">第1步 共3步</text>
 
-    <text class="lead" style="color: {{ theme.text }}">记下设备ID</text>
+    <text class="lead" style="color: {{ theme.text }}">设备ID</text>
 
     <!-- 设备ID 明码大字（P1 手输网页的前提，掩码等于让用户没法抄）。
          点击：取到 ID 时复制，取不到时重试 -->
@@ -21,7 +21,7 @@
 
     <!-- 二维码降为次要通道（120px）：主路径是手抄 4 位去网页输入 -->
     <div class="qr-box" style="background-color: {{ theme.card }}">
-      <text class="qr-hint" style="color: {{ theme.textMuted }}">也可以扫码打开激活页</text>
+      <text class="qr-hint" style="color: {{ theme.textMuted }}">或扫码打开</text>
       <div class="qr-wrap" if="{{ qrUrl }}">
         <qrcode class="qr-code" value="{{ qrUrl }}" style="color: #000000; background-color: #ffffff;"></qrcode>
       </div>
@@ -198,9 +198,12 @@ export default {
   flex-shrink: 0;
 }
 
-/* 二维码容器绝不参与压缩：152 + 白边 16 = 168px，等于内容宽 */
+/* 二维码容器绝不参与压缩：152 + 白边 16 = 168px，等于内容宽。
+   flex-direction: column 是必须的 —— 缺了它，说明行与二维码会被横向并排，
+   文字被压到左边剩半句、二维码跑到右侧、白框错位（2026-11-04 实测 bug） */
 .qr-box {
   width: 100%;
+  flex-direction: column;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
@@ -210,6 +213,8 @@ export default {
 }
 
 .qr-wrap {
+  flex-direction: row;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   padding: 8px;
@@ -217,7 +222,7 @@ export default {
   border-radius: 6px;
 }
 
-/* 二维码降为次要通道：120 + 白边 16 = 136px，上方留一行小字说明 */
+/* 5 字 @24 = 120px，152px 内容宽内单行放得下（原 10 字文案会被截断） */
 .qr-hint {
   font-size: 24px;
   line-height: 34px;
