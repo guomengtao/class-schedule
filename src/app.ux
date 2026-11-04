@@ -517,7 +517,8 @@ function syncHandleActivate(connect, payload) {
     var last4 = s.substring(s.length - 4)
     // 评审 C3：码里必须带设备段且本机 ID 必须取到，两者皆非空才比对——
     // 失败模式必须是「拒绝」，不允许空串 vs 空串意外通过
-    if (!s || !decrypted.deviceId || String(decrypted.deviceId) !== last4) {
+    if (!s || !decrypted.deviceId
+        || String(decrypted.deviceId).toUpperCase() !== last4.toUpperCase()) {
       syncReply(connect, {
         ok: false,
         action: "activate",

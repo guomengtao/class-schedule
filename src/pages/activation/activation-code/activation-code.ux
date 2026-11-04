@@ -10,6 +10,9 @@
         <div class="header-placeholder"></div>
       </div>
 
+      <!-- 防误输：用户手里是 4 位兑换码，这里要的是网页换出的 18 位激活码 -->
+      <text class="source-hint" style="color: {{ theme.textMuted }}">18位 · 从网页获取，不是4位兑换码</text>
+
       <!-- 18 位码：3 行 × 6 位，正好一行 6 个位置（ev-six） -->
       <div class="cells-grid" style="display: {{ verifySuccess ? 'none' : 'flex' }}">
         <div class="cells-row">
@@ -602,6 +605,16 @@ export default {
 .header-title {
   font-size: 28px;
   line-height: 36px;
+}
+
+/* 18 位提示：内容宽 172px，13 字须 ≤13px/字 → 18px 一行放不下（13×18=234），
+   实测用 2 行布局：字号 20px、允许换行，高度预算 +56px 仍 <490 */
+.source-hint {
+  font-size: 20px;
+  line-height: 28px;
+  margin: 2px 0 4px 0;
+  width: 100%;
+  text-align: center;
 }
 
 /* 输入格：每行 6 个（与 ev-six 六位置对齐），高 32 保持竖向呼吸 */
