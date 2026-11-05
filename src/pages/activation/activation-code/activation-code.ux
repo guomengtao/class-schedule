@@ -378,6 +378,17 @@ export default {
         var muted = (self.theme && self.theme.textMuted) || '#555566'
         var accent = (self.theme && self.theme.accent) || '#7ec8e3'
         if (activated) {
+          // 刚激活（5 分钟内）→ 补一次成功态。
+          // 激活可能发生在手环输码、APK 一键激活、或网页购买后再回手环查看；
+          // 后两种本页收不到任何事件，只靠「进页面时状态已变」这条线索。
+          // 不补这一段，「激活成功却进不去成功页」会稳定复现（v2 曾缺此段 + 缺轮询）。
+          var justAt = status.activatedAt || 0
+          if (!self.verifySuccess && !self._doneShown && justAt && (Date.now() - justAt < 5 * 60 * 1000)) {
+            self._doneShown = true
+            self.succeed(status.isPermanent
+              ? '永久有效'
+              : (status.expireAt ? ('有效期至 ' + formatDate(status.expireAt)) : ''))
+          }
           // 顶部只留 3 字主状态（@24px 合规），期限交给下方状态条。
           // 原来的「已激活 · 有效期至 2026-12-05」@24px 需 440px，会折成 3 行。
           self.sourceHint = '已激活'

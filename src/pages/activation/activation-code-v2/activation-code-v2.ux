@@ -255,6 +255,47 @@ export default {
       // 激活状态可能被别的入口改掉（APK 一键激活），回来必须重算提示
       self.loadStatus()
     })
+    self.startActivationWatch()
+  },
+
+  onHide() {
+    this.stopActivationWatch()
+  },
+
+  onDestroy() {
+    this.stopActivationWatch()
+  },
+
+  // 手机端（APK 一键激活 / 网页兑换）激活时，手环本页收不到任何通知。
+  // 只要页面还开着，就 1.5s 轮询一次本地激活态，一旦从未激活变已激活 → 立刻切成功态 + 震动。
+  // 与 activation-code.ux 同口径；v2 漏了这段，是「激活成功却进不去成功页」的直接原因之一。
+  startActivationWatch() {
+    var self = this
+    this.stopActivationWatch()
+    if (this._mockShot) return
+    this._actTimer = setInterval(function() {
+      if (self.verifySuccess) {
+        self.stopActivationWatch()
+        return
+      }
+      authStore.getFullStatus(function(st) {
+        if (!st || !st.isActivated) return
+        self.stopActivationWatch()
+        var sub = st.isPermanent
+          ? '永久有效'
+          : (st.expireAt ? ('有效期至 ' + formatDate(st.expireAt)) : '')
+        self.succeed(sub)
+        doVibrate()
+        self.loadStatus()
+      })
+    }, 1500)
+  },
+
+  stopActivationWatch() {
+    if (this._actTimer) {
+      clearInterval(this._actTimer)
+      this._actTimer = null
+    }
   },
 
   updateIconSrc: function(themeName) {
@@ -291,6 +332,16 @@ export default {
         // 状态条是 lines:1 + 省略号，「已激活 · 可输新码续期」@24px 需 223px 会被截成
         // 「已激活 · 可输…」，因此同样改用 status.expireText 这类 ≤5 字短句。
         if (status.isActivated) {
+          // 刚激活（5 分钟内）→ 补一次成功态。
+          // 本页原先把成功态绑死在 doVerify 回调里，而真机入口就是本页（settings.ux:333），
+          // 用户在网页/APK 激活后再进来，永远看不到「恭喜」——实机反复复现的根因。
+          var justAt = status.activatedAt || 0
+          if (!self.verifySuccess && !self._doneShown && justAt && (Date.now() - justAt < 5 * 60 * 1000)) {
+            self._doneShown = true
+            self.succeed(status.isPermanent
+              ? '永久有效'
+              : (status.expireAt ? ('有效期至 ' + formatDate(status.expireAt)) : ''))
+          }
           var statusHint = status.expireText || '已激活'
           if (!self.verifySuccess && (self.hintText === '共需18位' || self.hintText === self._expireHint)) {
             self.hintText = statusHint
