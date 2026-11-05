@@ -20,7 +20,8 @@
     "test": "node test/schedule-manager.test.js && node test/message-inbox.test.js && node test/sync-notify.test.js && node test/reply-phrases.test.js && node test/schedule-panel.test.js",
     "test:panel": "node test/schedule-panel.test.js",
     "lint": "eslint --format codeframe --fix --ext .ux,.js src/",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "shot:done": "bash ./scripts/shot-done-page.sh"
   },
   "lint-staged": {
     "*.{ux,js}": [
