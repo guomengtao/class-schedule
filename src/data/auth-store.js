@@ -377,6 +377,7 @@ function buildFullStatus(data) {
   status.expireAt = data.expireAt
   status.installTime = data.installTime
   status.activatedAt = data.activatedAt
+  status.lastActivatedAt = data.lastActivatedAt || 0
   status.deviceId = data.deviceId || ''
   status.productId = data.productId || '0001'
   return status
@@ -399,6 +400,8 @@ function markActivatedV2(days, productId, activationCode, redeemCode, callback) 
       }
     }
     var now = Date.now()
+    // 每次激活都刷新（activatedAt 只在首次写入，续期不会变，不能用来判断「刚激活」）
+    data.lastActivatedAt = now
     if (!data.activatedAt) {
       data.activatedAt = now
     }

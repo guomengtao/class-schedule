@@ -335,7 +335,7 @@ export default {
           // 刚激活（5 分钟内）→ 补一次成功态。
           // 本页原先把成功态绑死在 doVerify 回调里，而真机入口就是本页（settings.ux:333），
           // 用户在网页/APK 激活后再进来，永远看不到「恭喜」——实机反复复现的根因。
-          var justAt = status.activatedAt || 0
+          var justAt = status.lastActivatedAt || status.activatedAt || 0
           if (!self.verifySuccess && !self._doneShown && justAt && (Date.now() - justAt < 5 * 60 * 1000)) {
             self._doneShown = true
             self.succeed(status.isPermanent
