@@ -6,7 +6,7 @@
           <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
         </div>
         <!-- 标题 3 字 @28px：公共 header.css 的 18px 低于 ev-six 24px 下限，本页覆盖 -->
-        <text class="header-title" onclick="goBack" style="color: {{ verifySuccess ? theme.accent : theme.text }}">{{ verifySuccess ? '已激活' : '激活码' }}</text>
+        <text class="header-title" onclick="goBack" style="font-size: {{ verifySuccess ? '24px' : '28px' }}; color: {{ verifySuccess ? theme.accent : theme.text }}">{{ verifySuccess ? '激活成功' : '激活码' }}</text>
         <div class="header-placeholder"></div>
       </div>
 
@@ -155,7 +155,7 @@
         <div class="done-btn" onclick="startExperience" style="background-color: {{ theme.accent }}">
           <text class="done-btn-text" style="color: {{ theme.bg }}">开始体验</text>
         </div>
-        <text class="done-tip" style="color: {{ theme.textMuted }}">上课不迟到</text>
+        <text class="done-tip" style="color: {{ theme.textSecondary }}">上课不迟到</text>
       </div>
 
       <div class="bottom-spacer"></div>
@@ -244,6 +244,35 @@ export default {
 
   onInit() {
     var self = this
+
+    // 「直达成功屏」调试通道（不是隐藏入口，是显式参数）：
+    //   router.push({ uri: 'pages/activation/activation-code', params: { mock: 'success' } })
+    //   router.push({ uri: 'pages/activation/activation-code', params: { mock: 'success', sub: '剩余30天' } })
+    // 命中后不取设备号、不读本地激活态、不轮询，直接把成功态铺上去——只为验收 UI。
+    // 正常用户路径永远不带 mock 参数，走下面的真实逻辑。
+    var params = {}
+    try { params = router.getParams() || {} } catch (e) { params = {} }
+    if (params && params.mock === 'success') {
+      this._mockShot = true
+      this.verifySuccess = true
+      this.doneSub = params.sub || '永久有效'
+      this.sourceHint = '已激活'
+      this.sourceHintColor = '#7ec8e3'
+      this.statusText = '高级版'
+      this.statusColor = 'green'
+      this.statusDetail = params.sub || '永久有效'
+      this.hintText = '已激活'
+      this.isActivatedNow = true
+      this._actSeen = true
+      this.versionText = version.versionName
+      store.getTheme(function(t, themeName) {
+        self.theme = t
+        self.sourceHintColor = t.accent
+        self.updateIconSrc(themeName)
+      })
+      return
+    }
+
     store.getTheme(function(t, themeName) {
       self.theme = t
       self.updateIconSrc(themeName)
@@ -280,6 +309,8 @@ export default {
   startActivationWatch() {
     var self = this
     this.stopActivationWatch()
+    // mock 直达态不轮询：没有真实激活过程，轮询只会白耗电
+    if (this._mockShot) return
     this._actTimer = setInterval(function () {
       if (self.verifySuccess) {
         self.stopActivationWatch()
@@ -832,7 +863,7 @@ export default {
   width: 100%;
   flex-direction: column;
   align-items: center;
-  margin-top: 12px;
+  margin-top: 4px;
 }
 
 /* 状态大字：ev-six 44px / 行高 60（不是 56） */
@@ -857,7 +888,7 @@ export default {
   align-items: center;
   padding: 11px 8px;
   border-radius: 14px;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .perk-row {
@@ -870,7 +901,7 @@ export default {
   width: 100%;
   height: 52px;
   border-radius: 14px;
-  margin-top: 12px;
+  margin-top: 8px;
   justify-content: center;
   align-items: center;
 }
@@ -883,11 +914,11 @@ export default {
 .done-tip {
   font-size: 24px;
   line-height: 34px;
-  margin-top: 6px;
+  margin-top: 2px;
   text-align: center;
 }
 
 .bottom-spacer {
-  height: 8px;
+  height: 0;
 }
 </style>
