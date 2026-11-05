@@ -614,19 +614,21 @@ export default {
     this.refreshHint()
   },
 
+  // 删除键：一次只删一位。
+  // 光标指向空格时，先左移一格找到「最后一位有效输入」，删掉后光标**停在被删的那一格**。
+  // 旧实现删完又退一格，相当于一次跨两格，实机手感就是「按一下删两位」。
   onDelete() {
     doVibrate()
     var idx = this.cursor
     if (this['cell' + idx] === null || this['cell' + idx] === undefined) {
-      if (this.cursor > 0) {
-        this.cursor = this.cursor - 1
-        idx = this.cursor
+      if (idx === 0) {
+        this.refreshHint()
+        return
       }
+      idx = idx - 1
     }
     this['cell' + idx] = null
-    if (this.cursor > 0) {
-      this.cursor = this.cursor - 1
-    }
+    this.cursor = idx
     this.refreshHint()
   },
 
