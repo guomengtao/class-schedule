@@ -135,13 +135,25 @@
         <text class="verify-btn-text" style="color: {{ theme.bg }}">验证</text>
       </div>
 
-      <!-- 成功态：键盘与输入区整体退场，给结果留出全部空间 -->
+      <!-- 成功态：一屏讲完「结果 → 得到了什么 → 下一步」。
+           ev-six 字数已逐行核（168px 页面级 / 152px 卡片内）：
+             恭喜 2字@44=117px、高级版已开通 5字@24=160px、
+             权益每行 4字@24=128px（卡片内）、开始体验 4字@28=149px、上课不迟到 5字@24=160px。
+           全部单行不折、无分隔符、无箭头、无徽标；可点性靠底色表达。 -->
       <div class="done-box" style="display: {{ verifySuccess ? 'flex' : 'none' }}">
-        <text class="done-title" style="color: {{ theme.accent }}">已激活</text>
-        <text class="done-sub" style="color: {{ theme.textSecondary }}">{{ doneSub }}</text>
-        <div class="done-btn" onclick="goBack" style="background-color: {{ theme.accent }}">
-          <text class="done-btn-text" style="color: {{ theme.bg }}">完成</text>
+        <text class="done-title" style="color: {{ theme.accent }}">恭喜</text>
+        <text class="done-sub" style="color: {{ theme.text }}">高级版到手</text>
+
+        <div class="perk-card" style="background-color: {{ theme.card }}">
+          <text class="perk-row" style="color: {{ theme.text }}">数据备份</text>
+          <text class="perk-row" style="color: {{ theme.text }}">10套主题</text>
+          <text class="perk-row" style="color: {{ theme.text }}">多套课表</text>
         </div>
+
+        <div class="done-btn" onclick="startExperience" style="background-color: {{ theme.accent }}">
+          <text class="done-btn-text" style="color: {{ theme.bg }}">开始体验</text>
+        </div>
+        <text class="done-tip" style="color: {{ theme.textMuted }}">上课不迟到</text>
       </div>
 
       <div class="bottom-spacer"></div>
@@ -539,6 +551,17 @@ export default {
     this.doneSub = sub || ''
   },
 
+  // 成功态「开始体验」：直接回课程表首页。
+  // 不用 goBack——上一页是兑换/购买路径，用户激活完没必要再看到。
+  startExperience() {
+    this.stopActivationWatch()
+    try {
+      router.replace({ uri: 'pages/index' })
+    } catch (e) {
+      router.push({ uri: 'pages/index' })
+    }
+  },
+
   onCellClick(index) {
     doVibrate()
     this.cursor = index
@@ -802,12 +825,13 @@ export default {
   width: 100%;
   flex-direction: column;
   align-items: center;
-  margin-top: 100px;
+  margin-top: 12px;
 }
 
+/* 状态大字：ev-six 44px / 行高 60（不是 56） */
 .done-title {
   font-size: 44px;
-  line-height: 56px;
+  line-height: 60px;
   font-weight: bold;
   text-align: center;
 }
@@ -819,11 +843,27 @@ export default {
   text-align: center;
 }
 
+/* 权益卡：上下 11px 内边距是免费的，左右 8px 会占位置（ev-six §3.1） */
+.perk-card {
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  padding: 11px 8px;
+  border-radius: 14px;
+  margin-top: 12px;
+}
+
+.perk-row {
+  font-size: 24px;
+  line-height: 34px;
+  text-align: center;
+}
+
 .done-btn {
   width: 100%;
-  height: 46px;
-  border-radius: 12px;
-  margin-top: 20px;
+  height: 52px;
+  border-radius: 14px;
+  margin-top: 12px;
   justify-content: center;
   align-items: center;
 }
@@ -831,6 +871,13 @@ export default {
 .done-btn-text {
   font-size: 28px;
   font-weight: bold;
+}
+
+.done-tip {
+  font-size: 24px;
+  line-height: 34px;
+  margin-top: 6px;
+  text-align: center;
 }
 
 .bottom-spacer {
