@@ -114,6 +114,68 @@ console.log('  该函数不参与真实解密（解密走 numberToDeviceId），
 console.log('\n  期望：同一设备段的大写与小写写法必须算出同一数值。');
 console.log('  若此项报警，先看 crypto.js 的 deviceIdToNumber 是否丢了 toUpperCase。\n');
 
+console.log('=== Part 3 · 取号口径一致性守卫（2026-11-05 P0）===\n');
+console.log('  根因：activate 曾裸调 getDeviceId()，手环9 返回 "NA" 时末4位="NA"，');
+console.log('        而签发侧回落到 uuid-…e681 → 用 A 签码、拿 B 校验，永远报「设备ID不匹配」。');
+console.log('  锁死：签发与校验共用 resolveDeviceId，哨兵值一律回落到同一个本地 UUID。\n');
+
+var fs = require('fs');
+var appSrc = fs.readFileSync(path.join(__dirname, '..', 'src', 'app.ux'), 'utf8');
+var fnStart = appSrc.indexOf('function resolveDeviceId(cb) {');
+var fnEnd = appSrc.indexOf('// 设备ID：APK 侧自己拿不到', fnStart);
+ok('app.ux 存在公共 resolveDeviceId', fnStart > -1 && fnEnd > fnStart);
+
+var actStart = appSrc.indexOf('function syncHandleActivate(');
+var actEnd = appSrc.indexOf('// ===== 导出作用域', actStart);
+var actBody = appSrc.slice(actStart, actEnd);
+// 只看代码行：注释里会提到 getDeviceId() 这个 API 名，不能算作实际调用
+var actCode = actBody.split('\n').filter(function (line) {
+  return line.trim().indexOf('//') !== 0;
+}).join('\n');
+ok('activate 不再自行裸调 getDeviceId',
+  actStart > -1 && actEnd > actStart && actCode.indexOf('getDeviceId(') === -1,
+  'activate 里出现裸取号会让哨兵设备再次全灭');
+
+var UUID = 'uuid-10128aa4f448d7c564be0cb4bc41e681';
+var currentRaw = 'NA';
+function mockRequire(name) {
+  if (name === '@system.device') {
+    return { getDeviceId: function (o) { o.success({ deviceId: currentRaw }) } };
+  }
+  if (name === './utils/device-uuid.js') {
+    return { getLocalDeviceId: function (cb) { cb(UUID) } };
+  }
+  throw new Error('unexpected require: ' + name);
+}
+
+var resolveDeviceId = null;
+if (fnStart > -1 && fnEnd > fnStart) {
+  try {
+    resolveDeviceId = new Function('require',
+      appSrc.slice(fnStart, fnEnd) + '\nreturn resolveDeviceId;')(mockRequire);
+  } catch (e) { /* 下一项会判失败 */ }
+}
+ok('resolveDeviceId 可被独立加载', typeof resolveDeviceId === 'function');
+
+var fieldCode = issuer.decryptActivationCode('003082815070674773');
+['NA', 'unknown', 'null', '', null, 'AA0920917E681'].forEach(function (raw) {
+  currentRaw = raw;
+  var got = null, isFallback = null;
+  if (resolveDeviceId) {
+    resolveDeviceId(function (id, fb) { got = id; isFallback = fb; });
+  }
+  var sentinel = !raw || raw === 'NA' || raw === 'unknown' || raw === 'null';
+  var expected = sentinel ? UUID : raw;
+  var last4 = String(got || '').slice(-4);
+  ok('本机返回 ' + JSON.stringify(raw) + ' → ' + last4 +
+      ' | 与现场激活码 ' + (fieldCode && fieldCode.deviceId) + ' 判定' +
+      (matches(fieldCode.deviceId, last4) ? '通过' : '不匹配'),
+    got === expected && isFallback === sentinel && matches(fieldCode.deviceId, last4),
+    'got=' + got + ' fallback=' + isFallback);
+});
+
+console.log('\n  期望：所有哨兵值都必须回落到 UUID 且末4位与签发码一致；真号保持原值。\n');
+
 console.log('=== 结果：' + pass + ' 通过 / ' + fail + ' 失败 ===\n');
 if (fail > 0) {
   console.log('失败项：');

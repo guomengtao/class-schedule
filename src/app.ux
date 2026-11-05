@@ -402,25 +402,19 @@ function syncWriteCoursesToIndex(index, data, count, connect, extra) {
   })
 }
 
-// 设备ID：APK 侧自己拿不到（只能在手环侧取），这里向 APK 暴露
-function syncHandleGetDeviceId(connect) {
-  function replyWith(raw, fallback) {
-    var id = String(raw == null ? "" : raw)
-    syncReply(connect, {
-      ok: true,
-      action: "get_device_id",
-      deviceId: id,
-      deviceId4: id.slice(-4),
-      fallback: !!fallback
-    })
-  }
-
+// 设备ID 唯一解析口径（2026-11-05 P0）：
+//   真号可用 → 用真号；哨兵值 / 取号失败 → 一律回落本地 UUID。
+//   ⚠️ 签发（get_device_id）与校验（activate）必须共用本函数。
+//   此前 activate 裸调 getDeviceId()，手环9 返回 "NA" 时末4位="NA"，
+//   而签发侧回落到 uuid-…e681 → 用 A 签码、拿 B 校验，永远报「设备ID不匹配」。
+//   11-04 的 toUpperCase 修复对哨兵值无效，故复测仍失败。
+function resolveDeviceId(cb) {
   function fallbackUuid() {
     try {
       var deviceUuid = require("./utils/device-uuid.js")
-      deviceUuid.getLocalDeviceId(function (id) { replyWith(id, true) })
+      deviceUuid.getLocalDeviceId(function (id) { cb(String(id == null ? "" : id), true) })
     } catch (e) {
-      replyWith("", true)
+      cb("", true)
     }
   }
 
@@ -432,13 +426,26 @@ function syncHandleGetDeviceId(connect) {
       success: function (data) {
         var raw = data && data.deviceId
         if (!raw || raw === "NA" || raw === "unknown" || raw === "null") fallbackUuid()
-        else replyWith(raw, false)
+        else cb(String(raw), false)
       },
       fail: function () { fallbackUuid() }
     })
   } catch (e) {
     fallbackUuid()
   }
+}
+
+// 设备ID：APK 侧自己拿不到（只能在手环侧取），这里向 APK 暴露
+function syncHandleGetDeviceId(connect) {
+  resolveDeviceId(function (id, fallback) {
+    syncReply(connect, {
+      ok: true,
+      action: "get_device_id",
+      deviceId: id,
+      deviceId4: id.slice(-4),
+      fallback: !!fallback
+    })
+  })
 }
 
 // 系统信息：存储空间（总/可用）+ 型号。这些字段 APK 侧拿不到，只能手环端读后回传。
@@ -551,17 +558,10 @@ function syncHandleActivate(connect, payload) {
     })
   }
 
-  var device = null
-  try { device = require("@system.device") } catch (e) { device = null }
-  if (!device || !device.getDeviceId) { finish(""); return }
-  try {
-    device.getDeviceId({
-      success: function (data) { finish(data && data.deviceId) },
-      fail: function () { finish("") }
-    })
-  } catch (e) {
-    finish("")
-  }
+  // 与 get_device_id 共用同一套取号口径（哨兵过滤 + 本地 UUID 回落）。
+  // 不可改回裸调 getDeviceId()：手环9 返回的 "NA" 会被当成真号取末4位，
+  // 与 UUID 回落签发的激活码永远对不上（2026-11-05「设备ID不匹配」根因）。
+  resolveDeviceId(function (id) { finish(id) })
 }
 
 // ===== 导出作用域（白名单模型）=====
