@@ -12,7 +12,7 @@
       </div>
 
       <!-- 18 位回显：保留 3 行 × 6 格，但压缩高度 32→24（省 24px） -->
-      <div class="cells-grid" style="display: {{ verifySuccess ? 'none' : 'flex' }}">
+      <div class="cells-grid" if="{{ !verifySuccess }}">
         <div class="cells-row">
           <div class="cell {{ cursor === 0 ? 'cell-active' : '' }}" onclick="onCellClick(0)" style="background-color: {{ cursor === 0 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
             <text class="cell-text" style="color: {{ cursor === 0 ? theme.bg : theme.text }}">{{ cell0 !== null ? cell0 : '-' }}</text>
@@ -77,7 +77,7 @@
 
       <!-- 状态条：左侧提示文案，右侧内嵌 清空C / 退格← 两个小按钮。
            把 C/← 收进 28px 状态条，省掉原独立 44px 操作栏，底部才放得下满宽验证按钮 -->
-      <div class="status-strip" style="background-color: {{ theme.card }}; display: {{ verifySuccess ? 'none' : 'flex' }}">
+      <div class="status-strip" if="{{ !verifySuccess }}" style="background-color: {{ theme.card }}">
         <text class="status-text" style="color: {{ hintColor }}">{{ hintText }}</text>
         <div class="op-mini" onclick="onClear" style="border-color: {{ theme.border }}">
           <text class="op-mini-text" style="color: #e74c3c">C</text>
@@ -88,7 +88,7 @@
       </div>
 
       <!-- 键盘：2 列 × 5 行，左列 1-5，右列 6-9 与 0 -->
-      <div class="keypad" style="display: {{ verifySuccess ? 'none' : 'flex' }}">
+      <div class="keypad" if="{{ !verifySuccess }}">
         <div class="keypad-row">
           <div class="keypad-btn" onclick="onKeyPress(1)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
             <text class="keypad-text" style="color: {{ theme.text }}">1</text>
@@ -133,14 +133,14 @@
 
       <!-- 验证：满宽独占一行，放最底。188×44px 是这页最大的触控热区，
            也彻底解决 v1 里「按钮在屏外」和上一版「按钮被裁一半」两个问题 -->
-      <div class="verify-bar" onclick="doVerify" style="display: {{ verifySuccess ? 'none' : 'flex' }}; background-color: {{ theme.accent }}">
+      <div class="verify-bar" if="{{ !verifySuccess }}" onclick="doVerify" style="background-color: {{ theme.accent }}">
         <text class="verify-bar-text" style="color: {{ theme.bg }}">验证</text>
       </div>
 
       <!-- 成功态：与 activation-code.ux 同一版式（恭喜 / 权益 / 开始体验 / 友好提示）。
            ev-six 字数已核：恭喜 2字@44、高级版已开通 5字@24、权益 4字@24、
            开始体验 4字@28、上课不迟到 5字@24，全部单行。 -->
-      <div class="done-box" style="display: {{ verifySuccess ? 'flex' : 'none' }}">
+      <div class="done-box" if="{{ verifySuccess }}">
         <text class="done-title" style="color: {{ theme.accent }}">恭喜</text>
         <text class="done-sub" style="color: {{ theme.text }}">高级版到手</text>
 

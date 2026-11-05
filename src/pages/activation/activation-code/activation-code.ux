@@ -15,10 +15,10 @@
            与状态条「共需18位」双保险，不靠这行长文案。
            已激活后这行改为状态回显（否则激活成功的人还被教「去网页换 18 位」）。
            成功态整行退场，把版面让给 done-box。 -->
-      <text class="source-hint" style="display: {{ verifySuccess ? 'none' : 'block' }}; color: {{ sourceHintColor }}">{{ sourceHint }}</text>
+      <text class="source-hint" if="{{ !verifySuccess }}" style="display: block; color: {{ sourceHintColor }}">{{ sourceHint }}</text>
 
       <!-- 18 位码：3 行 × 6 位，正好一行 6 个位置（ev-six） -->
-      <div class="cells-grid" style="display: {{ verifySuccess ? 'none' : 'flex' }}">
+      <div class="cells-grid" if="{{ !verifySuccess }}">
         <div class="cells-row">
           <div class="cell {{ cursor === 0 ? 'cell-active' : '' }}" onclick="onCellClick(0)" style="background-color: {{ cursor === 0 ? theme.accent : theme.bg }}; border-color: {{ theme.border }}">
             <text class="cell-text" style="color: {{ cursor === 0 ? theme.bg : theme.text }}">{{ cell0 !== null ? cell0 : '-' }}</text>
@@ -82,11 +82,11 @@
       </div>
 
       <!-- 内联状态条：唯一的提示通道，固定高度，永不覆盖输入 -->
-      <div class="status-strip" style="background-color: {{ theme.card }}; display: {{ verifySuccess ? 'none' : 'flex' }}">
+      <div class="status-strip" if="{{ !verifySuccess }}" style="background-color: {{ theme.card }}">
         <text class="status-text" style="color: {{ hintColor }}">{{ hintText }}</text>
       </div>
 
-      <div class="keypad" style="display: {{ verifySuccess ? 'none' : 'flex' }}">
+      <div class="keypad" if="{{ !verifySuccess }}">
         <div class="keypad-row">
           <div class="keypad-btn" onclick="onKeyPress(1)" style="background-color: {{ theme.bg }}; border-color: {{ theme.border }}">
             <text class="keypad-text" style="color: {{ theme.text }}">1</text>
@@ -133,7 +133,7 @@
         </div>
       </div>
 
-      <div class="verify-btn" onclick="doVerify" style="background-color: {{ theme.accent }}; display: {{ verifySuccess ? 'none' : 'flex' }}">
+      <div class="verify-btn" if="{{ !verifySuccess }}" onclick="doVerify" style="background-color: {{ theme.accent }}">
         <text class="verify-btn-text" style="color: {{ theme.bg }}">验证</text>
       </div>
 
@@ -142,7 +142,7 @@
              恭喜 2字@44=117px、高级版已开通 5字@24=160px、
              权益每行 4字@24=128px（卡片内）、开始体验 4字@28=149px、上课不迟到 5字@24=160px。
            全部单行不折、无分隔符、无箭头、无徽标；可点性靠底色表达。 -->
-      <div class="done-box" style="display: {{ verifySuccess ? 'flex' : 'none' }}">
+      <div class="done-box" if="{{ verifySuccess }}">
         <text class="done-title" style="color: {{ theme.accent }}">恭喜</text>
         <text class="done-sub" style="color: {{ theme.text }}">高级版到手</text>
 
