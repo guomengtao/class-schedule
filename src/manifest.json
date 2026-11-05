@@ -148,9 +148,6 @@
       "pages/activation/activation-code": {
         "component": "activation-code"
       },
-      "pages/activation/activation-code-v2": {
-        "component": "activation-code-v2"
-      },
       "pages/activation/activation-info": {
         "component": "activation-info"
       },
