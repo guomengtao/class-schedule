@@ -75,9 +75,16 @@
         </div>
       </div>
 
-      <!-- 状态条：原 source-hint 的防误输文案迁到这里，不再常驻占一行 -->
+      <!-- 状态条：左侧提示文案，右侧内嵌 清空C / 退格← 两个小按钮。
+           把 C/← 收进 28px 状态条，省掉原独立 44px 操作栏，底部才放得下满宽验证按钮 -->
       <div class="status-strip" style="background-color: {{ theme.card }}; display: {{ verifySuccess ? 'none' : 'flex' }}">
         <text class="status-text" style="color: {{ hintColor }}">{{ hintText }}</text>
+        <div class="op-mini" onclick="onClear" style="border-color: {{ theme.border }}">
+          <text class="op-mini-text" style="color: #e74c3c">C</text>
+        </div>
+        <div class="op-mini" onclick="onDelete" style="border-color: {{ theme.border }}">
+          <text class="op-mini-text" style="color: #e74c3c">←</text>
+        </div>
       </div>
 
       <!-- 键盘：2 列 × 5 行，左列 1-5，右列 6-9 与 0 -->
@@ -124,17 +131,10 @@
         </div>
       </div>
 
-      <!-- 操作栏：清空 / 退格 / 验证，取代原来独立的验证按钮 -->
-      <div class="keypad-ops" style="display: {{ verifySuccess ? 'none' : 'flex' }}">
-        <div class="op-btn" onclick="onClear" style="background-color: {{ theme.card }}; border-color: {{ theme.border }}">
-          <text class="op-text" style="color: #e74c3c">C</text>
-        </div>
-        <div class="op-btn" onclick="onDelete" style="background-color: {{ theme.card }}; border-color: {{ theme.border }}">
-          <text class="op-text" style="color: #e74c3c">←</text>
-        </div>
-        <div class="op-verify" onclick="doVerify" style="background-color: {{ theme.accent }}">
-          <text class="op-verify-text" style="color: {{ theme.bg }}">验证</text>
-        </div>
+      <!-- 验证：满宽独占一行，放最底。188×44px 是这页最大的触控热区，
+           也彻底解决 v1 里「按钮在屏外」和上一版「按钮被裁一半」两个问题 -->
+      <div class="verify-bar" onclick="doVerify" style="display: {{ verifySuccess ? 'none' : 'flex' }}; background-color: {{ theme.accent }}">
+        <text class="verify-bar-text" style="color: {{ theme.bg }}">验证</text>
       </div>
 
       <!-- 成功态 -->
@@ -628,7 +628,7 @@ export default {
   height: 12px;
 }
 
-/* 18 位回显：3 行 × 6 格，高度 32→24，字号 28→24 */
+/* 18 位回显：3 行 × 6 格，高度 32→22 */
 .cells-grid {
   width: 100%;
   flex-direction: column;
@@ -638,12 +638,12 @@ export default {
 .cells-row {
   flex-direction: row;
   justify-content: space-between;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .cell {
   flex: 1;
-  height: 24px;
+  height: 22px;
   border-radius: 5px;
   border-width: 1px;
   border-style: solid;
@@ -657,27 +657,45 @@ export default {
 }
 
 .cell-text {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: bold;
-  line-height: 24px;
+  line-height: 22px;
 }
 
-/* 状态条：承接原 source-hint 的防误输提示 */
+/* 状态条：左侧提示 + 右侧内嵌 C / ←（高 24px，落在 28px 条内） */
 .status-strip {
   width: 100%;
   height: 28px;
-  border-radius: 6px;
-  justify-content: center;
+  flex-direction: row;
   align-items: center;
+  border-radius: 6px;
   margin-bottom: 4px;
+  padding: 0 3px 0 3px;
 }
 
 .status-text {
-  font-size: 24px;
+  flex: 1;
+  font-size: 22px;
   line-height: 28px;
   text-align: center;
   lines: 1;
   text-overflow: ellipsis;
+}
+
+.op-mini {
+  width: 34px;
+  height: 24px;
+  border-radius: 6px;
+  border-width: 1px;
+  border-style: solid;
+  margin-left: 2px;
+  justify-content: center;
+  align-items: center;
+}
+
+.op-mini-text {
+  font-size: 22px;
+  font-weight: bold;
 }
 
 /* 键盘：2 列 × 5 行，单键宽 93px 高 58px */
@@ -709,40 +727,17 @@ export default {
   font-weight: bold;
 }
 
-/* 操作栏：C / ← / 验证 */
-.keypad-ops {
+/* 验证：满宽独占一行 */
+.verify-bar {
   width: 100%;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
-.op-btn {
-  flex: 1;
   height: 44px;
   border-radius: 10px;
-  border-width: 1px;
-  border-style: solid;
-  margin: 0 1px;
   justify-content: center;
   align-items: center;
 }
 
-.op-text {
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.op-verify {
-  flex: 2;
-  height: 44px;
-  border-radius: 10px;
-  margin: 0 1px;
-  justify-content: center;
-  align-items: center;
-}
-
-.op-verify-text {
-  font-size: 28px;
+.verify-bar-text {
+  font-size: 26px;
   font-weight: bold;
 }
 
