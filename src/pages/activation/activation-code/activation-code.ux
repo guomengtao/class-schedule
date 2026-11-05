@@ -10,8 +10,10 @@
         <div class="header-placeholder"></div>
       </div>
 
-      <!-- 防误输：用户手里是 4 位兑换码，这里要的是网页换出的 18 位激活码。
-           已激活后这行必须改成状态回显（否则激活成功的人还被教「去网页换 18 位」）。
+      <!-- 5 字上限：ev-six 规定 @24px 单行最多 5 个全角字（5×24×1.33≈160px / 容器 172px）。
+           原「18位 · 从网页获取，不是4位兑换码」18 字必须压到 5 字，防误输靠下方 3×6 共 18 格
+           与状态条「共需18位」双保险，不靠这行长文案。
+           已激活后这行改为状态回显（否则激活成功的人还被教「去网页换 18 位」）。
            成功态整行退场，把版面让给 done-box。 -->
       <text class="source-hint" style="display: {{ verifySuccess ? 'none' : 'block' }}; color: {{ sourceHintColor }}">{{ sourceHint }}</text>
 
@@ -227,7 +229,7 @@ export default {
     cell16: null, cell17: null,
     cursor: 0,
     // 顶部来源提示：未激活=防误输引导，已激活=当前状态回显（激活成功的人不该再被教怎么输码）
-    sourceHint: '18位 · 从网页获取，不是4位兑换码',
+    sourceHint: '18位激活码',
     sourceHintColor: '#555566',
     isActivatedNow: false,
     // 内联状态条：唯一的提示通道（原 prompt.showToast 会浮在输入格之上）
@@ -345,23 +347,27 @@ export default {
         var muted = (self.theme && self.theme.textMuted) || '#555566'
         var accent = (self.theme && self.theme.accent) || '#7ec8e3'
         if (activated) {
-          var expireTxt = status.isPermanent
-            ? '永久有效'
-            : (status.expireAt ? ('有效期至 ' + formatDate(status.expireAt)) : '已激活')
-          if (status.isExpired) expireTxt = '已过期 · ' + expireTxt
-          self.sourceHint = '已激活 · ' + expireTxt
+          // 顶部只留 3 字主状态（@24px 合规），期限交给下方状态条。
+          // 原来的「已激活 · 有效期至 2026-12-05」@24px 需 440px，会折成 3 行。
+          self.sourceHint = '已激活'
           self.sourceHintColor = accent
-          // 状态条仍停在「共需18位」会很怪：改成续期引导，但不夺走输新码的能力
-          if (!self.verifySuccess && self.hintText === '共需18位') {
-            self.hintText = '可输入新码续期'
+          // status.expireText 是「剩余 30 天 / 永久有效 / 已过期 7 天」这类短语，
+          // 本身就是 ev-six 合规长度（≤5 字档），信息不丢且不折行。
+          var statusHint = status.expireText || '已激活'
+          // 只在「空闲态」改写状态条：用户已经输了几位时（hintText 变成「已输 N 位」）
+          // 或可验证时都不要覆盖，否则会打断输入反馈。
+          if (!self.verifySuccess && (self.hintText === '共需18位' || self.hintText === self._expireHint)) {
+            self.hintText = statusHint
             self.hintColor = (self.theme && self.theme.textSecondary) || '#888899'
+            self._expireHint = statusHint
           }
         } else {
-          self.sourceHint = '18位 · 从网页获取，不是4位兑换码'
+          self.sourceHint = '18位激活码'
           self.sourceHintColor = muted
-          if (!self.verifySuccess && self.hintText === '可输入新码续期') {
+          if (!self.verifySuccess && self.hintText === self._expireHint) {
             self.hintText = '共需18位'
             self.hintColor = (self.theme && self.theme.textSecondary) || '#888899'
+            self._expireHint = ''
           }
         }
 
@@ -716,9 +722,10 @@ export default {
 
 /* 18 位提示：内容宽 172px，13 字须 ≤13px/字 → 18px 一行放不下（13×18=234），
    实测用 2 行布局：字号 20px、允许换行，高度预算 +56px 仍 <490 */
+/* 24px：ev-six 手环档下限，5 字 @24 = 162.8px / 容器 172px 单行不折 */
 .source-hint {
-  font-size: 20px;
-  line-height: 28px;
+  font-size: 24px;
+  line-height: 34px;
   margin: 2px 0 4px 0;
   width: 100%;
   text-align: center;

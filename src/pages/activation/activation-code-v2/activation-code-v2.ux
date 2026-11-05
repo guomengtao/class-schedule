@@ -287,15 +287,20 @@ export default {
 
         self.statusDetail = status.expireText || ''
 
-        // 已激活后状态条不再提示「共需18位」——与 activation-code.ux 保持同一口径
+        // 已激活后状态条不再提示「共需18位」——与 activation-code.ux 保持同一口径。
+        // 状态条是 lines:1 + 省略号，「已激活 · 可输新码续期」@24px 需 223px 会被截成
+        // 「已激活 · 可输…」，因此同样改用 status.expireText 这类 ≤5 字短句。
         if (status.isActivated) {
-          if (!self.verifySuccess && self.hintText === '共需18位') {
-            self.hintText = '已激活 · 可输新码续期'
+          var statusHint = status.expireText || '已激活'
+          if (!self.verifySuccess && (self.hintText === '共需18位' || self.hintText === self._expireHint)) {
+            self.hintText = statusHint
             self.hintColor = (self.theme && self.theme.accent) || '#7ec8e3'
+            self._expireHint = statusHint
           }
-        } else if (!self.verifySuccess && self.hintText === '已激活 · 可输新码续期') {
+        } else if (!self.verifySuccess && self.hintText === self._expireHint) {
           self.hintText = '共需18位'
           self.hintColor = (self.theme && self.theme.textSecondary) || '#888899'
+          self._expireHint = ''
         }
 
         if (status.installTime) {
