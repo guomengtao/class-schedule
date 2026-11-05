@@ -242,6 +242,8 @@ export default {
     store.getTheme(function(t, themeName) {
       self.theme = t
       self.updateIconSrc(themeName)
+      // 激活状态可能被别的入口改掉（APK 一键激活），回来必须重算提示
+      self.loadStatus()
     })
   },
 
@@ -274,6 +276,17 @@ export default {
         }
 
         self.statusDetail = status.expireText || ''
+
+        // 已激活后状态条不再提示「共需18位」——与 activation-code.ux 保持同一口径
+        if (status.isActivated) {
+          if (!self.verifySuccess && self.hintText === '共需18位') {
+            self.hintText = '已激活 · 可输新码续期'
+            self.hintColor = (self.theme && self.theme.accent) || '#7ec8e3'
+          }
+        } else if (!self.verifySuccess && self.hintText === '已激活 · 可输新码续期') {
+          self.hintText = '共需18位'
+          self.hintColor = (self.theme && self.theme.textSecondary) || '#888899'
+        }
 
         if (status.installTime) {
           self.installTimeText = formatDate(status.installTime)

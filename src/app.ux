@@ -543,6 +543,10 @@ function syncHandleActivate(connect, payload) {
       if (success) {
         authStore.saveUsedCode(cleaned)
         authStore.saveUsedRedeemCode(decrypted.redeemCode)
+        // 手环侧的成功反馈：APK 上弹的是手机界面，手环也要给一个用户能感知的信号，
+        // 否则一键激活成功后手环毫无动静，用户会以为没成功又反复点。
+        vibrateLong()
+        try { globalThis.__evActivatedTs = Date.now() } catch (e) {}
       }
       authStore.getFullStatus(function (st) {
         syncReply(connect, {
