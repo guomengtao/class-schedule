@@ -137,18 +137,22 @@ export default {
   },
 
   onShow() {
-    // 从中文输入页回来：把结果写进对应格子
+    // 从中文输入页回来：把结果写进对应格子。
+    // 顺序很重要 —— 先看有没有 pending 标记（只有点行进输入页时才写），
+    // 再用 undefined/null 判断"没有结果"。
+    // 不能写成 if (!val) return：用户清空输入并确认，回填的是空字符串，
+    // 那是「删掉这格晚课」的合法操作，被当成没结果就永远删不掉。
     var self = this
     storage.get({
-      key: RESULT_KEY,
-      success: function (val) {
-        if (!val) {
+      key: PENDING_KEY,
+      success: function (pos) {
+        if (!pos) {
           return
         }
         storage.get({
-          key: PENDING_KEY,
-          success: function (pos) {
-            if (!pos) {
+          key: RESULT_KEY,
+          success: function (val) {
+            if (val === undefined || val === null) {
               return
             }
             var parts = String(pos).split("_")
