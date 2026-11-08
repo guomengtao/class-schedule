@@ -296,7 +296,94 @@ function syncSendToPhone(text) {
 
 // 导入：转格式 A 后单次原子写盘；写前先备份旧课表，便于回退。
 // payload.scheduleName 可选：给了就【按名新建 / 覆盖同名课程表】；缺省仍写当前激活套（向后兼容）。
+// ===== 晚课（rotation）：课表的附属内容，不是课程 =====
+// 契约与手机端 prefs「ev_rotation」同构：{ enabled, cycle, time, calibDate, calibWeek, cells }
+// cells 统一成「数组的数组」：cells[week-1][day]，day 0=周一。手机端对象形态 {"1":{"0":"语"}}
+// 也认（转成数组再存），这样两端读到的永远是同一个形状。
+// 手环端本轮只存档与回传，不参与渲染 —— 显示晚课是下一步的事。
+var SYNC_ROT_DAYS = 7
+
+function syncExtractRotation(payload) {
+  if (!payload || typeof payload !== "object") return null
+  if (payload.rotation && typeof payload.rotation === "object") return payload.rotation
+  if (payload.schedules && payload.schedules[0] && payload.schedules[0].rotation) {
+    return payload.schedules[0].rotation
+  }
+  if (payload.data && typeof payload.data === "object" && payload.data.rotation) {
+    return payload.data.rotation
+  }
+  if (payload.payload) return syncExtractRotation(payload.payload)
+  return null
+}
+
+function syncNormalizeRotation(rot) {
+  var cycle = parseInt(rot.cycle, 10)
+  if (isNaN(cycle) || cycle < 1) cycle = 6
+  if (cycle > 12) cycle = 12
+
+  var src = []
+  var cells = rot.cells
+  if (cells && cells.length !== undefined) {
+    // 数组形态
+    for (var i = 0; i < cells.length && i < cycle; i++) {
+      var row = []
+      var r = cells[i] || []
+      for (var d = 0; d < SYNC_ROT_DAYS; d++) {
+        row.push(String(r[d] == null ? "" : r[d]))
+      }
+      src.push(row)
+    }
+  } else if (cells && typeof cells === "object") {
+    // 对象形态：{"1":{"0":"语","4":"道"}}，键是第几周
+    for (var w = 1; w <= cycle; w++) {
+      var row2 = ["", "", "", "", "", "", ""]
+      var wo = cells[String(w)] || cells[w]
+      if (wo && typeof wo === "object") {
+        for (var k in wo) {
+          if (!wo.hasOwnProperty(k)) continue
+          var di = parseInt(k, 10)
+          if (!isNaN(di) && di >= 0 && di < SYNC_ROT_DAYS) {
+            row2[di] = String(wo[k] == null ? "" : wo[k])
+          }
+        }
+      }
+      src.push(row2)
+    }
+  }
+  while (src.length < cycle) src.push(["", "", "", "", "", "", ""])
+
+  var calibWeek = parseInt(rot.calibWeek, 10)
+  if (isNaN(calibWeek) || calibWeek < 1) calibWeek = 1
+
+  return {
+    enabled: !!rot.enabled,
+    cycle: cycle,
+    time: String(rot.time || "17:10 - 18:00"),
+    calibDate: String(rot.calibDate || ""),
+    calibWeek: calibWeek,
+    cells: src.slice(0, cycle)
+  }
+}
+
+// 写某套课表的晚课。rotation 为空 = 清空（导出时自然不带）
+function syncWriteRotation(index, rotation, cb) {
+  cb = cb || function () {}
+  var storage = require("@system.storage")
+  var key = "ev_rotation_" + index
+  var value = ""
+  if (rotation && typeof rotation === "object") {
+    try { value = JSON.stringify(syncNormalizeRotation(rotation)) } catch (e) { value = "" }
+  }
+  storage.set({
+    key: key,
+    value: value,
+    success: function () { cb(true) },
+    fail: function () { cb(false) }
+  })
+}
+
 function syncHandleImport(connect, payload) {
+  var rot = syncExtractRotation(payload)
   var list = syncExtractCourses(payload)
   if (!list) {
     dlog("[SYNC] import: no courses")
@@ -308,7 +395,7 @@ function syncHandleImport(connect, payload) {
     var clearIndex = 0
     try { clearIndex = database.getScheduleIndex() } catch (e) { clearIndex = 0 }
     dlog("[SYNC] import: empty courses -> clear index=" + clearIndex)
-    syncWriteCoursesToIndex(clearIndex, [], 0, connect, { cleared: true })
+    syncWriteCoursesToIndex(clearIndex, [], 0, connect, { cleared: true, rotation: null })
     return
   }
   var data = syncToFormatA(list)
@@ -327,7 +414,7 @@ function syncHandleImport(connect, payload) {
   if (!wantName) {
     var curIndex = 0
     try { curIndex = database.getScheduleIndex() } catch (e) { curIndex = 0 }
-    syncWriteCoursesToIndex(curIndex, data, count, connect, null)
+    syncWriteCoursesToIndex(curIndex, data, count, connect, { rotation: rot })
     return
   }
 
@@ -342,12 +429,12 @@ function syncHandleImport(connect, payload) {
       names.push(wantName)
       idx = names.length - 1
       store.setScheduleNames(names, function () {
-        syncWriteCoursesToIndex(idx, data, count, connect, { scheduleName: wantName, created: true })
+        syncWriteCoursesToIndex(idx, data, count, connect, { scheduleName: wantName, created: true, rotation: rot })
       })
       return
     }
     // 同名已存在：覆盖它
-    syncWriteCoursesToIndex(idx, data, count, connect, { scheduleName: wantName, created: false })
+    syncWriteCoursesToIndex(idx, data, count, connect, { scheduleName: wantName, created: false, rotation: rot })
   })
 }
 
@@ -372,6 +459,9 @@ function syncWriteCoursesToIndex(index, data, count, connect, extra) {
             success: function () {
               database.resetCache()
               try { database.setScheduleIndex(index, function () {}) } catch (e) {}
+              // 晚课与课表同一次导入落盘：课表成功、晚课失败也不能回 ok:false，
+              // 否则手机端会以为整批没写进去而重导一遍。
+              syncWriteRotation(index, extra && extra.rotation, function () {
               var reply = { ok: true, count: count }
               if (extra && extra.cleared) {
                 // 清空课表成功：手机端据此提示「已同步空课表」而非失败
@@ -383,8 +473,10 @@ function syncWriteCoursesToIndex(index, data, count, connect, extra) {
                 reply.scheduleIndex = index
                 reply.created = !!extra.created
               }
+              if (extra && extra.rotation) reply.rotation = true
               dlog("[SYNC] import ok: index=" + index + " count=" + count)
               syncReply(connect, reply)
+              })
             },
             fail: function () {
               syncReply(connect, { ok: false, reason: "write failed" })
@@ -714,6 +806,29 @@ function syncCollectScopes(scopes, scheduleIndex, callback) {
         result.schedule = courses || []
         finish()
       })
+    }
+    // 晚课随课表一起导出（同一次读盘口径），没有配置就不带这个字段
+    var rotIndex = 0
+    if (scheduleIndex != null && scheduleIndex >= 0) {
+      rotIndex = scheduleIndex
+    } else {
+      try { rotIndex = database.getScheduleIndex() } catch (e) { rotIndex = 0 }
+    }
+    pending++
+    try {
+      var storageMod = require("@system.storage")
+      storageMod.get({
+        key: "ev_rotation_" + rotIndex,
+        success: function (raw) {
+          if (raw) {
+            try { result.rotation = JSON.parse(raw) } catch (e) {}
+          }
+          finish()
+        },
+        fail: function () { finish() }
+      })
+    } catch (e) {
+      finish()
     }
   }
   if (syncWantScope(list, "profile")) {

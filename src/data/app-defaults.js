@@ -67,7 +67,7 @@ var ITEMS = [
   { id: "pinned.pages",               key: "pinned_pages",      value: [], policy: "keep", since: 1, desc: "钉首页列表（禁止重置）" },
 
   // ---------- 数据层（登记在此仅为「一处可查」，不作为开关迁移） ----------
-  { id: "data.scheduleNames",         key: "scheduleNames",         value: ["课程表1"], policy: "keep", since: 1, desc: "课程表名称列表" },
+  { id: "data.scheduleNames",         key: "scheduleNames",         value: ["八年级二班"], policy: "keep", since: 1, desc: "课程表名称列表" },
   { id: "data.currentScheduleIndex",  key: "currentScheduleIndex",  value: 0,           policy: "keep", since: 1, desc: "当前选中的课程表索引" }
 ]
 
