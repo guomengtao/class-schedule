@@ -85,6 +85,9 @@
       "pages/countdown-edit": {
         "component": "countdown-edit"
       },
+      "pages/night-course": {
+        "component": "night-course"
+      },
       "pages/countdown-panel": {
         "component": "countdown-panel"
       },

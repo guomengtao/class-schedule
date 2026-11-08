@@ -1,0 +1,465 @@
+<template>
+  <scroll class="page" scroll-y="{{ true }}" style="background-color: {{ bg }}">
+    <div class="header">
+      <div class="back-btn-wrapper" onclick="goBack">
+        <text class="back-arrow" style="color: {{ fg }}">‹</text>
+      </div>
+      <text class="header-title" onclick="goBack" style="color: {{ fg }}">晚课设置</text>
+      <div class="header-placeholder"></div>
+    </div>
+
+    <!-- 开关 + 摘要 -->
+    <div class="card" style="background-color: {{ card }}">
+      <div class="switch-row" onclick="toggleEnabled">
+        <div class="switch-text">
+          <text class="switch-title" style="color: {{ fg }}">启用晚课</text>
+          <text class="switch-sub" style="color: {{ muted }}">{{ summary }}</text>
+        </div>
+        <div class="switch-pill" style="background-color: {{ enabled ? accent : border }}">
+          <div class="switch-knob" style="left: {{ enabled ? 32 : 3 }}px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 周期 + 时段 -->
+    <div class="card" style="background-color: {{ card }}">
+      <text class="label" style="color: {{ muted }}">轮换周期</text>
+      <div class="pills">
+        <div for="{{ cycleOpts }}" class="pill"
+             style="background-color: {{ $item === cycle ? accent : border }}; color: {{ $item === cycle ? '#ffffff' : fg }}"
+             onclick="pickCycle($item)">
+          <text class="pill-text">{{ $item }} 周</text>
+        </div>
+      </div>
+      <text class="label label-gap" style="color: {{ muted }}">上课时段</text>
+      <picker class="time-picker" type="text" range="{{ timeOpts }}" selected="{{ timeIdx }}"
+              onchange="onTimeChange" style="color: {{ fg }}; background-color: {{ border }}"></picker>
+    </div>
+
+    <!-- 长列表：每周一段，7 行，点行进中文输入 -->
+    <div for="{{ rows }}" class="row-wrap">
+      <text if="{{ $item.type === 'week' }}" class="week-title {{ $item.isCurrent ? 'week-on' : '' }}"
+            style="color: {{ $item.isCurrent ? accent : muted }}">{{ $item.label }}</text>
+      <div if="{{ $item.type === 'cell' }}" class="cell" style="background-color: {{ card }}"
+           onclick="editCell($item)">
+        <text class="cell-day" style="color: {{ $item.isToday ? accent : muted }}">{{ $item.dayLabel }}</text>
+        <text class="cell-name" style="color: {{ $item.name ? fg : muted }}">{{ $item.name ? $item.name : '未设置' }}</text>
+        <text class="cell-arrow" style="color: {{ muted }}">›</text>
+      </div>
+    </div>
+
+    <text class="tips" style="color: {{ muted }}">晚课是每套课表自己的附加课，只在校准周次的当天显示；改动自动保存。</text>
+    <div class="bottom-gap"></div>
+  </scroll>
+</template>
+
+<script>
+import router from "@system.router"
+import storage from "@system.storage"
+import prompt from "@system.prompt"
+
+var rotation = require("../../data/rotation")
+var database = require("../../data/database")
+
+var RESULT_KEY = "night_cell_result"
+var PENDING_KEY = "night_cell_pending"
+function fallbackSid() {
+  var idx = 0
+  try {
+    idx = database.getScheduleIndex()
+  } catch (e) {
+    idx = 0
+  }
+  return (idx == null || idx < 0) ? 0 : idx
+}
+
+function startPage(comp, idx) {
+  if (idx == null || idx < 0) {
+    idx = 0
+  }
+  comp.sid = idx
+  rotation.prime(idx, function (tpl) {
+    comp.tpl = tpl || rotation.normalize({})
+    comp.refresh()
+  })
+}
+
+var TIME_OPTS = [
+  "16:30 - 17:20",
+  "17:00 - 17:50",
+  "17:10 - 18:00",
+  "17:30 - 18:20",
+  "18:00 - 18:50",
+  "18:30 - 19:20",
+  "19:00 - 19:50"
+]
+
+export default {
+  private: {
+    bg: "#0B1220",
+    card: "#16233A",
+    fg: "#E8EEF9",
+    muted: "#8A93A6",
+    accent: "#2F6BFF",
+    border: "#243449",
+    enabled: false,
+    cycle: 3,
+    cycleOpts: [1, 2, 3, 4, 5, 6],
+    timeOpts: TIME_OPTS,
+    timeIdx: 0,
+    summary: "未设置",
+    rows: [],
+    sid: 0
+  },
+
+  tpl: null,
+
+  onInit() {
+    var self = this
+    // 从「课表管理」里某套课表的操作面板进来时，要改的是那一套，
+    // 不是当前激活那套 —— 否则用户以为在改 A，实际写进了 B。
+    storage.get({
+      key: "night_course_sid",
+      success: function (v) {
+        var idx = -1
+        if (v != null && String(v).length > 0) {
+          idx = parseInt(v, 10)
+        }
+        if (!(idx >= 0)) {
+          idx = fallbackSid()
+        }
+        startPage(self, idx)
+      },
+      fail: function () {
+        startPage(self, fallbackSid())
+      }
+    })
+  },
+
+  onShow() {
+    // 从中文输入页回来：把结果写进对应格子
+    var self = this
+    storage.get({
+      key: RESULT_KEY,
+      success: function (val) {
+        if (!val) {
+          return
+        }
+        storage.get({
+          key: PENDING_KEY,
+          success: function (pos) {
+            if (!pos) {
+              return
+            }
+            var parts = String(pos).split("_")
+            var w = parseInt(parts[0], 10) || 0
+            var d = parseInt(parts[1], 10) || 0
+            if (!self.tpl) {
+              self.tpl = rotation.normalize({})
+            }
+            rotation.setCell(self.tpl, w, d, val)
+            rotation.save(self.sid, self.tpl, function () {
+              self.refresh()
+            })
+            try {
+              storage.delete({ key: RESULT_KEY })
+              storage.delete({ key: PENDING_KEY })
+            } catch (e) {}
+          }
+        })
+      }
+    })
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  toggleEnabled() {
+    if (!this.tpl) {
+      return
+    }
+    this.tpl.enabled = !this.tpl.enabled
+    // 首次打开开关时如果一格都没填，给一句提示，避免「开了却没内容」的困惑
+    if (this.tpl.enabled && rotation.isEmpty(this.tpl)) {
+      prompt.showToast({ message: "已启用，点下面任意一行填写晚课" })
+    }
+    this.persist()
+  },
+
+  pickCycle(n) {
+    if (!this.tpl) {
+      return
+    }
+    rotation.setCycle(this.tpl, n)
+    this.persist()
+  },
+
+  onTimeChange(e) {
+    if (!this.tpl) {
+      return
+    }
+    var i = e.newSelected
+    if (i == null || i < 0 || i >= this.timeOpts.length) {
+      return
+    }
+    this.timeIdx = i
+    this.tpl.time = this.timeOpts[i]
+    this.persist()
+  },
+
+  editCell(item) {
+    if (!item) {
+      return
+    }
+    var self = this
+    var w = item.w
+    var d = item.d
+    var name = rotation.cellOf(self.tpl, w, d)
+    var title = "第 " + (w + 1) + " 周 · 周" + rotation.DAY_SHORT[d]
+    storage.set({ key: "chinese_input_title", value: title, success: function () {} })
+    storage.set({ key: "chinese_input_placeholder", value: "输入课程名（≤8 字）", success: function () {} })
+    storage.set({ key: "chinese_input_value", value: name, success: function () {} })
+    storage.set({ key: "chinese_input_maxlen", value: "8", success: function () {} })
+    storage.set({ key: "chinese_input_return_key", value: RESULT_KEY, success: function () {} })
+    storage.set({ key: PENDING_KEY, value: w + "_" + d, success: function () {} })
+    router.push({ uri: "/pages/chinese-input" })
+  },
+
+  persist() {
+    var self = this
+    rotation.save(self.sid, self.tpl, function () {
+      self.refresh()
+    })
+  },
+
+  refresh() {
+    var self = this
+    var tpl = self.tpl || rotation.normalize({})
+    self.tpl = tpl
+    self.enabled = !!tpl.enabled
+    self.cycle = tpl.cycle
+    self.summary = rotation.summary(tpl)
+
+    // 时段：当前值不在档位里就临时插到第一位，别让 picker 选不中
+    var opts = TIME_OPTS.slice(0)
+    var ti = opts.indexOf(tpl.time)
+    if (ti < 0) {
+      opts.unshift(tpl.time)
+      ti = 0
+    }
+    self.timeOpts = opts
+    self.timeIdx = ti
+
+    // 长列表：每周一个标题 + 7 行，单层数组避免嵌套 for 的 $item 歧义
+    var curWeek = rotation.weekIndexOf(tpl)
+    var curDay = rotation.dayIndexOf()
+    var rows = []
+    for (var w = 0; w < tpl.cycle; w++) {
+      var isCur = w === curWeek
+      rows.push({
+        type: "week",
+        label: "第 " + (w + 1) + " 周" + (isCur ? " · 本周" : ""),
+        isCurrent: isCur
+      })
+      for (var d = 0; d < 7; d++) {
+        rows.push({
+          type: "cell",
+          w: w,
+          d: d,
+          dayLabel: "周" + rotation.DAY_SHORT[d],
+          name: rotation.cellOf(tpl, w, d),
+          isToday: isCur && d === curDay
+        })
+      }
+    }
+    self.rows = rows
+  }
+}
+</script>
+
+<style>
+.page {
+  width: 192px;
+  height: 490px;
+  flex-direction: column;
+}
+
+.header {
+  width: 192px;
+  height: 44px;
+  flex-direction: row;
+  align-items: center;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.back-btn-wrapper {
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.back-arrow {
+  font-size: 26px;
+  line-height: 28px;
+  margin-top: -4px;
+}
+
+.header-title {
+  flex: 1;
+  font-size: 19px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.header-placeholder {
+  width: 30px;
+  flex-shrink: 0;
+}
+
+.card {
+  margin-left: 6px;
+  margin-right: 6px;
+  margin-bottom: 6px;
+  padding: 8px;
+  border-radius: 12px;
+  flex-direction: column;
+}
+
+.switch-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.switch-text {
+  flex-direction: column;
+  flex: 1;
+}
+
+.switch-title {
+  font-size: 16px;
+}
+
+.switch-sub {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.switch-pill {
+  width: 54px;
+  height: 26px;
+  border-radius: 13px;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.switch-knob {
+  position: absolute;
+  top: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background-color: #ffffff;
+}
+
+.label {
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.label-gap {
+  margin-top: 8px;
+}
+
+.pills {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.pill {
+  padding-left: 7px;
+  padding-right: 7px;
+  height: 24px;
+  border-radius: 12px;
+  margin-right: 5px;
+  margin-bottom: 4px;
+  align-items: center;
+  justify-content: center;
+}
+
+.pill-text {
+  font-size: 11px;
+}
+
+.time-picker {
+  width: 168px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.row-wrap {
+  flex-direction: column;
+}
+
+.week-title {
+  font-size: 11px;
+  margin-left: 10px;
+  margin-top: 6px;
+  margin-bottom: 3px;
+}
+
+.week-on {
+  font-weight: bold;
+}
+
+.cell {
+  height: 32px;
+  margin-left: 6px;
+  margin-right: 6px;
+  margin-bottom: 3px;
+  padding-left: 9px;
+  padding-right: 9px;
+  border-radius: 8px;
+  flex-direction: row;
+  align-items: center;
+}
+
+.cell-day {
+  width: 30px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.cell-name {
+  flex: 1;
+  font-size: 14px;
+}
+
+.cell-empty {
+  font-size: 12px;
+}
+
+.cell-arrow {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.tips {
+  font-size: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-top: 8px;
+  line-height: 14px;
+}
+
+.bottom-gap {
+  height: 16px;
+}
+</style>

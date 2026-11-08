@@ -131,6 +131,7 @@
 
 <script>
 import router from "@system.router"
+import storage from "@system.storage"
 var pinHelper = require("../../data/pin-helper.js")
 import prompt from "@system.prompt"
 const store = require("../../data/store.js")
@@ -299,29 +300,20 @@ export default {
   },
 
   sheetWeekView() {
-
-  // 晚课是每套课表的附属内容：把目标课表 index 传过去，设置页按它读写
-
-  sheetNightCourse() {
-
-    var self = this
-
-    storage.set({
-
-      key: "night_course_sid",
-
-      value: String(self.sheetIndex),
-
-      success: function() { router.push({ uri: "/pages/night-course" }) },
-
-      fail: function() { router.push({ uri: "/pages/night-course" }) }
-
-    })
-
-  }
     var idx = this.sheetIndex
     this.closeSheet()
     this.openWeekView(idx)
+  },
+
+  // 晚课是每套课表的附属内容：把目标课表 index 传过去，设置页按它读写
+  sheetNightCourse() {
+    var self = this
+    storage.set({
+      key: "night_course_sid",
+      value: String(self.sheetIndex),
+      success: function() { router.push({ uri: "/pages/night-course" }) },
+      fail: function() { router.push({ uri: "/pages/night-course" }) }
+    })
   },
 
   sheetStats() {
