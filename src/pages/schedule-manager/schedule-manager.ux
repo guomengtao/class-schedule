@@ -89,6 +89,9 @@
           <div class="sheet-btn" onclick="sheetWeekView" style="background-color: {{ theme.cardLight }}">
             <text class="sheet-btn-text" style="color: {{ theme.text }}">总览</text>
           </div>
+          <div class="sheet-btn" onclick="sheetNightCourse" style="background-color: {{ theme.cardLight }}">
+            <text class="sheet-btn-text" style="color: {{ theme.text }}">晚课</text>
+          </div>
           <div class="sheet-btn" onclick="sheetStats" style="background-color: {{ theme.cardLight }}">
             <text class="sheet-btn-text" style="color: {{ theme.text }}">统计</text>
           </div>
@@ -296,6 +299,26 @@ export default {
   },
 
   sheetWeekView() {
+
+  // 晚课是每套课表的附属内容：把目标课表 index 传过去，设置页按它读写
+
+  sheetNightCourse() {
+
+    var self = this
+
+    storage.set({
+
+      key: "night_course_sid",
+
+      value: String(self.sheetIndex),
+
+      success: function() { router.push({ uri: "/pages/night-course" }) },
+
+      fail: function() { router.push({ uri: "/pages/night-course" }) }
+
+    })
+
+  }
     var idx = this.sheetIndex
     this.closeSheet()
     this.openWeekView(idx)
