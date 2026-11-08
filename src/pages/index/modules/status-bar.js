@@ -17,12 +17,6 @@ function init(instance) {
 
   instance.updateStatus = function() {
     var self = instance
-    var realToday = getRealTodayName()
-
-    if (self.currentDay !== realToday) {
-      self.showStatusBar = false
-      return
-    }
 
     // 方案 D3：状态条必须感知假期 —— 假期日不再渲染「即将上课」，
     // 否则与下方「国庆假期」卡在同一屏互相打脸（正确性 bug）
@@ -36,35 +30,28 @@ function init(instance) {
       return
     }
 
-    if (!self.schedule || self.schedule.length === 0) {
+    // 【2026-11-09 同源改造】状态条不再自己遍历 self.schedule，一律读 currentClasses。
+    // 根因：两边各自算课，状态条用 schedule + currentDay，列表用 loadDayClasses 的结果，
+    // 任意一次刷新只更新其中一边（切天、onShow 重读、初始化竞态）就会出现
+    // 「上面写 上课·早自习·55m、下面写 今天没有课」的同屏矛盾。
+    // 现在 currentClasses 就是这一帧真正渲染的列表：列表空 → 状态条必然隐藏，
+    // 结构上不可能再互相打脸，同时省掉一次全表遍历。
+    if (!self.isToday || !self.currentClasses || self.currentClasses.length === 0) {
       self.showStatusBar = false
       return
     }
 
     var now = new Date()
     var nowMinutes = now.getHours() * 60 + now.getMinutes()
-    var dayData = null
-    for (var i = 0; i < self.schedule.length; i++) {
-      if (self.schedule[i].day === self.currentDay) {
-        dayData = self.schedule[i]
-        break
-      }
-    }
-    if (!dayData || !dayData.classes || dayData.classes.length === 0) {
-      self.showStatusBar = false
-      return
-    }
     var classes = []
-    for (var j = 0; j < dayData.classes.length; j++) {
-      var c = dayData.classes[j]
-      var parts = c.time.split("-")
+    for (var i = 0; i < self.currentClasses.length; i++) {
+      var item = self.currentClasses[i]
+      var parts = String(item.time || "").split("-")
       if (parts.length < 2) continue
-      classes.push({
-        name: c.name,
-        startMin: parseTime(parts[0].trim()),
-        endMin: parseTime(parts[1].trim()),
-        startTime: parts[0].trim()
-      })
+      var s = parseTime(parts[0].trim())
+      var e = parseTime(parts[1].trim())
+      if (isNaN(s) || isNaN(e)) continue
+      classes.push({ name: item.name, startMin: s, endMin: e })
     }
     classes.sort(function(a, b) { return a.startMin - b.startMin })
     var current = null

@@ -27,6 +27,34 @@ function parseTime(timeStr) {
   return parseInt(parts[0]) * 60 + parseInt(parts[1])
 }
 
+// 星期名归一：数据里 day 可能是「星期一 / 周一 / 礼拜一 / Monday / 数字」。
+// 早期只做 === 全名比较，两边写法一旦不同就整天匹配不上 —— 现象正是
+// 「状态条说有课、列表说今天没有课」。统一折算成 0-6 星期索引。
+var EN_DAY_INDEX = {
+  sunday: 0, monday: 1, tuesday: 2, wednesday: 3,
+  thursday: 4, friday: 5, saturday: 6,
+  sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6
+}
+var CN_DAY_CHARS = "一二三四五六"
+
+function dayIndexOf(raw) {
+  if (raw === undefined || raw === null) return -1
+  var s = String(raw).replace(/\s|　/g, "")
+  if (!s) return -1
+  var m = s.match(/^(星期|周|礼拜)([日天一二三四五六七])$/)
+  if (m) {
+    var ch = m[2]
+    // 日/天/七 均为周日；数字 7 也按周日处理（0 基口径下 6 无法消歧）
+    if (ch === "日" || ch === "天" || ch === "七") return 0
+    return CN_DAY_CHARS.indexOf(ch) + 1
+  }
+  var low = s.toLowerCase()
+  if (EN_DAY_INDEX[low] !== undefined) return EN_DAY_INDEX[low]
+  if (/^[0-6]$/.test(s)) return parseInt(s)
+  if (s === "7") return 0
+  return -1
+}
+
 function init(instance) {
   instance.currentClasses = []
   instance.currentScheduleName = "课程表1"
@@ -46,12 +74,20 @@ function init(instance) {
     var self = instance
     var dayData = null
     var queryDay = (overrideWeekDay >= 0) ? fullDayNames[overrideWeekDay] : self.currentDay
+    var queryIndex = dayIndexOf(queryDay)
+    // 首屏竞态兜底：dayNav 尚未回填 currentDay 时（或值异常），不能直接判成「今天没有课」，
+    // 回落到真实今天。这是「列表空、状态条有课」最直接的来源之一。
+    if (queryIndex < 0) {
+      queryIndex = new Date().getDay()
+      queryDay = fullDayNames[queryIndex]
+    }
     for (var i = 0; i < self.schedule.length; i++) {
-      if (self.schedule[i].day === queryDay) {
+      if (dayIndexOf(self.schedule[i].day) === queryIndex) {
         dayData = self.schedule[i]
         break
       }
     }
+    self.classesDayKey = queryDay
     var rawClasses = dayData ? dayData.classes : []
     var classes = []
     var capsule = self.isCapsule === true
@@ -96,7 +132,8 @@ function init(instance) {
     var self = instance
     dlog("[refreshClasses] entering, has reloadHolidayState=" + (!!self.reloadHolidayState) + " holidayReminderOn=" + self.holidayReminderOn + " isHoliday=" + self.isHoliday)
     if (self.reloadHolidayState && typeof self.reloadHolidayState === 'function') {
-      var d = self.currentDate
+      // currentDate 缺失时不能抛异常中断整条刷新链（否则列表停在上一帧、状态条又被单独刷新 → 同屏矛盾）
+      var d = self.currentDate || new Date()
       dlog("[refreshClasses] currentDate=" + (d ? d.toDateString() : "null"))
       var m = (d.getMonth() + 1)
       var day = d.getDate()
