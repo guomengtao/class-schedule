@@ -1,4 +1,6 @@
 var storage = require("@system.storage")
+// 晚课注入：所有页面都从本模块取课程，在出口统一叠加，一次改动全覆盖
+var rotation = require("./rotation")
 var scheduleData = require("./schedule.js")
 
 var STORAGE_KEY = "allCourses"
@@ -664,7 +666,11 @@ module.exports = {
     log("getAllCourses called, currentIndex=" + currentScheduleIndex)
     ensureReady(function() {
       log("getAllCourses ready, currentIndex=" + currentScheduleIndex)
-      getAllCoursesStorage(callback)
+      getAllCoursesStorage(function(schedule) {
+        // 预热晚课：首帧可能还没读到盘，读到后由页面下次刷新自然补上
+        rotation.prime(currentScheduleIndex, null)
+        callback(rotation.injectInto(schedule, currentScheduleIndex))
+      })
     })
   },
 
@@ -755,7 +761,8 @@ module.exports = {
     ensureReady(function() {
       if (forceRefresh) invalidateCache(index)
       getAllCoursesStorageWithIndex(index, function(data) {
-        callback(data)
+        rotation.prime(index, null)
+        callback(rotation.injectInto(data, index))
       })
     })
   },
