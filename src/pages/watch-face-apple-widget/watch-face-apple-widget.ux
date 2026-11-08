@@ -108,7 +108,7 @@
       <text class="num" style="left:47px;top:220px">9</text>
 
       <!-- 时针 / 分针 / 秒针：四根全部平铺，top 压在盘心 240；
-           旋转轴由 .hand 的 transform-origin: 50% 0 显式锁定（不再依赖引擎默认原点）。
+           旋转轴由各针类的 transform-origin（px 值，按针宽折半）显式锁定。
            2026-11-04 实测废弃原「0×0 旋转载体 + 内层子元素」写法：
            该运行时下父层 transform 会打乱子元素的定位坐标系，指针要么不渲染、
            要么被甩到盘外，336 与 192 两屏均如此。平铺是唯一可靠解。
@@ -384,19 +384,18 @@ export default {
 
   /* 所有针：top 压在盘心 240，并显式锁定旋转轴为「元素顶部中点」。
      2026-11-08 三屏像素实测发现三针不共心：引擎默认 transform-origin 并非顶部中点
-     （实测更接近元素左上角 0 0）。此前用 left = 盘心X - 针宽/2 居中针身，
-     在该默认轴下反而把轴心推偏「针宽/2」：黑针宽 10 偏 5px、橙针宽 2 偏 1px，
-     两组轴心相差 4px，针根与固定绝对定位的 hub 错开。
-     显式声明后四针轴心统一为 (left + width/2, top) = (168,240)，与 hub 重合。
-     验收：三屏三针拟合直线到 hub ≤1px；若该引擎不支持 transform-origin，
-     回退方案为四针 left 统一写盘心 X（不再按针宽折半），hub 保持不动。
-     验证方式：三屏取 /dev/fb0 裸帧，按颜色分离针身做直线拟合，量轴线到 hub 距离。 */
-  .hand { position: absolute; transform-origin: 50% 0; }
+     （实测更接近元素左上角 0 0），故 left = 盘心X - 针宽/2 会把轴心推偏针宽/2。
+     修复：按针宽用 px 显式指定旋转轴，使「旋转轴」与「针身中心线」同时落在盘心：
+     黑针宽 10 → 5px、橙针宽 2 → 1px（窄屏黑针宽 5 → 2.5px）。
+     切勿写 50% 0：实测该引擎按父容器基准解析百分比，会把针整体甩离盘心。
+     验收：三屏三针拟合直线到 hub ≤1px。 */
+  .hand { position: absolute; }
 
   /* 时针 / 分针：top 压在盘心 240，元素顶部中点即旋转轴。
      长度取基准实测：时针 r=90（0.62R，基准 0.561R + 细颈 21.5）、分针 r=130（0.90R）。
      针身宽 10（0.064R），圆头。 */
   .hb-hour {
+    transform-origin: 5px 0px;
     left: 163px;
     top: 240px;
     width: 10px;
@@ -405,6 +404,7 @@ export default {
     border-radius: 5px;
   }
   .hb-min {
+    transform-origin: 5px 0px;
     left: 163px;
     top: 240px;
     width: 10px;
@@ -414,6 +414,7 @@ export default {
   }
 
   .second {
+    transform-origin: 1px 0px;
     left: 167px;
     top: 240px;
     width: 2px;
@@ -424,6 +425,7 @@ export default {
 
   /* 秒针反向尾：独立元素 + θ+180 的 class，25px（0.155R） */
   .second-tail {
+    transform-origin: 1px 0px;
     left: 167px;
     top: 240px;
     width: 2px;
@@ -511,11 +513,12 @@ export default {
     color: #1D1D1F;
   }
 
-  /* 窄屏同理：显式锁定旋转轴为顶部中点，四针轴心统一为 (96,184) 与 nhub 重合 */
-  .nhand { position: absolute; transform-origin: 50% 0; }
+  /* 窄屏同理：按针宽 px 指定旋转轴，四针轴心统一为 (96,184) 与 nhub 重合 */
+  .nhand { position: absolute; }
 
   /* 时针 r=50（宽屏 90 × 0.5517）、分针 r=72（130 × 0.5517），针身宽 5 */
   .nhb-hour {
+    transform-origin: 2.5px 0px;
     left: 93.5px;
     top: 184px;
     width: 5px;
@@ -524,6 +527,7 @@ export default {
     border-radius: 3px;
   }
   .nhb-min {
+    transform-origin: 2.5px 0px;
     left: 93.5px;
     top: 184px;
     width: 5px;
@@ -533,6 +537,7 @@ export default {
   }
 
   .nsecond {
+    transform-origin: 1px 0px;
     left: 95px;
     top: 184px;
     width: 2px;
@@ -543,6 +548,7 @@ export default {
 
   /* 秒针反向尾：独立元素 + θ+180 的 class（不能上移 top，那会把旋转轴带偏） */
   .nsecond-tail {
+    transform-origin: 1px 0px;
     left: 95px;
     top: 184px;
     width: 2px;
