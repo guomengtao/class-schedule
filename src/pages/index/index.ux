@@ -125,16 +125,16 @@
       <div if="{{ !isLoading && !loadError && currentClasses.length === 0 && !(isHoliday && holidayReminderOn) }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
       </div>
-      <div for="{{ currentClasses }}" class="class-grid-item" onclick="goToClassDetail($item)" onswipe="onCardSwipe" style="background-color: {{ theme.card }}">
+      <div for="{{ currentClasses }}" class="class-grid-item" onclick="goToClassDetail($item)" onswipe="onCardSwipe" style="background-color: {{ $item._rotation ? '#F3F0FF' : theme.card }}">
         <div class="progress-bg" if="{{ isToday }}" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
-        <div class="class-card-accent" style="background-color: {{ theme.accent }}"></div>
+        <div class="class-card-accent" style="background-color: {{ $item._rotation ? '#DED6FE' : theme.accent }}"></div>
         <div class="class-card-body">
           <div class="card-name-row">
-            <text class="grid-item-name" style="color: {{ theme.text }}; font-size: {{ $item.fontSize }}px; line-height: {{ $item.lineHeight }}px">{{ $item.name }}</text>
+            <text class="grid-item-name" style="color: {{ $item._rotation ? '#6C5BD4' : theme.text }}; font-size: {{ $item.fontSize }}px; line-height: {{ $item.lineHeight }}px">{{ $item.name }}</text>
             <text class="grid-item-location-inline" if="{{ $item.location && !$item.locationWrap }}" style="color: {{ theme.textMuted }}; font-size: {{ $item.metaFontSize }}px; line-height: {{ $item.metaLineHeight }}px">{{ $item.location }}</text>
           </div>
           <text class="grid-item-location" if="{{ $item.location && $item.locationWrap }}" style="color: {{ theme.textMuted }}; font-size: {{ $item.metaFontSize }}px; line-height: {{ $item.metaLineHeight }}px">{{ $item.location }}</text>
-          <text class="grid-item-time" style="color: {{ theme.accent }}; font-size: {{ $item.metaFontSize }}px; line-height: {{ $item.metaLineHeight }}px">{{ $item.timeDisplay }}</text>
+          <text class="grid-item-time" style="color: {{ $item._rotation ? '#6C5BD4' : theme.accent }}; font-size: {{ $item.metaFontSize }}px; line-height: {{ $item.metaLineHeight }}px">{{ $item.timeDisplay }}</text>
         </div>
       </div>
     </scroll>

@@ -130,6 +130,15 @@ var DATA_KEYS = [
   "course_preset_list"
 ]
 
+// 晚课（每套课表一份，与 allCourses_0..9 一一对应）。
+// 单独列出来而不是拼进循环：备份文件是老版本也能读的扁平 key→value 结构，
+// 老版本恢复时遇到不认识的 key 会原样写回，不会丢。
+var ROT_KEYS = [
+  "ev_rotation_0", "ev_rotation_1", "ev_rotation_2", "ev_rotation_3", "ev_rotation_4",
+  "ev_rotation_5", "ev_rotation_6", "ev_rotation_7", "ev_rotation_8", "ev_rotation_9"
+]
+DATA_KEYS = DATA_KEYS.concat(ROT_KEYS)
+
 export default {
   private: {
     iconTheme: "dark",

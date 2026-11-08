@@ -177,6 +177,12 @@ function init(instance) {
   }
 
   instance.goToClassDetail = function(course) {
+    // 晚课是注入出来的虚拟条目，存储里没有这条课 —— 放进去会按 id 找不到而进空详情页，
+    // 甚至误改相邻课程。统一拦在这里，指向晚课设置。
+    if (course && course._rotation) {
+      prompt.showToast({ message: "晚课请在「晚课设置」里修改" })
+      return
+    }
     var router = require("@system.router")
     var storage = require("@system.storage")
     storage.set({
