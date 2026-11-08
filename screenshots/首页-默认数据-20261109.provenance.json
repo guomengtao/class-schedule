@@ -1,0 +1,20 @@
+{
+  "schema": "ev-shot/1",
+  "tool": "ev-emubuddy/tools/batch_frame.py",
+  "created": "2026-11-09T01:24:46+08:00",
+  "title": "首页 · 默认数据（八年级二班 seed）",
+  "image": "首页-默认数据-20261109.png",
+  "size": [
+    281,
+    820
+  ],
+  "sha256": "688ec3d8445aa69da67b5fef8b04951c5ce5b7816dfd2e2f94d69490cf552919",
+  "devices": [
+    {
+      "label": "BAND 9",
+      "serial": null,
+      "screen": "(192, 490)",
+      "skin": "xiaomi_band"
+    }
+  ]
+}
