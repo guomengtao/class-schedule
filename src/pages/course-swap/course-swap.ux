@@ -481,7 +481,7 @@ export default {
 /* ===== A 区 · 来源：只读凭证，刻意去强调 =====
    与 B 区反向编码：无 accent、1px 暗边框、10px 小圆角、常规字重、次级字色。
    不进度、不边框高亮、不露 peek —— 它不可选，不该长得像能滑的目标卡。 */
-.source { flex-direction: column; width: 100%; padding: 8px 10px; border-width: 1px; border-radius: 10px; margin-bottom: 10px; flex-shrink: 0; }
+.source { flex-direction: column; width: 100%; padding: 6px 10px; border-width: 1px; border-radius: 10px; margin-bottom: 6px; flex-shrink: 0; }
 .source-label { font-size: 24px; line-height: 34px; }
 .source-name { font-size: 28px; line-height: 38px; lines: 1; }
 .source-when { font-size: 24px; line-height: 34px; }
@@ -493,7 +493,7 @@ export default {
      第 3 格 144..212  → 只露 144..168 = 24px
    这 24px 的残留色块就是「后面还能滑」的提示。刻意不凑成整数个完整格，
    否则用户会以为选项已经到头。视窗固定在 scroll 之外，进页必见。 */
-.day-viewport { width: 100%; height: 44px; overflow: hidden; margin-bottom: 8px; flex-shrink: 0; }
+.day-viewport { width: 100%; height: 44px; overflow: hidden; margin-bottom: 6px; flex-shrink: 0; }
 .day-track { flex-direction: row; width: 100%; height: 44px; }
 .day-cell { width: 68px; height: 44px; border-radius: 22px; margin-right: 4px; justify-content: center; align-items: center; flex-shrink: 0; }
 .day-t { font-size: 24px; line-height: 34px; lines: 1; }
@@ -501,7 +501,7 @@ export default {
 
 .scroll-area { flex: 1; width: 100%; }
 .content-area { flex-direction: column; width: 100%; padding-bottom: 8px; }
-.pick-label { font-size: 24px; line-height: 34px; margin-bottom: 6px; }
+.pick-label { font-size: 24px; line-height: 34px; margin-bottom: 4px; }
 
 /* ===== B2 · 目标课程 peek 视窗 =====
    主卡 148 + 间隙 6 + 下一张卡 20 = 174 > 168 → 右侧恒露 14px 的 accent 边。
@@ -509,15 +509,17 @@ export default {
    没有下一张却露出边属于假提示（可发现性不能靠骗）。 */
 .course-viewport { width: 100%; overflow: hidden; margin-bottom: 8px; }
 .course-track { flex-direction: row; width: 100%; }
-.course-strip { flex-direction: column; width: 148px; padding: 8px 6px; border-radius: 14px; border-width: 2px; flex-shrink: 0; }
+.course-strip { flex-direction: column; width: 148px; padding: 6px 6px; border-radius: 14px; border-width: 2px; flex-shrink: 0; }
 .course-main { flex-direction: row; align-items: center; width: 100%; }
 .course-period { font-size: 24px; line-height: 34px; width: 64px; flex-shrink: 0; }
 .course-name { flex: 1; font-size: 28px; line-height: 38px; font-weight: bold; lines: 1; }
 .course-hint { font-size: 24px; line-height: 34px; width: 100%; }
-.course-peek { width: 20px; height: 88px; margin-left: 6px; border-radius: 12px; border-width: 2px; flex-shrink: 0; }
+.course-peek { width: 20px; height: 84px; margin-left: 6px; border-radius: 12px; border-width: 2px; flex-shrink: 0; }
 
 .empty-hint { font-size: 24px; line-height: 34px; }
-.footer { flex-direction: column; width: 100%; padding-top: 6px; }
+.footer { flex-direction: column; width: 100%; padding-top: 4px; }
 .confirm-btn { width: 100%; height: 48px; border-radius: 24px; font-size: 28px; font-weight: bold; text-align: center; }
-.clear-btn { width: 100%; height: 44px; border-radius: 22px; font-size: 24px; text-align: center; margin-top: 6px; background-color: transparent; }
+/* 撤销是次要操作：压成 34px 文字链而非第二颗按钮，既降视觉权重，
+   又给 scroll 区腾出 14px —— 有调课记录时首屏才不会裁掉课程卡的进度行。 */
+.clear-btn { width: 100%; height: 34px; font-size: 24px; line-height: 34px; text-align: center; margin-top: 2px; background-color: transparent; }
 </style>
