@@ -49,6 +49,9 @@
       <div class="backup-body">
         <text class="backup-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
         <text class="backup-meta" style="color: {{ theme.textSecondary }}">{{ $item.courseCount }}门课程 · {{ $item.scheduleCount }}张课表</text>
+        <!-- 晚课作为课表的一部分单独标出：老备份没有 rotationCount 字段，
+             if 条件为假，不占位也不撑高卡片。 -->
+        <text class="backup-rot" if="{{ $item.rotationCount > 0 }}" style="color: {{ theme.textMuted }}">含晚课 {{ $item.rotationCount }} 套</text>
       </div>
       <div class="backup-actions">
         <div class="action-btn action-restore" onclick="confirmRestoreBackup($idx)" style="background-color: {{ theme.accent }}">
@@ -365,12 +368,31 @@ export default {
         }
       }
 
+      // 晚课是课表的组成部分：记下这份备份带了几套晚课配置。
+      // 列表原来只显示「N 门课程 / M 张课表」，用户无法确认晚课有没有一起备份。
+      // 只认能解析成对象的键，损坏数据不计入，避免显示一个空壳套数。
+      var rotationCount = 0
+      for (var r = 0; r < 10; r++) {
+        var rotRaw = data["ev_rotation_" + r]
+        if (!rotRaw) {
+          continue
+        }
+        try {
+          var rotObj = JSON.parse(rotRaw)
+          if (rotObj && typeof rotObj === "object") {
+            rotationCount++
+          }
+        } catch (e) {}
+      }
+
       var backupEntry = {
         id: now.getTime(),
         name: "备份 " + timeStr,
         time: timeStr,
         courseCount: courseCount,
         scheduleCount: scheduleCount,
+        // 0 = 这份备份没有晚课（老版本备份或从未配置）
+        rotationCount: rotationCount,
         data: data
       }
 
@@ -435,37 +457,76 @@ export default {
 
     var failed = 0
 
+    // 备份只写自己有的晚课键，不会主动删本地多出来的槽。
+    // 若恢复前本地课表更多（如 4 张、这份备份只有 2 张），3..9 号槽的旧晚课会残留：
+    // 当前不可见，但用户以后新建课表时旧配置会突然冒出来。
+    // 口径与「全部重置清 allCourses_1..9 / ev_rotation_1..9 残留槽」保持一致。
+    function clearStaleRotationSlots(done) {
+      var keep = 0
+      try {
+        var parsedNames = JSON.parse(backupData["scheduleNames"] || "[]")
+        if (Array.isArray(parsedNames)) {
+          keep = parsedNames.length
+        }
+      } catch (e) {
+        keep = 0
+      }
+      // 备份没带课表清单：无法判断边界，不猜也不删，避免误伤用户现有晚课
+      if (keep <= 0 || keep >= 10) {
+        done()
+        return
+      }
+      var left = 10 - keep
+      function onCleared() {
+        left--
+        if (left <= 0) done()
+      }
+      for (var s = keep; s < 10; s++) {
+        storage.delete({
+          key: "ev_rotation_" + s,
+          success: onCleared,
+          fail: onCleared
+        })
+      }
+    }
+
+    function finishRestore() {
+      self.busy = false
+      if (failed > 0) {
+        self.openSheet({
+          title: "恢复完成，但 " + failed + " 项写入失败",
+          ok: false,
+          progress: true,
+          pct: 100,
+          sub: "成功 " + (total - failed) + "/" + total + " 项，建议再恢复一次",
+          cancelText: "",
+          btnText: "完成"
+        })
+      } else {
+        self.openSheet({
+          title: "恢复成功",
+          ok: true,
+          progress: true,
+          pct: 100,
+          sub: "已写入 " + total + " 项 · " + (backup.time || ""),
+          cancelText: "",
+          btnText: "完成"
+        })
+      }
+      if (database.resetCache) database.resetCache()
+      // 恢复直接改了 ev_rotation_*，必须同步清晚课模块缓存，
+      // 否则 peek() 仍返回旧模板，页面看起来像「恢复没生效」。
+      try { require("../../data/rotation").resetCache() } catch (e) {}
+      database.init(function() {
+        store.getTheme(function() {}, true)
+      })
+    }
+
     function saveKey(i) {
       if (i >= total) {
-        self.busy = false
-        if (failed > 0) {
-          self.openSheet({
-            title: "恢复完成，但 " + failed + " 项写入失败",
-            ok: false,
-            progress: true,
-            pct: 100,
-            sub: "成功 " + (total - failed) + "/" + total + " 项，建议再恢复一次",
-            cancelText: "",
-            btnText: "完成"
-          })
-        } else {
-          self.openSheet({
-            title: "恢复成功",
-            ok: true,
-            progress: true,
-            pct: 100,
-            sub: "已写入 " + total + " 项 · " + (backup.time || ""),
-            cancelText: "",
-            btnText: "完成"
-          })
-        }
-        if (database.resetCache) database.resetCache()
-        // 恢复直接改了 ev_rotation_*，必须同步清晚课模块缓存，
-        // 否则 peek() 仍返回旧模板，页面看起来像「恢复没生效」。
-        try { require("../../data/rotation").resetCache() } catch (e) {}
-        database.init(function() {
-          store.getTheme(function() {}, true)
-        })
+        // 先把备份课表数之外的晚课残留槽清掉，再弹结果：否则用户看到「恢复成功」
+        // 时盘上还留着不该有的晚课数据。
+        clearStaleRotationSlots(finishRestore)
         return
       }
       var key = keys[i]
@@ -755,6 +816,12 @@ export default {
 
 .backup-meta {
   font-size: 24px;
+  margin-top: 2px;
+}
+
+/* 晚课标记比正文再小一档：192 屏可用宽约 136px，22px × 6 字 = 132 不折行 */
+.backup-rot {
+  font-size: 22px;
   margin-top: 2px;
 }
 
