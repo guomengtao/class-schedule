@@ -521,7 +521,12 @@ function dayKeyOf(groupDay, i) {
  */
 function injectInto(schedule, index, date) {
   if (!schedule || !schedule.length) {
-    return schedule
+    // 主课表为空（全新安装 / 用户清空课表 / storage 重置）时也要显示晚课：
+    // 构造 7 天骨架再注入，否则首页会误报「今天没有课」，默认 Demo 看不见。
+    schedule = []
+    for (var g = 0; g < DAY_NAMES.length; g++) {
+      schedule.push({ day: DAY_NAMES[g], classes: [] })
+    }
   }
   var tpl = peek(index)
   if (tpl === undefined) {
