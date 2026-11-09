@@ -1,12 +1,16 @@
 <template>
   <scroll class="page" scroll-y="{{true}}" style="background-color: {{ theme.bg }}">
-    <div class="header">
-      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+    <!-- 页头（2026-11-09 对齐设置页 .hdr 胶囊）：箭头与标题合成一颗整体胶囊，
+         整块可点返回，取代原「30×30 方块返回键 + flex:1 居中标题 + 等宽占位」
+         三段式——中间那片不可点的死区消失，返回热区从 30×30 扩到整颗胶囊。
+         onclick 仍挂页面自己的 goBack，一行脚本不动（统一返回按钮方案 §3.4）。
+         标题是动态的：「添加」/「编辑」2 字走 .hdr-pill-t，storage 读失败兜底
+         「添加倒数日」5 字超过胶囊 4 字上限，由 class 表达式降到 24px 长标题档。 -->
+    <div class="hdr">
+      <div class="hdr-pill" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="hdr-pill-ic" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <text class="hdr-pill-t {{ pageTitle.length > 4 ? 'hdr-pill-t-long' : '' }}" style="color: {{ theme.text }}">{{ pageTitle }}</text>
       </div>
-      <!-- 标题同样可点返回：与左侧箭头一起构成返回热区（2026-10-21 全站规则） -->
-      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">{{ pageTitle }}</text>
-        <div class="header-placeholder"></div>
     </div>
 
     <!-- 名称：跳统一的中文输入页（全项目只有这一个输入页、只打一份词典），
@@ -658,7 +662,7 @@ export default {
 
 /* ================================================================
    胶囊屏 192×490 基准（内容区 168），不依赖 media query 命中手环 9。
-   高度预算：header 42 + 名称块 66 + 日期块（label 24 + 单位 18 + picker
+   高度预算：hdr 44 + 名称块 66 + 日期块（label 24 + 单位 18 + picker
             约 160 + 预览 20）≈ 222 + 保存 58 ≈ 388 / 490。
    农历切换按钮塞进 label 行内，不额外占高度。
    铁律：禁 @media screen and；只用 (shape: rect) 做大屏增量。
@@ -674,31 +678,12 @@ export default {
   padding: 16px 12px 12px 12px;
 }
 
-.header {
-  flex-direction: row;
-  align-items: center;
-  height: 34px;
-  margin-bottom: 6px;
-  flex-shrink: 0;
-}
-
-.back-btn-wrapper {
-  width: 30px; height: 30px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0;
-}
-
-.back-btn-icon {
-  width: 22px; height: 22px;
-}
-
-.header-title {
-  flex: 1; font-size: 28px; font-weight: bold; text-align: center; line-height: 36px; lines: 1;
-}
-
-.header-placeholder {
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-}
+/* 页头统一走 common/header.css 的 .hdr 胶囊（2026-11-09）。本页原有的
+   .header / .back-btn-wrapper / .back-btn-icon / .header-title /
+   .header-placeholder 五件本地定义随三段式头部一起下线：同名类的本地规则
+   后加载会静默盖掉公共文件，留着就不是设置页那个效果了（见方案 §4）。
+   垂直占用：旧 34 + 6 = 40px，新 40 + 4 = 44px，多 4px；本页是 scroll
+   容器，保存/删除按钮仍可滚到，不受影响。 */
 
 
 .field {
