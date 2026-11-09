@@ -354,6 +354,9 @@ function syncNormalizeRotation(rot) {
 
   var calibWeek = parseInt(rot.calibWeek, 10)
   if (isNaN(calibWeek) || calibWeek < 1) calibWeek = 1
+  // 跨端导入时周期可能被缩短，校准周必须夹回 1..cycle，
+  // 否则「本周第 9 周」落在 2 周制里会被错误回卷。
+  if (calibWeek > cycle) calibWeek = cycle
 
   return {
     enabled: !!rot.enabled,

@@ -14,6 +14,18 @@
  *    所以每次先摘掉上一轮插进去的 _rotation 条目，再按当前周次重新插。
  * 3. 晚课不是「第 N 节」，而是「每天最后一节之后的附加课」，因此按 start_time
  *    排序插到正确位置，而不是无脑追加到末尾（时段可能早于最后一节）。
+ *
+ * ── 动态周期与周次校准（2026-11-09，用户裁定）──────────────────────────
+ * 4. cycle 不设死，1..12 任意。每个学校轮换长度不同：2 周两套、6 周六套、
+ *    甚至 1 周（等价于不轮换，可直接并进主课表）。cells 行数始终跟随 cycle。
+ * 5. 「本周是第几周」不存一个静态数字，而存「本周一 = 第 N 周」这个锚点：
+ *      calibDate = 本周一 YYYY-MM-DD，calibWeek = N
+ *    weekIndexOf() 是纯函数：按目标日期与锚点相差几个自然周外推，再对 cycle
+ *    取模回卷。因此下周一自动 +1、到周期末尾自动回第 1 周，无需定时任务、
+ *    无需后台进程，重启后仍对，导出到别的设备也对。
+ *    ⚠️ calibDate 必须写「周一」而不是「今天」。周三设置若不归到周一，
+ *       下周二还算同一周、下周三才跳周，跨周边界会偏 4 天。
+ *    手机端 RotationStore.mondayDateString() 就是干这个的，三端口径一致。
  */
 var storage = require("@system.storage")
 
@@ -21,7 +33,9 @@ var KEY_PREFIX = "ev_rotation_"
 var DAY_NAMES = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
 var DAY_SHORT = ["一", "二", "三", "四", "五", "六", "日"]
 var DEFAULT_CYCLE = 3
+var MAX_CYCLE = 12
 var DEFAULT_TIME = "17:10 - 18:00"
+var WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
 // index -> 模板（null 表示「确认没有」）。同步注入只能吃这儿的数据。
 var cache = {}
@@ -38,6 +52,12 @@ function log(msg) {
 
 function toArrayBuffer(raw) {
   return raw
+}
+
+function clampWeek(w, cycle) {
+  var c = cycle > 0 ? cycle : 1
+  var n = parseInt(w, 10) || 1
+  return Math.max(1, Math.min(c, n))
 }
 
 /** 接受 JSON 字符串 / 对象，统一成模板；无法识别返回 null */
@@ -57,15 +77,16 @@ function normalize(raw) {
   if (!cycle || cycle < 1) {
     cycle = DEFAULT_CYCLE
   }
-  if (cycle > 12) {
-    cycle = 12
+  if (cycle > MAX_CYCLE) {
+    cycle = MAX_CYCLE
   }
   var tpl = {
     enabled: obj.enabled === true || obj.enabled === "true",
     cycle: cycle,
     time: obj.time ? String(obj.time) : DEFAULT_TIME,
     calibDate: obj.calibDate ? String(obj.calibDate) : "",
-    calibWeek: Math.max(1, parseInt(obj.calibWeek, 10) || 1),
+    // 缩周期后老数据可能留着 calibWeek > cycle，夹回合法范围
+    calibWeek: clampWeek(obj.calibWeek, cycle),
     cells: []
   }
   // cells 两种形态都认：数组 [["语", ...], ...]，对象 {"1":{"0":"语"}}
@@ -134,6 +155,20 @@ function filledCount(tpl) {
   return n
 }
 
+/** 某一周已填格数（缩周期前的二次确认判据） */
+function weekFilled(tpl, week) {
+  if (!tpl || !tpl.cells || !tpl.cells[week]) {
+    return 0
+  }
+  var n = 0
+  for (var d = 0; d < tpl.cells[week].length; d++) {
+    if (tpl.cells[week][d]) {
+      n++
+    }
+  }
+  return n
+}
+
 /**
  * 《2026——2027学年度第一学期（八年级）晚课课表》照片转写（2026-11-09）。
  *
@@ -144,9 +179,9 @@ function filledCount(tpl) {
  *
  * 口径：两行班级 = 两套课表，SEED_GRIDS[0] = 8.19、[1] = 8.20；
  * 每周 7 列，前 5 列来自照片，后 2 列留空（页面默认只显示周一~周五）。
- * cycle=6 / time=17:10 - 18:00 与 Rust RotationTemplate 对齐。
+ * cycle 由 SEED_GRIDS[idx].length 推导，不再写死 6：以后换成 2 周制照片也不用改代码。
  * ⚠️ calibDate 是「第一周周一」的推定值（照片只写学期不写日期），
- *    实际开学周不同会整体错位，改 calibDate / calibWeek 即可。
+ *    实际开学周不同会整体错位，在设置页指定「本周是第几周」即可覆盖。
  */
 var SEED_GRIDS = [
   [ // 8.19
@@ -192,7 +227,7 @@ function prime(index, callback) {
         if (!cache[idx] && SEED_GRIDS[idx]) {
           cache[idx] = normalize({
             enabled: true,
-            cycle: 6,
+            cycle: SEED_GRIDS[idx].length,
             time: DEFAULT_TIME,
             calibDate: SEED_CALIB_DATE,
             calibWeek: 1,
@@ -289,6 +324,23 @@ function parseDate(str) {
   return new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10))
 }
 
+/** 归一化到所在自然周的周一 00:00（周一=0 … 周日=6 反推） */
+function mondayOf(date) {
+  var d = date ? new Date(date.getTime()) : new Date()
+  d.setHours(0, 0, 0, 0)
+  var back = (d.getDay() + 6) % 7
+  d.setDate(d.getDate() - back)
+  return d
+}
+
+/** Date → "YYYY-MM-DD" */
+function formatDate(d) {
+  function pad(n) {
+    return n < 10 ? "0" + n : String(n)
+  }
+  return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate())
+}
+
 function weekIndexOf(tpl, date) {
   if (!tpl) {
     return 0
@@ -300,11 +352,57 @@ function weekIndexOf(tpl, date) {
     return 0
   }
   var d = date ? new Date(date.getTime()) : new Date()
-  d.setHours(0, 0, 0, 0)
-  var diffDays = Math.floor((d.getTime() - cal.getTime()) / 86400000)
-  var weeks = Math.floor(diffDays / 7)
-  var idx = (tpl.calibWeek - 1) + weeks
+  // 两边都归到自然周周一再算差值：calibDate 由设置页写成周一时与
+  // 手机端 RotationStore.weekOf() 完全一致；老数据若不是周一也能容错。
+  var calMon = mondayOf(cal)
+  var curMon = mondayOf(d)
+  var weeks = Math.round((curMon.getTime() - calMon.getTime()) / WEEK_MS)
+  var idx = (clampWeek(tpl.calibWeek, cycle) - 1) + weeks
   return ((idx % cycle) + cycle) % cycle
+}
+
+/** 当前是第几周（1-based），与手机端 currentWeek() 对齐 */
+function currentWeek(tpl, date) {
+  return weekIndexOf(tpl, date) + 1
+}
+
+/** 下周是第几周（1-based）；到周期末尾自动回卷 */
+function nextWeek(tpl, date) {
+  if (!tpl) {
+    return 1
+  }
+  var d = date ? new Date(date.getTime()) : new Date()
+  d.setDate(d.getDate() + 7)
+  return weekIndexOf(tpl, d) + 1
+}
+
+/**
+ * 指定「这周是第 N 周」，写入锚点。
+ * 这是「本周第几周」设置的唯一入口；之后不再需要任何更新动作，
+ * weekIndexOf() 每次按设备日期现算，跨周自动推进、按 cycle 回卷。
+ */
+function setCurrentWeek(tpl, week, date) {
+  if (!tpl) {
+    tpl = normalize({})
+  }
+  tpl.calibDate = formatDate(mondayOf(date))
+  tpl.calibWeek = clampWeek(week, tpl.cycle)
+  return tpl
+}
+
+/** 设置页摘要：周期 / 当前 / 下周 / 锚点 / 是否已校准 */
+function weekInfo(tpl, date) {
+  if (!tpl) {
+    return null
+  }
+  return {
+    cycle: tpl.cycle || 1,
+    current: currentWeek(tpl, date),
+    next: nextWeek(tpl, date),
+    calibDate: tpl.calibDate || "",
+    calibWeek: clampWeek(tpl.calibWeek, tpl.cycle),
+    anchored: !!parseDate(tpl.calibDate)
+  }
 }
 
 /** 周一=0 … 周日=6 */
@@ -468,12 +566,12 @@ function clearCells(tpl) {
   return tpl
 }
 
-/** 周期变更时补齐/裁剪行，已填内容尽量保留 */
+/** 周期变更时补齐/裁剪行，已填内容尽量保留；校准周夹回 1..cycle */
 function setCycle(tpl, cycle) {
   if (!tpl) {
     tpl = normalize({})
   }
-  var c = Math.max(1, Math.min(12, parseInt(cycle, 10) || 1))
+  var c = Math.max(1, Math.min(MAX_CYCLE, parseInt(cycle, 10) || 1))
   while (tpl.cells.length < c) {
     var row = []
     for (var d = 0; d < 7; d++) {
@@ -483,6 +581,7 @@ function setCycle(tpl, cycle) {
   }
   tpl.cells = tpl.cells.slice(0, c)
   tpl.cycle = c
+  tpl.calibWeek = clampWeek(tpl.calibWeek, c)
   return tpl
 }
 
@@ -512,10 +611,12 @@ module.exports = {
   DAY_NAMES: DAY_NAMES,
   DAY_SHORT: DAY_SHORT,
   DEFAULT_CYCLE: DEFAULT_CYCLE,
+  MAX_CYCLE: MAX_CYCLE,
   DEFAULT_TIME: DEFAULT_TIME,
   normalize: normalize,
   isEmpty: isEmpty,
   filledCount: filledCount,
+  weekFilled: weekFilled,
   prime: prime,
   peek: peek,
   setCache: setCache,
@@ -523,7 +624,13 @@ module.exports = {
   save: save,
   clear: clear,
   parseDate: parseDate,
+  mondayOf: mondayOf,
+  formatDate: formatDate,
   weekIndexOf: weekIndexOf,
+  currentWeek: currentWeek,
+  nextWeek: nextWeek,
+  setCurrentWeek: setCurrentWeek,
+  weekInfo: weekInfo,
   dayIndexOf: dayIndexOf,
   cellOf: cellOf,
   todayCell: todayCell,
