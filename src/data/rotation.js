@@ -26,6 +26,18 @@
  *    ⚠️ calibDate 必须写「周一」而不是「今天」。周三设置若不归到周一，
  *       下周二还算同一周、下周三才跳周，跨周边界会偏 4 天。
  *    手机端 RotationStore.mondayDateString() 就是干这个的，三端口径一致。
+ * 6. 用户明确裁定「不做真实开学周设置」：回忆 + 反算容易错，也增加负担。
+ *    seed 里的 calibDate 只是 Demo 默认锚点，不需要用户填真实开学日；
+ *    设置页点一次「本周是第几周」即覆盖，之后自然循环。
+ *
+ * ── 默认 6 周 Demo 数据（2026-11-09，用户裁定）────────────────────────
+ * 7. 照片里那 6 周是某学校真实课表，作为**默认 Demo 数据**随包带上，
+ *    首页/周视图/晚课页第一次打开就能看到，不是把 6 周写死成唯一周期。
+ *    其他学校下载后可自行删格、减周、加周，或整份关掉；一旦用户在页面保存过，
+ *    origin 变成 "user"，seed 永不再回填（含用户主动清空全部格子）。
+ * 8. seed 必须写回 storage，不能只活在内存 cache 里：否则导出/备份拿不到，
+ *    且 storage 里残留的「全空默认壳」会让 normalize() 误判成「已有数据」，
+ *    首页首帧和后续刷新都没有晚课 —— 这就是用户说的「数据又丢了」。
  */
 var storage = require("@system.storage")
 
@@ -87,6 +99,12 @@ function normalize(raw) {
     calibDate: obj.calibDate ? String(obj.calibDate) : "",
     // 缩周期后老数据可能留着 calibWeek > cycle，夹回合法范围
     calibWeek: clampWeek(obj.calibWeek, cycle),
+    // 内部标记，不进跨端契约（syncNormalizeRotation 只挑 6 个字段）：
+    //   "demo"   = seed 灌入，可在用户配置前修正
+    //   "user"   = 用户在页面保存过（含主动清空），seed 不得回填
+    //   "import" = 同步器 / 备份恢复写入，seed 不得回填
+    //   缺失     = 历史遗留空壳，视为「从未配置」
+    origin: obj.origin ? String(obj.origin) : "",
     cells: []
   }
   // cells 两种形态都认：数组 [["语", ...], ...]，对象 {"1":{"0":"语"}}
@@ -172,16 +190,16 @@ function weekFilled(tpl, week) {
 /**
  * 《2026——2027学年度第一学期（八年级）晚课课表》照片转写（2026-11-09）。
  *
- * 为什么要有 seed：课表 seed 在 schedule.js / database.js，晚课却从来不在里面。
- * 系统级清数据、重装、AVD storage 重置后 allCourses_0 会重建，ev_rotation_* 永久为空
- * —— 这就是用户说的「数据也丢失」。读不出任何模板时用这里的 seed 兜底，
- * 已有用户数据（哪怕只是一份 enabled:false 的空模板）一律不动。
+ * 这是随包发布的默认 Demo 数据（某校真实课表），不是写死的唯一周期：
+ * 用户可在晚课页减周 / 加周 / 删格 / 关掉，保存后 origin="user"，seed 不再介入。
+ * 其他学校下载后按自己的轮换长度改即可。
  *
- * 口径：两行班级 = 两套课表，SEED_GRIDS[0] = 8.19、[1] = 8.20；
+ * 两行班级 = 两套课表，SEED_GRIDS[0] = 8.19、[1] = 8.20；其余课表序号
+ * 统一 fallback 到 [0]，保证任何新建课表的首页都有默认晚课可看。
  * 每周 7 列，前 5 列来自照片，后 2 列留空（页面默认只显示周一~周五）。
- * cycle 由 SEED_GRIDS[idx].length 推导，不再写死 6：以后换成 2 周制照片也不用改代码。
- * ⚠️ calibDate 是「第一周周一」的推定值（照片只写学期不写日期），
- *    实际开学周不同会整体错位，在设置页指定「本周是第几周」即可覆盖。
+ * cycle 由网格长度推导，不再写死 6：以后换成 2 周制照片也不用改代码。
+ * calibDate 只是 Demo 默认锚点（恰好是周一）；用户不需要回忆真实开学周，
+ * 在设置页指定「本周是第几周」即写入本周一锚点并自动循环。
  */
 var SEED_GRIDS = [
   [ // 8.19
@@ -202,6 +220,39 @@ var SEED_GRIDS = [
   ]
 ]
 var SEED_CALIB_DATE = "2026-08-31"
+
+/** 默认 Demo 模板；任意 index 都有，idx>=2 回落到第一套 */
+function seedTemplate(index) {
+  var idx = index == null ? 0 : index
+  var grid = SEED_GRIDS[idx] || SEED_GRIDS[0]
+  if (!grid) {
+    return null
+  }
+  return normalize({
+    enabled: true,
+    cycle: grid.length,
+    time: DEFAULT_TIME,
+    calibDate: SEED_CALIB_DATE,
+    calibWeek: 1,
+    cells: grid,
+    origin: "demo"
+  })
+}
+
+/**
+ * 是否需要用 Demo 覆盖当前读到的内容。
+ * 只覆盖「从没配置过」：没有模板，或历史遗留的全空默认壳。
+ * 用户保存过（含主动清空）、同步器导入过、Demo 已灌过的，一律不动。
+ */
+function needsSeed(tpl) {
+  if (!tpl) {
+    return true
+  }
+  if (!isEmpty(tpl)) {
+    return false
+  }
+  return tpl.origin !== "user" && tpl.origin !== "import" && tpl.origin !== "demo"
+}
 
 /** 异步读盘并进缓存；同一 index 并发调用会合并成一次读 */
 function prime(index, callback) {
@@ -224,15 +275,25 @@ function prime(index, callback) {
       key: KEY_PREFIX + idx,
       success: function (raw) {
         cache[idx] = normalize(raw)
-        if (!cache[idx] && SEED_GRIDS[idx]) {
-          cache[idx] = normalize({
-            enabled: true,
-            cycle: SEED_GRIDS[idx].length,
-            time: DEFAULT_TIME,
-            calibDate: SEED_CALIB_DATE,
-            calibWeek: 1,
-            cells: SEED_GRIDS[idx]
-          })
+        if (needsSeed(cache[idx])) {
+          var seeded = seedTemplate(idx)
+          if (seeded) {
+            cache[idx] = seeded
+            // 写回盘：seed 必须持久化，首页 / 周视图 / 导出 / 备份才拿得到，
+            // 也避免下次冷启动又读到全空壳而误判「已有数据」。
+            try {
+              storage.set({
+                key: KEY_PREFIX + idx,
+                value: JSON.stringify(seeded),
+                success: function () { finish(idx) },
+                fail: function () { finish(idx) }
+              })
+              return
+            } catch (e) {
+              finish(idx)
+              return
+            }
+          }
         }
         finish(idx)
       },
@@ -273,6 +334,10 @@ function setCache(index, tpl) {
 
 function save(index, tpl, callback) {
   var idx = index == null ? 0 : index
+  if (tpl) {
+    // 用户一旦保存（哪怕把格子全清空），这份数据就是他自己的，Demo 不再回填。
+    tpl.origin = "user"
+  }
   cache[idx] = tpl || null
   primed[idx] = true
   if (!tpl) {
@@ -617,6 +682,8 @@ module.exports = {
   isEmpty: isEmpty,
   filledCount: filledCount,
   weekFilled: weekFilled,
+  seedTemplate: seedTemplate,
+  needsSeed: needsSeed,
   prime: prime,
   peek: peek,
   setCache: setCache,

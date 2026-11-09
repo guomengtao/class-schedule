@@ -667,9 +667,12 @@ module.exports = {
     ensureReady(function() {
       log("getAllCourses ready, currentIndex=" + currentScheduleIndex)
       getAllCoursesStorage(function(schedule) {
-        // 预热晚课：首帧可能还没读到盘，读到后由页面下次刷新自然补上
-        rotation.prime(currentScheduleIndex, null)
-        callback(rotation.injectInto(schedule, currentScheduleIndex))
+        // 首帧就要带上晚课：等 prime() 读盘（含 Demo seed 写回）完成再注入。
+        // 旧写法是 prime(index, null) 后立刻 injectInto，peek() 还是 undefined，
+        // 首页 onInit 只取一次数且 resumeRefresh 有早退优化，晚课就永远不出现。
+        rotation.prime(currentScheduleIndex, function() {
+          callback(rotation.injectInto(schedule, currentScheduleIndex))
+        })
       })
     })
   },
@@ -761,8 +764,10 @@ module.exports = {
     ensureReady(function() {
       if (forceRefresh) invalidateCache(index)
       getAllCoursesStorageWithIndex(index, function(data) {
-        rotation.prime(index, null)
-        callback(rotation.injectInto(data, index))
+        // 与 getAllCourses 同口径：等晚课读盘完成后再注入，保证首帧有数据
+        rotation.prime(index, function() {
+          callback(rotation.injectInto(data, index))
+        })
       })
     })
   },

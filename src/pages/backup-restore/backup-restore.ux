@@ -474,9 +474,22 @@ export default {
         saveKey(i + 1)
         return
       }
+      var value = backupData[key]
+      // 晚课 key：老备份没有 origin 标记，恢复时补成 "import"，
+      // 否则全空模板会被默认 Demo seed 误判成「从未配置」而回填，
+      // 用户主动清空的晚课也会因此被覆盖。
+      if (key.indexOf("ev_rotation_") === 0 && typeof value === "string") {
+        try {
+          var rotObj = JSON.parse(value)
+          if (rotObj && typeof rotObj === "object" && !rotObj.origin) {
+            rotObj.origin = "import"
+            value = JSON.stringify(rotObj)
+          }
+        } catch (e) {}
+      }
       storage.set({
         key: key,
-        value: backupData[key],
+        value: value,
         success: function() {
           self.progressPct = Math.round((i + 1) / total * 100)
           self.statusSub = (i + 1) + "/" + total + " 项 · " + self.progressPct + "%"

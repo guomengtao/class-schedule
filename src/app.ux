@@ -385,7 +385,12 @@ function syncWriteRotation(index, rotation, cb) {
   var key = "ev_rotation_" + index
   var value = ""
   if (typeof rotation === "object") {
-    try { value = JSON.stringify(syncNormalizeRotation(rotation)) } catch (e) { value = "" }
+    try {
+      var rotTpl = syncNormalizeRotation(rotation)
+      // 明确导入过（哪怕是空模板），Demo seed 不回填，尊重用户文件里的意图
+      rotTpl.origin = "import"
+      value = JSON.stringify(rotTpl)
+    } catch (e) { value = "" }
   }
   storage.set({
     key: key,
