@@ -54,14 +54,11 @@
     <!-- 方案 D2：独立自定义内容条删除（省 39px 垂直预算），
          该能力保留在数据层，后续并入课程列表末尾或周视图 -->
 
-    <!-- 今日摘要（2026-11-09）：逐卡三态解决「这节上没上」，这里补全局口径
-         「今天上到哪了 / 还剩几节」。跟随顶部状态条开关，不新增设置项；
-         非今天 / 无课 / 加载中一律不渲染。cardLight 底 + theme.text 字，
-         10 套主题 8.36–13.83:1，也不占 accent 强调位。胶囊屏用短式文案。 -->
-    <div class="day-summary" if="{{ showStatusBar && isToday && !isLoading && !loadError && currentClasses.length > 0 && todaySummary.length > 0 }}"
-         style="background-color: {{ theme.cardLight }}">
-      <text class="day-summary-text" style="color: {{ theme.text }}">{{ todaySummary }}</text>
-    </div>
+    <!-- 2026-11-09 撤回今日摘要行：该行固定吃 30px（26 高 + 4 间距），而胶囊屏 490px
+         一屏仅容 2 张课卡，它换不来第三张卡；且与 status-bar 同为 cardLight 底、上下紧邻，
+         真机上连成约 74px 蓝色带。逐卡三态已能回答「哪些上完了」，它是重复的第三层元信息，
+         故整行删除（模板 + .day-summary 样式 + todaySummary/todayDoneCount/todayLeftCount
+         数据字段与文案计算一并清理）。要全局口径时再以「已结束／未开始」分界线形式回归。 -->
 
     <div class="status-bar" if="{{ showStatusBar }}" style="background-color: {{ theme.cardLight }}">
       <div class="left-accent left-accent-6" if="{{ !isCapsule }}" style="background-color: {{ theme.accent }}"></div>
@@ -162,7 +159,11 @@
       </div>
     </scroll>
 
-    <div class="quick-add" if="{{ showQuickAdd }}" style="background-color: {{ theme.card }}">
+    <!-- 2026-11-09 收起态去背景块：原来整条带 theme.card 圆角底、与课程卡同色，
+         视觉上伪装成「第三张空的课程卡」，这才是它碍眼的根因（不是高度，收起已是 40px）。
+         收起时背景改 transparent，只留一行 textSecondary 淡字 + 压暗箭头，让它退回次要层；
+         展开时仍是 theme.card 面板底（内含标签行，需要承载面）。几何与留白一概不动。 -->
+    <div class="quick-add" if="{{ showQuickAdd }}" style="background-color: {{ quickAdd.expanded ? theme.card : 'transparent' }}">
       <!-- 2026-11-02 收起/展开拆成两块（不用复合选择器：本项目实测复合选择器会把进页搞黑屏）。
            收起态弱化理由：accent #7ec8e3 是行动色，课程时间、标签「+」都在用它，
            一个纯折叠标题占着这个位置，等于把强调位从课程内容手里抢走 —— 页面重点就散了。
@@ -408,10 +409,6 @@ export default {
     currentClasses: [],
     schedule: [],
     isToday: true,
-    // 页头今日摘要：由 updateClassProgress 每 60s 与三态一起刷新，非今天为空串
-    todaySummary: "",
-    todayDoneCount: 0,
-    todayLeftCount: 0,
     displaySize: 48,
     metaFontSize: 34,
     dayTitleSize: 48,
@@ -1053,26 +1050,6 @@ export default {
   lines: 1;
   text-overflow: ellipsis;
   line-height: 28px;
-}
-
-/* 今日摘要条（2026-11-09）：与 status-bar 同为顶部信息条，但无点击语义、不占 accent。
-   固定 26px 高 + 20px 字（字号规范护栏值），三种屏型共用，不额外放大吃掉列表高度。 */
-.day-summary {
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  height: 26px;
-  padding: 0 8px;
-  border-radius: 8px;
-  margin-bottom: 4px;
-  flex-shrink: 0;
-}
-
-.day-summary-text {
-  font-size: 20px;
-  line-height: 24px;
-  lines: 1;
-  text-align: center;
 }
 
 .status-bar {

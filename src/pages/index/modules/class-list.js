@@ -216,8 +216,6 @@ function init(instance) {
     var ongoingColor = theme.progressOngoing || "transparent"
     var now = new Date()
     var nowMinutes = now.getHours() * 60 + now.getMinutes()
-    var doneCount = 0
-    var leftCount = 0
     for (var i = 0; i < classes.length; i++) {
       var course = classes[i]
       // 非今天：一律常态，避免整屏皆灰 / 整屏常态，保留「今天才有对比」的语义
@@ -232,7 +230,6 @@ function init(instance) {
         course.classState = "upcoming"
         course.progress = 0
         course.progressColor = "transparent"
-        leftCount++
         continue
       }
       var startMin = parseTime(parts[0].trim())
@@ -247,35 +244,17 @@ function init(instance) {
         course.classState = "upcoming"
         course.progress = 0
         course.progressColor = "transparent"
-        leftCount++
       } else if (checkMin >= endMin) {
         course.classState = "ended"
         course.progress = 100
         course.progressColor = doneColor
-        doneCount++
       } else {
         course.classState = "ongoing"
         var total = endMin - startMin
         var elapsed = checkMin - startMin
         course.progress = Math.round((elapsed / total) * 100)
         course.progressColor = ongoingColor
-        leftCount++
       }
-    }
-    // 页头摘要：left = 进行中 + 未开始（都还没上完）。胶囊屏 168px 宽只能用短式，
-    // 20px 字号下「已上3·剩2」约 140px 可容纳，长文案会折行。
-    self.todayDoneCount = doneCount
-    self.todayLeftCount = leftCount
-    if (!today || classes.length === 0) {
-      self.todaySummary = ""
-    } else if (leftCount === 0) {
-      self.todaySummary = self.isCapsule ? "今日已上完" : "今日课程已上完"
-    } else if (doneCount === 0) {
-      self.todaySummary = self.isCapsule ? "待上 " + leftCount + " 节" : "今日 " + leftCount + " 节课待上"
-    } else {
-      self.todaySummary = self.isCapsule
-        ? "已上" + doneCount + "·剩" + leftCount
-        : "今日已上 " + doneCount + " 节 · 还剩 " + leftCount + " 节"
     }
   }
 
