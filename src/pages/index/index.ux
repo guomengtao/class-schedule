@@ -6,7 +6,7 @@
        ⚠️ 根节点一旦挂 touch，系统右划退出会失效，所以首页必须保留可见出口
        （底部按钮 / 各页面顶栏返回），这条别删。
        实现与红线见 modules/gesture.js 文件头。 -->
-  <div id="schedule-page" class="schedule-page" style="{{ isCircle ? 'padding: 40px 52px 28px 52px;' : '' }}background-color: {{ theme.bg }}"
+  <div id="schedule-page" class="schedule-page" style="{{ pagePad }}background-color: {{ theme.bg }}"
        ontouchstart="onPageTouchStart"
        ontouchmove="onPageTouchMove"
        ontouchend="onPageTouchEnd"
@@ -60,7 +60,7 @@
          故整行删除（模板 + .day-summary 样式 + todaySummary/todayDoneCount/todayLeftCount
          数据字段与文案计算一并清理）。要全局口径时再以「已结束／未开始」分界线形式回归。 -->
 
-    <div class="status-bar" if="{{ showStatusBar }}" style="{{ isCircle ? 'padding: 4px 8px;' : '' }}background-color: {{ theme.cardLight }}">
+    <div class="status-bar" if="{{ showStatusBar }}" style="{{ statusPad }}background-color: {{ theme.cardLight }}">
       <div class="left-accent left-accent-6" if="{{ !isCapsule }}" style="background-color: {{ theme.accent }}"></div>
       <!-- Capsule: 单行紧凑布局（剩余时间 + 课程名，2026-11-03 起无图标） -->
       <div if="{{ isCapsule }}" class="status-capsule-row">
@@ -350,6 +350,7 @@ device.getInfo({
     if (indexInstance && indexInstance.isCircle !== circle) {
       indexInstance.isCircle = circle
       indexInstance.applyFontSizes()
+      indexInstance.applyPads()
       try { indexInstance.$forceUpdate() } catch (e) {}
     }
     if (indexInstance && indexInstance.isCapsule !== capsule) {
@@ -406,6 +407,10 @@ export default {
   private: {
     isCapsule: false,
     isCircle: false,
+    // 圆屏内距由 JS 下发：@media (shape: circle/round) 在本机不生效（shape 值未命中），
+    // 只能走内联。空串 = 不写内联，交给 CSS 媒体查询/基础值（手环 9 与方屏不受影响）。
+    pagePad: "",
+    statusPad: "",
     iconTheme: "dark",
     lastDirty: "",
     isLoading: true,
@@ -477,6 +482,7 @@ export default {
     indexInstance = self
     self.isCapsule = isCapsuleScreen
     self.isCircle = isCircleScreen
+    self.applyPads()
     self.initialized = false
     self.isLoading = true
     self.loadError = false
@@ -535,6 +541,7 @@ export default {
 
     self.isCapsule = isCapsuleScreen
     self.isCircle = isCircleScreen
+    self.applyPads()
     store.getTheme(function(t, themeName) {
       self.theme = t
       self.onAccentColor = idealOnColor(t.accent)
@@ -751,6 +758,18 @@ export default {
       display: Math.min(norm, 40),
       meta: Math.max(norm - 6, 20),
       dayTitle: Math.min(norm + 4, 40)
+    }
+  },
+
+  applyPads() {
+    // 466 圆屏可视区是内切圆（半径 233），基础内距 16 会让课卡左右只剩 7px 空白，
+    // 贴到表壳内圈上；圆屏单独给 40/52/28。
+    if (isCircleScreen) {
+      this.pagePad = "padding: 40px 52px 28px 52px;"
+      this.statusPad = "padding: 4px 8px;"
+    } else {
+      this.pagePad = ""
+      this.statusPad = ""
     }
   },
 
