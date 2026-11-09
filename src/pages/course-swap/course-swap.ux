@@ -74,10 +74,14 @@ import router from "@system.router"
 const store = require("../../data/store.js")
 const database = require("../../data/database.js")
 const courseSwap = require("../../data/course-swap.js")
+const scheduleData = require("../../data/schedule.js")
 const prompt = require("@system.prompt")
 const storage = require("@system.storage")
 
 var CN_CHARS = "一二三四五六"
+// 从课程详情跳进来时由 router 参数带过来的上下文；直达页 / 冷启动时为空，
+// build() 会用内置课表兜出「这门课」。模块级一份即可，本页同时只会有一个实例。
+var CTX = { id: "", date: "", period: "" }
 
 // 与 class-list.js 同一口径：数据里 day 可能是「星期一 / 周一 / 数字」
 function dayIndexOf(raw) {
@@ -136,14 +140,24 @@ export default {
       self.theme = t
       self.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
     })
-    // 只依赖 detail_classId（编辑页同款，确定存在）。Vela 对空值 / 新 key 的
-    // storage.get 回调不稳定，多个 key 计数凑齐会让 build() 永远不执行；
-    // setTimeout 也不保证可用，一律不用。日期/节次由 build() 用今天兜底。
-    var ctx = { id: "", date: "", period: "" }
+    // 首帧同步铺内置课表，不读 storage、不等任何回调。
+    // pit-20261025-24：onInit 阶段同步发起的 @system.storage 回调在首帧渲染前
+    // 不会派发；此前本页把 build() 挂在这条回调链末端，冷启动 / 直达页 / 清空
+    // 数据后就永远停在「这天没有别的课」的空态，周几与课程两条滑动条都没数据。
+    // 现在首帧必然有五个工作日的候选课程，storage 的成功与否只影响后续刷新。
+    this.build(scheduleData.schedule, {}, CTX)
+  },
+
+  onShow() {
+    // 首帧之后才允许发起 storage 读：拿用户真实课表、已有调课记录与
+    // detail_classId 刷新一次。回调即便仍不派发，首帧的内置课表也够用。
+    if (this._refined) return
+    this._refined = true
+    var self = this
     storage.get({
       key: "detail_classId",
-      success: function(v) { ctx.id = v || ""; self.loadData(ctx) },
-      fail: function() { self.loadData(ctx) }
+      success: function(v) { CTX.id = v || ""; self.loadData(CTX) },
+      fail: function() { self.loadData(CTX) }
     })
   },
 
