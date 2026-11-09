@@ -109,6 +109,9 @@ function init(instance) {
         teacher: src.teacher || "",
         location: src.location || "",
         locationWrap: needsWrap,
+        // 晚课是 rotation.injectInto 注入的虚拟条目，这个标记必须一路带到视图对象：
+        // 首页前缀「晚」、点击拦截（goToClassDetail）都靠它。漏掉会让晚课混进普通课。
+        _rotation: !!src._rotation,
         progress: 0,
         progressColor: "transparent",
         fontSize: currentFontSize,
@@ -131,6 +134,9 @@ function init(instance) {
       classes[k].period = "第" + (k + 1) + "节"
       classes[k].dateStr = viewDateStr
       classes[k]._swapped = false
+      // 课程序号：只在课名前挂一个不显眼的小字，不新增行、不改卡片高度。
+      // 晚课不占数字序号，用「晚」占位，顺带把它和白天课程区分开。
+      classes[k].indexLabel = classes[k]._rotation ? "晚" : String(k + 1)
     }
     self.currentClasses = classes
     self.isToday = (self.currentDay === getRealTodayName())

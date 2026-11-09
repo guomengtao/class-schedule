@@ -125,16 +125,21 @@
       <div if="{{ !isLoading && !loadError && currentClasses.length === 0 && !(isHoliday && holidayReminderOn) }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
       </div>
-      <div for="{{ currentClasses }}" class="class-grid-item" onclick="goToClassDetail($item)" onswipe="onCardSwipe" style="background-color: {{ $item._rotation ? '#F3F0FF' : theme.card }}">
+      <!-- 2026-11-09 课程序号：只在课名前挂一个小字前缀，不新增行、不加高、不改底色。
+           晚课共用这个前缀位显示「晚」，用低饱和紫轻区分；整卡淡紫方案刻意不上
+           （深色主题下会突然冒出一块浅色卡，也不符合「不要显眼」）。
+           indexLabel 由 pages/index/modules/class-list.js 排序后写入。 -->
+      <div for="{{ currentClasses }}" class="class-grid-item" onclick="goToClassDetail($item)" onswipe="onCardSwipe" style="background-color: {{ theme.card }}">
         <div class="progress-bg" if="{{ isToday }}" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
-        <div class="class-card-accent" style="background-color: {{ $item._rotation ? '#DED6FE' : theme.accent }}"></div>
+        <div class="class-card-accent" style="background-color: {{ theme.accent }}"></div>
         <div class="class-card-body">
           <div class="card-name-row">
-            <text class="grid-item-name" style="color: {{ $item._rotation ? '#6C5BD4' : theme.text }}; font-size: {{ $item.fontSize }}px; line-height: {{ $item.lineHeight }}px">{{ $item.name }}</text>
+            <text class="grid-item-index" style="color: {{ $item._rotation ? '#8B7BD8' : theme.textSecondary }}; line-height: {{ $item.lineHeight }}px">{{ $item.indexLabel }}</text>
+            <text class="grid-item-name" style="color: {{ theme.text }}; font-size: {{ $item.fontSize }}px; line-height: {{ $item.lineHeight }}px">{{ $item.name }}</text>
             <text class="grid-item-location-inline" if="{{ $item.location && !$item.locationWrap }}" style="color: {{ theme.textMuted }}; font-size: {{ $item.metaFontSize }}px; line-height: {{ $item.metaLineHeight }}px">{{ $item.location }}</text>
           </div>
           <text class="grid-item-location" if="{{ $item.location && $item.locationWrap }}" style="color: {{ theme.textMuted }}; font-size: {{ $item.metaFontSize }}px; line-height: {{ $item.metaLineHeight }}px">{{ $item.location }}</text>
-          <text class="grid-item-time" style="color: {{ $item._rotation ? '#6C5BD4' : theme.accent }}; font-size: {{ $item.metaFontSize }}px; line-height: {{ $item.metaLineHeight }}px">{{ $item.timeDisplay }}</text>
+          <text class="grid-item-time" style="color: {{ theme.accent }}; font-size: {{ $item.metaFontSize }}px; line-height: {{ $item.metaLineHeight }}px">{{ $item.timeDisplay }}</text>
         </div>
       </div>
     </scroll>
@@ -1128,11 +1133,24 @@ export default {
   opacity: 0.12;
 }
 
+/* 课程序号：小字、次要色，固定 18px 不随字号设置放大；
+   行高由模板内联成与课名一致，baseline 对齐，不把卡片撑高。
+   晚课同一个位显示「晚」，颜色在模板里给低饱和紫。 */
+.grid-item-index {
+  font-size: 18px;
+  lines: 1;
+  flex-shrink: 0;
+  margin-right: 5px;
+  text-align: left;
+}
+
 .grid-item-name {
   font-weight: bold;
   text-overflow: ellipsis;
   lines: 1;
-  flex-shrink: 1;
+  /* 有序号前缀后让课名吃掉剩余宽度，否则 card-name-row 的
+     space-between 会把课名推到中间，看起来像和序号分了家。 */
+  flex: 1;
 }
 
 .card-name-row {
