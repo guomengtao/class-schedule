@@ -45,23 +45,13 @@
 <script>
 import router from "@system.router"
 const store = require("../../data/store.js")
+const builtin = require("../../data/builtin-schedule.js")
 
 var COURSE_KEY = "course_preset_list"
 
-var defaultCourses = [
-  { name: "语文", time: "08:00 - 08:45", teacher: "老师", location: "" },
-  { name: "数学", time: "08:55 - 09:40", teacher: "老师", location: "" },
-  { name: "英语", time: "10:00 - 10:45", teacher: "老师", location: "" },
-  { name: "物理", time: "10:55 - 11:40", teacher: "老师", location: "" },
-  { name: "化学", time: "13:00 - 13:45", teacher: "老师", location: "" },
-  { name: "政治", time: "13:55 - 14:40", teacher: "老师", location: "" },
-  { name: "音乐", time: "15:00 - 15:45", teacher: "老师", location: "" },
-  { name: "体育", time: "15:55 - 16:40", teacher: "老师", location: "" },
-  { name: "美术", time: "08:00 - 08:45", teacher: "老师", location: "" },
-  { name: "历史", time: "08:55 - 09:40", teacher: "老师", location: "" },
-  { name: "地理", time: "10:00 - 10:45", teacher: "老师", location: "" },
-  { name: "生物", time: "10:55 - 11:40", teacher: "老师", location: "" }
-]
+// 兜底预设与内置课表同源（八年级二班）。新装首启 database 会写入 course_preset_list，
+// 这里只是 storage 读失败时的保底；深拷贝避免页面改名/删课污染模块级数组。
+var defaultCourses = builtin.copyPresets()
 
 export default {
   private: {

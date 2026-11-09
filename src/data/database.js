@@ -1,7 +1,9 @@
 var storage = require("@system.storage")
 // 晚课注入：所有页面都从本模块取课程，在出口统一叠加，一次改动全覆盖
 var rotation = require("./rotation")
-var scheduleData = require("./schedule.js")
+// 内置课表「八年级二班」：新装 seed、全部重置、课程预设都从这里取，
+// 数据真源见 builtin-schedule.js 顶部注释（手机端 default_schedule.json）。
+var builtin = require("./builtin-schedule.js")
 
 var STORAGE_KEY = "allCourses"
 var ready = false
@@ -135,6 +137,29 @@ function flushCallbacks() {
   }
 }
 
+// 新装首启：课程预设列表为空时写入「八年级二班」的课程，
+// 保证新用户安装后课程管理 / 快速添加 / 添加课程页看到的也是这一套。
+// 只认「key 不存在」：老用户已有预设、以及「重置为空」写下的 [] 都不会被回填，
+// 避免任何覆盖用户数据的可能。写入不阻塞 database ready —— 首屏读的是 allCourses_0。
+function ensureBuiltinCoursePresets() {
+  storage.get({
+    key: "course_preset_list",
+    success: function(val) {
+      if (val) return
+      storage.set({
+        key: "course_preset_list",
+        value: JSON.stringify(builtin.copyPresets()),
+        success: function() { log("ensureBuiltinCoursePresets: seeded from builtin schedule") },
+        fail: function(e) { logErr("ensureBuiltinCoursePresets: write failed: " + JSON.stringify(e)) }
+      })
+    },
+    fail: function(e) {
+      // 读失败时一律不写，宁可落到页面兜底，也不冒险覆盖用户数据
+      logErr("ensureBuiltinCoursePresets: read failed: " + JSON.stringify(e))
+    }
+  })
+}
+
 function initStorage(callback) {
   log("initStorage: starting")
   loadScheduleIndex(function() {
@@ -143,6 +168,7 @@ function initStorage(callback) {
       ready = true
       log("initStorage: migrateOldData done, database ready, flushing " + pendingCallbacks.length + " pending callbacks")
       flushCallbacks()
+      ensureBuiltinCoursePresets()
       if (callback) callback()
     })
   })
@@ -194,7 +220,7 @@ function getAllCoursesStorageWithIndex(index, callback) {
         }
       } else {
         if (index === 0) {
-          var seed = JSON.parse(JSON.stringify(scheduleData.schedule))
+          var seed = builtin.copySchedule()
           saveToStorageWithIndex(0, seed)
           _cache[index] = seed
           _cacheDirty[index] = false
@@ -209,7 +235,7 @@ function getAllCoursesStorageWithIndex(index, callback) {
     fail: function(e) {
       logErr("getAllCoursesStorageWithIndex get failed: " + JSON.stringify(e))
       if (index === 0) {
-        var seed = JSON.parse(JSON.stringify(scheduleData.schedule))
+        var seed = builtin.copySchedule()
         saveToStorageWithIndex(0, seed)
         _cache[index] = seed
         _cacheDirty[index] = false
@@ -839,85 +865,37 @@ module.exports = {
     })
   },
 
+  // 全部重置 = 回到内置课表「八年级二班」，与新装首启完全同一套数据。
+  // 旧实现在这里随机洗牌 12 门带假老师假教室的占位课、生成 2 张「课程表1/2」，
+  // 与 seed 不一致：用户点一次重置反而从真实课表被打回示例数据（2026-11-09 修正）。
   _doResetToDemoData: function(callback) {
-    var coursePool = [
-      { name: "数学", teacher: "王老师", location: "301教室" },
-      { name: "语文", teacher: "周老师", location: "205教室" },
-      { name: "英语", teacher: "李老师", location: "205教室" },
-      { name: "物理", teacher: "吴老师", location: "实验室B" },
-      { name: "化学", teacher: "郑老师", location: "实验室A" },
-      { name: "生物", teacher: "黄老师", location: "实验室C" },
-      { name: "历史", teacher: "刘老师", location: "102教室" },
-      { name: "地理", teacher: "张老师", location: "103教室" },
-      { name: "政治", teacher: "杨老师", location: "104教室" },
-      { name: "体育", teacher: "赵老师", location: "操场" },
-      { name: "音乐", teacher: "孙老师", location: "音乐室" },
-      { name: "美术", teacher: "陈老师", location: "美术室" }
-    ]
+    var schedule1 = builtin.copySchedule()
+    var names = [builtin.name]
+    var TOTAL_SLOTS = 10
+    var emptyData = JSON.stringify([])
 
-    var morningTimes = ["08:00 - 08:45", "08:55 - 09:40", "10:00 - 10:45", "10:55 - 11:40"]
-    var afternoonTimes = ["14:00 - 14:45", "14:55 - 15:40", "16:00 - 16:45", "16:55 - 17:40"]
-    var allTimes = morningTimes.concat(afternoonTimes)
-    var days = ["星期一", "星期二", "星期三", "星期四", "星期五"]
-
-    function shuffle(arr) {
-      var a = arr.slice()
-      for (var i = a.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1))
-        var tmp = a[i]
-        a[i] = a[j]
-        a[j] = tmp
-      }
-      return a
-    }
-
-    function generateSchedule() {
-      var schedule = []
-      var idCounter = 1
-      for (var d = 0; d < days.length; d++) {
-        var dayCourses = []
-        var shuffled = shuffle(coursePool)
-        for (var t = 0; t < allTimes.length; t++) {
-          var course = shuffled[t % shuffled.length]
-          dayCourses.push({
-            id: String(idCounter),
-            name: course.name,
-            time: allTimes[t],
-            teacher: course.teacher,
-            location: course.location,
-            notes: ""
-          })
-          idCounter++
-        }
-        schedule.push({ day: days[d], classes: dayCourses })
-      }
-      return schedule
-    }
-
-    var schedule1 = generateSchedule()
-    var schedule2 = generateSchedule()
-
-    var names = ["课程表1", "课程表2"]
-
-    function saveAll() {
-      saveToStorageWithIndex(0, schedule1, function(err1) {
-        if (err1) {
-          logErr("resetToDemoData: save schedule1 to storage failed: " + err1)
-          if (callback) callback(err1)
-          return
-        }
-        saveToStorageWithIndex(1, schedule2, function(err2) {
-          if (err2) {
-            logErr("resetToDemoData: save schedule2 to storage failed: " + err2)
-            if (callback) callback(err2)
-            return
+    // 旧实现会写 2 张课表；改成 1 张后必须把 1..9 号槽清空，
+    // 否则切课表仍能看到上一次重置留下的旧数据。
+    function clearOtherSlots(done) {
+      var remaining = TOTAL_SLOTS - 1
+      for (var i = 1; i < TOTAL_SLOTS; i++) {
+        storage.set({
+          key: STORAGE_KEY + "_" + i,
+          value: emptyData,
+          success: function() {
+            remaining--
+            if (remaining === 0) done()
+          },
+          fail: function(e) {
+            logErr("resetToDemoData: clear slot failed: " + JSON.stringify(e))
+            remaining--
+            if (remaining === 0) done()
           }
-          finalizeReset(null)
         })
-      })
+      }
     }
 
-    function finalizeReset(hadError) {
+    function finalizeReset() {
       invalidateCache()
       clearStoreCache()
       storage.set({
@@ -929,8 +907,8 @@ module.exports = {
             key: "currentScheduleIndex",
             value: "0",
             success: function() {
-              log("resetToDemoData: complete" + (hadError ? " (with errors)" : ""))
-              if (callback) callback(hadError || null)
+              log("resetToDemoData: complete")
+              if (callback) callback(null)
             },
             fail: function(e) {
               logErr("resetToDemoData: failed to set currentScheduleIndex: " + JSON.stringify(e))
@@ -945,25 +923,20 @@ module.exports = {
       })
     }
 
-    saveAll()
+    saveToStorageWithIndex(0, schedule1, function(err) {
+      if (err) {
+        logErr("resetToDemoData: save schedule to storage failed: " + err)
+        if (callback) callback(err)
+        return
+      }
+      clearOtherSlots(finalizeReset)
+    })
   },
 
   resetCoursePresets: function(callback) {
     log("resetCoursePresets: starting")
-    var defaultCoursePreset = [
-      { name: "语文", time: "08:00 - 08:45", teacher: "老师", location: "" },
-      { name: "数学", time: "08:55 - 09:40", teacher: "老师", location: "" },
-      { name: "英语", time: "10:00 - 10:45", teacher: "老师", location: "" },
-      { name: "物理", time: "10:55 - 11:40", teacher: "老师", location: "" },
-      { name: "化学", time: "13:00 - 13:45", teacher: "老师", location: "" },
-      { name: "政治", time: "13:55 - 14:40", teacher: "老师", location: "" },
-      { name: "音乐", time: "15:00 - 15:45", teacher: "老师", location: "" },
-      { name: "体育", time: "15:55 - 16:40", teacher: "老师", location: "" },
-      { name: "美术", time: "08:00 - 08:45", teacher: "老师", location: "" },
-      { name: "历史", time: "08:55 - 09:40", teacher: "老师", location: "" },
-      { name: "地理", time: "10:00 - 10:45", teacher: "老师", location: "" },
-      { name: "生物", time: "10:55 - 11:40", teacher: "老师", location: "" }
-    ]
+    // 课程预设同样从内置课表派生，不再另抄一份旧的 12 门占位课。
+    var defaultCoursePreset = builtin.copyPresets()
     storage.set({
       key: "course_preset_list",
       value: JSON.stringify(defaultCoursePreset),
