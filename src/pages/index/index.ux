@@ -134,7 +134,9 @@
         <div class="class-card-accent" style="background-color: {{ theme.accent }}"></div>
         <div class="class-card-body">
           <div class="card-name-row">
-            <text class="grid-item-index" style="color: {{ $item._rotation ? '#8B7BD8' : theme.textSecondary }}; line-height: {{ $item.lineHeight }}px">{{ $item.indexLabel }}</text>
+            <div class="grid-item-index-wrap" style="border-color: {{ $item._rotation ? '#B7A9EC' : theme.textMuted }}">
+              <text class="grid-item-index" style="color: {{ $item._rotation ? '#8B7BD8' : theme.textSecondary }}">{{ $item.indexLabel }}</text>
+            </div>
             <text class="grid-item-name" style="color: {{ theme.text }}; font-size: {{ $item.fontSize }}px; line-height: {{ $item.lineHeight }}px">{{ $item.name }}</text>
             <text class="grid-item-location-inline" if="{{ $item.location && !$item.locationWrap }}" style="color: {{ theme.textMuted }}; font-size: {{ $item.metaFontSize }}px; line-height: {{ $item.metaLineHeight }}px">{{ $item.location }}</text>
           </div>
@@ -1133,15 +1135,26 @@ export default {
   opacity: 0.12;
 }
 
-/* 课程序号：小字、次要色，固定 18px 不随字号设置放大；
-   行高由模板内联成与课名一致，baseline 对齐，不把卡片撑高。
-   晚课同一个位显示「晚」，颜色在模板里给低饱和紫。 */
-.grid-item-index {
-  font-size: 18px;
-  lines: 1;
+/* 课程序号：2026-11-09 改为圈号 —— 24×24 圆环 + 居中数字，环色用 textMuted、
+   数字用 textSecondary，仍是弱化色，不抢课名；不新增行、不加卡片高度。
+   圆环固定 24px 不随字号设置放大，避免大字号下把课名挤换行。
+   晚课同一个圈显示「晚」，环与字都换成低饱和紫。 */
+.grid-item-index-wrap {
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  border-width: 1px;
+  border-style: solid;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  margin-right: 5px;
-  text-align: left;
+  margin-right: 6px;
+}
+
+.grid-item-index {
+  font-size: 14px;
+  lines: 1;
+  text-align: center;
 }
 
 .grid-item-name {
@@ -1155,7 +1168,9 @@ export default {
 
 .card-name-row {
   flex-direction: row;
-  align-items: baseline;
+  /* 2026-11-09 改居中：圈号是固定 24px 的盒子，baseline 对齐会让它随课名字号
+     越放越低（30px 课名偏下约 9px、44px 偏下约 14px）。居中后两种屏型都自动对中。 */
+  align-items: center;
   justify-content: space-between;
   width: 100%;
   margin-bottom: 6px;
