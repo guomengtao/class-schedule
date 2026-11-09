@@ -259,24 +259,31 @@ function ensureBuiltinSchedules(done) {
     key: "scheduleNames",
     success: function(namesRaw) {
       if (namesRaw) { skip("scheduleNames exists"); return }
-      storage.get({
-        key: STORAGE_KEY + "_0",
-        success: function(slot0) {
-          if (slot0) { skip("allCourses_0 exists"); return }
-          var names = builtinNames()
-          var total = names.length
-          var left = total + 1
-          var failed = false
-          function settle(err) {
-            if (err) failed = true
-            left--
-            if (left > 0) return
-            if (failed) logErr("ensureBuiltinSchedules: 部分写入失败，已尽量写入 " + total + " 套")
-            else log("ensureBuiltinSchedules: seeded " + total + " builtin schedules")
-            if (done) done()
-          }
-          for (var i = 0; i < total; i++) {
-            (function(idx) {
+      // ⚠️ 2026-11-10 真机实测：只靠「调用顺序早于 flushCallbacks」压不住首帧
+      // fallback seed —— 页面首次 getSchedule 会在 initStorage 完成前直接读
+      // storage 并把 slot0 写盘，于是 slot0 已存在、旧口径判成「老用户」放弃
+      // 写入，两套依旧只剩一套。改为**以 scheduleNames 为唯一新装判据**：
+      // 该键从 v1 起由 app-defaults 以 keep 策略写入，任何真正跑过一次默认值的
+      // 用户都有它；缺失只可能是全新安装或首启被打断的脏数据。命中后按槽位
+      // 幂等补齐——已有内容的槽一律不覆盖，只补空槽 + 补名字。
+      var names = builtinNames()
+      var total = names.length
+      var pending = total + 1
+      var failed = false
+      function settle(err) {
+        if (err) failed = true
+        pending--
+        if (pending > 0) return
+        if (failed) logErr("ensureBuiltinSchedules: 部分写入失败，已尽量写入 " + total + " 套")
+        else log("ensureBuiltinSchedules: seeded " + total + " builtin schedules")
+        if (done) done()
+      }
+      for (var i = 0; i < total; i++) {
+        (function(idx) {
+          storage.get({
+            key: STORAGE_KEY + "_" + idx,
+            success: function(cur) {
+              if (cur) { settle(null); return }
               storage.set({
                 key: STORAGE_KEY + "_" + idx,
                 value: JSON.stringify(builtin.copySchedule(idx)),
@@ -286,21 +293,21 @@ function ensureBuiltinSchedules(done) {
                   settle(e)
                 }
               })
-            })(i)
-          }
-          storage.set({
-            key: "scheduleNames",
-            value: JSON.stringify(names),
-            success: function() { settle(null) },
+            },
             fail: function(e) {
-              logErr("ensureBuiltinSchedules: write names failed: " + JSON.stringify(e))
+              logErr("ensureBuiltinSchedules: read slot " + idx + " failed: " + JSON.stringify(e))
               settle(e)
             }
           })
-        },
+        })(i)
+      }
+      storage.set({
+        key: "scheduleNames",
+        value: JSON.stringify(names),
+        success: function() { settle(null) },
         fail: function(e) {
-          logErr("ensureBuiltinSchedules: read slot0 failed: " + JSON.stringify(e))
-          if (done) done()
+          logErr("ensureBuiltinSchedules: write names failed: " + JSON.stringify(e))
+          settle(e)
         }
       })
     },
