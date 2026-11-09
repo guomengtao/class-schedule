@@ -1,4 +1,5 @@
 var store = require("../../../data/store.js")
+var courseSwap = require("../../../data/course-swap.js")
 var prompt = require("@system.prompt")
 
 // 首屏读取路径日志开关：默认关闭（真机上日志要过 IPC，量大即主线程阻塞）。
@@ -123,9 +124,37 @@ function init(instance) {
       var tbParts = tb.split(":")
       return (parseInt(taParts[0]) * 60 + parseInt(taParts[1])) - (parseInt(tbParts[0]) * 60 + parseInt(tbParts[1]))
     })
+    // 节次与日期属于「格位」，在这里一次性算好，编辑页与调课页共用
+    var viewDate = self.currentDate || new Date()
+    var viewDateStr = courseSwap.dateStrOf(viewDate)
+    for (var k = 0; k < classes.length; k++) {
+      classes[k].period = "第" + (k + 1) + "节"
+      classes[k].dateStr = viewDateStr
+      classes[k]._swapped = false
+    }
     self.currentClasses = classes
     self.isToday = (self.currentDay === getRealTodayName())
     self.updateClassProgress()
+
+    // 临时调课覆盖：按日期合并，基础课表不写入。
+    // storage 是异步的，先渲染基础列表避免白屏，读到覆盖后再补刷一次。
+    courseSwap.getOverridesForDate(viewDateStr, function(overrides) {
+      var ids = Object.keys(overrides || {})
+      if (ids.length === 0) return
+      // 回调期间用户可能已翻到别的日期，丢弃这次迟到的结果
+      if (courseSwap.dateStrOf(self.currentDate || new Date()) !== viewDateStr) return
+      var list = self.currentClasses
+      for (var m = 0; m < list.length; m++) {
+        var ov = overrides[list[m].id]
+        if (!ov) continue
+        list[m].name = ov.name
+        list[m].teacher = ov.teacher || ""
+        list[m].location = ov.location || ""
+        list[m]._swapped = true
+      }
+      self.updateClassProgress()
+      try { self.$forceUpdate && self.$forceUpdate() } catch (e) {}
+    })
   }
 
   instance.refreshClasses = function() {
@@ -229,7 +258,21 @@ function init(instance) {
         storage.set({
           key: "detail_day",
           value: instance.currentDay,
-          success: function() { router.push({ uri: "/pages/detail" }) },
+          success: function() {
+            storage.set({
+              key: "detail_dateStr",
+              value: course.dateStr || courseSwap.dateStrOf(instance.currentDate || new Date()),
+              success: function() {
+                storage.set({
+                  key: "detail_period",
+                  value: course.period || "",
+                  success: function() { router.push({ uri: "/pages/detail" }) },
+                  fail: function() { prompt.showToast({ message: "请重试" }) }
+                })
+              },
+              fail: function() { prompt.showToast({ message: "请重试" }) }
+            })
+          },
           fail: function() { prompt.showToast({ message: "请重试" }) }
         })
       },

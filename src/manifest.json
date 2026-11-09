@@ -70,6 +70,9 @@
       "pages/detail": {
         "component": "detail"
       },
+      "pages/course-swap": {
+        "component": "course-swap"
+      },
       "pages/add-course": {
         "component": "add-course"
       },

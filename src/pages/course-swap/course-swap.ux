@@ -1,0 +1,325 @@
+<!-- 临时调课双向选择器（ev-six）
+     场景：学生不能带手机，老师在课堂上临时宣布换课，手环上点一下记录。
+     只允许已有课程互换；两节课内容互换，格位（日期 + 节次 + 时间）不动。
+     字号守四档：本页只用 28 / 24，行高 38 / 34；禁符号、禁徽标、禁箭头。 -->
+<template>
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <div class="header">
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+      </div>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">调课</text>
+      <div class="header-placeholder"></div>
+    </div>
+
+    <scroll class="scroll-area" scroll-y="true">
+      <div class="content-area">
+        <div class="card" style="background-color: {{ theme.card }}">
+          <text class="card-label" style="color: {{ theme.accent }}">这节课</text>
+          <text class="card-value" style="color: {{ theme.text }}">{{ sourceName }}</text>
+          <text class="card-sub" style="color: {{ theme.textSecondary }}">{{ sourceWhen }}</text>
+        </div>
+
+        <div class="day-tabs">
+          <div class="day-tab" onclick="setTab(0)" style="background-color: {{ dayTab === 0 ? theme.accent : theme.card }}">
+            <text class="tab-text" style="color: {{ dayTab === 0 ? theme.bg : theme.text }}">今天</text>
+          </div>
+          <div class="day-tab last" onclick="setTab(1)" style="background-color: {{ dayTab === 1 ? theme.accent : theme.card }}">
+            <text class="tab-text" style="color: {{ dayTab === 1 ? theme.bg : theme.text }}">明天</text>
+          </div>
+        </div>
+
+        <text class="pick-label" style="color: {{ theme.accent }}">{{ pickLabel }}</text>
+
+        <div for="{{ candidates }}" class="course-row" onclick="pickCourse($item.key)" style="background-color: {{ $item.selected ? theme.cardLight : theme.card }}; border-color: {{ $item.selected ? theme.accent : theme.border }}">
+          <text class="row-period" style="color: {{ theme.textSecondary }}">{{ $item.period }}</text>
+          <text class="row-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+        </div>
+
+        <text class="empty-hint" if="{{ candidates.length === 0 }}" style="color: {{ theme.textSecondary }}">这天没有别的课</text>
+      </div>
+    </scroll>
+
+    <div class="footer">
+      <input class="confirm-btn" type="button" value="确认换课" onclick="confirmSwap" style="background-color: {{ selectedKey ? theme.accent : theme.card }}; color: {{ selectedKey ? theme.bg : theme.textMuted }}" />
+      <input class="clear-btn" if="{{ hasSwap }}" type="button" value="撤销调课" onclick="clearSwaps" style="color: {{ theme.accent }}" />
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+const store = require("../../data/store.js")
+const database = require("../../data/database.js")
+const courseSwap = require("../../data/course-swap.js")
+const prompt = require("@system.prompt")
+const storage = require("@system.storage")
+
+var CN_CHARS = "一二三四五六"
+
+// 与 class-list.js 同一口径：数据里 day 可能是「星期一 / 周一 / 数字」
+function dayIndexOf(raw) {
+  if (raw === undefined || raw === null) return -1
+  var s = String(raw).replace(/\s/g, "")
+  if (!s) return -1
+  var m = s.match(/^(星期|周|礼拜)([日天一二三四五六七])$/)
+  if (m) {
+    var ch = m[2]
+    if (ch === "日" || ch === "天" || ch === "七") return 0
+    return CN_CHARS.indexOf(ch) + 1
+  }
+  var low = s.toLowerCase()
+  var en = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6 }
+  if (en[low] !== undefined) return en[low]
+  if (/^[0-6]$/.test(s)) return parseInt(s)
+  if (s === "7") return 0
+  return -1
+}
+
+function timeOf(t) {
+  if (!t) return 0
+  var p = String(t).split(":")
+  return parseInt(p[0]) * 60 + parseInt(p[1] || 0)
+}
+
+export default {
+  private: {
+    iconTheme: "dark",
+    theme: {},
+    sourceName: "这门课",
+    sourceWhen: "",
+    sourceItem: {},
+    dayTab: 0,
+    candidates: [],
+    selectedKey: "",
+    pickLabel: "换到这节",
+    hasSwap: false,
+    todayStr: "",
+    tomorrowStr: "",
+    allLists: []
+  },
+
+  onInit() {
+    var self = this
+    store.getTheme(function(t, themeName) {
+      self.theme = t
+      self.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
+    })
+    var got = 0
+    var ctx = { id: "", date: "", period: "" }
+    function done() {
+      got++
+      if (got === 3) self.loadData(ctx)
+    }
+    storage.get({ key: "detail_classId", success: function(v) { ctx.id = v || ""; done() }, fail: done })
+    storage.get({ key: "detail_dateStr", success: function(v) { ctx.date = v || ""; done() }, fail: done })
+    storage.get({ key: "detail_period", success: function(v) { ctx.period = v || ""; done() }, fail: done })
+  },
+
+  loadData(ctx) {
+    var self = this
+    var pending = 0
+    var schedule = []
+    var swaps = {}
+    function ready() {
+      pending++
+      if (pending === 2) self.build(schedule, swaps, ctx)
+    }
+    database.getAllCourses(function(data) {
+      schedule = data || []
+      ready()
+    })
+    courseSwap.readAll(function(data) {
+      swaps = data || {}
+      ready()
+    })
+  },
+
+  build(schedule, swaps, ctx) {
+    var self = this
+    var today = new Date()
+    var tomorrow = courseSwap.plusDays(today, 1)
+    var dates = [today, tomorrow]
+    self.todayStr = courseSwap.dateStrOf(today)
+    self.tomorrowStr = courseSwap.dateStrOf(tomorrow)
+
+    var lists = []
+    for (var d = 0; d < dates.length; d++) {
+      var ds = courseSwap.dateStrOf(dates[d])
+      var weekIdx = dates[d].getDay()
+      var raw = []
+      for (var i = 0; i < schedule.length; i++) {
+        if (dayIndexOf(schedule[i].day) === weekIdx) {
+          raw = schedule[i].classes || []
+          break
+        }
+      }
+      var overrides = swaps[ds] || {}
+      var list = []
+      for (var j = 0; j < raw.length; j++) {
+        var c = raw[j]
+        // 晚课是注入出来的虚拟条目，存储里没有，不能拿来交换
+        if (!c || c._rotation) continue
+        var ov = overrides[c.id]
+        list.push({
+          key: ds + "#" + c.id,
+          dateStr: ds,
+          courseId: String(c.id),
+          name: ov ? ov.name : (c.name || ""),
+          teacher: ov ? (ov.teacher || "") : (c.teacher || ""),
+          location: ov ? (ov.location || "") : (c.location || ""),
+          time: c.time || "",
+          period: "",
+          selected: false
+        })
+      }
+      list.sort(function(a, b) { return timeOf(a.time) - timeOf(b.time) })
+      for (var k = 0; k < list.length; k++) {
+        list[k].period = "第" + (k + 1) + "节"
+      }
+      lists.push(list)
+    }
+    self.allLists = lists
+
+    var src = null
+    for (var a = 0; a < lists.length && !src; a++) {
+      for (var b = 0; b < lists[a].length; b++) {
+        var it = lists[a][b]
+        if (it.courseId === String(ctx.id) && (!ctx.date || it.dateStr === ctx.date)) {
+          src = it
+          break
+        }
+      }
+    }
+    if (!src) {
+      src = {
+        key: self.todayStr + "#" + ctx.id,
+        dateStr: ctx.date || self.todayStr,
+        courseId: String(ctx.id),
+        name: self.sourceName,
+        teacher: "",
+        location: "",
+        period: ctx.period || ""
+      }
+    }
+    self.sourceItem = src
+    self.sourceName = src.name || "这门课"
+    var when = src.dateStr === self.todayStr ? "今天" : "明天"
+    self.sourceWhen = when + " " + (src.period || ctx.period || "")
+
+    self.hasSwap = Object.keys(swaps[self.todayStr] || {}).length > 0 ||
+      Object.keys(swaps[self.tomorrowStr] || {}).length > 0
+    self.setTab(0)
+  },
+
+  setTab(i) {
+    this.dayTab = i
+    var list = this.allLists[i] || []
+    var srcKey = this.sourceItem ? this.sourceItem.key : ""
+    var out = []
+    for (var k = 0; k < list.length; k++) {
+      var it = list[k]
+      if (it.key === srcKey) continue
+      out.push({
+        key: it.key,
+        period: it.period,
+        name: it.name,
+        selected: this.selectedKey === it.key
+      })
+    }
+    this.candidates = out
+  },
+
+  pickCourse(key) {
+    this.selectedKey = (this.selectedKey === key) ? "" : key
+    this.setTab(this.dayTab)
+    this.pickLabel = this.selectedKey ? ("已选 " + this.periodOf(this.selectedKey)) : "换到这节"
+  },
+
+  periodOf(key) {
+    for (var d = 0; d < this.allLists.length; d++) {
+      var list = this.allLists[d] || []
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].key === key) return list[i].period
+      }
+    }
+    return ""
+  },
+
+  findCourse(key) {
+    for (var d = 0; d < this.allLists.length; d++) {
+      var list = this.allLists[d] || []
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].key === key) return list[i]
+      }
+    }
+    return null
+  },
+
+  confirmSwap() {
+    var target = this.findCourse(this.selectedKey)
+    var src = this.sourceItem
+    if (!target || !src || !src.courseId) {
+      prompt.showToast({ message: "先选一节课" })
+      return
+    }
+    if (target.key === src.key) {
+      prompt.showToast({ message: "换一节别的课" })
+      return
+    }
+    courseSwap.applySwap({
+      a: { date: src.dateStr, courseId: src.courseId, name: src.name, teacher: src.teacher, location: src.location },
+      b: { date: target.dateStr, courseId: target.courseId, name: target.name, teacher: target.teacher, location: target.location }
+    }, function(ok) {
+      if (!ok) {
+        prompt.showToast({ message: "保存失败请重试" })
+        return
+      }
+      prompt.showToast({ message: "已调课" })
+      router.replace({ uri: "/pages/index" })
+    })
+  },
+
+  clearSwaps() {
+    courseSwap.clearDates([this.todayStr, this.tomorrowStr], function(ok) {
+      if (!ok) {
+        prompt.showToast({ message: "撤销失败请重试" })
+        return
+      }
+      prompt.showToast({ message: "已撤销调课" })
+      router.replace({ uri: "/pages/index" })
+    })
+  },
+
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.page { flex-direction: column; padding: 32px 12px 12px 12px; width: 100%; height: 100%; }
+.header { flex-direction: row; align-items: center; width: 100%; height: 36px; margin-bottom: 10px; }
+.back-btn-wrapper { width: 30px; height: 30px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0; }
+.back-btn-icon { width: 22px; height: 22px; }
+.header-title { flex: 1; font-size: 28px; font-weight: bold; line-height: 38px; text-align: center; lines: 1; }
+.header-placeholder { width: 30px; height: 30px; flex-shrink: 0; }
+.scroll-area { flex: 1; width: 100%; }
+.content-area { flex-direction: column; width: 100%; padding-bottom: 8px; }
+.card { flex-direction: column; width: 100%; padding: 10px 8px; border-radius: 14px; margin-bottom: 10px; }
+.card-label { font-size: 24px; line-height: 34px; }
+.card-value { font-size: 28px; line-height: 38px; font-weight: bold; lines: 1; }
+.card-sub { font-size: 24px; line-height: 34px; }
+.day-tabs { flex-direction: row; width: 100%; margin-bottom: 10px; }
+.day-tab { flex: 1; height: 44px; border-radius: 12px; justify-content: center; align-items: center; margin-right: 8px; }
+.day-tab.last { margin-right: 0; }
+.tab-text { font-size: 24px; line-height: 34px; font-weight: bold; }
+.pick-label { font-size: 24px; line-height: 34px; margin-bottom: 6px; }
+.course-row { flex-direction: row; align-items: center; width: 100%; min-height: 52px; padding: 6px 8px; border-radius: 12px; border-width: 1px; margin-bottom: 8px; }
+.row-period { font-size: 24px; line-height: 34px; width: 72px; flex-shrink: 0; }
+.row-name { flex: 1; font-size: 28px; line-height: 38px; font-weight: bold; lines: 1; }
+.empty-hint { font-size: 24px; line-height: 34px; }
+.footer { flex-direction: column; width: 100%; padding-top: 6px; }
+.confirm-btn { width: 100%; height: 48px; border-radius: 24px; font-size: 28px; font-weight: bold; text-align: center; }
+.clear-btn { width: 100%; height: 44px; border-radius: 22px; font-size: 24px; text-align: center; margin-top: 6px; background-color: transparent; }
+</style>
