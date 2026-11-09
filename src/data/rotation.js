@@ -134,6 +134,40 @@ function filledCount(tpl) {
   return n
 }
 
+/**
+ * 《2026——2027学年度第一学期（八年级）晚课课表》照片转写（2026-11-09）。
+ *
+ * 为什么要有 seed：课表 seed 在 schedule.js / database.js，晚课却从来不在里面。
+ * 系统级清数据、重装、AVD storage 重置后 allCourses_0 会重建，ev_rotation_* 永久为空
+ * —— 这就是用户说的「数据也丢失」。读不出任何模板时用这里的 seed 兜底，
+ * 已有用户数据（哪怕只是一份 enabled:false 的空模板）一律不动。
+ *
+ * 口径：两行班级 = 两套课表，SEED_GRIDS[0] = 8.19、[1] = 8.20；
+ * 每周 7 列，前 5 列来自照片，后 2 列留空（页面默认只显示周一~周五）。
+ * cycle=6 / time=17:10 - 18:00 与 Rust RotationTemplate 对齐。
+ * ⚠️ calibDate 是「第一周周一」的推定值（照片只写学期不写日期），
+ *    实际开学周不同会整体错位，改 calibDate / calibWeek 即可。
+ */
+var SEED_GRIDS = [
+  [ // 8.19
+    ["语", "数", "体", "英", "物", "", ""],
+    ["英", "历", "语", "生", "数", "", ""],
+    ["道", "数", "英", "地", "历", "", ""],
+    ["语", "数", "体", "英", "物", "", ""],
+    ["道", "数", "地", "语", "体", "", ""],
+    ["语", "生", "物", "英", "社团", "", ""]
+  ],
+  [ // 8.20
+    ["语", "物", "体", "生", "英", "", ""],
+    ["语", "历", "数", "英", "道", "", ""],
+    ["语", "物", "生", "英", "数", "", ""],
+    ["数", "语", "体", "物", "地", "", ""],
+    ["英", "数", "道", "历", "体", "", ""],
+    ["语", "英", "地", "数", "社团", "", ""]
+  ]
+]
+var SEED_CALIB_DATE = "2026-08-31"
+
 /** 异步读盘并进缓存；同一 index 并发调用会合并成一次读 */
 function prime(index, callback) {
   var idx = index == null ? 0 : index
@@ -155,6 +189,16 @@ function prime(index, callback) {
       key: KEY_PREFIX + idx,
       success: function (raw) {
         cache[idx] = normalize(raw)
+        if (!cache[idx] && SEED_GRIDS[idx]) {
+          cache[idx] = normalize({
+            enabled: true,
+            cycle: 6,
+            time: DEFAULT_TIME,
+            calibDate: SEED_CALIB_DATE,
+            calibWeek: 1,
+            cells: SEED_GRIDS[idx]
+          })
+        }
         finish(idx)
       },
       fail: function () {
