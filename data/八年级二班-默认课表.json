@@ -1,0 +1,326 @@
+{
+  "appName": "EV Schedule",
+  "exportedAt": "2026-11-09T02:59:49.291Z",
+  "schedules": [
+    {
+      "name": "八年级二班",
+      "courses": [
+        {
+          "name": "早自习",
+          "day": "星期一",
+          "time": "07:00 - 08:00",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "语文",
+          "day": "星期一",
+          "time": "08:00 - 08:40",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "英语",
+          "day": "星期一",
+          "time": "08:55 - 09:35",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "数学",
+          "day": "星期一",
+          "time": "10:15 - 10:55",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "历史",
+          "day": "星期一",
+          "time": "11:10 - 11:50",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "物理",
+          "day": "星期一",
+          "time": "13:10 - 13:50",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "生物",
+          "day": "星期一",
+          "time": "14:05 - 14:55",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "自习",
+          "day": "星期一",
+          "time": "15:20 - 16:00",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "自习",
+          "day": "星期一",
+          "time": "16:15 - 16:55",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "早自习",
+          "day": "星期二",
+          "time": "07:00 - 08:00",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "英语",
+          "day": "星期二",
+          "time": "08:00 - 08:40",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "语文",
+          "day": "星期二",
+          "time": "08:55 - 09:35",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "道法",
+          "day": "星期二",
+          "time": "10:15 - 10:55",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "体育",
+          "day": "星期二",
+          "time": "11:10 - 11:50",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "地理",
+          "day": "星期二",
+          "time": "13:10 - 13:50",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "数学",
+          "day": "星期二",
+          "time": "14:05 - 14:55",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "音乐",
+          "day": "星期二",
+          "time": "15:20 - 16:00",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "自习",
+          "day": "星期二",
+          "time": "16:15 - 16:55",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "早自习",
+          "day": "星期三",
+          "time": "07:00 - 08:00",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "英语",
+          "day": "星期三",
+          "time": "08:00 - 08:40",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "生物",
+          "day": "星期三",
+          "time": "08:55 - 09:35",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "语文",
+          "day": "星期三",
+          "time": "10:15 - 10:55",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "数学",
+          "day": "星期三",
+          "time": "11:10 - 11:50",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "物理",
+          "day": "星期三",
+          "time": "13:10 - 13:50",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "历史",
+          "day": "星期三",
+          "time": "14:05 - 14:55",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "美术",
+          "day": "星期三",
+          "time": "15:20 - 16:00",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "自习",
+          "day": "星期三",
+          "time": "16:15 - 16:55",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "早自习",
+          "day": "星期四",
+          "time": "07:00 - 08:00",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "数学",
+          "day": "星期四",
+          "time": "08:00 - 08:40",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "道法",
+          "day": "星期四",
+          "time": "08:55 - 09:35",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "英语",
+          "day": "星期四",
+          "time": "10:15 - 10:55",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "语文",
+          "day": "星期四",
+          "time": "11:10 - 11:50",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "微机",
+          "day": "星期四",
+          "time": "13:10 - 13:50",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "体育",
+          "day": "星期四",
+          "time": "14:05 - 14:55",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "劳动",
+          "day": "星期四",
+          "time": "15:20 - 16:00",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "自习",
+          "day": "星期四",
+          "time": "16:15 - 16:55",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "早自习",
+          "day": "星期五",
+          "time": "07:00 - 08:00",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "语文",
+          "day": "星期五",
+          "time": "08:00 - 08:40",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "地理",
+          "day": "星期五",
+          "time": "08:55 - 09:35",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "体育",
+          "day": "星期五",
+          "time": "10:15 - 10:55",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "物理",
+          "day": "星期五",
+          "time": "11:10 - 11:50",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "英语",
+          "day": "星期五",
+          "time": "13:10 - 13:50",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "数学",
+          "day": "星期五",
+          "time": "14:05 - 14:55",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "综合/心理",
+          "day": "星期五",
+          "time": "15:20 - 16:00",
+          "teacher": "",
+          "location": ""
+        },
+        {
+          "name": "自习",
+          "day": "星期五",
+          "time": "16:15 - 16:55",
+          "teacher": "",
+          "location": ""
+        }
+      ]
+    }
+  ]
+}
