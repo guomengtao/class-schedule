@@ -125,17 +125,18 @@
       <div if="{{ !isLoading && !loadError && currentClasses.length === 0 && !(isHoliday && holidayReminderOn) }}" class="empty-card">
         <text class="empty-text" style="color: {{ theme.textMuted }}">今天没有课</text>
       </div>
-      <!-- 2026-11-09 课程序号：只在课名前挂一个小字前缀，不新增行、不加高、不改底色。
-           晚课共用这个前缀位显示「晚」，用低饱和紫轻区分；整卡淡紫方案刻意不上
-           （深色主题下会突然冒出一块浅色卡，也不符合「不要显眼」）。
+      <!-- 2026-11-09 课程序号 v2：28px 实心底徽标 + 20px 数字，
+           cardLight 底 / theme.text 字，11 套主题全部 ≥8.36:1。
+           晚课共用此位显示「晚」，靠字义区分，不再硬编码低饱和紫（浅色主题会崩）。
+           整卡淡紫方案刻意不上（深色主题下会突然冒出一块浅色卡，也不符合「不要显眼」）。
            indexLabel 由 pages/index/modules/class-list.js 排序后写入。 -->
       <div for="{{ currentClasses }}" class="class-grid-item" onclick="goToClassDetail($item)" onswipe="onCardSwipe" style="background-color: {{ theme.card }}">
         <div class="progress-bg" if="{{ isToday }}" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
         <div class="class-card-accent" style="background-color: {{ theme.accent }}"></div>
         <div class="class-card-body">
           <div class="card-name-row">
-            <div class="grid-item-index-wrap" style="border-color: {{ $item._rotation ? '#B7A9EC' : theme.textMuted }}">
-              <text class="grid-item-index" style="color: {{ $item._rotation ? '#8B7BD8' : theme.textSecondary }}">{{ $item.indexLabel }}</text>
+            <div class="grid-item-index-wrap" style="background-color: {{ theme.cardLight }}">
+              <text class="grid-item-index" style="color: {{ theme.text }}">{{ $item.indexLabel }}</text>
             </div>
             <text class="grid-item-name" style="color: {{ theme.text }}; font-size: {{ $item.fontSize }}px; line-height: {{ $item.lineHeight }}px">{{ $item.name }}</text>
             <text class="grid-item-location-inline" if="{{ $item.location && !$item.locationWrap }}" style="color: {{ theme.textMuted }}; font-size: {{ $item.metaFontSize }}px; line-height: {{ $item.metaLineHeight }}px">{{ $item.location }}</text>
@@ -1135,16 +1136,15 @@ export default {
   opacity: 0.12;
 }
 
-/* 课程序号：2026-11-09 改为圈号 —— 24×24 圆环 + 居中数字，环色用 textMuted、
-   数字用 textSecondary，仍是弱化色，不抢课名；不新增行、不加卡片高度。
-   圆环固定 24px 不随字号设置放大，避免大字号下把课名挤换行。
-   晚课同一个圈显示「晚」，环与字都换成低饱和紫。 */
+/* 课程序号 v2（2026-11-09）：1px 描边环在 325PPI 真机上物理仅约 0.078mm，
+   加上 textMuted 仅 2.18:1，实测近乎隐形；14px 数字违反《手环字号规范》20px 护栏。
+   改为 28×28 实心底徽标：cardLight 底 + theme.text 字，11 套主题全部 ≥8.36:1。
+   刻意不用 accent 实心底：实测 5 套主题反白字会塌到 2.78–3.48:1。
+   固定 28px 不随字号放大：20px 数字已占满，再放大只会把大字号课名挤换行。 */
 .grid-item-index-wrap {
-  width: 24px;
-  height: 24px;
-  border-radius: 12px;
-  border-width: 1px;
-  border-style: solid;
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
@@ -1152,7 +1152,7 @@ export default {
 }
 
 .grid-item-index {
-  font-size: 14px;
+  font-size: 20px;
   lines: 1;
   text-align: center;
 }
@@ -1168,8 +1168,9 @@ export default {
 
 .card-name-row {
   flex-direction: row;
-  /* 2026-11-09 改居中：圈号是固定 24px 的盒子，baseline 对齐会让它随课名字号
-     越放越低（30px 课名偏下约 9px、44px 偏下约 14px）。居中后两种屏型都自动对中。 */
+  /* 2026-11-09 改居中：序号是固定 28px 的徽标盒子，baseline 对齐会让它随课名字号
+     越放越低（30px 课名偏下约 9px、44px 偏下约 14px）。居中后两种屏型都自动对中；
+     胶囊屏媒体查询里的同名规则必须同步（否则会被 baseline 覆盖回去）。 */
   align-items: center;
   justify-content: space-between;
   width: 100%;
@@ -1741,7 +1742,10 @@ export default {
   }
   .card-name-row {
     flex-direction: row;
-    align-items: baseline;
+    /* 2026-11-09 回归修复：这里原先写 baseline，把主样式 18:03 的居中修复覆盖回去，
+       导致胶囊屏大字号下序号往下掉。胶囊屏教室名一律换行，行内只剩徽标 + 课名，
+       居中对齐不会造成基线错位。 */
+    align-items: center;
     justify-content: space-between;
     width: 100%;
     margin-bottom: 2px;

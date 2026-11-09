@@ -134,8 +134,8 @@ function init(instance) {
       classes[k].period = "第" + (k + 1) + "节"
       classes[k].dateStr = viewDateStr
       classes[k]._swapped = false
-      // 课程序号：只在课名前挂一个不显眼的小字，不新增行、不改卡片高度。
-      // 晚课不占数字序号，用「晚」占位，顺带把它和白天课程区分开。
+      // 课程序号：课名前挂 28px 徽标（不新增行、不改卡片高度）。
+      // 晚课不占数字序号，用「晚」占位，靠字义与白天课程区分。
       classes[k].indexLabel = classes[k]._rotation ? "晚" : String(k + 1)
     }
     self.currentClasses = classes
