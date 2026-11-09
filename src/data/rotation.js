@@ -197,6 +197,12 @@ function weekFilled(tpl, week) {
  * 两行班级 = 两套课表。**主套（[0]）是 8.20**——2026-11-09 用户核对照片后指出的
  * 本班课表；8.19 是另一班，降到 [1] 备选。其余课表序号统一 fallback 到 [0]，
  * 保证任何新建课表的首页都有默认晚课可看。
+ *
+ * 2026-11-09 起内置课表变两套（八年级二班 / 九年级一班）。**第 2 套（index=1）
+ * 不配晚课**（用户明令）：九年级一班的晚课表没有照片依据，凭空灌 8.19 的六周
+ * 晚课会让新装用户看到与该班无关的晚课，还让「49 门课」变成 49+N。
+ * 故 NO_SEED_INDEX 里登记 1，seedTemplate(1) 直接返回 null；[1] 的 8.19 网格
+ * 仅保留作历史快照对照，不再发种。第 3 套及以后仍 fallback [0]。
  * 为什么不能只换顺序就完事：老设备在 2026-11-09 之前已被灌过 8.19 的 demo 数据，
  * 而 origin="demo" 时 needsSeed() 返回 false（视为「已灌过，不再动」），只改种子
  * 顺序这批人永远看不到修正。故保留 LEGACY_SEED_819 快照逐格比对（见 isLegacySeed），
@@ -264,9 +270,16 @@ function isLegacySeed(tpl) {
   return !!(tpl && tpl.origin === "demo" && sameGrid(tpl.cells, LEGACY_SEED_819))
 }
 
-/** 默认 Demo 模板；任意 index 都有，idx>=2 回落到第一套 */
+// 不发种的课表槽位：内置第 2 套「九年级一班」不配晚课（2026-11-09 用户确认）。
+// 用表而不是直接 `idx === 1`，以后再加「不配晚课」的槽位只改这里。
+var NO_SEED_INDEX = { 1: true }
+
+/** 默认 Demo 模板；第 2 套不发种返回 null，其余 index 回落到第一套 */
 function seedTemplate(index) {
   var idx = index == null ? 0 : index
+  if (NO_SEED_INDEX[idx]) {
+    return null
+  }
   var grid = SEED_GRIDS[idx] || SEED_GRIDS[0]
   if (!grid) {
     return null

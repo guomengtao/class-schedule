@@ -4,7 +4,7 @@
 //    真源：ev/ev-schedule-android/apk/res/raw/default_schedule.json
 //    改数据：改手机端那份，然后 node scripts/gen-default-schedule.js
 //
-// 仅在新装 / 首次读取第 1 套课表且无数据时作为 seed 写入，之后一律以用户数据为准。
+// 仅在新装首启 / 首次读取该套课表且无数据时作为 seed 写入，之后一律以用户数据为准。
 // 教室与老师留空 —— 不填就不显示，避免默认数据里出现家长不认识的占位信息。
 module.exports = {
   schedule: [

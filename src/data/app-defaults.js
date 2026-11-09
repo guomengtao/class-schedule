@@ -32,7 +32,8 @@
 //    初始体验），统一决策留待阶段 2。
 
 // 应等于 ITEMS 中最大的 since。修改任何默认值时必须一起 +1。
-var CURRENT_VERSION = 1
+// v2（2026-11-09）：内置课表从 1 套扩为 2 套，scheduleNames 默认值随之改。
+var CURRENT_VERSION = 2
 
 var ITEMS = [
   // ---------- 首页设置（homepage_settings 对象，字段级） ----------
@@ -67,7 +68,10 @@ var ITEMS = [
   { id: "pinned.pages",               key: "pinned_pages",      value: [], policy: "keep", since: 1, desc: "钉首页列表（禁止重置）" },
 
   // ---------- 数据层（登记在此仅为「一处可查」，不作为开关迁移） ----------
-  { id: "data.scheduleNames",         key: "scheduleNames",         value: ["八年级二班"], policy: "keep", since: 1, desc: "课程表名称列表" },
+  // 内置两套课程表（2026-11-09）：八年级二班（默认激活）/ 九年级一班（真实课表）。
+  // policy=keep 意味着**老用户不会被回填第二套**：只有全新安装（storage 里
+  // 没有 scheduleNames 键）才会读到这两项，与「两套仅给新装用户」的诉求一致。
+  { id: "data.scheduleNames",         key: "scheduleNames",         value: ["八年级二班", "九年级一班"], policy: "keep", since: 2, desc: "课程表名称列表" },
   { id: "data.currentScheduleIndex",  key: "currentScheduleIndex",  value: 0,           policy: "keep", since: 1, desc: "当前选中的课程表索引" }
 ]
 

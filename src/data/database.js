@@ -230,16 +230,100 @@ function ensureBuiltinCoursePresets() {
   })
 }
 
+/** 内置课表名列表：只收「真源已生成」的槽位，避免第二套产物缺失时留下空课表名 */
+function builtinNames() {
+  var out = []
+  for (var i = 0; i < builtin.count; i++) {
+    if (builtin.hasSchedule(i)) out.push(builtin.getName(i))
+  }
+  return out.length ? out : [builtin.name]
+}
+
+// 新装首启：写入内置的两套课表（第 1 套 八年级二班 / 第 2 套 九年级一班）。
+//
+// 判定「全新安装」必须同时满足两个条件，缺一不可：
+//   1) scheduleNames 键不存在 —— 老用户一定有；缺失说明从没写过
+//   2) allCourses_0 也不存在 —— 兜住「名字键丢了但课表还在」的历史脏数据，
+//      这种情况下按老用户处理，绝不覆盖用户课表。
+//
+// ⚠️ 时序关键：必须在 flushCallbacks() 之前跑完。页面首读 allCourses_0 会在
+// fallback 里 seed 第 1 套写盘，若 seed 晚于首帧，slot0 已存在会被误判成
+// 「老用户」而放弃写入，两套就只剩一套（2026-11-09 实测踩过）。
+// 第二套的晚课不在此时写盘：rotation.seedTemplate(1) 返回 null，prime() 自然不会发种。
+function ensureBuiltinSchedules(done) {
+  function skip(reason) {
+    log("ensureBuiltinSchedules: skip (" + reason + ")")
+    if (done) done()
+  }
+  storage.get({
+    key: "scheduleNames",
+    success: function(namesRaw) {
+      if (namesRaw) { skip("scheduleNames exists"); return }
+      storage.get({
+        key: STORAGE_KEY + "_0",
+        success: function(slot0) {
+          if (slot0) { skip("allCourses_0 exists"); return }
+          var names = builtinNames()
+          var total = names.length
+          var left = total + 1
+          var failed = false
+          function settle(err) {
+            if (err) failed = true
+            left--
+            if (left > 0) return
+            if (failed) logErr("ensureBuiltinSchedules: 部分写入失败，已尽量写入 " + total + " 套")
+            else log("ensureBuiltinSchedules: seeded " + total + " builtin schedules")
+            if (done) done()
+          }
+          for (var i = 0; i < total; i++) {
+            (function(idx) {
+              storage.set({
+                key: STORAGE_KEY + "_" + idx,
+                value: JSON.stringify(builtin.copySchedule(idx)),
+                success: function() { settle(null) },
+                fail: function(e) {
+                  logErr("ensureBuiltinSchedules: write slot " + idx + " failed: " + JSON.stringify(e))
+                  settle(e)
+                }
+              })
+            })(i)
+          }
+          storage.set({
+            key: "scheduleNames",
+            value: JSON.stringify(names),
+            success: function() { settle(null) },
+            fail: function(e) {
+              logErr("ensureBuiltinSchedules: write names failed: " + JSON.stringify(e))
+              settle(e)
+            }
+          })
+        },
+        fail: function(e) {
+          logErr("ensureBuiltinSchedules: read slot0 failed: " + JSON.stringify(e))
+          if (done) done()
+        }
+      })
+    },
+    fail: function(e) {
+      logErr("ensureBuiltinSchedules: read names failed: " + JSON.stringify(e))
+      if (done) done()
+    }
+  })
+}
+
 function initStorage(callback) {
   log("initStorage: starting")
   loadScheduleIndex(function() {
     log("initStorage: loadScheduleIndex done, calling migrateOldData")
     migrateOldData(function() {
-      ready = true
-      log("initStorage: migrateOldData done, database ready, flushing " + pendingCallbacks.length + " pending callbacks")
-      flushCallbacks()
-      ensureBuiltinCoursePresets()
-      if (callback) callback()
+      // 内置两套课表的 seed 必须先于 flushCallbacks 完成（见 ensureBuiltinSchedules 注释）
+      ensureBuiltinSchedules(function() {
+        ready = true
+        log("initStorage: migrateOldData done, database ready, flushing " + pendingCallbacks.length + " pending callbacks")
+        flushCallbacks()
+        ensureBuiltinCoursePresets()
+        if (callback) callback()
+      })
     })
   })
 }
@@ -935,21 +1019,27 @@ module.exports = {
     })
   },
 
-  // 全部重置 = 回到内置课表「八年级二班」+ 6 周晚课 Demo，与新装首启完全同一套数据。
+  // 全部重置 = 回到内置的两套课表（八年级二班 + 九年级一班）+ 第 1 套的 6 周晚课 Demo，
+  // 与「新装首启」完全同一套数据（2026-11-09 起内置变两套；第 2 套不配晚课）。
   // 旧实现在这里随机洗牌 12 门带假老师假教室的占位课、生成 2 张「课程表1/2」，
   // 与 seed 不一致：用户点一次重置反而从真实课表被打回示例数据（2026-11-09 修正）。
   // 晚课属于课表的一部分，必须一起回默认，不能留下用户上次的旧配置（2026-11-09 补）。
   _doResetToDemoData: function(callback) {
-    var schedule1 = builtin.copySchedule()
-    var names = [builtin.name]
+    var names = builtinNames()
+    var total = names.length
     var TOTAL_SLOTS = 10
     var emptyData = JSON.stringify([])
 
     // 旧实现会写 2 张课表；改成 1 张后必须把 1..9 号槽清空，
     // 否则切课表仍能看到上一次重置留下的旧数据。
+    // 现在内置 2 套，保留 0..total-1，清 total..9。
     function clearOtherSlots(done) {
-      var remaining = TOTAL_SLOTS - 1
-      for (var i = 1; i < TOTAL_SLOTS; i++) {
+      var remaining = TOTAL_SLOTS - total
+      if (remaining <= 0) {
+        done()
+        return
+      }
+      for (var i = total; i < TOTAL_SLOTS; i++) {
         storage.set({
           key: STORAGE_KEY + "_" + i,
           value: emptyData,
@@ -994,7 +1084,26 @@ module.exports = {
       })
     }
 
-    saveToStorageWithIndex(0, schedule1, function(err) {
+    // 两套课表串行写盘（手环 RTOS 存储 I/O 不并发），任一套失败即中止并回报
+    function saveAllBuiltin(done) {
+      var i = 0
+      function step(err) {
+        if (err) {
+          done(err)
+          return
+        }
+        if (i >= total) {
+          done(null)
+          return
+        }
+        var idx = i
+        i++
+        saveToStorageWithIndex(idx, builtin.copySchedule(idx), step)
+      }
+      step(null)
+    }
+
+    saveAllBuiltin(function(err) {
       if (err) {
         logErr("resetToDemoData: save schedule to storage failed: " + err)
         if (callback) callback(err)
