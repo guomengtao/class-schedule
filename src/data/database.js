@@ -36,6 +36,76 @@ function clearStoreCache() {
   }
 }
 
+// ===== 晚课重置：与主课表同进同退（2026-11-09）=====
+// 晚课是课程表的一部分，存储键 ev_rotation_<idx> 与 allCourses_<idx> 一一对应。
+// 只重置主课表不动晚课，会得到「主表回默认、晚课还是用户旧配置」的半套状态。
+// 这里只用 rotation.js 的公开 API + 原生 storage，不改晚课模块本身。
+var ROTATION_SLOTS = 10
+var SID_KEY = "night_course_sid"
+
+// 「重置为空」专用模板：origin=user + enabled=false。
+// prime() 的 needsSeed() 遇到 origin=user 不再回填 Demo，injectInto 也跳过注入。
+// 若只删键，首页第一帧 prime() 会立刻把 6 周 Demo seed 回来，清空等于没清。
+function emptyRotationTemplate() {
+  var cells = []
+  for (var w = 0; w < 6; w++) {
+    var row = []
+    for (var d = 0; d < 7; d++) {
+      row.push("")
+    }
+    cells.push(row)
+  }
+  return {
+    enabled: false,
+    cycle: 6,
+    time: rotation.DEFAULT_TIME,
+    calibDate: "",
+    calibWeek: 1,
+    cells: cells,
+    origin: "user"
+  }
+}
+
+// mode: "demo" = 恢复 6 周内置 Demo；"empty" = 停用并清空。
+// 0 号槽写新值，1..9 号槽删除（与「重置后只留 1 张课表」对齐），
+// night_course_sid 归 0，最后清晚课模块内存缓存 —— 否则 primed[idx] 仍为 true，
+// 首页这一帧继续拿旧模板，要重启进程才更新。
+function resetRotationSlots(mode, done) {
+  var pending = ROTATION_SLOTS + 1
+  var finished = false
+  function settle() {
+    pending--
+    if (pending > 0 || finished) return
+    finished = true
+    rotation.resetCache()
+    if (done) done()
+  }
+
+  var primary = mode === "demo" ? rotation.seedTemplate(0) : emptyRotationTemplate()
+  storage.set({
+    key: rotation.KEY_PREFIX + "0",
+    value: JSON.stringify(primary),
+    success: settle,
+    fail: function(e) {
+      logErr("resetRotationSlots: write slot 0 failed: " + JSON.stringify(e))
+      settle()
+    }
+  })
+  for (var i = 1; i < ROTATION_SLOTS; i++) {
+    storage.delete({
+      key: rotation.KEY_PREFIX + i,
+      success: settle,
+      fail: settle
+    })
+  }
+  storage.set({
+    key: SID_KEY,
+    value: "0",
+    success: settle,
+    fail: settle
+  })
+}
+
 function logErr(msg) {
   console.error("[DB] " + msg)
 }
@@ -865,9 +935,10 @@ module.exports = {
     })
   },
 
-  // 全部重置 = 回到内置课表「八年级二班」，与新装首启完全同一套数据。
+  // 全部重置 = 回到内置课表「八年级二班」+ 6 周晚课 Demo，与新装首启完全同一套数据。
   // 旧实现在这里随机洗牌 12 门带假老师假教室的占位课、生成 2 张「课程表1/2」，
   // 与 seed 不一致：用户点一次重置反而从真实课表被打回示例数据（2026-11-09 修正）。
+  // 晚课属于课表的一部分，必须一起回默认，不能留下用户上次的旧配置（2026-11-09 补）。
   _doResetToDemoData: function(callback) {
     var schedule1 = builtin.copySchedule()
     var names = [builtin.name]
@@ -929,7 +1000,9 @@ module.exports = {
         if (callback) callback(err)
         return
       }
-      clearOtherSlots(finalizeReset)
+      clearOtherSlots(function() {
+        resetRotationSlots("demo", finalizeReset)
+      })
     })
   },
 
@@ -951,6 +1024,9 @@ module.exports = {
     })
   },
 
+  // 重置为空 = 主课表、课程预设、提醒/首页设置、晚课全部清空。
+  // 晚课走 emptyRotationTemplate（停用 + origin=user），不能直接删键：
+  // 删键后首页第一帧 prime() 会把 6 周 Demo 立刻 seed 回来。
   resetToEmpty: function(callback) {
     log("resetToEmpty: starting")
     var emptyData = JSON.stringify([])
@@ -977,6 +1053,15 @@ module.exports = {
     function finalizeEmpty(cb) {
       invalidateCache()
       clearStoreCache()
+      var finished = false
+      function finish() {
+        if (finished) return
+        finished = true
+        resetRotationSlots("empty", function() {
+          log("resetToEmpty: complete")
+          if (cb) cb(null)
+        })
+      }
       var names = ["课程表1"]
       storage.set({
         key: "scheduleNames",
@@ -999,37 +1084,34 @@ module.exports = {
                       storage.set({
                         key: "homepage_settings",
                         value: JSON.stringify({}),
-                        success: function() {
-                          log("resetToEmpty: complete")
-                          if (cb) cb(null)
-                        },
+                        success: finish,
                         fail: function(e) {
                           logErr("resetToEmpty: homepage_settings failed: " + JSON.stringify(e))
-                          if (cb) cb(null)
+                          finish()
                         }
                       })
                     },
                     fail: function(e) {
                       logErr("resetToEmpty: remindSettings failed: " + JSON.stringify(e))
-                      if (cb) cb(null)
+                      finish()
                     }
                   })
                 },
                 fail: function(e) {
                   logErr("resetToEmpty: course_preset_list failed: " + JSON.stringify(e))
-                  if (cb) cb(null)
+                  finish()
                 }
               })
             },
             fail: function(e) {
               logErr("resetToEmpty: currentScheduleIndex failed: " + JSON.stringify(e))
-              if (cb) cb(null)
+              finish()
             }
           })
         },
         fail: function(e) {
           logErr("resetToEmpty: scheduleNames failed: " + JSON.stringify(e))
-          if (cb) cb(null)
+          finish()
         }
       })
     }

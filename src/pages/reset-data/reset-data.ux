@@ -44,6 +44,8 @@
         <text class="card-title" style="color: {{ theme.text }}">全部重置</text>
         <text class="card-desc" style="color: {{ theme.textSecondary }}">八年级二班</text>
         <text class="card-desc" style="color: {{ theme.textSecondary }}">5 天 45 节课</text>
+        <!-- 晚课是课表的一部分：明确告知会被一并恢复成 6 周 Demo，避免用户以为只动主课表 -->
+        <text class="card-desc" style="color: {{ theme.textSecondary }}">含 6 周晚课</text>
 
         <div class="act-btn" onclick="handleResetAll"
              style="background-color: {{ fullConfirm ? theme.deleteText : theme.accent }}">
@@ -55,7 +57,7 @@
 
       <div class="card" style="background-color: {{ theme.card }}">
         <text class="card-title" style="color: {{ theme.text }}">重置为空</text>
-        <text class="card-desc" style="color: {{ theme.textSecondary }}">清空全部数据</text>
+        <text class="card-desc" style="color: {{ theme.textSecondary }}">晚课一并清空</text>
         <text class="card-desc" style="color: {{ theme.textSecondary }}">从零开始自建</text>
 
         <div class="act-btn" onclick="handleResetEmpty"
@@ -225,7 +227,7 @@ export default {
         self.fullConfirm = false
         self.fullDone = true
         if (!err && !presetErr) {
-          prompt.showToast({ message: "全部数据已重置" })
+          prompt.showToast({ message: "课表与晚课已重置" })
           dlog("[RESET] Full demo data restored successfully")
         } else {
           prompt.showToast({ message: "重置失败: " + (err || presetErr) })
@@ -255,7 +257,7 @@ export default {
       self.emptyConfirm = false
       self.emptyDone = true
       if (!err) {
-        prompt.showToast({ message: "已重置为空" })
+        prompt.showToast({ message: "课表与晚课已清空" })
         dlog("[RESET] Empty reset completed successfully")
       } else {
         prompt.showToast({ message: "重置失败: " + err })
