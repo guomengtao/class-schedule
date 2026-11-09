@@ -64,4 +64,5 @@
 - 数据层：`applySwap` 一次写盘生成两条共享 group 的覆盖记录；`clearDates` 同时清今天与明天，避免跨天交换只清一半。
 - 已知限制：覆盖读取是异步的，首页先显示基础课表再补刷一次；周视图 / 全课表 / 表盘按星期渲染，不体现临时调课，属预期边界。
 - 构建期既有告警（非本页引入）：`index/modules` 里 `require("../../data/utils.js")` 解析不到，以及若干历史页面的属性告警。
-- 截图验收：ev-shapes 两屏（胶囊 + 方屏）进行中，结果待回填。
+- 截图验收（ev-shapes，未完成）：已打通 release 全量包（297 条目 / pages 129 / 含 course-swap）、EvFleet 票据 `T-000041`、两屏实例启动与部署、`page --start-page pages/course-swap` 构建成功。但多会话并发导致 adb server 5037 双 daemon 竞争启动失败、`adb devices` 恒空、5 台实例全判僵，帧缓冲持续「显示未激活」。两张纯黑假图已按纪律删除，票据与实例已归还，**未产出验收图**。
+- 重跑前置：单会话独占模拟器且 `adb devices` 能列出设备；应用驻留优先用 `vela up --rpk`，避免 `page` 的 pipe 会话结束即退导致黑屏。
