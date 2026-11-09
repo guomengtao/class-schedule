@@ -1,27 +1,36 @@
 <!-- 临时调课双向选择器（ev-six）
      场景：学生不能带手机，老师在课堂上临时宣布换课，手环上点一下记录。
      只允许已有课程互换；两节课内容互换，格位（日期 + 节次 + 时间）不动。
-     字号守四档：本页只用 28 / 24，行高 38 / 34；禁符号、禁徽标、禁箭头。 -->
+     2026-11-09 晚改成双滑动选择器：第一行左右滑选周一~周五，候选课程
+     同样左右滑切换，当前显示项即待换目标，确认按钮一步提交。
+     字号守四档：本页只用 28 / 24，行高 38 / 34；禁符号、禁徽标、禁箭头
+     （「左右滑动 2/5」是进度读数，不是装饰符号）。 -->
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <div class="header">
-      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+    <!-- 页头同步改成设置页同款 .hdr 胶囊（2026-11-09 晚）。本次两条选择器接管了
+         left / right 手势，把返回热区从 30×30 扩到整颗胶囊，返回仍一步可达。 -->
+    <div class="hdr">
+      <div class="hdr-pill" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="hdr-pill-ic" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <text class="hdr-pill-t" style="color: {{ theme.text }}">调课</text>
       </div>
-      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">调课</text>
-      <div class="header-placeholder"></div>
     </div>
 
-    <!-- 日期切换（2026-11-09 提到 scroll 之外、紧跟页头）：真机反馈「第二行看不到、
-         选不了哪天」。原因不是数据，而是这行原来躺在滚动区里，内容和候选列表
-         一多就把今天/明天顶出首屏；手势一滑还会滚走。现在固定成页头下的第二行，
-         不参与滚动，进页即见。宽度改固定百分比，不再依赖 flex:1（小屏上曾塌成细条）。 -->
-    <div class="day-tabs">
-      <div class="day-tab" onclick="setTab(0)" style="background-color: {{ dayTab === 0 ? theme.accent : theme.card }}">
-        <text class="tab-text" style="color: {{ dayTab === 0 ? theme.bg : theme.text }}">今天</text>
+    <!-- 第一行：周几滑动选择器（2026-11-09 晚）。取代原来「今天 / 明天」两颗按钮，
+         改成周一~周五五个工作日左右滑动切换，进页默认落在今天对应的工作日。
+         整条 onswipe 左滑下一天 / 右滑上一天（到端点循环），两侧小字也可点，
+         手势不生效时仍有可用的点击热区。固定在页头之下、不跟随 scroll，
+         保留 11-09 上午「第二行看不到」那次修复的成果。
+         宽度用固定百分比（32/36/32），不用 flex:1 —— 小屏上曾塌成细条。 -->
+    <div class="day-strip" onswipe="onDaySwipe">
+      <div class="day-side" onclick="stepDay(-1)">
+        <text class="day-side-t" style="color: {{ theme.textMuted }}">{{ prevDayLabel }}</text>
       </div>
-      <div class="day-tab last" onclick="setTab(1)" style="background-color: {{ dayTab === 1 ? theme.accent : theme.card }}">
-        <text class="tab-text" style="color: {{ dayTab === 1 ? theme.bg : theme.text }}">明天</text>
+      <div class="day-current" style="background-color: {{ theme.accent }}">
+        <text class="day-current-t" style="color: {{ theme.bg }}">{{ curDayLabel }}</text>
+      </div>
+      <div class="day-side" onclick="stepDay(1)">
+        <text class="day-side-t" style="color: {{ theme.textMuted }}">{{ nextDayLabel }}</text>
       </div>
     </div>
 
@@ -35,9 +44,18 @@
 
         <text class="pick-label" style="color: {{ theme.accent }}">{{ pickLabel }}</text>
 
-        <div for="{{ candidates }}" class="course-row" onclick="pickCourse($item.key)" style="background-color: {{ $item.selected ? theme.cardLight : theme.card }}; border-color: {{ $item.selected ? theme.accent : theme.border }}">
-          <text class="row-period" style="color: {{ theme.textSecondary }}">{{ $item.period }}</text>
-          <text class="row-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
+        <!-- 候选课程同样改成左右滑动选择（2026-11-09 晚）：一屏只显示一节，
+             左滑下一节 / 右滑上一节（端点循环），点按整卡也翻下一节作为手势兜底；
+             当前显示项即待换目标，底部「确认换课」直接提交它，省掉长列表里逐条点选。
+             onswipe 只挂在这条与周几条上；页头、卡片间隙、footer 仍是系统
+             右滑返回区，页头另有显式返回按钮。按 pit-20261102-80/81，right
+             方向已显式处理，不会留下未接管的死手势。 -->
+        <div class="course-strip" if="{{ candidates.length > 0 }}" onclick="pickCourse" onswipe="onCourseSwipe" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+          <div class="course-main">
+            <text class="course-period" style="color: {{ theme.textSecondary }}">{{ curCoursePeriod }}</text>
+            <text class="course-name" style="color: {{ theme.text }}">{{ curCourseName }}</text>
+          </div>
+          <text class="course-hint" style="color: {{ theme.textMuted }}">{{ courseHint }}</text>
         </div>
 
         <text class="empty-hint" if="{{ candidates.length === 0 }}" style="color: {{ theme.textSecondary }}">{{ emptyHint }}</text>
@@ -94,13 +112,21 @@ export default {
     sourceWhen: "",
     sourceItem: {},
     dayTab: 0,
+    dayLabels: ["周一", "周二", "周三", "周四", "周五"],
+    prevDayLabel: "",
+    curDayLabel: "周一",
+    nextDayLabel: "周二",
     candidates: [],
+    courseIndex: 0,
+    curCourseKey: "",
+    curCoursePeriod: "",
+    curCourseName: "",
+    courseHint: "",
     selectedKey: "",
     pickLabel: "换到这节",
     emptyHint: "这天没有别的课",
     hasSwap: false,
-    todayStr: "",
-    tomorrowStr: "",
+    dateStrs: [],
     allLists: []
   },
 
@@ -136,14 +162,26 @@ export default {
   build(schedule, swaps, ctx) {
     var self = this
     var today = new Date()
-    var tomorrow = courseSwap.plusDays(today, 1)
-    var dates = [today, tomorrow]
-    self.todayStr = courseSwap.dateStrOf(today)
-    self.tomorrowStr = courseSwap.dateStrOf(tomorrow)
+    var dow = today.getDay()
+    // 周一为一周起点：周日 -6、周六 -5、周一 0、周五 -4。
+    // 五个标签固定映射到「今天所在那一周」的周一~周五；dateStr 仍是真实日期，
+    // 所以 courseSwap 的存储 / 撤销口径一行都不用改。
+    var mondayOffset = (dow === 0) ? -6 : (1 - dow)
+    var monday = courseSwap.plusDays(today, mondayOffset)
+    var dates = []
+    var dateStrs = []
+    for (var q = 0; q < 5; q++) {
+      var dt = courseSwap.plusDays(monday, q)
+      dates.push(dt)
+      dateStrs.push(courseSwap.dateStrOf(dt))
+    }
+    self.dateStrs = dateStrs
+    // 默认落在今天对应的工作日；周六 / 周日没有对应标签，回落周一
+    var defaultIdx = (dow >= 1 && dow <= 5) ? (dow - 1) : 0
 
     var lists = []
     for (var d = 0; d < dates.length; d++) {
-      var ds = courseSwap.dateStrOf(dates[d])
+      var ds = dateStrs[d]
       var weekIdx = dates[d].getDay()
       var raw = []
       for (var i = 0; i < schedule.length; i++) {
@@ -192,8 +230,8 @@ export default {
     }
     if (!src) {
       src = {
-        key: self.todayStr + "#" + ctx.id,
-        dateStr: ctx.date || self.todayStr,
+        key: dateStrs[defaultIdx] + "#" + ctx.id,
+        dateStr: ctx.date || dateStrs[defaultIdx],
         courseId: String(ctx.id),
         name: self.sourceName,
         teacher: "",
@@ -203,46 +241,97 @@ export default {
     }
     self.sourceItem = src
     self.sourceName = src.name || "这门课"
-    var when = src.dateStr === self.todayStr ? "今天" : "明天"
+    var when = "本周"
+    for (var w = 0; w < dateStrs.length; w++) {
+      if (dateStrs[w] === src.dateStr) { when = self.dayLabels[w]; break }
+    }
     self.sourceWhen = when + " " + (src.period || ctx.period || "")
 
-    self.hasSwap = Object.keys(swaps[self.todayStr] || {}).length > 0 ||
-      Object.keys(swaps[self.tomorrowStr] || {}).length > 0
-    self.setTab(0)
+    var has = false
+    for (var h = 0; h < dateStrs.length; h++) {
+      if (Object.keys(swaps[dateStrs[h]] || {}).length > 0) { has = true; break }
+    }
+    self.hasSwap = has
+    self.setTab(defaultIdx)
   },
 
   setTab(i) {
+    if (i < 0 || i > 4) return
     this.dayTab = i
+    this.prevDayLabel = i > 0 ? this.dayLabels[i - 1] : ""
+    this.curDayLabel = this.dayLabels[i]
+    this.nextDayLabel = i < 4 ? this.dayLabels[i + 1] : ""
+
     var list = this.allLists[i] || []
     var srcKey = this.sourceItem ? this.sourceItem.key : ""
     var out = []
     for (var k = 0; k < list.length; k++) {
       var it = list[k]
       if (it.key === srcKey) continue
-      out.push({
-        key: it.key,
-        period: it.period,
-        name: it.name,
-        selected: this.selectedKey === it.key
-      })
+      out.push({ key: it.key, period: it.period, name: it.name })
     }
     this.candidates = out
+    this.courseIndex = 0
+    this.syncCourseView()
   },
 
-  pickCourse(key) {
-    this.selectedKey = (this.selectedKey === key) ? "" : key
-    this.setTab(this.dayTab)
-    this.pickLabel = this.selectedKey ? ("已选 " + this.periodOf(this.selectedKey)) : "换到这节"
-  },
-
-  periodOf(key) {
-    for (var d = 0; d < this.allLists.length; d++) {
-      var list = this.allLists[d] || []
-      for (var i = 0; i < list.length; i++) {
-        if (list[i].key === key) return list[i].period
-      }
+  // 当前预览项即待换目标：滑动 / 点击切换预览，selectedKey 始终跟着它走。
+  // 底部「确认换课」直接提交屏幕上那一节，不再需要「先点选再确认」两步。
+  syncCourseView() {
+    var list = this.candidates || []
+    var n = list.length
+    if (n === 0) {
+      this.curCourseKey = ""
+      this.curCoursePeriod = ""
+      this.curCourseName = ""
+      this.courseHint = ""
+      this.selectedKey = ""
+      this.pickLabel = "换到这节"
+      return
     }
-    return ""
+    if (this.courseIndex < 0) this.courseIndex = 0
+    if (this.courseIndex >= n) this.courseIndex = n - 1
+    var it = list[this.courseIndex]
+    this.curCourseKey = it.key
+    this.curCoursePeriod = it.period
+    this.curCourseName = it.name
+    this.courseHint = "左右滑动 " + (this.courseIndex + 1) + "/" + n
+    this.selectedKey = it.key
+    this.pickLabel = "换到这节"
+  },
+
+  // 点击课程卡 = 切到下一节（与左滑等价）。当前显示项本来就是待换目标，
+  // 不需要「再点一次选中」；点按同时充当手势不生效时的兜底热区（模拟器验收也走它）。
+  pickCourse() {
+    this.stepCourse(1)
+  },
+
+  onDaySwipe(evt) {
+    var dir = (evt && evt.direction) || ""
+    if (dir === "left") { this.stepDay(1); return }
+    if (dir === "right") { this.stepDay(-1); return }
+    // up / down 交回系统滚动。right 已显式接管为「上一天」，不是未处理的死手势；
+    // 本页 onswipe 只挂周几条与课程卡，页头 / 空白 / footer 的系统右滑返回仍在，
+    // 页头另有整颗可点的胶囊返回按钮。
+  },
+
+  stepDay(delta) {
+    var n = this.dayLabels.length
+    var i = (this.dayTab + delta + n) % n
+    this.setTab(i)
+  },
+
+  onCourseSwipe(evt) {
+    var dir = (evt && evt.direction) || ""
+    if (dir === "left") { this.stepCourse(1); return }
+    if (dir === "right") { this.stepCourse(-1); return }
+  },
+
+  stepCourse(delta) {
+    var n = (this.candidates || []).length
+    if (n === 0) return
+    this.courseIndex = (this.courseIndex + delta + n) % n
+    this.syncCourseView()
   },
 
   findCourse(key) {
@@ -280,7 +369,7 @@ export default {
   },
 
   clearSwaps() {
-    courseSwap.clearDates([this.todayStr, this.tomorrowStr], function(ok) {
+    courseSwap.clearDates(this.dateStrs, function(ok) {
       if (!ok) {
         prompt.showToast({ message: "撤销失败请重试" })
         return
@@ -297,28 +386,34 @@ export default {
 </script>
 
 <style>
+@import '../../common/header.css';
+/* 页头走 header.css 的 .hdr 胶囊；本页旧的 .header / .back-btn-wrapper /
+   .back-btn-icon / .header-title / .header-placeholder 本地同名定义全部下线，
+   否则页面后加载会静默盖掉公共样式（统一返回按钮方案 §4）。 */
 .page { flex-direction: column; padding: 32px 12px 12px 12px; width: 100%; height: 100%; }
-.header { flex-direction: row; align-items: center; width: 100%; height: 36px; margin-bottom: 10px; }
-.back-btn-wrapper { width: 30px; height: 30px; border-radius: 8px; justify-content: center; align-items: center; flex-shrink: 0; }
-.back-btn-icon { width: 22px; height: 22px; }
-.header-title { flex: 1; font-size: 28px; font-weight: bold; line-height: 38px; text-align: center; lines: 1; }
-.header-placeholder { width: 30px; height: 30px; flex-shrink: 0; }
 .scroll-area { flex: 1; width: 100%; }
 .content-area { flex-direction: column; width: 100%; padding-bottom: 8px; }
 .card { flex-direction: column; width: 100%; padding: 10px 8px; border-radius: 14px; margin-bottom: 10px; }
 .card-label { font-size: 24px; line-height: 34px; }
 .card-value { font-size: 28px; line-height: 38px; font-weight: bold; lines: 1; }
 .card-sub { font-size: 24px; line-height: 34px; }
-/* 日期切换固定在页头之下（不随内容滚动）。宽度用固定百分比，不用 flex:1：
- * 小屏上 flex:1 + 无显式高度的行曾渲染成一条细缝，视觉上等于「没有这行」。 */
-.day-tabs { flex-direction: row; width: 100%; height: 44px; margin-bottom: 8px; flex-shrink: 0; }
-.day-tab { width: 48%; height: 44px; border-radius: 12px; justify-content: center; align-items: center; flex-shrink: 0; }
-.day-tab.last { width: 48%; margin-left: 4%; }
-.tab-text { font-size: 24px; line-height: 34px; font-weight: bold; }
+/* 周几滑动条：固定在页头之下、不随内容滚动。32/36/32 固定百分比，不用 flex:1：
+ * 小屏上 flex:1 + 无显式高度的行曾渲染成一条细缝，视觉上等于「没有这行」。
+ * 宽度账（192 屏，可用 168）：中间 36%≈60px 放 28px×2 字（实宽 54），
+ * 两侧 32%≈54px 放 24px×2 字（实宽 46），都不裁字。 */
+.day-strip { flex-direction: row; align-items: center; width: 100%; height: 44px; margin-bottom: 8px; flex-shrink: 0; }
+.day-side { width: 32%; height: 44px; justify-content: center; align-items: center; flex-shrink: 0; }
+.day-side-t { font-size: 24px; line-height: 34px; lines: 1; }
+.day-current { width: 36%; height: 44px; border-radius: 22px; justify-content: center; align-items: center; flex-shrink: 0; }
+.day-current-t { font-size: 28px; line-height: 38px; font-weight: bold; lines: 1; }
 .pick-label { font-size: 24px; line-height: 34px; margin-bottom: 6px; }
-.course-row { flex-direction: row; align-items: center; width: 100%; min-height: 52px; padding: 6px 8px; border-radius: 12px; border-width: 1px; margin-bottom: 8px; }
-.row-period { font-size: 24px; line-height: 34px; width: 72px; flex-shrink: 0; }
-.row-name { flex: 1; font-size: 28px; line-height: 38px; font-weight: bold; lines: 1; }
+/* 课程滑动卡：一屏只放一节，行内「第N节 + 课名」，下一行是进度提示。
+   整块挂 onswipe + onclick，border 用 accent 表达「当前即待换目标」。 */
+.course-strip { flex-direction: column; width: 100%; padding: 8px 10px; border-radius: 14px; border-width: 2px; margin-bottom: 8px; }
+.course-main { flex-direction: row; align-items: center; width: 100%; }
+.course-period { font-size: 24px; line-height: 34px; width: 76px; flex-shrink: 0; }
+.course-name { flex: 1; font-size: 28px; line-height: 38px; font-weight: bold; lines: 1; }
+.course-hint { font-size: 24px; line-height: 34px; text-align: center; width: 100%; }
 .empty-hint { font-size: 24px; line-height: 34px; }
 .footer { flex-direction: column; width: 100%; padding-top: 6px; }
 .confirm-btn { width: 100%; height: 48px; border-radius: 24px; font-size: 28px; font-weight: bold; text-align: center; }
