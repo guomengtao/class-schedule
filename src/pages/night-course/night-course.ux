@@ -1,68 +1,82 @@
 <template>
-  <scroll class="page" scroll-y="{{ true }}" style="background-color: {{ bg }}">
+  <div class="page" style="background-color: {{ theme.bg }}">
+    <!-- ev-six 规则①②③：公共头部骨架，返回 30 + 居中标题 28 + 等宽占位 30，
+         不放其他按钮；颜色一律走 theme 变量，不在页面里硬编码 hex。 -->
     <div class="header">
-      <div class="back-btn-wrapper" onclick="goBack">
-        <text class="back-arrow" style="color: {{ fg }}">‹</text>
+      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
       </div>
-      <text class="header-title" onclick="goBack" style="color: {{ fg }}">晚课设置</text>
+      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">晚课</text>
       <div class="header-placeholder"></div>
     </div>
 
-    <!-- 开关 + 摘要 -->
-    <div class="card" style="background-color: {{ card }}">
-      <div class="switch-row" onclick="toggleEnabled">
-        <div class="switch-text">
-          <text class="switch-title" style="color: {{ fg }}">启用晚课</text>
-          <text class="switch-sub" style="color: {{ muted }}">{{ summary }}</text>
+    <scroll class="body-scroll" scroll-y="{{ true }}">
+      <!-- 开关卡：一行 ≤6P，标题 28px、摘要 24px 分两行，不靠压字号塞进一行 -->
+      <div class="card" style="background-color: {{ theme.card }}">
+        <div class="switch-row" onclick="toggleEnabled">
+          <text class="switch-title" style="color: {{ theme.text }}">启用晚课</text>
+          <div class="switch-pill" style="background-color: {{ enabled ? theme.accent : theme.btnSecondary }}">
+            <div class="switch-knob" style="left: {{ enabled ? 32 : 3 }}px"></div>
+          </div>
         </div>
-        <div class="switch-pill" style="background-color: {{ enabled ? accent : border }}">
-          <div class="switch-knob" style="left: {{ enabled ? 32 : 3 }}px"></div>
+        <text class="card-sub" style="color: {{ theme.textSecondary }}">{{ summary }}</text>
+      </div>
+
+      <!-- 周期 / 时段 / 周末显隐 -->
+      <div class="card" style="background-color: {{ theme.card }}">
+        <text class="card-title" style="color: {{ theme.text }}">轮换周期</text>
+        <div class="pills">
+          <div for="{{ cycleOpts }}" class="pill"
+               style="background-color: {{ $item === cycle ? theme.accent : theme.btnSecondary }}"
+               onclick="pickCycle($item)">
+            <text class="pill-text" style="color: {{ $item === cycle ? theme.bg : theme.text }}">{{ $item }} 周</text>
+          </div>
+        </div>
+        <text class="card-title gap" style="color: {{ theme.text }}">上课时段</text>
+        <picker class="time-picker" type="text" range="{{ timeOpts }}" selected="{{ timeIdx }}"
+                onchange="onTimeChange" style="color: {{ theme.text }}; background-color: {{ theme.keyBg }}"></picker>
+        <div class="weekend-row" onclick="toggleWeekend">
+          <text class="weekend-text" style="color: {{ theme.textSecondary }}">周末</text>
+          <text class="weekend-state" style="color: {{ showWeekend ? theme.accent : theme.textMuted }}">{{ showWeekend ? '显示' : '隐藏' }}</text>
         </div>
       </div>
-    </div>
 
-    <!-- 周期 + 时段 -->
-    <div class="card" style="background-color: {{ card }}">
-      <text class="label" style="color: {{ muted }}">轮换周期</text>
-      <div class="pills">
-        <div for="{{ cycleOpts }}" class="pill"
-             style="background-color: {{ $item === cycle ? accent : border }}; color: {{ $item === cycle ? '#ffffff' : fg }}"
-             onclick="pickCycle($item)">
-          <text class="pill-text">{{ $item }} 周</text>
+      <!-- 长列表：每周一段，默认只铺周一到周五（与《晚课课表》照片一致）。
+           可点性靠 cardLight 亮底表达，不再用箭头符号。 -->
+      <div for="{{ rows }}" class="row-wrap">
+        <text if="{{ $item.type === 'week' }}" class="week-title"
+              style="color: {{ $item.isCurrent ? theme.accent : theme.textSecondary }}">{{ $item.label }}</text>
+        <div if="{{ $item.type === 'cell' }}" class="cell" style="background-color: {{ theme.cardLight }}"
+             onclick="editCell($item)">
+          <text class="cell-day" style="color: {{ $item.isToday ? theme.accent : theme.textSecondary }}">{{ $item.dayLabel }}</text>
+          <text class="cell-name" style="color: {{ $item.name ? theme.text : theme.textMuted }}">{{ $item.name ? $item.name : '未设置' }}</text>
         </div>
       </div>
-      <text class="label label-gap" style="color: {{ muted }}">上课时段</text>
-      <picker class="time-picker" type="text" range="{{ timeOpts }}" selected="{{ timeIdx }}"
-              onchange="onTimeChange" style="color: {{ fg }}; background-color: {{ border }}"></picker>
-    </div>
 
-    <!-- 长列表：每周一段，7 行，点行进中文输入 -->
-    <div for="{{ rows }}" class="row-wrap">
-      <text if="{{ $item.type === 'week' }}" class="week-title {{ $item.isCurrent ? 'week-on' : '' }}"
-            style="color: {{ $item.isCurrent ? accent : muted }}">{{ $item.label }}</text>
-      <div if="{{ $item.type === 'cell' }}" class="cell" style="background-color: {{ card }}"
-           onclick="editCell($item)">
-        <text class="cell-day" style="color: {{ $item.isToday ? accent : muted }}">{{ $item.dayLabel }}</text>
-        <text class="cell-name" style="color: {{ $item.name ? fg : muted }}">{{ $item.name ? $item.name : '未设置' }}</text>
-        <text class="cell-arrow" style="color: {{ muted }}">›</text>
-      </div>
-    </div>
+      <text class="tips" style="color: {{ theme.textMuted }}">第 {{ sidLabel }} 套课表 只在校准周当天显示</text>
+      <div class="bottom-gap"></div>
+    </scroll>
 
-    <text class="tips" style="color: {{ muted }}">晚课是每套课表自己的附加课，只在校准周次的当天显示；改动自动保存。</text>
-    <div class="bottom-gap"></div>
-  </scroll>
+    <!-- ev-six 第 13 条：禁用系统 toast 浮层（会压住内容），
+         全部提示走这条固定 52px 的页内条，只换文案不换高度。 -->
+    <div class="tip-bar" style="display: {{ tipVisible ? 'flex' : 'none' }}; background-color: {{ theme.card }}">
+      <text class="tip-msg" style="color: {{ theme.text }}">{{ tipText }}</text>
+    </div>
+  </div>
 </template>
 
 <script>
 import router from "@system.router"
 import storage from "@system.storage"
-import prompt from "@system.prompt"
 
 var rotation = require("../../data/rotation")
 var database = require("../../data/database")
+var store = require("../../data/store.js")
 
 var RESULT_KEY = "night_cell_result"
 var PENDING_KEY = "night_cell_pending"
+var SID_KEY = "night_course_sid"
+
 function fallbackSid() {
   var idx = 0
   try {
@@ -74,12 +88,11 @@ function fallbackSid() {
 }
 
 function startPage(comp, idx) {
-  if (idx == null || idx < 0) {
-    idx = 0
-  }
+  if (idx == null || idx < 0) idx = 0
   comp.sid = idx
+  comp.sidLabel = idx + 1
   rotation.prime(idx, function (tpl) {
-    comp.tpl = tpl || rotation.normalize({})
+    comp.tpl = tpl || rotation.normalize({ enabled: false })
     comp.refresh()
   })
 }
@@ -96,38 +109,57 @@ var TIME_OPTS = [
 
 export default {
   private: {
-    bg: "#0B1220",
-    card: "#16233A",
-    fg: "#E8EEF9",
-    muted: "#8A93A6",
-    accent: "#2F6BFF",
-    border: "#243449",
+    iconTheme: "dark",
+    theme: {
+      bg: '#1a1a2e',
+      card: '#16213e',
+      cardLight: '#0f3460',
+      accent: '#7ec8e3',
+      text: '#ffffff',
+      textSecondary: '#888899',
+      textMuted: '#555566',
+      border: '#0f3460',
+      borderLight: '#2a2a5a',
+      keyBg: '#1a1a3e',
+      btnSecondary: '#333355',
+      btnSecondaryText: '#a0a0b0',
+      deleteBg: '#2a1a3e',
+      deleteText: '#e08080'
+    },
     enabled: false,
-    cycle: 3,
+    cycle: 6,
     cycleOpts: [1, 2, 3, 4, 5, 6],
     timeOpts: TIME_OPTS,
-    timeIdx: 0,
+    timeIdx: 2,
     summary: "未设置",
     rows: [],
-    sid: 0
+    sid: 0,
+    sidLabel: 1,
+    showWeekend: false,
+    tipVisible: false,
+    tipText: "",
+    busy: false
   },
 
   tpl: null,
+  tipTimer: null,
 
   onInit() {
     var self = this
-    // 从「课表管理」里某套课表的操作面板进来时，要改的是那一套，
-    // 不是当前激活那套 —— 否则用户以为在改 A，实际写进了 B。
+    store.getTheme(function (t, name) {
+      self.theme = t
+      self.iconTheme = (name && String(name).indexOf("light") >= 0) ? "light" : "dark"
+    })
+    // 从「课表管理」某套课表进来时指定套号。读完立刻删掉：
+    // 旧实现留着全局单值，下次从别处进入会误用上次的 sid，
+    // 用户以为在改 A 套，实际写进 B 套。
     storage.get({
-      key: "night_course_sid",
+      key: SID_KEY,
       success: function (v) {
         var idx = -1
-        if (v != null && String(v).length > 0) {
-          idx = parseInt(v, 10)
-        }
-        if (!(idx >= 0)) {
-          idx = fallbackSid()
-        }
+        if (v != null && String(v).length > 0) idx = parseInt(v, 10)
+        if (!(idx >= 0)) idx = fallbackSid()
+        try { storage.delete({ key: SID_KEY, fail: function () {} }) } catch (e) {}
         startPage(self, idx)
       },
       fail: function () {
@@ -137,92 +169,104 @@ export default {
   },
 
   onShow() {
-    // 从中文输入页回来：把结果写进对应格子。
-    // 顺序很重要 —— 先看有没有 pending 标记（只有点行进输入页时才写），
-    // 再用 undefined/null 判断"没有结果"。
-    // 不能写成 if (!val) return：用户清空输入并确认，回填的是空字符串，
-    // 那是「删掉这格晚课」的合法操作，被当成没结果就永远删不掉。
+    // 从中文输入页回来：先看 pending 标记，再用 undefined/null 判断「没有结果」。
+    // 不能写 if (!val) return：用户清空输入确认回填空串，那是删掉这格晚课的合法操作。
     var self = this
     storage.get({
       key: PENDING_KEY,
       success: function (pos) {
-        if (!pos) {
-          return
-        }
+        if (!pos) return
         storage.get({
           key: RESULT_KEY,
           success: function (val) {
-            if (val === undefined || val === null) {
-              return
-            }
+            if (val === undefined || val === null) return
             var parts = String(pos).split("_")
             var w = parseInt(parts[0], 10) || 0
             var d = parseInt(parts[1], 10) || 0
-            if (!self.tpl) {
-              self.tpl = rotation.normalize({})
-            }
+            if (!self.tpl) self.tpl = rotation.normalize({})
             rotation.setCell(self.tpl, w, d, val)
-            rotation.save(self.sid, self.tpl, function () {
+            // 旧实现在 save 调用后立刻删结果键，写盘失败时输入结果已丢且无法重试。
+            // 改成只在写盘成功的回调里清。
+            rotation.save(self.sid, self.tpl, function (err) {
+              if (err) {
+                self.showTip("保存失败 请重试")
+                return
+              }
+              try {
+                storage.delete({ key: RESULT_KEY })
+                storage.delete({ key: PENDING_KEY })
+              } catch (e) {}
               self.refresh()
             })
-            try {
-              storage.delete({ key: RESULT_KEY })
-              storage.delete({ key: PENDING_KEY })
-            } catch (e) {}
           }
         })
       }
     })
   },
 
+  onDestroy() {
+    this.clearTipTimer()
+  },
+
   goBack() {
     router.back()
   },
 
-  toggleEnabled() {
-    if (!this.tpl) {
-      return
+  showTip(msg) {
+    var self = this
+    this.tipText = msg
+    this.tipVisible = true
+    this.clearTipTimer()
+    this.tipTimer = setTimeout(function () {
+      self.tipVisible = false
+    }, 2600)
+  },
+
+  clearTipTimer() {
+    if (this.tipTimer) {
+      clearTimeout(this.tipTimer)
+      this.tipTimer = null
     }
+  },
+
+  toggleEnabled() {
+    if (!this.tpl || this.busy) return
     this.tpl.enabled = !this.tpl.enabled
-    // 首次打开开关时如果一格都没填，给一句提示，避免「开了却没内容」的困惑
     if (this.tpl.enabled && rotation.isEmpty(this.tpl)) {
-      prompt.showToast({ message: "已启用，点下面任意一行填写晚课" })
+      this.showTip("点下面任意一行填写晚课")
     }
     this.persist()
   },
 
   pickCycle(n) {
-    if (!this.tpl) {
-      return
-    }
+    if (!this.tpl || this.busy) return
     rotation.setCycle(this.tpl, n)
     this.persist()
   },
 
   onTimeChange(e) {
-    if (!this.tpl) {
-      return
-    }
+    if (!this.tpl || this.busy) return
     var i = e.newSelected
-    if (i == null || i < 0 || i >= this.timeOpts.length) {
-      return
-    }
+    if (i == null || i < 0 || i >= this.timeOpts.length) return
     this.timeIdx = i
     this.tpl.time = this.timeOpts[i]
     this.persist()
   },
 
+  toggleWeekend() {
+    this.showWeekend = !this.showWeekend
+    this.refresh()
+  },
+
   editCell(item) {
-    if (!item) {
-      return
-    }
+    if (!item || this.busy) return
     var self = this
     var w = item.w
     var d = item.d
     var name = rotation.cellOf(self.tpl, w, d)
-    var title = "第 " + (w + 1) + " 周 · 周" + rotation.DAY_SHORT[d]
+    var title = "第 " + (w + 1) + " 周 " + rotation.DAY_SHORT[d]
     storage.set({ key: "chinese_input_title", value: title, success: function () {} })
-    storage.set({ key: "chinese_input_placeholder", value: "输入课程名（≤8 字）", success: function () {} })
+    storage.set({ key: "chinese_input_placeholder", value: "输入课程名", success: function () {} })
     storage.set({ key: "chinese_input_value", value: name, success: function () {} })
     storage.set({ key: "chinese_input_maxlen", value: "8", success: function () {} })
     storage.set({ key: "chinese_input_return_key", value: RESULT_KEY, success: function () {} })
@@ -232,106 +276,88 @@ export default {
 
   persist() {
     var self = this
-    rotation.save(self.sid, self.tpl, function () {
+    if (!self.tpl || self.busy) return
+    self.busy = true
+    rotation.save(self.sid, self.tpl, function (err) {
+      self.busy = false
+      if (err) {
+        self.showTip("保存失败 请重试")
+        return
+      }
       self.refresh()
     })
   },
 
   refresh() {
-    var self = this
-    var tpl = self.tpl || rotation.normalize({})
-    self.tpl = tpl
-    self.enabled = !!tpl.enabled
-    self.cycle = tpl.cycle
-    self.summary = rotation.summary(tpl)
+    var tpl = this.tpl || rotation.normalize({})
+    this.tpl = tpl
+    this.enabled = !!tpl.enabled
+    this.cycle = tpl.cycle
+    // 不用 rotation.summary()：它带装饰分隔符，违反 ev-six 禁用符号。
+    this.summary = (tpl.enabled ? "已启用" : "未启用") + " 已填 " + rotation.filledCount(tpl) + " 格"
 
-    // 时段：当前值不在档位里就临时插到第一位，别让 picker 选不中
     var opts = TIME_OPTS.slice(0)
     var ti = opts.indexOf(tpl.time)
     if (ti < 0) {
       opts.unshift(tpl.time)
       ti = 0
     }
-    self.timeOpts = opts
-    self.timeIdx = ti
+    this.timeOpts = opts
+    this.timeIdx = ti
 
-    // 长列表：每周一个标题 + 7 行，单层数组避免嵌套 for 的 $item 歧义
-    var curWeek = rotation.weekIndexOf(tpl)
-    var curDay = rotation.dayIndexOf()
+    // 用 rotation.listView() 作数据源（旧页面自己重拼 rows，与数据层口径分叉），
+    // 再展平成单层数组，避开快应用嵌套 for 的 $item 歧义。
+    var groups = rotation.listView(tpl)
+    var days = this.showWeekend ? 7 : 5
     var rows = []
-    for (var w = 0; w < tpl.cycle; w++) {
-      var isCur = w === curWeek
+    for (var w = 0; w < groups.length; w++) {
+      var g = groups[w]
       rows.push({
         type: "week",
-        label: "第 " + (w + 1) + " 周" + (isCur ? " · 本周" : ""),
-        isCurrent: isCur
+        label: g.weekLabel + (g.isCurrent ? " 本周" : ""),
+        isCurrent: g.isCurrent
       })
-      for (var d = 0; d < 7; d++) {
+      for (var d = 0; d < days && d < g.items.length; d++) {
+        var it = g.items[d]
         rows.push({
           type: "cell",
-          w: w,
-          d: d,
-          dayLabel: "周" + rotation.DAY_SHORT[d],
-          name: rotation.cellOf(tpl, w, d),
-          isToday: isCur && d === curDay
+          w: g.week,
+          d: it.day,
+          dayLabel: it.dayLabel,
+          name: it.name,
+          isToday: it.isToday
         })
       }
     }
-    self.rows = rows
+    this.rows = rows
   }
 }
 </script>
 
 <style>
+@import '../../common/header.css';
+
+/* 基准 = 胶囊屏 192×490。字号只取 24 / 28 / 30 三档，24px 是绝对下限；
+   @media 只负责在大屏放大，禁止靠压字号把内容塞进一屏。 */
 .page {
-  width: 192px;
-  height: 490px;
   flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 0;
 }
 
-.header {
-  width: 192px;
-  height: 44px;
-  flex-direction: row;
-  align-items: center;
-  padding-left: 6px;
-  padding-right: 6px;
-}
-
-.back-btn-wrapper {
-  width: 30px;
-  height: 30px;
-  border-radius: 15px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.back-arrow {
-  font-size: 26px;
-  line-height: 28px;
-  margin-top: -4px;
-}
-
-.header-title {
+.body-scroll {
   flex: 1;
-  font-size: 19px;
-  text-align: center;
-  font-weight: bold;
-}
-
-.header-placeholder {
-  width: 30px;
-  flex-shrink: 0;
+  flex-direction: column;
+  padding: 0 12px;
 }
 
 .card {
-  margin-left: 6px;
-  margin-right: 6px;
-  margin-bottom: 6px;
-  padding: 8px;
-  border-radius: 12px;
   flex-direction: column;
+  border-radius: 12px;
+  padding: 8px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
 }
 
 .switch-row {
@@ -340,24 +366,16 @@ export default {
   justify-content: space-between;
 }
 
-.switch-text {
-  flex-direction: column;
-  flex: 1;
-}
-
 .switch-title {
-  font-size: 16px;
-}
-
-.switch-sub {
-  font-size: 11px;
-  margin-top: 2px;
+  font-size: 28px;
+  line-height: 34px;
+  lines: 1;
 }
 
 .switch-pill {
-  width: 54px;
-  height: 26px;
-  border-radius: 13px;
+  width: 60px;
+  height: 30px;
+  border-radius: 15px;
   justify-content: center;
   flex-shrink: 0;
 }
@@ -365,18 +383,27 @@ export default {
 .switch-knob {
   position: absolute;
   top: 3px;
-  width: 20px;
-  height: 20px;
-  border-radius: 10px;
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
   background-color: #ffffff;
 }
 
-.label {
-  font-size: 11px;
+.card-sub {
+  font-size: 24px;
+  line-height: 30px;
+  lines: 1;
+  margin-top: 4px;
+}
+
+.card-title {
+  font-size: 24px;
+  line-height: 30px;
+  lines: 1;
   margin-bottom: 4px;
 }
 
-.label-gap {
+.gap {
   margin-top: 8px;
 }
 
@@ -386,26 +413,42 @@ export default {
 }
 
 .pill {
-  padding-left: 7px;
-  padding-right: 7px;
-  height: 24px;
-  border-radius: 12px;
-  margin-right: 5px;
-  margin-bottom: 4px;
+  padding-left: 8px;
+  padding-right: 8px;
+  height: 32px;
+  border-radius: 16px;
+  margin-right: 6px;
+  margin-bottom: 6px;
   align-items: center;
   justify-content: center;
 }
 
 .pill-text {
-  font-size: 11px;
+  font-size: 24px;
+  line-height: 30px;
+  lines: 1;
 }
 
 .time-picker {
-  width: 168px;
-  height: 32px;
+  width: 100%;
+  height: 36px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 24px;
   text-align: center;
+}
+
+.weekend-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.weekend-text,
+.weekend-state {
+  font-size: 24px;
+  line-height: 30px;
+  lines: 1;
 }
 
 .row-wrap {
@@ -413,57 +456,80 @@ export default {
 }
 
 .week-title {
-  font-size: 11px;
-  margin-left: 10px;
-  margin-top: 6px;
-  margin-bottom: 3px;
-}
-
-.week-on {
+  font-size: 28px;
+  line-height: 34px;
+  lines: 1;
   font-weight: bold;
+  margin-top: 6px;
+  margin-bottom: 4px;
 }
 
 .cell {
-  height: 32px;
-  margin-left: 6px;
-  margin-right: 6px;
-  margin-bottom: 3px;
-  padding-left: 9px;
-  padding-right: 9px;
+  height: 40px;
+  margin-bottom: 4px;
+  padding-left: 8px;
+  padding-right: 8px;
   border-radius: 8px;
   flex-direction: row;
   align-items: center;
 }
 
 .cell-day {
-  width: 30px;
-  font-size: 12px;
+  width: 64px;
+  font-size: 24px;
+  line-height: 30px;
+  lines: 1;
   flex-shrink: 0;
 }
 
 .cell-name {
   flex: 1;
-  font-size: 14px;
-}
-
-.cell-empty {
-  font-size: 12px;
-}
-
-.cell-arrow {
-  font-size: 16px;
-  flex-shrink: 0;
+  font-size: 24px;
+  line-height: 30px;
+  lines: 1;
 }
 
 .tips {
-  font-size: 10px;
-  margin-left: 10px;
-  margin-right: 10px;
+  font-size: 24px;
+  line-height: 30px;
+  lines: 1;
   margin-top: 8px;
-  line-height: 14px;
 }
 
 .bottom-gap {
   height: 16px;
+}
+
+.tip-bar {
+  height: 52px;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 12px;
+  flex-shrink: 0;
+}
+
+.tip-msg {
+  flex: 1;
+  font-size: 24px;
+  line-height: 30px;
+  lines: 1;
+}
+
+/* 方屏 / 圆屏放大 */
+@media (shape: rect) {
+  .card { padding: 10px; margin-bottom: 10px; }
+  .switch-title { font-size: 30px; line-height: 38px; }
+  .week-title { font-size: 30px; line-height: 38px; }
+  .cell { height: 46px; }
+  .cell-day { width: 76px; }
+}
+
+@media (shape: circle) {
+  .body-scroll { padding: 0 16px; }
+  .card { padding: 10px; }
+  .switch-title { font-size: 30px; line-height: 38px; }
+  .week-title { font-size: 30px; line-height: 38px; }
+  .cell { height: 46px; }
+  .cell-day { width: 76px; }
 }
 </style>

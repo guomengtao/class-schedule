@@ -451,6 +451,18 @@ function summary(tpl) {
   return tpl.enabled ? head : ("已关闭（" + head + "）")
 }
 
+/**
+ * 导入 / 备份恢复直接写了 ev_rotation_* 之后必须调用。
+ * cache / primed / waiting 是模块级对象，不重置的话 peek() 会一直返回旧模板，
+ * 页面看起来像「导入没生效 / 晚课丢了」，直到进程重启才恢复。
+ * 用 delete 逐键清，不重新赋值，兼容 const 声明。
+ */
+function resetCache() {
+  for (var k in cache) { if (cache.hasOwnProperty(k)) delete cache[k] }
+  for (var p in primed) { if (primed.hasOwnProperty(p)) delete primed[p] }
+  for (var w in waiting) { if (waiting.hasOwnProperty(w)) delete waiting[w] }
+}
+
 module.exports = {
   KEY_PREFIX: KEY_PREFIX,
   DAY_NAMES: DAY_NAMES,
@@ -463,6 +475,7 @@ module.exports = {
   prime: prime,
   peek: peek,
   setCache: setCache,
+  resetCache: resetCache,
   save: save,
   clear: clear,
   parseDate: parseDate,

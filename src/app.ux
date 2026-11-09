@@ -365,19 +365,32 @@ function syncNormalizeRotation(rot) {
   }
 }
 
-// 写某套课表的晚课。rotation 为空 = 清空（导出时自然不带）
+// 写某套课表的晚课。
+// ⚠️ 2026-11-09 修「导入后晚课丢失」：三端口径必须一致 ——
+//   手机端 TransferActivity.java:1242 文件没晚课就根本不放 rotation 字段；
+//   Rust import_engine.rs:11 明确 None = 这份文件没提晚课，不是关掉晚课。
+//   旧实现把 null 写成空串覆盖 ev_rotation_<idx>，于是任何不含晚课的文件
+//   （含八年级二班-默认课表.json）一导入就清空用户已配置的晚课。
+//   现在 null / undefined 一律「不动本地」；要显式清空请传一个 enabled:false 的对象。
 function syncWriteRotation(index, rotation, cb) {
   cb = cb || function () {}
+  if (rotation === null || rotation === undefined) {
+    cb(true)   // 文件没提晚课：保留本地，不写盘
+    return
+  }
   var storage = require("@system.storage")
   var key = "ev_rotation_" + index
   var value = ""
-  if (rotation && typeof rotation === "object") {
+  if (typeof rotation === "object") {
     try { value = JSON.stringify(syncNormalizeRotation(rotation)) } catch (e) { value = "" }
   }
   storage.set({
     key: key,
     value: value,
-    success: function () { cb(true) },
+    success: function () {
+      try { require("./data/rotation").resetCache() } catch (e) {}
+      cb(true)
+    },
     fail: function () { cb(false) }
   })
 }

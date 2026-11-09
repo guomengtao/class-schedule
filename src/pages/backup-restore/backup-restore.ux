@@ -460,12 +460,20 @@ export default {
           })
         }
         if (database.resetCache) database.resetCache()
+        // 恢复直接改了 ev_rotation_*，必须同步清晚课模块缓存，
+        // 否则 peek() 仍返回旧模板，页面看起来像「恢复没生效」。
+        try { require("../../data/rotation").resetCache() } catch (e) {}
         database.init(function() {
           store.getTheme(function() {}, true)
         })
         return
       }
       var key = keys[i]
+      // 老版本备份里没有晚课 key：跳过，绝不写 undefined 覆盖现有晚课。
+      if (backupData[key] === undefined || backupData[key] === null) {
+        saveKey(i + 1)
+        return
+      }
       storage.set({
         key: key,
         value: backupData[key],
