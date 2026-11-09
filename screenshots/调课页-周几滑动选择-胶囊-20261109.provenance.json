@@ -1,0 +1,19 @@
+{
+  "schema": "ev-shot/1",
+  "tool": "ev-emubuddy/emubuddy_core.py shot --frame --no-ocr",
+  "created": "2026-11-09T20:42:14+08:00",
+  "note": "周一首屏（默认今天）+ 课程卡 第1节 早自 1/9",
+  "devices": [
+    {
+      "serial": "emulator-11000",
+      "avd": "xiaomi_band",
+      "screen": "192x490",
+      "skin": "xiaomi_band"
+    }
+  ],
+  "size": [
+    281,
+    820
+  ],
+  "sha256": "a48bfe3b81e0595514a330916c80874b68c6f138d7fb0c6321b5ee9958bdc496"
+}

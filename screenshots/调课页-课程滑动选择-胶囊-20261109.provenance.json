@@ -1,0 +1,19 @@
+{
+  "schema": "ev-shot/1",
+  "tool": "ev-emubuddy/emubuddy_core.py shot --frame --no-ocr",
+  "created": "2026-11-09T20:42:14+08:00",
+  "note": "课程卡切换后 第2节 英语 2/3",
+  "devices": [
+    {
+      "serial": "emulator-11000",
+      "avd": "xiaomi_band",
+      "screen": "192x490",
+      "skin": "xiaomi_band"
+    }
+  ],
+  "size": [
+    281,
+    820
+  ],
+  "sha256": "d38c42062d4b1891d8450b52bdf06876f1494c1b42f397db6d3ef7a2f848537e"
+}
