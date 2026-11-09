@@ -1,0 +1,19 @@
+{
+  "schema": "ev-shot/1",
+  "tool": "ev-emubuddy/emubuddy_core.py shot --frame --no-ocr",
+  "created": "2026-11-09T21:34:03+08:00",
+  "note": "源课程「语文 周二 第3节」置顶且去强调；周几默认落在周二（跟随源课程，非今天周一）；周几条左对齐并在右侧露出第三格一部分；目标课程卡 accent 高亮且右侧露出下一张卡的边。此帧用临时注入 CTX.id=12 的直入口包截取以实证默认联动，源码已还原，不属发布产物。",
+  "devices": [
+    {
+      "serial": "emulator-11008",
+      "avd": "evc-xiaomi_band-1",
+      "screen": "192x490",
+      "skin": "xiaomi_band"
+    }
+  ],
+  "size": [
+    281,
+    820
+  ],
+  "sha256": "a0b55f6de8ae8630774a133818eccc57807277f4968c1924c80600bf41890b14"
+}

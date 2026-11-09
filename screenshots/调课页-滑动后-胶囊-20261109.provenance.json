@@ -1,0 +1,19 @@
+{
+  "schema": "ev-shot/1",
+  "tool": "ev-emubuddy/emubuddy_core.py shot --frame --no-ocr",
+  "created": "2026-11-09T21:34:03+08:00",
+  "note": "正式包。周几滑到周四、课程卡左滑到「第2节 生物 左右滑 2/4」；两处 peek 露边仍在，来源区始终不变。验证双滑动切换。",
+  "devices": [
+    {
+      "serial": "emulator-11008",
+      "avd": "evc-xiaomi_band-1",
+      "screen": "192x490",
+      "skin": "xiaomi_band"
+    }
+  ],
+  "size": [
+    281,
+    820
+  ],
+  "sha256": "5a5895e5638ca4f76330dc2e9f771053b70074859ed7152eeb5a4069537a1d42"
+}
