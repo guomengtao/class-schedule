@@ -6,7 +6,7 @@
        ⚠️ 根节点一旦挂 touch，系统右划退出会失效，所以首页必须保留可见出口
        （底部按钮 / 各页面顶栏返回），这条别删。
        实现与红线见 modules/gesture.js 文件头。 -->
-  <div id="schedule-page" class="schedule-page {{ isCircle ? 'circle-mode' : '' }}" style="background-color: {{ theme.bg }}"
+  <div id="schedule-page" class="schedule-page" style="{{ isCircle ? 'padding: 40px 52px 28px 52px;' : '' }}background-color: {{ theme.bg }}"
        ontouchstart="onPageTouchStart"
        ontouchmove="onPageTouchMove"
        ontouchend="onPageTouchEnd"
@@ -60,7 +60,7 @@
          故整行删除（模板 + .day-summary 样式 + todaySummary/todayDoneCount/todayLeftCount
          数据字段与文案计算一并清理）。要全局口径时再以「已结束／未开始」分界线形式回归。 -->
 
-    <div class="status-bar" if="{{ showStatusBar }}" style="background-color: {{ theme.cardLight }}">
+    <div class="status-bar" if="{{ showStatusBar }}" style="{{ isCircle ? 'padding: 4px 8px;' : '' }}background-color: {{ theme.cardLight }}">
       <div class="left-accent left-accent-6" if="{{ !isCapsule }}" style="background-color: {{ theme.accent }}"></div>
       <!-- Capsule: 单行紧凑布局（剩余时间 + 课程名，2026-11-03 起无图标） -->
       <div if="{{ isCapsule }}" class="status-capsule-row">
@@ -163,7 +163,7 @@
          视觉上伪装成「第三张空的课程卡」，这才是它碍眼的根因（不是高度，收起已是 40px）。
          收起时背景改 transparent，只留一行 textSecondary 淡字 + 压暗箭头，让它退回次要层；
          展开时仍是 theme.card 面板底（内含标签行，需要承载面）。几何与留白一概不动。 -->
-    <div class="quick-add" if="{{ showQuickAdd }}" style="background-color: {{ quickAdd.expanded ? theme.card : 'transparent' }}">
+    <div class="quick-add" if="{{ showQuickAdd && !isCircle }}" style="background-color: {{ quickAdd.expanded ? theme.card : 'transparent' }}">
       <!-- 2026-11-02 收起/展开拆成两块（不用复合选择器：本项目实测复合选择器会把进页搞黑屏）。
            收起态弱化理由：accent #7ec8e3 是行动色，课程时间、标签「+」都在用它，
            一个纯折叠标题占着这个位置，等于把强调位从课程内容手里抢走 —— 页面重点就散了。
@@ -337,21 +337,23 @@ device.getInfo({
     // 于是圆屏套用了方屏模板（总/今/明三钮、「添加课程」+「设置」宽条、全称「星期一」）。
     // 这里把 circle 并入胶囊：模板结构完全一致，差异只留在
     // @media (shape: circle) 的尺寸档与 computeFontSizes 的圆屏分支。
-    // 2026-11-10 补：圆屏 screenShape 的文案不统一 —— 项目硬约束文档记的是
-    // pill-shaped / rect / round，另有文档写 circle，真机与模拟器可能各说一套。
-    // 只认 "circle" 会漏判成方屏（实测：Watch S4 466×466 就漏了，界面出成总/今/明）。
-    // 所以三个值都收，再用正圆尺寸兜底：466×466 是正方形，而方屏 336×480、
-    // 胶囊 192×490 都不是，现有机位矩阵里「宽高相等」等价于圆屏。
+    // 三判据：手环 9 报 "pill-shaped"，S4 有的固件报 "circle"、有的报 "round"，
+    // 还有的直接给空值。所以再加一条「宽高近似相等」兜底，避免圆屏漏判成方屏。
     var sw = data.screenWidth || 0
     var sh = data.screenHeight || 0
     var circle = (shape === "circle" || shape === "round" ||
-                  (sw > 0 && sh > 0 && Math.abs(sw - sh) <= 8))
+      (sw > 0 && sh > 0 && Math.abs(sw - sh) <= 8))
     var capsule = (shape === "capsule" || shape === "pill-shaped" || circle)
     isCircleScreen = circle
     isCapsuleScreen = capsule
+    // 圆屏与胶囊同版式但字号/行数分档，isCircle 单独同步一次
+    if (indexInstance && indexInstance.isCircle !== circle) {
+      indexInstance.isCircle = circle
+      indexInstance.applyFontSizes()
+      try { indexInstance.$forceUpdate() } catch (e) {}
+    }
     if (indexInstance && indexInstance.isCapsule !== capsule) {
       indexInstance.isCapsule = capsule
-      indexInstance.isCircle = circle
       indexInstance.applyFontSizes()
       // 星期标题是否缩写取决于屏型，回填后需重新计算
       if (typeof indexInstance.updateDayDisplay === 'function') {
@@ -732,15 +734,11 @@ export default {
       // 屏高只有 466（比手环 490 还矮 24），所以既不能照抄手环的 32/20/26
       // （字只占屏宽 4%，四周空一片），也不能按 2.4 倍等比放大（纵向装不下课卡）。
       // 取约 1.4 倍中间档：一屏仍容 2 条课卡 + 底部三圆，正文约占屏宽 8%。
-      // 2026-11-10 二次收敛：初版 40/28/36 实测(实拍)纵向装不下——466 高里
-      // 状态条 + 2 张课卡 + 快速添加行 + 底部三圆 + 班级药丸超出约 30px，
-      // 末条课卡被「快速添加」压住。降到 34/24/32 后单卡少约 18px，正好收回。
-      // meta 24 仍是 ev-six 下限，不再往下压。
       if (isCircleScreen) {
         return {
-          display: Math.min(norm + 4, 34),
-          meta: Math.min(Math.max(norm - 4, 22), 24),
-          dayTitle: Math.min(norm + 4, 32)
+          display: Math.min(norm + 2, 34),
+          meta: Math.min(Math.max(norm - 8, 24), 24),
+          dayTitle: Math.min(norm, 32)
         }
       }
       return {
@@ -1601,74 +1599,71 @@ export default {
   line-height: 30px;
 }
 
-/* 2026-11-10：圆屏尺寸档改走「类名」而不是 @media (shape: circle) ——
-   实测该 media 关键字在本机 Watch S4 上根本不匹配（塞进去的 display:none 毫无效果，
-   padding 也没生效），而 JS 侧 isCapsule 判定是可靠的（版式结构确实跟着变了）。
-   所以统一由 JS 下发 circle-mode 类，样式按类生效。
-   口径不变：圆屏跟手环 9（胶囊）同一套版式，这里只管尺寸档。 */
-.schedule-page.circle-mode {
-  /* 左右 56：header 行在 y≈76 处弦半宽只有 172px（可用 344），
-     圆钮 52 + 内距 56 = 108，刚好落在弧内不切角；
-    上 26 / 下 18：466 高比手环 490 还矮，纵向要抠出约 40px 给课卡。 */
-  padding: 26px 56px 18px 56px;
-}
-.circle-mode .header {
-  padding: 0;
-  margin-bottom: 4px;
-}
-.circle-mode .date-row {
-  height: 32px;
-}
-.circle-mode .date-text {
-  font-size: 26px;
-  line-height: 32px;
-}
-.circle-mode .nav-btn-circle {
-  width: 52px;
-  height: 52px;
-  border-radius: 26px;
-}
-.circle-mode .nav-btn-img {
-  width: 26px;
-  height: 26px;
-}
-/* 状态条（剩余时间 + 课名）与课卡同步放大一档；字号本身由脚本内联下发，
-   这里只调内距与行间距，避免和 computeFontSizes 打架。 */
-.circle-mode .status-bar {
-  padding: 6px;
-  margin-bottom: 5px;
-}
-.circle-mode .status-capsule-time {
-  margin-right: 8px;
-}
-.circle-mode .class-grid-item {
-  min-height: 56px;
-  border-radius: 14px;
-  margin-bottom: 6px;
-}
-.circle-mode .class-card-body {
-  padding: 8px 12px 8px 12px;
-}
-/* 底部三圆与手环同构，仅直径放大（手环 48 → 圆屏 56） */
-.circle-mode .add-btn-wrapper-circle,
-.circle-mode .set-btn-circle {
-  flex: 0 0 56px;
-  width: 56px;
-  height: 56px;
-  border-radius: 28px;
-}
-.circle-mode .add-btn-icon,
-.circle-mode .bottom-mid-icon {
-  width: 28px;
-  height: 28px;
-}
-.circle-mode .bottom-buttons {
-  margin-bottom: 4px;
-}
-/* 466 高下「快速添加」折叠行与底部 ＋ 圆钮功能重复，先收掉把高度让给课卡；
-   要恢复就删掉这条。 */
-.circle-mode .quick-add {
-  display: none;
+@media (shape: circle), (shape: round) {
+  /* 2026-11-09 Tom 口径：圆屏跟手环 9（胶囊）同一套版式 —— 箭头翻页、底部三圆、
+     周几用「周一」缩写。模板结构由 isCapsule 决定（circle 已并入），
+     所以这个块里只剩「圆屏尺寸档」，不再有任何方屏专属控件（总/今/明、宽条按钮）。
+     数值取胶囊档的约 1.3 倍：466 是正方形，横向充裕但纵向只有 466（比手环 490 还矮），
+     等比放大到 2.4 倍就装不下课卡。 */
+  .schedule-page {
+    /* 左右 56：header 行在 y≈76 处弦半宽只有 172px（可用 344），
+       圆钮 52 + 内距 56 = 108，刚好落在弧内不切角；
+       底部 30：最下一条班级药丸在 y≈436 处可用宽仅约 300。 */
+    padding: 40px 56px 30px 56px;
+  }
+  .header {
+    padding: 0;
+    margin-bottom: 8px;
+  }
+  .date-row {
+    height: 32px;
+  }
+  .date-text {
+    font-size: 26px;
+    line-height: 32px;
+  }
+  .nav-btn-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 26px;
+  }
+  .nav-btn-img {
+    width: 26px;
+    height: 26px;
+  }
+  /* 状态条（剩余时间 + 课名）与课卡同步放大一档；字号本身由脚本内联下发，
+     这里只调内距与行间距，避免和 computeFontSizes 打架。 */
+  .status-bar {
+    padding: 8px;
+    margin-bottom: 8px;
+  }
+  .status-capsule-time {
+    margin-right: 8px;
+  }
+  .class-grid-item {
+    min-height: 66px;
+    border-radius: 14px;
+    margin-bottom: 8px;
+  }
+  .class-card-body {
+    padding: 8px 12px 8px 12px;
+  }
+  /* 底部三圆与手环同构，仅直径放大（手环 48 → 圆屏 56） */
+  .add-btn-wrapper-circle,
+  .set-btn-circle {
+    flex: 0 0 56px;
+    width: 56px;
+    height: 56px;
+    border-radius: 28px;
+  }
+  .add-btn-icon,
+  .bottom-mid-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .bottom-buttons {
+    margin-bottom: 6px;
+  }
 }
 
 @media (shape: capsule), (shape: pill-shaped) {
