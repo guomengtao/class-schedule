@@ -1,14 +1,20 @@
 <!-- 临时调课双向选择器（ev-six）
      场景：学生不能带手机，老师在课堂上临时宣布换课，手环上点一下记录。
      只允许已有课程互换；两节课内容互换，格位（日期 + 节次 + 时间）不动。
-     2026-11-09 晚改成双滑动选择器：第一行左右滑选周一~周五，候选课程
-     同样左右滑切换，当前显示项即待换目标，确认按钮一步提交。
+
+     2026-11-09 晚 · 信息层级与可发现性重构（设计师评审）：
+       A 区「拿去换的课」= 来源，只读、已确定 → 置顶、去强调（无 accent、
+         1px 暗边框、常规字重、小圆角），像一张凭证；
+       B 区「换成这节课」= 目标，可选、可滑动 → 强调（accent 高亮 + 2px 边框
+         + 粗体 + 进度读数）。两区故意不共用卡片语言，避免「太一样看不懂」。
+       两条选择器都做 peek：视窗内最后一个只露一部分，明确暗示「后面还能滑」。
+       默认周几跟随源课程所在天（同天换课是高频场景），仍可左右滑到别的天。
      字号守四档：本页只用 28 / 24，行高 38 / 34；禁符号、禁徽标、禁箭头
      （「左右滑动 2/5」是进度读数，不是装饰符号）。 -->
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <!-- 页头同步改成设置页同款 .hdr 胶囊（2026-11-09 晚）。本次两条选择器接管了
-         left / right 手势，把返回热区从 30×30 扩到整颗胶囊，返回仍一步可达。 -->
+    <!-- 页头：设置页同款 .hdr 胶囊，整颗可点返回。两条选择器接管 left/right，
+         页头与 footer 仍是系统右滑返回区，返回一步可达。 -->
     <div class="hdr">
       <div class="hdr-pill" onclick="goBack" style="background-color: {{ theme.card }}">
         <image class="hdr-pill-ic" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
@@ -16,46 +22,51 @@
       </div>
     </div>
 
-    <!-- 第一行：周几滑动选择器（2026-11-09 晚）。取代原来「今天 / 明天」两颗按钮，
-         改成周一~周五五个工作日左右滑动切换，进页默认落在今天对应的工作日。
-         整条 onswipe 左滑下一天 / 右滑上一天（到端点循环），两侧小字也可点，
-         手势不生效时仍有可用的点击热区。固定在页头之下、不跟随 scroll，
-         保留 11-09 上午「第二行看不到」那次修复的成果。
-         宽度用固定百分比（32/36/32），不用 flex:1 —— 小屏上曾塌成细条。 -->
-    <div class="day-strip" onswipe="onDaySwipe">
-      <div class="day-side" onclick="stepDay(-1)">
-        <text class="day-side-t" style="color: {{ theme.textMuted }}">{{ prevDayLabel }}</text>
-      </div>
-      <div class="day-current" style="background-color: {{ theme.accent }}">
-        <text class="day-current-t" style="color: {{ theme.bg }}">{{ curDayLabel }}</text>
-      </div>
-      <div class="day-side" onclick="stepDay(1)">
-        <text class="day-side-t" style="color: {{ theme.textMuted }}">{{ nextDayLabel }}</text>
+    <!-- A 区 · 来源（置顶、只读、去强调）
+         「拿去换的课」是用户从课程详情带进来的既定事实，不是可选项。
+         刻意不给它 accent、不给粗体、不给大圆角、不给交互提示：
+         细暗边框 + 次级字色 + 常规字重，让它在视觉上退到 B 区之后。
+         文字标签直接写明语义，比只靠配色区分更可靠（小屏 + 弱视可读）。 -->
+    <div class="source" style="background-color: {{ theme.card }}; border-color: {{ theme.border }}">
+      <text class="source-label" style="color: {{ theme.textSecondary }}">拿去换的课</text>
+      <text class="source-name" style="color: {{ theme.text }}">{{ sourceName }}</text>
+      <text class="source-when" style="color: {{ theme.textSecondary }}">{{ sourceWhen }}</text>
+    </div>
+
+    <!-- B1 · 周几 peek 视窗（固定在 scroll 之外，进页必见，延续 11-09 上午
+         「第二行看不到」那次修复）。当前项从头部左对齐，后面依次排开，
+         第三格被视窗裁掉大半、只露约 24px —— 这个残留色块就是「后面还能滑」
+         的可见提示，不能凑成整数个完整格。整条 onswipe 左滑下一天 /
+         右滑上一天（端点循环），三格也都能点，手势不生效时仍有热区。 -->
+    <div class="day-viewport" onswipe="onDaySwipe">
+      <div class="day-track">
+        <div for="{{ dayWindow }}" class="day-cell" onclick="pickDay($item.offset)" style="background-color: {{ $item.bg }}">
+          <text class="day-t {{ $item.active ? 'day-t-on' : '' }}" style="color: {{ $item.fg }}">{{ $item.label }}</text>
+        </div>
       </div>
     </div>
 
     <scroll class="scroll-area" scroll-y="true">
       <div class="content-area">
-        <div class="card" style="background-color: {{ theme.card }}">
-          <text class="card-label" style="color: {{ theme.accent }}">这节课</text>
-          <text class="card-value" style="color: {{ theme.text }}">{{ sourceName }}</text>
-          <text class="card-sub" style="color: {{ theme.textSecondary }}">{{ sourceWhen }}</text>
-        </div>
+        <!-- B 区标题用 accent，与 A 区的次级灰标签形成第二重语义对比 -->
+        <text class="pick-label" style="color: {{ theme.accent }}">换成这节课</text>
 
-        <text class="pick-label" style="color: {{ theme.accent }}">{{ pickLabel }}</text>
-
-        <!-- 候选课程同样改成左右滑动选择（2026-11-09 晚）：一屏只显示一节，
-             左滑下一节 / 右滑上一节（端点循环），点按整卡也翻下一节作为手势兜底；
-             当前显示项即待换目标，底部「确认换课」直接提交它，省掉长列表里逐条点选。
-             onswipe 只挂在这条与周几条上；页头、卡片间隙、footer 仍是系统
-             右滑返回区，页头另有显式返回按钮。按 pit-20261102-80/81，right
-             方向已显式处理，不会留下未接管的死手势。 -->
-        <div class="course-strip" if="{{ candidates.length > 0 }}" onclick="pickCourse" onswipe="onCourseSwipe" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
-          <div class="course-main">
-            <text class="course-period" style="color: {{ theme.textSecondary }}">{{ curCoursePeriod }}</text>
-            <text class="course-name" style="color: {{ theme.text }}">{{ curCourseName }}</text>
+        <!-- B2 · 目标课程 peek 视窗：主卡 + 右侧露出下一张卡的 14px 边框。
+             只有一节候选时不画 peek —— 没有下一张就不能给假的可滑提示。
+             左滑下一节 / 右滑上一节（端点循环）；点按整卡翻下一节作兜底。
+             当前显示项即待换目标，底部「确认换课」直接提交它。
+             按 pit-20261102-80/81，right 已显式接管，不留死手势。 -->
+        <div class="course-viewport" if="{{ candidates.length > 0 }}" onclick="pickCourse" onswipe="onCourseSwipe">
+          <div class="course-track">
+            <div class="course-strip" style="background-color: {{ theme.card }}; border-color: {{ theme.accent }}">
+              <div class="course-main">
+                <text class="course-period" style="color: {{ theme.textSecondary }}">{{ curCoursePeriod }}</text>
+                <text class="course-name" style="color: {{ theme.text }}">{{ curCourseName }}</text>
+              </div>
+              <text class="course-hint" style="color: {{ theme.textMuted }}">{{ courseHint }}</text>
+            </div>
+            <div class="course-peek" if="{{ hasCoursePeek }}" style="background-color: {{ theme.cardLight }}; border-color: {{ theme.accent }}"></div>
           </div>
-          <text class="course-hint" style="color: {{ theme.textMuted }}">{{ courseHint }}</text>
         </div>
 
         <text class="empty-hint" if="{{ candidates.length === 0 }}" style="color: {{ theme.textSecondary }}">{{ emptyHint }}</text>
@@ -117,17 +128,17 @@ export default {
     sourceItem: {},
     dayTab: 0,
     dayLabels: ["周一", "周二", "周三", "周四", "周五"],
-    prevDayLabel: "",
-    curDayLabel: "周一",
-    nextDayLabel: "周二",
+    // 周几视窗固定渲染三格：当前 + 后一天 + 再后一天（第三格被视窗裁掉大半）。
+    // bg/fg 在 JS 里算好，避免模板里写嵌套三元（Vela 模板对复杂表达式不稳）。
+    dayWindow: [],
     candidates: [],
     courseIndex: 0,
     curCourseKey: "",
     curCoursePeriod: "",
     curCourseName: "",
     courseHint: "",
+    hasCoursePeek: false,
     selectedKey: "",
-    pickLabel: "换到这节",
     emptyHint: "这天没有别的课",
     hasSwap: false,
     dateStrs: [],
@@ -139,6 +150,8 @@ export default {
     store.getTheme(function(t, themeName) {
       self.theme = t
       self.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
+      // 主题可能晚于首帧到达；dayWindow 的 bg/fg 依赖 theme，补刷一次
+      self.syncDayView()
     })
     // 首帧同步铺内置课表，不读 storage、不等任何回调。
     // pit-20261025-24：onInit 阶段同步发起的 @system.storage 回调在首帧渲染前
@@ -190,8 +203,8 @@ export default {
       dateStrs.push(courseSwap.dateStrOf(dt))
     }
     self.dateStrs = dateStrs
-    // 默认落在今天对应的工作日；周六 / 周日没有对应标签，回落周一
-    var defaultIdx = (dow >= 1 && dow <= 5) ? (dow - 1) : 0
+    // 今天对应的工作日只作为「没有源课程上下文」时的兜底
+    var todayIdx = (dow >= 1 && dow <= 5) ? (dow - 1) : 0
 
     var lists = []
     for (var d = 0; d < dates.length; d++) {
@@ -232,20 +245,34 @@ export default {
     self.allLists = lists
     self.emptyHint = schedule.length === 0 ? "课表读取失败请重试" : "这天没有别的课"
 
+    // 源课程所在天 = 默认周几（同天换课是高频场景）。
+    // 课表里 course.id 全局唯一，所以在五天列表里按 id 命中的那一格就是它
+    // 所属的星期，不必再读 detail_dateStr —— 那个 key 只有从首页进详情才写，
+    // 从周视图 / 总课表 / 全课表进来是空的，挂上去反而会让页面停在空态。
+    // ctx.date 若不是本周一~周五（用户看的是别周），一律忽略，避免换课写到别周。
+    var ctxDate = ctx.date || ""
+    var ctxDateInWeek = false
+    for (var cw = 0; cw < dateStrs.length; cw++) {
+      if (dateStrs[cw] === ctxDate) { ctxDateInWeek = true; break }
+    }
+    if (!ctxDateInWeek) ctxDate = ""
+
     var src = null
+    var srcDayIdx = -1
     for (var a = 0; a < lists.length && !src; a++) {
       for (var b = 0; b < lists[a].length; b++) {
         var it = lists[a][b]
-        if (it.courseId === String(ctx.id) && (!ctx.date || it.dateStr === ctx.date)) {
+        if (it.courseId === String(ctx.id) && (!ctxDate || it.dateStr === ctxDate)) {
           src = it
+          srcDayIdx = a
           break
         }
       }
     }
     if (!src) {
       src = {
-        key: dateStrs[defaultIdx] + "#" + ctx.id,
-        dateStr: ctx.date || dateStrs[defaultIdx],
+        key: dateStrs[todayIdx] + "#" + ctx.id,
+        dateStr: ctxDate || dateStrs[todayIdx],
         courseId: String(ctx.id),
         name: self.sourceName,
         teacher: "",
@@ -266,15 +293,24 @@ export default {
       if (Object.keys(swaps[dateStrs[h]] || {}).length > 0) { has = true; break }
     }
     self.hasSwap = has
+
+    // 默认跟随源课程所在天；找不到（直达页 / 空上下文）才回落今天。
+    // 用户仍可左右滑到周三、周四等其他天，只是不必为高频的同天换课多点一次。
+    var defaultIdx = todayIdx
+    if (srcDayIdx >= 0) {
+      defaultIdx = srcDayIdx
+    } else {
+      for (var di = 0; di < dateStrs.length; di++) {
+        if (dateStrs[di] === src.dateStr) { defaultIdx = di; break }
+      }
+    }
     self.setTab(defaultIdx)
   },
 
   setTab(i) {
     if (i < 0 || i > 4) return
     this.dayTab = i
-    this.prevDayLabel = i > 0 ? this.dayLabels[i - 1] : ""
-    this.curDayLabel = this.dayLabels[i]
-    this.nextDayLabel = i < 4 ? this.dayLabels[i + 1] : ""
+    this.syncDayView()
 
     var list = this.allLists[i] || []
     var srcKey = this.sourceItem ? this.sourceItem.key : ""
@@ -289,18 +325,54 @@ export default {
     this.syncCourseView()
   },
 
+  // 周几视窗：从当前天起连续三格（当前 → 下一天 → 再下一天），从头部左对齐。
+  // 第三格被 .day-viewport 的 168px 视窗裁掉大半、只露约 24px，这就是
+  // 「后面还能滑」的可见提示。到周五后取模回到周一，滑动循环、没有死端。
+  // bg/fg 在这里算好（Vela 模板对嵌套三元不稳），主题未就绪时用兜底色。
+  syncDayView() {
+    var t = this.theme || {}
+    var accent = t.accent || "#7ec8e3"
+    var bg = t.bg || "#1a1a2e"
+    var card = t.card || "#16213e"
+    var border = t.border || "#0f3460"
+    var secondary = t.textSecondary || "#888899"
+    var n = this.dayLabels.length
+    var out = []
+    for (var k = 0; k < 3; k++) {
+      var idx = (this.dayTab + k) % n
+      var active = (k === 0)
+      out.push({
+        label: this.dayLabels[idx],
+        offset: k,
+        active: active,
+        // 明度递进：当前 accent 高亮 → 次格 card → 第三格 border（最暗，被裁）
+        bg: active ? accent : (k === 2 ? border : card),
+        fg: active ? bg : secondary
+      })
+    }
+    this.dayWindow = out
+  },
+
+  // 点视窗里第 offset 格 = 跳到那一天；被裁的第三格也能点，直接跳两天。
+  // 手势不生效时（模拟器 / 部分真机）这是等价的兜底热区。
+  pickDay(offset) {
+    var d = Number(offset) || 0
+    if (d === 0) return
+    this.stepDay(d)
+  },
+
   // 当前预览项即待换目标：滑动 / 点击切换预览，selectedKey 始终跟着它走。
   // 底部「确认换课」直接提交屏幕上那一节，不再需要「先点选再确认」两步。
   syncCourseView() {
     var list = this.candidates || []
     var n = list.length
+    this.hasCoursePeek = n > 1
     if (n === 0) {
       this.curCourseKey = ""
       this.curCoursePeriod = ""
       this.curCourseName = ""
       this.courseHint = ""
       this.selectedKey = ""
-      this.pickLabel = "换到这节"
       return
     }
     if (this.courseIndex < 0) this.courseIndex = 0
@@ -309,9 +381,9 @@ export default {
     this.curCourseKey = it.key
     this.curCoursePeriod = it.period
     this.curCourseName = it.name
-    this.courseHint = "左右滑动 " + (this.courseIndex + 1) + "/" + n
+    // 文案压到 3 汉字 + 进度，148px 主卡内 24px 字号不会裁字
+    this.courseHint = "左右滑 " + (this.courseIndex + 1) + "/" + n
     this.selectedKey = it.key
-    this.pickLabel = "换到这节"
   },
 
   // 点击课程卡 = 切到下一节（与左滑等价）。当前显示项本来就是待换目标，
@@ -405,29 +477,45 @@ export default {
    .back-btn-icon / .header-title / .header-placeholder 本地同名定义全部下线，
    否则页面后加载会静默盖掉公共样式（统一返回按钮方案 §4）。 */
 .page { flex-direction: column; padding: 32px 12px 12px 12px; width: 100%; height: 100%; }
+
+/* ===== A 区 · 来源：只读凭证，刻意去强调 =====
+   与 B 区反向编码：无 accent、1px 暗边框、10px 小圆角、常规字重、次级字色。
+   不进度、不边框高亮、不露 peek —— 它不可选，不该长得像能滑的目标卡。 */
+.source { flex-direction: column; width: 100%; padding: 8px 10px; border-width: 1px; border-radius: 10px; margin-bottom: 10px; flex-shrink: 0; }
+.source-label { font-size: 24px; line-height: 34px; }
+.source-name { font-size: 28px; line-height: 38px; lines: 1; }
+.source-when { font-size: 24px; line-height: 34px; }
+
+/* ===== B1 · 周几 peek 视窗 =====
+   192 屏 - 左右各 12 padding = 168px 视窗。每格 68 + 4 间隙 = 72 步进：
+     第 1 格 0..68     当前（accent 高亮，28px 粗体）
+     第 2 格 72..140   下一天
+     第 3 格 144..212  → 只露 144..168 = 24px
+   这 24px 的残留色块就是「后面还能滑」的提示。刻意不凑成整数个完整格，
+   否则用户会以为选项已经到头。视窗固定在 scroll 之外，进页必见。 */
+.day-viewport { width: 100%; height: 44px; overflow: hidden; margin-bottom: 8px; flex-shrink: 0; }
+.day-track { flex-direction: row; width: 100%; height: 44px; }
+.day-cell { width: 68px; height: 44px; border-radius: 22px; margin-right: 4px; justify-content: center; align-items: center; flex-shrink: 0; }
+.day-t { font-size: 24px; line-height: 34px; lines: 1; }
+.day-t-on { font-size: 28px; line-height: 38px; font-weight: bold; }
+
 .scroll-area { flex: 1; width: 100%; }
 .content-area { flex-direction: column; width: 100%; padding-bottom: 8px; }
-.card { flex-direction: column; width: 100%; padding: 10px 8px; border-radius: 14px; margin-bottom: 10px; }
-.card-label { font-size: 24px; line-height: 34px; }
-.card-value { font-size: 28px; line-height: 38px; font-weight: bold; lines: 1; }
-.card-sub { font-size: 24px; line-height: 34px; }
-/* 周几滑动条：固定在页头之下、不随内容滚动。32/36/32 固定百分比，不用 flex:1：
- * 小屏上 flex:1 + 无显式高度的行曾渲染成一条细缝，视觉上等于「没有这行」。
- * 宽度账（192 屏，可用 168）：中间 36%≈60px 放 28px×2 字（实宽 54），
- * 两侧 32%≈54px 放 24px×2 字（实宽 46），都不裁字。 */
-.day-strip { flex-direction: row; align-items: center; width: 100%; height: 44px; margin-bottom: 8px; flex-shrink: 0; }
-.day-side { width: 32%; height: 44px; justify-content: center; align-items: center; flex-shrink: 0; }
-.day-side-t { font-size: 24px; line-height: 34px; lines: 1; }
-.day-current { width: 36%; height: 44px; border-radius: 22px; justify-content: center; align-items: center; flex-shrink: 0; }
-.day-current-t { font-size: 28px; line-height: 38px; font-weight: bold; lines: 1; }
 .pick-label { font-size: 24px; line-height: 34px; margin-bottom: 6px; }
-/* 课程滑动卡：一屏只放一节，行内「第N节 + 课名」，下一行是进度提示。
-   整块挂 onswipe + onclick，border 用 accent 表达「当前即待换目标」。 */
-.course-strip { flex-direction: column; width: 100%; padding: 8px 10px; border-radius: 14px; border-width: 2px; margin-bottom: 8px; }
+
+/* ===== B2 · 目标课程 peek 视窗 =====
+   主卡 148 + 间隙 6 + 下一张卡 20 = 174 > 168 → 右侧恒露 14px 的 accent 边。
+   与周几条的 peek 是同一套视觉语言。只有一节候选时不渲染 peek，
+   没有下一张却露出边属于假提示（可发现性不能靠骗）。 */
+.course-viewport { width: 100%; overflow: hidden; margin-bottom: 8px; }
+.course-track { flex-direction: row; width: 100%; }
+.course-strip { flex-direction: column; width: 148px; padding: 8px 6px; border-radius: 14px; border-width: 2px; flex-shrink: 0; }
 .course-main { flex-direction: row; align-items: center; width: 100%; }
-.course-period { font-size: 24px; line-height: 34px; width: 76px; flex-shrink: 0; }
+.course-period { font-size: 24px; line-height: 34px; width: 64px; flex-shrink: 0; }
 .course-name { flex: 1; font-size: 28px; line-height: 38px; font-weight: bold; lines: 1; }
-.course-hint { font-size: 24px; line-height: 34px; text-align: center; width: 100%; }
+.course-hint { font-size: 24px; line-height: 34px; width: 100%; }
+.course-peek { width: 20px; height: 88px; margin-left: 6px; border-radius: 12px; border-width: 2px; flex-shrink: 0; }
+
 .empty-hint { font-size: 24px; line-height: 34px; }
 .footer { flex-direction: column; width: 100%; padding-top: 6px; }
 .confirm-btn { width: 100%; height: 48px; border-radius: 24px; font-size: 28px; font-weight: bold; text-align: center; }
