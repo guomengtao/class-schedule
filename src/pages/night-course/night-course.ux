@@ -45,13 +45,13 @@
           <div class="step-btn" style="background-color: {{ theme.btnSecondary }}" onclick="weekMinus">
             <text class="step-btn-text" style="color: {{ theme.text }}">减</text>
           </div>
-          <text class="step-value" style="color: {{ theme.accent }}">第 {{ curWeek }} 周</text>
+          <text class="step-value" style="color: {{ theme.accent }}">{{ curWeek }} 周</text>
           <div class="step-btn" style="background-color: {{ theme.btnSecondary }}" onclick="weekPlus">
             <text class="step-btn-text" style="color: {{ theme.text }}">加</text>
           </div>
         </div>
         <text class="step-hint" style="color: {{ theme.textSecondary }}">{{ weekHint }}</text>
-        <text class="step-hint" style="color: {{ theme.textMuted }}">每周一自动推进 到末尾回到第 1 周</text>
+        <text class="step-hint" style="color: {{ theme.textMuted }}">下周第 {{ nextWeek }} 周</text>
       </div>
 
       <!-- 时段 / 周末显隐 -->
@@ -153,6 +153,7 @@ export default {
     enabled: false,
     cycle: 6,
     curWeek: 1,
+    nextWeek: 1,
     cycleHint: "",
     weekHint: "",
     timeOpts: TIME_OPTS,
@@ -394,12 +395,16 @@ export default {
     var info = rotation.weekInfo(tpl)
     this.cycle = info.cycle
     this.curWeek = info.current
+    this.nextWeek = info.next
+    // 跑道屏 212px 一行只放得下约 7 个 24px 汉字，hint 一律 ≤6 字。
+    // 长句会被 lines:1 静默截断，ev-six 又禁止靠压字号换长度，
+    // 所以「本周 / 下周 / 自动推进」拆成短行，不塞一整句。
     this.cycleHint = info.cycle === 1
-      ? "不轮换 可直接填进课程表"
-      : "加几周多一套 减周删末尾"
+      ? "不轮换 并课表"
+      : "加周补 减周删"
     this.weekHint = info.anchored
-      ? ("本周第 " + info.current + " 周 下周第 " + info.next + " 周")
-      : "选一次本周周次 之后自动跟着走"
+      ? ("当前第 " + info.current + " 周")
+      : "选本周周次"
 
     var opts = TIME_OPTS.slice(0)
     var ti = opts.indexOf(tpl.time)
