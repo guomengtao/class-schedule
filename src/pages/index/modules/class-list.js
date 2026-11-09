@@ -112,6 +112,9 @@ function init(instance) {
         // 晚课是 rotation.injectInto 注入的虚拟条目，这个标记必须一路带到视图对象：
         // 首页前缀「晚」、点击拦截（goToClassDetail）都靠它。漏掉会让晚课混进普通课。
         _rotation: !!src._rotation,
+        // classState: upcoming / ongoing / ended，由 updateClassProgress 每 60s 刷新。
+        // 视图层靠它做竖条明灭、序号徽标实心与否，课名字色一律不动。
+        classState: "upcoming",
         progress: 0,
         progressColor: "transparent",
         fontSize: currentFontSize,
@@ -199,33 +202,80 @@ function init(instance) {
     }
   }
 
+  // 课程三态（2026-11-09）：数据层本来就每 60s 算好 progress 与颜色，
+  // 但硬编码 rgba + .progress-bg 的 opacity:0.12 让有效 alpha 只剩 0.03，
+  // 三态在真机上完全看不出来。这里补齐 classState 与主题 token，供模板做
+  // 「竖条明灭 / 徽标实心与否 / 进度条比例」三层编码；课名字色一律不动。
+  // 仅 isToday 启用三态：翻到过去日期会全屏皆灰、未来日期全屏常态，都失去对比意义。
   instance.updateClassProgress = function() {
     var self = instance
-    var classes = self.currentClasses
+    var classes = self.currentClasses || []
+    var today = self.isToday === true
+    var theme = self.theme || {}
+    var doneColor = theme.progressDone || "transparent"
+    var ongoingColor = theme.progressOngoing || "transparent"
     var now = new Date()
     var nowMinutes = now.getHours() * 60 + now.getMinutes()
+    var doneCount = 0
+    var leftCount = 0
     for (var i = 0; i < classes.length; i++) {
       var course = classes[i]
-      var parts = course.time.split("-")
-      if (parts.length < 2) {
+      // 非今天：一律常态，避免整屏皆灰 / 整屏常态，保留「今天才有对比」的语义
+      if (!today) {
+        course.classState = "upcoming"
         course.progress = 0
         course.progressColor = "transparent"
         continue
       }
-      var startMin = parseTime(parts[0].trim())
-      var endMin = parseTime(parts[1].trim())
-      if (nowMinutes < startMin) {
+      var parts = String(course.time || "").split("-")
+      if (parts.length < 2) {
+        course.classState = "upcoming"
         course.progress = 0
         course.progressColor = "transparent"
-      } else if (nowMinutes >= endMin) {
-        course.progress = 100
-        course.progressColor = "rgba(74,138,154,0.25)"
-      } else {
-        var total = endMin - startMin
-        var elapsed = nowMinutes - startMin
-        course.progress = Math.round((elapsed / total) * 100)
-        course.progressColor = "rgba(126,200,227,0.2)"
+        leftCount++
+        continue
       }
+      var startMin = parseTime(parts[0].trim())
+      var endMin = parseTime(parts[1].trim())
+      // 跨零点课程（如 23:00-01:00）：endMin 小于 startMin，旧逻辑会直接判「已结束」。
+      // 把结束时刻与凌晨的 now 一起折算到次日再比。
+      var overnight = endMin <= startMin
+      if (overnight) endMin += 1440
+      var checkMin = nowMinutes
+      if (overnight && checkMin < startMin) checkMin += 1440
+      if (checkMin < startMin) {
+        course.classState = "upcoming"
+        course.progress = 0
+        course.progressColor = "transparent"
+        leftCount++
+      } else if (checkMin >= endMin) {
+        course.classState = "ended"
+        course.progress = 100
+        course.progressColor = doneColor
+        doneCount++
+      } else {
+        course.classState = "ongoing"
+        var total = endMin - startMin
+        var elapsed = checkMin - startMin
+        course.progress = Math.round((elapsed / total) * 100)
+        course.progressColor = ongoingColor
+        leftCount++
+      }
+    }
+    // 页头摘要：left = 进行中 + 未开始（都还没上完）。胶囊屏 168px 宽只能用短式，
+    // 20px 字号下「已上3·剩2」约 140px 可容纳，长文案会折行。
+    self.todayDoneCount = doneCount
+    self.todayLeftCount = leftCount
+    if (!today || classes.length === 0) {
+      self.todaySummary = ""
+    } else if (leftCount === 0) {
+      self.todaySummary = self.isCapsule ? "今日已上完" : "今日课程已上完"
+    } else if (doneCount === 0) {
+      self.todaySummary = self.isCapsule ? "待上 " + leftCount + " 节" : "今日 " + leftCount + " 节课待上"
+    } else {
+      self.todaySummary = self.isCapsule
+        ? "已上" + doneCount + "·剩" + leftCount
+        : "今日已上 " + doneCount + " 节 · 还剩 " + leftCount + " 节"
     }
   }
 

@@ -54,6 +54,15 @@
     <!-- 方案 D2：独立自定义内容条删除（省 39px 垂直预算），
          该能力保留在数据层，后续并入课程列表末尾或周视图 -->
 
+    <!-- 今日摘要（2026-11-09）：逐卡三态解决「这节上没上」，这里补全局口径
+         「今天上到哪了 / 还剩几节」。跟随顶部状态条开关，不新增设置项；
+         非今天 / 无课 / 加载中一律不渲染。cardLight 底 + theme.text 字，
+         10 套主题 8.36–13.83:1，也不占 accent 强调位。胶囊屏用短式文案。 -->
+    <div class="day-summary" if="{{ showStatusBar && isToday && !isLoading && !loadError && currentClasses.length > 0 && todaySummary.length > 0 }}"
+         style="background-color: {{ theme.cardLight }}">
+      <text class="day-summary-text" style="color: {{ theme.text }}">{{ todaySummary }}</text>
+    </div>
+
     <div class="status-bar" if="{{ showStatusBar }}" style="background-color: {{ theme.cardLight }}">
       <div class="left-accent left-accent-6" if="{{ !isCapsule }}" style="background-color: {{ theme.accent }}"></div>
       <!-- Capsule: 单行紧凑布局（剩余时间 + 课程名，2026-11-03 起无图标） -->
@@ -130,12 +139,18 @@
            晚课共用此位显示「晚」，靠字义区分，不再硬编码低饱和紫（浅色主题会崩）。
            整卡淡紫方案刻意不上（深色主题下会突然冒出一块浅色卡，也不符合「不要显眼」）。
            indexLabel 由 pages/index/modules/class-list.js 排序后写入。 -->
+      <!-- 课程三态（2026-11-09）：状态编码只落在「底色 / 块的有无 / 竖条明暗」三个
+           非文字载体上，课名、时间、地点字色一律不动 —— 10 套主题零对比度风险。
+           已结束：竖条熄灭(textMuted) + 序号徽标去底 + progressDone 满条；
+           进行中：竖条 accent 加粗 + progressOngoing 实时比例条；
+           未开始：竖条 accent 常态 + 实心徽标 + 无进度底。
+           仅 isToday 由数据层下发 classState，非今天全部 upcoming。 -->
       <div for="{{ currentClasses }}" class="class-grid-item" onclick="goToClassDetail($item)" onswipe="onCardSwipe" style="background-color: {{ theme.card }}">
         <div class="progress-bg" if="{{ isToday }}" style="width: {{ $item.progress }}%; background-color: {{ $item.progressColor }}"></div>
-        <div class="class-card-accent" style="background-color: {{ theme.accent }}"></div>
+        <div class="class-card-accent" style="background-color: {{ $item.classState === 'ended' ? theme.textMuted : theme.accent }}; width: {{ $item.classState === 'ongoing' ? 7 : 5 }}px"></div>
         <div class="class-card-body">
           <div class="card-name-row">
-            <div class="grid-item-index-wrap" style="background-color: {{ theme.cardLight }}">
+            <div class="grid-item-index-wrap" style="background-color: {{ $item.classState === 'ended' ? 'transparent' : theme.cardLight }}">
               <text class="grid-item-index" style="color: {{ theme.text }}">{{ $item.indexLabel }}</text>
             </div>
             <text class="grid-item-name" style="color: {{ theme.text }}; font-size: {{ $item.fontSize }}px; line-height: {{ $item.lineHeight }}px">{{ $item.name }}</text>
@@ -393,6 +408,10 @@ export default {
     currentClasses: [],
     schedule: [],
     isToday: true,
+    // 页头今日摘要：由 updateClassProgress 每 60s 与三态一起刷新，非今天为空串
+    todaySummary: "",
+    todayDoneCount: 0,
+    todayLeftCount: 0,
     displaySize: 48,
     metaFontSize: 34,
     dayTitleSize: 48,
@@ -427,7 +446,10 @@ export default {
       textSecondary: '#888899',
       textMuted: '#555566',
       border: '#0f3460',
-      borderLight: '#2a2a5a'
+      borderLight: '#2a2a5a',
+      // 首屏 getTheme 回调前也要有值，否则进度条会短暂渲染成 transparent
+      progressOngoing: 'rgba(126,200,227,0.2)',
+      progressDone: 'rgba(74,138,154,0.25)'
     }
   },
 
@@ -1033,6 +1055,26 @@ export default {
   line-height: 28px;
 }
 
+/* 今日摘要条（2026-11-09）：与 status-bar 同为顶部信息条，但无点击语义、不占 accent。
+   固定 26px 高 + 20px 字（字号规范护栏值），三种屏型共用，不额外放大吃掉列表高度。 */
+.day-summary {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.day-summary-text {
+  font-size: 20px;
+  line-height: 24px;
+  lines: 1;
+  text-align: center;
+}
+
 .status-bar {
   flex-direction: row;
   align-items: center;
@@ -1128,12 +1170,15 @@ export default {
   padding: 14px 16px 14px 14px;
 }
 
+/* 2026-11-09 三态修复：opacity:0.12 是「三态看不见」的直接原因 ——
+   主题 token 本身 alpha 只有 0.2 / 0.25，再乘 0.12 有效 alpha 仅 0.024~0.030，
+   叠在 card 上对比度约 1.01:1，物理上等于没有。去掉后按 token 原值渲染。
+   它仍只是辅助底色（1.12–1.56:1），真正一眼可辨靠竖条明灭与序号徽标去底。 */
 .progress-bg {
   position: absolute;
   left: 0;
   top: 0;
   height: 100%;
-  opacity: 0.12;
 }
 
 /* 课程序号 v2（2026-11-09）：1px 描边环在 325PPI 真机上物理仅约 0.078mm，
