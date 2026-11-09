@@ -1,13 +1,13 @@
 <template>
   <div class="page" style="background-color: {{ theme.bg }}">
-    <!-- header 3 元素：返回键 30 + 居中标题（2 字）+ 等宽占位 30。
-         占位不能归零，否则 flex 标题被推向左侧、整体不居中。 -->
-    <div class="header">
-      <div class="back-btn-wrapper" onclick="goBack" style="background-color: {{ theme.card }}">
-        <image class="back-btn-icon" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+    <!-- 页头（2026-11-09 对齐设置页 .hdr 胶囊）：箭头 + 标题合成一颗整体胶囊，
+         整块可点返回，点击面积从 30×30 扩到「40 高 × 胶囊全宽」，拇指更容易命中。
+         样式全部来自 common/header.css 的 .hdr 一节，本页不再自造三件套头部。 -->
+    <div class="hdr">
+      <div class="hdr-pill" onclick="goBack" style="background-color: {{ theme.card }}">
+        <image class="hdr-pill-ic" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
+        <text class="hdr-pill-t" style="color: {{ theme.text }}">添加</text>
       </div>
-      <text class="header-title" onclick="goBack" style="color: {{ theme.text }}">添加</text>
-      <div class="header-placeholder"></div>
     </div>
 
     <scroll class="content-scroll" scroll-y="true">
@@ -613,10 +613,8 @@ export default {
   padding-bottom: 6px;
 }
 
-.header-title {
-  font-size: 28px;
-  line-height: 38px;
-}
+/* 页头改用 common/header.css 的 .hdr 胶囊（2026-11-09），原 .header-title 已随
+   三段式头部一起下线，字号由 .hdr-pill-t 及其长标题档统一接管。 */
 
 /* 区块标题：4 字 @28 = 149px ≤ 168px。原来 20px 属禁用档，且右侧挂「管理」按钮
  * 会把标题压到 96px 内（4 字必裁）——按钮已删，+ 卡是同一入口。 */

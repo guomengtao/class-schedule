@@ -194,32 +194,75 @@ function weekFilled(tpl, week) {
  * 用户可在晚课页减周 / 加周 / 删格 / 关掉，保存后 origin="user"，seed 不再介入。
  * 其他学校下载后按自己的轮换长度改即可。
  *
- * 两行班级 = 两套课表，SEED_GRIDS[0] = 8.19、[1] = 8.20；其余课表序号
- * 统一 fallback 到 [0]，保证任何新建课表的首页都有默认晚课可看。
+ * 两行班级 = 两套课表。**主套（[0]）是 8.20**——2026-11-09 用户核对照片后指出的
+ * 本班课表；8.19 是另一班，降到 [1] 备选。其余课表序号统一 fallback 到 [0]，
+ * 保证任何新建课表的首页都有默认晚课可看。
+ * 为什么不能只换顺序就完事：老设备在 2026-11-09 之前已被灌过 8.19 的 demo 数据，
+ * 而 origin="demo" 时 needsSeed() 返回 false（视为「已灌过，不再动」），只改种子
+ * 顺序这批人永远看不到修正。故保留 LEGACY_SEED_819 快照逐格比对（见 isLegacySeed），
+ * 只替换「用户一格都没动过」的旧 demo；改过任何一格即 origin="user"，不会误伤。
  * 每周 7 列，前 5 列来自照片，后 2 列留空（页面默认只显示周一~周五）。
  * cycle 由网格长度推导，不再写死 6：以后换成 2 周制照片也不用改代码。
  * calibDate 只是 Demo 默认锚点（恰好是周一）；用户不需要回忆真实开学周，
  * 在设置页指定「本周是第几周」即写入本周一锚点并自动循环。
  */
 var SEED_GRIDS = [
-  [ // 8.19
-    ["语", "数", "体", "英", "物", "", ""],
-    ["英", "历", "语", "生", "数", "", ""],
-    ["道", "数", "英", "地", "历", "", ""],
-    ["语", "数", "体", "英", "物", "", ""],
-    ["道", "数", "地", "语", "体", "", ""],
-    ["语", "生", "物", "英", "社团", "", ""]
-  ],
-  [ // 8.20
+  [ // 8.20（本班·主套）
     ["语", "物", "体", "生", "英", "", ""],
     ["语", "历", "数", "英", "道", "", ""],
     ["语", "物", "生", "英", "数", "", ""],
     ["数", "语", "体", "物", "地", "", ""],
     ["英", "数", "道", "历", "体", "", ""],
     ["语", "英", "地", "数", "社团", "", ""]
+  ],
+  [ // 8.19（同校另一班·备选套）
+    ["语", "数", "体", "英", "物", "", ""],
+    ["英", "历", "语", "生", "数", "", ""],
+    ["道", "数", "英", "地", "历", "", ""],
+    ["语", "数", "体", "英", "物", "", ""],
+    ["道", "数", "地", "语", "体", "", ""],
+    ["语", "生", "物", "英", "社团", "", ""]
   ]
 ]
+
+/** 旧种子快照：2026-11-09 之前 SEED_GRIDS[0] 误用 8.19。仅用于迁移识别，不参与发种。 */
+var LEGACY_SEED_819 = [
+  ["语", "数", "体", "英", "物", "", ""],
+  ["英", "历", "语", "生", "数", "", ""],
+  ["道", "数", "英", "地", "历", "", ""],
+  ["语", "数", "体", "英", "物", "", ""],
+  ["道", "数", "地", "语", "体", "", ""],
+  ["语", "生", "物", "英", "社团", "", ""]
+]
 var SEED_CALIB_DATE = "2026-08-31"
+
+/** 两套网格逐格相等（行数/列数不同即不等）；空值按空串比 */
+function sameGrid(cells, grid) {
+  if (!cells || !grid || cells.length !== grid.length) {
+    return false
+  }
+  for (var gw = 0; gw < grid.length; gw++) {
+    var a = cells[gw] || []
+    var b = grid[gw] || []
+    if (a.length !== b.length) {
+      return false
+    }
+    for (var gd = 0; gd < b.length; gd++) {
+      if ((a[gd] || "") !== (b[gd] || "")) {
+        return false
+      }
+    }
+  }
+  return true
+}
+
+/**
+ * 是否是「用户没动过的旧 8.19 demo」。两个条件同时满足才迁移：
+ * origin 仍是 demo（用户没保存过）+ 内容逐格等于旧快照。
+ */
+function isLegacySeed(tpl) {
+  return !!(tpl && tpl.origin === "demo" && sameGrid(tpl.cells, LEGACY_SEED_819))
+}
 
 /** 默认 Demo 模板；任意 index 都有，idx>=2 回落到第一套 */
 function seedTemplate(index) {
@@ -254,6 +297,23 @@ function needsSeed(tpl) {
   return tpl.origin !== "user" && tpl.origin !== "import" && tpl.origin !== "demo"
 }
 
+/**
+ * 落盘并回调 finish；写失败同样回调，避免页面卡在「读数据中」。
+ * 发种与迁移共用同一段落盘逻辑（2026-11-09 抽出）。
+ */
+function persist(idx, tpl) {
+  try {
+    storage.set({
+      key: KEY_PREFIX + idx,
+      value: JSON.stringify(tpl),
+      success: function () { finish(idx) },
+      fail: function () { finish(idx) }
+    })
+  } catch (e) {
+    finish(idx)
+  }
+}
+
 /** 异步读盘并进缓存；同一 index 并发调用会合并成一次读 */
 function prime(index, callback) {
   var idx = index == null ? 0 : index
@@ -281,18 +341,19 @@ function prime(index, callback) {
             cache[idx] = seeded
             // 写回盘：seed 必须持久化，首页 / 周视图 / 导出 / 备份才拿得到，
             // 也避免下次冷启动又读到全空壳而误判「已有数据」。
-            try {
-              storage.set({
-                key: KEY_PREFIX + idx,
-                value: JSON.stringify(seeded),
-                success: function () { finish(idx) },
-                fail: function () { finish(idx) }
-              })
-              return
-            } catch (e) {
-              finish(idx)
-              return
-            }
+            persist(idx, seeded)
+            return
+          }
+        }
+        // 迁移（2026-11-09）：老设备盘里躺着误发的 8.19 demo（origin=demo，内容逐格
+        // 等于旧快照），needsSeed 认为「已灌过」不会重发，光靠改种子顺序修不回来。
+        // 这里识别出这类数据后一次性替换成新主套（8.20）；用户动过一格即不满足条件。
+        if (isLegacySeed(cache[idx])) {
+          var migrated = seedTemplate(idx)
+          if (migrated) {
+            cache[idx] = migrated
+            persist(idx, migrated)
+            return
           }
         }
         finish(idx)
