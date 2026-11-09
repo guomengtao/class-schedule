@@ -24,27 +24,52 @@ function plusDays(d, n) {
   return date
 }
 
-function readAll(callback) {
+// Vela 的 storage.get 对从未写过的 key 可能 success/fail 都不回调。
+// 覆盖表首次使用必然不存在，若把页面渲染/保存挂在它的异步回调上，
+// 会静默卡死（真机现象：页面停在初始态，课名「这门课」、候选列表空）。
+// 改为「进程内缓存 + 同步回调」：storage 只负责持久化与异步补齐。
+var _cache = null
+var _listeners = []
+var _loading = false
+
+// watch=true 的调用方会在磁盘数据补齐后收到第二次回调（用于首页/调课页补刷）。
+// 写入类操作不传 watch，只会同步回调一次，避免重复写盘。
+function readAll(callback, watch) {
+  if (!_cache) _cache = {}
+  callback(_cache)
+  if (watch) _listeners.push(function() { callback(_cache) })
+  if (_loading) return
+  _loading = true
+  // 不传 default：Vela 的 storage.get 带 default 会把默认值写进 KV，
+  // usr.db 里出现一条空的 course_swap_data{}，后续读到空记录会让首页永远
+  // 合并不到覆盖。主链路已是同步缓存，key 不存在时回调不来也无害。
   storage.get({
     key: DATA_KEY,
     success: function(raw) {
-      if (!raw) {
-        callback({})
-        return
+      if (raw) {
+        try {
+          var disk = JSON.parse(raw) || {}
+          for (var k in disk) {
+            if (Object.prototype.hasOwnProperty.call(disk, k) && !_cache[k]) {
+              _cache[k] = disk[k]
+            }
+          }
+        } catch (e) {}
       }
-      try {
-        callback(JSON.parse(raw) || {})
-      } catch (e) {
-        callback({})
+      var ls = _listeners.slice()
+      _listeners = []
+      for (var i = 0; i < ls.length; i++) {
+        try { ls[i]() } catch (e) {}
       }
     },
     fail: function() {
-      callback({})
+      _listeners = []
     }
   })
 }
 
 function writeAll(data, callback) {
+  _cache = data
   storage.set({
     key: DATA_KEY,
     value: JSON.stringify(data),
@@ -61,7 +86,7 @@ function writeAll(data, callback) {
 function getOverridesForDate(dateStr, callback) {
   readAll(function(data) {
     callback(data[dateStr] || {})
-  })
+  }, true)
 }
 
 // 一次交换 = 两条覆盖记录，内容互换，格位（日期 + courseId + 时间）不动

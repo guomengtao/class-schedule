@@ -36,7 +36,7 @@
           <text class="row-name" style="color: {{ theme.text }}">{{ $item.name }}</text>
         </div>
 
-        <text class="empty-hint" if="{{ candidates.length === 0 }}" style="color: {{ theme.textSecondary }}">这天没有别的课</text>
+        <text class="empty-hint" if="{{ candidates.length === 0 }}" style="color: {{ theme.textSecondary }}">{{ emptyHint }}</text>
       </div>
     </scroll>
 
@@ -93,6 +93,7 @@ export default {
     candidates: [],
     selectedKey: "",
     pickLabel: "换到这节",
+    emptyHint: "这天没有别的课",
     hasSwap: false,
     todayStr: "",
     tomorrowStr: "",
@@ -105,33 +106,26 @@ export default {
       self.theme = t
       self.iconTheme = (themeName === "light" || themeName === "warm") ? "light" : "dark"
     })
-    var got = 0
+    // 只依赖 detail_classId（编辑页同款，确定存在）。Vela 对空值 / 新 key 的
+    // storage.get 回调不稳定，多个 key 计数凑齐会让 build() 永远不执行；
+    // setTimeout 也不保证可用，一律不用。日期/节次由 build() 用今天兜底。
     var ctx = { id: "", date: "", period: "" }
-    function done() {
-      got++
-      if (got === 3) self.loadData(ctx)
-    }
-    storage.get({ key: "detail_classId", success: function(v) { ctx.id = v || ""; done() }, fail: done })
-    storage.get({ key: "detail_dateStr", success: function(v) { ctx.date = v || ""; done() }, fail: done })
-    storage.get({ key: "detail_period", success: function(v) { ctx.period = v || ""; done() }, fail: done })
+    storage.get({
+      key: "detail_classId",
+      success: function(v) { ctx.id = v || ""; self.loadData(ctx) },
+      fail: function() { self.loadData(ctx) }
+    })
   },
 
   loadData(ctx) {
     var self = this
-    var pending = 0
-    var schedule = []
-    var swaps = {}
-    function ready() {
-      pending++
-      if (pending === 2) self.build(schedule, swaps, ctx)
-    }
+    // 串行而非双回调计数：getAllCourses 在子页面可用（编辑页同款），
+    // readAll 自带 fail 兜底；再加一道超时，任何一环不回调也不停在空态。
     database.getAllCourses(function(data) {
-      schedule = data || []
-      ready()
-    })
-    courseSwap.readAll(function(data) {
-      swaps = data || {}
-      ready()
+      // readAll 现在是同步回调，不会再卡住 build()
+      courseSwap.readAll(function(swaps) {
+        self.build(data || [], swaps || {}, ctx)
+      }, true)
     })
   },
 
@@ -180,6 +174,7 @@ export default {
       lists.push(list)
     }
     self.allLists = lists
+    self.emptyHint = schedule.length === 0 ? "课表读取失败请重试" : "这天没有别的课"
 
     var src = null
     for (var a = 0; a < lists.length && !src; a++) {
