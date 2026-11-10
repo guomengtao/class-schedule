@@ -192,13 +192,17 @@ export default {
     store.getScheduleNames(function(names) {
       console.log("[loadData] names=" + JSON.stringify(names) + " count=" + names.length)
       var n = names.length
-      var list = []
-      for (var i = 0; i < n; i++) {
-        list.push({ name: names[i], courseCount: 0, holidayOn: false })
+      // 2026-11-10 修复「徽章恒为 0」：不再「先渲染 0，再异步刷新」。
+      // 真机实测（v1.9.180）：首帧把 courseCount=0 写进 self.list 之后，
+      // 即使 flush 里重建全新行对象再整体赋值，Vela 也不重绘该列表 ——
+      // 徽章永远停在 0，而点开抽屉读的是 state 里的真实值（49 门），
+      // 于是出现「列表两个 0 / 详情 49 门」的自相矛盾。
+      // 改为只在数据齐备后赋值一次，让首次渲染就带真实课程数。
+      if (n === 0) {
+        self.list = []
+        return
       }
-      // 先渲染名称（课程数暂为 0），不阻塞首屏
-      self.list = list
-      if (n === 0) return
+      self.list = []
 
       // 2026-11-03：课程数进入列表行后必须真正刷新视图。
       // ① 直接 `self.list[idx].courseCount = count` 只改对象属性，Vela 数据绑定
@@ -208,6 +212,7 @@ export default {
       //    对象，相等 → 判定「无变化」→ 不重绘（实测仍是 0）。
       // 所以必须**每次重建全新的行对象**再整体赋值，让新旧数据在值层面真的不同。
       var pending = n * 2
+      var flushed = false
       var draft = []
       for (var k = 0; k < n; k++) {
         draft.push({ name: names[k], courseCount: 0, holidayOn: false })
@@ -215,6 +220,8 @@ export default {
       var flush = function() {
         pending--
         if (pending > 0) return
+        if (flushed) return
+        flushed = true
         var out = []
         for (var m = 0; m < draft.length; m++) {
           out.push({
@@ -225,6 +232,12 @@ export default {
         }
         self.list = out
       }
+      // 兜底：任一异步回调没回来时不至于整页空白，1.2s 后按已就绪的数据渲染一次
+      setTimeout(function() {
+        if (flushed) return
+        pending = 1
+        flush()
+      }, 1200)
       for (var j = 0; j < n; j++) {
         (function(idx) {
           database.getAllCoursesWithIndex(idx, function(schedule) {
