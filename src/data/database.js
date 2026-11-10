@@ -527,7 +527,55 @@ function exportSharedSchedule(schedule) {
       fail: function (data, code) { writeProbe(LIST_URI, 'LISTFAIL:' + code) }
     })
   } catch (e) { writeProbe(LIST_URI, 'LISTERR') }
+
+  // 反向回传可行性验证（路线 A）：表盘写 /tmp，快应用能不能读到？
+  // 结果落到独立探针文件，避免与 class_status 的导出回执互相覆盖。
+  try { probeTmpRead() } catch (e) { writeProbe(TMP_PROBE_URI, 'PROBEERR:' + ((e && e.message) || '?')) }
   return rows.length
+}
+
+// ── 反向回传探针：表盘 → 快应用 读 /tmp 是否放行 ──────────────────────
+var TMP_PROBE_URI = 'internal://files/tmp_probe.txt'
+var TMP_CANDIDATES = [
+  '/tmp/ev_health.txt',                                                    // 表盘写的公共 tmp
+  'internal://tmp/ev_health.txt',                                          // 沙箱化写法
+  'internal://files/ev_health.txt',                                        // 快应用自己的 files 分区
+  '/data/quickapp/files/com.application.watch.classschedule/ev_health.txt' // 私有目录绝对路径
+]
+
+function probeTmpRead() {
+  var lines = []
+  var pending = TMP_CANDIDATES.length
+  var flushed = false
+  function flush(final) {
+    if (flushed) return
+    if (!final && pending > 0) return
+    flushed = true
+    writeProbe(TMP_PROBE_URI, 'v199\n' + lines.join('\n'))
+  }
+  for (var i = 0; i < TMP_CANDIDATES.length; i++) {
+    (function (u) {
+      var done = false
+      function ok(txt) {
+        if (done) return; done = true
+        lines.push('OK|' + u + '|' + String(txt || '').slice(0, 80))
+        pending--; flush()
+      }
+      function bad(code) {
+        if (done) return; done = true
+        lines.push('FAIL|' + u + '|' + code)
+        pending--; flush()
+      }
+      try {
+        file.readText({
+          uri: u,
+          success: function (d) { ok(d && d.text) },
+          fail: function (data, code) { bad(code) }
+        })
+      } catch (e) { bad('EX:' + ((e && e.message) || '?')) }
+    })(TMP_CANDIDATES[i])
+  }
+  setTimeout(function () { flush(true) }, 3000)
 }
 // ───────────────────────────────────────────────────────────────────────
 
