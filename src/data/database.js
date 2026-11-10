@@ -1,4 +1,8 @@
 var storage = require("@system.storage")
+// Lua 真表盘联动：把运行时课表导出到 /data/quickapp/files/<包名>/class.txt。
+// 表盘用 os.execute('cat ...') 读取并在亮屏时刷新；manifest 已声明 system.file。
+// 见 ev/ev-lua-class/联动架构纠正与实现方案-20261110.md
+var file = require("@system.file")
 // 晚课注入：所有页面都从本模块取课程，在出口统一叠加，一次改动全覆盖
 var rotation = require("./rotation")
 // 内置课表「八年级二班」：新装 seed、全部重置、课程预设都从这里取，
@@ -372,6 +376,8 @@ function getAllCoursesStorageWithIndex(index, callback) {
           var data = JSON.parse(val)
           _cache[index] = data
           _cacheDirty[index] = false
+          // 读盘也导出：用户一次课都没改过时，首次打开 App 即可让表盘读到课表
+          if (index === currentScheduleIndex) exportSharedSchedule(data)
           callback(data)
         } catch (e) {
           logErr("getAllCoursesStorageWithIndex parse failed: " + e)
@@ -412,6 +418,50 @@ function getAllCoursesStorageWithIndex(index, callback) {
 
 // 每次写盘成功后累加版本号。首页（index）返回前台时比对这个值，
 // 只要不一致就强制重新读盘 —— 解决"从编辑页删除后回首页，列表还留着已删课程"的问题。
+// ── Lua 表盘共享课表导出 ───────────────────────────────────────────────
+// 与米坛 Var课程表 组件口径一致：day 1=周一..7=周日，
+// 每行 {"day":1,"name":"语文","start":"08:00","end":"08:45"}
+var DAY2VAR = {
+  '星期一': 1, '星期二': 2, '星期三': 3, '星期四': 4,
+  '星期五': 5, '星期六': 6, '星期日': 7
+}
+var SHARED_URI = 'internal://files/class.txt'
+
+function splitTimeRange(timeRange) {
+  if (!timeRange || typeof timeRange !== 'string') return null
+  var parts = timeRange.split(' - ')
+  if (parts.length !== 2) return null
+  var a = parts[0].trim()
+  var b = parts[1].trim()
+  if (!/^\d{1,2}:\d{2}$/.test(a) || !/^\d{1,2}:\d{2}$/.test(b)) return null
+  return { start: a, end: b }
+}
+
+function exportSharedSchedule(schedule) {
+  var rows = []
+  var list = schedule || []
+  for (var i = 0; i < list.length; i++) {
+    var c = list[i] || {}
+    var day = DAY2VAR[c.day]
+    var t = splitTimeRange(c.time)
+    var name = (c.name || '').trim().replace(/\s+/g, '')
+    if (!day || !t || !name) continue
+    rows.push(JSON.stringify({ day: day, name: name, start: t.start, end: t.end }))
+  }
+  try {
+    file.writeText({
+      uri: SHARED_URI,
+      text: '[' + rows.join(',') + ']',
+      success: function () { log('[share] exported ' + rows.length + ' courses') },
+      fail: function (data, code) { logErr('[share] writeText failed code=' + code) }
+    })
+  } catch (e) {
+    logErr('[share] exception ' + (e && e.message))
+  }
+  return rows.length
+}
+// ───────────────────────────────────────────────────────────────────────
+
 function markDataDirty() {
   try {
     storage.set({
@@ -429,6 +479,7 @@ function saveToStorageWithIndex(index, schedule, callback) {
     value: JSON.stringify(schedule),
     success: function() {
       markDataDirty()
+      exportSharedSchedule(schedule)
       if (callback) callback(null)
     },
     fail: function(e) {
