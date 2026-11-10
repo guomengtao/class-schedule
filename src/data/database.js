@@ -362,6 +362,8 @@ function invalidateCache(index) {
 function getAllCoursesStorageWithIndex(index, callback) {
   if (!_cacheDirty[index] && _cache[index] !== undefined) {
     log("getAllCoursesStorageWithIndex: cache hit, index=" + index)
+    // 表盘联动：热启动/页面回前台命中的是缓存，旧版在这里直接 return，导出被整段跳过
+    if (index === currentScheduleIndex) exportSharedSchedule(_cache[index])
     callback(_cache[index])
     return
   }
@@ -426,6 +428,10 @@ var DAY2VAR = {
   '星期五': 5, '星期六': 6, '星期日': 7
 }
 var SHARED_URI = 'internal://files/class.txt'
+var SHARED_URI_ALT = 'internal://files/ev/class.txt'   // 部分实现把 files 分区落在子目录
+var STATUS_URI = 'internal://files/class_status.txt'
+var STATUS_URI_ALT = 'internal://files/class_status_ev.txt'
+var LIST_URI = 'internal://files/class_list.txt'
 
 function splitTimeRange(timeRange) {
   if (!timeRange || typeof timeRange !== 'string') return null
@@ -435,6 +441,37 @@ function splitTimeRange(timeRange) {
   var b = parts[1].trim()
   if (!/^\d{1,2}:\d{2}$/.test(a) || !/^\d{1,2}:\d{2}$/.test(b)) return null
   return { start: a, end: b }
+}
+
+// 探针文件：把「写端到底成没成」落盘，表盘/后续可取，避免只有一行 DEBUG 日志
+function writeProbe(uri, text) {
+  try {
+    file.writeText({ uri: uri, text: String(text) })
+  } catch (e) {}
+}
+
+function exportOne(uri, statusUri, payload, count) {
+  try {
+    file.writeText({
+      uri: uri,
+      text: payload,
+      success: function () {
+        // 回读校验：确认真的落盘且长度正确
+        try {
+          file.readText({
+            uri: uri,
+            success: function (d) {
+              writeProbe(statusUri, 'OK:' + count + ':' + ((d && d.text) ? d.text.length : -1) + ':' + uri + ':' + Date.now())
+            },
+            fail: function (data, code) { writeProbe(statusUri, 'READFAIL:' + code + ':' + uri) }
+          })
+        } catch (e) { writeProbe(statusUri, 'READERR:' + uri) }
+      },
+      fail: function (data, code) { writeProbe(statusUri, 'WRITEFAIL:' + code + ':' + uri) }
+    })
+  } catch (e) {
+    writeProbe(statusUri, 'EXCEPTION:' + uri + ':' + ((e && e.message) || '?'))
+  }
 }
 
 function exportSharedSchedule(schedule) {
@@ -448,16 +485,23 @@ function exportSharedSchedule(schedule) {
     if (!day || !t || !name) continue
     rows.push(JSON.stringify({ day: day, name: name, start: t.start, end: t.end }))
   }
+  var payload = '[' + rows.join(',') + ']'
+  writeProbe(STATUS_URI, 'BEGIN:' + rows.length + ':' + Date.now())
+  exportOne(SHARED_URI, STATUS_URI, payload, rows.length)
+  exportOne(SHARED_URI_ALT, STATUS_URI_ALT, payload, rows.length)
+  // 目录清单：帮助定位 internal://files/ 的物理落点
   try {
-    file.writeText({
-      uri: SHARED_URI,
-      text: '[' + rows.join(',') + ']',
-      success: function () { log('[share] exported ' + rows.length + ' courses') },
-      fail: function (data, code) { logErr('[share] writeText failed code=' + code) }
+    file.list({
+      uri: 'internal://files/',
+      success: function (d) {
+        var names = []
+        var fl = (d && d.fileList) || []
+        for (var k = 0; k < fl.length; k++) names.push(fl[k].uri)
+        writeProbe(LIST_URI, names.join('|'))
+      },
+      fail: function (data, code) { writeProbe(LIST_URI, 'LISTFAIL:' + code) }
     })
-  } catch (e) {
-    logErr('[share] exception ' + (e && e.message))
-  }
+  } catch (e) { writeProbe(LIST_URI, 'LISTERR') }
   return rows.length
 }
 // ───────────────────────────────────────────────────────────────────────
@@ -909,7 +953,10 @@ module.exports = {
         // 旧写法是 prime(index, null) 后立刻 injectInto，peek() 还是 undefined，
         // 首页 onInit 只取一次数且 resumeRefresh 有早退优化，晚课就永远不出现。
         rotation.prime(currentScheduleIndex, function() {
-          callback(rotation.injectInto(schedule, currentScheduleIndex))
+          var finalSchedule = rotation.injectInto(schedule, currentScheduleIndex)
+          // 表盘联动：用叠加晚课后的最终课表再导一次，保证首帧就是用户实际看到的课表
+          exportSharedSchedule(finalSchedule)
+          callback(finalSchedule)
         })
       })
     })
