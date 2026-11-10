@@ -22,7 +22,7 @@
       <text class="date-text" if="{{ showPullTip }}" style="color: {{ theme.accent }}">已是今天</text>
     </div>
 
-    <div class="header" onswipe="onCardSwipe">
+    <div class="header" onswipe="onCardSwipe" style="{{ headerPad }}">
       <div class="nav-btn-circle" onclick="prevDay" style="background-color: {{ theme.cardLight }}">
         <image class="nav-btn-img" src="/common/icons/{{ iconTheme }}/icon_arrow_left.png"></image>
       </div>
@@ -217,7 +217,7 @@
          2026-11-03：挂 onswipe 作为上划进设置的通道（圆钮是可点元素，会吃掉触摸流，
          只靠根节点 touch 起手在本区会漏）；这条通道同时接管 right → 退出，
          否则底部右划会像 11-02 的列表区一样变成死手势（见 gesture.js 文件头 ⑤）。 -->
-    <div class="bottom-buttons" onswipe="onBottomSwipe">
+    <div class="bottom-buttons" onswipe="onBottomSwipe" style="{{ btnPad }}">
       <!-- 胶囊屏三钮同径同底（真机反馈 2026-10-24：加号原来带 2px accent 描边、
            底色透明，视觉上比左右两枚「大一号」）。现在三枚都是 48 圆 + cardLight 底，
            只有图标不同：＋ / 周视图 / 齿轮。 -->
@@ -411,6 +411,8 @@ export default {
     // 只能走内联。空串 = 不写内联，交给 CSS 媒体查询/基础值（手环 9 与方屏不受影响）。
     pagePad: "",
     statusPad: "",
+    headerPad: "",
+    btnPad: "",
     iconTheme: "dark",
     lastDirty: "",
     isLoading: true,
@@ -765,11 +767,18 @@ export default {
     // 466 圆屏可视区是内切圆（半径 233），基础内距 16 会让课卡左右只剩 7px 空白，
     // 贴到表壳内圈上；圆屏单独给 40/52/28。
     if (isCircleScreen) {
-      this.pagePad = "padding: 40px 52px 28px 52px;"
+      this.pagePad = "padding: 40px 56px 30px 56px;"
       this.statusPad = "padding: 4px 8px;"
+      // 头部两枚箭头 / 底部三圆都在“行两端”，而圆屏可用宽度随 y 收窄，
+      // 只收页面内距还不够：y≈98 处弦宽 378、y≈398 处弦宽 328。
+      // 所以这两行单独再收一次，保证按钮完整落在内切圆里。
+      this.headerPad = "padding: 0 10px;"
+      this.btnPad = "padding: 0 16px;"
     } else {
       this.pagePad = ""
       this.statusPad = ""
+      this.headerPad = ""
+      this.btnPad = ""
     }
   },
 
