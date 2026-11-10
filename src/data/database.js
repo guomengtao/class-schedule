@@ -474,16 +474,41 @@ function exportOne(uri, statusUri, payload, count) {
   }
 }
 
+// 课表真实结构（2026-11-10 从手环 usr.db 实证，勿再猜）：
+//   [{ day: '星期一', classes: [{ id, name, time: '08:00 - 08:40', teacher, location, notes }] }, ...]
+// 旧实现直接读 c.time / c.name —— groups 层根本没有这两个字段，导致 rows 恒为空、导出 '[]'。
+// 这就是「表盘永远显示今日无课」的根因。下面同时兼容 groups 嵌套与扁平两种结构。
+function pushRow(rows, dayNum, name, timeRange) {
+  var t = splitTimeRange(timeRange)
+  var nm = (name || '').trim().replace(/\s+/g, '')
+  if (!dayNum || !t || !nm) return false
+  rows.push(JSON.stringify({ day: dayNum, name: nm, start: t.start, end: t.end }))
+  return true
+}
+
 function exportSharedSchedule(schedule) {
   var rows = []
   var list = schedule || []
   for (var i = 0; i < list.length; i++) {
-    var c = list[i] || {}
-    var day = DAY2VAR[c.day]
-    var t = splitTimeRange(c.time)
-    var name = (c.name || '').trim().replace(/\s+/g, '')
-    if (!day || !t || !name) continue
-    rows.push(JSON.stringify({ day: day, name: name, start: t.start, end: t.end }))
+    var g = list[i] || {}
+    var gday = DAY2VAR[g.day] || ((typeof g.day === 'number' && g.day >= 1 && g.day <= 7) ? g.day : 0)
+    var classes = g.classes
+    if (classes && classes.length) {
+      for (var j = 0; j < classes.length; j++) {
+        var c = classes[j] || {}
+        pushRow(rows, gday, c.name, c.time)
+      }
+    } else {
+      // 扁平结构兜底：{day:N|'星期一', name, start, end} 或 {day, name, time}
+      var flatDay = gday || DAY2VAR[g.day] || 0
+      if (!pushRow(rows, flatDay, g.name, g.time)) {
+        var st = g.start, en = g.end
+        var nmf = (g.name || '').trim().replace(/\s+/g, '')
+        if (flatDay && nmf && /^\d{1,2}:\d{2}$/.test(st || '') && /^\d{1,2}:\d{2}$/.test(en || '')) {
+          rows.push(JSON.stringify({ day: flatDay, name: nmf, start: st, end: en }))
+        }
+      }
+    }
   }
   var payload = '[' + rows.join(',') + ']'
   writeProbe(STATUS_URI, 'BEGIN:' + rows.length + ':' + Date.now())
