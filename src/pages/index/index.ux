@@ -745,9 +745,9 @@ export default {
       // 取约 1.4 倍中间档：一屏仍容 2 条课卡 + 底部三圆，正文约占屏宽 8%。
       if (isCircleScreen) {
         return {
-          display: Math.min(norm + 2, 34),
-          meta: Math.min(Math.max(norm - 8, 24), 24),
-          dayTitle: Math.min(norm, 32)
+          display: Math.min(norm - 1, 31),
+          meta: Math.min(Math.max(norm - 10, 22), 22),
+          dayTitle: Math.min(norm - 2, 30)
         }
       }
       return {
@@ -767,7 +767,7 @@ export default {
     // 466 圆屏可视区是内切圆（半径 233），基础内距 16 会让课卡左右只剩 7px 空白，
     // 贴到表壳内圈上；圆屏单独给 40/52/28。
     if (isCircleScreen) {
-      this.pagePad = "padding: 40px 56px 30px 56px;"
+      this.pagePad = "padding: 32px 56px 22px 56px;"
       this.statusPad = "padding: 4px 8px;"
       // 头部两枚箭头 / 底部三圆都在“行两端”，而圆屏可用宽度随 y 收窄，
       // 只收页面内距还不够：y≈98 处弦宽 378、y≈398 处弦宽 328。
