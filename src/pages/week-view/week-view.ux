@@ -50,7 +50,7 @@
               <text if="{{ $item.course }}" class="wv-name {{ nameLines > 1 ? 'wv-name-2l' : '' }} {{ transparentCells ? 'wv-name-transparent' : '' }} {{ $item.isCurrent && transparentCells ? 'wv-name-now' : '' }}" style="color:{{ $item.fg }};font-size:{{ nameFontSize }}px;line-height:{{ nameLineHeight }}px;font-weight:{{ nameFontWeight }}">{{ $item.nameText }}</text>
               <text if="{{ $item.course && showRoom && $item.course.location }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.location }}</text>
               <text if="{{ $item.course && showTeacher && $item.course.teacher }}" class="wv-info" style="color:{{ theme.textMuted }};font-size:{{ infoFontSize }}px">{{ $item.course.teacher }}</text>
-              <text if="{{ $item.course && $item.course.extraCount > 0 && showExtraBadge }}" class="wv-extra" style="color:{{ theme.textMuted }}">+{{ $item.course.extraCount }}</text>
+              <!-- 2026-11-11 删除「+N」合并角标：同时间多课已改为逐条占行，不再折叠 -->
               <text if="{{ !$item.course && paletteEmptyDot }}" class="wv-empty" style="color:{{ theme.textMuted }}">·</text>
             </div>
           </div>
@@ -903,54 +903,61 @@ export default {
     var timeSlots = []
     for (var t = 0; t < timeKeys.length; t++) {
       var time = timeKeys[t]
-      var cells = []
-      for (var d = 0; d < dayList.length; d++) {
-        var day = dayList[d]
-        var courses = allCourses[day] || []
-        var matched = []
-        for (var c = 0; c < courses.length; c++) {
-          if (courses[c].time === time) {
-            matched.push(courses[c])
+      /* 2026-11-11 取消「同时间合并」（用户要求：全部简单列出来）：
+         原实现把同一天同一时间的多门课合成一格 —— 只显示 matched[0]，其余折成
+         extraCount 的「+N」，并把整组课程数组 allCourses 挂到格对象上。
+         两个问题：① 信息被折叠，用户看不到被合并掉的是哪几门；
+         ② 那个 allCourses 数组随格对象进 _renderCache 长期常驻，是这页内存占用
+         最重的一处（页面销毁也不释放，只由 clearRenderCache 兜底）。
+         现在改为逐条展开：同一天同时间有几门课就占几行，每行只放一门，
+         格对象只带自己的 course，不再挂任何聚合数组。 */
+      // 先算每个栏目当天该时间命中的课程列表，再按最大行数铺行
+      var perDay = []
+      var maxLines = 1
+      for (var d0 = 0; d0 < dayList.length; d0++) {
+        var dayCourses0 = allCourses[dayList[d0]] || []
+        var hits = []
+        for (var c0 = 0; c0 < dayCourses0.length; c0++) {
+          if (dayCourses0[c0].time === time) {
+            hits.push(dayCourses0[c0])
           }
         }
-        if (matched.length > 0) {
-          var firstCourse = matched[0]
-          var cellCourse = {
-            id: firstCourse.id,
-            name: firstCourse.name,
-            extraCount: matched.length > 1 ? matched.length - 1 : 0,
-            time: firstCourse.time,
-            teacher: firstCourse.teacher,
-            location: firstCourse.location,
-            allCourses: matched
-          }
-          // 2026-11-01 性能：配色与显示名在构建期算一次，模板只绑定结果。
-          // 原实现模板里对每格调 getCellBg/getCellTextColor/getDisplayName，60 格 × 每次重绘
-          // 都要重查 PALETTE_CONFIGS + guessSubjectKey + 字符串切片，是滑动卡顿的主要来源之一。
-          // 另删除从未被模板引用的 displayChar（每格白算一次 getFirstChar）。
-          cells.push({
-            day: day,
-            isCurrent: day === self.currentCourseDay && time === self.currentCourseTime,
-            bg: self.getCellBg(cellCourse),
-            fg: self.getCellTextColor(cellCourse),
-            nameText: self.getDisplayName(cellCourse),
-            course: cellCourse
-          })
-        } else {
-          cells.push({
-            day: day,
-            isCurrent: false,
-            bg: "transparent",
-            fg: "transparent",
-            nameText: "",
-            course: null
-          })
-        }
+        perDay.push(hits)
+        if (hits.length > maxLines) maxLines = hits.length
       }
-      timeSlots.push({
-        time: time,
-        cells: cells
-      })
+
+      for (var ln = 0; ln < maxLines; ln++) {
+        var cells = []
+        for (var d = 0; d < dayList.length; d++) {
+          var day = dayList[d]
+          var course = perDay[d][ln]
+          if (course) {
+            // 2026-11-01 性能：配色与显示名仍在构建期算一次，模板只绑定结果。
+            cells.push({
+              day: day,
+              isCurrent: day === self.currentCourseDay && time === self.currentCourseTime,
+              bg: self.getCellBg(course),
+              fg: self.getCellTextColor(course),
+              nameText: self.getDisplayName(course),
+              course: course
+            })
+          } else {
+            cells.push({
+              day: day,
+              isCurrent: false,
+              bg: "transparent",
+              fg: "transparent",
+              nameText: "",
+              course: null
+            })
+          }
+        }
+        // 同一时间的第 2 行起不再重复时间文本，避免时间列出现一列重复值
+        timeSlots.push({
+          time: ln === 0 ? time : "",
+          cells: cells
+        })
+      }
     }
 
     this.timeSlots = timeSlots
