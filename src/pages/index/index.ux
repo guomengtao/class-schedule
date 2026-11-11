@@ -1022,7 +1022,9 @@ export default {
      圆弧最低点 22.8 对上边界 23，十字交叉刚好不裁。
      只作用于 header 一行，不动页面内距 12：那个 12 是 2026-11-02 为课名不截断
      特意从 16 收到的（168 宽口径），改它会连累提醒条和课卡。 */
-  padding: 0 4px;
+  padding: 0;
+  margin-left: 4px;
+  margin-right: 4px;
   margin-bottom: 2px;
   flex-shrink: 0;
 }
@@ -1733,7 +1735,9 @@ export default {
   /* 提醒条与上方圆钮原来只隔 2px，视觉上像贴在按钮下沿；
      放到 6px，与提醒条到下方课卡的间距（6px）对称。 */
   .header {
-    padding: 0 4px;
+    padding: 0;
+    margin-left: 4px;
+    margin-right: 4px;
     margin-bottom: 6px;
   }
   .date-row {
