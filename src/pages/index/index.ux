@@ -1080,7 +1080,7 @@ export default {
      就已经被裁成「水滴形」（截图比对可证）。内距 +4 把左边缘推到 x=16，
      y=36 处圆弧最低点 22.8 对上边界 23，刚好不裁。
      所以这 4px 不是留白，是给屏顶弧线让位。 */
-  width: 48px;
+  width: 52px;
   height: 40px;
   border-radius: 20px;
   justify-content: center;
@@ -1753,7 +1753,7 @@ export default {
      4px 内距同理必须在这里也写：否则媒体查询一旦命中，会把基础值的
      padding 覆盖回 0，按钮重新贴到屏顶弧线上被裁。 */
   .nav-btn-circle {
-    width: 48px;
+    width: 52px;
     height: 40px;
     border-radius: 20px;
   }
