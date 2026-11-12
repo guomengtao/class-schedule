@@ -10,9 +10,13 @@
     <div class="hdr">
       <div class="hdr-pill" onclick="goBack" style="background-color:{{ theme.card }}">
         <image class="hdr-pill-ic" src="/common/icons/{{ iconTheme }}/icon_back.png"></image>
-        <text class="hdr-pill-t" style="color:{{ theme.text }}">总课表</text>
+        <text class="hdr-pill-t" style="color:{{ theme.text }}">{{ dbgText || "总课表" }}</text>
       </div>
     </div>
+    <!-- 临时诊断打点（验完删除） -->
+    <!-- 临时诊断打点（验完删除） -->
+    <!-- 临时诊断打点（验完删除） -->
+    <text style="font-size:13px;color:#ff6b6b">{{ dbgText }}</text>
 
     <!-- grid area -->
     <scroll class="wv-grid-scroll" scroll-x="true" scroll-y="true">
@@ -107,6 +111,11 @@ var log = (function() {
     dlog(line)
   }
 })()
+
+// 胶囊屏左右安全边（px）：为让开屏顶左右圆弧内含进可视区的那一半。
+// **必须与样式表 pill-shaped 块里 .wv-scroll-inner 的 padding: 0 12px 保持一致** ——
+// 列宽自适应要扣掉它，否则 gridContentWidth 会超出实际可视宽，最右一列（星期五）被裁。
+var CAPSULE_SAFE_X = 12
 
 // map Chinese day names (from DB) to English (used internally)
 var DAY_NAME_MAP = {
@@ -324,6 +333,7 @@ var LEGACY_TEMPLATE_MAP = {
 
 export default {
   private: {
+    dbgText: "BOOT?",
     iconTheme: "dark",
     allWeekDays: ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u65e5"],
     allDayNames: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
@@ -640,12 +650,19 @@ export default {
     var cfg = LAYOUT_CONFIGS[this.currentLayoutId] || LAYOUT_CONFIGS["big-char"]
     var cellExtra = 2 * this.cellMargin + (this.cellBordered ? 2 : 0)
     if (this.isCapsule === true) {
-      // 胶囊屏：部分布局按真实屏宽自适应（.wv-page 左右 padding 为 0）。
+      // 胶囊屏：部分布局按真实可用宽自适应（.wv-page 左右 padding 为 0）。
       // 此前胶囊屏被整体排除、固定 42px：5×42=210 > 192，周五整列被屏幕右缘裁掉半个字（2026-09-28 用户反馈）。
       // 全名类布局保持固定 min(70,60) + 横向滑动，符合规范 5.3「显示 2.5~3.5 列」（D-02）。
+      //
+      // 2026-11-12 修正（用户反馈「星期五只显示一半」）：
+      // 可用宽不能只取屏宽 —— pill-shaped 媒体查询里 .wv-scroll-inner 还有
+      // padding: 0 12px（为让开屏顶左右圆弧，见样式表该块注释）。此前只用 192 算，
+      // 极简档 5 列各 38px → gridContentWidth 190 > 实际可用 168，
+      // 星期五整列被推到屏幕右缘之外，只剩左半条。
+      // 必须与样式表 CAPSULE_SAFE_X（=.wv-scroll-inner 左右 padding）保持一致。
       if (cfg.capsuleAutoWidth === true) {
-        var availCells = (this.screenWidth || 192) - this.rowNumWidth
-        this.cellWidth = Math.max(30, Math.floor(availCells / this.weekDays.length) - cellExtra)
+        var availCells = (this.screenWidth || 192) - CAPSULE_SAFE_X * 2 - this.rowNumWidth
+        this.cellWidth = Math.max(18, Math.floor(availCells / this.weekDays.length) - cellExtra)
       }
     } else {
       // 方屏/圆屏：所有模板一律按真实可用宽度均分。
@@ -653,9 +670,20 @@ export default {
       // 规范 5.2 要求方屏 5 列全显，故方屏不再保留固定列宽（D-02 的固定宽只在胶囊屏成立）。
       var pagePad = (this.screenShape === "circle") ? 72 : 20 // .wv-page 左右内距：方屏 10×2，圆屏 36×2
       var availRect = (this.screenWidth || 336) - pagePad - this.rowNumWidth
-      this.cellWidth = Math.max(30, Math.floor(availRect / this.weekDays.length) - cellExtra)
+      this.cellWidth = Math.max(18, Math.floor(availRect / this.weekDays.length) - cellExtra)
     }
     this.gridContentWidth = this.rowNumWidth + this.weekDays.length * (this.cellWidth + 2 * this.cellMargin + (this.cellBordered ? 2 : 0))
+
+    // 2026-11-12：大字布局（极简 / 清爽，nameDisplay === "char"）字号随格宽收敛。
+    // 36px 首字塞进 31px 的格子会溢出格边界，字被截一半（用户反馈「文字大了一点」）。
+    // 按格内净宽（格宽 − 左右 margin − 2px 内缩）取字号，保持与方屏 36/42 相近的字格比。
+    if (this.nameDisplay === "char" && this.cellWidth > 0) {
+      var maxCharW = this.cellWidth - 2 * this.cellMargin - 2
+      if (maxCharW > 8 && this.nameFontSize > maxCharW) {
+        this.nameFontSize = maxCharW
+        this.nameLineHeight = maxCharW + 6
+      }
+    }
   },
 
   applyWeekendFilter() {
@@ -678,6 +706,7 @@ export default {
 
   loadData() {
     var self = this
+    self.dbgText = "L0 v=" + self.viewIndex
     // T-01：页面已销毁时不再发起数据链路
     if (self._destroyed) return
     log("loadData start viewIndex=" + self.viewIndex)
@@ -704,6 +733,7 @@ export default {
     database.getAllCoursesWithIndex(this.viewIndex, function(schedule) {
       if (dataLoaded) return
       dataLoaded = true
+      self.dbgText = "CB len=" + (schedule ? schedule.length : "null")
       log("loadData getAllCoursesWithIndex returned, len=" + (schedule ? schedule.length : "null"))
       if (!schedule) {
         log("loadData schedule is null, fallback to getAllCourses")
@@ -833,6 +863,7 @@ export default {
     }
 
     self.isLoading = false
+    self.dbgText = "OK slots=" + self.timeSlots.length + " total=" + total
   },
 
   getDisplayName(course) {
